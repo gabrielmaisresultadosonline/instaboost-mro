@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ProfileSearch } from '@/components/ProfileSearch';
 import { Dashboard } from '@/components/Dashboard';
-import { MROSession } from '@/types/instagram';
+import { MROSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import { getSession, saveSession, updateProfile, updateAnalysis, hasExistingSession, createEmptySession } from '@/lib/storage';
-import { generateMockProfile, generateMockAnalysis } from '@/lib/mockData';
+import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -25,12 +25,52 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Fetch Instagram profile
+      toast({
+        title: "Buscando perfil...",
+        description: `Analisando @${username.replace('@', '')}`,
+      });
 
-      // Generate mock data (in production, this would call real APIs)
-      const profile = generateMockProfile(username);
-      const analysis = generateMockAnalysis(profile);
+      const profileResult = await fetchInstagramProfile(username);
+
+      if (!profileResult.success || !profileResult.profile) {
+        toast({
+          title: "Erro ao buscar perfil",
+          description: profileResult.error || "Tente novamente",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const profile = profileResult.profile;
+
+      if (profileResult.simulated) {
+        toast({
+          title: "Perfil encontrado",
+          description: profileResult.message || "Dados complementados via simulação",
+        });
+      }
+
+      // Analyze profile with AI
+      toast({
+        title: "Analisando com IA...",
+        description: "Gerando insights personalizados",
+      });
+
+      const analysisResult = await analyzeProfile(profile);
+
+      if (!analysisResult.success || !analysisResult.analysis) {
+        toast({
+          title: "Erro na análise",
+          description: analysisResult.error || "Usando análise básica",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const analysis = analysisResult.analysis;
 
       // Save to storage
       updateProfile(profile);
@@ -51,10 +91,11 @@ const Index = () => {
       setShowDashboard(true);
 
       toast({
-        title: "Análise concluída!",
+        title: "Análise concluída! ✨",
         description: `Perfil @${profile.username} analisado com sucesso.`,
       });
     } catch (error) {
+      console.error('Error:', error);
       toast({
         title: "Erro na análise",
         description: "Não foi possível analisar o perfil. Tente novamente.",
