@@ -15,7 +15,6 @@ import {
   BarChart3, 
   Lightbulb, 
   Image as ImageIcon,
-  ChevronLeft 
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -211,9 +210,11 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
       </main>
 
       {/* Creative Generator Modal */}
-      {showCreativeGenerator && selectedStrategy && (
+      {showCreativeGenerator && selectedStrategy && session.profile && session.analysis && (
         <CreativeGenerator
           strategy={selectedStrategy}
+          profile={session.profile}
+          niche={session.analysis.niche}
           onCreativeGenerated={handleCreativeGenerated}
           onClose={() => setShowCreativeGenerator(false)}
         />
