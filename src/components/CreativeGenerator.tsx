@@ -1,0 +1,163 @@
+import { useState } from 'react';
+import { Strategy, Creative } from '@/types/instagram';
+import { Button } from '@/components/ui/button';
+import { Loader2, Download, Sparkles, Image as ImageIcon } from 'lucide-react';
+
+interface CreativeGeneratorProps {
+  strategy: Strategy;
+  onCreativeGenerated: (creative: Creative) => void;
+  onClose: () => void;
+}
+
+export const CreativeGenerator = ({ strategy, onCreativeGenerated, onClose }: CreativeGeneratorProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [ctaText, setCtaText] = useState('');
+  const [headline, setHeadline] = useState('');
+
+  const generateCreative = async () => {
+    setIsGenerating(true);
+    
+    // Generate CTA and headline based on strategy
+    const ctas = [
+      'Clique e saiba mais!',
+      'Garanta sua vaga agora!',
+      'Fale comigo no Direct',
+      'Link na bio 👇',
+      'Aproveite hoje!',
+    ];
+    const headlines = [
+      `Transforme seu ${strategy.type === 'mro' ? 'crescimento' : 'negócio'} hoje!`,
+      'Resultados comprovados em 30 dias',
+      'Seu sucesso começa aqui',
+      'Estratégia exclusiva para você',
+      'Não perca essa oportunidade',
+    ];
+
+    const selectedCta = ctas[Math.floor(Math.random() * ctas.length)];
+    const selectedHeadline = headlines[Math.floor(Math.random() * headlines.length)];
+    
+    setCtaText(selectedCta);
+    setHeadline(selectedHeadline);
+
+    // Simulate image generation delay
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    // For now, use a placeholder image with overlay text
+    // In production, this would call the Lovable AI image generation
+    const placeholderImage = `https://picsum.photos/seed/${strategy.id}/1080/1080`;
+    setGeneratedImage(placeholderImage);
+    
+    setIsGenerating(false);
+  };
+
+  const saveCreative = () => {
+    if (generatedImage) {
+      const creative: Creative = {
+        id: `creative_${Date.now()}`,
+        imageUrl: generatedImage,
+        ctaText,
+        headline,
+        strategyId: strategy.id,
+        createdAt: new Date().toISOString(),
+      };
+      onCreativeGenerated(creative);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="glass-card glow-border p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto animate-slide-up">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-display font-bold flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-primary" />
+            Gerar Criativo
+          </h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            ✕
+          </button>
+        </div>
+
+        {/* Strategy Info */}
+        <div className="p-4 rounded-lg bg-secondary/50 mb-6">
+          <p className="text-sm text-muted-foreground mb-1">Baseado na estratégia:</p>
+          <p className="font-semibold">{strategy.title}</p>
+        </div>
+
+        {/* Generated Image Preview */}
+        {generatedImage ? (
+          <div className="space-y-4">
+            <div className="relative aspect-square rounded-lg overflow-hidden bg-secondary">
+              <img 
+                src={generatedImage} 
+                alt="Criativo gerado" 
+                className="w-full h-full object-cover"
+              />
+              {/* Overlay with text */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent flex flex-col items-center justify-end p-6">
+                <h4 className="text-2xl font-display font-bold text-center mb-2 text-gradient">
+                  {headline}
+                </h4>
+                <span className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold">
+                  {ctaText}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button onClick={generateCreative} variant="outline" className="flex-1">
+                <Sparkles className="w-4 h-4" />
+                Gerar Outro
+              </Button>
+              <Button onClick={saveCreative} variant="gradient" className="flex-1">
+                <Download className="w-4 h-4" />
+                Salvar Criativo
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="aspect-square rounded-lg bg-secondary/50 flex flex-col items-center justify-center text-muted-foreground">
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-12 h-12 mb-4 animate-spin text-primary" />
+                  <p className="text-sm">Gerando criativo com IA...</p>
+                  <p className="text-xs mt-2">Isso pode levar alguns segundos</p>
+                </>
+              ) : (
+                <>
+                  <ImageIcon className="w-16 h-16 mb-4 opacity-50" />
+                  <p className="text-sm">Clique para gerar seu criativo</p>
+                </>
+              )}
+            </div>
+
+            <Button 
+              onClick={generateCreative} 
+              variant="gradient" 
+              size="lg" 
+              className="w-full"
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Gerando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Gerar Criativo com IA
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground text-center mt-4">
+          O criativo será gerado com base na sua estratégia, incluindo CTAs de alta conversão.
+        </p>
+      </div>
+    </div>
+  );
+};
