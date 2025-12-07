@@ -68,92 +68,94 @@ serve(async (req) => {
     let profileData: InstagramProfile | null = null;
     let recentPosts: InstagramPost[] = [];
 
-    // Option 1: Instagram Scraper Stable API (Most reliable - 2025)
+    // Option 1: Instagram Scraper API (socialdata.tools - free tier available)
     try {
-      console.log('Trying Instagram Scraper Stable API...');
-      const response = await fetch(`https://instagram-scraper-stable-api.p.rapidapi.com/user_data?username_or_url=${cleanUsername}`, {
+      console.log('Trying Instagram Scraper API (socialdata)...');
+      const response = await fetch(`https://instagram-scraper-api3.p.rapidapi.com/user_info_by_username?username=${cleanUsername}`, {
         headers: {
           'x-rapidapi-key': RAPIDAPI_KEY,
-          'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com'
+          'x-rapidapi-host': 'instagram-scraper-api3.p.rapidapi.com'
         }
       });
 
+      console.log('Instagram Scraper API3 status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('Instagram Scraper Stable API response:', JSON.stringify(data).substring(0, 1500));
+        console.log('Instagram Scraper API3 response:', JSON.stringify(data).substring(0, 1500));
         
-        // Handle different response structures
         const user = data.data || data.user || data;
         
-        if (user && (user.username || user.pk || user.id || user.full_name)) {
+        if (user && (user.username || user.pk || user.id)) {
           profileData = {
             username: user.username || cleanUsername,
             fullName: user.full_name || user.fullName || '',
             bio: user.biography || user.bio || '',
-            followers: user.follower_count || user.followers || user.edge_followed_by?.count || 0,
-            following: user.following_count || user.following || user.edge_follow?.count || 0,
-            posts: user.media_count || user.posts_count || user.edge_owner_to_timeline_media?.count || 0,
+            followers: user.follower_count || user.followers_count || user.followers || 0,
+            following: user.following_count || user.followings_count || user.following || 0,
+            posts: user.media_count || user.posts_count || 0,
             profilePicUrl: user.profile_pic_url_hd || user.hd_profile_pic_url_info?.url || user.profile_pic_url || '',
             isBusinessAccount: user.is_business || user.is_business_account || user.is_professional_account || false,
-            category: user.category || user.category_name || user.business_category_name || '',
+            category: user.category || user.category_name || '',
             externalUrl: user.external_url || user.bio_links?.[0]?.url || '',
           };
-          console.log('Profile found via Instagram Scraper Stable API:', profileData.username, profileData.followers);
+          console.log('Profile found via Instagram Scraper API3:', profileData.username, profileData.followers);
         }
       } else {
         const errorText = await response.text();
-        console.log('Instagram Scraper Stable API failed:', response.status, errorText.substring(0, 500));
+        console.log('Instagram Scraper API3 failed:', response.status, errorText.substring(0, 300));
       }
     } catch (e) {
-      console.error('Instagram Scraper Stable API error:', e);
+      console.error('Instagram Scraper API3 error:', e);
     }
 
-    // Try to get recent posts with Instagram Scraper Stable API
-    if (profileData) {
+    // Option 2: Instagram Data API
+    if (!profileData) {
       try {
-        console.log('Fetching recent posts via Instagram Scraper Stable API...');
-        const postsResponse = await fetch(`https://instagram-scraper-stable-api.p.rapidapi.com/user_posts?username_or_url=${cleanUsername}`, {
+        console.log('Trying Instagram Data API...');
+        const response = await fetch(`https://instagram-data1.p.rapidapi.com/user/info?username=${cleanUsername}`, {
           headers: {
             'x-rapidapi-key': RAPIDAPI_KEY,
-            'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com'
+            'x-rapidapi-host': 'instagram-data1.p.rapidapi.com'
           }
         });
 
-        if (postsResponse.ok) {
-          const postsData = await postsResponse.json();
-          console.log('Posts response:', JSON.stringify(postsData).substring(0, 800));
+        console.log('Instagram Data API status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Instagram Data API response:', JSON.stringify(data).substring(0, 1000));
           
-          // Handle different post response structures
-          const items = postsData.data?.items || postsData.items || postsData.data || postsData.edges || [];
-          const posts = Array.isArray(items) ? items : [];
+          const user = data.data || data.user || data;
           
-          if (posts.length > 0) {
-            recentPosts = posts.slice(0, 12).map((post: any, index: number) => {
-              const node = post.node || post;
-              return {
-                id: node.id || node.pk || node.code || `post_${index}`,
-                imageUrl: node.thumbnail_url || node.display_url || node.image_versions2?.candidates?.[0]?.url || node.thumbnail_src || node.image_url || '',
-                caption: node.caption?.text || node.edge_media_to_caption?.edges?.[0]?.node?.text || (typeof node.caption === 'string' ? node.caption : '') || '',
-                likes: node.like_count || node.edge_liked_by?.count || node.likes || node.likes_count || 0,
-                comments: node.comment_count || node.edge_media_to_comment?.count || node.comments || node.comments_count || 0,
-                timestamp: node.taken_at ? new Date(node.taken_at * 1000).toISOString() : (node.taken_at_timestamp ? new Date(node.taken_at_timestamp * 1000).toISOString() : new Date().toISOString()),
-                hasHumanFace: Math.random() > 0.3,
-              };
-            });
-            console.log(`Found ${recentPosts.length} real posts`);
+          if (user && (user.username || user.pk)) {
+            profileData = {
+              username: user.username || cleanUsername,
+              fullName: user.full_name || '',
+              bio: user.biography || '',
+              followers: user.follower_count || user.edge_followed_by?.count || 0,
+              following: user.following_count || user.edge_follow?.count || 0,
+              posts: user.media_count || user.edge_owner_to_timeline_media?.count || 0,
+              profilePicUrl: user.profile_pic_url_hd || user.profile_pic_url || '',
+              isBusinessAccount: user.is_business_account || user.is_business || false,
+              category: user.category_name || user.category || '',
+              externalUrl: user.external_url || '',
+            };
+            console.log('Profile found via Instagram Data API:', profileData.username);
           }
         } else {
-          console.log('Posts fetch failed:', postsResponse.status);
+          const errorText = await response.text();
+          console.log('Instagram Data API failed:', response.status, errorText.substring(0, 300));
         }
       } catch (e) {
-        console.error('Error fetching posts:', e);
+        console.error('Instagram Data API error:', e);
       }
     }
 
-    // Option 2: Fallback to Instagram Bulk Profile Scrapper
+    // Option 3: Instagram Bulk Profile Scrapper
     if (!profileData) {
       try {
-        console.log('Trying Instagram Bulk Profile Scrapper as fallback...');
+        console.log('Trying Instagram Bulk Profile Scrapper...');
         const response = await fetch(`https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/ig_profile?ig=${cleanUsername}`, {
           headers: {
             'x-rapidapi-key': RAPIDAPI_KEY,
@@ -161,6 +163,8 @@ serve(async (req) => {
           }
         });
 
+        console.log('Bulk Profile Scrapper status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
           console.log('Bulk Profile response:', JSON.stringify(data).substring(0, 800));
@@ -181,15 +185,99 @@ serve(async (req) => {
             };
             console.log('Profile found via Bulk Profile Scrapper:', profileData.username);
           }
+        } else {
+          const errorText = await response.text();
+          console.log('Bulk Profile Scrapper failed:', response.status, errorText.substring(0, 300));
         }
       } catch (e) {
         console.error('Bulk Profile Scrapper error:', e);
       }
     }
 
+    // Option 4: RoketAPI
+    if (!profileData) {
+      try {
+        console.log('Trying RoketAPI...');
+        const response = await fetch(`https://rocketapi-for-instagram.p.rapidapi.com/instagram/user/get_info?username=${cleanUsername}`, {
+          headers: {
+            'x-rapidapi-key': RAPIDAPI_KEY,
+            'x-rapidapi-host': 'rocketapi-for-instagram.p.rapidapi.com'
+          }
+        });
+
+        console.log('RoketAPI status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('RoketAPI response:', JSON.stringify(data).substring(0, 800));
+          
+          const user = data.response?.body?.data?.user || data.data?.user || data.user || data;
+          
+          if (user && (user.username || user.pk)) {
+            profileData = {
+              username: user.username || cleanUsername,
+              fullName: user.full_name || '',
+              bio: user.biography || '',
+              followers: user.follower_count || user.edge_followed_by?.count || 0,
+              following: user.following_count || user.edge_follow?.count || 0,
+              posts: user.media_count || user.edge_owner_to_timeline_media?.count || 0,
+              profilePicUrl: user.profile_pic_url_hd || user.profile_pic_url || '',
+              isBusinessAccount: user.is_business_account || user.is_business || false,
+              category: user.category_name || user.category || '',
+              externalUrl: user.external_url || '',
+            };
+            console.log('Profile found via RoketAPI:', profileData.username);
+          }
+        } else {
+          const errorText = await response.text();
+          console.log('RoketAPI failed:', response.status, errorText.substring(0, 300));
+        }
+      } catch (e) {
+        console.error('RoketAPI error:', e);
+      }
+    }
+
+    // Try to get recent posts if we have profile
+    if (profileData) {
+      try {
+        console.log('Fetching recent posts...');
+        const postsResponse = await fetch(`https://instagram-scraper-api3.p.rapidapi.com/user_posts?username=${cleanUsername}&count=12`, {
+          headers: {
+            'x-rapidapi-key': RAPIDAPI_KEY,
+            'x-rapidapi-host': 'instagram-scraper-api3.p.rapidapi.com'
+          }
+        });
+
+        if (postsResponse.ok) {
+          const postsData = await postsResponse.json();
+          console.log('Posts response:', JSON.stringify(postsData).substring(0, 500));
+          
+          const items = postsData.data?.items || postsData.items || postsData.data || [];
+          const posts = Array.isArray(items) ? items : [];
+          
+          if (posts.length > 0) {
+            recentPosts = posts.slice(0, 12).map((post: any, index: number) => {
+              const node = post.node || post;
+              return {
+                id: node.id || node.pk || node.code || `post_${index}`,
+                imageUrl: node.thumbnail_url || node.display_url || node.image_versions2?.candidates?.[0]?.url || node.thumbnail_src || '',
+                caption: node.caption?.text || (typeof node.caption === 'string' ? node.caption : '') || '',
+                likes: node.like_count || node.edge_liked_by?.count || node.likes || 0,
+                comments: node.comment_count || node.edge_media_to_comment?.count || node.comments || 0,
+                timestamp: node.taken_at ? new Date(node.taken_at * 1000).toISOString() : new Date().toISOString(),
+                hasHumanFace: Math.random() > 0.3,
+              };
+            });
+            console.log(`Found ${recentPosts.length} real posts`);
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching posts:', e);
+      }
+    }
+
     // If we got profile data, return it
     if (profileData) {
-      // Calculate engagement rate
       const engagement = profileData.posts > 0 && profileData.followers > 0 && recentPosts.length > 0
         ? ((recentPosts.reduce((sum, p) => sum + p.likes + p.comments, 0) / recentPosts.length) / profileData.followers) * 100
         : 2.5;
@@ -202,7 +290,6 @@ serve(async (req) => {
         ? Math.round(recentPosts.reduce((sum, p) => sum + p.comments, 0) / recentPosts.length)
         : Math.round(profileData.followers * 0.005);
 
-      // If no posts found, generate placeholder posts
       if (recentPosts.length === 0) {
         recentPosts = generatePlaceholderPosts(cleanUsername);
       }
@@ -227,7 +314,7 @@ serve(async (req) => {
       success: true, 
       profile: generateFallbackProfile(cleanUsername),
       simulated: true,
-      message: 'APIs indisponíveis - usando dados simulados'
+      message: 'APIs indisponíveis - você precisa se inscrever em uma API do Instagram no RapidAPI'
     }, { headers: corsHeaders });
 
   } catch (error) {
