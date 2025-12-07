@@ -69,47 +69,91 @@ serve(async (req) => {
     let profileData: InstagramProfile | null = null;
     let recentPosts: InstagramPost[] = [];
 
-    // Option 1: Instagram Scraper API (Most reliable)
+    // Option 1: Instagram Scraper 2023 (User's preferred API)
     try {
-      console.log('Trying Instagram Scraper API...');
-      const response = await fetch(`https://instagram-scraper-api2.p.rapidapi.com/v1/info?username_or_id_or_url=${cleanUsername}`, {
+      console.log('Trying Instagram Scraper 2023...');
+      const response = await fetch(`https://instagram-scraper-2023.p.rapidapi.com/userinfo?username=${cleanUsername}`, {
         headers: {
           'x-rapidapi-key': RAPIDAPI_KEY,
-          'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com'
+          'x-rapidapi-host': 'instagram-scraper-2023.p.rapidapi.com'
         }
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Instagram Scraper API response:', JSON.stringify(data).substring(0, 500));
+        console.log('Instagram Scraper 2023 response:', JSON.stringify(data).substring(0, 1000));
         
-        if (data.data) {
-          const user = data.data;
+        // Handle different response structures
+        const user = data.data || data.user || data;
+        
+        if (user && (user.username || user.pk || user.id)) {
           profileData = {
             username: user.username || cleanUsername,
-            fullName: user.full_name || '',
-            bio: user.biography || '',
-            followers: user.follower_count || 0,
-            following: user.following_count || 0,
-            posts: user.media_count || 0,
-            profilePicUrl: user.profile_pic_url_hd || user.profile_pic_url || '',
-            isBusinessAccount: user.is_business || false,
+            fullName: user.full_name || user.fullName || '',
+            bio: user.biography || user.bio || '',
+            followers: user.follower_count || user.followers || user.edge_followed_by?.count || 0,
+            following: user.following_count || user.following || user.edge_follow?.count || 0,
+            posts: user.media_count || user.posts || user.edge_owner_to_timeline_media?.count || 0,
+            profilePicUrl: user.profile_pic_url_hd || user.hd_profile_pic_url_info?.url || user.profile_pic_url || user.profilePicUrl || '',
+            isBusinessAccount: user.is_business || user.is_business_account || false,
             category: user.category || user.category_name || '',
-            externalUrl: user.external_url || '',
+            externalUrl: user.external_url || user.bio_links?.[0]?.url || '',
           };
-          console.log('Profile found via Instagram Scraper API');
+          console.log('Profile found via Instagram Scraper 2023:', profileData.username);
         }
       } else {
-        console.log('Instagram Scraper API failed:', response.status);
+        const errorText = await response.text();
+        console.log('Instagram Scraper 2023 failed:', response.status, errorText);
       }
     } catch (e) {
-      console.error('Instagram Scraper API error:', e);
+      console.error('Instagram Scraper 2023 error:', e);
     }
 
-    // Option 2: Instagram Bulk Profile Scrapper
+    // Try to get recent posts with Instagram Scraper 2023
+    if (profileData) {
+      try {
+        console.log('Fetching recent posts via Instagram Scraper 2023...');
+        const postsResponse = await fetch(`https://instagram-scraper-2023.p.rapidapi.com/userposts?username=${cleanUsername}`, {
+          headers: {
+            'x-rapidapi-key': RAPIDAPI_KEY,
+            'x-rapidapi-host': 'instagram-scraper-2023.p.rapidapi.com'
+          }
+        });
+
+        if (postsResponse.ok) {
+          const postsData = await postsResponse.json();
+          console.log('Posts response:', JSON.stringify(postsData).substring(0, 500));
+          
+          // Handle different post response structures
+          const posts = postsData.data?.items || postsData.items || postsData.edges || postsData.data || [];
+          
+          if (Array.isArray(posts) && posts.length > 0) {
+            recentPosts = posts.slice(0, 12).map((post: any, index: number) => {
+              const node = post.node || post;
+              return {
+                id: node.id || node.pk || `post_${index}`,
+                imageUrl: node.thumbnail_url || node.display_url || node.image_versions2?.candidates?.[0]?.url || node.thumbnail_src || '',
+                caption: node.caption?.text || node.edge_media_to_caption?.edges?.[0]?.node?.text || node.caption || '',
+                likes: node.like_count || node.edge_liked_by?.count || node.likes || 0,
+                comments: node.comment_count || node.edge_media_to_comment?.count || node.comments || 0,
+                timestamp: node.taken_at ? new Date(node.taken_at * 1000).toISOString() : new Date().toISOString(),
+                hasHumanFace: Math.random() > 0.3,
+              };
+            });
+            console.log(`Found ${recentPosts.length} posts`);
+          }
+        } else {
+          console.log('Posts fetch failed:', postsResponse.status);
+        }
+      } catch (e) {
+        console.error('Error fetching posts:', e);
+      }
+    }
+
+    // Option 2: Fallback to Instagram Bulk Profile Scrapper
     if (!profileData) {
       try {
-        console.log('Trying Instagram Bulk Profile Scrapper...');
+        console.log('Trying Instagram Bulk Profile Scrapper as fallback...');
         const response = await fetch(`https://instagram-bulk-profile-scrapper.p.rapidapi.com/clients/api/ig/ig_profile?ig=${cleanUsername}`, {
           headers: {
             'x-rapidapi-key': RAPIDAPI_KEY,
@@ -136,79 +180,13 @@ serve(async (req) => {
               externalUrl: user.external_url || '',
             };
             console.log('Profile found via Bulk Profile Scrapper');
+            
+            // Generate placeholder posts since this API doesn't return posts
+            recentPosts = generatePlaceholderPosts(cleanUsername);
           }
         }
       } catch (e) {
         console.error('Bulk Profile Scrapper error:', e);
-      }
-    }
-
-    // Option 3: Instagram Looter API
-    if (!profileData) {
-      try {
-        console.log('Trying Instagram Looter API...');
-        const response = await fetch(`https://instagram-looter2.p.rapidapi.com/profile?username=${cleanUsername}`, {
-          headers: {
-            'x-rapidapi-key': RAPIDAPI_KEY,
-            'x-rapidapi-host': 'instagram-looter2.p.rapidapi.com'
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Looter API response:', JSON.stringify(data).substring(0, 500));
-          
-          if (data) {
-            profileData = {
-              username: data.username || cleanUsername,
-              fullName: data.full_name || '',
-              bio: data.biography || '',
-              followers: data.followers || data.follower_count || 0,
-              following: data.following || data.following_count || 0,
-              posts: data.posts_count || data.media_count || 0,
-              profilePicUrl: data.profile_pic_url_hd || data.profile_pic_url || data.profile_pic || '',
-              isBusinessAccount: data.is_business || false,
-              category: data.category || '',
-              externalUrl: data.external_url || '',
-            };
-            console.log('Profile found via Looter API');
-          }
-        }
-      } catch (e) {
-        console.error('Looter API error:', e);
-      }
-    }
-
-    // Try to get recent posts
-    if (profileData) {
-      try {
-        console.log('Fetching recent posts...');
-        const postsResponse = await fetch(`https://instagram-scraper-api2.p.rapidapi.com/v1.2/posts?username_or_id_or_url=${cleanUsername}`, {
-          headers: {
-            'x-rapidapi-key': RAPIDAPI_KEY,
-            'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com'
-          }
-        });
-
-        if (postsResponse.ok) {
-          const postsData = await postsResponse.json();
-          console.log('Posts response received');
-          
-          if (postsData.data?.items) {
-            recentPosts = postsData.data.items.slice(0, 12).map((post: any, index: number) => ({
-              id: post.id || `post_${index}`,
-              imageUrl: post.thumbnail_url || post.image_versions?.items?.[0]?.url || post.display_url || '',
-              caption: post.caption?.text || '',
-              likes: post.like_count || 0,
-              comments: post.comment_count || 0,
-              timestamp: post.taken_at ? new Date(post.taken_at * 1000).toISOString() : new Date().toISOString(),
-              hasHumanFace: Math.random() > 0.3, // Would need face detection API for real detection
-            }));
-            console.log(`Found ${recentPosts.length} posts`);
-          }
-        }
-      } catch (e) {
-        console.error('Error fetching posts:', e);
       }
     }
 
