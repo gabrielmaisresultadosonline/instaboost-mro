@@ -65,82 +65,82 @@ serve(async (req) => {
       }, { headers: corsHeaders });
     }
 
-    // Try multiple RapidAPI endpoints for reliability
     let profileData: InstagramProfile | null = null;
     let recentPosts: InstagramPost[] = [];
 
-    // Option 1: Instagram Scraper 2023 (User's preferred API)
+    // Option 1: Instagram Scraper Stable API (Most reliable - 2025)
     try {
-      console.log('Trying Instagram Scraper 2023...');
-      const response = await fetch(`https://instagram-scraper-2023.p.rapidapi.com/userinfo?username=${cleanUsername}`, {
+      console.log('Trying Instagram Scraper Stable API...');
+      const response = await fetch(`https://instagram-scraper-stable-api.p.rapidapi.com/user_data?username_or_url=${cleanUsername}`, {
         headers: {
           'x-rapidapi-key': RAPIDAPI_KEY,
-          'x-rapidapi-host': 'instagram-scraper-2023.p.rapidapi.com'
+          'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com'
         }
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Instagram Scraper 2023 response:', JSON.stringify(data).substring(0, 1000));
+        console.log('Instagram Scraper Stable API response:', JSON.stringify(data).substring(0, 1500));
         
         // Handle different response structures
         const user = data.data || data.user || data;
         
-        if (user && (user.username || user.pk || user.id)) {
+        if (user && (user.username || user.pk || user.id || user.full_name)) {
           profileData = {
             username: user.username || cleanUsername,
             fullName: user.full_name || user.fullName || '',
             bio: user.biography || user.bio || '',
             followers: user.follower_count || user.followers || user.edge_followed_by?.count || 0,
             following: user.following_count || user.following || user.edge_follow?.count || 0,
-            posts: user.media_count || user.posts || user.edge_owner_to_timeline_media?.count || 0,
-            profilePicUrl: user.profile_pic_url_hd || user.hd_profile_pic_url_info?.url || user.profile_pic_url || user.profilePicUrl || '',
-            isBusinessAccount: user.is_business || user.is_business_account || false,
-            category: user.category || user.category_name || '',
+            posts: user.media_count || user.posts_count || user.edge_owner_to_timeline_media?.count || 0,
+            profilePicUrl: user.profile_pic_url_hd || user.hd_profile_pic_url_info?.url || user.profile_pic_url || '',
+            isBusinessAccount: user.is_business || user.is_business_account || user.is_professional_account || false,
+            category: user.category || user.category_name || user.business_category_name || '',
             externalUrl: user.external_url || user.bio_links?.[0]?.url || '',
           };
-          console.log('Profile found via Instagram Scraper 2023:', profileData.username);
+          console.log('Profile found via Instagram Scraper Stable API:', profileData.username, profileData.followers);
         }
       } else {
         const errorText = await response.text();
-        console.log('Instagram Scraper 2023 failed:', response.status, errorText);
+        console.log('Instagram Scraper Stable API failed:', response.status, errorText.substring(0, 500));
       }
     } catch (e) {
-      console.error('Instagram Scraper 2023 error:', e);
+      console.error('Instagram Scraper Stable API error:', e);
     }
 
-    // Try to get recent posts with Instagram Scraper 2023
+    // Try to get recent posts with Instagram Scraper Stable API
     if (profileData) {
       try {
-        console.log('Fetching recent posts via Instagram Scraper 2023...');
-        const postsResponse = await fetch(`https://instagram-scraper-2023.p.rapidapi.com/userposts?username=${cleanUsername}`, {
+        console.log('Fetching recent posts via Instagram Scraper Stable API...');
+        const postsResponse = await fetch(`https://instagram-scraper-stable-api.p.rapidapi.com/user_posts?username_or_url=${cleanUsername}`, {
           headers: {
             'x-rapidapi-key': RAPIDAPI_KEY,
-            'x-rapidapi-host': 'instagram-scraper-2023.p.rapidapi.com'
+            'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com'
           }
         });
 
         if (postsResponse.ok) {
           const postsData = await postsResponse.json();
-          console.log('Posts response:', JSON.stringify(postsData).substring(0, 500));
+          console.log('Posts response:', JSON.stringify(postsData).substring(0, 800));
           
           // Handle different post response structures
-          const posts = postsData.data?.items || postsData.items || postsData.edges || postsData.data || [];
+          const items = postsData.data?.items || postsData.items || postsData.data || postsData.edges || [];
+          const posts = Array.isArray(items) ? items : [];
           
-          if (Array.isArray(posts) && posts.length > 0) {
+          if (posts.length > 0) {
             recentPosts = posts.slice(0, 12).map((post: any, index: number) => {
               const node = post.node || post;
               return {
-                id: node.id || node.pk || `post_${index}`,
-                imageUrl: node.thumbnail_url || node.display_url || node.image_versions2?.candidates?.[0]?.url || node.thumbnail_src || '',
-                caption: node.caption?.text || node.edge_media_to_caption?.edges?.[0]?.node?.text || node.caption || '',
-                likes: node.like_count || node.edge_liked_by?.count || node.likes || 0,
-                comments: node.comment_count || node.edge_media_to_comment?.count || node.comments || 0,
-                timestamp: node.taken_at ? new Date(node.taken_at * 1000).toISOString() : new Date().toISOString(),
+                id: node.id || node.pk || node.code || `post_${index}`,
+                imageUrl: node.thumbnail_url || node.display_url || node.image_versions2?.candidates?.[0]?.url || node.thumbnail_src || node.image_url || '',
+                caption: node.caption?.text || node.edge_media_to_caption?.edges?.[0]?.node?.text || (typeof node.caption === 'string' ? node.caption : '') || '',
+                likes: node.like_count || node.edge_liked_by?.count || node.likes || node.likes_count || 0,
+                comments: node.comment_count || node.edge_media_to_comment?.count || node.comments || node.comments_count || 0,
+                timestamp: node.taken_at ? new Date(node.taken_at * 1000).toISOString() : (node.taken_at_timestamp ? new Date(node.taken_at_timestamp * 1000).toISOString() : new Date().toISOString()),
                 hasHumanFace: Math.random() > 0.3,
               };
             });
-            console.log(`Found ${recentPosts.length} posts`);
+            console.log(`Found ${recentPosts.length} real posts`);
           }
         } else {
           console.log('Posts fetch failed:', postsResponse.status);
@@ -163,7 +163,7 @@ serve(async (req) => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('Bulk Profile response:', JSON.stringify(data).substring(0, 500));
+          console.log('Bulk Profile response:', JSON.stringify(data).substring(0, 800));
           
           if (data && data[0]) {
             const user = data[0];
@@ -179,10 +179,7 @@ serve(async (req) => {
               category: user.category_name || user.category || '',
               externalUrl: user.external_url || '',
             };
-            console.log('Profile found via Bulk Profile Scrapper');
-            
-            // Generate placeholder posts since this API doesn't return posts
-            recentPosts = generatePlaceholderPosts(cleanUsername);
+            console.log('Profile found via Bulk Profile Scrapper:', profileData.username);
           }
         }
       } catch (e) {
@@ -193,8 +190,8 @@ serve(async (req) => {
     // If we got profile data, return it
     if (profileData) {
       // Calculate engagement rate
-      const engagement = profileData.posts > 0 && profileData.followers > 0
-        ? ((recentPosts.reduce((sum, p) => sum + p.likes + p.comments, 0) / Math.max(recentPosts.length, 1)) / profileData.followers) * 100
+      const engagement = profileData.posts > 0 && profileData.followers > 0 && recentPosts.length > 0
+        ? ((recentPosts.reduce((sum, p) => sum + p.likes + p.comments, 0) / recentPosts.length) / profileData.followers) * 100
         : 2.5;
 
       const avgLikes = recentPosts.length > 0 
