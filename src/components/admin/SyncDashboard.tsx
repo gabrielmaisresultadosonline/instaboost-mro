@@ -238,6 +238,8 @@ const SyncDashboard = () => {
   // Sync profiles one by one with random delays
   const syncProfiles = async (profiles: { username: string; ownerId: string; ownerName: string }[]) => {
     setSyncProgress({ current: 0, total: profiles.length });
+    let savedCount = 0;
+    let skippedCount = 0;
     
     for (let i = 0; i < profiles.length; i++) {
       // Check if stopped or paused
@@ -283,7 +285,7 @@ const SyncDashboard = () => {
       const isConnected = isProfileInDashboard(username);
       
       // Só salvar se tiver dados reais do Instagram (foto, seguidores, etc)
-      if (profileData && profileData.profilePicUrl && profileData.followers !== undefined) {
+      if (profileData && profileData.profilePicUrl && profileData.followers !== undefined && profileData.followers > 0) {
         const fullProfile: SyncedInstagramProfile = {
           ...profileData as SyncedInstagramProfile,
           ownerUserId: ownerId,
@@ -296,15 +298,21 @@ const SyncDashboard = () => {
         
         // Salvar imediatamente após buscar dados reais
         updateProfile(fullProfile);
+        savedCount++;
         
         // Atualizar estado local para refletir imediatamente
         const freshData = getSyncData();
         setSyncData(freshData);
         
-        console.log(`✅ Perfil @${username} sincronizado e SALVO com ${fullProfile.followers} seguidores e foto real`);
+        console.log(`✅ Perfil @${username} sincronizado e SALVO com ${fullProfile.followers} seguidores`);
+        
+        toast({ 
+          title: `Perfil @${username} salvo!`, 
+          description: `${fullProfile.followers.toLocaleString()} seguidores - Total salvos: ${savedCount}` 
+        });
       } else {
-        // Não salvar perfis sem dados reais - apenas logar
-        console.log(`⏭️ Perfil @${username} ignorado - dados do Instagram não disponíveis`);
+        skippedCount++;
+        console.log(`⏭️ Perfil @${username} não existe ou dados indisponíveis - pulando`);
       }
       
       // Random delay between 2-5 seconds to avoid overloading
@@ -318,8 +326,8 @@ const SyncDashboard = () => {
     setIsSyncing(false);
     
     toast({ 
-      title: "Sincronização total concluída!", 
-      description: `${profiles.length} perfis processados. Auto-sync ativo às 00h.` 
+      title: "Sincronização concluída!", 
+      description: `${savedCount} perfis salvos, ${skippedCount} não encontrados` 
     });
   };
 
