@@ -282,7 +282,8 @@ const SyncDashboard = () => {
       
       const isConnected = isProfileInDashboard(username);
       
-      if (profileData) {
+      // Só salvar se tiver dados reais do Instagram (foto, seguidores, etc)
+      if (profileData && profileData.profilePicUrl && profileData.followers !== undefined) {
         const fullProfile: SyncedInstagramProfile = {
           ...profileData as SyncedInstagramProfile,
           ownerUserId: ownerId,
@@ -293,38 +294,17 @@ const SyncDashboard = () => {
           growthHistory: []
         };
         
-        // IMPORTANTE: Salvar imediatamente após buscar dados
+        // Salvar imediatamente após buscar dados reais
         updateProfile(fullProfile);
         
         // Atualizar estado local para refletir imediatamente
         const freshData = getSyncData();
         setSyncData(freshData);
         
-        console.log(`✅ Perfil @${username} sincronizado e SALVO com ${fullProfile.followers} seguidores`);
+        console.log(`✅ Perfil @${username} sincronizado e SALVO com ${fullProfile.followers} seguidores e foto real`);
       } else {
-        // Mesmo sem dados da API, salvar o perfil com info básica do SquareCloud
-        const basicProfile: SyncedInstagramProfile = {
-          username: username,
-          followers: 0,
-          following: 0,
-          posts: 0,
-          profilePicUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${username}`,
-          fullName: username,
-          bio: '',
-          ownerUserId: ownerId,
-          ownerUserName: ownerName,
-          syncedAt: new Date().toISOString(),
-          lastUpdated: new Date().toISOString(),
-          isConnectedToDashboard: isConnected,
-          growthHistory: []
-        };
-        
-        // Salvar perfil básico para não perder a informação
-        updateProfile(basicProfile);
-        const freshData = getSyncData();
-        setSyncData(freshData);
-        
-        console.log(`⚠️ Perfil @${username} salvo com dados básicos (API indisponível)`);
+        // Não salvar perfis sem dados reais - apenas logar
+        console.log(`⏭️ Perfil @${username} ignorado - dados do Instagram não disponíveis`);
       }
       
       // Random delay between 2-5 seconds to avoid overloading
