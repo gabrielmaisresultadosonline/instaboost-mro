@@ -120,7 +120,11 @@ export const isProfileAlreadySynced = (username: string): boolean => {
 // Get all profiles (merged from dashboard + synced, no duplicates)
 export const getAllMergedProfiles = (): SyncedInstagramProfile[] => {
   const syncData = getSyncData();
-  const mergedProfiles: SyncedInstagramProfile[] = [...syncData.profiles];
+  
+  // Start with synced profiles
+  const mergedProfiles: SyncedInstagramProfile[] = syncData.profiles.map(p => ({ ...p }));
+  
+  console.log(`getAllMergedProfiles: ${syncData.profiles.length} perfis sincronizados encontrados`);
   
   // Get dashboard profiles
   try {
@@ -128,6 +132,8 @@ export const getAllMergedProfiles = (): SyncedInstagramProfile[] => {
     if (session) {
       const parsed = JSON.parse(session);
       const dashboardProfiles = parsed.profiles || [];
+      
+      console.log(`getAllMergedProfiles: ${dashboardProfiles.length} perfis do dashboard encontrados`);
       
       dashboardProfiles.forEach((dp: any) => {
         const username = dp.profile?.username?.toLowerCase();
@@ -171,6 +177,8 @@ export const getAllMergedProfiles = (): SyncedInstagramProfile[] => {
   } catch (e) {
     console.error('Error merging dashboard profiles:', e);
   }
+  
+  console.log(`getAllMergedProfiles: Total ${mergedProfiles.length} perfis mesclados`);
   
   return mergedProfiles;
 };
