@@ -91,11 +91,12 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
       </div>
 
       <Button 
+        type="button"
         onClick={handleGenerateStrategy} 
         disabled={isGenerating}
         variant="gradient"
         size="lg"
-        className="w-full"
+        className="w-full cursor-pointer"
       >
         {isGenerating ? (
           <>
