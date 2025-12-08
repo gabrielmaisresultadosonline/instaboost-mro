@@ -28,6 +28,7 @@ interface DashboardProps {
   onAddProfile: (username: string) => void;
   onSelectProfile: (profileId: string) => void;
   onRemoveProfile: (profileId: string) => void;
+  onNavigateToRegister: () => void;
   isLoading?: boolean;
   onLogout?: () => void;
 }
@@ -41,6 +42,7 @@ export const Dashboard = ({
   onAddProfile,
   onSelectProfile,
   onRemoveProfile,
+  onNavigateToRegister,
   isLoading,
   onLogout
 }: DashboardProps) => {
@@ -112,7 +114,7 @@ export const Dashboard = ({
                   profiles={session.profiles}
                   activeProfileId={session.activeProfileId}
                   onSelectProfile={onSelectProfile}
-                  onAddProfile={onAddProfile}
+                  onAddProfile={onNavigateToRegister}
                   onRemoveProfile={onRemoveProfile}
                   isLoading={isLoading}
                 />
@@ -156,7 +158,7 @@ export const Dashboard = ({
               profiles={session.profiles}
               activeProfileId={session.activeProfileId}
               onSelectProfile={onSelectProfile}
-              onAddProfile={onAddProfile}
+              onAddProfile={onNavigateToRegister}
               onRemoveProfile={onRemoveProfile}
               isLoading={isLoading}
             />
