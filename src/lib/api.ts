@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { InstagramProfile, ProfileAnalysis, Strategy, Creative } from '@/types/instagram';
+import { InstagramProfile, ProfileAnalysis, Strategy, Creative, CreativeConfig } from '@/types/instagram';
 
 export const fetchInstagramProfile = async (username: string): Promise<{
   success: boolean;
@@ -104,7 +104,9 @@ export const generateStrategy = async (
 export const generateCreative = async (
   strategy: Strategy,
   profile: InstagramProfile,
-  niche: string
+  niche: string,
+  config?: CreativeConfig,
+  logoUrl?: string
 ): Promise<{
   success: boolean;
   creative?: Creative;
@@ -112,7 +114,13 @@ export const generateCreative = async (
 }> => {
   try {
     const { data, error } = await supabase.functions.invoke('generate-creative', {
-      body: { strategy, profile, niche }
+      body: { 
+        strategy, 
+        profile, 
+        niche,
+        config,
+        logoUrl
+      }
     });
 
     if (error) {

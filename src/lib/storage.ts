@@ -45,8 +45,37 @@ export const addStrategy = (strategy: Strategy): void => {
 export const addCreative = (creative: Creative): void => {
   const session = getSession();
   if (session.creativesRemaining > 0) {
+    // Add expiration date (1 month from now)
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+    creative.expiresAt = expiresAt.toISOString();
+    
     session.creatives.push(creative);
     session.creativesRemaining--;
+    saveSession(session);
+  }
+};
+
+export const cleanExpiredCreatives = (): void => {
+  const session = getSession();
+  const now = new Date();
+  const validCreatives = session.creatives.filter(c => {
+    if (!c.expiresAt) return true;
+    return new Date(c.expiresAt) > now;
+  });
+  
+  // Recover credits for expired creatives
+  const expiredCount = session.creatives.length - validCreatives.length;
+  session.creatives = validCreatives;
+  session.creativesRemaining = Math.min(6, session.creativesRemaining + expiredCount);
+  saveSession(session);
+};
+
+export const markCreativeAsDownloaded = (creativeId: string): void => {
+  const session = getSession();
+  const creative = session.creatives.find(c => c.id === creativeId);
+  if (creative) {
+    creative.downloaded = true;
     saveSession(session);
   }
 };
