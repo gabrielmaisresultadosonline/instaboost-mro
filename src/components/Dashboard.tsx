@@ -144,13 +144,17 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
             {/* Recent Posts Grid */}
             <div className="glass-card p-6">
               <h3 className="text-lg font-display font-semibold mb-4">Posts Recentes</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {session.profile.recentPosts.slice(0, 9).map((post) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {session.profile.recentPosts.slice(0, 6).map((post, index) => (
                   <div key={post.id} className="aspect-square rounded-lg overflow-hidden relative group">
                     <img 
                       src={post.imageUrl} 
                       alt="Post"
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = `https://picsum.photos/seed/${session.profile?.username}${index}/400/400`;
+                      }}
                     />
                     <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="text-center text-sm">

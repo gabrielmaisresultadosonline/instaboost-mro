@@ -22,6 +22,10 @@ export const ProfileCard = ({ profile }: ProfileCardProps) => {
               src={profile.profilePicUrl} 
               alt={profile.fullName}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}&backgroundColor=10b981`;
+              }}
             />
           </div>
           {profile.isBusinessAccount && (
