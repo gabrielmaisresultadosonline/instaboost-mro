@@ -30,11 +30,14 @@ export interface SyncedInstagramProfile {
 export interface SyncData {
   lastSyncDate: string | null;
   lastFullSyncDate: string | null;
+  lastAutoSyncDate: string | null;
+  isSyncComplete: boolean;
   users: SquareCloudUser[];
   profiles: SyncedInstagramProfile[];
   syncQueue: string[]; // usernames waiting to be synced
   currentlySyncing: string | null;
   isPaused: boolean;
+  isStopped: boolean;
   totalProfilesCount: number;
 }
 
@@ -43,11 +46,14 @@ const SYNC_STORAGE_KEY = 'mro_sync_data';
 const DEFAULT_SYNC_DATA: SyncData = {
   lastSyncDate: null,
   lastFullSyncDate: null,
+  lastAutoSyncDate: null,
+  isSyncComplete: false,
   users: [],
   profiles: [],
   syncQueue: [],
   currentlySyncing: null,
   isPaused: false,
+  isStopped: false,
   totalProfilesCount: 0
 };
 
@@ -69,13 +75,13 @@ export const saveSyncData = (data: SyncData): void => {
 
 export const shouldAutoSync = (): boolean => {
   const data = getSyncData();
-  if (!data.lastFullSyncDate) return true;
+  if (!data.lastAutoSyncDate) return true;
   
-  const lastSync = new Date(data.lastFullSyncDate);
+  const lastSync = new Date(data.lastAutoSyncDate);
   const now = new Date();
-  const diffDays = Math.floor((now.getTime() - lastSync.getTime()) / (1000 * 60 * 60 * 24));
   
-  return diffDays >= 2; // Sync every 2 days
+  // Check if it's a new day (after midnight)
+  return lastSync.toDateString() !== now.toDateString();
 };
 
 export const wasProfileSyncedToday = (username: string): boolean => {
@@ -88,6 +94,85 @@ export const wasProfileSyncedToday = (username: string): boolean => {
   const today = new Date();
   
   return lastUpdated.toDateString() === today.toDateString();
+};
+
+// Check if profile exists in dashboard session
+export const isProfileInDashboard = (username: string): boolean => {
+  try {
+    const session = localStorage.getItem('mro_session');
+    if (!session) return false;
+    
+    const parsed = JSON.parse(session);
+    return parsed.profiles?.some((p: any) => 
+      p.profile?.username?.toLowerCase() === username.toLowerCase()
+    ) || false;
+  } catch {
+    return false;
+  }
+};
+
+// Check if profile already exists in sync data
+export const isProfileAlreadySynced = (username: string): boolean => {
+  const data = getSyncData();
+  return data.profiles.some(p => p.username.toLowerCase() === username.toLowerCase());
+};
+
+// Get all profiles (merged from dashboard + synced, no duplicates)
+export const getAllMergedProfiles = (): SyncedInstagramProfile[] => {
+  const syncData = getSyncData();
+  const mergedProfiles: SyncedInstagramProfile[] = [...syncData.profiles];
+  
+  // Get dashboard profiles
+  try {
+    const session = localStorage.getItem('mro_session');
+    if (session) {
+      const parsed = JSON.parse(session);
+      const dashboardProfiles = parsed.profiles || [];
+      
+      dashboardProfiles.forEach((dp: any) => {
+        const username = dp.profile?.username?.toLowerCase();
+        if (!username) return;
+        
+        // Check if already in merged list
+        const existingIndex = mergedProfiles.findIndex(
+          p => p.username.toLowerCase() === username
+        );
+        
+        if (existingIndex >= 0) {
+          // Update existing with dashboard connection status
+          mergedProfiles[existingIndex].isConnectedToDashboard = true;
+          // Update with latest data from dashboard
+          mergedProfiles[existingIndex].followers = dp.profile.followers || mergedProfiles[existingIndex].followers;
+          mergedProfiles[existingIndex].following = dp.profile.following || mergedProfiles[existingIndex].following;
+          mergedProfiles[existingIndex].posts = dp.profile.posts || mergedProfiles[existingIndex].posts;
+          mergedProfiles[existingIndex].profilePicUrl = dp.profile.profilePicUrl || mergedProfiles[existingIndex].profilePicUrl;
+          mergedProfiles[existingIndex].fullName = dp.profile.fullName || mergedProfiles[existingIndex].fullName;
+          mergedProfiles[existingIndex].bio = dp.profile.bio || mergedProfiles[existingIndex].bio;
+        } else {
+          // Add new from dashboard
+          mergedProfiles.push({
+            username: dp.profile.username,
+            followers: dp.profile.followers || 0,
+            following: dp.profile.following || 0,
+            posts: dp.profile.posts || 0,
+            profilePicUrl: dp.profile.profilePicUrl || '',
+            fullName: dp.profile.fullName || '',
+            bio: dp.profile.bio || '',
+            ownerUserId: 'dashboard',
+            ownerUserName: 'Dashboard',
+            syncedAt: dp.startedAt || new Date().toISOString(),
+            lastUpdated: dp.lastUpdated || new Date().toISOString(),
+            isConnectedToDashboard: true,
+            growthHistory: dp.growthHistory || []
+          });
+        }
+      });
+    }
+  } catch (e) {
+    console.error('Error merging dashboard profiles:', e);
+  }
+  
+  return mergedProfiles;
 };
 
 export const updateProfile = (profile: SyncedInstagramProfile): void => {
@@ -123,9 +208,9 @@ export const updateProfile = (profile: SyncedInstagramProfile): void => {
 };
 
 export const getTopGrowingProfiles = (limit: number = 5): SyncedInstagramProfile[] => {
-  const data = getSyncData();
+  const allProfiles = getAllMergedProfiles();
   
-  return data.profiles
+  return allProfiles
     .filter(p => p.growthHistory.length >= 2)
     .map(p => {
       const first = p.growthHistory[0].followers;
@@ -134,4 +219,38 @@ export const getTopGrowingProfiles = (limit: number = 5): SyncedInstagramProfile
     })
     .sort((a, b) => (b as any).growth - (a as any).growth)
     .slice(0, limit);
+};
+
+export const markSyncComplete = (): void => {
+  const data = getSyncData();
+  data.isSyncComplete = true;
+  data.lastFullSyncDate = new Date().toISOString();
+  data.lastAutoSyncDate = new Date().toISOString();
+  data.syncQueue = [];
+  data.currentlySyncing = null;
+  data.isPaused = false;
+  data.isStopped = false;
+  saveSyncData(data);
+};
+
+export const stopSync = (): void => {
+  const data = getSyncData();
+  data.isStopped = true;
+  data.isPaused = false;
+  data.currentlySyncing = null;
+  data.lastSyncDate = new Date().toISOString();
+  saveSyncData(data);
+};
+
+export const pauseSync = (): void => {
+  const data = getSyncData();
+  data.isPaused = true;
+  saveSyncData(data);
+};
+
+export const resumeSync = (): void => {
+  const data = getSyncData();
+  data.isPaused = false;
+  data.isStopped = false;
+  saveSyncData(data);
 };
