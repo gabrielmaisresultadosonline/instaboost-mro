@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { ProfileSession } from '@/types/instagram';
-import { Plus, User, X, Check } from 'lucide-react';
+import { Plus, User, X, Check, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -152,9 +158,18 @@ export const ProfileSelector = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <span className="text-xs text-muted-foreground hidden md:block">
-        {profiles.length} perfil(is) • 6 criativos por perfil
-      </span>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button className="p-1.5 rounded-full hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-foreground">
+              <Info className="w-4 h-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{profiles.length} perfil(is) • 6 criativos por perfil</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };
