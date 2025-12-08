@@ -30,9 +30,10 @@ serve(async (req) => {
     
     if (!response.ok) {
       console.log(`Profile ${username} not found`);
+      // Retornar 200 com success: false para evitar erros de rede no frontend
       return new Response(
-        JSON.stringify({ error: "Profile not found", username }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: "Profile not found", username }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
