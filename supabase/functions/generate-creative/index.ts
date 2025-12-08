@@ -108,42 +108,37 @@ Retorne JSON:
       }
     }
 
-    // Build detailed image prompt with business context and reference image
-    console.log('Gerando imagem com Gemini Nano Banana usando imagem de referência...');
+    // Build detailed image prompt with professional style guidance
+    console.log('Gerando imagem com Gemini Nano Banana...');
     
-    // Reference image URL for style/quality guidance
-    const referenceImageUrl = 'https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/reference-creative.png';
-    
-    const imagePrompt = `Create a professional Instagram marketing creative image inspired by the reference image style and quality.
+    const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image.
 
-REFERENCE IMAGE ANALYSIS - FOLLOW THIS STYLE:
-- Logo positioning: Centered at top with elegant spacing
-- Background: Dark, premium gradient with subtle tech/professional elements
-- Visual elements: High-quality imagery that conveys trust and innovation
-- Color harmony: Use ${colors.primary} and ${colors.secondary} as accent colors
-- Composition: Clean layout with clear visual hierarchy
-- Quality: Ultra HD, premium professional feel like the reference
+STYLE REFERENCE - REPLICATE THIS EXACT QUALITY:
+- Premium dark gradient background with subtle tech elements (like bokeh lights, geometric patterns)
+- Futuristic/innovation feel with professional business aesthetic
+- Central powerful imagery: can include handshakes, technology, human-robot interaction, abstract business concepts
+- Color scheme: Dark base with ${colors.primary} and ${colors.secondary} as vibrant accent colors
+- Dramatic lighting with depth and dimension
+- Ultra high definition, 4K quality rendering
 
-SPECIFIC REQUIREMENTS FOR THIS CREATIVE:
-- Business Type: ${businessType}
-- Strategy: ${strategy.type} - ${strategy.title}
-- Profile Category: ${profile.category || 'business'}
-- Aspect ratio: 1:1 square (1080x1080 Instagram post)
+EXACT LAYOUT REQUIREMENTS:
+- TOP 15%: Clean dark space for logo placement (centered, leave empty)
+- CENTER 60%: Stunning visual imagery representing ${businessType}
+  * Professional, trust-building, innovative
+  * Can include: abstract tech, business handshakes, futuristic elements
+  * Strong visual impact with ${colors.primary} accent lighting
+- BOTTOM 25%: Gradient fade area for text overlay (leave empty for headline/CTA)
 
-LAYOUT RULES:
-- TOP AREA: Leave clean space for logo overlay (like reference shows logo at top center)
-- CENTER: Powerful visual imagery representing ${businessType} - professional, trust-building
-- BOTTOM AREA: Leave space for text overlay (headline + CTA will be added)
+CRITICAL RULES:
+- NO TEXT whatsoever in the image
+- NO logos or brand marks
+- Aspect ratio: PERFECT 1:1 SQUARE (1080x1080 pixels)
+- Style: Premium advertising agency quality
+- Feel: Trust, innovation, growth, partnership
+- Industry context: ${businessType}
+- Marketing strategy: ${strategy.type}
 
-STYLE DETAILS:
-- Use dramatic lighting and premium gradients
-- Include subtle tech/innovation elements if relevant to ${businessType}
-- Color scheme must incorporate ${colors.primary} and ${colors.secondary}
-- DO NOT include any text or typography in the image
-- DO NOT include any logos - just leave space for logo overlay
-- Premium, high-conversion design aesthetic like the reference
-
-Create an image that matches the professional quality, composition, and premium feel of the reference image.`;
+Create an image that looks like it was made by a top-tier Brazilian marketing agency for a high-converting Instagram campaign. Ultra premium, modern, innovative, and professional.`;
 
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -156,18 +151,7 @@ Create an image that matches the professional quality, composition, and premium 
         messages: [
           {
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: imagePrompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: referenceImageUrl
-                }
-              }
-            ]
+            content: imagePrompt
           }
         ],
         modalities: ['image', 'text']
