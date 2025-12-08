@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 const SQUARECLOUD_API = 'https://dashboardmroinstagramvini-online.squareweb.app';
-const CUSTOM_API_BASE = 'http://72.62.9.229:8000';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const SyncDashboard = () => {
   const { toast } = useToast();
@@ -78,10 +78,16 @@ const SyncDashboard = () => {
     }
   };
 
-  // Fetch Instagram profile data
+  // Fetch Instagram profile data via Edge Function (to avoid CORS/mixed content)
   const fetchInstagramProfile = async (username: string): Promise<Partial<SyncedInstagramProfile> | null> => {
     try {
-      const response = await fetch(`${CUSTOM_API_BASE}/profile/${username}`);
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/sync-instagram-profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username })
+      });
       
       if (!response.ok) {
         console.log(`Profile ${username} not found`);
@@ -90,17 +96,12 @@ const SyncDashboard = () => {
       
       const data = await response.json();
       
-      return {
-        username: data.username || username,
-        followers: data.followers || 0,
-        following: data.following || 0,
-        posts: data.posts || 0,
-        profilePicUrl: data.profile_picture 
-          ? `https://images.weserv.nl/?url=${encodeURIComponent(data.profile_picture)}&w=200&h=200&fit=cover`
-          : `https://api.dicebear.com/7.x/initials/svg?seed=${username}`,
-        fullName: data.full_name || username,
-        bio: data.bio || ''
-      };
+      if (!data.success || !data.profile) {
+        console.log(`Profile ${username} data not available`);
+        return null;
+      }
+      
+      return data.profile;
     } catch (error) {
       console.error(`Error fetching Instagram profile ${username}:`, error);
       return null;
@@ -279,9 +280,9 @@ const SyncDashboard = () => {
       // Fetch profile data
       const profileData = await fetchInstagramProfile(username);
       
+      const isConnected = isProfileInDashboard(username);
+      
       if (profileData) {
-        const isConnected = isProfileInDashboard(username);
-        
         const fullProfile: SyncedInstagramProfile = {
           ...profileData as SyncedInstagramProfile,
           ownerUserId: ownerId,
@@ -299,9 +300,31 @@ const SyncDashboard = () => {
         const freshData = getSyncData();
         setSyncData(freshData);
         
-        console.log(`✅ Perfil @${username} sincronizado e SALVO com ${profileData.followers} seguidores`);
+        console.log(`✅ Perfil @${username} sincronizado e SALVO com ${fullProfile.followers} seguidores`);
       } else {
-        console.log(`⚠️ Perfil @${username} não encontrado, pulando...`);
+        // Mesmo sem dados da API, salvar o perfil com info básica do SquareCloud
+        const basicProfile: SyncedInstagramProfile = {
+          username: username,
+          followers: 0,
+          following: 0,
+          posts: 0,
+          profilePicUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${username}`,
+          fullName: username,
+          bio: '',
+          ownerUserId: ownerId,
+          ownerUserName: ownerName,
+          syncedAt: new Date().toISOString(),
+          lastUpdated: new Date().toISOString(),
+          isConnectedToDashboard: isConnected,
+          growthHistory: []
+        };
+        
+        // Salvar perfil básico para não perder a informação
+        updateProfile(basicProfile);
+        const freshData = getSyncData();
+        setSyncData(freshData);
+        
+        console.log(`⚠️ Perfil @${username} salvo com dados básicos (API indisponível)`);
       }
       
       // Random delay between 2-5 seconds to avoid overloading
