@@ -111,34 +111,45 @@ Retorne JSON:
     // Build detailed image prompt with professional style guidance
     console.log('Gerando imagem com Gemini Nano Banana...');
     
-    const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image.
+    const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image for ${businessType}.
 
-STYLE REFERENCE - REPLICATE THIS EXACT QUALITY:
-- Premium dark gradient background with subtle tech elements (like bokeh lights, geometric patterns)
-- Futuristic/innovation feel with professional business aesthetic
-- Central powerful imagery: can include handshakes, technology, human-robot interaction, abstract business concepts
-- Color scheme: Dark base with ${colors.primary} and ${colors.secondary} as vibrant accent colors
-- Dramatic lighting with depth and dimension
-- Ultra high definition, 4K quality rendering
+QUALITY STANDARD (follow this level of quality, NOT the same content):
+- Premium dark gradient background with subtle atmospheric elements
+- Dramatic lighting with depth, dimension and professional finish
+- Ultra high definition, 4K advertising agency quality
+- Color scheme: Dark elegant base with ${colors.primary} and ${colors.secondary} as vibrant accent colors
 
-EXACT LAYOUT REQUIREMENTS:
-- TOP AREA (from 5% to 20% from top): Clean dark space for logo - HORIZONTALLY CENTERED, positioned slightly below the very top (not at the edge, not in the middle - approximately 10-15% from top)
-- CENTER 55%: Stunning visual imagery representing ${businessType}
-  * Professional, trust-building, innovative
-  * Can include: abstract tech, business handshakes, futuristic elements
-  * Strong visual impact with ${colors.primary} accent lighting
-- BOTTOM 25%: Gradient fade area for text overlay (leave empty for headline/CTA)
+MANDATORY LOGO AREA - CRITICAL:
+- Reserve a clean circular/rectangular area at TOP CENTER of the image
+- Position: HORIZONTALLY CENTERED, approximately 8-12% from the top edge
+- This area must be dark/clean enough to overlay a logo on top
+- DO NOT place any visual elements in this top-center logo zone
 
-CRITICAL RULES:
-- NO TEXT whatsoever in the image
-- NO logos or brand marks
-- Aspect ratio: PERFECT 1:1 SQUARE (1080x1080 pixels)
-- Style: Premium advertising agency quality
-- Feel: Trust, innovation, growth, partnership
-- Industry context: ${businessType}
-- Marketing strategy: ${strategy.type}
+CONTENT BASED ON BUSINESS CONTEXT (BE CREATIVE AND VARIED):
+- Business Type: ${businessType}
+- Marketing Strategy: ${strategy.type} - ${strategy.title}
+- Create imagery that represents THIS SPECIFIC business, not generic tech/robots
+- Examples based on niche:
+  * Restaurant: elegant food, dining atmosphere, chef hands
+  * Fashion: fabrics, models silhouette, accessories
+  * Real Estate: architecture, luxury interiors, keys
+  * Fitness: athletic movement, gym equipment, body silhouette
+  * Beauty: makeup, skincare, elegant hands
+  * Tech/Marketing: abstract data flows, connections, growth graphs
+- Be CREATIVE and UNIQUE for each generation - never repeat the same concept
 
-Create an image that looks like it was made by a top-tier Brazilian marketing agency for a high-converting Instagram campaign. Ultra premium, modern, innovative, and professional.`;
+LAYOUT STRUCTURE:
+- TOP CENTER: Clean dark area for logo (MUST BE CENTERED HORIZONTALLY)
+- CENTER: Powerful visual imagery representing ${businessType} specifically
+- BOTTOM 25%: Gradient fade to dark for text overlay space
+
+RULES:
+- NO text in the image
+- NO logos or brand marks (just leave clean space for overlay)
+- Aspect ratio: 1:1 SQUARE (1080x1080)
+- Premium advertising quality that converts
+
+Create unique, business-specific imagery - NOT generic tech/robot visuals unless the business is actually tech-related.`;
 
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
