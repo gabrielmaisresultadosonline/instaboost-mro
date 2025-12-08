@@ -106,13 +106,13 @@ export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: Cr
                 </span>
               </div>
 
-              {/* Logo overlay if exists */}
+              {/* Logo overlay - CENTERED at top */}
               {creative.logoUrl && (
-                <div className="absolute top-12 left-2 z-10">
+                <div className="absolute top-14 left-1/2 -translate-x-1/2 z-10">
                   <img 
                     src={creative.logoUrl} 
                     alt="Logo" 
-                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg"
                   />
                 </div>
               )}
