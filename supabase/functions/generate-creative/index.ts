@@ -12,8 +12,11 @@ interface CreativeConfig {
     text: string;
   };
   logoType: 'profile' | 'custom' | 'none';
+  logoPosition: 'left' | 'center' | 'right';
+  fontColor: string;
   customLogoUrl?: string;
   businessType: string;
+  customColors?: string[];
 }
 
 interface CreativeRequest {
@@ -53,6 +56,10 @@ serve(async (req) => {
     // Get colors from config or use defaults
     const colors = config?.colors || { primary: '#1e40af', secondary: '#3b82f6', text: '#ffffff' };
     const businessType = config?.businessType || niche || 'marketing digital';
+    const logoPosition = config?.logoPosition || 'center';
+    const fontColor = config?.fontColor || '#ffffff';
+    const customColors = config?.customColors || [];
+    const allColors = [colors.primary, colors.secondary, ...customColors].join(', ');
 
     // Gerar CTA e headline com IA
     const textResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -76,11 +83,14 @@ Nicho: ${niche}
 Tipo de Negócio: ${businessType}
 Estratégia: ${strategy.type} - ${strategy.title}
 Perfil: @${profile.username}
-Cores escolhidas: ${colors.primary} e ${colors.secondary}
+Cores escolhidas: ${allColors}
+
+IMPORTANTE: O headline pode ter 2-3 linhas se necessário para ficar mais impactante.
+O texto deve ser centralizado com margem, não muito grudado nas bordas.
 
 Retorne JSON:
 {
-  "headline": "frase impactante curta com gatilho mental (max 8 palavras)",
+  "headline": "frase impactante com gatilho mental (pode ter 2-3 linhas, max 15 palavras total)",
   "cta": "chamada para ação urgente (max 5 palavras)"
 }`
           }
@@ -109,7 +119,11 @@ Retorne JSON:
     }
 
     // Build detailed image prompt with professional style guidance
-    console.log('Gerando imagem com Gemini Nano Banana...');
+    console.log('Gerando imagem com I.A MRO...');
+    
+    // Determine logo position description
+    const logoPositionDesc = logoPosition === 'left' ? 'TOP LEFT' : 
+                             logoPosition === 'right' ? 'TOP RIGHT' : 'TOP CENTER';
     
     const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image for ${businessType}.
 
@@ -117,13 +131,13 @@ QUALITY STANDARD (follow this level of quality, NOT the same content):
 - Premium dark gradient background with subtle atmospheric elements
 - Dramatic lighting with depth, dimension and professional finish
 - Ultra high definition, 4K advertising agency quality
-- Color scheme: Dark elegant base with ${colors.primary} and ${colors.secondary} as vibrant accent colors
+- Color scheme: Dark elegant base with ${allColors} as vibrant accent colors
 
 MANDATORY LOGO AREA - CRITICAL:
-- Reserve a clean circular/rectangular area at TOP CENTER of the image
-- Position: HORIZONTALLY CENTERED, approximately 8-12% from the top edge
+- Reserve a clean circular/rectangular area at ${logoPositionDesc} of the image
+- Position: ${logoPosition === 'center' ? 'HORIZONTALLY CENTERED' : logoPosition === 'left' ? 'LEFT SIDE (about 10% from left edge)' : 'RIGHT SIDE (about 10% from right edge)'}, approximately 8-12% from the top edge
 - This area must be dark/clean enough to overlay a logo on top
-- DO NOT place any visual elements in this top-center logo zone
+- DO NOT place any visual elements in this logo zone
 
 CONTENT BASED ON BUSINESS CONTEXT (BE CREATIVE AND VARIED):
 - Business Type: ${businessType}
@@ -139,9 +153,14 @@ CONTENT BASED ON BUSINESS CONTEXT (BE CREATIVE AND VARIED):
 - Be CREATIVE and UNIQUE for each generation - never repeat the same concept
 
 LAYOUT STRUCTURE:
-- TOP CENTER: Clean dark area for logo (MUST BE CENTERED HORIZONTALLY)
+- ${logoPositionDesc}: Clean dark area for logo
 - CENTER: Powerful visual imagery representing ${businessType} specifically
-- BOTTOM 25%: Gradient fade to dark for text overlay space
+- BOTTOM 30%: Gradient fade to dark for TEXT OVERLAY SPACE (text will be centered with margins, can be 2-3 lines)
+
+TEXT AREA REQUIREMENTS:
+- The bottom area must have enough contrast for ${fontColor} colored text
+- Leave generous margins on sides for centered multi-line text
+- Text will be displayed in 2-3 lines, centered horizontally
 
 RULES:
 - NO text in the image

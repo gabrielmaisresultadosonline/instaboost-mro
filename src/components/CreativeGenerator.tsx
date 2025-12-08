@@ -3,7 +3,7 @@ import { Strategy, Creative, InstagramProfile, CreativeConfig, CreativeColors } 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette } from 'lucide-react';
+import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type } from 'lucide-react';
 import { generateCreative } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,6 +26,17 @@ const COLOR_PRESETS: { name: string; colors: CreativeColors }[] = [
   { name: 'Vermelho Impacto', colors: { primary: '#dc2626', secondary: '#f87171', text: '#ffffff' } },
 ];
 
+const FONT_COLORS = [
+  { name: 'Branco', value: '#ffffff' },
+  { name: 'Preto', value: '#000000' },
+  { name: 'Dourado', value: '#fbbf24' },
+  { name: 'Amarelo', value: '#facc15' },
+  { name: 'Vermelho', value: '#ef4444' },
+  { name: 'Verde', value: '#22c55e' },
+  { name: 'Azul', value: '#3b82f6' },
+  { name: 'Rosa', value: '#ec4899' },
+];
+
 export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerated, onClose }: CreativeGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCreative, setGeneratedCreative] = useState<Creative | null>(null);
@@ -37,12 +48,35 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
   const [config, setConfig] = useState<CreativeConfig>({
     colors: COLOR_PRESETS[0].colors,
     logoType: 'profile',
+    logoPosition: 'center',
+    fontColor: '#ffffff',
     businessType: niche || 'marketing digital',
+    customColors: [],
   });
   const [customLogoPreview, setCustomLogoPreview] = useState<string | null>(null);
+  const [newCustomColor, setNewCustomColor] = useState('#00ff00');
+  const [showCustomColorInput, setShowCustomColorInput] = useState(false);
 
   const handleColorSelect = (colors: CreativeColors) => {
     setConfig(prev => ({ ...prev, colors }));
+  };
+
+  const addCustomColor = () => {
+    if (newCustomColor && (config.customColors?.length || 0) < 4) {
+      setConfig(prev => ({
+        ...prev,
+        customColors: [...(prev.customColors || []), newCustomColor],
+      }));
+      setNewCustomColor('#00ff00');
+      setShowCustomColorInput(false);
+    }
+  };
+
+  const removeCustomColor = (index: number) => {
+    setConfig(prev => ({
+      ...prev,
+      customColors: prev.customColors?.filter((_, i) => i !== index) || [],
+    }));
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,7 +103,7 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
     setStep('generating');
     
     toast({
-      title: "Gerando criativo com IA...",
+      title: "Gerando criativo com I.A MRO...",
       description: "Criando imagem personalizada com sua marca",
     });
 
@@ -147,15 +181,23 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
     return null;
   };
 
+  const getLogoPositionClass = () => {
+    switch (config.logoPosition) {
+      case 'left': return 'left-4';
+      case 'right': return 'right-4';
+      default: return 'left-1/2 -translate-x-1/2';
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
       <div className="glass-card glow-border p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-display font-bold flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            Gerar Criativo com IA
+            Gerar Criativo com I.A MRO
           </h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl">
+          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -196,9 +238,10 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {COLOR_PRESETS.map((preset) => (
                   <button
+                    type="button"
                     key={preset.name}
                     onClick={() => handleColorSelect(preset.colors)}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
                       config.colors.primary === preset.colors.primary
                         ? 'border-primary ring-2 ring-primary/50'
                         : 'border-border hover:border-primary/50'
@@ -218,6 +261,79 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
                   </button>
                 ))}
               </div>
+
+              {/* Custom Colors */}
+              <div className="mt-3">
+                <p className="text-xs text-muted-foreground mb-2">Cores Personalizadas (máx. 4):</p>
+                <div className="flex flex-wrap gap-2 items-center">
+                  {config.customColors?.map((color, index) => (
+                    <div key={index} className="relative group">
+                      <div 
+                        className="w-10 h-10 rounded-full border-2 border-border cursor-pointer"
+                        style={{ backgroundColor: color }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeCustomColor(index)}
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full items-center justify-center hidden group-hover:flex cursor-pointer"
+                      >
+                        <X className="w-3 h-3 text-destructive-foreground" />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {(config.customColors?.length || 0) < 4 && (
+                    showCustomColorInput ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={newCustomColor}
+                          onChange={(e) => setNewCustomColor(e.target.value)}
+                          className="w-10 h-10 rounded-full cursor-pointer"
+                        />
+                        <Button type="button" size="sm" onClick={addCustomColor} className="cursor-pointer">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => setShowCustomColorInput(false)} className="cursor-pointer">
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomColorInput(true)}
+                        className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-5 h-5 text-muted-foreground" />
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Font Color Selection */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Type className="w-4 h-4" />
+                Cor da Fonte
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {FONT_COLORS.map((color) => (
+                  <button
+                    type="button"
+                    key={color.value}
+                    onClick={() => setConfig(prev => ({ ...prev, fontColor: color.value }))}
+                    className={`w-10 h-10 rounded-full border-2 transition-all cursor-pointer ${
+                      config.fontColor === color.value
+                        ? 'border-primary ring-2 ring-primary/50 scale-110'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    style={{ backgroundColor: color.value }}
+                    title={color.name}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Logo Selection */}
@@ -230,8 +346,9 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
               <div className="grid grid-cols-3 gap-3">
                 {/* Profile Logo Option */}
                 <button
+                  type="button"
                   onClick={() => setConfig(prev => ({ ...prev, logoType: 'profile' }))}
-                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${
+                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
                     config.logoType === 'profile'
                       ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
                       : 'border-border hover:border-primary/50'
@@ -250,8 +367,9 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
 
                 {/* Custom Logo Option */}
                 <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${
+                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
                     config.logoType === 'custom'
                       ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
                       : 'border-border hover:border-primary/50 border-dashed'
@@ -266,8 +384,9 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
                           className="w-12 h-12 rounded-full object-cover"
                         />
                         <button 
+                          type="button"
                           onClick={(e) => { e.stopPropagation(); clearCustomLogo(); }}
-                          className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full flex items-center justify-center"
+                          className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full flex items-center justify-center cursor-pointer"
                         >
                           <X className="w-3 h-3 text-destructive-foreground" />
                         </button>
@@ -291,8 +410,9 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
 
                 {/* No Logo Option */}
                 <button
+                  type="button"
                   onClick={() => setConfig(prev => ({ ...prev, logoType: 'none' }))}
-                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${
+                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
                     config.logoType === 'none'
                       ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
                       : 'border-border hover:border-primary/50'
@@ -304,6 +424,51 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
                   <span className="text-xs text-center">Sem Logo</span>
                 </button>
               </div>
+
+              {/* Logo Position */}
+              {config.logoType !== 'none' && (
+                <div className="mt-3">
+                  <p className="text-xs text-muted-foreground mb-2">Posição da Logo:</p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'left' }))}
+                      className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        config.logoPosition === 'left'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <AlignLeft className="w-4 h-4" />
+                      <span className="text-xs">Esquerda</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'center' }))}
+                      className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        config.logoPosition === 'center'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <AlignCenter className="w-4 h-4" />
+                      <span className="text-xs">Centro</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'right' }))}
+                      className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        config.logoPosition === 'right'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <AlignRight className="w-4 h-4" />
+                      <span className="text-xs">Direita</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Preview Area */}
@@ -312,22 +477,27 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>🎨 <strong>Fundo:</strong> {config.businessType}</p>
                 <p>🎯 <strong>Cores:</strong> {COLOR_PRESETS.find(p => p.colors.primary === config.colors.primary)?.name || 'Personalizada'}</p>
+                {config.customColors && config.customColors.length > 0 && (
+                  <p>🌈 <strong>Cores extras:</strong> {config.customColors.length} cores personalizadas</p>
+                )}
                 <p>📌 <strong>Logo:</strong> {
                   config.logoType === 'profile' ? 'Do Instagram' :
                   config.logoType === 'custom' ? 'Customizada' : 'Sem logo'
-                }</p>
-                <p>💬 <strong>CTA:</strong> Gerado pela IA com base na estratégia</p>
+                } {config.logoType !== 'none' && `(${config.logoPosition})`}</p>
+                <p>✏️ <strong>Cor da fonte:</strong> <span style={{ color: config.fontColor }}>■</span> {FONT_COLORS.find(c => c.value === config.fontColor)?.name || 'Personalizada'}</p>
+                <p>💬 <strong>CTA:</strong> Gerado pela I.A MRO com base na estratégia</p>
               </div>
             </div>
 
             <Button 
+              type="button"
               onClick={handleGenerateCreative} 
               variant="gradient" 
               size="lg" 
-              className="w-full"
+              className="w-full cursor-pointer"
             >
               <Sparkles className="w-5 h-5" />
-              Gerar Criativo com IA
+              Gerar Criativo com I.A MRO
             </Button>
           </div>
         )}
@@ -337,7 +507,7 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
           <div className="space-y-4">
             <div className="aspect-square rounded-lg bg-secondary/50 flex flex-col items-center justify-center">
               <Loader2 className="w-12 h-12 mb-4 animate-spin text-primary" />
-              <p className="text-sm">Gerando criativo com Gemini AI...</p>
+              <p className="text-sm">Gerando criativo com I.A MRO...</p>
               <p className="text-xs mt-2 text-muted-foreground">Isso pode levar alguns segundos</p>
             </div>
           </div>
@@ -354,9 +524,9 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
               />
               {/* Overlay with text */}
               <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent flex flex-col justify-end p-6">
-                {/* Logo at top */}
+                {/* Logo with position */}
                 {getLogoPreview() && (
-                  <div className="absolute top-4 left-4">
+                  <div className={`absolute top-4 ${getLogoPositionClass()}`}>
                     <img 
                       src={getLogoPreview()!} 
                       alt="Logo" 
@@ -365,14 +535,17 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
                   </div>
                 )}
                 
-                <h4 className="text-2xl font-display font-bold text-center mb-2 text-gradient">
+                <h4 
+                  className="text-2xl font-display font-bold text-center mb-2 px-4"
+                  style={{ color: config.fontColor }}
+                >
                   {generatedCreative.headline}
                 </h4>
                 <span 
                   className="mx-auto px-6 py-3 rounded-full font-semibold"
                   style={{ 
                     backgroundColor: config.colors.primary, 
-                    color: config.colors.text 
+                    color: config.fontColor 
                   }}
                 >
                   {generatedCreative.ctaText}
@@ -382,19 +555,20 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
 
             <div className="flex gap-3">
               <Button 
+                type="button"
                 onClick={() => { setStep('config'); setGeneratedCreative(null); }} 
                 variant="outline" 
-                className="flex-1"
+                className="flex-1 cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
                 Gerar Outro
               </Button>
-              <Button onClick={downloadImage} variant="outline" className="flex-1">
+              <Button type="button" onClick={downloadImage} variant="outline" className="flex-1 cursor-pointer">
                 <Download className="w-4 h-4" />
                 Download
               </Button>
             </div>
-            <Button onClick={saveCreative} variant="gradient" className="w-full">
+            <Button type="button" onClick={saveCreative} variant="gradient" className="w-full cursor-pointer">
               <Download className="w-4 h-4" />
               Salvar Criativo
             </Button>

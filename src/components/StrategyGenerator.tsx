@@ -113,7 +113,7 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
 
       {/* Info */}
       <p className="text-xs text-muted-foreground text-center mt-4">
-        Usando DeepSeek + Google AI para gerar estratégia personalizada para o nicho: {analysis.niche}
+        Usando I.A da MRO - Mais Resultados Online para gerar estratégia personalizada para o nicho: {analysis.niche}
       </p>
     </div>
   );
