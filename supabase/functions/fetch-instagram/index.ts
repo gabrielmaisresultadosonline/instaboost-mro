@@ -78,16 +78,23 @@ serve(async (req) => {
         if (data.status === 'success' && data.data) {
           const profileData = data.data;
           
-          // Use image proxy for profile picture to avoid CORS
+          // Use HTTPS image proxy (images.weserv.nl) to avoid mixed content blocking
+          const proxyImage = (url: string | undefined | null): string => {
+            if (!url) return '';
+            return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&q=80`;
+          };
+
+          // Profile picture with HTTPS proxy
           const proxiedProfilePic = profileData.profile_pic_url 
-            ? `${CUSTOM_API_BASE}/image-proxy?url=${encodeURIComponent(profileData.profile_pic_url)}`
+            ? proxyImage(profileData.profile_pic_url)
             : `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`;
 
           // Map posts (top_posts array - 6 posts)
           const recentPosts: InstagramPost[] = (profileData.top_posts || []).map((post: any, index: number) => {
-            // Use image proxy for post images
-            const proxiedImageUrl = post.media_url 
-              ? `${CUSTOM_API_BASE}/image-proxy?url=${encodeURIComponent(post.thumbnail_url || post.media_url)}`
+            // Use HTTPS proxy for post images
+            const imageUrl = post.thumbnail_url || post.media_url;
+            const proxiedImageUrl = imageUrl 
+              ? proxyImage(imageUrl)
               : `https://picsum.photos/seed/${cleanUsername}${index}/400/400`;
 
             return {
