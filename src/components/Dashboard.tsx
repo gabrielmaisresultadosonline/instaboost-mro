@@ -146,9 +146,6 @@ export const Dashboard = ({
 
             <div className="flex items-center gap-2">
               {onLogout && <UserHeader onLogout={onLogout} />}
-              <Button variant="outline" size="sm" onClick={handleReset}>
-                <RotateCcw className="w-4 h-4" />
-              </Button>
             </div>
           </div>
 
