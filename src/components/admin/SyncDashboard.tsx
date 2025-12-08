@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   getSyncData, 
   saveSyncData, 
@@ -7,14 +7,21 @@ import {
   SquareCloudUser,
   wasProfileSyncedToday,
   updateProfile,
-  getTopGrowingProfiles
+  getTopGrowingProfiles,
+  isProfileAlreadySynced,
+  isProfileInDashboard,
+  markSyncComplete,
+  stopSync,
+  pauseSync,
+  resumeSync,
+  shouldAutoSync
 } from '@/lib/syncStorage';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { 
   RefreshCw, Play, Pause, Users, TrendingUp, Instagram, 
   CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight,
-  Loader2, AlertCircle, User
+  Loader2, AlertCircle, User, Square, Check
 } from 'lucide-react';
 
 const SQUARECLOUD_API = 'https://dashboardmroinstagramvini-online.squareweb.app';
@@ -26,12 +33,25 @@ const SyncDashboard = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
   const [currentSlide, setCurrentSlide] = useState(0);
-  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const syncAbortedRef = useRef(false);
 
-  // Load data on mount
+  // Load data on mount and check for auto-sync
   useEffect(() => {
     setSyncData(getSyncData());
+    
+    // Check if we need auto-sync at midnight
+    if (syncData.isSyncComplete && shouldAutoSync()) {
+      console.log('Auto-sync triggered - checking for new accounts...');
+      startAutoSync();
+    }
+  }, []);
+
+  // Refresh data periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSyncData(getSyncData());
+    }, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   // Fetch users from SquareCloud
@@ -87,18 +107,54 @@ const SyncDashboard = () => {
     }
   };
 
-  // Check if profile is connected to main dashboard
-  const checkDashboardConnection = (username: string): boolean => {
+  // Auto-sync for new accounts only
+  const startAutoSync = async () => {
     try {
-      const session = localStorage.getItem('mro_session');
-      if (!session) return false;
+      const users = await fetchSquareCloudUsers();
+      const currentData = getSyncData();
       
-      const parsed = JSON.parse(session);
-      return parsed.profiles?.some((p: any) => 
-        p.profile?.username?.toLowerCase() === username.toLowerCase()
-      ) || false;
-    } catch {
-      return false;
+      // Find new Instagram usernames
+      const allInstagramUsernames: { username: string; ownerId: string; ownerName: string }[] = [];
+      users.forEach(user => {
+        user.igInstagram.forEach(ig => {
+          const username = ig.replace('@', '').toLowerCase();
+          // Only add if not already synced and not in dashboard
+          if (!isProfileAlreadySynced(username) && !isProfileInDashboard(username)) {
+            allInstagramUsernames.push({
+              username,
+              ownerId: user.ID,
+              ownerName: user.ID
+            });
+          }
+        });
+      });
+      
+      if (allInstagramUsernames.length > 0) {
+        toast({ 
+          title: "Novos perfis encontrados!", 
+          description: `${allInstagramUsernames.length} novos perfis serão sincronizados` 
+        });
+        
+        // Sync new profiles
+        setIsSyncing(true);
+        syncAbortedRef.current = false;
+        await syncProfiles(allInstagramUsernames);
+      } else {
+        toast({ 
+          title: "Tudo sincronizado!", 
+          description: "Nenhuma nova conta encontrada" 
+        });
+      }
+      
+      // Update auto-sync date
+      const updatedData = getSyncData();
+      updatedData.lastAutoSyncDate = new Date().toISOString();
+      updatedData.users = users;
+      saveSyncData(updatedData);
+      setSyncData(updatedData);
+      
+    } catch (error) {
+      console.error('Auto-sync error:', error);
     }
   };
 
@@ -107,7 +163,7 @@ const SyncDashboard = () => {
     if (isSyncing) return;
     
     setIsSyncing(true);
-    abortControllerRef.current = new AbortController();
+    syncAbortedRef.current = false;
     
     try {
       toast({ title: "Iniciando sincronização...", description: "Buscando usuários do SquareCloud" });
@@ -115,38 +171,57 @@ const SyncDashboard = () => {
       // Step 1: Fetch users
       const users = await fetchSquareCloudUsers();
       
-      // Step 2: Collect all Instagram usernames
+      // Step 2: Collect all Instagram usernames (skip already synced/dashboard ones)
       const allInstagramUsernames: { username: string; ownerId: string; ownerName: string }[] = [];
       users.forEach(user => {
         user.igInstagram.forEach(ig => {
-          allInstagramUsernames.push({
-            username: ig.replace('@', '').toLowerCase(),
-            ownerId: user.ID,
-            ownerName: user.ID
-          });
+          const username = ig.replace('@', '').toLowerCase();
+          // Skip if already synced or in dashboard
+          if (!isProfileAlreadySynced(username) && !isProfileInDashboard(username)) {
+            allInstagramUsernames.push({
+              username,
+              ownerId: user.ID,
+              ownerName: user.ID
+            });
+          }
         });
+      });
+      
+      // Count total including already synced
+      let totalCount = 0;
+      users.forEach(user => {
+        totalCount += user.igInstagram.length;
       });
       
       // Step 3: Update sync data with users
       const updatedData: SyncData = {
-        ...syncData,
+        ...getSyncData(),
         users,
         lastSyncDate: new Date().toISOString(),
-        totalProfilesCount: allInstagramUsernames.length,
+        totalProfilesCount: totalCount,
         syncQueue: allInstagramUsernames.map(u => u.username),
-        isPaused: false
+        isPaused: false,
+        isStopped: false,
+        isSyncComplete: false
       };
       
       saveSyncData(updatedData);
       setSyncData(updatedData);
       
+      const alreadySyncedCount = totalCount - allInstagramUsernames.length;
       toast({ 
         title: "Usuários carregados!", 
-        description: `${users.length} usuários, ${allInstagramUsernames.length} perfis Instagram` 
+        description: `${users.length} usuários, ${allInstagramUsernames.length} novos perfis para sincronizar (${alreadySyncedCount} já sincronizados)` 
       });
       
       // Step 4: Start syncing profiles one by one
-      await syncProfiles(allInstagramUsernames);
+      if (allInstagramUsernames.length > 0) {
+        await syncProfiles(allInstagramUsernames);
+      } else {
+        markSyncComplete();
+        setSyncData(getSyncData());
+        toast({ title: "Sincronização completa!", description: "Todos os perfis já estavam sincronizados" });
+      }
       
     } catch (error) {
       toast({ 
@@ -161,13 +236,27 @@ const SyncDashboard = () => {
 
   // Sync profiles one by one with random delays
   const syncProfiles = async (profiles: { username: string; ownerId: string; ownerName: string }[]) => {
-    const currentData = getSyncData();
+    setSyncProgress({ current: 0, total: profiles.length });
     
     for (let i = 0; i < profiles.length; i++) {
-      // Check if paused or aborted
-      if (currentData.isPaused || abortControllerRef.current?.signal.aborted) {
-        toast({ title: "Sincronização pausada", description: `${i}/${profiles.length} perfis sincronizados` });
+      // Check if stopped or paused
+      const currentData = getSyncData();
+      if (currentData.isStopped || syncAbortedRef.current) {
+        toast({ title: "Sincronização parada", description: `${i} perfis sincronizados e salvos` });
+        setIsSyncing(false);
         return;
+      }
+      
+      if (currentData.isPaused) {
+        toast({ title: "Sincronização pausada", description: `${i}/${profiles.length} perfis sincronizados` });
+        // Wait while paused
+        while (getSyncData().isPaused && !getSyncData().isStopped) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        if (getSyncData().isStopped) {
+          setIsSyncing(false);
+          return;
+        }
       }
       
       const { username, ownerId, ownerName } = profiles[i];
@@ -191,7 +280,7 @@ const SyncDashboard = () => {
       const profileData = await fetchInstagramProfile(username);
       
       if (profileData) {
-        const isConnected = checkDashboardConnection(username);
+        const isConnected = isProfileInDashboard(username);
         
         const fullProfile: SyncedInstagramProfile = {
           ...profileData as SyncedInstagramProfile,
@@ -212,44 +301,41 @@ const SyncDashboard = () => {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
     
-    // Mark full sync complete
-    const finalData = getSyncData();
-    finalData.lastFullSyncDate = new Date().toISOString();
-    finalData.currentlySyncing = null;
-    finalData.syncQueue = [];
-    saveSyncData(finalData);
-    setSyncData(finalData);
+    // Mark sync complete
+    markSyncComplete();
+    setSyncData(getSyncData());
+    setIsSyncing(false);
     
     toast({ 
-      title: "Sincronização concluída!", 
-      description: `${profiles.length} perfis processados` 
+      title: "Sincronização total concluída!", 
+      description: `${profiles.length} perfis processados. Auto-sync ativo às 00h.` 
     });
   };
 
-  // Pause/Resume sync
-  const togglePause = () => {
-    const data = getSyncData();
-    data.isPaused = !data.isPaused;
-    saveSyncData(data);
-    setSyncData(data);
-    
-    if (data.isPaused) {
-      abortControllerRef.current?.abort();
-      toast({ title: "Sincronização pausada" });
-    } else {
-      toast({ title: "Retomando sincronização..." });
-      // Resume from queue
-      const queue = data.syncQueue.map(username => ({
-        username,
-        ownerId: data.users.find(u => u.igInstagram.includes(username))?.ID || '',
-        ownerName: data.users.find(u => u.igInstagram.includes(username))?.ID || ''
-      }));
-      if (queue.length > 0) {
-        setIsSyncing(true);
-        abortControllerRef.current = new AbortController();
-        syncProfiles(queue);
-      }
-    }
+  // Handle pause
+  const handlePause = () => {
+    pauseSync();
+    setSyncData(getSyncData());
+    toast({ title: "Sincronização pausada" });
+  };
+
+  // Handle resume
+  const handleResume = () => {
+    resumeSync();
+    setSyncData(getSyncData());
+    toast({ title: "Retomando sincronização..." });
+  };
+
+  // Handle stop (saves progress)
+  const handleStop = () => {
+    syncAbortedRef.current = true;
+    stopSync();
+    setSyncData(getSyncData());
+    setIsSyncing(false);
+    toast({ 
+      title: "Sincronização parada", 
+      description: "Perfis já sincronizados foram salvos" 
+    });
   };
 
   // Get top growing profiles for slider
@@ -279,6 +365,34 @@ const SyncDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Sync Status Banner */}
+      {syncData.isSyncComplete && (
+        <div className="glass-card p-4 border-l-4 border-green-500 bg-green-500/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Check className="w-6 h-6 text-green-500" />
+              <div>
+                <p className="font-semibold text-green-500">Sincronização Total Concluída</p>
+                <p className="text-sm text-muted-foreground">
+                  Auto-sync ativo às 00h diariamente • Última: {syncData.lastAutoSyncDate 
+                    ? new Date(syncData.lastAutoSyncDate).toLocaleString('pt-BR')
+                    : 'N/A'}
+                </p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={startAutoSync}
+              className="cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Verificar Novos
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Header Stats */}
       <div className="grid grid-cols-4 gap-4">
         <div className="glass-card p-4 text-center">
@@ -317,16 +431,29 @@ const SyncDashboard = () => {
           <div className="flex gap-2">
             {isSyncing ? (
               <>
+                {syncData.isPaused ? (
+                  <Button 
+                    variant="outline" 
+                    onClick={handleResume}
+                    className="cursor-pointer"
+                  >
+                    <Play className="w-4 h-4 mr-2" /> Retomar
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    onClick={handlePause}
+                    className="cursor-pointer"
+                  >
+                    <Pause className="w-4 h-4 mr-2" /> Pausar
+                  </Button>
+                )}
                 <Button 
-                  variant="outline" 
-                  onClick={togglePause}
+                  variant="destructive" 
+                  onClick={handleStop}
                   className="cursor-pointer"
                 >
-                  {syncData.isPaused ? (
-                    <><Play className="w-4 h-4 mr-2" /> Retomar</>
-                  ) : (
-                    <><Pause className="w-4 h-4 mr-2" /> Pausar</>
-                  )}
+                  <Square className="w-4 h-4 mr-2" /> Parar e Salvar
                 </Button>
               </>
             ) : (
@@ -345,9 +472,14 @@ const SyncDashboard = () => {
         {isSyncing && (
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              {syncData.isPaused ? (
+                <Pause className="w-5 h-5 text-yellow-500" />
+              ) : (
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              )}
               <span className="text-sm">
-                Sincronizando: <strong>@{syncData.currentlySyncing}</strong>
+                {syncData.isPaused ? 'Pausado em: ' : 'Sincronizando: '}
+                <strong>@{syncData.currentlySyncing}</strong>
               </span>
               <span className="text-xs text-muted-foreground ml-auto">
                 {syncProgress.current}/{syncProgress.total}
@@ -355,12 +487,17 @@ const SyncDashboard = () => {
             </div>
             <div className="h-2 bg-secondary rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-primary to-mro-cyan transition-all duration-500"
+                className={`h-full transition-all duration-500 ${
+                  syncData.isPaused 
+                    ? 'bg-yellow-500' 
+                    : 'bg-gradient-to-r from-primary to-mro-cyan'
+                }`}
                 style={{ width: `${(syncProgress.current / Math.max(1, syncProgress.total)) * 100}%` }}
               />
             </div>
             <p className="text-xs text-muted-foreground">
               {syncData.syncQueue.length} perfis restantes na fila
+              {syncData.isPaused && ' (pausado)'}
             </p>
           </div>
         )}
@@ -416,29 +553,31 @@ const SyncDashboard = () => {
             </div>
             
             {/* Slider Controls */}
-            <div className="flex justify-center gap-2 mt-4">
-              <button 
-                onClick={() => setCurrentSlide(prev => Math.max(0, prev - 1))}
-                className="p-2 rounded-full bg-secondary hover:bg-secondary/80 cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              {topGrowing.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentSlide(idx)}
-                  className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
-                    idx === currentSlide ? 'bg-primary w-6' : 'bg-muted-foreground/30'
-                  }`}
-                />
-              ))}
-              <button 
-                onClick={() => setCurrentSlide(prev => Math.min(topGrowing.length - 1, prev + 1))}
-                className="p-2 rounded-full bg-secondary hover:bg-secondary/80 cursor-pointer"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            {topGrowing.length > 1 && (
+              <div className="flex justify-center gap-2 mt-4">
+                <button 
+                  onClick={() => setCurrentSlide(prev => Math.max(0, prev - 1))}
+                  className="p-2 rounded-full bg-secondary hover:bg-secondary/80 cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {topGrowing.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlide(idx)}
+                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                      idx === currentSlide ? 'bg-primary w-6' : 'bg-muted-foreground/30'
+                    }`}
+                  />
+                ))}
+                <button 
+                  onClick={() => setCurrentSlide(prev => Math.min(topGrowing.length - 1, prev + 1))}
+                  className="p-2 rounded-full bg-secondary hover:bg-secondary/80 cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData, addTutorialStep, addVideoToStep, deleteTutorialStep, deleteVideo } from '@/lib/adminConfig';
 import { getSession } from '@/lib/storage';
 import { getUserSession } from '@/lib/userStorage';
-import { getSyncData, SyncedInstagramProfile, SyncData } from '@/lib/syncStorage';
+import { getSyncData, SyncedInstagramProfile, SyncData, getAllMergedProfiles } from '@/lib/syncStorage';
 import { ProfileSession, MROSession } from '@/types/instagram';
 import type { UserSession } from '@/types/user';
 import { Logo } from '@/components/Logo';
@@ -112,8 +112,10 @@ const Admin = () => {
     (userSession?.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  // Filter synced profiles
-  const filteredSyncedProfiles = syncData.profiles.filter(p => {
+  // Filter synced profiles (merged with dashboard profiles)
+  const allMergedProfiles = getAllMergedProfiles();
+  
+  const filteredSyncedProfiles = allMergedProfiles.filter(p => {
     const matchesSearch = p.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.ownerUserName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -126,9 +128,9 @@ const Admin = () => {
   });
 
   // Get combined count for stats
-  const totalSyncedProfiles = syncData.profiles.length;
-  const connectedProfiles = syncData.profiles.filter(p => p.isConnectedToDashboard).length;
-  const notConnectedProfiles = syncData.profiles.filter(p => !p.isConnectedToDashboard).length;
+  const totalSyncedProfiles = allMergedProfiles.length;
+  const connectedProfiles = allMergedProfiles.filter(p => p.isConnectedToDashboard).length;
+  const notConnectedProfiles = allMergedProfiles.filter(p => !p.isConnectedToDashboard).length;
 
   // Calculate growth for synced profile
   const getSyncedProfileGrowth = (profile: SyncedInstagramProfile) => {
