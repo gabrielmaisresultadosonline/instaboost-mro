@@ -1,12 +1,11 @@
-// SquareCloud API Integration
+// SquareCloud API Integration via Edge Function Proxy
 import { 
   SquareLoginResponse, 
   SquareVerifyIGResponse, 
   SquareAddIGResponse,
   normalizeInstagramUsername 
 } from '@/types/user';
-
-const API_BASE = 'https://dashboardmroinstagramvini-online.squareweb.app';
+import { supabase } from '@/integrations/supabase/client';
 
 // Login with username and password
 export const loginToSquare = async (
@@ -14,18 +13,26 @@ export const loginToSquare = async (
   password: string
 ): Promise<{ success: boolean; daysRemaining?: number; error?: string }> => {
   try {
-    const response = await fetch(`${API_BASE}/verificar-numero`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `numero=${encodeURIComponent(password)}&nome=${encodeURIComponent(username)}`
+    const { data, error } = await supabase.functions.invoke('square-proxy', {
+      body: {
+        endpoint: '/verificar-numero',
+        method: 'POST',
+        contentType: 'form',
+        body: `numero=${encodeURIComponent(password)}&nome=${encodeURIComponent(username)}`
+      }
     });
 
-    const data: SquareLoginResponse = await response.json();
+    if (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'Erro ao conectar com o servidor' };
+    }
 
-    if (data && data.senhaCorrespondente) {
+    const result = data as SquareLoginResponse;
+
+    if (result && result.senhaCorrespondente) {
       return { 
         success: true, 
-        daysRemaining: data.diasRestantes || 365 // default to 365 if not provided
+        daysRemaining: result.diasRestantes || 365
       };
     } else {
       return { success: false, error: 'Usuário ou senha incorretos' };
@@ -41,18 +48,25 @@ export const verifyRegisteredIGs = async (
   username: string
 ): Promise<{ success: boolean; instagrams?: string[]; error?: string }> => {
   try {
-    const response = await fetch(`${API_BASE}/verificar-usuario-instagram`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username })
+    const { data, error } = await supabase.functions.invoke('square-proxy', {
+      body: {
+        endpoint: '/verificar-usuario-instagram',
+        method: 'POST',
+        body: { username }
+      }
     });
 
-    const data: SquareVerifyIGResponse = await response.json();
+    if (error) {
+      console.error('Verify IGs error:', error);
+      return { success: false, error: 'Erro ao verificar contas' };
+    }
 
-    if (data && data.success) {
+    const result = data as SquareVerifyIGResponse;
+
+    if (result && result.success) {
       const allIGs = [
-        ...(data.igInstagram || []),
-        ...(data.igTesteUserMro || [])
+        ...(result.igInstagram || []),
+        ...(result.igTesteUserMro || [])
       ].map(ig => normalizeInstagramUsername(ig));
       
       return { success: true, instagrams: allIGs };
@@ -73,21 +87,28 @@ export const addIGToSquare = async (
   try {
     const normalizedIG = normalizeInstagramUsername(instagram);
     
-    const response = await fetch(`${API_BASE}/adicionar-ig`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        newUsernameUser: username, 
-        IgsUsers: normalizedIG 
-      })
+    const { data, error } = await supabase.functions.invoke('square-proxy', {
+      body: {
+        endpoint: '/adicionar-ig',
+        method: 'POST',
+        body: { 
+          newUsernameUser: username, 
+          IgsUsers: normalizedIG 
+        }
+      }
     });
 
-    const data: SquareAddIGResponse = await response.json();
+    if (error) {
+      console.error('Add IG error:', error);
+      return { success: false, error: 'Erro ao adicionar Instagram' };
+    }
 
-    if (data.success) {
+    const result = data as SquareAddIGResponse;
+
+    if (result.success) {
       return { success: true };
     } else {
-      return { success: false, error: data.message || 'Não foi possível adicionar o Instagram' };
+      return { success: false, error: result.message || 'Não foi possível adicionar o Instagram' };
     }
   } catch (error) {
     console.error('Add IG error:', error);
@@ -105,25 +126,38 @@ export const saveEmailAndPrint = async (
   try {
     const normalizedIG = normalizeInstagramUsername(instagram);
     
-    const formData = new FormData();
-    formData.append('prints', printBlob, `${normalizedIG}_profile.jpg`);
-    formData.append('email', email);
-    formData.append('newUsernameUser', username);
-    formData.append('IgsUsers', normalizedIG);
-    formData.append('dataDeEnvio', new Date().toISOString());
+    // Convert blob to base64
+    const reader = new FileReader();
+    const base64Promise = new Promise<string>((resolve) => {
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        resolve(base64.split(',')[1]);
+      };
+      reader.readAsDataURL(printBlob);
+    });
+    const base64Image = await base64Promise;
 
-    const response = await fetch(`${API_BASE}/saveEmail`, {
-      method: 'POST',
-      body: formData
+    const { data, error } = await supabase.functions.invoke('square-proxy', {
+      body: {
+        endpoint: '/saveEmail',
+        method: 'POST',
+        body: {
+          email,
+          newUsernameUser: username,
+          IgsUsers: normalizedIG,
+          dataDeEnvio: new Date().toISOString(),
+          printBase64: base64Image,
+          printFileName: `${normalizedIG}_profile.jpg`
+        }
+      }
     });
 
-    if (response.ok) {
-      return { success: true };
-    } else {
-      const text = await response.text();
-      console.error('saveEmail error:', text);
+    if (error) {
+      console.error('saveEmail error:', error);
       return { success: false, error: 'Erro ao salvar dados' };
     }
+
+    return { success: true };
   } catch (error) {
     console.error('Save email/print error:', error);
     return { success: false, error: 'Erro ao enviar dados' };
@@ -137,7 +171,7 @@ export const getAvailableIGSlots = async (
   try {
     const result = await verifyRegisteredIGs(username);
     const registered = result.instagrams?.length || 0;
-    // Assuming max 6 IGs per user - adjust as needed
+    // Assuming max 6 IGs per user
     const maxIGs = 6;
     return { available: maxIGs - registered, total: maxIGs };
   } catch {
