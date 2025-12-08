@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData, addTutorialStep, addVideoToStep, deleteTutorialStep, deleteVideo } from '@/lib/adminConfig';
 import { getSession } from '@/lib/storage';
 import { getUserSession } from '@/lib/userStorage';
+import { getSyncData, SyncedInstagramProfile, SyncData } from '@/lib/syncStorage';
 import { ProfileSession, MROSession } from '@/types/instagram';
 import type { UserSession } from '@/types/user';
 import { Logo } from '@/components/Logo';
@@ -18,10 +19,12 @@ import {
   Users, Settings, Video, LogOut, Search, Download, 
   Eye, TrendingUp, Calendar, Sparkles, Plus, Trash2,
   Save, RefreshCw, Check, X, Play, ExternalLink,
-  Image as ImageIcon, BarChart3, User, CloudDownload
+  Image as ImageIcon, BarChart3, User, CloudDownload,
+  Instagram, Filter, CheckCircle, XCircle
 } from 'lucide-react';
 
 type Tab = 'users' | 'sync' | 'tutorials' | 'settings';
+type UserFilter = 'all' | 'instagram' | 'connected';
 
 interface PrintSettings {
   color: string;
@@ -43,9 +46,12 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState<Tab>('users');
   const [session, setSession] = useState<MROSession | null>(null);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
+  const [syncData, setSyncData] = useState<SyncData>(getSyncData());
   const [adminData, setAdminData] = useState<AdminData>(getAdminData());
   const [searchTerm, setSearchTerm] = useState('');
+  const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
+  const [selectedSyncedProfile, setSelectedSyncedProfile] = useState<SyncedInstagramProfile | null>(null);
   const [printSettings, setPrintSettings] = useState<PrintSettings>({
     color: PRINT_COLORS[0].value,
     showGrowth: true
@@ -76,13 +82,22 @@ const Admin = () => {
     // Load sessions
     const mroSession = getSession();
     const userSess = getUserSession();
+    const syncedData = getSyncData();
     setSession(mroSession);
     setUserSession(userSess);
+    setSyncData(syncedData);
     
     // Load saved settings
     const savedData = getAdminData();
     setAdminData(savedData);
     setSettings(savedData.settings);
+
+    // Refresh sync data periodically
+    const interval = setInterval(() => {
+      setSyncData(getSyncData());
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -96,6 +111,32 @@ const Admin = () => {
     p.profile.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (userSession?.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  // Filter synced profiles
+  const filteredSyncedProfiles = syncData.profiles.filter(p => {
+    const matchesSearch = p.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.ownerUserName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    
+    if (userFilter === 'connected') return p.isConnectedToDashboard;
+    if (userFilter === 'instagram') return true;
+    return true;
+  });
+
+  // Get combined count for stats
+  const totalSyncedProfiles = syncData.profiles.length;
+  const connectedProfiles = syncData.profiles.filter(p => p.isConnectedToDashboard).length;
+  const notConnectedProfiles = syncData.profiles.filter(p => !p.isConnectedToDashboard).length;
+
+  // Calculate growth for synced profile
+  const getSyncedProfileGrowth = (profile: SyncedInstagramProfile) => {
+    if (profile.growthHistory.length < 2) return 0;
+    const first = profile.growthHistory[0].followers;
+    const last = profile.growthHistory[profile.growthHistory.length - 1].followers;
+    return last - first;
+  };
 
   // Get the user info who registered this instagram
   const getRegisteredUserInfo = (username: string) => {
@@ -291,13 +332,77 @@ const Admin = () => {
         {/* Users Tab */}
         {activeTab === 'users' && (
           <div className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-4 gap-4">
+              <div className="glass-card p-4 text-center">
+                <Instagram className="w-6 h-6 mx-auto text-pink-500 mb-2" />
+                <p className="text-2xl font-bold">{totalSyncedProfiles}</p>
+                <p className="text-xs text-muted-foreground">Perfis Instagram Total</p>
+              </div>
+              <div className="glass-card p-4 text-center">
+                <CheckCircle className="w-6 h-6 mx-auto text-green-500 mb-2" />
+                <p className="text-2xl font-bold">{connectedProfiles}</p>
+                <p className="text-xs text-muted-foreground">Conectados Dashboard</p>
+              </div>
+              <div className="glass-card p-4 text-center">
+                <XCircle className="w-6 h-6 mx-auto text-yellow-500 mb-2" />
+                <p className="text-2xl font-bold">{notConnectedProfiles}</p>
+                <p className="text-xs text-muted-foreground">Não Conectados</p>
+              </div>
+              <div className="glass-card p-4 text-center">
+                <Users className="w-6 h-6 mx-auto text-primary mb-2" />
+                <p className="text-2xl font-bold">{syncData.users.length}</p>
+                <p className="text-xs text-muted-foreground">Usuários SquareCloud</p>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-display font-bold">Contas Cadastradas</h2>
-              <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-display font-bold">Perfis Instagram</h2>
+              <div className="flex items-center gap-3">
+                {/* Filter Buttons */}
+                <div className="flex gap-1 bg-secondary/50 rounded-lg p-1">
+                  <button
+                    type="button"
+                    onClick={() => setUserFilter('all')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
+                      userFilter === 'all' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUserFilter('instagram')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
+                      userFilter === 'instagram' 
+                        ? 'bg-pink-500 text-white' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Instagram className="w-4 h-4 inline mr-1" />
+                    Instagram
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUserFilter('connected')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
+                      userFilter === 'connected' 
+                        ? 'bg-green-500 text-white' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <CheckCircle className="w-4 h-4 inline mr-1" />
+                    Cadastrados
+                  </button>
+                </div>
+
+                {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por @username ou nome do usuário..."
+                    placeholder="Buscar por @username ou usuário..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 w-72 bg-secondary/50"
@@ -306,14 +411,20 @@ const Admin = () => {
               </div>
             </div>
 
-            {selectedProfile ? (
+            {selectedProfile || selectedSyncedProfile ? (
               // Profile Detail View
               <div className="space-y-6">
-                <Button type="button" variant="outline" onClick={() => setSelectedProfile(null)} className="cursor-pointer">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => { setSelectedProfile(null); setSelectedSyncedProfile(null); }} 
+                  className="cursor-pointer"
+                >
                   ← Voltar para lista
                 </Button>
                 
-                {(() => {
+                {/* Dashboard Connected Profile View */}
+                {selectedProfile && (() => {
                   const profileData = getSelectedProfileData();
                   if (!profileData) return null;
                   
@@ -571,59 +682,252 @@ const Admin = () => {
                     </div>
                   );
                 })()}
+
+                {/* Synced Profile View (not connected to dashboard) */}
+                {selectedSyncedProfile && (
+                  <div className="grid gap-6">
+                    {/* Profile Header */}
+                    <div className="glass-card p-6">
+                      <div className="flex items-start gap-6">
+                        <img 
+                          src={selectedSyncedProfile.profilePicUrl}
+                          alt={selectedSyncedProfile.username}
+                          className={`w-24 h-24 rounded-full object-cover border-2 ${
+                            selectedSyncedProfile.isConnectedToDashboard ? 'border-green-500' : 'border-yellow-500'
+                          }`}
+                          onError={(e) => {
+                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${selectedSyncedProfile.username}`;
+                          }}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-2xl font-display font-bold">@{selectedSyncedProfile.username}</h3>
+                            {selectedSyncedProfile.isConnectedToDashboard ? (
+                              <span className="px-2 py-1 rounded bg-green-500/20 text-green-500 text-xs font-medium">
+                                <CheckCircle className="w-3 h-3 inline mr-1" />
+                                Conectado
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 rounded bg-yellow-500/20 text-yellow-500 text-xs font-medium">
+                                <XCircle className="w-3 h-3 inline mr-1" />
+                                Não conectado
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground">{selectedSyncedProfile.fullName}</p>
+                          <p className="text-sm mt-2">{selectedSyncedProfile.bio}</p>
+                          <div className="flex gap-4 mt-4 text-sm">
+                            <span><strong>{selectedSyncedProfile.followers.toLocaleString()}</strong> seguidores</span>
+                            <span><strong>{selectedSyncedProfile.following.toLocaleString()}</strong> seguindo</span>
+                            <span><strong>{selectedSyncedProfile.posts}</strong> posts</span>
+                          </div>
+                        </div>
+                        <div className="text-right text-sm text-muted-foreground space-y-2">
+                          <div className="p-3 rounded-lg bg-primary/10 mb-3">
+                            <p className="text-xs text-muted-foreground">Usuário SquareCloud:</p>
+                            <p className="font-semibold text-foreground flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              {selectedSyncedProfile.ownerUserName}
+                            </p>
+                          </div>
+                          <p>Sincronizado em:</p>
+                          <p className="font-medium text-foreground">{new Date(selectedSyncedProfile.syncedAt).toLocaleDateString('pt-BR')}</p>
+                          <p className="mt-2">Última atualização:</p>
+                          <p className="font-medium text-foreground">{new Date(selectedSyncedProfile.lastUpdated).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Growth Stats */}
+                    <div className="glass-card p-6">
+                      <h4 className="font-semibold mb-4 flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-primary" />
+                        Crescimento
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="p-4 rounded-lg bg-primary/10 text-center">
+                          <p className="text-2xl font-bold text-primary">
+                            {getSyncedProfileGrowth(selectedSyncedProfile) > 0 
+                              ? `+${getSyncedProfileGrowth(selectedSyncedProfile).toLocaleString()}` 
+                              : getSyncedProfileGrowth(selectedSyncedProfile).toLocaleString()}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Novos Seguidores</p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-mro-cyan/10 text-center">
+                          <p className="text-2xl font-bold text-mro-cyan">
+                            {selectedSyncedProfile.growthHistory.length}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Snapshots</p>
+                        </div>
+                      </div>
+                      
+                      {/* Growth Timeline */}
+                      {selectedSyncedProfile.growthHistory.length > 0 && (
+                        <div className="space-y-2">
+                          {selectedSyncedProfile.growthHistory.slice(-12).map((snapshot, i) => (
+                            <div key={i} className="flex items-center gap-4 text-sm">
+                              <span className="w-24 text-muted-foreground">
+                                {new Date(snapshot.date).toLocaleDateString('pt-BR')}
+                              </span>
+                              <div className="flex-1 h-4 bg-secondary/50 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-primary to-mro-cyan rounded-full transition-all"
+                                  style={{ 
+                                    width: `${Math.min(100, (snapshot.followers / (selectedSyncedProfile.growthHistory[selectedSyncedProfile.growthHistory.length - 1]?.followers || 1)) * 100)}%` 
+                                  }}
+                                />
+                              </div>
+                              <span className="w-24 text-right font-medium">
+                                {snapshot.followers.toLocaleString()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Cliente Ativo Card for Download */}
+                    <div className="glass-card p-6">
+                      <h4 className="font-semibold mb-4 flex items-center gap-2">
+                        <ImageIcon className="w-5 h-5 text-primary" />
+                        Print Cliente Ativo (Stories)
+                      </h4>
+                      
+                      {/* Print Customization */}
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                          <Label className="text-sm mb-2 block">Cor do Print</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {PRINT_COLORS.map((color) => (
+                              <button
+                                key={color.value}
+                                type="button"
+                                onClick={() => setPrintSettings(prev => ({ ...prev, color: color.value }))}
+                                className={`w-8 h-8 rounded-full bg-gradient-to-br ${color.value} border-2 transition-all cursor-pointer ${
+                                  printSettings.color === color.value ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-border'
+                                }`}
+                                title={color.name}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={printSettings.showGrowth}
+                            onCheckedChange={(checked) => setPrintSettings(prev => ({ ...prev, showGrowth: checked }))}
+                          />
+                          <Label className="text-sm">Mostrar +seguidores</Label>
+                        </div>
+                      </div>
+
+                      {/* Print Preview */}
+                      <div 
+                        ref={printRef}
+                        className={`bg-gradient-to-br ${printSettings.color} p-6 rounded-lg aspect-[9/16] max-w-xs mx-auto flex flex-col items-center justify-center text-center`}
+                      >
+                        <img 
+                          src={selectedSyncedProfile.profilePicUrl}
+                          alt={selectedSyncedProfile.username}
+                          className={`w-20 h-20 rounded-full object-cover border-4 ${getSelectedColorBorder()} mb-4`}
+                          onError={(e) => {
+                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${selectedSyncedProfile.username}`;
+                          }}
+                        />
+                        <p className="text-2xl font-display font-bold text-primary">CLIENTE ATIVO</p>
+                        <p className="text-lg font-semibold mt-2">@{selectedSyncedProfile.username}</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {selectedSyncedProfile.followers.toLocaleString()} seguidores
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-4">
+                          {new Date().toLocaleDateString('pt-BR')}
+                        </p>
+                        {printSettings.showGrowth && getSyncedProfileGrowth(selectedSyncedProfile) > 0 && (
+                          <div className="mt-4 p-3 bg-primary/20 rounded-lg">
+                            <p className="text-sm font-bold text-primary">+{getSyncedProfileGrowth(selectedSyncedProfile).toLocaleString()} seguidores</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="w-full mt-4 cursor-pointer"
+                        onClick={downloadPrint}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar Print Stories
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              // Profile List View
+              // Profile List View - Show synced profiles
               <div className="grid gap-4">
-                {filteredProfiles.length === 0 ? (
+                {filteredSyncedProfiles.length === 0 ? (
                   <div className="glass-card p-12 text-center">
-                    <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <Instagram className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                     <p className="text-muted-foreground">
-                      {searchTerm ? 'Nenhum perfil encontrado com esse termo' : 'Nenhum perfil cadastrado ainda'}
+                      {searchTerm 
+                        ? 'Nenhum perfil encontrado com esse termo' 
+                        : 'Nenhum perfil sincronizado ainda. Vá para a aba "Sincronizar" para buscar perfis.'}
                     </p>
                   </div>
                 ) : (
-                  filteredProfiles.map((profileSession) => {
-                    const userInfo = getRegisteredUserInfo(profileSession.profile.username);
-                    const growth = calculateGrowth(profileSession);
+                  filteredSyncedProfiles.map((profile) => {
+                    const growth = getSyncedProfileGrowth(profile);
                     
                     return (
                       <div 
-                        key={profileSession.id} 
-                        className="glass-card p-4 hover:border-primary/50 transition-colors cursor-pointer"
-                        onClick={() => setSelectedProfile(profileSession.id)}
+                        key={profile.username} 
+                        className={`glass-card p-4 hover:border-primary/50 transition-colors cursor-pointer ${
+                          profile.isConnectedToDashboard ? 'border-l-4 border-l-green-500' : ''
+                        }`}
+                        onClick={() => setSelectedSyncedProfile(profile)}
                       >
                         <div className="flex items-center gap-4">
                           <img 
-                            src={profileSession.profile.profilePicUrl}
-                            alt={profileSession.profile.username}
-                            className="w-16 h-16 rounded-full object-cover border-2 border-border"
+                            src={profile.profilePicUrl}
+                            alt={profile.username}
+                            className={`w-16 h-16 rounded-full object-cover border-2 ${
+                              profile.isConnectedToDashboard ? 'border-green-500' : 'border-border'
+                            }`}
                             onError={(e) => {
-                              e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profileSession.profile.username}`;
+                              e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
                             }}
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="font-semibold">@{profileSession.profile.username}</p>
-                              {userInfo && (
-                                <span className="text-xs px-2 py-0.5 rounded bg-secondary text-muted-foreground">
-                                  por {userInfo.ownerName}
+                              <p className="font-semibold">@{profile.username}</p>
+                              {profile.isConnectedToDashboard ? (
+                                <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-500 flex items-center gap-1">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Cadastrado
+                                </span>
+                              ) : (
+                                <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-500 flex items-center gap-1">
+                                  <XCircle className="w-3 h-3" />
+                                  Não conectado
                                 </span>
                               )}
+                              <span className="text-xs px-2 py-0.5 rounded bg-secondary text-muted-foreground">
+                                <User className="w-3 h-3 inline mr-1" />
+                                {profile.ownerUserName}
+                              </span>
                             </div>
-                            <p className="text-sm text-muted-foreground">{profileSession.profile.fullName}</p>
+                            <p className="text-sm text-muted-foreground">{profile.fullName}</p>
                             <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
-                              <span>{profileSession.profile.followers.toLocaleString()} seguidores</span>
-                              <span>{profileSession.strategies.length} estratégias</span>
-                              <span>{profileSession.creatives.length} criativos</span>
+                              <span>{profile.followers.toLocaleString()} seguidores</span>
+                              <span>{profile.following.toLocaleString()} seguindo</span>
+                              <span>{profile.posts} posts</span>
                               {growth > 0 && (
-                                <span className="text-primary font-medium">+{growth.toLocaleString()}</span>
+                                <span className="text-green-500 font-medium">+{growth.toLocaleString()}</span>
                               )}
                             </div>
                           </div>
                           <div className="text-right text-sm">
-                            <p className="text-muted-foreground">Último acesso</p>
-                            <p className="font-medium">{new Date(profileSession.lastUpdated).toLocaleDateString('pt-BR')}</p>
+                            <p className="text-muted-foreground">Última atualização</p>
+                            <p className="font-medium">{new Date(profile.lastUpdated).toLocaleDateString('pt-BR')}</p>
                           </div>
                           <Eye className="w-5 h-5 text-muted-foreground" />
                         </div>
