@@ -56,6 +56,7 @@ const Admin = () => {
     color: PRINT_COLORS[0].value,
     showGrowth: true
   });
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Tutorial state
@@ -103,6 +104,14 @@ const Admin = () => {
   const handleLogout = () => {
     logoutAdmin();
     navigate('/admin/login');
+  };
+
+  // Refresh user list
+  const refreshUserList = () => {
+    setIsRefreshing(true);
+    setSyncData(getSyncData());
+    toast({ title: "Lista atualizada!", description: `${getAllMergedProfiles().length} perfis encontrados` });
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
   // Filter profiles matching search
@@ -359,7 +368,25 @@ const Admin = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-display font-bold">Perfis Instagram</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-display font-bold">Perfis Instagram</h2>
+                {/* Refresh Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={refreshUserList}
+                  className="cursor-pointer"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Atualizar Lista
+                </Button>
+                {syncData.currentlySyncing && (
+                  <span className="text-xs px-2 py-1 bg-primary/20 text-primary rounded-full animate-pulse">
+                    Sincronizando: @{syncData.currentlySyncing}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-3">
                 {/* Filter Buttons */}
                 <div className="flex gap-1 bg-secondary/50 rounded-lg p-1">
