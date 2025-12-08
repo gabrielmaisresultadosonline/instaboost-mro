@@ -128,8 +128,11 @@ export interface CreativeColors {
 export interface CreativeConfig {
   colors: CreativeColors;
   logoType: 'profile' | 'custom' | 'none';
+  logoPosition: 'left' | 'center' | 'right';
+  fontColor: string;
   customLogoUrl?: string;
   businessType: string;
+  customColors?: string[];
 }
 
 // Growth Tracking Types
