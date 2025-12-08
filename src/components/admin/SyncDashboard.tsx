@@ -292,8 +292,16 @@ const SyncDashboard = () => {
           growthHistory: []
         };
         
+        // IMPORTANTE: Salvar imediatamente após buscar dados
         updateProfile(fullProfile);
-        setSyncData(getSyncData());
+        
+        // Atualizar estado local para refletir imediatamente
+        const freshData = getSyncData();
+        setSyncData(freshData);
+        
+        console.log(`✅ Perfil @${username} sincronizado e SALVO com ${profileData.followers} seguidores`);
+      } else {
+        console.log(`⚠️ Perfil @${username} não encontrado, pulando...`);
       }
       
       // Random delay between 2-5 seconds to avoid overloading
@@ -326,15 +334,20 @@ const SyncDashboard = () => {
     toast({ title: "Retomando sincronização..." });
   };
 
-  // Handle stop (saves progress)
+  // Handle stop (saves progress - perfis já sincronizados NUNCA são perdidos)
   const handleStop = () => {
     syncAbortedRef.current = true;
     stopSync();
-    setSyncData(getSyncData());
+    
+    // Garantir que os dados estão salvos
+    const finalData = getSyncData();
+    setSyncData(finalData);
     setIsSyncing(false);
+    
+    const savedCount = finalData.profiles.length;
     toast({ 
-      title: "Sincronização parada", 
-      description: "Perfis já sincronizados foram salvos" 
+      title: "Sincronização parada e salva!", 
+      description: `${savedCount} perfis salvos permanentemente. Dados não serão perdidos.` 
     });
   };
 

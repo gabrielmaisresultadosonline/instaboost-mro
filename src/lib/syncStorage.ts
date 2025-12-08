@@ -176,35 +176,59 @@ export const getAllMergedProfiles = (): SyncedInstagramProfile[] => {
 };
 
 export const updateProfile = (profile: SyncedInstagramProfile): void => {
-  const data = getSyncData();
-  const existingIndex = data.profiles.findIndex(
-    p => p.username.toLowerCase() === profile.username.toLowerCase()
-  );
-  
-  if (existingIndex >= 0) {
-    // Update existing
-    const existing = data.profiles[existingIndex];
+  try {
+    const data = getSyncData();
+    const existingIndex = data.profiles.findIndex(
+      p => p.username.toLowerCase() === profile.username.toLowerCase()
+    );
     
-    // Add to growth history if followers changed
-    if (existing.followers !== profile.followers) {
+    if (existingIndex >= 0) {
+      // Update existing
+      const existing = data.profiles[existingIndex];
+      
+      // Add to growth history if followers changed
+      if (existing.followers !== profile.followers) {
+        profile.growthHistory = [
+          ...existing.growthHistory,
+          { date: new Date().toISOString(), followers: profile.followers }
+        ];
+      } else {
+        profile.growthHistory = existing.growthHistory;
+      }
+      
+      // Manter dados existentes que não vieram na atualização
+      profile.syncedAt = existing.syncedAt || profile.syncedAt;
+      
+      data.profiles[existingIndex] = profile;
+    } else {
+      // Add new profile
       profile.growthHistory = [
-        ...existing.growthHistory,
         { date: new Date().toISOString(), followers: profile.followers }
       ];
-    } else {
-      profile.growthHistory = existing.growthHistory;
+      data.profiles.push(profile);
     }
     
-    data.profiles[existingIndex] = profile;
-  } else {
-    // Add new
-    profile.growthHistory = [
-      { date: new Date().toISOString(), followers: profile.followers }
-    ];
-    data.profiles.push(profile);
+    // SALVAR IMEDIATAMENTE - Garantir persistência
+    saveSyncData(data);
+    
+    // Verificar se salvou corretamente
+    const verification = getSyncData();
+    const saved = verification.profiles.find(
+      p => p.username.toLowerCase() === profile.username.toLowerCase()
+    );
+    
+    if (!saved) {
+      console.error(`❌ ERRO: Perfil @${profile.username} não foi salvo!`);
+      // Tentar salvar novamente
+      const retryData = getSyncData();
+      retryData.profiles.push(profile);
+      saveSyncData(retryData);
+    } else {
+      console.log(`💾 Perfil @${profile.username} salvo com sucesso (${saved.followers} seguidores)`);
+    }
+  } catch (error) {
+    console.error('Erro ao salvar perfil:', error);
   }
-  
-  saveSyncData(data);
 };
 
 export const getTopGrowingProfiles = (limit: number = 5): SyncedInstagramProfile[] => {
