@@ -8,6 +8,7 @@ import { CreativeGenerator } from './CreativeGenerator';
 import { CreativesGallery } from './CreativesGallery';
 import { GrowthTracker } from './GrowthTracker';
 import { ProfileSelector } from './ProfileSelector';
+import { UserHeader } from './UserHeader';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
 import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession } from '@/lib/storage';
@@ -28,6 +29,7 @@ interface DashboardProps {
   onSelectProfile: (profileId: string) => void;
   onRemoveProfile: (profileId: string) => void;
   isLoading?: boolean;
+  onLogout?: () => void;
 }
 
 type Tab = 'profile' | 'analysis' | 'strategies' | 'creatives' | 'growth';
@@ -39,7 +41,8 @@ export const Dashboard = ({
   onAddProfile,
   onSelectProfile,
   onRemoveProfile,
-  isLoading
+  isLoading,
+  onLogout
 }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
@@ -139,10 +142,12 @@ export const Dashboard = ({
               ))}
             </nav>
 
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              <RotateCcw className="w-4 h-4" />
-              Resetar
-            </Button>
+            <div className="flex items-center gap-2">
+              {onLogout && <UserHeader onLogout={onLogout} />}
+              <Button variant="outline" size="sm" onClick={handleReset}>
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Mobile Profile Selector */}

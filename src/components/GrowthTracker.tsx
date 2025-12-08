@@ -5,6 +5,7 @@ import { addGrowthSnapshot, addGrowthInsight } from '@/lib/storage';
 import { TrendingUp, TrendingDown, Users, Heart, MessageCircle, Calendar, RefreshCw, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { GrowthPDFExport } from './GrowthPDFExport';
 
 interface GrowthTrackerProps {
   profileSession: ProfileSession;
@@ -140,16 +141,19 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
           </p>
         </div>
         
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefreshGrowth}
-          disabled={isRefreshing}
-          className={needsWeeklyUpdate ? 'border-primary text-primary animate-pulse' : ''}
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {needsWeeklyUpdate ? 'Atualização semanal' : 'Atualizar'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <GrowthPDFExport profileSession={profileSession} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshGrowth}
+            disabled={isRefreshing}
+            className={needsWeeklyUpdate ? 'border-primary text-primary animate-pulse' : ''}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {needsWeeklyUpdate ? 'Atualização semanal' : 'Atualizar'}
+          </Button>
+        </div>
       </div>
 
       {/* Main Stats */}
