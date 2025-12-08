@@ -38,6 +38,8 @@ export interface UserSession {
   lastSync: string;
 }
 
+export type { UserSession as UserSessionType };
+
 // Normalize Instagram username from URL or handle
 export const normalizeInstagramUsername = (input: string): string => {
   let username = input.trim().toLowerCase();

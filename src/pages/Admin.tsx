@@ -1,31 +1,55 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData, TutorialStep, addTutorialStep, addVideoToStep, deleteTutorialStep, deleteVideo } from '@/lib/adminConfig';
+import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData, addTutorialStep, addVideoToStep, deleteTutorialStep, deleteVideo } from '@/lib/adminConfig';
 import { getSession } from '@/lib/storage';
-import { MROSession } from '@/types/instagram';
+import { getUserSession } from '@/lib/userStorage';
+import { ProfileSession, MROSession } from '@/types/instagram';
+import type { UserSession } from '@/types/user';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import html2canvas from 'html2canvas';
 import { 
   Users, Settings, Video, LogOut, Search, Download, 
   Eye, TrendingUp, Calendar, Sparkles, Plus, Trash2,
   Save, RefreshCw, Check, X, Play, ExternalLink,
-  Image as ImageIcon, BarChart3
+  Image as ImageIcon, BarChart3, User
 } from 'lucide-react';
 
 type Tab = 'users' | 'tutorials' | 'settings';
+
+interface PrintSettings {
+  color: string;
+  showGrowth: boolean;
+}
+
+const PRINT_COLORS = [
+  { name: 'Primário', value: 'from-primary/20 to-mro-cyan/20', border: 'border-primary' },
+  { name: 'Cyan', value: 'from-mro-cyan/20 to-mro-cyan/40', border: 'border-mro-cyan' },
+  { name: 'Roxo', value: 'from-mro-purple/20 to-mro-purple/40', border: 'border-mro-purple' },
+  { name: 'Dourado', value: 'from-yellow-500/20 to-amber-500/20', border: 'border-yellow-500' },
+  { name: 'Verde', value: 'from-green-500/20 to-emerald-500/20', border: 'border-green-500' },
+  { name: 'Rosa', value: 'from-pink-500/20 to-rose-500/20', border: 'border-pink-500' },
+];
 
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>('users');
   const [session, setSession] = useState<MROSession | null>(null);
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [adminData, setAdminData] = useState<AdminData>(getAdminData());
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
+  const [printSettings, setPrintSettings] = useState<PrintSettings>({
+    color: PRINT_COLORS[0].value,
+    showGrowth: true
+  });
+  const printRef = useRef<HTMLDivElement>(null);
 
   // Tutorial state
   const [newStepTitle, setNewStepTitle] = useState('');
@@ -48,9 +72,16 @@ const Admin = () => {
       return;
     }
     
-    // Load user session data
-    const userSession = getSession();
-    setSession(userSession);
+    // Load sessions
+    const mroSession = getSession();
+    const userSess = getUserSession();
+    setSession(mroSession);
+    setUserSession(userSess);
+    
+    // Load saved settings
+    const savedData = getAdminData();
+    setAdminData(savedData);
+    setSettings(savedData.settings);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -58,10 +89,26 @@ const Admin = () => {
     navigate('/admin/login');
   };
 
+  // Filter profiles matching search
   const filteredProfiles = session?.profiles.filter(p => 
     p.profile.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.profile.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+    p.profile.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (userSession?.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  // Get the user info who registered this instagram
+  const getRegisteredUserInfo = (username: string) => {
+    if (!userSession?.user) return null;
+    const registeredIG = userSession.user.registeredIGs.find(
+      ig => ig.username.toLowerCase() === username.toLowerCase()
+    );
+    return registeredIG ? {
+      ownerName: userSession.user.username,
+      email: registeredIG.email,
+      registeredAt: registeredIG.registeredAt,
+      syncedFromSquare: registeredIG.syncedFromSquare
+    } : null;
+  };
 
   const handleSaveSettings = () => {
     const updatedData = { ...adminData, settings };
@@ -138,6 +185,31 @@ const Admin = () => {
     setTestingApi(null);
   };
 
+  const downloadPrint = async () => {
+    if (!printRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(printRef.current, {
+        backgroundColor: null,
+        scale: 2,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `cliente-ativo-${selectedProfile}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast({ title: "Print baixado!", description: "Imagem salva com sucesso" });
+    } catch (error) {
+      toast({ title: "Erro ao gerar print", variant: "destructive" });
+    }
+  };
+
+  const getSelectedColorBorder = () => {
+    const selectedColorObj = PRINT_COLORS.find(c => c.value === printSettings.color);
+    return selectedColorObj?.border || 'border-primary';
+  };
+
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
@@ -146,6 +218,29 @@ const Admin = () => {
 
   const getSelectedProfileData = () => {
     return session?.profiles.find(p => p.id === selectedProfile);
+  };
+
+  const calculateGrowth = (profileData: ProfileSession) => {
+    if (profileData.growthHistory.length < 2) return 0;
+    const first = profileData.growthHistory[0].followers;
+    const last = profileData.growthHistory[profileData.growthHistory.length - 1].followers;
+    return last - first;
+  };
+
+  const getNextStrategyDate = (profileData: ProfileSession) => {
+    if (profileData.strategies.length === 0) return null;
+    const lastStrategy = profileData.strategies[profileData.strategies.length - 1];
+    const lastDate = new Date(lastStrategy.createdAt);
+    const nextMonth = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 1);
+    return nextMonth;
+  };
+
+  const getDaysUntilNextStrategy = (profileData: ProfileSession) => {
+    const nextDate = getNextStrategyDate(profileData);
+    if (!nextDate) return 0;
+    const now = new Date();
+    const diff = nextDate.getTime() - now.getTime();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 
   if (!isAdminLoggedIn()) {
@@ -200,10 +295,10 @@ const Admin = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por nome ou @username..."
+                    placeholder="Buscar por @username ou nome do usuário..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64 bg-secondary/50"
+                    className="pl-10 w-72 bg-secondary/50"
                   />
                 </div>
               </div>
@@ -219,6 +314,10 @@ const Admin = () => {
                 {(() => {
                   const profileData = getSelectedProfileData();
                   if (!profileData) return null;
+                  
+                  const userInfo = getRegisteredUserInfo(profileData.profile.username);
+                  const growth = calculateGrowth(profileData);
+                  const daysUntilNext = getDaysUntilNextStrategy(profileData);
                   
                   return (
                     <div className="grid gap-6">
@@ -243,7 +342,17 @@ const Admin = () => {
                               <span><strong>{profileData.profile.posts}</strong> posts</span>
                             </div>
                           </div>
-                          <div className="text-right text-sm text-muted-foreground">
+                          <div className="text-right text-sm text-muted-foreground space-y-2">
+                            {userInfo && (
+                              <div className="p-3 rounded-lg bg-primary/10 mb-3">
+                                <p className="text-xs text-muted-foreground">Cadastrado por:</p>
+                                <p className="font-semibold text-foreground flex items-center gap-1">
+                                  <User className="w-3 h-3" />
+                                  {userInfo.ownerName}
+                                </p>
+                                <p className="text-xs">{userInfo.email}</p>
+                              </div>
+                            )}
                             <p>Cadastrado em:</p>
                             <p className="font-medium text-foreground">{new Date(profileData.startedAt).toLocaleDateString('pt-BR')}</p>
                             <p className="mt-2">Último acesso:</p>
@@ -252,33 +361,89 @@ const Admin = () => {
                         </div>
                       </div>
 
+                      {/* Strategy Countdown */}
+                      {profileData.strategies.length > 0 && (
+                        <div className="glass-card p-4 border-l-4 border-primary">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Próxima estratégia disponível em:</p>
+                              <p className="text-2xl font-bold text-primary">
+                                {daysUntilNext > 0 ? `${daysUntilNext} dias` : 'Disponível agora!'}
+                              </p>
+                            </div>
+                            <Calendar className="w-10 h-10 text-primary/50" />
+                          </div>
+                        </div>
+                      )}
+
                       {/* Cliente Ativo Card for Download */}
                       <div className="glass-card p-6">
                         <h4 className="font-semibold mb-4 flex items-center gap-2">
                           <ImageIcon className="w-5 h-5 text-primary" />
                           Print Cliente Ativo (Stories)
                         </h4>
-                        <div className="bg-gradient-to-br from-primary/20 to-mro-cyan/20 p-6 rounded-lg aspect-[9/16] max-w-xs mx-auto flex flex-col items-center justify-center text-center">
+                        
+                        {/* Print Customization */}
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                          <div>
+                            <Label className="text-sm mb-2 block">Cor do Print</Label>
+                            <div className="flex flex-wrap gap-2">
+                              {PRINT_COLORS.map((color) => (
+                                <button
+                                  key={color.value}
+                                  type="button"
+                                  onClick={() => setPrintSettings(prev => ({ ...prev, color: color.value }))}
+                                  className={`w-8 h-8 rounded-full bg-gradient-to-br ${color.value} border-2 transition-all cursor-pointer ${
+                                    printSettings.color === color.value ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-border'
+                                  }`}
+                                  title={color.name}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Switch
+                              checked={printSettings.showGrowth}
+                              onCheckedChange={(checked) => setPrintSettings(prev => ({ ...prev, showGrowth: checked }))}
+                            />
+                            <Label className="text-sm">Mostrar +seguidores</Label>
+                          </div>
+                        </div>
+
+                        {/* Print Preview */}
+                        <div 
+                          ref={printRef}
+                          className={`bg-gradient-to-br ${printSettings.color} p-6 rounded-lg aspect-[9/16] max-w-xs mx-auto flex flex-col items-center justify-center text-center`}
+                        >
                           <img 
                             src={profileData.profile.profilePicUrl}
                             alt={profileData.profile.username}
-                            className="w-20 h-20 rounded-full object-cover border-4 border-primary mb-4"
+                            className={`w-20 h-20 rounded-full object-cover border-4 ${getSelectedColorBorder()} mb-4`}
                             onError={(e) => {
                               e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profileData.profile.username}`;
                             }}
                           />
                           <p className="text-2xl font-display font-bold text-primary">CLIENTE ATIVO</p>
                           <p className="text-lg font-semibold mt-2">@{profileData.profile.username}</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {profileData.profile.followers.toLocaleString()} seguidores
+                          </p>
                           <p className="text-sm text-muted-foreground mt-4">
                             Desde {new Date(profileData.startedAt).toLocaleDateString('pt-BR')}
                           </p>
-                          <div className="mt-4 p-3 bg-primary/20 rounded-lg">
-                            <p className="text-xs">+{profileData.growthHistory.length > 1 ? 
-                              (profileData.growthHistory[profileData.growthHistory.length - 1].followers - profileData.growthHistory[0].followers).toLocaleString() : 
-                              '0'} seguidores</p>
-                          </div>
+                          {printSettings.showGrowth && growth > 0 && (
+                            <div className="mt-4 p-3 bg-primary/20 rounded-lg">
+                              <p className="text-sm font-bold text-primary">+{growth.toLocaleString()} seguidores</p>
+                            </div>
+                          )}
                         </div>
-                        <Button type="button" variant="outline" className="w-full mt-4 cursor-pointer">
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          className="w-full mt-4 cursor-pointer"
+                          onClick={downloadPrint}
+                        >
                           <Download className="w-4 h-4 mr-2" />
                           Baixar Print Stories
                         </Button>
@@ -293,9 +458,7 @@ const Admin = () => {
                         <div className="grid grid-cols-3 gap-4 mb-4">
                           <div className="p-4 rounded-lg bg-primary/10 text-center">
                             <p className="text-2xl font-bold text-primary">
-                              {profileData.growthHistory.length > 1 ? 
-                                (profileData.growthHistory[profileData.growthHistory.length - 1].followers - profileData.growthHistory[0].followers).toLocaleString() : 
-                                '0'}
+                              {growth > 0 ? `+${growth.toLocaleString()}` : growth.toLocaleString()}
                             </p>
                             <p className="text-xs text-muted-foreground">Novos Seguidores</p>
                           </div>
@@ -312,17 +475,26 @@ const Admin = () => {
                             <p className="text-xs text-muted-foreground">Criativos Gerados</p>
                           </div>
                         </div>
-                        {/* Simple growth visualization */}
-                        <div className="h-32 flex items-end gap-1">
+                        
+                        {/* Growth Timeline */}
+                        <div className="space-y-2">
                           {profileData.growthHistory.slice(-12).map((snapshot, i) => (
-                            <div 
-                              key={i}
-                              className="flex-1 bg-primary/60 rounded-t"
-                              style={{ 
-                                height: `${Math.min(100, (snapshot.followers / (profileData.growthHistory[profileData.growthHistory.length - 1]?.followers || 1)) * 100)}%` 
-                              }}
-                              title={`${snapshot.followers.toLocaleString()} seguidores`}
-                            />
+                            <div key={i} className="flex items-center gap-4 text-sm">
+                              <span className="w-24 text-muted-foreground">
+                                {new Date(snapshot.date).toLocaleDateString('pt-BR')}
+                              </span>
+                              <div className="flex-1 h-4 bg-secondary/50 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-primary to-mro-cyan rounded-full transition-all"
+                                  style={{ 
+                                    width: `${Math.min(100, (snapshot.followers / (profileData.growthHistory[profileData.growthHistory.length - 1]?.followers || 1)) * 100)}%` 
+                                  }}
+                                />
+                              </div>
+                              <span className="w-24 text-right font-medium">
+                                {snapshot.followers.toLocaleString()}
+                              </span>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -344,6 +516,21 @@ const Admin = () => {
                               </div>
                               <p className="font-medium">{strategy.title}</p>
                               <p className="text-sm text-muted-foreground mt-1">{strategy.description}</p>
+                              
+                              {/* Show posts calendar if available */}
+                              {strategy.postsCalendar && strategy.postsCalendar.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-border">
+                                  <p className="text-xs font-medium mb-2">Posts gerados ({strategy.postsCalendar.length}):</p>
+                                  <div className="grid grid-cols-3 gap-2 text-xs">
+                                    {strategy.postsCalendar.slice(0, 6).map((post, idx) => (
+                                      <div key={idx} className="p-2 bg-background/50 rounded text-center">
+                                        <p className="text-muted-foreground">{post.date}</p>
+                                        <p className="truncate">{post.postType}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
                           {profileData.strategies.length === 0 && (
@@ -394,38 +581,53 @@ const Admin = () => {
                     </p>
                   </div>
                 ) : (
-                  filteredProfiles.map((profileSession) => (
-                    <div 
-                      key={profileSession.id} 
-                      className="glass-card p-4 hover:border-primary/50 transition-colors cursor-pointer"
-                      onClick={() => setSelectedProfile(profileSession.id)}
-                    >
-                      <div className="flex items-center gap-4">
-                        <img 
-                          src={profileSession.profile.profilePicUrl}
-                          alt={profileSession.profile.username}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-border"
-                          onError={(e) => {
-                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profileSession.profile.username}`;
-                          }}
-                        />
-                        <div className="flex-1">
-                          <p className="font-semibold">@{profileSession.profile.username}</p>
-                          <p className="text-sm text-muted-foreground">{profileSession.profile.fullName}</p>
-                          <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
-                            <span>{profileSession.profile.followers.toLocaleString()} seguidores</span>
-                            <span>{profileSession.strategies.length} estratégias</span>
-                            <span>{profileSession.creatives.length} criativos</span>
+                  filteredProfiles.map((profileSession) => {
+                    const userInfo = getRegisteredUserInfo(profileSession.profile.username);
+                    const growth = calculateGrowth(profileSession);
+                    
+                    return (
+                      <div 
+                        key={profileSession.id} 
+                        className="glass-card p-4 hover:border-primary/50 transition-colors cursor-pointer"
+                        onClick={() => setSelectedProfile(profileSession.id)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <img 
+                            src={profileSession.profile.profilePicUrl}
+                            alt={profileSession.profile.username}
+                            className="w-16 h-16 rounded-full object-cover border-2 border-border"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profileSession.profile.username}`;
+                            }}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold">@{profileSession.profile.username}</p>
+                              {userInfo && (
+                                <span className="text-xs px-2 py-0.5 rounded bg-secondary text-muted-foreground">
+                                  por {userInfo.ownerName}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">{profileSession.profile.fullName}</p>
+                            <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
+                              <span>{profileSession.profile.followers.toLocaleString()} seguidores</span>
+                              <span>{profileSession.strategies.length} estratégias</span>
+                              <span>{profileSession.creatives.length} criativos</span>
+                              {growth > 0 && (
+                                <span className="text-primary font-medium">+{growth.toLocaleString()}</span>
+                              )}
+                            </div>
                           </div>
+                          <div className="text-right text-sm">
+                            <p className="text-muted-foreground">Último acesso</p>
+                            <p className="font-medium">{new Date(profileSession.lastUpdated).toLocaleDateString('pt-BR')}</p>
+                          </div>
+                          <Eye className="w-5 h-5 text-muted-foreground" />
                         </div>
-                        <div className="text-right text-sm">
-                          <p className="text-muted-foreground">Último acesso</p>
-                          <p className="font-medium">{new Date(profileSession.lastUpdated).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                        <Eye className="w-5 h-5 text-muted-foreground" />
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             )}
@@ -597,7 +799,7 @@ const Admin = () => {
             <div className="glass-card p-6 space-y-4">
               <h3 className="font-semibold flex items-center gap-2">
                 <Settings className="w-5 h-5 text-primary" />
-                APIs de IA
+                APIs de I.A da MRO
               </h3>
 
               <div className="space-y-4">
@@ -621,6 +823,11 @@ const Admin = () => {
                       {testingApi === 'DeepSeek' ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Testar'}
                     </Button>
                   </div>
+                  {settings.apis.deepseek && (
+                    <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Chave salva
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -643,6 +850,11 @@ const Admin = () => {
                       {testingApi === 'Gemini' ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Testar'}
                     </Button>
                   </div>
+                  {settings.apis.gemini && (
+                    <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Chave salva
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -665,6 +877,11 @@ const Admin = () => {
                       {testingApi === 'Nano Banana' ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Testar'}
                     </Button>
                   </div>
+                  {settings.apis.nanoBanana && (
+                    <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Chave salva
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
