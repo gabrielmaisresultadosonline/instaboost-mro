@@ -108,25 +108,42 @@ Retorne JSON:
       }
     }
 
-    // Build detailed image prompt with business context
-    console.log('Gerando imagem com Gemini...');
+    // Build detailed image prompt with business context and reference image
+    console.log('Gerando imagem com Gemini Nano Banana usando imagem de referência...');
     
-    const imagePrompt = `Create a professional Instagram marketing creative image for a ${businessType} company.
+    // Reference image URL for style/quality guidance
+    const referenceImageUrl = 'https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/reference-creative.png';
+    
+    const imagePrompt = `Create a professional Instagram marketing creative image inspired by the reference image style and quality.
 
-IMPORTANT REQUIREMENTS:
-- Theme: ${businessType} industry with ${strategy.type} marketing strategy
-- Color scheme: Primary color ${colors.primary}, Secondary color ${colors.secondary}
-- Style: Modern, clean, high-conversion design
-- Layout: Leave space at top for a logo overlay, leave space at bottom for text overlay
-- Aspect ratio: Perfect 1:1 square (Instagram post)
-- Quality: Ultra high resolution, professional, premium feel
-- DO NOT include any text in the image itself
-- DO NOT include any logos or brand marks
-- Background should represent ${businessType} context subtly
-- Use gradients and lighting that complement the color scheme
-- Professional photography style, suitable for ${profile.category || 'business'} niche
+REFERENCE IMAGE ANALYSIS - FOLLOW THIS STYLE:
+- Logo positioning: Centered at top with elegant spacing
+- Background: Dark, premium gradient with subtle tech/professional elements
+- Visual elements: High-quality imagery that conveys trust and innovation
+- Color harmony: Use ${colors.primary} and ${colors.secondary} as accent colors
+- Composition: Clean layout with clear visual hierarchy
+- Quality: Ultra HD, premium professional feel like the reference
 
-The image should evoke trust, professionalism, and urgency - perfect for a ${strategy.type} marketing campaign.`;
+SPECIFIC REQUIREMENTS FOR THIS CREATIVE:
+- Business Type: ${businessType}
+- Strategy: ${strategy.type} - ${strategy.title}
+- Profile Category: ${profile.category || 'business'}
+- Aspect ratio: 1:1 square (1080x1080 Instagram post)
+
+LAYOUT RULES:
+- TOP AREA: Leave clean space for logo overlay (like reference shows logo at top center)
+- CENTER: Powerful visual imagery representing ${businessType} - professional, trust-building
+- BOTTOM AREA: Leave space for text overlay (headline + CTA will be added)
+
+STYLE DETAILS:
+- Use dramatic lighting and premium gradients
+- Include subtle tech/innovation elements if relevant to ${businessType}
+- Color scheme must incorporate ${colors.primary} and ${colors.secondary}
+- DO NOT include any text or typography in the image
+- DO NOT include any logos - just leave space for logo overlay
+- Premium, high-conversion design aesthetic like the reference
+
+Create an image that matches the professional quality, composition, and premium feel of the reference image.`;
 
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -139,7 +156,18 @@ The image should evoke trust, professionalism, and urgency - perfect for a ${str
         messages: [
           {
             role: 'user',
-            content: imagePrompt
+            content: [
+              {
+                type: 'text',
+                text: imagePrompt
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: referenceImageUrl
+                }
+              }
+            ]
           }
         ],
         modalities: ['image', 'text']
