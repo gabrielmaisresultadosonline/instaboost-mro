@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Strategy, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
-import { Sparkles, Loader2, Zap, MessageSquare, Calendar, Users } from 'lucide-react';
+import { Sparkles, Loader2, Zap, MessageSquare, Calendar, Users, User } from 'lucide-react';
 import { generateStrategy } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,7 +14,7 @@ interface StrategyGeneratorProps {
 
 export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, existingStrategies }: StrategyGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedType, setSelectedType] = useState<'mro' | 'content' | 'engagement' | 'sales'>('mro');
+  const [selectedType, setSelectedType] = useState<'mro' | 'content' | 'engagement' | 'sales' | 'bio'>('mro');
   const { toast } = useToast();
 
   const strategyTypes = [
@@ -22,6 +22,7 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
     { id: 'content', label: 'Conteúdo', icon: <Calendar className="w-5 h-5" />, description: 'Calendário de publicações' },
     { id: 'engagement', label: 'Engajamento', icon: <Users className="w-5 h-5" />, description: 'Stories e interação' },
     { id: 'sales', label: 'Vendas', icon: <MessageSquare className="w-5 h-5" />, description: 'Scripts e abordagem' },
+    { id: 'bio', label: 'Bio Instagram', icon: <User className="w-5 h-5" />, description: 'Otimização de bio' },
   ];
 
   const handleGenerateStrategy = async () => {
@@ -68,12 +69,13 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
       </h3>
 
       {/* Strategy Type Selection */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         {strategyTypes.map((type) => (
           <button
+            type="button"
             key={type.id}
             onClick={() => setSelectedType(type.id as typeof selectedType)}
-            className={`p-4 rounded-lg border transition-all duration-300 text-left ${
+            className={`p-4 rounded-lg border transition-all duration-300 text-left cursor-pointer ${
               selectedType === type.id 
                 ? 'border-primary bg-primary/10' 
                 : 'border-border hover:border-primary/50'

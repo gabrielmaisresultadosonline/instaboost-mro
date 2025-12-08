@@ -1,6 +1,7 @@
 import { Strategy } from '@/types/instagram';
-import { Zap, Calendar, MessageSquare, ChevronDown, ChevronUp, Clock, Info } from 'lucide-react';
+import { Zap, Calendar, MessageSquare, ChevronDown, ChevronUp, Clock, Info, User, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 interface StrategyDisplayProps {
   strategy: Strategy;
@@ -9,6 +10,7 @@ interface StrategyDisplayProps {
 }
 
 export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaining }: StrategyDisplayProps) => {
+  const { toast } = useToast();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     steps: true,
     mroTutorial: false,
@@ -16,24 +18,37 @@ export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaini
     stories: false,
     posts: false,
     metaTutorial: false,
+    bioAnalysis: true,
+    suggestedBios: true,
+    bioTips: false,
   });
+  const [copiedBio, setCopiedBio] = useState<number | null>(null);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const typeIcons = {
+  const copyBio = async (bio: string, index: number) => {
+    await navigator.clipboard.writeText(bio);
+    setCopiedBio(index);
+    toast({ title: "Bio copiada!", description: "Cole no Instagram" });
+    setTimeout(() => setCopiedBio(null), 2000);
+  };
+
+  const typeIcons: Record<string, React.ReactNode> = {
     mro: <Zap className="w-5 h-5" />,
     content: <Calendar className="w-5 h-5" />,
     engagement: <MessageSquare className="w-5 h-5" />,
     sales: <MessageSquare className="w-5 h-5" />,
+    bio: <User className="w-5 h-5" />,
   };
 
-  const typeColors = {
+  const typeColors: Record<string, string> = {
     mro: 'bg-primary/20 text-primary',
     content: 'bg-mro-cyan/20 text-mro-cyan',
     engagement: 'bg-mro-purple/20 text-mro-purple',
     sales: 'bg-mro-green/20 text-mro-green',
+    bio: 'bg-amber-500/20 text-amber-500',
   };
 
   return (
@@ -71,6 +86,93 @@ export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaini
           ))}
         </ul>
       </CollapsibleSection>
+
+      {/* Bio Analysis - Only for bio type */}
+      {strategy.type === 'bio' && strategy.bioAnalysis && (
+        <CollapsibleSection
+          title="📊 Análise da Bio Atual"
+          isExpanded={expandedSections.bioAnalysis}
+          onToggle={() => toggleSection('bioAnalysis')}
+        >
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+              <p className="text-xs text-muted-foreground mb-1">Bio Atual:</p>
+              <p className="text-sm italic">"{strategy.bioAnalysis.currentBio}"</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-sm font-semibold text-destructive mb-2">❌ Problemas Identificados</p>
+                <ul className="space-y-1">
+                  {strategy.bioAnalysis.problems.map((problem: string, i: number) => (
+                    <li key={i} className="text-xs text-muted-foreground">• {problem}</li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="p-3 rounded-lg bg-mro-green/10 border border-mro-green/20">
+                <p className="text-sm font-semibold text-mro-green mb-2">✅ Pontos Fortes</p>
+                <ul className="space-y-1">
+                  {strategy.bioAnalysis.strengths.map((strength: string, i: number) => (
+                    <li key={i} className="text-xs text-muted-foreground">• {strength}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Suggested Bios - Only for bio type */}
+      {strategy.type === 'bio' && strategy.suggestedBios && (
+        <CollapsibleSection
+          title="✨ Bios Sugeridas (Clique para copiar)"
+          isExpanded={expandedSections.suggestedBios}
+          onToggle={() => toggleSection('suggestedBios')}
+        >
+          <div className="space-y-3">
+            {strategy.suggestedBios.map((item: { bio: string; focus: string }, i: number) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => copyBio(item.bio, i)}
+                className="w-full p-4 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 transition-all text-left cursor-pointer group"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-2">{item.bio}</p>
+                    <p className="text-xs text-muted-foreground">{item.focus}</p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {copiedBio === i ? (
+                      <Check className="w-5 h-5 text-mro-green" />
+                    ) : (
+                      <Copy className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Bio Tips - Only for bio type */}
+      {strategy.type === 'bio' && strategy.tips && (
+        <CollapsibleSection
+          title="💡 Dicas para Bio Perfeita"
+          isExpanded={expandedSections.bioTips}
+          onToggle={() => toggleSection('bioTips')}
+        >
+          <ul className="space-y-2">
+            {strategy.tips.map((tip: string, i: number) => (
+              <li key={i} className="text-sm p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </CollapsibleSection>
+      )}
 
       {/* MRO Tutorial */}
       {strategy.mroTutorial && (
@@ -255,27 +357,30 @@ export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaini
         </CollapsibleSection>
       )}
 
-      {/* Generate Creative Button */}
-      <div className="mt-6 pt-6 border-t border-border">
-        <button
-          onClick={() => onGenerateCreative(strategy)}
-          disabled={creativesRemaining === 0}
-          className={`w-full p-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-            creativesRemaining > 0
-              ? 'bg-animated-gradient text-primary-foreground btn-glow hover:scale-[1.02]'
-              : 'bg-muted text-muted-foreground cursor-not-allowed'
-          }`}
-        >
-          {creativesRemaining > 0 ? (
-            <>
-              🎨 Gerar Criativo para esta Estratégia
-              <span className="text-xs opacity-80">({creativesRemaining} restantes)</span>
-            </>
-          ) : (
-            'Limite de criativos atingido este mês'
-          )}
-        </button>
-      </div>
+      {/* Generate Creative Button - Only for non-bio strategies */}
+      {strategy.type !== 'bio' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <button
+            type="button"
+            onClick={() => onGenerateCreative(strategy)}
+            disabled={creativesRemaining === 0}
+            className={`w-full p-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
+              creativesRemaining > 0
+                ? 'bg-animated-gradient text-primary-foreground btn-glow hover:scale-[1.02]'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
+            }`}
+          >
+            {creativesRemaining > 0 ? (
+              <>
+                🎨 Gerar Criativo para esta Estratégia
+                <span className="text-xs opacity-80">({creativesRemaining} restantes)</span>
+              </>
+            ) : (
+              'Limite de criativos atingido este mês'
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -293,8 +398,9 @@ const CollapsibleSection = ({
 }) => (
   <div className="mb-4">
     <button
+      type="button"
       onClick={onToggle}
-      className="w-full flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+      className="w-full flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer"
     >
       <span className="font-semibold text-sm">{title}</span>
       {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

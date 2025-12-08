@@ -74,7 +74,7 @@ export const analyzeProfile = async (profile: InstagramProfile): Promise<{
 export const generateStrategy = async (
   profile: InstagramProfile, 
   analysis: ProfileAnalysis, 
-  type: 'mro' | 'content' | 'engagement' | 'sales'
+  type: 'mro' | 'content' | 'engagement' | 'sales' | 'bio'
 ): Promise<{
   success: boolean;
   strategy?: Strategy;

@@ -41,13 +41,24 @@ export interface Strategy {
   id: string;
   title: string;
   description: string;
-  type: 'mro' | 'content' | 'engagement' | 'sales';
+  type: 'mro' | 'content' | 'engagement' | 'sales' | 'bio';
   steps: string[];
   scripts: SalesScript[];
   storiesCalendar: StoriesDay[];
   postsCalendar?: PostDay[];
   mroTutorial?: MROTutorial;
   metaSchedulingTutorial?: string[];
+  // Bio strategy specific fields
+  bioAnalysis?: {
+    currentBio: string;
+    problems: string[];
+    strengths: string[];
+  };
+  suggestedBios?: {
+    bio: string;
+    focus: string;
+  }[];
+  tips?: string[];
   createdAt: string;
 }
 

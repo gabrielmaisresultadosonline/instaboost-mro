@@ -17,7 +17,7 @@ interface StrategyRequest {
     niche: string;
     recommendations: string[];
   };
-  type: 'mro' | 'content' | 'engagement' | 'sales';
+  type: 'mro' | 'content' | 'engagement' | 'sales' | 'bio';
 }
 
 serve(async (req) => {
@@ -122,6 +122,36 @@ Inclua:
 4. "postsCalendar": posts de 3 em 3 dias focados em conversão
 5. "mroTutorial": como usar MRO para gerar leads
 6. "metaSchedulingTutorial": agendamento no Meta`,
+
+      bio: `Crie uma bio otimizada para o Instagram de @${profile.username}.
+
+DATA DE GERAÇÃO: ${todayStr}
+Nicho: ${analysis.niche}
+Bio atual: "${profile.bio}"
+Categoria: ${profile.category || 'Não definida'}
+Seguidores: ${profile.followers}
+
+ANALISE A BIO ATUAL e crie uma versão melhorada com:
+- Proposta de valor clara no início
+- O que a pessoa/empresa faz
+- Benefício para quem segue
+- CTA forte (Call to Action)
+- Uso estratégico de emojis
+- Máximo 150 caracteres
+
+RETORNE JSON com:
+1. "bioAnalysis": {
+   "currentBio": "a bio atual",
+   "problems": ["problema 1", "problema 2"],
+   "strengths": ["ponto forte 1"]
+}
+2. "suggestedBios": [
+   {"bio": "sugestão 1 completa", "focus": "Foco: proposta de valor"},
+   {"bio": "sugestão 2 completa", "focus": "Foco: benefício"},
+   {"bio": "sugestão 3 completa", "focus": "Foco: autoridade"}
+]
+3. "tips": ["dica 1 para melhorar bio", "dica 2", "dica 3"]
+4. "steps": ["passo 1 para implementar", "passo 2"]`,
     };
 
     const systemPrompt = `Você é um especialista em marketing digital e vendas no Instagram.
@@ -410,6 +440,38 @@ function generateFallbackStrategy(type: string, profile: any, analysis: any) {
       mroTutorial,
       postsCalendar,
       metaSchedulingTutorial,
+    },
+    bio: {
+      title: `Otimização de Bio para @${profile.username}`,
+      description: `Análise e sugestões de bio otimizada para ${analysis.niche}. Gerada em ${today.toLocaleDateString('pt-BR')}.`,
+      steps: [
+        '📝 Analise sua bio atual',
+        '✨ Escolha uma das sugestões abaixo',
+        '📱 Copie e cole no Instagram',
+        '🔗 Adicione seu link na bio',
+        '📊 Monitore o impacto nos próximos dias',
+      ],
+      bioAnalysis: {
+        currentBio: profile.bio || 'Bio não encontrada',
+        problems: ['Bio pode ser mais direta', 'Falta CTA claro', 'Proposta de valor não está clara'],
+        strengths: ['Uso de emojis', 'Menciona o nicho'],
+      },
+      suggestedBios: [
+        { bio: `🎯 ${analysis.niche} | Transformo seguidores em clientes 💰 Resultados garantidos 👇`, focus: 'Foco: conversão' },
+        { bio: `✨ Especialista em ${analysis.niche} | +X clientes satisfeitos | Link abaixo 👇`, focus: 'Foco: autoridade' },
+        { bio: `${analysis.niche} 🚀 Te ajudo a [benefício] | Comece agora 👇`, focus: 'Foco: benefício' },
+      ],
+      tips: [
+        '💡 Comece com sua proposta de valor principal',
+        '🎯 Use no máximo 3-4 emojis estratégicos',
+        '📍 Adicione localização se for negócio local',
+        '🔗 Link na bio deve levar para ação',
+        '✅ Atualize a bio mensalmente',
+      ],
+      scripts: [],
+      mroTutorial: {},
+      postsCalendar: [],
+      metaSchedulingTutorial: [],
     },
   };
 
