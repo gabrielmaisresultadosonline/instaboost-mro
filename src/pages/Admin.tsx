@@ -13,14 +13,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
+import SyncDashboard from '@/components/admin/SyncDashboard';
 import { 
   Users, Settings, Video, LogOut, Search, Download, 
   Eye, TrendingUp, Calendar, Sparkles, Plus, Trash2,
   Save, RefreshCw, Check, X, Play, ExternalLink,
-  Image as ImageIcon, BarChart3, User
+  Image as ImageIcon, BarChart3, User, CloudDownload
 } from 'lucide-react';
 
-type Tab = 'users' | 'tutorials' | 'settings';
+type Tab = 'users' | 'sync' | 'tutorials' | 'settings';
 
 interface PrintSettings {
   color: string;
@@ -212,6 +213,7 @@ const Admin = () => {
 
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
+    { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
     { id: 'settings', label: 'Configurações', icon: <Settings className="w-4 h-4" /> },
   ];
@@ -632,6 +634,11 @@ const Admin = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* Sync Tab */}
+        {activeTab === 'sync' && (
+          <SyncDashboard />
         )}
 
         {/* Tutorials Tab */}
