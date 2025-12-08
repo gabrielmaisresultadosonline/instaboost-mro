@@ -280,7 +280,7 @@ export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaini
       )}
 
       {/* Scripts */}
-      {strategy.scripts.length > 0 && (
+      {strategy.scripts && strategy.scripts.length > 0 && (
         <CollapsibleSection
           title="Scripts de Vendas"
           isExpanded={expandedSections.scripts}
