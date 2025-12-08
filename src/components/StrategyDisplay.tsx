@@ -1,5 +1,5 @@
 import { Strategy } from '@/types/instagram';
-import { Zap, Calendar, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Zap, Calendar, MessageSquare, ChevronDown, ChevronUp, Clock, Info } from 'lucide-react';
 import { useState } from 'react';
 
 interface StrategyDisplayProps {
@@ -11,8 +11,11 @@ interface StrategyDisplayProps {
 export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaining }: StrategyDisplayProps) => {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     steps: true,
+    mroTutorial: false,
     scripts: false,
     stories: false,
+    posts: false,
+    metaTutorial: false,
   });
 
   const toggleSection = (section: string) => {
@@ -68,6 +71,111 @@ export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaini
           ))}
         </ul>
       </CollapsibleSection>
+
+      {/* MRO Tutorial */}
+      {strategy.mroTutorial && (
+        <CollapsibleSection
+          title="🤖 Tutorial MRO Inteligente"
+          isExpanded={expandedSections.mroTutorial}
+          onToggle={() => toggleSection('mroTutorial')}
+        >
+          <div className="space-y-4">
+            <div>
+              <h5 className="font-semibold text-sm mb-2 text-primary">Ações Diárias</h5>
+              <div className="space-y-2">
+                {strategy.mroTutorial.dailyActions.map((action, i) => (
+                  <div key={i} className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-sm">{action.action}</span>
+                      <span className="text-xs bg-primary/20 px-2 py-1 rounded">{action.quantity}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{action.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h5 className="font-semibold text-sm mb-2 text-mro-purple">Estratégia de Unfollow</h5>
+              <ul className="space-y-1">
+                {strategy.mroTutorial.unfollowStrategy.map((step, i) => (
+                  <li key={i} className="text-sm p-2 rounded bg-mro-purple/10">{step}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="p-3 rounded-lg bg-mro-cyan/10 border border-mro-cyan/20">
+              <p className="text-sm font-medium text-mro-cyan">📌 Conta de Referência</p>
+              <p className="text-xs text-muted-foreground mt-1">{strategy.mroTutorial.competitorReference}</p>
+            </div>
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Posts Calendar */}
+      {strategy.postsCalendar && strategy.postsCalendar.length > 0 && (
+        <CollapsibleSection
+          title="📅 Calendário de Posts (3 em 3 dias)"
+          isExpanded={expandedSections.posts}
+          onToggle={() => toggleSection('posts')}
+        >
+          <div className="overflow-x-auto">
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {strategy.postsCalendar.map((post, i) => (
+                <div key={i} className="p-3 rounded-lg bg-secondary/30 border border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold bg-primary/20 text-primary px-2 py-1 rounded">
+                        {post.date}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{post.dayOfWeek}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs">{post.bestTime}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium mb-1">{post.postType}</p>
+                  <p className="text-xs text-muted-foreground mb-2">{post.content}</p>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {post.hashtags.map((tag, j) => (
+                      <span key={j} className="text-xs bg-mro-cyan/10 text-mro-cyan px-2 py-0.5 rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-mro-green">💡 CTA: {post.cta}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Meta Scheduling Tutorial */}
+      {strategy.metaSchedulingTutorial && (
+        <CollapsibleSection
+          title="📱 Como Agendar no Meta Business Suite"
+          isExpanded={expandedSections.metaTutorial}
+          onToggle={() => toggleSection('metaTutorial')}
+        >
+          <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <div className="flex items-start gap-2 mb-3">
+              <Info className="w-4 h-4 text-blue-500 mt-0.5" />
+              <p className="text-xs text-muted-foreground">
+                Use o Meta Business Suite para agendar seus posts de 3 em 3 dias conforme o calendário acima.
+              </p>
+            </div>
+            <ol className="space-y-2">
+              {strategy.metaSchedulingTutorial.map((step, i) => (
+                <li key={i} className="text-sm p-2 rounded bg-secondary/30 flex items-start gap-2">
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </CollapsibleSection>
+      )}
 
       {/* Scripts */}
       {strategy.scripts.length > 0 && (

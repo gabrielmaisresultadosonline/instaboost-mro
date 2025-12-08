@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { MROSession, Strategy, Creative } from '@/types/instagram';
+import { MROSession, Strategy, Creative, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
 import { AnalysisCard } from './AnalysisCard';
 import { StrategyGenerator } from './StrategyGenerator';
 import { StrategyDisplay } from './StrategyDisplay';
 import { CreativeGenerator } from './CreativeGenerator';
 import { CreativesGallery } from './CreativesGallery';
+import { GrowthTracker } from './GrowthTracker';
+import { ProfileSelector } from './ProfileSelector';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
 import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession } from '@/lib/storage';
@@ -15,28 +17,42 @@ import {
   BarChart3, 
   Lightbulb, 
   Image as ImageIcon,
+  TrendingUp,
 } from 'lucide-react';
 
 interface DashboardProps {
   session: MROSession;
   onSessionUpdate: (session: MROSession) => void;
   onReset: () => void;
+  onAddProfile: (username: string) => void;
+  onSelectProfile: (profileId: string) => void;
+  onRemoveProfile: (profileId: string) => void;
+  isLoading?: boolean;
 }
 
-type Tab = 'profile' | 'analysis' | 'strategies' | 'creatives';
+type Tab = 'profile' | 'analysis' | 'strategies' | 'creatives' | 'growth';
 
-export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps) => {
+export const Dashboard = ({ 
+  session, 
+  onSessionUpdate, 
+  onReset,
+  onAddProfile,
+  onSelectProfile,
+  onRemoveProfile,
+  isLoading
+}: DashboardProps) => {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [showCreativeGenerator, setShowCreativeGenerator] = useState(false);
+
+  // Get active profile
+  const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
 
   // Clean expired creatives on mount
   useEffect(() => {
     cleanExpiredCreatives();
     const updatedSession = getSession();
-    if (updatedSession.creatives.length !== session.creatives.length) {
-      onSessionUpdate(updatedSession);
-    }
+    onSessionUpdate(updatedSession);
   }, []);
 
   const refreshSession = () => {
@@ -49,14 +65,12 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
     { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" /> },
     { id: 'creatives', label: 'Criativos', icon: <ImageIcon className="w-4 h-4" /> },
+    { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-4 h-4" /> },
   ];
 
   const handleStrategyGenerated = (strategy: Strategy) => {
     addStrategy(strategy);
-    onSessionUpdate({
-      ...session,
-      strategies: [...session.strategies, strategy],
-    });
+    refreshSession();
   };
 
   const handleGenerateCreative = (strategy: Strategy) => {
@@ -66,11 +80,7 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
 
   const handleCreativeGenerated = (creative: Creative) => {
     addCreative(creative);
-    onSessionUpdate({
-      ...session,
-      creatives: [...session.creatives, creative],
-      creativesRemaining: session.creativesRemaining - 1,
-    });
+    refreshSession();
     setShowCreativeGenerator(false);
     setActiveTab('creatives');
   };
@@ -82,7 +92,7 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
     }
   };
 
-  if (!session.profile || !session.analysis) {
+  if (!activeProfile) {
     return null;
   }
 
@@ -95,8 +105,14 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
             <div className="flex items-center gap-4">
               <Logo size="sm" />
               <div className="hidden md:block">
-                <p className="text-sm text-muted-foreground">Analisando:</p>
-                <p className="font-semibold">@{session.profile.username}</p>
+                <ProfileSelector
+                  profiles={session.profiles}
+                  activeProfileId={session.activeProfileId}
+                  onSelectProfile={onSelectProfile}
+                  onAddProfile={onAddProfile}
+                  onRemoveProfile={onRemoveProfile}
+                  isLoading={isLoading}
+                />
               </div>
             </div>
 
@@ -114,9 +130,9 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
                 >
                   {tab.icon}
                   {tab.label}
-                  {tab.id === 'strategies' && session.strategies.length > 0 && (
+                  {tab.id === 'strategies' && activeProfile.strategies.length > 0 && (
                     <span className="ml-1 w-5 h-5 rounded-full bg-primary-foreground/20 text-xs flex items-center justify-center">
-                      {session.strategies.length}
+                      {activeProfile.strategies.length}
                     </span>
                   )}
                 </button>
@@ -127,6 +143,18 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
               <RotateCcw className="w-4 h-4" />
               Resetar
             </Button>
+          </div>
+
+          {/* Mobile Profile Selector */}
+          <div className="md:hidden mt-3">
+            <ProfileSelector
+              profiles={session.profiles}
+              activeProfileId={session.activeProfileId}
+              onSelectProfile={onSelectProfile}
+              onAddProfile={onAddProfile}
+              onRemoveProfile={onRemoveProfile}
+              isLoading={isLoading}
+            />
           </div>
 
           {/* Tabs - Mobile */}
@@ -153,13 +181,13 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
       <main className="container mx-auto px-4 py-8">
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            <ProfileCard profile={session.profile} />
+            <ProfileCard profile={activeProfile.profile} />
             
             {/* Recent Posts Grid */}
             <div className="glass-card p-6">
               <h3 className="text-lg font-display font-semibold mb-4">Posts Recentes</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {session.profile.recentPosts.slice(0, 6).map((post, index) => (
+                {activeProfile.profile.recentPosts.slice(0, 6).map((post, index) => (
                   <div key={post.id} className="aspect-square rounded-lg overflow-hidden relative group">
                     <img 
                       src={post.imageUrl} 
@@ -167,7 +195,7 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = `https://picsum.photos/seed/${session.profile?.username}${index}/400/400`;
+                        target.src = `https://picsum.photos/seed/${activeProfile.profile?.username}${index}/400/400`;
                       }}
                     />
                     <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -188,28 +216,28 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
 
         {activeTab === 'analysis' && (
           <div className="max-w-3xl mx-auto">
-            <AnalysisCard analysis={session.analysis} />
+            <AnalysisCard analysis={activeProfile.analysis} />
           </div>
         )}
 
         {activeTab === 'strategies' && (
           <div className="max-w-3xl mx-auto space-y-6">
             <StrategyGenerator 
-              profile={session.profile}
-              analysis={session.analysis}
+              profile={activeProfile.profile}
+              analysis={activeProfile.analysis}
               onStrategyGenerated={handleStrategyGenerated}
-              existingStrategies={session.strategies}
+              existingStrategies={activeProfile.strategies}
             />
             
-            {session.strategies.length > 0 && (
+            {activeProfile.strategies.length > 0 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-display font-bold">Estratégias Geradas</h3>
-                {session.strategies.map((strategy) => (
+                {activeProfile.strategies.map((strategy) => (
                   <StrategyDisplay 
                     key={strategy.id}
                     strategy={strategy}
                     onGenerateCreative={handleGenerateCreative}
-                    creativesRemaining={session.creativesRemaining}
+                    creativesRemaining={activeProfile.creativesRemaining}
                   />
                 ))}
               </div>
@@ -220,8 +248,17 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
         {activeTab === 'creatives' && (
           <div className="max-w-4xl mx-auto">
             <CreativesGallery 
-              creatives={session.creatives}
-              creativesRemaining={session.creativesRemaining}
+              creatives={activeProfile.creatives}
+              creativesRemaining={activeProfile.creativesRemaining}
+              onUpdate={refreshSession}
+            />
+          </div>
+        )}
+
+        {activeTab === 'growth' && (
+          <div className="max-w-3xl mx-auto">
+            <GrowthTracker 
+              profileSession={activeProfile}
               onUpdate={refreshSession}
             />
           </div>
@@ -229,11 +266,11 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
       </main>
 
       {/* Creative Generator Modal */}
-      {showCreativeGenerator && selectedStrategy && session.profile && session.analysis && (
+      {showCreativeGenerator && selectedStrategy && activeProfile && (
         <CreativeGenerator
           strategy={selectedStrategy}
-          profile={session.profile}
-          niche={session.analysis.niche}
+          profile={activeProfile.profile}
+          niche={activeProfile.analysis.niche}
           onCreativeGenerated={handleCreativeGenerated}
           onClose={() => setShowCreativeGenerator(false)}
         />

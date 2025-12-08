@@ -45,7 +45,32 @@ export interface Strategy {
   steps: string[];
   scripts: SalesScript[];
   storiesCalendar: StoriesDay[];
+  postsCalendar?: PostDay[];
+  mroTutorial?: MROTutorial;
+  metaSchedulingTutorial?: string[];
   createdAt: string;
+}
+
+export interface PostDay {
+  date: string;
+  dayOfWeek: string;
+  postType: string;
+  content: string;
+  hashtags: string[];
+  bestTime: string;
+  cta: string;
+}
+
+export interface MROTutorial {
+  dailyActions: MRODailyAction[];
+  unfollowStrategy: string[];
+  competitorReference: string;
+}
+
+export interface MRODailyAction {
+  action: string;
+  quantity: string;
+  description: string;
 }
 
 export interface SalesScript {
@@ -96,11 +121,50 @@ export interface CreativeConfig {
   businessType: string;
 }
 
-export interface MROSession {
-  profile: InstagramProfile | null;
-  analysis: ProfileAnalysis | null;
+// Growth Tracking Types
+export interface GrowthSnapshot {
+  date: string;
+  followers: number;
+  following: number;
+  posts: number;
+  avgLikes: number;
+  avgComments: number;
+  engagement: number;
+}
+
+export interface GrowthInsight {
+  weekNumber: number;
+  startDate: string;
+  endDate: string;
+  followersGain: number;
+  followersGainPercent: number;
+  engagementChange: number;
+  strategyBonus: string;
+  insights: string[];
+}
+
+export interface ProfileSession {
+  id: string;
+  profile: InstagramProfile;
+  analysis: ProfileAnalysis;
   strategies: Strategy[];
   creatives: Creative[];
   creativesRemaining: number;
+  initialSnapshot: GrowthSnapshot;
+  growthHistory: GrowthSnapshot[];
+  growthInsights: GrowthInsight[];
+  startedAt: string;
   lastUpdated: string;
+}
+
+export interface MROSession {
+  profiles: ProfileSession[];
+  activeProfileId: string | null;
+  lastUpdated: string;
+  // Legacy support
+  profile?: InstagramProfile | null;
+  analysis?: ProfileAnalysis | null;
+  strategies?: Strategy[];
+  creatives?: Creative[];
+  creativesRemaining?: number;
 }
