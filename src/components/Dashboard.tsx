@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MROSession, Strategy, Creative } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
 import { AnalysisCard } from './AnalysisCard';
@@ -8,7 +8,7 @@ import { CreativeGenerator } from './CreativeGenerator';
 import { CreativesGallery } from './CreativesGallery';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
-import { addStrategy, addCreative, resetSession } from '@/lib/storage';
+import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession } from '@/lib/storage';
 import { 
   RotateCcw, 
   User, 
@@ -29,6 +29,20 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [showCreativeGenerator, setShowCreativeGenerator] = useState(false);
+
+  // Clean expired creatives on mount
+  useEffect(() => {
+    cleanExpiredCreatives();
+    const updatedSession = getSession();
+    if (updatedSession.creatives.length !== session.creatives.length) {
+      onSessionUpdate(updatedSession);
+    }
+  }, []);
+
+  const refreshSession = () => {
+    const updatedSession = getSession();
+    onSessionUpdate(updatedSession);
+  };
 
   const tabs = [
     { id: 'profile', label: 'Perfil', icon: <User className="w-4 h-4" /> },
@@ -208,6 +222,7 @@ export const Dashboard = ({ session, onSessionUpdate, onReset }: DashboardProps)
             <CreativesGallery 
               creatives={session.creatives}
               creativesRemaining={session.creativesRemaining}
+              onUpdate={refreshSession}
             />
           </div>
         )}

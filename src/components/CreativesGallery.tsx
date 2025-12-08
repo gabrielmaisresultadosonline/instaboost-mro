@@ -1,15 +1,43 @@
 import { Creative } from '@/types/instagram';
-import { Download, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Download, Image as ImageIcon, Clock, Check, AlertCircle } from 'lucide-react';
+import { markCreativeAsDownloaded } from '@/lib/storage';
+import { useToast } from '@/hooks/use-toast';
 
 interface CreativesGalleryProps {
   creatives: Creative[];
   creativesRemaining: number;
+  onUpdate?: () => void;
 }
 
-export const CreativesGallery = ({ creatives, creativesRemaining }: CreativesGalleryProps) => {
+export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: CreativesGalleryProps) => {
+  const { toast } = useToast();
+
   const downloadCreative = (creative: Creative) => {
-    // In a real app, this would download the actual image
     window.open(creative.imageUrl, '_blank');
+    
+    if (!creative.downloaded) {
+      markCreativeAsDownloaded(creative.id);
+      toast({
+        title: "Download iniciado",
+        description: "Criativo marcado como usado",
+      });
+      onUpdate?.();
+    }
+  };
+
+  const getDaysRemaining = (expiresAt: string) => {
+    const now = new Date();
+    const expires = new Date(expiresAt);
+    const diffTime = expires.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const getExpirationStatus = (expiresAt: string) => {
+    const days = getDaysRemaining(expiresAt);
+    if (days <= 0) return { text: 'Expirado', color: 'text-destructive', urgent: true };
+    if (days <= 7) return { text: `${days}d restantes`, color: 'text-warning', urgent: true };
+    return { text: `${days}d restantes`, color: 'text-muted-foreground', urgent: false };
   };
 
   if (creatives.length === 0) {
@@ -39,44 +67,94 @@ export const CreativesGallery = ({ creatives, creativesRemaining }: CreativesGal
         </div>
       </div>
 
+      {/* Info Banner */}
+      <div className="p-3 rounded-lg bg-secondary/50 border border-border text-sm text-muted-foreground flex items-start gap-2">
+        <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <p>
+          Criativos ficam disponíveis por <strong>1 mês</strong> após criação. 
+          Após o download, contam como usados.
+        </p>
+      </div>
+
       {/* Gallery Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {creatives.map((creative) => (
-          <div 
-            key={creative.id} 
-            className="glass-card overflow-hidden group relative"
-          >
-            <div className="aspect-square relative">
-              <img 
-                src={creative.imageUrl} 
-                alt="Criativo"
-                className="w-full h-full object-cover"
-              />
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent flex flex-col items-center justify-end p-4">
-                <p className="text-sm font-semibold text-center mb-2">{creative.headline}</p>
-                <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs">
-                  {creative.ctaText}
+        {creatives.map((creative) => {
+          const expStatus = creative.expiresAt 
+            ? getExpirationStatus(creative.expiresAt) 
+            : { text: 'Sem expiração', color: 'text-muted-foreground', urgent: false };
+
+          return (
+            <div 
+              key={creative.id} 
+              className="glass-card overflow-hidden group relative"
+            >
+              {/* Status badges */}
+              <div className="absolute top-2 left-2 right-2 z-10 flex justify-between items-start">
+                {/* Downloaded badge */}
+                {creative.downloaded && (
+                  <span className="px-2 py-1 rounded-full bg-success/80 text-success-foreground text-xs flex items-center gap-1 backdrop-blur-sm">
+                    <Check className="w-3 h-3" />
+                    Baixado
+                  </span>
+                )}
+                
+                {/* Expiration badge */}
+                <span className={`px-2 py-1 rounded-full bg-background/80 text-xs flex items-center gap-1 backdrop-blur-sm ml-auto ${expStatus.color}`}>
+                  {expStatus.urgent && <AlertCircle className="w-3 h-3" />}
+                  <Clock className="w-3 h-3" />
+                  {expStatus.text}
                 </span>
               </div>
+
+              {/* Logo overlay if exists */}
+              {creative.logoUrl && (
+                <div className="absolute top-12 left-2 z-10">
+                  <img 
+                    src={creative.logoUrl} 
+                    alt="Logo" 
+                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg"
+                  />
+                </div>
+              )}
+
+              <div className="aspect-square relative">
+                <img 
+                  src={creative.imageUrl} 
+                  alt="Criativo"
+                  className="w-full h-full object-cover"
+                />
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent flex flex-col items-center justify-end p-4">
+                  <p className="text-sm font-semibold text-center mb-2">{creative.headline}</p>
+                  <span 
+                    className="px-3 py-1 rounded-full text-xs"
+                    style={{ 
+                      backgroundColor: creative.colors?.primary || 'hsl(var(--primary))', 
+                      color: creative.colors?.text || 'hsl(var(--primary-foreground))' 
+                    }}
+                  >
+                    {creative.ctaText}
+                  </span>
+                </div>
+                
+                {/* Actions Overlay */}
+                <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => downloadCreative(creative)}
+                    className="p-3 rounded-full bg-primary text-primary-foreground hover:scale-110 transition-transform"
+                  >
+                    <Download className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
               
-              {/* Actions Overlay */}
-              <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                <button
-                  onClick={() => downloadCreative(creative)}
-                  className="p-3 rounded-full bg-primary text-primary-foreground hover:scale-110 transition-transform"
-                >
-                  <Download className="w-5 h-5" />
-                </button>
+              {/* Date */}
+              <div className="p-2 text-xs text-muted-foreground text-center">
+                Criado em {new Date(creative.createdAt).toLocaleDateString('pt-BR')}
               </div>
             </div>
-            
-            {/* Date */}
-            <div className="p-2 text-xs text-muted-foreground text-center">
-              {new Date(creative.createdAt).toLocaleDateString('pt-BR')}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

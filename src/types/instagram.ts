@@ -77,6 +77,23 @@ export interface Creative {
   headline: string;
   strategyId: string;
   createdAt: string;
+  expiresAt: string;
+  colors: CreativeColors;
+  logoUrl?: string;
+  downloaded: boolean;
+}
+
+export interface CreativeColors {
+  primary: string;
+  secondary: string;
+  text: string;
+}
+
+export interface CreativeConfig {
+  colors: CreativeColors;
+  logoType: 'profile' | 'custom' | 'none';
+  customLogoUrl?: string;
+  businessType: string;
 }
 
 export interface MROSession {
