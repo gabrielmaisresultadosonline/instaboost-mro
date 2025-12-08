@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MROSession, Strategy, Creative, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
 import { AnalysisCard } from './AnalysisCard';
@@ -19,6 +20,7 @@ import {
   Lightbulb, 
   Image as ImageIcon,
   TrendingUp,
+  Wrench,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -46,6 +48,7 @@ export const Dashboard = ({
   isLoading,
   onLogout
 }: DashboardProps) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [showCreativeGenerator, setShowCreativeGenerator] = useState(false);
@@ -109,6 +112,14 @@ export const Dashboard = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Logo size="sm" />
+              {/* Botão Ferramenta MRO */}
+              <Button
+                onClick={() => navigate('/mro-ferramenta')}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow"
+              >
+                <Wrench className="w-4 h-4 mr-2" />
+                Ferramenta MRO
+              </Button>
               <div className="hidden md:block">
                 <ProfileSelector
                   profiles={session.profiles}
