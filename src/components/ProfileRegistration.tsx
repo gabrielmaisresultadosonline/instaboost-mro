@@ -1,0 +1,612 @@
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { 
+  AlertTriangle, 
+  Check, 
+  Instagram, 
+  Loader2, 
+  Mail, 
+  RefreshCw, 
+  UserPlus,
+  Download,
+  Camera
+} from 'lucide-react';
+import { InstagramProfile, ProfileAnalysis } from '@/types/instagram';
+import { normalizeInstagramUsername } from '@/types/user';
+import { addIGToSquare, saveEmailAndPrint, verifyRegisteredIGs } from '@/lib/squareApi';
+import { 
+  getCurrentUser, 
+  updateUserEmail, 
+  addRegisteredIG, 
+  isIGRegistered,
+  syncIGsFromSquare,
+  getRegisteredIGs
+} from '@/lib/userStorage';
+import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import html2canvas from 'html2canvas';
+
+interface ProfileRegistrationProps {
+  onProfileRegistered: (profile: InstagramProfile, analysis: ProfileAnalysis) => void;
+  onSyncComplete: (instagrams: string[]) => void;
+}
+
+export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: ProfileRegistrationProps) => {
+  const [instagramInput, setInstagramInput] = useState('');
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
+  const [pendingProfile, setPendingProfile] = useState<InstagramProfile | null>(null);
+  const [pendingAnalysis, setPendingAnalysis] = useState<ProfileAnalysis | null>(null);
+  const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
+  const printRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const user = getCurrentUser();
+
+  useEffect(() => {
+    // Load saved email
+    if (user?.email) {
+      setEmail(user.email);
+    }
+    // Load registered IGs
+    const igs = getRegisteredIGs();
+    setRegisteredIGs(igs.map(ig => ig.username));
+  }, [user]);
+
+  const handleSearchProfile = async () => {
+    if (!instagramInput.trim()) {
+      toast({ title: 'Digite o Instagram', variant: 'destructive' });
+      return;
+    }
+
+    const normalizedIG = normalizeInstagramUsername(instagramInput);
+    
+    // Check if already registered locally
+    if (isIGRegistered(normalizedIG)) {
+      toast({ 
+        title: 'Perfil já cadastrado', 
+        description: 'Este Instagram já está vinculado à sua conta',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Fetch profile data
+      toast({ title: 'Buscando perfil...', description: `@${normalizedIG}` });
+      
+      const profileResult = await fetchInstagramProfile(normalizedIG);
+      
+      if (!profileResult.success || !profileResult.profile) {
+        toast({
+          title: 'Erro ao buscar perfil',
+          description: profileResult.error || 'Perfil não encontrado',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Analyze profile
+      toast({ title: 'Analisando perfil...', description: 'Gerando insights com IA' });
+      
+      const analysisResult = await analyzeProfile(profileResult.profile);
+      
+      if (!analysisResult.success || !analysisResult.analysis) {
+        toast({
+          title: 'Erro na análise',
+          description: 'Não foi possível analisar o perfil',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Store pending data and show confirmation
+      setPendingProfile(profileResult.profile);
+      setPendingAnalysis(analysisResult.analysis);
+      setShowConfirmDialog(true);
+
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível processar o perfil',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmRegistration = () => {
+    setShowConfirmDialog(false);
+    setShowWarningDialog(true);
+  };
+
+  const handleFinalConfirmation = async () => {
+    if (!pendingProfile || !pendingAnalysis || !user) return;
+
+    // Check email
+    if (!email.trim()) {
+      toast({ title: 'Digite seu e-mail', variant: 'destructive' });
+      return;
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({ title: 'E-mail inválido', variant: 'destructive' });
+      return;
+    }
+
+    setIsLoading(true);
+    setShowWarningDialog(false);
+
+    try {
+      // Save email to user session
+      updateUserEmail(email);
+
+      // Generate print image
+      const printBlob = await generateProfilePrint(pendingProfile, pendingAnalysis);
+
+      // Add IG to SquareCloud
+      const addResult = await addIGToSquare(user.username, pendingProfile.username);
+      
+      if (!addResult.success) {
+        toast({
+          title: 'Erro ao cadastrar',
+          description: addResult.error || 'Limite de cadastros atingido',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Send print and email
+      if (printBlob) {
+        await saveEmailAndPrint(email, user.username, pendingProfile.username, printBlob);
+      }
+
+      // Register locally
+      addRegisteredIG(pendingProfile.username, email, false);
+      setRegisteredIGs(prev => [...prev, normalizeInstagramUsername(pendingProfile.username)]);
+
+      toast({
+        title: 'Perfil cadastrado com sucesso!',
+        description: `@${pendingProfile.username} foi vinculado à sua conta`
+      });
+
+      // Proceed with the registered profile
+      onProfileRegistered(pendingProfile, pendingAnalysis);
+
+    } catch (error) {
+      toast({
+        title: 'Erro ao cadastrar',
+        description: 'Tente novamente',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+      setPendingProfile(null);
+      setPendingAnalysis(null);
+    }
+  };
+
+  const handleSyncAccounts = async () => {
+    if (!user) return;
+
+    setIsSyncing(true);
+
+    try {
+      const result = await verifyRegisteredIGs(user.username);
+      
+      if (result.success && result.instagrams && result.instagrams.length > 0) {
+        // Check email before syncing
+        if (!email.trim()) {
+          toast({ 
+            title: 'Digite seu e-mail', 
+            description: 'Necessário para sincronizar',
+            variant: 'destructive' 
+          });
+          setIsSyncing(false);
+          return;
+        }
+
+        updateUserEmail(email);
+        syncIGsFromSquare(result.instagrams, email);
+        setRegisteredIGs(result.instagrams);
+        
+        toast({
+          title: 'Contas sincronizadas!',
+          description: `${result.instagrams.length} Instagram(s) encontrado(s)`
+        });
+
+        onSyncComplete(result.instagrams);
+      } else {
+        toast({
+          title: 'Nenhuma conta encontrada',
+          description: 'Cadastre um novo perfil para começar'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro na sincronização',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const generateProfilePrint = async (
+    profile: InstagramProfile, 
+    analysis: ProfileAnalysis
+  ): Promise<Blob | null> => {
+    try {
+      // Create a hidden div for the print
+      const printDiv = document.createElement('div');
+      printDiv.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        width: 600px;
+        padding: 24px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: white;
+        font-family: Inter, Arial, sans-serif;
+        border-radius: 12px;
+      `;
+      
+      printDiv.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="${profile.profilePicUrl}" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #00ff88; object-fit: cover;" crossorigin="anonymous" />
+          <h2 style="margin: 12px 0 4px; font-size: 20px;">@${profile.username}</h2>
+          <p style="color: #888; font-size: 14px; margin: 0;">${profile.fullName}</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+          <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <div style="font-size: 20px; font-weight: bold; color: #00ff88;">${profile.followers.toLocaleString()}</div>
+            <div style="font-size: 12px; color: #888;">Seguidores</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <div style="font-size: 20px; font-weight: bold; color: #00ff88;">${profile.following.toLocaleString()}</div>
+            <div style="font-size: 12px; color: #888;">Seguindo</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <div style="font-size: 20px; font-weight: bold; color: #00ff88;">${profile.posts}</div>
+            <div style="font-size: 12px; color: #888;">Posts</div>
+          </div>
+        </div>
+        
+        <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 16px;">
+          <div style="font-size: 12px; color: #888; margin-bottom: 4px;">Bio</div>
+          <div style="font-size: 13px; line-height: 1.4;">${profile.bio || 'Sem bio'}</div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: bold; color: #ff6b6b;">${analysis.contentScore}</div>
+            <div style="font-size: 11px; color: #888;">Conteúdo</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: bold; color: #4ecdc4;">${analysis.engagementScore}</div>
+            <div style="font-size: 11px; color: #888;">Engajamento</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: bold; color: #45b7d1;">${analysis.profileScore}</div>
+            <div style="font-size: 11px; color: #888;">Perfil</div>
+          </div>
+        </div>
+        
+        <div style="text-align: center; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <div style="font-size: 11px; color: #666;">MRO Inteligente • ${new Date().toLocaleDateString('pt-BR')}</div>
+        </div>
+      `;
+      
+      document.body.appendChild(printDiv);
+      
+      // Wait for image to load
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(printDiv, {
+        backgroundColor: '#1a1a2e',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      });
+      
+      document.body.removeChild(printDiv);
+      
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          resolve(blob);
+        }, 'image/jpeg', 0.9);
+      });
+    } catch (error) {
+      console.error('Error generating print:', error);
+      return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 p-4">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header */}
+        <Card className="glass-card border-primary/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">Olá, {user?.username}!</CardTitle>
+                <CardDescription>
+                  Cadastre ou sincronize seus perfis do Instagram
+                </CardDescription>
+              </div>
+              <div className="text-right text-sm text-muted-foreground">
+                {registeredIGs.length > 0 && (
+                  <span>{registeredIGs.length} perfil(is) cadastrado(s)</span>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Email input - required first time */}
+        {!user?.email && (
+          <Card className="glass-card border-amber-500/20">
+            <CardContent className="pt-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  Seu e-mail (obrigatório)
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-background/50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Este e-mail será salvo e usado para todos os cadastros
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Main Actions */}
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Register New Profile */}
+          <Card className="glass-card border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <UserPlus className="w-5 h-5" />
+                Cadastrar Perfil
+              </CardTitle>
+              <CardDescription>
+                Adicione um novo Instagram à sua conta
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="instagram" className="flex items-center gap-2">
+                  <Instagram className="w-4 h-4" />
+                  Instagram
+                </Label>
+                <Input
+                  id="instagram"
+                  type="text"
+                  placeholder="@usuario ou link do perfil"
+                  value={instagramInput}
+                  onChange={(e) => setInstagramInput(e.target.value)}
+                  disabled={isLoading}
+                  className="bg-background/50"
+                />
+              </div>
+              <Button 
+                className="w-full" 
+                onClick={handleSearchProfile}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Buscando...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-4 h-4 mr-2" />
+                    Buscar e Analisar
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Sync Accounts */}
+          <Card className="glass-card border-secondary/30">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <RefreshCw className="w-5 h-5" />
+                Sincronizar Contas
+              </CardTitle>
+              <CardDescription>
+                Importe perfis já cadastrados na SquareCloud
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {user?.email ? (
+                <p className="text-sm text-muted-foreground">
+                  E-mail: {user.email}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="sync-email">E-mail para sincronizar</Label>
+                  <Input
+                    id="sync-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-background/50"
+                  />
+                </div>
+              )}
+              <Button 
+                variant="secondary"
+                className="w-full" 
+                onClick={handleSyncAccounts}
+                disabled={isSyncing}
+              >
+                {isSyncing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sincronizando...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Sincronizar Contas
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Registered IGs List */}
+        {registeredIGs.length > 0 && (
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="text-lg">Perfis Cadastrados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {registeredIGs.map((ig) => (
+                  <div 
+                    key={ig}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm"
+                  >
+                    <Check className="w-3 h-3 text-primary" />
+                    @{ig}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Instagram className="w-5 h-5" />
+              Cadastrar este perfil?
+            </DialogTitle>
+            <DialogDescription>
+              Deseja vincular @{pendingProfile?.username} à sua conta MRO?
+            </DialogDescription>
+          </DialogHeader>
+          
+          {pendingProfile && (
+            <div className="flex items-center gap-4 p-4 bg-secondary/20 rounded-lg">
+              <img 
+                src={pendingProfile.profilePicUrl} 
+                alt={pendingProfile.username}
+                className="w-16 h-16 rounded-full object-cover border-2 border-primary"
+              />
+              <div>
+                <p className="font-semibold">@{pendingProfile.username}</p>
+                <p className="text-sm text-muted-foreground">{pendingProfile.fullName}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {pendingProfile.followers.toLocaleString()} seguidores
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              Ainda não
+            </Button>
+            <Button onClick={handleConfirmRegistration}>
+              Sim, cadastrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Warning Dialog */}
+      <Dialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-500">
+              <AlertTriangle className="w-5 h-5" />
+              Atenção!
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Após cadastrar, você <strong>não poderá remover</strong> este perfil. 
+              Ele ficará permanentemente vinculado à sua conta.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="confirm-email">Confirme seu e-mail</Label>
+              <Input
+                id="confirm-email"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-background/50"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Um print dos dados será gerado e enviado junto ao cadastro.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowWarningDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleFinalConfirmation}
+              disabled={isLoading}
+              className="bg-primary"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Cadastrando...
+                </>
+              ) : (
+                'Confirmar Cadastro'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
