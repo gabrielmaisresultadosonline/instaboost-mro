@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { ProfileSession } from '@/types/instagram';
 import { Plus, User, X, Check, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
@@ -21,7 +19,7 @@ interface ProfileSelectorProps {
   profiles: ProfileSession[];
   activeProfileId: string | null;
   onSelectProfile: (profileId: string) => void;
-  onAddProfile: (username: string) => void;
+  onAddProfile: () => void;
   onRemoveProfile: (profileId: string) => void;
   isLoading?: boolean;
 }
@@ -34,27 +32,7 @@ export const ProfileSelector = ({
   onRemoveProfile,
   isLoading,
 }: ProfileSelectorProps) => {
-  const [showAddInput, setShowAddInput] = useState(false);
-  const [newUsername, setNewUsername] = useState('');
-
   const activeProfile = profiles.find(p => p.id === activeProfileId);
-
-  const handleAddProfile = () => {
-    if (newUsername.trim()) {
-      onAddProfile(newUsername.trim().replace('@', ''));
-      setNewUsername('');
-      setShowAddInput(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleAddProfile();
-    } else if (e.key === 'Escape') {
-      setShowAddInput(false);
-      setNewUsername('');
-    }
-  };
 
   return (
     <div className="flex items-center gap-2">
@@ -128,32 +106,16 @@ export const ProfileSelector = ({
           
           <DropdownMenuSeparator />
           
-          {showAddInput ? (
-            <div className="p-2 flex gap-2">
-              <Input
-                placeholder="@usuario"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="h-8 text-sm"
-                autoFocus
-              />
-              <Button size="sm" onClick={handleAddProfile} disabled={!newUsername.trim() || isLoading}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.preventDefault();
-                setShowAddInput(true);
-              }}
-              className="cursor-pointer"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Perfil
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.preventDefault();
+              onAddProfile();
+            }}
+            className="cursor-pointer"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Perfil
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

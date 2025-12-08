@@ -246,6 +246,10 @@ const Index = () => {
     });
   };
 
+  const handleNavigateToRegister = () => {
+    setShowDashboard(false);
+  };
+
   // Not logged in - show login page
   if (!isLoggedIn) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
@@ -271,6 +275,7 @@ const Index = () => {
         onAddProfile={handleAddNewProfile}
         onSelectProfile={handleSelectProfile}
         onRemoveProfile={handleRemoveProfile}
+        onNavigateToRegister={handleNavigateToRegister}
         isLoading={isLoading}
         onLogout={handleLogout}
       />
