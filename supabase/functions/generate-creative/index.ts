@@ -122,8 +122,8 @@ STYLE REFERENCE - REPLICATE THIS EXACT QUALITY:
 - Ultra high definition, 4K quality rendering
 
 EXACT LAYOUT REQUIREMENTS:
-- TOP 15%: Clean dark space for logo placement (centered, leave empty)
-- CENTER 60%: Stunning visual imagery representing ${businessType}
+- TOP AREA (from 5% to 20% from top): Clean dark space for logo - HORIZONTALLY CENTERED, positioned slightly below the very top (not at the edge, not in the middle - approximately 10-15% from top)
+- CENTER 55%: Stunning visual imagery representing ${businessType}
   * Professional, trust-building, innovative
   * Can include: abstract tech, business handshakes, futuristic elements
   * Strong visual impact with ${colors.primary} accent lighting
