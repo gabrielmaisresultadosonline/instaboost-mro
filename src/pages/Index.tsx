@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
 import { ProfileSearch } from '@/components/ProfileSearch';
 import { Dashboard } from '@/components/Dashboard';
-import { MROSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
-import { getSession, saveSession, updateProfile, updateAnalysis, hasExistingSession, createEmptySession } from '@/lib/storage';
+import { MROSession, ProfileSession } from '@/types/instagram';
+import { 
+  getSession, 
+  saveSession, 
+  hasExistingSession, 
+  createEmptySession,
+  addProfile,
+  setActiveProfile,
+  removeProfile,
+  getActiveProfile
+} from '@/lib/storage';
 import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -72,22 +81,12 @@ const Index = () => {
 
       const analysis = analysisResult.analysis;
 
-      // Save to storage
-      updateProfile(profile);
-      updateAnalysis(analysis);
-
-      // Update state
-      const newSession: MROSession = {
-        profile,
-        analysis,
-        strategies: [],
-        creatives: [],
-        creativesRemaining: 6,
-        lastUpdated: new Date().toISOString(),
-      };
+      // Add profile to session
+      addProfile(profile, analysis);
       
-      saveSession(newSession);
-      setSession(newSession);
+      // Get updated session
+      const updatedSession = getSession();
+      setSession(updatedSession);
       setShowDashboard(true);
 
       toast({
@@ -106,6 +105,26 @@ const Index = () => {
     }
   };
 
+  const handleAddNewProfile = async (username: string) => {
+    await handleSearch(username);
+  };
+
+  const handleSelectProfile = (profileId: string) => {
+    setActiveProfile(profileId);
+    const updatedSession = getSession();
+    setSession(updatedSession);
+  };
+
+  const handleRemoveProfile = (profileId: string) => {
+    removeProfile(profileId);
+    const updatedSession = getSession();
+    setSession(updatedSession);
+    
+    if (updatedSession.profiles.length === 0) {
+      setShowDashboard(false);
+    }
+  };
+
   const handleSessionUpdate = (updatedSession: MROSession) => {
     setSession(updatedSession);
     saveSession(updatedSession);
@@ -120,12 +139,16 @@ const Index = () => {
     });
   };
 
-  if (showDashboard && session.profile) {
+  if (showDashboard && session.profiles.length > 0) {
     return (
       <Dashboard 
         session={session} 
         onSessionUpdate={handleSessionUpdate}
         onReset={handleReset}
+        onAddProfile={handleAddNewProfile}
+        onSelectProfile={handleSelectProfile}
+        onRemoveProfile={handleRemoveProfile}
+        isLoading={isLoading}
       />
     );
   }
