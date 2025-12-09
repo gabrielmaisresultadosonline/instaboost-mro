@@ -42,7 +42,9 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
   const handleRefreshGrowth = async () => {
     setIsRefreshing(true);
     try {
-      const result = await fetchInstagramProfile(profileSession.profile.username);
+      // Pass existing posts to preserve them if API doesn't return new ones
+      const existingPosts = profileSession.profile.recentPosts || [];
+      const result = await fetchInstagramProfile(profileSession.profile.username, existingPosts);
       
       if (result.success && result.profile) {
         addGrowthSnapshot(profileSession.id, result.profile);
