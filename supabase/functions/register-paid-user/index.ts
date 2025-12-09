@@ -12,11 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    const { email, username, instagram_username } = await req.json();
+    const { email, username, instagram_username, password } = await req.json();
 
-    if (!email || !username) {
+    if (!email || !username || !password) {
       return new Response(
-        JSON.stringify({ error: "Email e nome são obrigatórios" }),
+        JSON.stringify({ error: "Email, nome e senha são obrigatórios" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
@@ -45,12 +45,13 @@ serve(async (req) => {
       );
     }
 
-    // Create new user
+    // Create new user with password
     const { data: newUser, error: insertError } = await supabaseAdmin
       .from("paid_users")
       .insert({
         email: email.toLowerCase(),
         username: username.trim(),
+        password: password,
         instagram_username: instagram_username || null,
         subscription_status: "pending",
         strategies_generated: 0,

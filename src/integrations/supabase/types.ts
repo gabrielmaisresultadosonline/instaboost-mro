@@ -21,6 +21,7 @@ export type Database = {
           email: string
           id: string
           instagram_username: string | null
+          password: string | null
           strategies_generated: number | null
           stripe_customer_id: string | null
           subscription_end: string | null
@@ -35,6 +36,7 @@ export type Database = {
           email: string
           id?: string
           instagram_username?: string | null
+          password?: string | null
           strategies_generated?: number | null
           stripe_customer_id?: string | null
           subscription_end?: string | null
@@ -49,6 +51,7 @@ export type Database = {
           email?: string
           id?: string
           instagram_username?: string | null
+          password?: string | null
           strategies_generated?: number | null
           stripe_customer_id?: string | null
           subscription_end?: string | null
