@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import SyncDashboard from '@/components/admin/SyncDashboard';
 import ModuleManager from '@/components/admin/ModuleManager';
 import SnapshotGenerator from '@/components/admin/SnapshotGenerator';
+import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import { 
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
@@ -23,7 +24,7 @@ import {
   Instagram, CheckCircle, XCircle
 } from 'lucide-react';
 
-type Tab = 'users' | 'sync' | 'tutorials' | 'settings';
+type Tab = 'users' | 'analytics' | 'sync' | 'tutorials' | 'settings';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -157,6 +158,7 @@ const Admin = () => {
 
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
+    { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
     { id: 'settings', label: 'Configurações', icon: <Settings className="w-4 h-4" /> },
@@ -750,6 +752,14 @@ const Admin = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <AnalyticsDashboard 
+            profiles={allMergedProfiles}
+            onProfilesUpdate={() => setSyncData(getSyncData())}
+          />
         )}
 
         {/* Sync Tab */}
