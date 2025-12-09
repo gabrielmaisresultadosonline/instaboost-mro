@@ -422,7 +422,7 @@ const SyncDashboard = () => {
         <div className="glass-card p-4 text-center">
           <Users className="w-8 h-8 mx-auto text-primary mb-2" />
           <p className="text-2xl font-bold">{syncData.users.length}</p>
-          <p className="text-xs text-muted-foreground">Usuários SquareCloud</p>
+          <p className="text-xs text-muted-foreground">Usuários MRO</p>
         </div>
         <div className="glass-card p-4 text-center">
           <Instagram className="w-8 h-8 mx-auto text-pink-500 mb-2" />

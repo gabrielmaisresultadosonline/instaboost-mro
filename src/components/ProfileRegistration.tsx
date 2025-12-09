@@ -565,7 +565,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
                 Sincronizar Contas
               </CardTitle>
               <CardDescription>
-                Importe perfis já cadastrados na SquareCloud
+                Importe perfis já cadastrados na sua conta MRO
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

@@ -258,7 +258,7 @@ const Admin = () => {
               <div className="glass-card p-4 text-center">
                 <Users className="w-6 h-6 mx-auto text-primary mb-2" />
                 <p className="text-2xl font-bold">{syncData.users.length}</p>
-                <p className="text-xs text-muted-foreground">Usuários SquareCloud</p>
+                <p className="text-xs text-muted-foreground">Usuários MRO</p>
               </div>
             </div>
 
@@ -604,7 +604,7 @@ const Admin = () => {
                         </div>
                         <div className="text-right text-sm text-muted-foreground space-y-2">
                           <div className="p-3 rounded-lg bg-primary/10 mb-3">
-                            <p className="text-xs text-muted-foreground">Usuário SquareCloud:</p>
+                            <p className="text-xs text-muted-foreground">Usuário MRO:</p>
                             <p className="font-semibold text-foreground flex items-center gap-1">
                               <User className="w-3 h-3" />
                               {selectedSyncedProfile.ownerUserName}
