@@ -61,3 +61,6 @@ verify_jwt = false
 
 [functions.user-data-storage]
 verify_jwt = false
+
+[functions.admin-data-storage]
+verify_jwt = false

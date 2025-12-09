@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData } from '@/lib/adminConfig';
 import { getSession } from '@/lib/storage';
 import { getUserSession } from '@/lib/userStorage';
-import { getSyncData, SyncedInstagramProfile, SyncData, getAllMergedProfiles } from '@/lib/syncStorage';
+import { getSyncData, SyncedInstagramProfile, SyncData, getAllMergedProfiles, loadSyncDataFromServer } from '@/lib/syncStorage';
 import { ProfileSession, MROSession } from '@/types/instagram';
 import type { UserSession } from '@/types/user';
 import { Logo } from '@/components/Logo';
@@ -53,20 +53,30 @@ const Admin = () => {
       return;
     }
     
-    // Load sessions
-    const mroSession = getSession();
-    const userSess = getUserSession();
-    const syncedData = getSyncData();
-    setSession(mroSession);
-    setUserSession(userSess);
-    setSyncData(syncedData);
+    // Load data from server on mount
+    const loadData = async () => {
+      // Load sync data from SERVER first
+      console.log('🔄 Admin: Carregando dados do servidor...');
+      const serverSyncData = await loadSyncDataFromServer();
+      setSyncData(serverSyncData);
+      
+      // Load sessions
+      const mroSession = getSession();
+      const userSess = getUserSession();
+      setSession(mroSession);
+      setUserSession(userSess);
+      
+      // Load saved settings
+      const savedData = getAdminData();
+      setAdminData(savedData);
+      setSettings(savedData.settings);
+      
+      console.log(`✅ Admin: ${serverSyncData.profiles.length} perfis carregados do servidor`);
+    };
     
-    // Load saved settings
-    const savedData = getAdminData();
-    setAdminData(savedData);
-    setSettings(savedData.settings);
+    loadData();
 
-    // Refresh sync data periodically
+    // Refresh sync data periodically (from local cache)
     const interval = setInterval(() => {
       setSyncData(getSyncData());
     }, 5000);
