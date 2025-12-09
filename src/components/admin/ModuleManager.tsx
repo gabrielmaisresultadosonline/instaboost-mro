@@ -45,6 +45,15 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' } | null>(null);
   
+  // Welcome video state
+  const [welcomeVideo, setWelcomeVideo] = useState(adminData.settings.welcomeVideo || {
+    enabled: false,
+    title: '',
+    showTitle: true,
+    youtubeUrl: '',
+    coverUrl: ''
+  });
+
   // New module form
   const [newModule, setNewModule] = useState({
     title: '',
@@ -71,7 +80,23 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   });
 
   const refreshData = () => {
-    setAdminData(getAdminData());
+    const data = getAdminData();
+    setAdminData(data);
+    setWelcomeVideo(data.settings.welcomeVideo || {
+      enabled: false,
+      title: '',
+      showTitle: true,
+      youtubeUrl: '',
+      coverUrl: ''
+    });
+  };
+
+  const handleSaveWelcomeVideo = () => {
+    const data = getAdminData();
+    data.settings.welcomeVideo = welcomeVideo;
+    saveAdminData(data);
+    toast({ title: "Salvo!", description: "Vídeo de boas-vindas atualizado" });
+    refreshData();
   };
 
   // Module handlers
@@ -202,6 +227,83 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
             <Save className="w-4 h-4" />
           </Button>
         </div>
+      </div>
+
+      {/* Welcome Video */}
+      <div className="glass-card p-6">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <Play className="w-5 h-5 text-red-500" />
+          Vídeo de Boas-Vindas
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={welcomeVideo.enabled}
+                onCheckedChange={(checked) => setWelcomeVideo(prev => ({ ...prev, enabled: checked }))}
+              />
+              <Label>Ativar vídeo de boas-vindas</Label>
+            </div>
+            
+            {welcomeVideo.enabled && (
+              <>
+                <div>
+                  <Label>Título</Label>
+                  <Input
+                    placeholder="Ex: Bem-vindo ao MRO!"
+                    value={welcomeVideo.title}
+                    onChange={(e) => setWelcomeVideo(prev => ({ ...prev, title: e.target.value }))}
+                    className="bg-secondary/50 mt-1"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={welcomeVideo.showTitle}
+                    onCheckedChange={(checked) => setWelcomeVideo(prev => ({ ...prev, showTitle: checked }))}
+                  />
+                  <Label>Exibir título</Label>
+                </div>
+                
+                <div>
+                  <Label>URL do YouTube *</Label>
+                  <Input
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={welcomeVideo.youtubeUrl}
+                    onChange={(e) => setWelcomeVideo(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                    className="bg-secondary/50 mt-1"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          
+          {welcomeVideo.enabled && (
+            <div>
+              <Label className="mb-2 block">Capa do Vídeo (opcional)</Label>
+              <CoverUploader
+                currentUrl={welcomeVideo.coverUrl}
+                onUpload={(url) => setWelcomeVideo(prev => ({ ...prev, coverUrl: url }))}
+                onRemove={() => setWelcomeVideo(prev => ({ ...prev, coverUrl: '' }))}
+                folder="welcome-video"
+                id="welcome_video"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Se não definir uma capa, usaremos a thumbnail do YouTube
+              </p>
+            </div>
+          )}
+        </div>
+        
+        <Button 
+          type="button" 
+          onClick={handleSaveWelcomeVideo} 
+          className="mt-4 cursor-pointer"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          Salvar Configurações
+        </Button>
       </div>
 
       {/* Add New Module */}

@@ -7,6 +7,14 @@ export const ADMIN_CONFIG = {
 };
 
 // Admin settings stored in localStorage
+export interface WelcomeVideo {
+  enabled: boolean;
+  title: string;
+  showTitle: boolean;
+  youtubeUrl: string;
+  coverUrl: string;
+}
+
 export interface AdminSettings {
   apis: {
     deepseek: string;
@@ -15,6 +23,7 @@ export interface AdminSettings {
   };
   facebookPixel: string;
   downloadLink: string;
+  welcomeVideo: WelcomeVideo;
 }
 
 // Content types for modules
@@ -87,7 +96,14 @@ const DEFAULT_ADMIN_DATA: AdminData = {
       nanoBanana: ''
     },
     facebookPixel: '',
-    downloadLink: ''
+    downloadLink: '',
+    welcomeVideo: {
+      enabled: false,
+      title: '',
+      showTitle: true,
+      youtubeUrl: '',
+      coverUrl: ''
+    }
   },
   tutorials: [],
   modules: []
