@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData } from '@/lib/adminConfig';
 import { getSession } from '@/lib/storage';
@@ -11,35 +11,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import html2canvas from 'html2canvas';
 import SyncDashboard from '@/components/admin/SyncDashboard';
 import ModuleManager from '@/components/admin/ModuleManager';
+import SnapshotGenerator from '@/components/admin/SnapshotGenerator';
 import { 
-  Users, Settings, Video, LogOut, Search, Download, 
-  Eye, TrendingUp, Calendar, Sparkles, Plus, Trash2,
-  Save, RefreshCw, Check, X, Play, ExternalLink,
+  Users, Settings, Video, LogOut, Search, 
+  Eye, TrendingUp, Calendar, Sparkles, Download, 
+  Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, Filter, CheckCircle, XCircle
+  Instagram, CheckCircle, XCircle
 } from 'lucide-react';
 
 type Tab = 'users' | 'sync' | 'tutorials' | 'settings';
 type UserFilter = 'all' | 'instagram' | 'connected';
-
-interface PrintSettings {
-  color: string;
-  showGrowth: boolean;
-}
-
-const PRINT_COLORS = [
-  { name: 'Primário', value: 'from-primary/20 to-mro-cyan/20', border: 'border-primary' },
-  { name: 'Cyan', value: 'from-mro-cyan/20 to-mro-cyan/40', border: 'border-mro-cyan' },
-  { name: 'Roxo', value: 'from-mro-purple/20 to-mro-purple/40', border: 'border-mro-purple' },
-  { name: 'Dourado', value: 'from-yellow-500/20 to-amber-500/20', border: 'border-yellow-500' },
-  { name: 'Verde', value: 'from-green-500/20 to-emerald-500/20', border: 'border-green-500' },
-  { name: 'Rosa', value: 'from-pink-500/20 to-rose-500/20', border: 'border-pink-500' },
-];
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -53,12 +38,7 @@ const Admin = () => {
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [selectedSyncedProfile, setSelectedSyncedProfile] = useState<SyncedInstagramProfile | null>(null);
-  const [printSettings, setPrintSettings] = useState<PrintSettings>({
-    color: PRINT_COLORS[0].value,
-    showGrowth: true
-  });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
 
   // Settings state
   const [settings, setSettings] = useState(adminData.settings);
@@ -173,31 +153,6 @@ const Admin = () => {
     }
     
     setTestingApi(null);
-  };
-
-  const downloadPrint = async () => {
-    if (!printRef.current) return;
-    
-    try {
-      const canvas = await html2canvas(printRef.current, {
-        backgroundColor: null,
-        scale: 2,
-      });
-      
-      const link = document.createElement('a');
-      link.download = `cliente-ativo-${selectedProfile}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      
-      toast({ title: "Print baixado!", description: "Imagem salva com sucesso" });
-    } catch (error) {
-      toast({ title: "Erro ao gerar print", variant: "destructive" });
-    }
-  };
-
-  const getSelectedColorBorder = () => {
-    const selectedColorObj = PRINT_COLORS.find(c => c.value === printSettings.color);
-    return selectedColorObj?.border || 'border-primary';
   };
 
   const tabs = [
@@ -455,78 +410,34 @@ const Admin = () => {
                         </div>
                       )}
 
-                      {/* Cliente Ativo Card for Download */}
-                      <div className="glass-card p-6">
-                        <h4 className="font-semibold mb-4 flex items-center gap-2">
-                          <ImageIcon className="w-5 h-5 text-primary" />
-                          Print Cliente Ativo (Stories)
-                        </h4>
-                        
-                        {/* Print Customization */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                          <div>
-                            <Label className="text-sm mb-2 block">Cor do Print</Label>
-                            <div className="flex flex-wrap gap-2">
-                              {PRINT_COLORS.map((color) => (
-                                <button
-                                  key={color.value}
-                                  type="button"
-                                  onClick={() => setPrintSettings(prev => ({ ...prev, color: color.value }))}
-                                  className={`w-8 h-8 rounded-full bg-gradient-to-br ${color.value} border-2 transition-all cursor-pointer ${
-                                    printSettings.color === color.value ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-border'
-                                  }`}
-                                  title={color.name}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Switch
-                              checked={printSettings.showGrowth}
-                              onCheckedChange={(checked) => setPrintSettings(prev => ({ ...prev, showGrowth: checked }))}
-                            />
-                            <Label className="text-sm">Mostrar +seguidores</Label>
-                          </div>
-                        </div>
-
-                        {/* Print Preview */}
-                        <div 
-                          ref={printRef}
-                          className={`bg-gradient-to-br ${printSettings.color} p-6 rounded-lg aspect-[9/16] max-w-xs mx-auto flex flex-col items-center justify-center text-center`}
-                        >
-                          <img 
-                            src={profileData.profile.profilePicUrl}
-                            alt={profileData.profile.username}
-                            className={`w-20 h-20 rounded-full object-cover border-4 ${getSelectedColorBorder()} mb-4`}
-                            onError={(e) => {
-                              e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profileData.profile.username}`;
-                            }}
+                      {/* Snapshot Generator */}
+                      {(() => {
+                        const syncedFormat: SyncedInstagramProfile = {
+                          username: profileData.profile.username,
+                          fullName: profileData.profile.fullName,
+                          profilePicUrl: profileData.profile.profilePicUrl,
+                          bio: profileData.profile.bio,
+                          followers: profileData.profile.followers,
+                          following: profileData.profile.following,
+                          posts: 0,
+                          ownerUserId: '',
+                          ownerUserName: userSession?.user?.username || '',
+                          syncedAt: profileData.startedAt,
+                          lastUpdated: new Date().toISOString(),
+                          growthHistory: profileData.growthHistory.map(g => ({
+                            date: g.date,
+                            followers: g.followers
+                          })),
+                          isConnectedToDashboard: true
+                        };
+                        return (
+                          <SnapshotGenerator
+                            profile={syncedFormat}
+                            onClose={() => {}}
+                            allProfiles={[syncedFormat]}
                           />
-                          <p className="text-2xl font-display font-bold text-primary">CLIENTE ATIVO</p>
-                          <p className="text-lg font-semibold mt-2">@{profileData.profile.username}</p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {profileData.profile.followers.toLocaleString()} seguidores
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-4">
-                            Desde {new Date(profileData.startedAt).toLocaleDateString('pt-BR')}
-                          </p>
-                          {printSettings.showGrowth && growth > 0 && (
-                            <div className="mt-4 p-3 bg-primary/20 rounded-lg">
-                              <p className="text-sm font-bold text-primary">+{growth.toLocaleString()} seguidores</p>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          className="w-full mt-4 cursor-pointer"
-                          onClick={downloadPrint}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Baixar Print Stories
-                        </Button>
-                      </div>
+                        );
+                      })()}
 
                       {/* Growth Chart */}
                       <div className="glass-card p-6">
@@ -752,78 +663,13 @@ const Admin = () => {
                       )}
                     </div>
 
-                    {/* Cliente Ativo Card for Download */}
-                    <div className="glass-card p-6">
-                      <h4 className="font-semibold mb-4 flex items-center gap-2">
-                        <ImageIcon className="w-5 h-5 text-primary" />
-                        Print Cliente Ativo (Stories)
-                      </h4>
-                      
-                      {/* Print Customization */}
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                          <Label className="text-sm mb-2 block">Cor do Print</Label>
-                          <div className="flex flex-wrap gap-2">
-                            {PRINT_COLORS.map((color) => (
-                              <button
-                                key={color.value}
-                                type="button"
-                                onClick={() => setPrintSettings(prev => ({ ...prev, color: color.value }))}
-                                className={`w-8 h-8 rounded-full bg-gradient-to-br ${color.value} border-2 transition-all cursor-pointer ${
-                                  printSettings.color === color.value ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-border'
-                                }`}
-                                title={color.name}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Switch
-                            checked={printSettings.showGrowth}
-                            onCheckedChange={(checked) => setPrintSettings(prev => ({ ...prev, showGrowth: checked }))}
-                          />
-                          <Label className="text-sm">Mostrar +seguidores</Label>
-                        </div>
-                      </div>
-
-                      {/* Print Preview */}
-                      <div 
-                        ref={printRef}
-                        className={`bg-gradient-to-br ${printSettings.color} p-6 rounded-lg aspect-[9/16] max-w-xs mx-auto flex flex-col items-center justify-center text-center`}
-                      >
-                        <img 
-                          src={selectedSyncedProfile.profilePicUrl}
-                          alt={selectedSyncedProfile.username}
-                          className={`w-20 h-20 rounded-full object-cover border-4 ${getSelectedColorBorder()} mb-4`}
-                          onError={(e) => {
-                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${selectedSyncedProfile.username}`;
-                          }}
-                        />
-                        <p className="text-2xl font-display font-bold text-primary">CLIENTE ATIVO</p>
-                        <p className="text-lg font-semibold mt-2">@{selectedSyncedProfile.username}</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {selectedSyncedProfile.followers.toLocaleString()} seguidores
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-4">
-                          {new Date().toLocaleDateString('pt-BR')}
-                        </p>
-                        {printSettings.showGrowth && getSyncedProfileGrowth(selectedSyncedProfile) > 0 && (
-                          <div className="mt-4 p-3 bg-primary/20 rounded-lg">
-                            <p className="text-sm font-bold text-primary">+{getSyncedProfileGrowth(selectedSyncedProfile).toLocaleString()} seguidores</p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        className="w-full mt-4 cursor-pointer"
-                        onClick={downloadPrint}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Baixar Print Stories
-                      </Button>
-                    </div>
+                    {/* Snapshot Generator */}
+                    <SnapshotGenerator
+                      profile={selectedSyncedProfile}
+                      onClose={() => {}}
+                      allProfiles={allMergedProfiles}
+                      multiSelectMode={false}
+                    />
                   </div>
                 )}
               </div>
