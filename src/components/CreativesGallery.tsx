@@ -1,6 +1,5 @@
 import { Creative } from '@/types/instagram';
-import { Download, Image as ImageIcon, Clock, Check, AlertCircle } from 'lucide-react';
-import { markCreativeAsDownloaded } from '@/lib/storage';
+import { Download, Image as ImageIcon, Clock, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CreativesGalleryProps {
@@ -14,15 +13,10 @@ export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: Cr
 
   const downloadCreative = (creative: Creative) => {
     window.open(creative.imageUrl, '_blank');
-    
-    if (!creative.downloaded) {
-      markCreativeAsDownloaded(creative.id);
-      toast({
-        title: "Download iniciado",
-        description: "Criativo marcado como usado",
-      });
-      onUpdate?.();
-    }
+    toast({
+      title: "Download iniciado",
+      description: "Você pode baixar quantas vezes quiser",
+    });
   };
 
   const getDaysRemaining = (expiresAt: string) => {
@@ -72,7 +66,7 @@ export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: Cr
         <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
         <p>
           Criativos ficam disponíveis por <strong>1 mês</strong> após criação. 
-          Após o download, contam como usados.
+          Você pode baixar <strong>quantas vezes quiser</strong> enquanto disponível.
         </p>
       </div>
 
@@ -90,16 +84,8 @@ export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: Cr
             >
               {/* Status badges */}
               <div className="absolute top-2 left-2 right-2 z-10 flex justify-between items-start">
-                {/* Downloaded badge */}
-                {creative.downloaded && (
-                  <span className="px-2 py-1 rounded-full bg-success/80 text-success-foreground text-xs flex items-center gap-1 backdrop-blur-sm">
-                    <Check className="w-3 h-3" />
-                    Baixado
-                  </span>
-                )}
                 
-                {/* Expiration badge */}
-                <span className={`px-2 py-1 rounded-full bg-background/80 text-xs flex items-center gap-1 backdrop-blur-sm ml-auto ${expStatus.color}`}>
+                <span className={`px-2 py-1 rounded-full bg-background/80 text-xs flex items-center gap-1 backdrop-blur-sm ${expStatus.color}`}>
                   {expStatus.urgent && <AlertCircle className="w-3 h-3" />}
                   <Clock className="w-3 h-3" />
                   {expStatus.text}
