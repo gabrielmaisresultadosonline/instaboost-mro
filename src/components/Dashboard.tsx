@@ -14,6 +14,7 @@ import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
 import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession, saveSession } from '@/lib/storage';
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
+import { getCurrentUser } from '@/lib/userStorage';
 import { 
   RotateCcw, 
   User, 
@@ -65,11 +66,13 @@ export const Dashboard = ({
     onSessionUpdate(updatedSession);
   }, []);
 
+  const getLoggedInUsername = () => getCurrentUser()?.username || 'anonymous';
+
   const refreshSession = () => {
     const updatedSession = getSession();
     onSessionUpdate(updatedSession);
-    // Sync to persistent storage
-    syncSessionToPersistent();
+    // Sync to server
+    syncSessionToPersistent(getLoggedInUsername());
   };
 
   const tabs = [
@@ -84,7 +87,7 @@ export const Dashboard = ({
     addStrategy(strategy);
     refreshSession();
     // Sync immediately after strategy generation
-    syncSessionToPersistent();
+    syncSessionToPersistent(getLoggedInUsername());
   };
 
   const handleGenerateCreative = (strategy: Strategy) => {

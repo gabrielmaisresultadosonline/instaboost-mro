@@ -43,6 +43,12 @@ const Index = () => {
   const [hasRegisteredProfiles, setHasRegisteredProfiles] = useState(false);
   const { toast } = useToast();
 
+  // Get current logged in username
+  const getLoggedInUsername = (): string => {
+    const user = getCurrentUser();
+    return user?.username || 'anonymous';
+  };
+
   // Check auth status on mount and load persisted data
   useEffect(() => {
     const authenticated = isAuthenticated();
@@ -52,41 +58,54 @@ const Index = () => {
       const registeredIGs = getRegisteredIGs();
       const igUsernames = registeredIGs.map(ig => ig.username);
       setHasRegisteredProfiles(registeredIGs.length > 0);
+      const loggedInUsername = getLoggedInUsername();
       
-      // IMPORTANT: Load persisted data from permanent storage
+      // IMPORTANT: Load persisted data from server
       if (igUsernames.length > 0) {
-        console.log('🔐 Carregando dados persistentes...');
-        loadPersistedDataOnLogin(igUsernames);
-        syncPersistentToSession();
+        console.log('🔐 Carregando dados do servidor...');
+        loadPersistedDataOnLogin(loggedInUsername, igUsernames).then(() => {
+          syncPersistentToSession();
+          const existingSession = getSession();
+          setSession(existingSession);
+          
+          if (existingSession.profiles.length > 0) {
+            setShowDashboard(true);
+            console.log(`✅ ${existingSession.profiles.length} perfis carregados do servidor`);
+          }
+        });
       }
       
-      // Get session (now with restored data)
+      // Get session immediately (may update after async load)
       const existingSession = getSession();
       setSession(existingSession);
       
-      // Show dashboard if we have profiles
       if (existingSession.profiles.length > 0) {
         setShowDashboard(true);
-        console.log(`✅ ${existingSession.profiles.length} perfis carregados do armazenamento permanente`);
       }
     }
   }, []);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
     setIsLoggedIn(true);
+    setIsLoading(true);
+    setLoadingMessage('Carregando seus dados...');
+    setLoadingSubMessage('Buscando dados salvos no servidor.');
+    
     const registeredIGs = getRegisteredIGs();
     const igUsernames = registeredIGs.map(ig => ig.username);
     setHasRegisteredProfiles(registeredIGs.length > 0);
+    const loggedInUsername = getLoggedInUsername();
     
-    // IMPORTANT: Load persisted data on login - NO need to re-fetch
+    // IMPORTANT: Load persisted data from server on login
     if (igUsernames.length > 0) {
-      console.log('🔐 Restaurando dados do armazenamento permanente...');
-      loadPersistedDataOnLogin(igUsernames);
+      console.log('🔐 Restaurando dados do servidor...');
+      await loadPersistedDataOnLogin(loggedInUsername, igUsernames);
       syncPersistentToSession();
     }
     
     const existingSession = getSession();
     setSession(existingSession);
+    setIsLoading(false);
     
     if (existingSession.profiles.length > 0) {
       setShowDashboard(true);
@@ -100,12 +119,14 @@ const Index = () => {
     setHasRegisteredProfiles(false);
   };
 
-  const handleProfileRegistered = (profile: InstagramProfile, analysis: ProfileAnalysis) => {
+  const handleProfileRegistered = async (profile: InstagramProfile, analysis: ProfileAnalysis) => {
+    const loggedInUsername = getLoggedInUsername();
+    
     // Add profile to session
     addProfile(profile, analysis);
     
-    // PERSIST DATA PERMANENTLY
-    persistProfileData(profile.username, profile, analysis);
+    // PERSIST DATA PERMANENTLY TO SERVER
+    await persistProfileData(loggedInUsername, profile.username, profile, analysis);
     
     // Get updated session
     const updatedSession = getSession();
@@ -113,8 +134,8 @@ const Index = () => {
     setShowDashboard(true);
     setHasRegisteredProfiles(true);
 
-    // Sync to persistent storage
-    syncSessionToPersistent();
+    // Sync to server
+    await syncSessionToPersistent(loggedInUsername);
 
     toast({
       title: "Perfil cadastrado! ✨",
@@ -127,6 +148,7 @@ const Index = () => {
     setLoadingMessage('Sincronizando perfis...');
     setLoadingSubMessage('Buscando dados do Instagram. Isso pode levar até 5 minutos.');
     const user = getCurrentUser();
+    const loggedInUsername = getLoggedInUsername();
     let loadedCount = 0;
     let cachedCount = 0;
     
@@ -144,13 +166,13 @@ const Index = () => {
         continue;
       }
       
-      // CHECK PERSISTENT STORAGE FIRST - avoid unnecessary API calls
+      // CHECK SERVER STORAGE FIRST - avoid unnecessary API calls
       const { shouldFetch, reason } = shouldFetchProfile(normalizedIg);
       const persistedData = getPersistedProfile(normalizedIg);
       
       if (persistedData && !shouldFetch) {
         // USE CACHED DATA - no API call needed
-        console.log(`📦 Usando dados em cache para @${ig}: ${reason}`);
+        console.log(`📦 Usando dados do servidor para @${ig}: ${reason}`);
         addProfile(persistedData.profile, persistedData.analysis);
         cachedCount++;
         
@@ -176,8 +198,8 @@ const Index = () => {
           if (analysisResult.success && analysisResult.analysis) {
             addProfile(profileResult.profile, analysisResult.analysis);
             
-            // PERSIST DATA PERMANENTLY
-            persistProfileData(ig, profileResult.profile, analysisResult.analysis);
+            // PERSIST DATA PERMANENTLY TO SERVER
+            await persistProfileData(loggedInUsername, ig, profileResult.profile, analysisResult.analysis);
             loadedCount++;
             
             // Mark as registered if not already
@@ -201,8 +223,8 @@ const Index = () => {
     const updatedSession = getSession();
     setSession(updatedSession);
     
-    // Sync all to persistent storage
-    syncSessionToPersistent();
+    // Sync all to server
+    await syncSessionToPersistent(loggedInUsername);
     
     if (updatedSession.profiles.length > 0) {
       setShowDashboard(true);
@@ -213,7 +235,7 @@ const Index = () => {
     
     toast({
       title: 'Sincronização concluída!',
-      description: `${loadedCount} buscado(s) da API, ${cachedCount} do cache`
+      description: `${loadedCount} buscado(s) da API, ${cachedCount} do servidor`
     });
   };
 
@@ -311,12 +333,13 @@ const Index = () => {
     }
   };
 
-  const handleSessionUpdate = (updatedSession: MROSession) => {
+  const handleSessionUpdate = async (updatedSession: MROSession) => {
     setSession(updatedSession);
     saveSession(updatedSession);
     
-    // Sync to persistent storage on every update
-    syncSessionToPersistent();
+    // Sync to server on every update
+    const loggedInUsername = getLoggedInUsername();
+    await syncSessionToPersistent(loggedInUsername);
   };
 
   const handleReset = () => {

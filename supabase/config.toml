@@ -58,3 +58,6 @@ verify_jwt = false
 
 [functions.get-paid-users]
 verify_jwt = false
+
+[functions.user-data-storage]
+verify_jwt = false
