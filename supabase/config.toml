@@ -49,3 +49,12 @@ verify_jwt = false
 
 [functions.sync-instagram-profile]
 verify_jwt = false
+
+[functions.create-subscription]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.get-paid-users]
+verify_jwt = false

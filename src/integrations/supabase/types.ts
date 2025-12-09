@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      paid_users: {
+        Row: {
+          created_at: string
+          creatives_used: number | null
+          email: string
+          id: string
+          instagram_username: string | null
+          strategies_generated: number | null
+          stripe_customer_id: string | null
+          subscription_end: string | null
+          subscription_id: string | null
+          subscription_status: string | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          creatives_used?: number | null
+          email: string
+          id?: string
+          instagram_username?: string | null
+          strategies_generated?: number | null
+          stripe_customer_id?: string | null
+          subscription_end?: string | null
+          subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          creatives_used?: number | null
+          email?: string
+          id?: string
+          instagram_username?: string | null
+          strategies_generated?: number | null
+          stripe_customer_id?: string | null
+          subscription_end?: string | null
+          subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
