@@ -142,23 +142,27 @@ export default function Vendas() {
       // Check if user already exists
       const { data: existingUser } = await supabase
         .from('paid_users')
-        .select('id, email')
+        .select('id, email, subscription_status')
         .eq('email', formData.email.toLowerCase())
         .maybeSingle();
 
       if (existingUser) {
+        // User exists - save credentials and redirect to login
+        localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
+          id: existingUser.id,
+          email: formData.email.toLowerCase(),
+          password: formData.password,
+          username: formData.username.trim()
+        }));
+        
         toast({
-          title: "Email já cadastrado",
-          description: "Este email já possui uma conta. Faça login em vez de cadastrar.",
-          variant: "destructive"
+          title: "Conta já existe",
+          description: "Redirecionando para o login..."
         });
-        setIsLoading(false);
+        
+        navigate('/membro');
         return;
       }
-
-      // Calculate subscription end date (30 days from now)
-      const subscriptionEnd = new Date();
-      subscriptionEnd.setDate(subscriptionEnd.getDate() + 30);
 
       // Normalize Instagram username
       let instagramUsername = formData.instagram.trim();
@@ -170,7 +174,7 @@ export default function Vendas() {
           .toLowerCase();
       }
 
-      // Create user in database
+      // Create user in database with pending status
       const { data: newUser, error: insertError } = await supabase
         .from('paid_users')
         .insert({
@@ -178,7 +182,6 @@ export default function Vendas() {
           username: formData.username.trim(),
           instagram_username: instagramUsername || null,
           subscription_status: 'pending',
-          subscription_end: subscriptionEnd.toISOString(),
           strategies_generated: 0,
           creatives_used: 0
         })
@@ -196,50 +199,31 @@ export default function Vendas() {
         return;
       }
 
-      // Store password in localStorage for login (not in DB for security)
-      const paidUserCredentials = {
+      // Store password in localStorage for login
+      localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
         id: newUser.id,
         email: formData.email.toLowerCase(),
         password: formData.password,
         username: formData.username.trim(),
-        instagram: instagramUsername,
-        createdAt: new Date().toISOString()
-      };
-      
-      localStorage.setItem('mro_paid_user_credentials', JSON.stringify(paidUserCredentials));
+        instagram: instagramUsername
+      }));
       
       // Facebook Pixel - Lead
       if (typeof window !== 'undefined' && (window as any).fbq) {
         (window as any).fbq('track', 'Lead', {
-          content_name: 'Plano Mensal I.A MRO',
-          value: 33.00,
+          content_name: 'Cadastro I.A MRO',
+          value: 0,
           currency: 'BRL'
         });
       }
 
-      // Get Stripe payment link from localStorage (set by admin)
-      const stripePaymentLink = localStorage.getItem('mro_stripe_link');
+      toast({
+        title: "Conta criada com sucesso!",
+        description: "Agora faça o pagamento para ativar seu acesso."
+      });
       
-      if (stripePaymentLink && stripePaymentLink !== 'https://buy.stripe.com/test_placeholder') {
-        toast({
-          title: "Conta criada com sucesso!",
-          description: "Redirecionando para pagamento..."
-        });
-        
-        // Add email to payment link for tracking
-        const paymentUrl = new URL(stripePaymentLink);
-        paymentUrl.searchParams.set('prefilled_email', formData.email.toLowerCase());
-        
-        window.open(paymentUrl.toString(), '_blank');
-      } else {
-        // No payment link configured - just redirect to member area
-        toast({
-          title: "Conta criada com sucesso!",
-          description: "Faça login para acessar sua conta."
-        });
-        
-        navigate('/membro');
-      }
+      // Redirect to member area to complete payment
+      navigate('/membro');
       
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -401,8 +385,8 @@ export default function Vendas() {
                       </>
                     ) : (
                       <>
-                        Pagar R$33 e Começar
-                        <Zap className="ml-2 h-5 w-5" />
+                        Cadastrar Agora Mesmo
+                        <ArrowRight className="ml-2 h-5 w-5" />
                       </>
                     )}
                   </Button>
