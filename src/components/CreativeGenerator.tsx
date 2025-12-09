@@ -3,7 +3,7 @@ import { Strategy, Creative, InstagramProfile, CreativeConfig, CreativeColors } 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type } from 'lucide-react';
+import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type, AlertCircle } from 'lucide-react';
 import { generateCreative } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,8 +11,10 @@ interface CreativeGeneratorProps {
   strategy: Strategy;
   profile: InstagramProfile;
   niche: string;
-  onCreativeGenerated: (creative: Creative) => void;
+  onCreativeGenerated: (creative: Creative, creditsUsed: number) => void;
   onClose: () => void;
+  isManualMode?: boolean;
+  creativesRemaining: number;
 }
 
 const COLOR_PRESETS: { name: string; colors: CreativeColors }[] = [
@@ -37,12 +39,25 @@ const FONT_COLORS = [
   { name: 'Rosa', value: '#ec4899' },
 ];
 
-export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerated, onClose }: CreativeGeneratorProps) => {
+export const CreativeGenerator = ({ 
+  strategy, 
+  profile, 
+  niche, 
+  onCreativeGenerated, 
+  onClose,
+  isManualMode = false,
+  creativesRemaining
+}: CreativeGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCreative, setGeneratedCreative] = useState<Creative | null>(null);
   const [step, setStep] = useState<'config' | 'generating' | 'result'>('config');
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [showCreditWarning, setShowCreditWarning] = useState(isManualMode);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const creditsNeeded = isManualMode ? 2 : 1;
+  const hasEnoughCredits = creativesRemaining >= creditsNeeded;
 
   // Configuration state
   const [config, setConfig] = useState<CreativeConfig>({
@@ -99,12 +114,23 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
   };
 
   const handleGenerateCreative = async () => {
+    if (!hasEnoughCredits) {
+      toast({
+        title: "Créditos insuficientes",
+        description: `Você precisa de ${creditsNeeded} crédito(s) mas tem apenas ${creativesRemaining}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setStep('generating');
     
     toast({
       title: "Gerando criativo com I.A MRO...",
-      description: "Criando imagem personalizada com sua marca",
+      description: isManualMode 
+        ? "Criando imagem personalizada com seu prompt (2 créditos)"
+        : "Criando imagem personalizada com sua marca (1 crédito)",
     });
 
     try {
@@ -116,7 +142,15 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
         logoUrl = config.customLogoUrl;
       }
 
-      const result = await generateCreative(strategy, profile, niche, config, logoUrl);
+      const result = await generateCreative(
+        strategy, 
+        profile, 
+        niche, 
+        config, 
+        logoUrl,
+        isManualMode,
+        customPrompt
+      );
 
       if (result.success && result.creative) {
         // Add config data to the creative
@@ -153,10 +187,10 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
 
   const saveCreative = () => {
     if (generatedCreative) {
-      onCreativeGenerated(generatedCreative);
+      onCreativeGenerated(generatedCreative, creditsNeeded);
       toast({
         title: "Criativo salvo!",
-        description: "Disponível na galeria por 1 mês. Após download, conta como usado.",
+        description: `Usado ${creditsNeeded} crédito(s). Disponível na galeria por 1 mês.`,
       });
     }
   };
@@ -195,22 +229,63 @@ export const CreativeGenerator = ({ strategy, profile, niche, onCreativeGenerate
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-display font-bold flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            Gerar Criativo com I.A MRO
+            {isManualMode ? 'Gerar Criativo Manual' : 'Gerar Criativo com I.A MRO'}
           </h3>
           <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Credit Warning for Manual Mode */}
+        {isManualMode && (
+          <div className="p-4 rounded-lg bg-warning/20 border border-warning/50 mb-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-warning">Modo Manual - 2 Créditos</p>
+                <p className="text-sm text-muted-foreground">
+                  Gerar criativo com prompt personalizado usa <strong>2 créditos</strong> (vs 1 crédito pela estratégia).
+                  Você tem <strong>{creativesRemaining} créditos</strong> disponíveis.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Strategy Info */}
         <div className="p-4 rounded-lg bg-secondary/50 mb-6">
-          <p className="text-sm text-muted-foreground mb-1">Baseado na estratégia:</p>
-          <p className="font-semibold">{strategy.title}</p>
+          <p className="text-sm text-muted-foreground mb-1">
+            {isManualMode ? 'Baseado no perfil:' : 'Baseado na estratégia:'}
+          </p>
+          <p className="font-semibold">
+            {isManualMode ? `@${profile.username}` : strategy.title}
+          </p>
         </div>
 
         {/* Step 1: Configuration */}
         {step === 'config' && (
           <div className="space-y-6">
+            {/* Custom Prompt for Manual Mode */}
+            {isManualMode && (
+              <div className="space-y-2">
+                <Label htmlFor="customPrompt" className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Seu Prompt Personalizado
+                </Label>
+                <textarea
+                  id="customPrompt"
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="Descreva o criativo que você deseja... Ex: Uma imagem de hambúrguer gourmet com queijo derretendo, ambiente escuro e elegante"
+                  className="w-full min-h-[100px] p-3 rounded-lg bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary resize-none"
+                  rows={4}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Descreva detalhadamente o que você quer ver no criativo
+                </p>
+              </div>
+            )}
+
             {/* Business Type */}
             <div className="space-y-2">
               <Label htmlFor="businessType" className="flex items-center gap-2">
