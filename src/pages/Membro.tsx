@@ -645,13 +645,15 @@ export default function Membro() {
           <header className="container mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <Logo size="lg" />
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/vendas')}
-                className="gap-2"
-              >
-                Criar Conta
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/vendas')}
+                  className="gap-2"
+                >
+                  Criar Conta
+                </Button>
+              </div>
             </div>
           </header>
 
