@@ -10,6 +10,9 @@ const MROFerramenta = () => {
   const adminData = getAdminData();
   const [selectedModule, setSelectedModule] = useState<TutorialModule | null>(null);
   const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
+  const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
+
+  const welcomeVideo = adminData.settings.welcomeVideo;
 
   const getYoutubeEmbedUrl = (url: string): string => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
@@ -79,6 +82,39 @@ const MROFerramenta = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           
+          {/* Welcome Video Section */}
+          {welcomeVideo?.enabled && welcomeVideo.youtubeUrl && !selectedModule && (
+            <div className="mb-10">
+              {welcomeVideo.showTitle && welcomeVideo.title && (
+                <h2 className="text-2xl font-display font-bold mb-4">{welcomeVideo.title}</h2>
+              )}
+              <div 
+                className="relative aspect-video max-w-3xl mx-auto rounded-xl overflow-hidden cursor-pointer group shadow-lg border border-border"
+                onClick={() => setShowWelcomeVideo(true)}
+              >
+                {welcomeVideo.coverUrl ? (
+                  <img 
+                    src={welcomeVideo.coverUrl}
+                    alt={welcomeVideo.title || 'Vídeo de boas-vindas'}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <img 
+                    src={getYoutubeThumbnail(welcomeVideo.youtubeUrl)}
+                    alt={welcomeVideo.title || 'Vídeo de boas-vindas'}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                )}
+                {/* Play Button Overlay */}
+                <div className="absolute inset-0 bg-background/40 flex items-center justify-center group-hover:bg-background/50 transition-colors">
+                  <div className="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                    <Play className="w-10 h-10 text-white ml-1" fill="white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Module List View - Modules as containers with content inside */}
           {!selectedModule && (
             <>
@@ -180,6 +216,41 @@ const MROFerramenta = () => {
 
         </div>
       </main>
+
+      {/* Welcome Video Lightbox */}
+      {showWelcomeVideo && welcomeVideo?.youtubeUrl && (
+        <div 
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowWelcomeVideo(false)}
+        >
+          <div 
+            className="w-full max-w-5xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold">{welcomeVideo.title || 'Boas-vindas'}</h3>
+              <Button 
+                type="button"
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowWelcomeVideo(false)}
+                className="cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="aspect-video rounded-lg overflow-hidden bg-black">
+              <iframe
+                src={getYoutubeEmbedUrl(welcomeVideo.youtubeUrl)}
+                title={welcomeVideo.title || 'Vídeo de boas-vindas'}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content Lightbox */}
       {selectedContent && (
