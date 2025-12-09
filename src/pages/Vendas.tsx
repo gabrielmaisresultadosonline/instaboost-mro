@@ -139,17 +139,53 @@ export default function Vendas() {
     setIsLoading(true);
 
     try {
-      // Check if user already exists
-      const { data: existingUser } = await supabase
-        .from('paid_users')
-        .select('id, email, subscription_status')
-        .eq('email', formData.email.toLowerCase())
-        .maybeSingle();
+      // Normalize Instagram username
+      let instagramUsername = formData.instagram.trim();
+      if (instagramUsername) {
+        instagramUsername = instagramUsername
+          .replace(/^@/, '')
+          .replace(/https?:\/\/(www\.)?instagram\.com\//, '')
+          .replace(/\/$/, '')
+          .toLowerCase();
+      }
 
-      if (existingUser) {
-        // User exists - save credentials and redirect to login
+      // Use Edge Function to register user (bypasses RLS)
+      const { data: response, error: fnError } = await supabase.functions.invoke('register-paid-user', {
+        body: {
+          email: formData.email.toLowerCase(),
+          username: formData.username.trim(),
+          instagram_username: instagramUsername || null
+        }
+      });
+
+      if (fnError) {
+        console.error('Registration function error:', fnError);
+        toast({
+          title: "Erro ao cadastrar",
+          description: "Não foi possível criar sua conta. Tente novamente.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (response.error) {
+        console.error('Registration error:', response.error);
+        toast({
+          title: "Erro ao cadastrar",
+          description: response.error,
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const user = response.user;
+
+      if (response.exists) {
+        // User already exists - save credentials and redirect
         localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
-          id: existingUser.id,
+          id: user.id,
           email: formData.email.toLowerCase(),
           password: formData.password,
           username: formData.username.trim()
@@ -164,44 +200,11 @@ export default function Vendas() {
         return;
       }
 
-      // Normalize Instagram username
-      let instagramUsername = formData.instagram.trim();
-      if (instagramUsername) {
-        instagramUsername = instagramUsername
-          .replace(/^@/, '')
-          .replace(/https?:\/\/(www\.)?instagram\.com\//, '')
-          .replace(/\/$/, '')
-          .toLowerCase();
-      }
-
-      // Create user in database with pending status
-      const { data: newUser, error: insertError } = await supabase
-        .from('paid_users')
-        .insert({
-          email: formData.email.toLowerCase(),
-          username: formData.username.trim(),
-          instagram_username: instagramUsername || null,
-          subscription_status: 'pending',
-          strategies_generated: 0,
-          creatives_used: 0
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Error creating user:', insertError);
-        toast({
-          title: "Erro ao cadastrar",
-          description: "Não foi possível criar sua conta. Tente novamente.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
+      // New user created
 
       // Store password in localStorage for login
       localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
-        id: newUser.id,
+        id: user.id,
         email: formData.email.toLowerCase(),
         password: formData.password,
         username: formData.username.trim(),
