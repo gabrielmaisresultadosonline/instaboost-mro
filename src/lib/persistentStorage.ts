@@ -1,70 +1,156 @@
-// PERSISTENT STORAGE - Dados NUNCA se perdem após serem carregados
+// PERSISTENT STORAGE - Dados salvos no SERVIDOR por usuário
+// Cada usuário tem seus dados em JSON no servidor
 // Só busca novos dados após 30 dias para economizar requisições
 
-import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
-import { getSession, saveSession as baseSaveSession, addProfile as baseAddProfile, createSnapshot } from '@/lib/storage';
-import { getSyncData, saveSyncData, SyncedInstagramProfile, updateProfile as updateSyncProfile } from '@/lib/syncStorage';
-
-// Keys for persistent storage
-const PERSISTENT_PROFILES_KEY = 'mro_persistent_profiles';
-const LAST_FETCH_DATES_KEY = 'mro_last_fetch_dates';
+import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis, GrowthSnapshot } from '@/types/instagram';
+import { getSession, saveSession as baseSaveSession, createSnapshot } from '@/lib/storage';
+import { supabase } from '@/integrations/supabase/client';
 
 // 30 days in milliseconds
 const REFRESH_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
 
-interface PersistentProfileData {
+// Local cache key (backup while server syncs)
+const LOCAL_CACHE_KEY = 'mro_server_cache';
+
+export interface PersistentProfileData {
   username: string;
   profile: InstagramProfile;
   analysis: ProfileAnalysis;
   strategies: any[];
   creatives: any[];
   creativesRemaining: number;
-  growthHistory: any[];
+  growthHistory: GrowthSnapshot[];
   growthInsights: any[];
   lastFetchDate: string;
   syncedAt: string;
   lastUpdated: string;
 }
 
-interface LastFetchDates {
-  [username: string]: string;
+export interface UserServerData {
+  username: string;
+  profiles: Record<string, PersistentProfileData>;
+  lastFetchDates: Record<string, string>;
+  lastSyncedAt: string;
 }
 
-// Get all persistently stored profiles
-export const getPersistentProfiles = (): Record<string, PersistentProfileData> => {
+// Local cache for faster access (syncs with server)
+let localCache: UserServerData | null = null;
+
+// Get local cache (for offline/fast access)
+const getLocalCache = (): UserServerData | null => {
   try {
-    const stored = localStorage.getItem(PERSISTENT_PROFILES_KEY);
-    return stored ? JSON.parse(stored) : {};
+    const stored = localStorage.getItem(LOCAL_CACHE_KEY);
+    return stored ? JSON.parse(stored) : null;
   } catch {
-    return {};
+    return null;
   }
 };
 
-// Save persistent profiles
-export const savePersistentProfiles = (profiles: Record<string, PersistentProfileData>): void => {
-  localStorage.setItem(PERSISTENT_PROFILES_KEY, JSON.stringify(profiles));
+// Save to local cache
+const saveLocalCache = (data: UserServerData): void => {
+  localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(data));
+  localCache = data;
 };
 
-// Get last fetch dates
-export const getLastFetchDates = (): LastFetchDates => {
+// Clear local cache (on logout)
+export const clearLocalCache = (): void => {
+  localStorage.removeItem(LOCAL_CACHE_KEY);
+  localCache = null;
+};
+
+// Load user data from server
+export const loadUserDataFromServer = async (username: string): Promise<UserServerData | null> => {
   try {
-    const stored = localStorage.getItem(LAST_FETCH_DATES_KEY);
-    return stored ? JSON.parse(stored) : {};
-  } catch {
-    return {};
+    console.log(`🔄 Carregando dados do servidor para: ${username}`);
+    
+    const { data, error } = await supabase.functions.invoke('user-data-storage', {
+      body: { action: 'load', username }
+    });
+
+    if (error) {
+      console.error('Erro ao carregar do servidor:', error);
+      // Fallback to local cache
+      return getLocalCache();
+    }
+
+    if (data?.success && data?.data) {
+      console.log(`✅ Dados carregados do servidor para: ${username}`);
+      saveLocalCache(data.data);
+      return data.data;
+    }
+
+    // No data on server - check local cache
+    const localData = getLocalCache();
+    if (localData && localData.username === username) {
+      console.log(`📦 Usando cache local para: ${username}`);
+      return localData;
+    }
+
+    // Initialize new user data
+    const newUserData: UserServerData = {
+      username,
+      profiles: {},
+      lastFetchDates: {},
+      lastSyncedAt: new Date().toISOString()
+    };
+    
+    return newUserData;
+  } catch (error) {
+    console.error('Erro ao carregar dados:', error);
+    return getLocalCache();
   }
 };
 
-// Save last fetch dates
-export const saveLastFetchDates = (dates: LastFetchDates): void => {
-  localStorage.setItem(LAST_FETCH_DATES_KEY, JSON.stringify(dates));
+// Save user data to server
+export const saveUserDataToServer = async (data: UserServerData): Promise<boolean> => {
+  try {
+    // Always save locally first (fast)
+    saveLocalCache(data);
+    
+    console.log(`💾 Salvando dados no servidor para: ${data.username}`);
+    
+    const { data: response, error } = await supabase.functions.invoke('user-data-storage', {
+      body: { action: 'save', username: data.username, data }
+    });
+
+    if (error) {
+      console.error('Erro ao salvar no servidor:', error);
+      return false;
+    }
+
+    if (response?.success) {
+      console.log(`✅ Dados salvos no servidor para: ${data.username}`);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Erro ao salvar dados:', error);
+    return false;
+  }
+};
+
+// Initialize user data on login
+export const initializeUserData = async (username: string): Promise<void> => {
+  const serverData = await loadUserDataFromServer(username);
+  if (serverData) {
+    localCache = serverData;
+  }
+};
+
+// Get current user data (from cache or server)
+export const getCurrentUserData = (): UserServerData | null => {
+  if (localCache) return localCache;
+  return getLocalCache();
 };
 
 // Check if profile needs refresh (30 days since last fetch)
 export const needsRefresh = (username: string): boolean => {
-  const dates = getLastFetchDates();
+  const userData = getCurrentUserData();
+  if (!userData) return true;
+  
   const normalizedUsername = username.toLowerCase();
-  const lastFetch = dates[normalizedUsername];
+  const lastFetch = userData.lastFetchDates[normalizedUsername];
   
   if (!lastFetch) return true;
   
@@ -77,9 +163,11 @@ export const needsRefresh = (username: string): boolean => {
 
 // Get days until next refresh
 export const getDaysUntilRefresh = (username: string): number => {
-  const dates = getLastFetchDates();
+  const userData = getCurrentUserData();
+  if (!userData) return 0;
+  
   const normalizedUsername = username.toLowerCase();
-  const lastFetch = dates[normalizedUsername];
+  const lastFetch = userData.lastFetchDates[normalizedUsername];
   
   if (!lastFetch) return 0;
   
@@ -91,41 +179,58 @@ export const getDaysUntilRefresh = (username: string): number => {
   return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
 };
 
-// Mark profile as fetched today
-export const markProfileFetched = (username: string): void => {
-  const dates = getLastFetchDates();
-  dates[username.toLowerCase()] = new Date().toISOString();
-  saveLastFetchDates(dates);
+// Mark profile as fetched
+export const markProfileFetched = (igUsername: string): void => {
+  const userData = getCurrentUserData();
+  if (userData) {
+    userData.lastFetchDates[igUsername.toLowerCase()] = new Date().toISOString();
+    saveLocalCache(userData);
+    // Don't await - save in background
+    saveUserDataToServer(userData);
+  }
 };
 
-// Check if profile data exists in persistent storage
-export const hasPersistedProfileData = (username: string): boolean => {
-  const profiles = getPersistentProfiles();
-  return !!profiles[username.toLowerCase()];
+// Check if profile data exists
+export const hasPersistedProfileData = (igUsername: string): boolean => {
+  const userData = getCurrentUserData();
+  if (!userData) return false;
+  return !!userData.profiles[igUsername.toLowerCase()];
 };
 
 // Get persisted profile data
-export const getPersistedProfile = (username: string): PersistentProfileData | null => {
-  const profiles = getPersistentProfiles();
-  return profiles[username.toLowerCase()] || null;
+export const getPersistedProfile = (igUsername: string): PersistentProfileData | null => {
+  const userData = getCurrentUserData();
+  if (!userData) return null;
+  return userData.profiles[igUsername.toLowerCase()] || null;
 };
 
-// Save profile data persistently
-export const persistProfileData = (
-  username: string,
+// Save profile data persistently (to cache and server)
+export const persistProfileData = async (
+  loggedInUsername: string,
+  igUsername: string,
   profile: InstagramProfile,
   analysis: ProfileAnalysis,
   existingData?: Partial<PersistentProfileData>
-): void => {
-  const profiles = getPersistentProfiles();
-  const normalizedUsername = username.toLowerCase();
+): Promise<void> => {
+  const normalizedIG = igUsername.toLowerCase();
   const now = new Date().toISOString();
   
-  // Get existing data to preserve strategies, creatives, etc.
-  const existing = profiles[normalizedUsername];
+  // Get or create user data
+  let userData = getCurrentUserData();
+  if (!userData) {
+    userData = {
+      username: loggedInUsername,
+      profiles: {},
+      lastFetchDates: {},
+      lastSyncedAt: now
+    };
+  }
   
-  profiles[normalizedUsername] = {
-    username: normalizedUsername,
+  // Get existing data to preserve strategies, creatives, etc.
+  const existing = userData.profiles[normalizedIG];
+  
+  userData.profiles[normalizedIG] = {
+    username: normalizedIG,
     profile,
     analysis,
     strategies: existingData?.strategies || existing?.strategies || [],
@@ -138,46 +243,52 @@ export const persistProfileData = (
     lastUpdated: now
   };
   
-  savePersistentProfiles(profiles);
-  markProfileFetched(normalizedUsername);
+  userData.lastFetchDates[normalizedIG] = now;
+  userData.lastSyncedAt = now;
   
-  console.log(`💾 Perfil @${normalizedUsername} salvo permanentemente`);
+  // Save locally first (fast)
+  saveLocalCache(userData);
+  
+  // Save to server in background
+  await saveUserDataToServer(userData);
+  
+  console.log(`💾 Perfil @${normalizedIG} salvo permanentemente no servidor`);
 };
 
-// Update only profile metrics (used for growth tracking)
-export const updatePersistedProfileMetrics = (
-  username: string,
-  profile: InstagramProfile
-): void => {
-  const profiles = getPersistentProfiles();
-  const normalizedUsername = username.toLowerCase();
-  const existing = profiles[normalizedUsername];
+// Update profile in persistent storage
+export const updatePersistedProfile = async (
+  loggedInUsername: string,
+  igUsername: string,
+  updates: Partial<PersistentProfileData>
+): Promise<void> => {
+  const normalizedIG = igUsername.toLowerCase();
+  const userData = getCurrentUserData();
   
-  if (existing) {
-    const now = new Date().toISOString();
-    
-    // Add to growth history if followers changed
-    if (existing.profile.followers !== profile.followers) {
-      existing.growthHistory.push(createSnapshot(profile));
-    }
-    
-    existing.profile = profile;
-    existing.lastFetchDate = now;
-    existing.lastUpdated = now;
-    
-    savePersistentProfiles(profiles);
-    markProfileFetched(normalizedUsername);
-    
-    console.log(`📊 Métricas de @${normalizedUsername} atualizadas`);
+  if (!userData || !userData.profiles[normalizedIG]) {
+    console.warn(`Perfil @${igUsername} não encontrado para atualização`);
+    return;
   }
+  
+  const now = new Date().toISOString();
+  userData.profiles[normalizedIG] = {
+    ...userData.profiles[normalizedIG],
+    ...updates,
+    lastUpdated: now
+  };
+  userData.lastSyncedAt = now;
+  
+  saveLocalCache(userData);
+  await saveUserDataToServer(userData);
 };
 
 // Sync persistent storage with session storage
 export const syncPersistentToSession = (): void => {
-  const persistentProfiles = getPersistentProfiles();
+  const userData = getCurrentUserData();
+  if (!userData) return;
+  
   const session = getSession();
   
-  Object.values(persistentProfiles).forEach(persistedData => {
+  Object.values(userData.profiles).forEach(persistedData => {
     // Check if profile exists in session
     const existingInSession = session.profiles.find(
       p => p.profile.username.toLowerCase() === persistedData.username.toLowerCase()
@@ -225,18 +336,27 @@ export const syncPersistentToSession = (): void => {
   });
   
   baseSaveSession(session);
-  console.log(`🔄 Sessão sincronizada com ${Object.keys(persistentProfiles).length} perfis persistentes`);
+  console.log(`🔄 Sessão sincronizada com ${Object.keys(userData.profiles).length} perfis do servidor`);
 };
 
 // Sync session storage to persistent (call after any session update)
-export const syncSessionToPersistent = (): void => {
+export const syncSessionToPersistent = async (loggedInUsername: string): Promise<void> => {
   const session = getSession();
-  const persistentProfiles = getPersistentProfiles();
+  let userData = getCurrentUserData();
+  
+  if (!userData) {
+    userData = {
+      username: loggedInUsername,
+      profiles: {},
+      lastFetchDates: {},
+      lastSyncedAt: new Date().toISOString()
+    };
+  }
   
   session.profiles.forEach(profileSession => {
     const normalizedUsername = profileSession.profile.username.toLowerCase();
     
-    persistentProfiles[normalizedUsername] = {
+    userData!.profiles[normalizedUsername] = {
       username: normalizedUsername,
       profile: profileSession.profile,
       analysis: profileSession.analysis,
@@ -251,19 +371,30 @@ export const syncSessionToPersistent = (): void => {
     };
   });
   
-  savePersistentProfiles(persistentProfiles);
+  userData.lastSyncedAt = new Date().toISOString();
+  
+  saveLocalCache(userData);
+  await saveUserDataToServer(userData);
 };
 
 // Load all persisted data on login
-export const loadPersistedDataOnLogin = (registeredUsernames: string[]): void => {
-  const persistentProfiles = getPersistentProfiles();
-  const session = getSession();
+export const loadPersistedDataOnLogin = async (loggedInUsername: string, registeredUsernames: string[]): Promise<void> => {
+  console.log(`🔐 Carregando dados do servidor para: ${loggedInUsername}`);
   
-  console.log(`🔐 Carregando dados persistentes para ${registeredUsernames.length} perfis...`);
+  // Load from server
+  await initializeUserData(loggedInUsername);
+  
+  const userData = getCurrentUserData();
+  if (!userData) {
+    console.log('⚠️ Nenhum dado encontrado no servidor');
+    return;
+  }
+  
+  const session = getSession();
   
   registeredUsernames.forEach(username => {
     const normalizedUsername = username.toLowerCase();
-    const persistedData = persistentProfiles[normalizedUsername];
+    const persistedData = userData.profiles[normalizedUsername];
     
     if (persistedData) {
       // Check if already in session
@@ -287,7 +418,7 @@ export const loadPersistedDataOnLogin = (registeredUsernames: string[]): void =>
         };
         
         session.profiles.push(profileSession);
-        console.log(`✅ Perfil @${normalizedUsername} restaurado do armazenamento persistente`);
+        console.log(`✅ Perfil @${normalizedUsername} restaurado do servidor`);
       }
     }
   });
@@ -300,8 +431,8 @@ export const loadPersistedDataOnLogin = (registeredUsernames: string[]): void =>
 };
 
 // Check if data needs to be fetched or can use cached
-export const shouldFetchProfile = (username: string): { shouldFetch: boolean; reason: string } => {
-  const normalizedUsername = username.toLowerCase();
+export const shouldFetchProfile = (igUsername: string): { shouldFetch: boolean; reason: string } => {
+  const normalizedUsername = igUsername.toLowerCase();
   const hasData = hasPersistedProfileData(normalizedUsername);
   const needsUpdate = needsRefresh(normalizedUsername);
   
@@ -315,7 +446,7 @@ export const shouldFetchProfile = (username: string): { shouldFetch: boolean; re
   }
   
   const daysUntil = getDaysUntilRefresh(normalizedUsername);
-  return { shouldFetch: false, reason: `Usando dados em cache. Próxima atualização em ${daysUntil} dias.` };
+  return { shouldFetch: false, reason: `Usando dados do servidor. Próxima atualização em ${daysUntil} dias.` };
 };
 
 // Get profile summary for admin/debug
@@ -323,12 +454,14 @@ export const getStorageSummary = (): {
   totalProfiles: number; 
   profiles: Array<{ username: string; lastFetch: string; daysUntilRefresh: number }>;
 } => {
-  const profiles = getPersistentProfiles();
-  const dates = getLastFetchDates();
+  const userData = getCurrentUserData();
+  if (!userData) {
+    return { totalProfiles: 0, profiles: [] };
+  }
   
-  const profileSummary = Object.keys(profiles).map(username => ({
+  const profileSummary = Object.keys(userData.profiles).map(username => ({
     username,
-    lastFetch: dates[username] || 'Nunca',
+    lastFetch: userData.lastFetchDates[username] || 'Nunca',
     daysUntilRefresh: getDaysUntilRefresh(username)
   }));
   

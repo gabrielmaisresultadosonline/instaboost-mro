@@ -3,6 +3,7 @@ import { ProfileSession, GrowthSnapshot, GrowthInsight } from '@/types/instagram
 import { fetchInstagramProfile } from '@/lib/api';
 import { addGrowthSnapshot, addGrowthInsight } from '@/lib/storage';
 import { syncSessionToPersistent, markProfileFetched } from '@/lib/persistentStorage';
+import { getCurrentUser } from '@/lib/userStorage';
 import { TrendingUp, TrendingDown, Users, Heart, MessageCircle, Calendar, RefreshCw, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -69,7 +70,8 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
         
         // PERSIST DATA PERMANENTLY
         markProfileFetched(profileSession.profile.username);
-        syncSessionToPersistent();
+        const loggedInUsername = getCurrentUser()?.username || 'anonymous';
+        syncSessionToPersistent(loggedInUsername);
         
         toast({
           title: "Dados atualizados! 📊",
