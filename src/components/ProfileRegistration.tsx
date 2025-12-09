@@ -49,8 +49,10 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
   const [isSyncing, setIsSyncing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
+  const [showSyncOfferDialog, setShowSyncOfferDialog] = useState(false);
   const [pendingProfile, setPendingProfile] = useState<InstagramProfile | null>(null);
   const [pendingAnalysis, setPendingAnalysis] = useState<ProfileAnalysis | null>(null);
+  const [pendingSyncIG, setPendingSyncIG] = useState<string>('');
   const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -66,6 +68,49 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
     const igs = getRegisteredIGs();
     setRegisteredIGs(igs.map(ig => ig.username));
   }, [user]);
+
+  // Handle syncing a single profile that already exists in SquareCloud
+  const handleSyncSingleProfile = async () => {
+    if (!pendingSyncIG || !user) return;
+    
+    setShowSyncOfferDialog(false);
+    setIsLoading(true);
+    
+    try {
+      // Check email before syncing
+      if (!email.trim()) {
+        toast({ 
+          title: 'Digite seu e-mail', 
+          description: 'Necessário para sincronizar',
+          variant: 'destructive' 
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      updateUserEmail(email);
+      
+      // Sync this single IG
+      syncIGsFromSquare([pendingSyncIG], email);
+      setRegisteredIGs(prev => [...prev, pendingSyncIG]);
+      
+      toast({
+        title: 'Perfil sincronizado!',
+        description: `@${pendingSyncIG} foi vinculado à sua conta`
+      });
+
+      onSyncComplete([pendingSyncIG]);
+      setPendingSyncIG('');
+      setInstagramInput('');
+    } catch (error) {
+      toast({
+        title: 'Erro na sincronização',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearchProfile = async () => {
     if (!instagramInput.trim()) {
@@ -96,19 +141,28 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
       // FIRST: Check if can register in SquareCloud before fetching from Bright Data
       toast({ title: 'Verificando disponibilidade...', description: 'Checando banco de dados' });
       
-      const canRegister = await canRegisterIG(user.username, normalizedIG);
+      const checkResult = await canRegisterIG(user.username, normalizedIG);
       
-      if (!canRegister.canRegister) {
+      // Case 1: Profile already exists in SquareCloud - offer sync
+      if (checkResult.alreadyExists) {
+        setPendingSyncIG(normalizedIG);
+        setShowSyncOfferDialog(true);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Case 2: Cannot register (limit reached)
+      if (!checkResult.canRegister) {
         toast({
-          title: 'Não é possível cadastrar',
-          description: canRegister.error || 'Este perfil não pode ser cadastrado',
+          title: 'Limite atingido',
+          description: checkResult.error || 'Você não pode cadastrar mais perfis',
           variant: 'destructive'
         });
         setIsLoading(false);
         return;
       }
 
-      // Only fetch from Bright Data if registration is possible
+      // Case 3: Can register - fetch from Bright Data
       toast({ title: 'Buscando perfil...', description: `@${normalizedIG}` });
       
       const profileResult = await fetchInstagramProfile(normalizedIG);
@@ -622,6 +676,71 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
                 </>
               ) : (
                 'Confirmar Cadastro'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sync Offer Dialog - when profile already exists in SquareCloud */}
+      <Dialog open={showSyncOfferDialog} onOpenChange={setShowSyncOfferDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RefreshCw className="w-5 h-5 text-primary" />
+              Perfil já cadastrado
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              O perfil @{pendingSyncIG} já está registrado na sua conta SquareCloud.
+              Deseja sincronizá-lo agora?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="p-4 bg-secondary/20 rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              Ao sincronizar, este perfil será adicionado ao seu painel para que você possa
+              gerar estratégias e criativos.
+            </p>
+          </div>
+
+          {!user?.email && (
+            <div className="space-y-2">
+              <Label htmlFor="sync-email-dialog">Seu e-mail</Label>
+              <Input
+                id="sync-email-dialog"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-background/50"
+              />
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowSyncOfferDialog(false);
+                setPendingSyncIG('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSyncSingleProfile}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Sincronizando...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Sincronizar Agora
+                </>
               )}
             </Button>
           </DialogFooter>
