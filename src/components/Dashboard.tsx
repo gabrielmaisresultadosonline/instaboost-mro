@@ -13,6 +13,7 @@ import { UserHeader } from './UserHeader';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
 import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession, saveSession } from '@/lib/storage';
+import { syncSessionToPersistent } from '@/lib/persistentStorage';
 import { 
   RotateCcw, 
   User, 
@@ -67,6 +68,8 @@ export const Dashboard = ({
   const refreshSession = () => {
     const updatedSession = getSession();
     onSessionUpdate(updatedSession);
+    // Sync to persistent storage
+    syncSessionToPersistent();
   };
 
   const tabs = [
@@ -80,6 +83,8 @@ export const Dashboard = ({
   const handleStrategyGenerated = (strategy: Strategy) => {
     addStrategy(strategy);
     refreshSession();
+    // Sync immediately after strategy generation
+    syncSessionToPersistent();
   };
 
   const handleGenerateCreative = (strategy: Strategy) => {

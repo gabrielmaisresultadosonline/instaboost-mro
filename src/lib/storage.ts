@@ -73,6 +73,7 @@ export const createSnapshot = (profile: InstagramProfile): GrowthSnapshot => ({
 export const saveSession = (session: MROSession): void => {
   session.lastUpdated = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  console.log(`💾 Sessão salva: ${session.profiles.length} perfis`);
 };
 
 export const getActiveProfile = (): ProfileSession | null => {
@@ -359,6 +360,9 @@ export const addGrowthInsight = (profileId: string, insight: GrowthInsight): voi
 };
 
 export const resetSession = (): void => {
+  // IMPORTANT: This only clears the session, NOT the persistent storage
+  // Persistent data remains in mro_persistent_profiles
+  console.log('⚠️ Resetando sessão (dados persistentes mantidos)');
   localStorage.removeItem(STORAGE_KEY);
 };
 
