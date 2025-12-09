@@ -118,7 +118,7 @@ serve(async (req) => {
       payment_method_types: ['card', 'boleto'],
       line_items: [
         {
-          price: "price_1ScWfRCFJxkRbtbVLOYWS5M8",
+          price: "price_1ScYPiCFJxkRbtbVRjlYyDLW", // R$57/mês - Plano Premium
           quantity: 1,
         },
       ],
