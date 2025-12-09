@@ -55,6 +55,7 @@ export const CreativeGenerator = ({
   const [showCreditWarning, setShowCreditWarning] = useState(isManualMode);
   const [personPhoto, setPersonPhoto] = useState<string | null>(null);
   const [includeText, setIncludeText] = useState(true);
+  const [includeLogo, setIncludeLogo] = useState(true);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const personPhotoRef = useRef<HTMLInputElement>(null);
@@ -156,10 +157,12 @@ export const CreativeGenerator = ({
     try {
       // Determine which logo URL to use
       let logoUrl: string | undefined;
-      if (config.logoType === 'profile') {
-        logoUrl = profile.profilePicUrl;
-      } else if (config.logoType === 'custom' && config.customLogoUrl) {
-        logoUrl = config.customLogoUrl;
+      if (includeLogo) {
+        if (config.logoType === 'profile') {
+          logoUrl = profile.profilePicUrl;
+        } else if (config.logoType === 'custom' && config.customLogoUrl) {
+          logoUrl = config.customLogoUrl;
+        }
       }
 
       const result = await generateCreative(
@@ -171,7 +174,8 @@ export const CreativeGenerator = ({
         isManualMode,
         customPrompt,
         personPhoto || undefined,
-        includeText
+        includeText,
+        includeLogo
       );
 
       if (result.success && result.creative) {
@@ -358,19 +362,45 @@ export const CreativeGenerator = ({
                   </div>
                 </div>
 
-                {/* Include Text Option */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
-                  <input
-                    type="checkbox"
-                    id="includeText"
-                    checked={includeText}
-                    onChange={(e) => setIncludeText(e.target.checked)}
-                    className="w-4 h-4 rounded border-border accent-primary"
-                  />
-                  <Label htmlFor="includeText" className="cursor-pointer text-sm">
-                    Incluir texto (headline e CTA) no criativo
-                  </Label>
+                {/* Options Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Include Text Option */}
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                    <input
+                      type="checkbox"
+                      id="includeText"
+                      checked={includeText}
+                      onChange={(e) => setIncludeText(e.target.checked)}
+                      className="w-4 h-4 rounded border-border accent-primary"
+                    />
+                    <Label htmlFor="includeText" className="cursor-pointer text-sm">
+                      Incluir texto (headline e CTA)
+                    </Label>
+                  </div>
+
+                  {/* Include Logo Option */}
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                    <input
+                      type="checkbox"
+                      id="includeLogo"
+                      checked={includeLogo}
+                      onChange={(e) => setIncludeLogo(e.target.checked)}
+                      className="w-4 h-4 rounded border-border accent-primary"
+                    />
+                    <Label htmlFor="includeLogo" className="cursor-pointer text-sm">
+                      Incluir logo na imagem
+                    </Label>
+                  </div>
                 </div>
+
+                {/* Info about image-only mode */}
+                {!includeText && !includeLogo && (
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                    <p className="text-sm text-primary">
+                      ✨ Modo imagem completa: A IA vai gerar apenas a imagem nas cores selecionadas, preenchendo toda a tela sem recortes.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
