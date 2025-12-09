@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, 
   Search, 
@@ -25,7 +25,8 @@ import {
   Instagram,
   Webhook,
   Copy,
-  Link
+  Link,
+  AlertCircle
 } from 'lucide-react';
 
 interface PaidMemberUser {
@@ -34,7 +35,7 @@ interface PaidMemberUser {
   email: string;
   password: string;
   instagram_username?: string;
-  subscription_status: 'active' | 'pending' | 'expired';
+  subscription_status: 'active' | 'pending' | 'expired' | 'canceled';
   subscription_end?: string;
   strategies_generated: number;
   creatives_used: number;
@@ -107,22 +108,38 @@ export default function SalesDashboard() {
     loadMembers();
   }, []);
 
-  const loadMembers = () => {
+  const loadMembers = async () => {
     setIsRefreshing(true);
-    const loadedMembers = getPaidMembers();
-    
-    // Update expired subscriptions
-    const now = new Date();
-    const updatedMembers = loadedMembers.map(member => {
-      if (member.subscription_end && new Date(member.subscription_end) < now && member.subscription_status === 'active') {
-        return { ...member, subscription_status: 'expired' as const };
+    try {
+      // Fetch from Supabase paid_users table
+      const { data, error } = await supabase.functions.invoke('get-paid-users');
+      
+      if (error) {
+        console.error('Error fetching paid users:', error);
+        // Fallback to localStorage
+        const localMembers = getPaidMembers();
+        setMembers(localMembers);
+      } else if (data?.users) {
+        // Update expired subscriptions
+        const now = new Date();
+        const updatedMembers = data.users.map((member: PaidMemberUser) => {
+          if (member.subscription_end && new Date(member.subscription_end) < now && member.subscription_status === 'active') {
+            return { ...member, subscription_status: 'expired' as const };
+          }
+          return member;
+        });
+        
+        // Sync to localStorage as backup
+        savePaidMembers(updatedMembers);
+        setMembers(updatedMembers);
       }
-      return member;
-    });
-    
-    savePaidMembers(updatedMembers);
-    setMembers(updatedMembers);
-    setIsRefreshing(false);
+    } catch (err) {
+      console.error('Failed to load members:', err);
+      const localMembers = getPaidMembers();
+      setMembers(localMembers);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const togglePassword = (id: string) => {
@@ -194,8 +211,23 @@ export default function SalesDashboard() {
   );
 
   const activeCount = members.filter(m => m.subscription_status === 'active').length;
-  const expiredCount = members.filter(m => m.subscription_status === 'expired').length;
+  const expiredCount = members.filter(m => m.subscription_status === 'expired' || m.subscription_status === 'canceled').length;
   const pendingCount = members.filter(m => m.subscription_status === 'pending').length;
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Ativo</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Aguardando Pagamento</Badge>;
+      case 'expired':
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Vencido</Badge>;
+      case 'canceled':
+        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Cancelado</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -450,7 +482,7 @@ src="https://www.facebook.com/tr?id=${pixelConfig.pixelId}&ev=PageView&noscript=
               
               return (
                 <Card key={member.id} className={`glass-card transition-all ${
-                  member.subscription_status === 'expired' ? 'opacity-60 border-red-500/30' :
+                  member.subscription_status === 'expired' || member.subscription_status === 'canceled' ? 'opacity-60 border-red-500/30' :
                   member.subscription_status === 'active' ? 'border-green-500/30' :
                   'border-yellow-500/30'
                 }`}>
@@ -465,16 +497,16 @@ src="https://www.facebook.com/tr?id=${pixelConfig.pixelId}&ev=PageView&noscript=
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold">{member.username}</span>
-                          <Badge variant={
-                            member.subscription_status === 'active' ? 'default' :
-                            member.subscription_status === 'expired' ? 'destructive' : 'secondary'
-                          }>
-                            {member.subscription_status === 'active' ? 'Ativo' :
-                             member.subscription_status === 'expired' ? 'Expirado' : 'Pendente'}
-                          </Badge>
-                          {member.subscription_status === 'active' && (
+                          {getStatusBadge(member.subscription_status)}
+                          {member.subscription_status === 'active' && remainingDays > 0 && (
                             <span className="text-xs text-green-500 font-medium">
                               {remainingDays} dias restantes
+                            </span>
+                          )}
+                          {member.subscription_status === 'pending' && (
+                            <span className="text-xs text-yellow-500 font-medium flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              Não pagou ainda
                             </span>
                           )}
                         </div>
