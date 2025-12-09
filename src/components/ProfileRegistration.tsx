@@ -46,6 +46,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
   const [instagramInput, setInstagramInput] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
@@ -76,6 +77,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
     
     setShowSyncOfferDialog(false);
     setIsLoading(true);
+    setLoadingMessage(`Sincronizando @${pendingSyncIG}...`);
     
     try {
       // Check email before syncing
@@ -86,6 +88,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
           variant: 'destructive' 
         });
         setIsLoading(false);
+        setLoadingMessage('');
         return;
       }
 
@@ -110,6 +113,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
       });
     } finally {
       setIsLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -127,11 +131,10 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
     const normalizedIG = normalizeInstagramUsername(instagramInput);
 
     setIsLoading(true);
+    setLoadingMessage('Verificando disponibilidade...');
 
     try {
       // FIRST: Check if can register in SquareCloud before fetching from Bright Data
-      toast({ title: 'Verificando disponibilidade...', description: 'Checando banco de dados' });
-      
       const checkResult = await canRegisterIG(user.username, normalizedIG);
       
       // Case 1: Profile already exists in SquareCloud - offer sync (even if it was removed from local)
@@ -139,6 +142,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
         setPendingSyncIG(normalizedIG);
         setShowSyncOfferDialog(true);
         setIsLoading(false);
+        setLoadingMessage('');
         return;
       }
       
@@ -150,11 +154,12 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
           variant: 'destructive'
         });
         setIsLoading(false);
+        setLoadingMessage('');
         return;
       }
 
       // Case 3: Can register - fetch from Bright Data
-      toast({ title: 'Buscando perfil...', description: `@${normalizedIG}` });
+      setLoadingMessage(`Buscando dados de @${normalizedIG}...`);
       
       const profileResult = await fetchInstagramProfile(normalizedIG);
       
@@ -165,11 +170,12 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
           variant: 'destructive'
         });
         setIsLoading(false);
+        setLoadingMessage('');
         return;
       }
 
       // Analyze profile
-      toast({ title: 'Analisando perfil...', description: 'Gerando insights com IA' });
+      setLoadingMessage('Analisando perfil com I.A...');
       
       const analysisResult = await analyzeProfile(profileResult.profile);
       
@@ -180,6 +186,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
           variant: 'destructive'
         });
         setIsLoading(false);
+        setLoadingMessage('');
         return;
       }
 
@@ -196,6 +203,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
       });
     } finally {
       setIsLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -410,7 +418,20 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 p-4 relative">
+      {/* Loading Overlay */}
+      {isLoading && loadingMessage && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-card border border-border rounded-lg p-6 shadow-lg flex flex-col items-center gap-4 max-w-sm mx-4">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <div className="text-center">
+              <p className="text-lg font-medium">{loadingMessage}</p>
+              <p className="text-sm text-muted-foreground mt-1">Aguarde...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <Card className="glass-card border-primary/20">
