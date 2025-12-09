@@ -37,6 +37,7 @@ interface CreativeRequest {
   customPrompt?: string;
   personPhotoBase64?: string;
   includeText?: boolean;
+  includeLogo?: boolean;
   variationSeed?: number;
 }
 
@@ -56,6 +57,7 @@ serve(async (req) => {
       customPrompt, 
       personPhotoBase64,
       includeText = true,
+      includeLogo = true,
       variationSeed 
     }: CreativeRequest = await req.json();
     
@@ -70,7 +72,7 @@ serve(async (req) => {
 
     const mode = isManualMode ? 'manual' : 'estratégia';
     const hasPersonPhoto = !!personPhotoBase64;
-    console.log(`Gerando criativo para: ${profile.username} modo: ${mode} seed: ${variationSeed || 'none'} hasPersonPhoto: ${hasPersonPhoto}`);
+    console.log(`Gerando criativo para: ${profile.username} modo: ${mode} includeText: ${includeText} includeLogo: ${includeLogo} hasPersonPhoto: ${hasPersonPhoto}`);
 
     // Get colors from config or use defaults
     const colors = config?.colors || { primary: '#1e40af', secondary: '#3b82f6', text: '#ffffff' };
@@ -199,16 +201,37 @@ PERSON IN IMAGE - CRITICAL:
 - Position the person prominently in the composition`
       : '';
 
+    // Layout instructions based on options
+    const logoInstructions = includeLogo 
+      ? `
+MANDATORY LOGO AREA - CRITICAL:
+- Reserve a SEAMLESS circular area at ${logoPositionDesc} of the image
+- Position: ${logoPosition === 'center' ? 'HORIZONTALLY CENTERED' : logoPosition === 'left' ? 'LEFT SIDE (about 10% from left edge)' : 'RIGHT SIDE (about 10% from right edge)'}, approximately 8-12% from the top edge
+- This area must BLEND naturally with the background - NO solid rectangles or bars behind it
+- The logo area should be slightly darker/cleaner but NOT a separate shape`
+      : '';
+
     const textInstructions = includeText 
       ? `
-LAYOUT STRUCTURE:
-- TOP: Clean gradient area for logo overlay (NO bars, NO rectangles)
-- CENTER: ${selectedPerspective} visual representing the business
-- BOTTOM 30%: Smooth gradient fade for text overlay (seamless, not a bar)`
+LAYOUT FOR TEXT OVERLAY:
+- BOTTOM 30%: Smooth gradient fade for text overlay (seamless, not a bar)
+- Keep bottom area slightly darker for text contrast`
+      : '';
+
+    // Full image mode when no text and no logo
+    const fullImageMode = !includeText && !includeLogo;
+    const layoutDescription = fullImageMode 
+      ? `
+FULL IMAGE MODE - CRITICAL:
+- Fill the ENTIRE canvas with rich visual content
+- NO reserved areas for overlays - use 100% of the space
+- Create a complete, standalone image that works without any text or logo
+- Maximum visual impact with the selected color palette`
       : `
 LAYOUT STRUCTURE:
-- Image should fill ENTIRE space with visual content
-- Minimal space reserved for overlays`;
+- TOP: ${includeLogo ? 'Clean gradient area for logo overlay' : 'Rich visual content'}
+- CENTER: ${selectedPerspective} visual representing the business
+- BOTTOM: ${includeText ? 'Smooth gradient fade for text overlay' : 'Rich visual content'}`;
 
     const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image.
 
@@ -226,15 +249,10 @@ UNIQUE VARIATION: #${variationId % 1000} - This must look COMPLETELY DIFFERENT f
 ${personInstructions}
 
 COLOR PALETTE:
-- Dark elegant gradient base (NO solid color blocks or horizontal bars)
-- Accent colors: ${allColors}
+- Elegant gradient base using: ${allColors}
 - Seamless gradient transitions, NO sharp horizontal lines
-
-MANDATORY LOGO AREA - CRITICAL:
-- Reserve a SEAMLESS circular area at ${logoPositionDesc} of the image
-- Position: ${logoPosition === 'center' ? 'HORIZONTALLY CENTERED' : logoPosition === 'left' ? 'LEFT SIDE (about 10% from left edge)' : 'RIGHT SIDE (about 10% from right edge)'}, approximately 8-12% from the top edge
-- This area must BLEND naturally with the background - NO solid rectangles or bars behind it
-- The logo area should be slightly darker/cleaner but NOT a separate shape
+- Rich color saturation matching the selected palette
+${logoInstructions}
 
 VISUAL CONTENT (BE UNIQUE):
 - ${selectedPerspective} of imagery relevant to: ${businessType}
@@ -242,13 +260,14 @@ VISUAL CONTENT (BE UNIQUE):
 - Each generation must have DIFFERENT composition, subjects, and angles
 - DO NOT repeat patterns or concepts from other creatives
 - Fill ENTIRE image with rich, detailed visuals
+${layoutDescription}
 ${textInstructions}
 
 ABSOLUTE RULES:
 - NO text in the image
 - NO horizontal solid color bars or stripes
 - NO empty spaces or borders
-- NO logos or brand marks (just seamless dark area for overlay)
+- ${includeLogo ? 'NO logos or brand marks (just seamless area for overlay)' : 'Complete visual without any logo space'}
 - Aspect ratio: 1:1 SQUARE (1080x1080)
 - Image must extend EDGE TO EDGE with no visible boundaries
 - Background must be a seamless gradient, NOT solid blocks`;

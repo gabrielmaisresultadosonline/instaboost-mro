@@ -110,7 +110,8 @@ export const generateCreative = async (
   isManualMode?: boolean,
   customPrompt?: string,
   personPhotoBase64?: string,
-  includeText?: boolean
+  includeText?: boolean,
+  includeLogo?: boolean
 ): Promise<{
   success: boolean;
   creative?: Creative;
@@ -123,11 +124,12 @@ export const generateCreative = async (
         profile, 
         niche,
         config,
-        logoUrl,
+        logoUrl: includeLogo === false ? null : logoUrl,
         isManualMode,
         customPrompt,
         personPhotoBase64,
         includeText,
+        includeLogo,
         variationSeed: Date.now() + Math.floor(Math.random() * 10000) // Ensure uniqueness
       }
     });
