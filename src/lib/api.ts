@@ -106,7 +106,9 @@ export const generateCreative = async (
   profile: InstagramProfile,
   niche: string,
   config?: CreativeConfig,
-  logoUrl?: string
+  logoUrl?: string,
+  isManualMode?: boolean,
+  customPrompt?: string
 ): Promise<{
   success: boolean;
   creative?: Creative;
@@ -119,7 +121,10 @@ export const generateCreative = async (
         profile, 
         niche,
         config,
-        logoUrl
+        logoUrl,
+        isManualMode,
+        customPrompt,
+        variationSeed: Date.now() + Math.floor(Math.random() * 10000) // Ensure uniqueness
       }
     });
 

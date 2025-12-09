@@ -12,7 +12,7 @@ import { ProfileSelector } from './ProfileSelector';
 import { UserHeader } from './UserHeader';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
-import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession } from '@/lib/storage';
+import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession, saveSession } from '@/lib/storage';
 import { 
   RotateCcw, 
   User, 
@@ -86,8 +86,19 @@ export const Dashboard = ({
     setShowCreativeGenerator(true);
   };
 
-  const handleCreativeGenerated = (creative: Creative) => {
+  const handleCreativeGenerated = (creative: Creative, creditsUsed: number = 1) => {
+    // Add creative multiple times based on credits (for tracking purposes, the creative is only added once)
     addCreative(creative);
+    // If manual mode used 2 credits, we need to decrement an extra time
+    if (creditsUsed > 1) {
+      // The addCreative already decrements 1, so we need to manually adjust for extra credits
+      const session = getSession();
+      const activeProfileSession = session.profiles.find(p => p.id === session.activeProfileId);
+      if (activeProfileSession) {
+        activeProfileSession.creativesRemaining = Math.max(0, activeProfileSession.creativesRemaining - (creditsUsed - 1));
+        saveSession(session);
+      }
+    }
     refreshSession();
     setShowCreativeGenerator(false);
     setActiveTab('creatives');
@@ -288,6 +299,7 @@ export const Dashboard = ({
           niche={activeProfile.analysis.niche}
           onCreativeGenerated={handleCreativeGenerated}
           onClose={() => setShowCreativeGenerator(false)}
+          creativesRemaining={activeProfile.creativesRemaining}
         />
       )}
     </div>

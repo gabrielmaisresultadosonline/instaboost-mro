@@ -33,6 +33,9 @@ interface CreativeRequest {
   niche: string;
   config?: CreativeConfig;
   logoUrl?: string;
+  isManualMode?: boolean;
+  customPrompt?: string;
+  variationSeed?: number; // For ensuring uniqueness
 }
 
 serve(async (req) => {
@@ -41,7 +44,7 @@ serve(async (req) => {
   }
 
   try {
-    const { strategy, profile, niche, config, logoUrl }: CreativeRequest = await req.json();
+    const { strategy, profile, niche, config, logoUrl, isManualMode, customPrompt, variationSeed }: CreativeRequest = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -51,7 +54,8 @@ serve(async (req) => {
       );
     }
 
-    console.log('Gerando criativo para:', profile.username, 'estratégia:', strategy.type);
+    const mode = isManualMode ? 'manual' : 'estratégia';
+    console.log(`Gerando criativo para: ${profile.username} modo: ${mode} seed: ${variationSeed || 'none'}`);
 
     // Get colors from config or use defaults
     const colors = config?.colors || { primary: '#1e40af', secondary: '#3b82f6', text: '#ffffff' };
@@ -61,7 +65,21 @@ serve(async (req) => {
     const customColors = config?.customColors || [];
     const allColors = [colors.primary, colors.secondary, ...customColors].join(', ');
 
-    // Gerar CTA e headline com IA
+    // Random variation elements for uniqueness
+    const variationId = variationSeed || Date.now();
+    const perspectives = ['close-up shot', 'wide angle view', 'aerial perspective', 'side angle', 'dramatic low angle', 'elegant overhead shot'];
+    const moods = ['luxurious and premium', 'energetic and dynamic', 'calm and sophisticated', 'bold and impactful', 'warm and inviting', 'modern and sleek'];
+    const lightings = ['dramatic studio lighting', 'soft golden hour light', 'neon accent lighting', 'natural daylight', 'cinematic spotlight', 'ambient mood lighting'];
+    
+    const selectedPerspective = perspectives[variationId % perspectives.length];
+    const selectedMood = moods[(variationId + 2) % moods.length];
+    const selectedLighting = lightings[(variationId + 4) % lightings.length];
+
+    // Different mental triggers for CTAs
+    const triggers = ['escassez', 'autoridade', 'urgência', 'prova social', 'reciprocidade', 'exclusividade'];
+    const selectedTrigger = triggers[variationId % triggers.length];
+
+    // Gerar CTA e headline com IA - with variation
     const textResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -73,11 +91,30 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'Você é um copywriter especialista em criativos para Instagram. Crie textos curtos e impactantes para alta conversão.'
+            content: 'Você é um copywriter especialista em criativos para Instagram. Crie textos curtos e impactantes para alta conversão. Cada criativo deve ser ÚNICO e diferente dos anteriores.'
           },
           {
             role: 'user',
-            content: `Crie um headline e CTA para um criativo de Instagram.
+            content: isManualMode && customPrompt 
+              ? `Crie um headline e CTA para um criativo de Instagram.
+
+Prompt do usuário: ${customPrompt}
+Tipo de Negócio: ${businessType}
+Perfil: @${profile.username}
+Cores escolhidas: ${allColors}
+
+GATILHO MENTAL OBRIGATÓRIO: Use ${selectedTrigger.toUpperCase()} como principal gatilho mental.
+
+IMPORTANTE: O headline pode ter 2-3 linhas se necessário para ficar mais impactante.
+O texto deve ser centralizado com margem, não muito grudado nas bordas.
+Seja CRIATIVO e ÚNICO - não repita fórmulas comuns.
+
+Retorne JSON:
+{
+  "headline": "frase impactante com gatilho de ${selectedTrigger} (pode ter 2-3 linhas, max 15 palavras total)",
+  "cta": "chamada para ação urgente (max 5 palavras)"
+}`
+              : `Crie um headline e CTA ÚNICOS para um criativo de Instagram.
 
 Nicho: ${niche}
 Tipo de Negócio: ${businessType}
@@ -85,13 +122,19 @@ Estratégia: ${strategy.type} - ${strategy.title}
 Perfil: @${profile.username}
 Cores escolhidas: ${allColors}
 
-IMPORTANTE: O headline pode ter 2-3 linhas se necessário para ficar mais impactante.
-O texto deve ser centralizado com margem, não muito grudado nas bordas.
+GATILHO MENTAL OBRIGATÓRIO: Use ${selectedTrigger.toUpperCase()} como principal gatilho mental.
+Este é o criativo #${variationId % 100} - deve ser COMPLETAMENTE DIFERENTE dos anteriores.
+
+IMPORTANTE: 
+- O headline pode ter 2-3 linhas se necessário para ficar mais impactante.
+- O texto deve ser centralizado com margem, não muito grudado nas bordas.
+- NÃO repita fórmulas ou frases comuns. Seja CRIATIVO e SURPREENDENTE.
+- Use linguagem que conecte emocionalmente com o público.
 
 Retorne JSON:
 {
-  "headline": "frase impactante com gatilho mental (pode ter 2-3 linhas, max 15 palavras total)",
-  "cta": "chamada para ação urgente (max 5 palavras)"
+  "headline": "frase impactante com gatilho de ${selectedTrigger} (pode ter 2-3 linhas, max 15 palavras total)",
+  "cta": "chamada para ação única e urgente (max 5 palavras)"
 }`
           }
         ],
@@ -125,50 +168,56 @@ Retorne JSON:
     const logoPositionDesc = logoPosition === 'left' ? 'TOP LEFT' : 
                              logoPosition === 'right' ? 'TOP RIGHT' : 'TOP CENTER';
     
-    const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image for ${businessType}.
+    // Build custom prompt if in manual mode
+    const contentDescription = isManualMode && customPrompt 
+      ? customPrompt 
+      : `${businessType} - ${strategy.type}: ${strategy.title}`;
 
-QUALITY STANDARD (follow this level of quality, NOT the same content):
-- Premium dark gradient background with subtle atmospheric elements
-- Dramatic lighting with depth, dimension and professional finish
-- Ultra high definition, 4K advertising agency quality
-- Color scheme: Dark elegant base with ${allColors} as vibrant accent colors
+    const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image.
+
+CRITICAL QUALITY REQUIREMENTS:
+- FULL SCREEN COVERAGE: Image must fill the ENTIRE canvas with NO empty spaces, bars, or borders
+- REALISTIC photography style, Full HD quality, 100% sharpness
+- 4K advertising agency quality with rich details
+- Premium ${selectedMood} atmosphere
+- ${selectedLighting} for dramatic effect
+- ${selectedPerspective} composition
+
+BUSINESS CONTEXT: ${businessType}
+CONTENT THEME: ${contentDescription}
+UNIQUE VARIATION: #${variationId % 1000} - This must look COMPLETELY DIFFERENT from any previous generation
+
+COLOR PALETTE:
+- Dark elegant gradient base (NO solid color blocks or horizontal bars)
+- Accent colors: ${allColors}
+- Seamless gradient transitions, NO sharp horizontal lines
 
 MANDATORY LOGO AREA - CRITICAL:
-- Reserve a clean circular/rectangular area at ${logoPositionDesc} of the image
+- Reserve a SEAMLESS circular area at ${logoPositionDesc} of the image
 - Position: ${logoPosition === 'center' ? 'HORIZONTALLY CENTERED' : logoPosition === 'left' ? 'LEFT SIDE (about 10% from left edge)' : 'RIGHT SIDE (about 10% from right edge)'}, approximately 8-12% from the top edge
-- This area must be dark/clean enough to overlay a logo on top
-- DO NOT place any visual elements in this logo zone
+- This area must BLEND naturally with the background - NO solid rectangles or bars behind it
+- The logo area should be slightly darker/cleaner but NOT a separate shape
 
-CONTENT BASED ON BUSINESS CONTEXT (BE CREATIVE AND VARIED):
-- Business Type: ${businessType}
-- Marketing Strategy: ${strategy.type} - ${strategy.title}
-- Create imagery that represents THIS SPECIFIC business, not generic tech/robots
-- Examples based on niche:
-  * Restaurant: elegant food, dining atmosphere, chef hands
-  * Fashion: fabrics, models silhouette, accessories
-  * Real Estate: architecture, luxury interiors, keys
-  * Fitness: athletic movement, gym equipment, body silhouette
-  * Beauty: makeup, skincare, elegant hands
-  * Tech/Marketing: abstract data flows, connections, growth graphs
-- Be CREATIVE and UNIQUE for each generation - never repeat the same concept
+VISUAL CONTENT (BE UNIQUE):
+- ${selectedPerspective} of imagery relevant to: ${businessType}
+- ${selectedMood} visual treatment
+- Each generation must have DIFFERENT composition, subjects, and angles
+- DO NOT repeat patterns or concepts from other creatives
+- Fill ENTIRE image with rich, detailed visuals
 
 LAYOUT STRUCTURE:
-- ${logoPositionDesc}: Clean dark area for logo
-- CENTER: Powerful visual imagery representing ${businessType} specifically
-- BOTTOM 30%: Gradient fade to dark for TEXT OVERLAY SPACE (text will be centered with margins, can be 2-3 lines)
+- TOP: Clean gradient area for logo overlay (NO bars, NO rectangles)
+- CENTER: ${selectedPerspective} visual representing the business
+- BOTTOM 30%: Smooth gradient fade for text overlay (seamless, not a bar)
 
-TEXT AREA REQUIREMENTS:
-- The bottom area must have enough contrast for ${fontColor} colored text
-- Leave generous margins on sides for centered multi-line text
-- Text will be displayed in 2-3 lines, centered horizontally
-
-RULES:
+ABSOLUTE RULES:
 - NO text in the image
-- NO logos or brand marks (just leave clean space for overlay)
+- NO horizontal solid color bars or stripes
+- NO empty spaces or borders
+- NO logos or brand marks (just seamless dark area for overlay)
 - Aspect ratio: 1:1 SQUARE (1080x1080)
-- Premium advertising quality that converts
-
-Create unique, business-specific imagery - NOT generic tech/robot visuals unless the business is actually tech-related.`;
+- Image must extend EDGE TO EDGE with no visible boundaries
+- Background must be a seamless gradient, NOT solid blocks`;
 
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
