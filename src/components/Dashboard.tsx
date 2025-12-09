@@ -52,6 +52,7 @@ export const Dashboard = ({
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [showCreativeGenerator, setShowCreativeGenerator] = useState(false);
+  const [isManualCreativeMode, setIsManualCreativeMode] = useState(false);
 
   // Get active profile
   const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
@@ -273,7 +274,57 @@ export const Dashboard = ({
         )}
 
         {activeTab === 'creatives' && (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Manual Creative Generation Button */}
+            {activeProfile.creativesRemaining >= 2 && (
+              <div className="glass-card glow-border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-display font-bold flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5 text-primary" />
+                      Gerar Criativo Manual
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Crie um criativo com seu próprio prompt e inclua sua foto pessoal (usa 2 créditos)
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setIsManualCreativeMode(true);
+                      // Create a dummy strategy for manual mode
+                      setSelectedStrategy({
+                        id: 'manual',
+                        title: 'Criativo Manual',
+                        description: 'Criativo personalizado',
+                        type: 'content',
+                        steps: [],
+                        scripts: [],
+                        storiesCalendar: [],
+                        createdAt: new Date().toISOString()
+                      });
+                      setShowCreativeGenerator(true);
+                    }}
+                    variant="gradient"
+                    className="cursor-pointer"
+                  >
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Criar com Prompt
+                  </Button>
+                </div>
+                <div className="mt-3 text-xs text-muted-foreground bg-secondary/30 p-2 rounded">
+                  💡 Você pode subir uma foto sua e a IA vai criar o criativo com você na imagem, mantendo seu rosto idêntico.
+                </div>
+              </div>
+            )}
+            
+            {activeProfile.creativesRemaining < 2 && activeProfile.creativesRemaining > 0 && (
+              <div className="glass-card p-4 border-warning/30 bg-warning/10">
+                <p className="text-sm text-warning">
+                  Você tem apenas {activeProfile.creativesRemaining} crédito(s). Geração manual requer 2 créditos.
+                </p>
+              </div>
+            )}
+
             <CreativesGallery 
               creatives={activeProfile.creatives}
               creativesRemaining={activeProfile.creativesRemaining}
@@ -298,8 +349,15 @@ export const Dashboard = ({
           strategy={selectedStrategy}
           profile={activeProfile.profile}
           niche={activeProfile.analysis.niche}
-          onCreativeGenerated={handleCreativeGenerated}
-          onClose={() => setShowCreativeGenerator(false)}
+          onCreativeGenerated={(creative, creditsUsed) => {
+            handleCreativeGenerated(creative, creditsUsed);
+            setIsManualCreativeMode(false);
+          }}
+          onClose={() => {
+            setShowCreativeGenerator(false);
+            setIsManualCreativeMode(false);
+          }}
+          isManualMode={isManualCreativeMode}
           creativesRemaining={activeProfile.creativesRemaining}
         />
       )}
