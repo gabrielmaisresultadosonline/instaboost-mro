@@ -7,7 +7,14 @@ import {
   resetProfileStrategy,
   getStrategyDaysRemaining,
   canGenerateStrategy,
-  getCreativesInfo
+  getCreativesInfo,
+  getSyncData,
+  saveSyncData,
+  isUserLifetime,
+  formatUserDays,
+  unlockCreativesForSquareUser,
+  lockCreativesForSquareUser,
+  isUserCreativesUnlocked
 } from '@/lib/syncStorage';
 import { enqueueRequest, getQueueStatus, isInQueue } from '@/lib/requestQueue';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,7 +39,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { 
   MoreVertical, Ban, Trash2, RefreshCw, Sparkles, 
-  Calendar, Image, Loader2, CheckCircle, Clock
+  Calendar, Image, Loader2, CheckCircle, Clock,
+  Crown, Lock, Unlock
 } from 'lucide-react';
 
 interface ProfileActionsProps {
@@ -44,6 +52,7 @@ const ProfileActions = ({ profile, onUpdate }: ProfileActionsProps) => {
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showCreativesDialog, setShowCreativesDialog] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
   
   const daysRemaining = getStrategyDaysRemaining(profile);
@@ -51,6 +60,13 @@ const ProfileActions = ({ profile, onUpdate }: ProfileActionsProps) => {
   const creativesInfo = getCreativesInfo(profile);
   const queueStatus = getQueueStatus();
   const inQueue = isInQueue(profile.username);
+  
+  // Get owner user info to check if lifetime
+  const syncData = getSyncData();
+  const ownerUser = syncData.users.find(u => u.ID.toLowerCase() === profile.ownerUserName.toLowerCase());
+  const userDays = ownerUser?.dataDeExpiracao || 0;
+  const isLifetime = isUserLifetime(userDays);
+  const creativesUnlocked = ownerUser ? isUserCreativesUnlocked(ownerUser.ID) : false;
 
   const handleBlock = async () => {
     if (profile.isBlocked) {
@@ -126,11 +142,55 @@ const ProfileActions = ({ profile, onUpdate }: ProfileActionsProps) => {
     }
   };
 
+  const handleToggleCreatives = () => {
+    if (!ownerUser) return;
+    
+    if (creativesUnlocked) {
+      lockCreativesForSquareUser(ownerUser.ID);
+      toast({ 
+        title: 'Criativos bloqueados', 
+        description: `Usuário ${ownerUser.ID} não pode mais gerar criativos` 
+      });
+    } else {
+      unlockCreativesForSquareUser(ownerUser.ID);
+      toast({ 
+        title: 'Criativos liberados', 
+        description: `Usuário ${ownerUser.ID} agora pode gerar criativos` 
+      });
+    }
+    setShowCreativesDialog(false);
+    onUpdate();
+  };
+
   return (
     <>
       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
         {/* Quick Stats */}
         <div className="flex items-center gap-3 text-xs">
+          {/* User Days / Lifetime Status */}
+          {ownerUser && (
+            <div className={`flex items-center gap-1 px-2 py-1 rounded ${
+              isLifetime 
+                ? 'bg-amber-500/20 text-amber-500' 
+                : 'bg-blue-500/20 text-blue-500'
+            }`}>
+              {isLifetime ? <Crown className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+              {formatUserDays(userDays)}
+            </div>
+          )}
+          
+          {/* Creatives unlock status for lifetime users */}
+          {isLifetime && (
+            <div className={`flex items-center gap-1 px-2 py-1 rounded ${
+              creativesUnlocked 
+                ? 'bg-green-500/20 text-green-500' 
+                : 'bg-red-500/20 text-red-500'
+            }`}>
+              {creativesUnlocked ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+              {creativesUnlocked ? 'Criativos OK' : 'Criativos ⛔'}
+            </div>
+          )}
+          
           {/* Strategy Days */}
           <div className={`flex items-center gap-1 px-2 py-1 rounded ${
             canGenerate ? 'bg-green-500/20 text-green-500' : 'bg-secondary text-muted-foreground'
@@ -202,6 +262,15 @@ const ProfileActions = ({ profile, onUpdate }: ProfileActionsProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {isLifetime && (
+              <>
+                <DropdownMenuItem onClick={() => setShowCreativesDialog(true)}>
+                  {creativesUnlocked ? <Lock className="w-4 h-4 mr-2" /> : <Unlock className="w-4 h-4 mr-2" />}
+                  {creativesUnlocked ? 'Bloquear Criativos' : 'Liberar Criativos'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={() => setShowBlockDialog(true)}>
               <Ban className="w-4 h-4 mr-2" />
               {profile.isBlocked ? 'Desbloquear Perfil' : 'Bloquear Perfil'}
@@ -255,6 +324,30 @@ const ProfileActions = ({ profile, onUpdate }: ProfileActionsProps) => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleBlock}>
               {profile.isBlocked ? 'Desbloquear' : 'Bloquear'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Creatives Unlock Dialog for Lifetime Users */}
+      <AlertDialog open={showCreativesDialog} onOpenChange={setShowCreativesDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-amber-500" />
+              {creativesUnlocked ? 'Bloquear Criativos' : 'Liberar Criativos'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {creativesUnlocked 
+                ? `Deseja bloquear o acesso ao gerador de criativos para o usuário vitalício ${ownerUser?.ID}?`
+                : `Deseja liberar o gerador de criativos para o usuário vitalício ${ownerUser?.ID}? Usuários vitalícios precisam de liberação do admin para usar esta funcionalidade.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleCreatives} className={creativesUnlocked ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}>
+              {creativesUnlocked ? 'Bloquear' : 'Liberar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
