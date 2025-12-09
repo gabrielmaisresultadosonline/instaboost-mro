@@ -86,7 +86,7 @@ export default function Membro() {
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [showPromo, setShowPromo] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  
 
   const success = searchParams.get('success');
   const sessionId = searchParams.get('session_id');
@@ -197,38 +197,12 @@ export default function Membro() {
     }
   };
 
-  const handleStartPayment = async () => {
+  const handleStartPayment = () => {
     if (!user) return;
     
-    setIsProcessingPayment(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('create-subscription', {
-        body: {
-          email: user.email,
-          username: user.username,
-          instagram_username: user.instagram_username
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.url) {
-        // Open Stripe checkout
-        window.location.href = data.url;
-      } else if (data.redirect) {
-        navigate(data.redirect);
-      }
-    } catch (error: any) {
-      console.error('Error creating checkout:', error);
-      toast({
-        title: "Erro ao iniciar pagamento",
-        description: error.message || "Tente novamente",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessingPayment(false);
-    }
+    // Kiwify checkout link with email pre-filled
+    const kiwifyUrl = `https://pay.kiwify.com.br/k2JBcgI?email=${encodeURIComponent(user.email)}&name=${encodeURIComponent(user.username)}`;
+    window.location.href = kiwifyUrl;
   };
 
   const checkUserStatus = async () => {
@@ -732,7 +706,6 @@ export default function Membro() {
   if (user.subscription_status === 'pending') {
     return (
       <>
-        <LoadingOverlay isVisible={isProcessingPayment} message="Preparando pagamento..." subMessage="Aguarde, você será redirecionado para o Stripe" />
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
           <header className="container mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
@@ -792,19 +765,9 @@ export default function Membro() {
                   className="w-full h-14 text-lg"
                   variant="gradient"
                   onClick={handleStartPayment}
-                  disabled={isProcessingPayment}
                 >
-                  {isProcessingPayment ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-5 h-5 mr-2" />
-                      Pagar R$57 e Ativar Acesso
-                    </>
-                  )}
+                  <Zap className="w-5 h-5 mr-2" />
+                  Pagar R$57 e Ativar Acesso
                 </Button>
 
                 <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
@@ -843,19 +806,9 @@ export default function Membro() {
               className="w-full"
               variant="gradient"
               onClick={handleStartPayment}
-              disabled={isProcessingPayment}
             >
-              {isProcessingPayment ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                <>
-                  Renovar por R$57/mês
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
+              Renovar por R$57/mês
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button variant="ghost" onClick={handleLogout}>
               Sair
