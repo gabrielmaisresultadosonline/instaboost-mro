@@ -49,7 +49,7 @@ serve(async (req) => {
     
     if (!username) {
       return new Response(
-        JSON.stringify({ error: 'Username é obrigatório' }),
+        JSON.stringify({ success: false, error: 'Username é obrigatório' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -70,11 +70,9 @@ serve(async (req) => {
     if (!BRIGHTDATA_TOKEN) {
       console.error('BRIGHTDATA_API_TOKEN not configured');
       return Response.json({ 
-        success: true, 
-        profile: generateFallbackProfile(cleanUsername),
-        simulated: true,
-        message: 'Token da Bright Data não configurado - usando dados simulados'
-      }, { headers: corsHeaders });
+        success: false, 
+        error: 'Token da Bright Data não configurado. Configure o token nas configurações.'
+      }, { status: 500, headers: corsHeaders });
     }
 
     try {
@@ -102,13 +100,29 @@ serve(async (req) => {
         const profileData = Array.isArray(data) ? data[0] : data;
         
         if (profileData && (profileData.followers || profileData.id)) {
-          // Profile picture with HTTPS proxy
-          const proxiedProfilePic = profileData.profile_image_link 
-            ? proxyImage(profileData.profile_image_link)
-            : `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`;
+          // Profile picture with HTTPS proxy - MUST have real profile pic
+          const originalProfilePic = profileData.profile_image_link;
+          if (!originalProfilePic) {
+            console.log('❌ No profile picture in response');
+            return Response.json({ 
+              success: false, 
+              error: 'Perfil encontrado mas sem foto de perfil. Tente novamente.'
+            }, { status: 404, headers: corsHeaders });
+          }
+          
+          const proxiedProfilePic = proxyImage(originalProfilePic);
 
           // Calculate engagement from available data
           const followersCount = profileData.followers || 0;
+          
+          if (followersCount === 0) {
+            console.log('❌ No followers count in response');
+            return Response.json({ 
+              success: false, 
+              error: 'Não foi possível obter dados de seguidores. Tente novamente.'
+            }, { status: 404, headers: corsHeaders });
+          }
+          
           const postsCount = profileData.posts_count || profileData.post_count || 0;
           const avgEngagement = profileData.avg_engagement || 2.5;
 
@@ -125,44 +139,44 @@ serve(async (req) => {
             externalUrl: profileData.external_url || '',
           };
 
-          // Try to get real posts from the profile data if available
+          // Try to get real posts from the profile data
           let recentPosts: InstagramPost[] = [];
           
           // Check if profile data includes posts
           if (profileData.posts && Array.isArray(profileData.posts) && profileData.posts.length > 0) {
-            console.log('✅ Found posts in profile data');
+            console.log('✅ Found real posts in profile data:', profileData.posts.length);
             recentPosts = profileData.posts.slice(0, 6).map((post: any, index: number) => ({
               id: post.id || post.pk || `post_${index}`,
               imageUrl: proxyImage(post.display_url || post.image_url || post.thumbnail_url),
               caption: post.caption || post.description || '',
               likes: post.likes_count || post.like_count || post.likes || 0,
               comments: post.comments_count || post.comment_count || post.comments || 0,
-              timestamp: post.taken_at || post.timestamp || post.date_posted || new Date().toISOString(),
-              hasHumanFace: post.has_human_face !== undefined ? post.has_human_face : Math.random() > 0.4,
+              timestamp: post.taken_at || post.timestamp || post.date_posted || post.datetime || new Date().toISOString(),
+              hasHumanFace: post.has_human_face !== undefined ? post.has_human_face : true,
             }));
           }
           // Check if latest_posts is available
           else if (profileData.latest_posts && Array.isArray(profileData.latest_posts) && profileData.latest_posts.length > 0) {
-            console.log('✅ Found latest_posts in profile data');
+            console.log('✅ Found real latest_posts:', profileData.latest_posts.length);
             recentPosts = profileData.latest_posts.slice(0, 6).map((post: any, index: number) => ({
               id: post.id || post.pk || `post_${index}`,
               imageUrl: proxyImage(post.display_url || post.image_url || post.thumbnail_url || post.image),
               caption: post.caption || post.description || post.text || '',
               likes: post.likes_count || post.like_count || post.likes || 0,
               comments: post.comments_count || post.comment_count || post.comments || 0,
-              timestamp: post.taken_at || post.timestamp || post.date_posted || new Date().toISOString(),
-              hasHumanFace: post.has_human_face !== undefined ? post.has_human_face : Math.random() > 0.4,
+              timestamp: post.taken_at || post.timestamp || post.date_posted || post.datetime || new Date().toISOString(),
+              hasHumanFace: post.has_human_face !== undefined ? post.has_human_face : true,
             }));
           }
-          // If existingPosts were sent and we have no new posts, keep the existing ones
+          // If we have existing posts from previous fetch, keep them
           else if (existingPosts && Array.isArray(existingPosts) && existingPosts.length > 0) {
-            console.log('✅ Keeping existing posts (no new data from API)');
+            console.log('✅ Keeping existing real posts (no new data from API)');
             recentPosts = existingPosts;
           }
-          // Fallback to placeholder posts only if no existing data
+          // No posts available - still return profile but with empty posts
           else {
-            console.log('⚠️ No posts in API response and no existing posts, generating placeholders');
-            recentPosts = generatePlaceholderPosts(cleanUsername, followersCount);
+            console.log('⚠️ No posts available in API response');
+            recentPosts = [];
           }
 
           // Calculate engagement metrics
@@ -185,97 +199,45 @@ serve(async (req) => {
           }, { headers: corsHeaders });
         } else {
           console.log('❌ No profile data in response');
+          return Response.json({ 
+            success: false, 
+            error: 'Perfil não encontrado. Verifique se o username está correto.'
+          }, { status: 404, headers: corsHeaders });
         }
       } else if (response.status === 202) {
         // Async request - snapshot being processed
         const data = await response.json();
-        console.log('Bright Data returned 202 (async):', data);
+        console.log('Bright Data returned 202 (async) - data being fetched:', data);
         
-        // If we have existing posts, return them with a note
-        if (existingPosts && Array.isArray(existingPosts) && existingPosts.length > 0) {
-          console.log('Returning existing posts while async request processes');
-          return Response.json({ 
-            success: true, 
-            profile: {
-              ...generateFallbackProfile(cleanUsername),
-              recentPosts: existingPosts,
-            },
-            simulated: false,
-            message: 'Dados em processamento - usando posts existentes'
-          }, { headers: corsHeaders });
-        }
+        return Response.json({ 
+          success: false, 
+          error: 'Dados do perfil estão sendo buscados. Aguarde 30 segundos e tente novamente.',
+          retryAfter: 30
+        }, { status: 202, headers: corsHeaders });
       } else {
         const errorText = await response.text();
         console.log('❌ Bright Data API failed:', response.status, errorText.substring(0, 500));
+        
+        return Response.json({ 
+          success: false, 
+          error: `Erro ao buscar perfil (${response.status}). Tente novamente.`
+        }, { status: response.status, headers: corsHeaders });
       }
     } catch (e) {
       console.error('Bright Data API error:', e);
-    }
-
-    // Fallback to simulated data if Bright Data API fails
-    console.log('Bright Data API failed, using fallback data');
-    
-    // If we have existing posts, use them in fallback
-    if (existingPosts && Array.isArray(existingPosts) && existingPosts.length > 0) {
-      const fallbackProfile = generateFallbackProfile(cleanUsername);
-      fallbackProfile.recentPosts = existingPosts;
       return Response.json({ 
-        success: true, 
-        profile: fallbackProfile,
-        simulated: true,
-        message: 'API indisponível - mantendo posts existentes'
-      }, { headers: corsHeaders });
+        success: false, 
+        error: 'Erro de conexão com a API. Tente novamente.'
+      }, { status: 500, headers: corsHeaders });
     }
-    
-    return Response.json({ 
-      success: true, 
-      profile: generateFallbackProfile(cleanUsername),
-      simulated: true,
-      message: 'API indisponível - usando dados simulados'
-    }, { headers: corsHeaders });
 
   } catch (error) {
     console.error('Error fetching Instagram profile:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     
     return Response.json(
-      { error: 'Erro ao buscar perfil', details: errorMessage },
+      { success: false, error: 'Erro ao buscar perfil: ' + errorMessage },
       { status: 500, headers: corsHeaders }
     );
   }
 });
-
-function generateFallbackProfile(username: string) {
-  const categories = ['Empresa local', 'Marca', 'Criador de conteúdo', 'Loja', 'Serviços profissionais'];
-  const niches = ['Marketing Digital', 'Vendas Online', 'Consultoria', 'Serviços Profissionais', 'E-commerce'];
-  
-  return {
-    username: username,
-    fullName: `${username.charAt(0).toUpperCase()}${username.slice(1)} Business`,
-    bio: `🚀 Transformando negócios locais\n📍 Brasil\n💼 Especialista em ${niches[Math.floor(Math.random() * niches.length)]}\n👇 Clique no link abaixo`,
-    followers: Math.floor(Math.random() * 15000) + 500,
-    following: Math.floor(Math.random() * 1500) + 200,
-    posts: Math.floor(Math.random() * 300) + 20,
-    profilePicUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${username}&backgroundColor=10b981`,
-    isBusinessAccount: Math.random() > 0.3,
-    category: categories[Math.floor(Math.random() * categories.length)],
-    externalUrl: `https://${username}.com.br`,
-    engagement: Math.random() * 5 + 0.5,
-    avgLikes: Math.floor(Math.random() * 500) + 50,
-    avgComments: Math.floor(Math.random() * 30) + 5,
-    recentPosts: generatePlaceholderPosts(username, 5000),
-  };
-}
-
-function generatePlaceholderPosts(username: string, followers: number = 5000): InstagramPost[] {
-  const avgLikes = Math.round(followers * 0.03);
-  return Array.from({ length: 6 }, (_, i) => ({
-    id: `post_${i}`,
-    imageUrl: `https://picsum.photos/seed/${username}${i}/400/400`,
-    caption: `Post ${i + 1} - Conteúdo de qualidade 🔥`,
-    likes: Math.floor(avgLikes * (0.7 + Math.random() * 0.6)),
-    comments: Math.floor(avgLikes * 0.15 * (0.5 + Math.random())),
-    timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-    hasHumanFace: Math.random() > 0.4,
-  }));
-}
