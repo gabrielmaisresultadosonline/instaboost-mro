@@ -21,22 +21,30 @@ export const fetchInstagramProfile = async (
       return { success: false, error: error.message };
     }
 
-    if (data.success && data.profile) {
-      // Add computed fields
+    // Check for API error response
+    if (!data.success) {
+      return { 
+        success: false, 
+        error: data.error || 'Não foi possível buscar o perfil'
+      };
+    }
+
+    if (data.profile) {
+      // Use ONLY real data from the API - no fallbacks to mock data
       const profile: InstagramProfile = {
         ...data.profile,
-        engagement: data.profile.followers > 0 
-          ? ((data.profile.avgLikes || Math.floor(data.profile.followers * 0.03)) / data.profile.followers) * 100 
-          : 0,
-        avgLikes: data.profile.avgLikes || Math.floor(data.profile.followers * 0.03),
-        avgComments: data.profile.avgComments || Math.floor(data.profile.followers * 0.005),
-        recentPosts: data.profile.recentPosts || generateMockPosts(data.profile.username),
+        engagement: data.profile.engagement || (data.profile.followers > 0 
+          ? ((data.profile.avgLikes || 0) / data.profile.followers) * 100 
+          : 0),
+        avgLikes: data.profile.avgLikes || 0,
+        avgComments: data.profile.avgComments || 0,
+        recentPosts: data.profile.recentPosts || [], // Empty array if no real posts, NOT mock
       };
 
       return { 
         success: true, 
         profile,
-        simulated: data.simulated,
+        simulated: false,
         message: data.message
       };
     }
@@ -153,14 +161,4 @@ export const generateCreative = async (
   }
 };
 
-function generateMockPosts(username: string) {
-  return Array.from({ length: 9 }, (_, i) => ({
-    id: `post_${i}`,
-    imageUrl: `https://picsum.photos/seed/${username}${i}/400/400`,
-    caption: `Post ${i + 1} - Conteúdo de qualidade 🔥`,
-    likes: Math.floor(Math.random() * 500) + 50,
-    comments: Math.floor(Math.random() * 50) + 5,
-    timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-    hasHumanFace: Math.random() > 0.4,
-  }));
-}
+// Mock posts function removed - only real data is used now
