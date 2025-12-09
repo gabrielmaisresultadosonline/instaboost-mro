@@ -16,6 +16,7 @@ import SyncDashboard from '@/components/admin/SyncDashboard';
 import ModuleManager from '@/components/admin/ModuleManager';
 import SnapshotGenerator from '@/components/admin/SnapshotGenerator';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
+import ProfileActions from '@/components/admin/ProfileActions';
 import { 
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
@@ -694,56 +695,67 @@ const Admin = () => {
                     return (
                       <div 
                         key={profile.username} 
-                        className={`glass-card p-4 hover:border-primary/50 transition-colors cursor-pointer ${
+                        className={`glass-card p-4 hover:border-primary/50 transition-colors ${
                           profile.isConnectedToDashboard ? 'border-l-4 border-l-green-500' : ''
-                        }`}
-                        onClick={() => setSelectedSyncedProfile(profile)}
+                        } ${profile.isBlocked ? 'opacity-60' : ''}`}
                       >
                         <div className="flex items-center gap-4">
-                          <img 
-                            src={profile.profilePicUrl}
-                            alt={profile.username}
-                            className={`w-16 h-16 rounded-full object-cover border-2 ${
-                              profile.isConnectedToDashboard ? 'border-green-500' : 'border-border'
-                            }`}
-                            onError={(e) => {
-                              e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-                            }}
+                          <div 
+                            className="flex items-center gap-4 flex-1 cursor-pointer"
+                            onClick={() => setSelectedSyncedProfile(profile)}
+                          >
+                            <img 
+                              src={profile.profilePicUrl}
+                              alt={profile.username}
+                              className={`w-16 h-16 rounded-full object-cover border-2 ${
+                                profile.isBlocked ? 'border-red-500 grayscale' :
+                                profile.isConnectedToDashboard ? 'border-green-500' : 'border-border'
+                              }`}
+                              onError={(e) => {
+                                e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
+                              }}
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold">@{profile.username}</p>
+                                {profile.isBlocked && (
+                                  <span className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-500 flex items-center gap-1">
+                                    Bloqueado
+                                  </span>
+                                )}
+                                {!profile.isBlocked && profile.isConnectedToDashboard ? (
+                                  <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-500 flex items-center gap-1">
+                                    <CheckCircle className="w-3 h-3" />
+                                    Cadastrado
+                                  </span>
+                                ) : !profile.isBlocked && (
+                                  <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-500 flex items-center gap-1">
+                                    <XCircle className="w-3 h-3" />
+                                    Não conectado
+                                  </span>
+                                )}
+                                <span className="text-xs px-2 py-0.5 rounded bg-secondary text-muted-foreground">
+                                  <User className="w-3 h-3 inline mr-1" />
+                                  {profile.ownerUserName}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{profile.fullName}</p>
+                              <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
+                                <span>{profile.followers.toLocaleString()} seguidores</span>
+                                <span>{profile.following.toLocaleString()} seguindo</span>
+                                <span>{profile.posts} posts</span>
+                                {growth > 0 && (
+                                  <span className="text-green-500 font-medium">+{growth.toLocaleString()}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Profile Actions */}
+                          <ProfileActions 
+                            profile={profile} 
+                            onUpdate={() => setSyncData(getSyncData())} 
                           />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold">@{profile.username}</p>
-                              {profile.isConnectedToDashboard ? (
-                                <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-500 flex items-center gap-1">
-                                  <CheckCircle className="w-3 h-3" />
-                                  Cadastrado
-                                </span>
-                              ) : (
-                                <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-500 flex items-center gap-1">
-                                  <XCircle className="w-3 h-3" />
-                                  Não conectado
-                                </span>
-                              )}
-                              <span className="text-xs px-2 py-0.5 rounded bg-secondary text-muted-foreground">
-                                <User className="w-3 h-3 inline mr-1" />
-                                {profile.ownerUserName}
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{profile.fullName}</p>
-                            <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
-                              <span>{profile.followers.toLocaleString()} seguidores</span>
-                              <span>{profile.following.toLocaleString()} seguindo</span>
-                              <span>{profile.posts} posts</span>
-                              {growth > 0 && (
-                                <span className="text-green-500 font-medium">+{growth.toLocaleString()}</span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right text-sm">
-                            <p className="text-muted-foreground">Última atualização</p>
-                            <p className="font-medium">{new Date(profile.lastUpdated).toLocaleDateString('pt-BR')}</p>
-                          </div>
-                          <Eye className="w-5 h-5 text-muted-foreground" />
                         </div>
                       </div>
                     );

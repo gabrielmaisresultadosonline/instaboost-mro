@@ -25,6 +25,13 @@ export interface SyncedInstagramProfile {
     date: string;
     followers: number;
   }[];
+  // Admin control fields
+  isBlocked?: boolean;
+  blockedAt?: string;
+  blockedReason?: string;
+  lastStrategyReset?: string;
+  creativesUsed?: number;
+  creativesLimit?: number;
 }
 
 export interface SyncData {
@@ -285,4 +292,78 @@ export const resumeSync = (): void => {
   data.isPaused = false;
   data.isStopped = false;
   saveSyncData(data);
+};
+
+// Admin profile management functions
+export const blockProfile = (username: string, reason?: string): void => {
+  const data = getSyncData();
+  const profile = data.profiles.find(p => p.username.toLowerCase() === username.toLowerCase());
+  if (profile) {
+    profile.isBlocked = true;
+    profile.blockedAt = new Date().toISOString();
+    profile.blockedReason = reason || 'Bloqueado pelo administrador';
+    saveSyncData(data);
+  }
+};
+
+export const unblockProfile = (username: string): void => {
+  const data = getSyncData();
+  const profile = data.profiles.find(p => p.username.toLowerCase() === username.toLowerCase());
+  if (profile) {
+    profile.isBlocked = false;
+    profile.blockedAt = undefined;
+    profile.blockedReason = undefined;
+    saveSyncData(data);
+  }
+};
+
+export const removeProfileFromSync = (username: string): void => {
+  const data = getSyncData();
+  data.profiles = data.profiles.filter(p => p.username.toLowerCase() !== username.toLowerCase());
+  saveSyncData(data);
+};
+
+export const resetProfileStrategy = (username: string): void => {
+  const data = getSyncData();
+  const profile = data.profiles.find(p => p.username.toLowerCase() === username.toLowerCase());
+  if (profile) {
+    profile.lastStrategyReset = new Date().toISOString();
+    saveSyncData(data);
+  }
+};
+
+export const getStrategyDaysRemaining = (profile: SyncedInstagramProfile): number => {
+  // Check last strategy reset or syncedAt date
+  const lastReset = profile.lastStrategyReset || profile.syncedAt;
+  if (!lastReset) return 0;
+  
+  const lastDate = new Date(lastReset);
+  const nextMonth = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 1);
+  const now = new Date();
+  
+  const diff = nextMonth.getTime() - now.getTime();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+};
+
+export const canGenerateStrategy = (profile: SyncedInstagramProfile): boolean => {
+  return getStrategyDaysRemaining(profile) === 0;
+};
+
+export const getCreativesInfo = (profile: SyncedInstagramProfile): { used: number; available: number; limit: number } => {
+  const limit = profile.creativesLimit || 6;
+  const used = profile.creativesUsed || 0;
+  return {
+    used,
+    available: Math.max(0, limit - used),
+    limit
+  };
+};
+
+export const updateCreativesUsed = (username: string, count: number): void => {
+  const data = getSyncData();
+  const profile = data.profiles.find(p => p.username.toLowerCase() === username.toLowerCase());
+  if (profile) {
+    profile.creativesUsed = count;
+    saveSyncData(data);
+  }
 };
