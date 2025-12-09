@@ -257,13 +257,15 @@ export default function Membro() {
   };
 
   const handleLogout = () => {
+    // IMPORTANT: Don't clear saved data on logout - only clear current session
+    // Data persists in mro_strategy_${member.id} and mro_profile_${member.id}
     saveCurrentMember(null);
     setUser(null);
     setStrategy(null);
     setProfileData(null);
     toast({
       title: "Logout realizado",
-      description: "Até logo!"
+      description: "Seus dados foram salvos. Até logo!"
     });
   };
 
