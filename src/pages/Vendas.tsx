@@ -203,13 +203,14 @@ export default function Vendas() {
 
       // New user created
 
-      // Store password in localStorage for login
+      // Store credentials with justRegistered flag for auto-login
       localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
         id: user.id,
         email: formData.email.toLowerCase(),
         password: formData.password,
         username: formData.username.trim(),
-        instagram: instagramUsername
+        instagram: instagramUsername,
+        justRegistered: true
       }));
       
       // Facebook Pixel - Lead

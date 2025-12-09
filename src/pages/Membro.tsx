@@ -102,6 +102,35 @@ export default function Membro() {
     }
   }, [success, sessionId, user]);
 
+  // Auto-login from registration
+  useEffect(() => {
+    const storedCreds = localStorage.getItem('mro_paid_user_credentials');
+    if (storedCreds && !user) {
+      const creds = JSON.parse(storedCreds);
+      if (creds.justRegistered) {
+        // Clear the flag and auto-login
+        const updatedCreds = { ...creds, justRegistered: false };
+        localStorage.setItem('mro_paid_user_credentials', JSON.stringify(updatedCreds));
+        
+        // Create member from creds and set as logged in
+        const member: PaidMemberUser = {
+          id: creds.id,
+          username: creds.username,
+          email: creds.email,
+          password: creds.password,
+          instagram_username: creds.instagram || undefined,
+          subscription_status: 'pending',
+          strategies_generated: 0,
+          creatives_used: 0,
+          created_at: new Date().toISOString()
+        };
+        setUser(member);
+        saveCurrentMember(member);
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (user && user.subscription_status === 'active') {
       const createdAt = new Date(user.created_at);
@@ -346,8 +375,16 @@ export default function Membro() {
         m.password === loginForm.password
       );
 
-      // Validate password
-      const passwordMatch = loginForm.password === storedPassword || legacyMember;
+      // Validate password - check DB first, then localStorage fallback
+      let passwordValid = false;
+      
+      if (dbUser && dbUser.password) {
+        passwordValid = dbUser.password === loginForm.password;
+      } else if (storedPassword) {
+        passwordValid = storedPassword === loginForm.password;
+      } else if (legacyMember) {
+        passwordValid = legacyMember.password === loginForm.password;
+      }
 
       if (!dbUser && !legacyMember) {
         toast({
@@ -359,7 +396,7 @@ export default function Membro() {
         return;
       }
 
-      if (!passwordMatch) {
+      if (!passwordValid) {
         toast({
           title: "Senha incorreta",
           description: "Verifique sua senha e tente novamente",
