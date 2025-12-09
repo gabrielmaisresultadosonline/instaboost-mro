@@ -347,46 +347,26 @@ export default function Membro() {
     setIsLoggingIn(true);
 
     try {
-      // First check in Supabase database
-      const { data: dbUser, error: dbError } = await supabase
-        .from('paid_users')
-        .select('*')
-        .eq('email', loginForm.email.toLowerCase())
-        .maybeSingle();
-
-      if (dbError) {
-        console.error('Database error:', dbError);
-      }
-
-      // Also check localStorage for password (since we store it there for security)
-      const storedCredentials = localStorage.getItem('mro_paid_user_credentials');
-      let storedPassword = '';
-      if (storedCredentials) {
-        const creds = JSON.parse(storedCredentials);
-        if (creds.email.toLowerCase() === loginForm.email.toLowerCase()) {
-          storedPassword = creds.password;
+      // Use Edge Function for login (bypasses RLS)
+      const { data: response, error: fnError } = await supabase.functions.invoke('login-paid-user', {
+        body: {
+          email: loginForm.email.toLowerCase(),
+          password: loginForm.password
         }
+      });
+
+      if (fnError) {
+        console.error('Login function error:', fnError);
+        toast({
+          title: "Erro ao fazer login",
+          description: "Tente novamente",
+          variant: "destructive"
+        });
+        setIsLoggingIn(false);
+        return;
       }
 
-      // Also check legacy members storage
-      const members = getPaidMembers();
-      const legacyMember = members.find(m => 
-        m.email.toLowerCase() === loginForm.email.toLowerCase() && 
-        m.password === loginForm.password
-      );
-
-      // Validate password - check DB first, then localStorage fallback
-      let passwordValid = false;
-      
-      if (dbUser && dbUser.password) {
-        passwordValid = dbUser.password === loginForm.password;
-      } else if (storedPassword) {
-        passwordValid = storedPassword === loginForm.password;
-      } else if (legacyMember) {
-        passwordValid = legacyMember.password === loginForm.password;
-      }
-
-      if (!dbUser && !legacyMember) {
+      if (response.notFound) {
         toast({
           title: "Usuário não encontrado",
           description: "Email não cadastrado. Crie uma conta primeiro.",
@@ -396,7 +376,7 @@ export default function Membro() {
         return;
       }
 
-      if (!passwordValid) {
+      if (response.wrongPassword) {
         toast({
           title: "Senha incorreta",
           description: "Verifique sua senha e tente novamente",
@@ -406,36 +386,35 @@ export default function Membro() {
         return;
       }
 
-      // Create member object from DB data or legacy data
-      let member: PaidMemberUser;
-      
-      if (dbUser) {
-        member = {
-          id: dbUser.id,
-          username: dbUser.username,
-          email: dbUser.email,
-          password: loginForm.password,
-          instagram_username: dbUser.instagram_username || undefined,
-          subscription_status: (dbUser.subscription_status as 'active' | 'pending' | 'expired') || 'pending',
-          subscription_end: dbUser.subscription_end || undefined,
-          strategies_generated: dbUser.strategies_generated || 0,
-          creatives_used: dbUser.creatives_used || 0,
-          created_at: dbUser.created_at
-        };
-      } else {
-        member = legacyMember!;
+      if (response.error) {
+        toast({
+          title: "Erro ao fazer login",
+          description: response.error,
+          variant: "destructive"
+        });
+        setIsLoggingIn(false);
+        return;
       }
+
+      const dbUser = response.user;
+
+      // Create member object from DB data
+      let member: PaidMemberUser = {
+        id: dbUser.id,
+        username: dbUser.username,
+        email: dbUser.email,
+        password: loginForm.password,
+        instagram_username: dbUser.instagram_username || undefined,
+        subscription_status: (dbUser.subscription_status as 'active' | 'pending' | 'expired') || 'pending',
+        subscription_end: dbUser.subscription_end || undefined,
+        strategies_generated: dbUser.strategies_generated || 0,
+        creatives_used: dbUser.creatives_used || 0,
+        created_at: dbUser.created_at
+      };
 
       // Check if subscription is still active
       if (member.subscription_end && new Date(member.subscription_end) < new Date()) {
         member.subscription_status = 'expired';
-        // Update in DB
-        if (dbUser) {
-          await supabase
-            .from('paid_users')
-            .update({ subscription_status: 'expired' })
-            .eq('id', dbUser.id);
-        }
       }
 
       setUser(member);
