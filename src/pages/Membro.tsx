@@ -21,7 +21,10 @@ import {
   BookOpen,
   Play,
   LogIn,
-  LogOut
+  LogOut,
+  CreditCard,
+  Zap,
+  Shield
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -83,12 +86,21 @@ export default function Membro() {
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [showPromo, setShowPromo] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const success = searchParams.get('success');
+  const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
     checkUserStatus();
   }, []);
+
+  // Check subscription after successful payment
+  useEffect(() => {
+    if (success === 'true' && sessionId && user) {
+      verifyPayment();
+    }
+  }, [success, sessionId, user]);
 
   useEffect(() => {
     if (user && user.subscription_status === 'active') {
@@ -101,25 +113,126 @@ export default function Membro() {
     }
   }, [user]);
 
-  const checkUserStatus = () => {
+  const verifyPayment = async () => {
+    if (!user || !sessionId) return;
+    
+    setLoadingMessage('Verificando pagamento...');
+    setLoadingSubMessage('Confirmando sua assinatura');
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        body: { 
+          email: user.email,
+          session_id: sessionId
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.subscribed) {
+        // Update local user state
+        const updatedUser = {
+          ...user,
+          subscription_status: 'active' as const,
+          subscription_end: data.subscription_end
+        };
+        setUser(updatedUser);
+        saveCurrentMember(updatedUser);
+
+        // Facebook Pixel - Purchase
+        if (typeof window !== 'undefined' && (window as any).fbq) {
+          (window as any).fbq('track', 'Purchase', {
+            value: 33.00,
+            currency: 'BRL',
+            content_name: 'Plano Mensal I.A MRO'
+          });
+        }
+
+        toast({
+          title: "Pagamento confirmado!",
+          description: "Sua assinatura foi ativada. Agora adicione seu Instagram!"
+        });
+
+        // Clear URL params
+        navigate('/membro', { replace: true });
+      }
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      toast({
+        title: "Verificando pagamento",
+        description: "Aguarde alguns segundos e atualize a página"
+      });
+    } finally {
+      setLoadingMessage('');
+      setLoadingSubMessage('');
+    }
+  };
+
+  const handleStartPayment = async () => {
+    if (!user) return;
+    
+    setIsProcessingPayment(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-subscription', {
+        body: {
+          email: user.email,
+          username: user.username,
+          instagram_username: user.instagram_username
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.url) {
+        // Open Stripe checkout
+        window.location.href = data.url;
+      } else if (data.redirect) {
+        navigate(data.redirect);
+      }
+    } catch (error: any) {
+      console.error('Error creating checkout:', error);
+      toast({
+        title: "Erro ao iniciar pagamento",
+        description: error.message || "Tente novamente",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const checkUserStatus = async () => {
     setIsLoading(true);
 
     try {
-      // Check if coming from successful payment
-      if (success === 'true') {
-        const pendingUser = localStorage.getItem('mro_pending_user');
-        if (pendingUser) {
-          const userData = JSON.parse(pendingUser);
-          activatePendingUser(userData);
-          localStorage.removeItem('mro_pending_user');
-          return;
-        }
-      }
-
       // Check if user is already logged in
       const currentMember = getCurrentMember();
       if (currentMember) {
         setUser(currentMember);
+        
+        // If coming from successful payment, will verify in the useEffect
+        if (success !== 'true') {
+          // Check subscription status from database
+          const { data: dbUser } = await supabase
+            .from('paid_users')
+            .select('*')
+            .eq('id', currentMember.id)
+            .maybeSingle();
+
+          if (dbUser) {
+            // Update local state with DB data
+            const updatedMember: PaidMemberUser = {
+              ...currentMember,
+              subscription_status: dbUser.subscription_status as 'active' | 'pending' | 'expired',
+              subscription_end: dbUser.subscription_end || undefined,
+              strategies_generated: dbUser.strategies_generated || 0,
+              creatives_used: dbUser.creatives_used || 0
+            };
+            setUser(updatedMember);
+            saveCurrentMember(updatedMember);
+          }
+        }
         
         // Load saved strategy if exists
         const savedStrategy = localStorage.getItem(`mro_strategy_${currentMember.id}`);
@@ -491,7 +604,7 @@ export default function Membro() {
   };
 
   // Show loading overlay for add/sync operations
-  const showLoadingOverlay = isAddingInstagram || isGeneratingStrategy;
+  const showLoadingOverlay = isAddingInstagram || isGeneratingStrategy || Boolean(success === 'true' && sessionId);
 
   if (isLoading) {
     return (
@@ -597,11 +710,108 @@ export default function Membro() {
     );
   }
 
+  // Check if subscription is pending (not paid yet)
+  if (user.subscription_status === 'pending') {
+    return (
+      <>
+        <LoadingOverlay isVisible={isProcessingPayment} message="Preparando pagamento..." subMessage="Aguarde, você será redirecionado para o Stripe" />
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+          <header className="container mx-auto px-4 py-6">
+            <div className="flex items-center justify-between">
+              <Logo size="lg" />
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </Button>
+            </div>
+          </header>
+
+          <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+            <Card className="w-full max-w-lg glass-card border-primary/30">
+              <CardHeader className="text-center">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
+                  <CreditCard className="w-10 h-10 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Olá, {user.username}! 👋</CardTitle>
+                <CardDescription className="text-base">
+                  Para usar a I.A MRO, complete seu pagamento
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="text-center p-6 bg-primary/10 rounded-xl border border-primary/20">
+                  <p className="text-sm text-muted-foreground mb-2">Plano Mensal</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-muted-foreground text-lg line-through">R$ 197</span>
+                    <span className="text-4xl font-bold text-primary">R$ 33</span>
+                    <span className="text-muted-foreground">/mês</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span>Análise completa do seu perfil</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span>Estratégia personalizada de 30 dias</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span>6 criativos profissionais com I.A</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span>Calendário de postagens</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span>Otimização de bio do Instagram</span>
+                  </div>
+                </div>
+
+                <Button 
+                  className="w-full h-14 text-lg"
+                  variant="gradient"
+                  onClick={handleStartPayment}
+                  disabled={isProcessingPayment}
+                >
+                  {isProcessingPayment ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5 mr-2" />
+                      Pagar R$33 e Ativar Acesso
+                    </>
+                  )}
+                </Button>
+
+                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Shield className="w-4 h-4" />
+                    Pagamento Seguro
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CreditCard className="w-4 h-4" />
+                    Pix ou Cartão
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   // Check if subscription expired
   if (user.subscription_status === 'expired') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
-        <Card className="max-w-md mx-4">
+        <Card className="max-w-md mx-4 glass-card">
           <CardHeader className="text-center">
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
             <CardTitle>Assinatura Expirada</CardTitle>
@@ -611,9 +821,23 @@ export default function Membro() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <Button onClick={() => navigate('/vendas')}>
-              Renovar Assinatura
-              <ArrowRight className="ml-2 h-4 w-4" />
+            <Button 
+              className="w-full"
+              variant="gradient"
+              onClick={handleStartPayment}
+              disabled={isProcessingPayment}
+            >
+              {isProcessingPayment ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  Renovar por R$33/mês
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
             </Button>
             <Button variant="ghost" onClick={handleLogout}>
               Sair
