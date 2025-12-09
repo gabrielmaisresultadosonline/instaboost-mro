@@ -1,4 +1,7 @@
 // Sync storage for SquareCloud users and Instagram profiles
+// NOW WITH SERVER PERSISTENCE
+
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SquareCloudUser {
   ID: string;
@@ -65,11 +68,19 @@ const DEFAULT_SYNC_DATA: SyncData = {
   totalProfilesCount: 0
 };
 
+// Local cache for fast access
+let localCache: SyncData | null = null;
+let isSavingToServer = false;
+
+// Get sync data from local storage (fast)
 export const getSyncData = (): SyncData => {
+  if (localCache) return localCache;
+  
   try {
     const data = localStorage.getItem(SYNC_STORAGE_KEY);
     if (data) {
-      return { ...DEFAULT_SYNC_DATA, ...JSON.parse(data) };
+      localCache = { ...DEFAULT_SYNC_DATA, ...JSON.parse(data) };
+      return localCache;
     }
   } catch (e) {
     console.error('Error reading sync data:', e);
@@ -77,8 +88,94 @@ export const getSyncData = (): SyncData => {
   return DEFAULT_SYNC_DATA;
 };
 
-export const saveSyncData = (data: SyncData): void => {
+// Save to local storage (fast)
+const saveToLocal = (data: SyncData): void => {
+  localCache = data;
   localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify(data));
+};
+
+// Save sync data to local AND server
+export const saveSyncData = (data: SyncData): void => {
+  // Always save locally first (fast)
+  saveToLocal(data);
+  
+  // Save to server in background (don't block)
+  if (!isSavingToServer) {
+    isSavingToServer = true;
+    saveToServer(data).finally(() => {
+      isSavingToServer = false;
+    });
+  }
+};
+
+// Save to server (async, background)
+const saveToServer = async (data: SyncData): Promise<void> => {
+  try {
+    console.log('💾 Salvando dados do admin no servidor...');
+    const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
+      body: { action: 'save', data }
+    });
+
+    if (error) {
+      console.error('Erro ao salvar no servidor:', error);
+      return;
+    }
+
+    if (response?.success) {
+      console.log('✅ Dados do admin salvos no servidor');
+    }
+  } catch (error) {
+    console.error('Erro ao salvar dados do admin:', error);
+  }
+};
+
+// Load from server (call on admin login)
+export const loadSyncDataFromServer = async (): Promise<SyncData> => {
+  try {
+    console.log('🔄 Carregando dados do admin do servidor...');
+    
+    const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
+      body: { action: 'load' }
+    });
+
+    if (error) {
+      console.error('Erro ao carregar do servidor:', error);
+      return getSyncData(); // Fallback to local
+    }
+
+    if (response?.success && response?.data) {
+      console.log('✅ Dados do admin carregados do servidor');
+      const serverData = { ...DEFAULT_SYNC_DATA, ...response.data };
+      saveToLocal(serverData); // Update local cache
+      return serverData;
+    }
+
+    // No data on server - use local
+    console.log('📦 Nenhum dado no servidor, usando local');
+    return getSyncData();
+  } catch (error) {
+    console.error('Erro ao carregar dados do admin:', error);
+    return getSyncData();
+  }
+};
+
+// Force sync local data to server (call when needed)
+export const forceSyncToServer = async (): Promise<boolean> => {
+  const data = getSyncData();
+  try {
+    const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
+      body: { action: 'save', data }
+    });
+
+    if (error) {
+      console.error('Erro ao forçar sync:', error);
+      return false;
+    }
+
+    return response?.success || false;
+  } catch {
+    return false;
+  }
 };
 
 export const shouldAutoSync = (): boolean => {
@@ -224,7 +321,7 @@ export const updateProfile = (profile: SyncedInstagramProfile): void => {
       data.profiles.push(profile);
     }
     
-    // SALVAR IMEDIATAMENTE - Garantir persistência
+    // SALVAR LOCAL E SERVIDOR
     saveSyncData(data);
     
     // Verificar se salvou corretamente
