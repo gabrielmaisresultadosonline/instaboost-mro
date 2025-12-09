@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import { normalizeInstagramUsername } from '@/types/user';
-import { addIGToSquare, saveEmailAndPrint, verifyRegisteredIGs } from '@/lib/squareApi';
+import { addIGToSquare, saveEmailAndPrint, verifyRegisteredIGs, canRegisterIG } from '@/lib/squareApi';
 import { 
   getCurrentUser, 
   updateUserEmail, 
@@ -73,6 +73,11 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
       return;
     }
 
+    if (!user) {
+      toast({ title: 'Usuário não autenticado', variant: 'destructive' });
+      return;
+    }
+
     const normalizedIG = normalizeInstagramUsername(instagramInput);
     
     // Check if already registered locally
@@ -88,7 +93,22 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
     setIsLoading(true);
 
     try {
-      // Fetch profile data
+      // FIRST: Check if can register in SquareCloud before fetching from Bright Data
+      toast({ title: 'Verificando disponibilidade...', description: 'Checando banco de dados' });
+      
+      const canRegister = await canRegisterIG(user.username, normalizedIG);
+      
+      if (!canRegister.canRegister) {
+        toast({
+          title: 'Não é possível cadastrar',
+          description: canRegister.error || 'Este perfil não pode ser cadastrado',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Only fetch from Bright Data if registration is possible
       toast({ title: 'Buscando perfil...', description: `@${normalizedIG}` });
       
       const profileResult = await fetchInstagramProfile(normalizedIG);

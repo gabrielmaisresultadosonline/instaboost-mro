@@ -79,6 +79,37 @@ export const verifyRegisteredIGs = async (
   }
 };
 
+// Check if user can register a new Instagram (has available slots)
+export const canRegisterIG = async (
+  username: string,
+  instagram: string
+): Promise<{ canRegister: boolean; error?: string }> => {
+  try {
+    const normalizedIG = normalizeInstagramUsername(instagram);
+    
+    // First check if user already has this IG registered
+    const verifyResult = await verifyRegisteredIGs(username);
+    
+    if (verifyResult.success && verifyResult.instagrams) {
+      // Check if IG is already registered
+      if (verifyResult.instagrams.includes(normalizedIG)) {
+        return { canRegister: false, error: 'Este Instagram já está cadastrado na sua conta' };
+      }
+      
+      // Check if user has available slots (max 6)
+      const maxIGs = 6;
+      if (verifyResult.instagrams.length >= maxIGs) {
+        return { canRegister: false, error: `Limite de ${maxIGs} perfis atingido. Remova um perfil para adicionar outro.` };
+      }
+    }
+    
+    return { canRegister: true };
+  } catch (error) {
+    console.error('Check register error:', error);
+    return { canRegister: false, error: 'Erro ao verificar disponibilidade' };
+  }
+};
+
 // Add Instagram account to user
 export const addIGToSquare = async (
   username: string,
