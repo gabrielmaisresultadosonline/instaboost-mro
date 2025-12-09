@@ -154,6 +154,7 @@ export default function Vendas() {
         body: {
           email: formData.email.toLowerCase(),
           username: formData.username.trim(),
+          password: formData.password,
           instagram_username: instagramUsername || null
         }
       });
