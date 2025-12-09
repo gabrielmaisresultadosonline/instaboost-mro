@@ -253,6 +253,7 @@ export const Dashboard = ({
               analysis={activeProfile.analysis}
               onStrategyGenerated={handleStrategyGenerated}
               existingStrategies={activeProfile.strategies}
+              profileId={activeProfile.id}
             />
             
             {activeProfile.strategies.length > 0 && (

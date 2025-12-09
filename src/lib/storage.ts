@@ -148,7 +148,41 @@ export const addStrategy = (strategy: Strategy): void => {
   const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
   if (activeProfile) {
     activeProfile.strategies.push(strategy);
+    activeProfile.lastStrategyGeneratedAt = new Date().toISOString();
     activeProfile.lastUpdated = new Date().toISOString();
+    saveSession(session);
+  }
+};
+
+export const getStrategyDaysRemaining = (profileId?: string): number => {
+  const session = getSession();
+  const profile = profileId 
+    ? session.profiles.find(p => p.id === profileId)
+    : session.profiles.find(p => p.id === session.activeProfileId);
+  
+  if (!profile?.lastStrategyGeneratedAt) return 0; // Can generate now
+  
+  const lastGenerated = new Date(profile.lastStrategyGeneratedAt);
+  const nextAvailable = new Date(lastGenerated);
+  nextAvailable.setDate(nextAvailable.getDate() + 30);
+  
+  const now = new Date();
+  const diffTime = nextAvailable.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return Math.max(0, diffDays);
+};
+
+export const canGenerateStrategy = (profileId?: string): boolean => {
+  return getStrategyDaysRemaining(profileId) === 0;
+};
+
+export const resetProfileStrategy = (profileId: string): void => {
+  const session = getSession();
+  const profile = session.profiles.find(p => p.id === profileId);
+  if (profile) {
+    profile.lastStrategyGeneratedAt = undefined;
+    profile.lastUpdated = new Date().toISOString();
     saveSession(session);
   }
 };

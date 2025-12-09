@@ -169,6 +169,7 @@ export interface ProfileSession {
   growthInsights: GrowthInsight[];
   startedAt: string;
   lastUpdated: string;
+  lastStrategyGeneratedAt?: string; // Track when last strategy was generated
 }
 
 export interface MROSession {
