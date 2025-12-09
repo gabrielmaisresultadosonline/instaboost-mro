@@ -155,10 +155,6 @@ export default function Vendas() {
     }
   };
 
-  const openWhatsApp = () => {
-    window.open('https://wa.me/5551920936540?text=Olá! Tenho interesse na Ferramenta MRO e gostaria de saber mais sobre o valor promocional.', '_blank');
-  };
-
   const openInstagram = () => {
     window.open('https://instagram.com/maisresultadosonline', '_blank');
   };
@@ -295,16 +291,10 @@ export default function Vendas() {
             <p className="text-muted-foreground">
               Membros do plano mensal têm acesso a valor promocional exclusivo.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="outline" onClick={openInstagram} className="gap-2">
-                <Instagram className="w-4 h-4" />
-                @maisresultadosonline
-              </Button>
-              <Button onClick={openWhatsApp} className="gap-2 bg-green-600 hover:bg-green-700">
-                <MessageCircle className="w-4 h-4" />
-                Falar no WhatsApp
-              </Button>
-            </div>
+            <Button variant="outline" onClick={openInstagram} className="gap-2">
+              <Instagram className="w-4 h-4" />
+              @maisresultadosonline
+            </Button>
           </CardContent>
         </Card>
       </section>
