@@ -2,19 +2,20 @@
 
 # =============================================================
 # Script de Atualização - I.A MRO
-# Executa pull, rebuild e restart
+# Para Ubuntu LTS (VPS Hostinger)
 # =============================================================
 
 set -e
 
-APP_DIR="/var/www/ia-mro"
-
 echo "🔄 Atualizando I.A MRO..."
+
+APP_DIR="/var/www/ia-mro"
 
 cd $APP_DIR
 
-echo "📥 Baixando atualizações..."
-git pull origin main
+echo "📥 Baixando atualizações do GitHub..."
+git fetch origin
+git reset --hard origin/main
 
 echo "📦 Instalando dependências..."
 npm install
@@ -22,5 +23,10 @@ npm install
 echo "🔨 Fazendo build..."
 npm run build
 
+echo "🔄 Reiniciando Nginx..."
+sudo systemctl restart nginx
+
+echo ""
 echo "✅ Atualização concluída!"
-echo "🌐 Site atualizado automaticamente (arquivos estáticos)"
+echo "🌐 Acesse: https://acessar.click"
+echo ""

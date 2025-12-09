@@ -3,6 +3,8 @@
 # =============================================================
 # Script de Instalação Automática - I.A MRO
 # Para Ubuntu LTS (VPS Hostinger)
+# Repositório: https://github.com/gabrielmaisresultadosonline/instaboost-mro.git
+# Domínio: acessar.click
 # =============================================================
 
 set -e
@@ -18,7 +20,8 @@ NC='\033[0m' # No Color
 # Variáveis
 APP_NAME="ia-mro"
 APP_DIR="/var/www/$APP_NAME"
-DOMAIN="${1:-localhost}"
+DOMAIN="acessar.click"
+REPO_URL="https://github.com/gabrielmaisresultadosonline/instaboost-mro.git"
 
 echo -e "${YELLOW}Atualizando sistema...${NC}"
 sudo apt update && sudo apt upgrade -y
@@ -37,22 +40,21 @@ echo -e "${GREEN}NPM: $(npm -v)${NC}"
 
 # Criar diretório da aplicação
 echo -e "${YELLOW}Criando diretório da aplicação...${NC}"
-sudo mkdir -p $APP_DIR
-sudo chown -R $USER:$USER $APP_DIR
-
-# Clonar repositório (substitua pela URL do seu repo)
-echo -e "${YELLOW}Clonando repositório...${NC}"
+sudo mkdir -p /var/www
 cd /var/www
+
+# Clonar ou atualizar repositório
+echo -e "${YELLOW}Clonando/Atualizando repositório...${NC}"
 if [ -d "$APP_NAME" ]; then
     cd $APP_NAME
-    git pull origin main
+    git fetch origin
+    git reset --hard origin/main
 else
-    echo "❌ Clone o repositório manualmente:"
-    echo "   git clone https://github.com/SEU_USUARIO/SEU_REPO.git $APP_NAME"
-    echo ""
-    echo "Depois execute: cd $APP_DIR && npm install && npm run build"
-    exit 1
+    git clone $REPO_URL $APP_NAME
+    cd $APP_NAME
 fi
+
+sudo chown -R $USER:$USER $APP_DIR
 
 # Instalar dependências e fazer build
 echo -e "${YELLOW}Instalando dependências...${NC}"
@@ -66,7 +68,7 @@ echo -e "${YELLOW}Configurando Nginx...${NC}"
 sudo tee /etc/nginx/sites-available/$APP_NAME > /dev/null <<EOF
 server {
     listen 80;
-    server_name $DOMAIN;
+    server_name $DOMAIN www.$DOMAIN;
     root $APP_DIR/dist;
     index index.html;
 
@@ -75,7 +77,7 @@ server {
     gzip_vary on;
     gzip_min_length 1024;
     gzip_proxied expired no-cache no-store private auth;
-    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json;
 
     # Cache static assets
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
@@ -107,9 +109,17 @@ sudo systemctl enable nginx
 echo ""
 echo -e "${GREEN}✅ Instalação concluída!${NC}"
 echo ""
-echo "📌 Próximos passos:"
-echo "   1. Configure seu domínio DNS apontando para este servidor"
-echo "   2. Para SSL gratuito, execute: sudo certbot --nginx -d $DOMAIN"
+echo -e "${YELLOW}📌 Configurando SSL com Let's Encrypt...${NC}"
+sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos --email admin@$DOMAIN || {
+    echo -e "${YELLOW}⚠️  SSL não configurado automaticamente. Execute manualmente:${NC}"
+    echo "   sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
+}
+
 echo ""
-echo "🌐 Acesse: http://$DOMAIN"
+echo -e "${GREEN}✅ Tudo pronto!${NC}"
+echo ""
+echo "🌐 Acesse: https://$DOMAIN"
+echo ""
+echo "📝 Para atualizar futuramente, execute:"
+echo "   cd $APP_DIR && ./deploy/update.sh"
 echo ""
