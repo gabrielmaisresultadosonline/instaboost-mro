@@ -5,7 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const CUSTOM_API_BASE = "http://72.62.9.229:8000";
+// Bright Data API configuration
+const BRIGHTDATA_API_URL = 'https://api.brightdata.com/datasets/v3/scrape';
+const INSTAGRAM_PROFILES_DATASET_ID = 'gd_l1vikfch901nx3by4';
 
 // Proxy de imagem para HTTPS
 const proxyImage = (url: string | undefined | null): string => {
@@ -38,63 +40,95 @@ serve(async (req) => {
       .trim()
       .toLowerCase();
 
-    console.log(`Fetching profile for sync: ${cleanUsername}`);
+    console.log(`Syncing profile via Bright Data: ${cleanUsername}`);
+
+    const BRIGHTDATA_TOKEN = Deno.env.get('BRIGHTDATA_API_TOKEN');
+    
+    if (!BRIGHTDATA_TOKEN) {
+      console.error('BRIGHTDATA_API_TOKEN not configured');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Token da Bright Data não configurado", 
+          username: cleanUsername 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     try {
-      const apiUrl = `${CUSTOM_API_BASE}/profile/${cleanUsername}`;
-      console.log('Calling custom API:', apiUrl);
+      const profileUrl = `https://www.instagram.com/${cleanUsername}/`;
+      console.log('Calling Bright Data API for sync:', profileUrl);
       
-      const response = await fetch(apiUrl, {
-        method: 'GET',
+      const response = await fetch(`${BRIGHTDATA_API_URL}?dataset_id=${INSTAGRAM_PROFILES_DATASET_ID}&format=json`, {
+        method: 'POST',
         headers: {
-          'Accept': 'application/json',
-        }
+          'Authorization': `Bearer ${BRIGHTDATA_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          input: [{ url: profileUrl }]
+        })
       });
 
-      console.log('Custom API status:', response.status);
+      console.log('Bright Data API status:', response.status);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Custom API response received');
+        console.log('Bright Data sync response:', JSON.stringify(data).substring(0, 1500));
         
-        // API response format: { status: string, data: ProfileData | null, message: string | null }
-        if (data.status === 'success' && data.data) {
-          const profileData = data.data;
-          
+        // Response can be an array of profiles
+        const profileData = Array.isArray(data) ? data[0] : data;
+        
+        if (profileData && (profileData.followers || profileData.id)) {
           // Profile picture with HTTPS proxy
-          const proxiedProfilePic = profileData.profile_pic_url 
-            ? proxyImage(profileData.profile_pic_url)
+          const proxiedProfilePic = profileData.profile_image_link 
+            ? proxyImage(profileData.profile_image_link)
             : `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`;
 
           const profile = {
-            username: profileData.username || cleanUsername,
-            followers: profileData.followers_count || 0,
-            following: profileData.following_count || 0,
-            posts: profileData.posts_count || 0,
+            username: profileData.account || profileData.profile_name || cleanUsername,
+            followers: profileData.followers || 0,
+            following: profileData.following || 0,
+            posts: profileData.posts_count || profileData.post_count || 0,
             profilePicUrl: proxiedProfilePic,
-            fullName: profileData.full_name || cleanUsername,
-            bio: profileData.biography || "",
+            fullName: profileData.profile_name || profileData.full_name || cleanUsername,
+            bio: profileData.biography || profileData.bio || "",
             externalUrl: profileData.external_url || ""
           };
 
-          console.log(`✅ Profile ${cleanUsername} found with ${profile.followers} followers`);
+          console.log(`✅ Profile ${cleanUsername} synced: ${profile.followers} followers`);
 
           return new Response(
             JSON.stringify({ success: true, profile }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         } else {
-          console.log(`❌ Profile ${cleanUsername} not found in API response:`, data.message || 'No data');
+          console.log(`❌ Profile ${cleanUsername} not found in API response`);
         }
+      } else if (response.status === 202) {
+        // Async request - need to wait
+        const data = await response.json();
+        console.log('Bright Data returned 202 (async processing):', data);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Perfil está sendo processado, tente novamente em alguns segundos", 
+            username: cleanUsername,
+            processing: true
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       } else {
-        console.log(`❌ API returned status ${response.status} for ${cleanUsername}`);
+        const errorText = await response.text();
+        console.log(`❌ Bright Data API error for ${cleanUsername}:`, response.status, errorText.substring(0, 500));
       }
     } catch (apiError) {
       console.error(`API error for ${cleanUsername}:`, apiError);
     }
 
-    // Profile not found
-    console.log(`Profile ${cleanUsername} does not exist or API unavailable`);
+    // Profile not found or API error
+    console.log(`Profile ${cleanUsername} não existe ou API indisponível`);
     return new Response(
       JSON.stringify({ 
         success: false, 
