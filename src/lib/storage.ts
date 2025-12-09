@@ -10,6 +10,7 @@ import {
 } from '@/types/instagram';
 
 const STORAGE_KEY = 'mro_session';
+const ARCHIVE_KEY = 'mro_archived_profiles';
 
 export const getSession = (): MROSession => {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -82,6 +83,34 @@ export const getActiveProfile = (): ProfileSession | null => {
 
 export const addProfile = (profile: InstagramProfile, analysis: ProfileAnalysis): ProfileSession => {
   const session = getSession();
+  
+  // Check if this profile was previously archived (removed then re-synced)
+  const archivedProfile = getArchivedByUsername(profile.username);
+  
+  if (archivedProfile) {
+    // Restore from archive - keeps strategies, creatives, credits used, etc.
+    const restoredProfile: ProfileSession = {
+      ...archivedProfile,
+      id: `profile_${Date.now()}`, // New ID
+      profile, // Update with fresh profile data
+      analysis, // Update with fresh analysis
+      lastUpdated: new Date().toISOString(),
+    };
+    
+    // Add new growth snapshot with current data
+    restoredProfile.growthHistory.push(createSnapshot(profile));
+    
+    session.profiles.push(restoredProfile);
+    session.activeProfileId = restoredProfile.id;
+    saveSession(session);
+    
+    // Remove from archive since it's now active again
+    removeFromArchive(profile.username);
+    
+    return restoredProfile;
+  }
+  
+  // New profile - create fresh session
   const profileId = `profile_${Date.now()}`;
   const now = new Date().toISOString();
   
@@ -114,8 +143,84 @@ export const setActiveProfile = (profileId: string): void => {
   }
 };
 
+// Archive management - keeps removed profiles for restoration
+export const getArchivedProfiles = (): ProfileSession[] => {
+  const stored = localStorage.getItem(ARCHIVE_KEY);
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  return [];
+};
+
+export const saveArchivedProfiles = (archived: ProfileSession[]): void => {
+  localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archived));
+};
+
+export const archiveProfile = (profileSession: ProfileSession): void => {
+  const archived = getArchivedProfiles();
+  // Remove any existing archive for this username
+  const username = profileSession.profile.username.toLowerCase();
+  const filtered = archived.filter(p => p.profile.username.toLowerCase() !== username);
+  filtered.push(profileSession);
+  saveArchivedProfiles(filtered);
+};
+
+export const getArchivedByUsername = (username: string): ProfileSession | null => {
+  const archived = getArchivedProfiles();
+  const normalizedUsername = username.toLowerCase();
+  return archived.find(p => p.profile.username.toLowerCase() === normalizedUsername) || null;
+};
+
+export const removeFromArchive = (username: string): void => {
+  const archived = getArchivedProfiles();
+  const normalizedUsername = username.toLowerCase();
+  const filtered = archived.filter(p => p.profile.username.toLowerCase() !== normalizedUsername);
+  saveArchivedProfiles(filtered);
+};
+
+// Restore a synced profile from archive (without full profile/analysis data)
+export const restoreProfileFromArchive = (username: string): ProfileSession | null => {
+  const archivedProfile = getArchivedByUsername(username);
+  if (!archivedProfile) return null;
+  
+  const session = getSession();
+  
+  // Check if already active
+  const existingProfile = session.profiles.find(
+    p => p.profile.username.toLowerCase() === username.toLowerCase()
+  );
+  if (existingProfile) {
+    session.activeProfileId = existingProfile.id;
+    saveSession(session);
+    return existingProfile;
+  }
+  
+  // Restore from archive
+  const restoredProfile: ProfileSession = {
+    ...archivedProfile,
+    id: `profile_${Date.now()}`,
+    lastUpdated: new Date().toISOString(),
+  };
+  
+  session.profiles.push(restoredProfile);
+  session.activeProfileId = restoredProfile.id;
+  saveSession(session);
+  
+  // Remove from archive
+  removeFromArchive(username);
+  
+  return restoredProfile;
+};
+
 export const removeProfile = (profileId: string): void => {
   const session = getSession();
+  const profileToRemove = session.profiles.find(p => p.id === profileId);
+  
+  // Archive the profile before removing (keeps strategies, creatives, etc.)
+  if (profileToRemove) {
+    archiveProfile(profileToRemove);
+  }
+  
   session.profiles = session.profiles.filter(p => p.id !== profileId);
   if (session.activeProfileId === profileId) {
     session.activeProfileId = session.profiles[0]?.id || null;
