@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { LoginPage } from '@/components/LoginPage';
 import { ProfileRegistration } from '@/components/ProfileRegistration';
 import { Dashboard } from '@/components/Dashboard';
+import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
-import { 
+import {
   getSession, 
   saveSession, 
   hasExistingSession, 
@@ -35,6 +36,8 @@ import {
 const Index = () => {
   const [session, setSession] = useState<MROSession>(createEmptySession());
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [loadingSubMessage, setLoadingSubMessage] = useState('');
   const [showDashboard, setShowDashboard] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasRegisteredProfiles, setHasRegisteredProfiles] = useState(false);
@@ -121,11 +124,14 @@ const Index = () => {
 
   const handleSyncComplete = async (instagrams: string[]) => {
     setIsLoading(true);
+    setLoadingMessage('Sincronizando perfis...');
+    setLoadingSubMessage('Buscando dados do Instagram. Isso pode levar até 5 minutos.');
     const user = getCurrentUser();
     let loadedCount = 0;
     let cachedCount = 0;
     
     for (const ig of instagrams) {
+      setLoadingMessage(`Buscando @${ig}...`);
       const normalizedIg = ig.toLowerCase();
       
       // Check if already in session
@@ -223,6 +229,8 @@ const Index = () => {
     }
 
     setIsLoading(true);
+    setLoadingMessage(`Buscando @${username.replace('@', '')}...`);
+    setLoadingSubMessage('Analisando perfil com I.A. Isso pode levar até 5 minutos.');
 
     try {
       toast({
@@ -326,42 +334,56 @@ const Index = () => {
 
   // Not logged in - show login page
   if (!isLoggedIn) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    return (
+      <>
+        <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
+        <LoginPage onLoginSuccess={handleLoginSuccess} />
+      </>
+    );
   }
 
   // Logged in but no registered profiles - show registration
   if (!hasRegisteredProfiles || !showDashboard) {
     return (
-      <ProfileRegistration 
-        onProfileRegistered={handleProfileRegistered}
-        onSyncComplete={handleSyncComplete}
-      />
+      <>
+        <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
+        <ProfileRegistration 
+          onProfileRegistered={handleProfileRegistered}
+          onSyncComplete={handleSyncComplete}
+        />
+      </>
     );
   }
 
   // Show dashboard
   if (showDashboard && session.profiles.length > 0) {
     return (
-      <Dashboard 
-        session={session} 
-        onSessionUpdate={handleSessionUpdate}
-        onReset={handleReset}
-        onAddProfile={handleAddNewProfile}
-        onSelectProfile={handleSelectProfile}
-        onRemoveProfile={handleRemoveProfile}
-        onNavigateToRegister={handleNavigateToRegister}
-        isLoading={isLoading}
-        onLogout={handleLogout}
-      />
+      <>
+        <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
+        <Dashboard 
+          session={session} 
+          onSessionUpdate={handleSessionUpdate}
+          onReset={handleReset}
+          onAddProfile={handleAddNewProfile}
+          onSelectProfile={handleSelectProfile}
+          onRemoveProfile={handleRemoveProfile}
+          onNavigateToRegister={handleNavigateToRegister}
+          isLoading={isLoading}
+          onLogout={handleLogout}
+        />
+      </>
     );
   }
 
   // Fallback to registration
   return (
-    <ProfileRegistration 
-      onProfileRegistered={handleProfileRegistered}
-      onSyncComplete={handleSyncComplete}
-    />
+    <>
+      <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
+      <ProfileRegistration 
+        onProfileRegistered={handleProfileRegistered}
+        onSyncComplete={handleSyncComplete}
+      />
+    </>
   );
 };
 

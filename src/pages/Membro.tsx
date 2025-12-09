@@ -28,6 +28,7 @@ import { toast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
 import { StrategyDisplay } from "@/components/StrategyDisplay";
 import { CreativeGenerator } from "@/components/CreativeGenerator";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 interface PaidMemberUser {
   id: string;
@@ -76,6 +77,8 @@ export default function Membro() {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [instagramInput, setInstagramInput] = useState('');
   const [isAddingInstagram, setIsAddingInstagram] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [loadingSubMessage, setLoadingSubMessage] = useState('');
   const [strategy, setStrategy] = useState<any>(null);
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
@@ -308,6 +311,8 @@ export default function Membro() {
     if (!user) return;
 
     setIsAddingInstagram(true);
+    setLoadingMessage(`Buscando @${normalizeInstagram(instagramInput)}...`);
+    setLoadingSubMessage('Buscando dados do Instagram. Isso pode levar até 5 minutos.');
 
     try {
       const normalized = normalizeInstagram(instagramInput);
@@ -350,6 +355,8 @@ export default function Membro() {
     if (!user) return;
 
     setIsGeneratingStrategy(true);
+    setLoadingMessage('Gerando estratégia personalizada...');
+    setLoadingSubMessage('Analisando perfil com I.A. Isso pode levar até 5 minutos.');
 
     try {
       // First analyze the profile
@@ -396,101 +403,110 @@ export default function Membro() {
     window.open('https://wa.me/5551920936540?text=Olá! Sou membro do plano mensal e tenho interesse na Ferramenta MRO com valor promocional.', '_blank');
   };
 
+  // Show loading overlay for add/sync operations
+  const showLoadingOverlay = isAddingInstagram || isGeneratingStrategy;
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Carregando...</p>
+      <>
+        <LoadingOverlay isVisible={showLoadingOverlay} message={loadingMessage} subMessage={loadingSubMessage} />
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Carregando...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // Login form if not authenticated
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-        <header className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <Logo size="lg" />
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/vendas')}
-              className="gap-2"
-            >
-              Criar Conta
-            </Button>
-          </div>
-        </header>
+      <>
+        <LoadingOverlay isVisible={showLoadingOverlay} message={loadingMessage} subMessage={loadingSubMessage} />
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+          <header className="container mx-auto px-4 py-6">
+            <div className="flex items-center justify-between">
+              <Logo size="lg" />
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/vendas')}
+                className="gap-2"
+              >
+                Criar Conta
+              </Button>
+            </div>
+          </header>
 
-        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
-          <Card className="w-full max-w-md glass-card border-primary/30">
-            <CardHeader className="text-center">
-              <LogIn className="w-12 h-12 text-primary mx-auto mb-2" />
-              <CardTitle className="text-2xl">Área do Membro</CardTitle>
-              <CardDescription>
-                Entre com seu email e senha para acessar
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Email</label>
-                  <Input
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={loginForm.email}
-                    onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Senha</label>
-                  <Input
-                    type="password"
-                    placeholder="Sua senha"
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                    required
-                  />
-                </div>
+          <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+            <Card className="w-full max-w-md glass-card border-primary/30">
+              <CardHeader className="text-center">
+                <LogIn className="w-12 h-12 text-primary mx-auto mb-2" />
+                <CardTitle className="text-2xl">Área do Membro</CardTitle>
+                <CardDescription>
+                  Entre com seu email e senha para acessar
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Email</label>
+                    <Input
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={loginForm.email}
+                      onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Senha</label>
+                    <Input
+                      type="password"
+                      placeholder="Sua senha"
+                      value={loginForm.password}
+                      onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                      required
+                    />
+                  </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={isLoggingIn}
-                >
-                  {isLoggingIn ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Entrando...
-                    </>
-                  ) : (
-                    <>
-                      Entrar
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Ainda não tem conta?{' '}
-                  <button 
-                    onClick={() => navigate('/vendas')}
-                    className="text-primary hover:underline font-medium"
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={isLoggingIn}
                   >
-                    Criar agora por R$33/mês
-                  </button>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                    {isLoggingIn ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Entrando...
+                      </>
+                    ) : (
+                      <>
+                        Entrar
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </form>
+
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Ainda não tem conta?{' '}
+                    <button 
+                      onClick={() => navigate('/vendas')}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Criar agora por R$33/mês
+                    </button>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -526,7 +542,9 @@ export default function Membro() {
   const creativesRemaining = 6 - (user.creatives_used || 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <>
+      <LoadingOverlay isVisible={showLoadingOverlay} message={loadingMessage} subMessage={loadingSubMessage} />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
@@ -806,6 +824,7 @@ export default function Membro() {
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
