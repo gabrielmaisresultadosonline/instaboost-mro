@@ -3,9 +3,11 @@ import { Strategy, Creative, InstagramProfile, CreativeConfig, CreativeColors } 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type, AlertCircle } from 'lucide-react';
+import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type, AlertCircle, Lock, Phone } from 'lucide-react';
 import { generateCreative } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { getCurrentUser } from '@/lib/userStorage';
+import { canUseCreatives, isLifetimeAccess } from '@/types/user';
 
 interface CreativeGeneratorProps {
   strategy: Strategy;
@@ -48,6 +50,9 @@ export const CreativeGenerator = ({
   isManualMode = false,
   creativesRemaining
 }: CreativeGeneratorProps) => {
+  // Check if user can use creatives
+  const user = getCurrentUser();
+  const creativesAccess = canUseCreatives(user);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCreative, setGeneratedCreative] = useState<Creative | null>(null);
   const [step, setStep] = useState<'config' | 'generating' | 'result'>('config');
@@ -243,6 +248,41 @@ export const CreativeGenerator = ({
       default: return 'left-1/2 -translate-x-1/2';
     }
   };
+
+  // If user is lifetime and doesn't have creatives unlocked, show blocked message
+  if (!creativesAccess.allowed) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+        <div className="glass-card glow-border p-8 max-w-md w-full animate-slide-up text-center">
+          <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-8 h-8 text-amber-500" />
+          </div>
+          
+          <h3 className="text-xl font-display font-bold mb-4">
+            Acesso Bloqueado
+          </h3>
+          
+          <p className="text-muted-foreground mb-6">
+            {creativesAccess.reason}
+          </p>
+          
+          <div className="p-4 rounded-lg bg-secondary/50 mb-6">
+            <div className="flex items-center justify-center gap-2 text-amber-400 mb-2">
+              <Phone className="w-4 h-4" />
+              <span className="font-semibold">Contato Admin</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Solicite a liberação do gerador de criativos ao administrador da plataforma.
+            </p>
+          </div>
+          
+          <Button onClick={onClose} variant="outline" className="w-full">
+            Fechar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">

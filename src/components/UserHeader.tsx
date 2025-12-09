@@ -5,9 +5,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { LogOut, Clock, Crown, User } from 'lucide-react';
+import { LogOut, Clock, Crown, User, Lock, Unlock } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '@/lib/userStorage';
-import { formatDaysRemaining, isLifetimeAccess } from '@/types/user';
+import { formatDaysRemaining, isLifetimeAccess, canUseCreatives } from '@/types/user';
 
 interface UserHeaderProps {
   onLogout: () => void;
@@ -20,6 +20,7 @@ export const UserHeader = ({ onLogout }: UserHeaderProps) => {
 
   const daysText = formatDaysRemaining(user.daysRemaining);
   const isLifetime = isLifetimeAccess(user.daysRemaining);
+  const creativesAccess = canUseCreatives(user);
 
   const handleLogout = () => {
     if (confirm('Deseja realmente sair?')) {
@@ -37,7 +38,14 @@ export const UserHeader = ({ onLogout }: UserHeaderProps) => {
               <User className="w-4 h-4" />
               <span className="font-medium">{user.username}</span>
               {isLifetime ? (
-                <Crown className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center gap-1">
+                  <Crown className="w-4 h-4 text-amber-500" />
+                  {user.creativesUnlocked ? (
+                    <Unlock className="w-3 h-3 text-green-500" />
+                  ) : (
+                    <Lock className="w-3 h-3 text-red-400" />
+                  )}
+                </div>
               ) : (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="w-3 h-3" />
@@ -47,9 +55,14 @@ export const UserHeader = ({ onLogout }: UserHeaderProps) => {
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <div className="text-center">
+            <div className="text-center space-y-1">
               <p className="font-semibold">{user.username}</p>
               <p className="text-xs text-muted-foreground">{daysText}</p>
+              {isLifetime && (
+                <p className={`text-xs ${creativesAccess.allowed ? 'text-green-400' : 'text-amber-400'}`}>
+                  Criativos: {creativesAccess.allowed ? 'Liberado' : 'Bloqueado'}
+                </p>
+              )}
               {user.email && (
                 <p className="text-xs text-muted-foreground mt-1">{user.email}</p>
               )}

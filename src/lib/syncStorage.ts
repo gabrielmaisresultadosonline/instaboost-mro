@@ -6,6 +6,7 @@ export interface SquareCloudUser {
   dataDeExpiracao: number | string;
   blackList: boolean;
   igInstagram: string[];
+  creativesUnlocked?: boolean; // Admin can unlock creatives for lifetime users
 }
 
 export interface SyncedInstagramProfile {
@@ -366,4 +367,46 @@ export const updateCreativesUsed = (username: string, count: number): void => {
     profile.creativesUsed = count;
     saveSyncData(data);
   }
+};
+
+// Admin function to unlock creatives for a lifetime user
+export const unlockCreativesForSquareUser = (userId: string): void => {
+  const data = getSyncData();
+  const user = data.users.find(u => u.ID.toLowerCase() === userId.toLowerCase());
+  if (user) {
+    user.creativesUnlocked = true;
+    saveSyncData(data);
+  }
+};
+
+// Admin function to lock creatives for a lifetime user
+export const lockCreativesForSquareUser = (userId: string): void => {
+  const data = getSyncData();
+  const user = data.users.find(u => u.ID.toLowerCase() === userId.toLowerCase());
+  if (user) {
+    user.creativesUnlocked = false;
+    saveSyncData(data);
+  }
+};
+
+// Check if a Square user has creatives unlocked
+export const isUserCreativesUnlocked = (userId: string): boolean => {
+  const data = getSyncData();
+  const user = data.users.find(u => u.ID.toLowerCase() === userId.toLowerCase());
+  return user?.creativesUnlocked || false;
+};
+
+// Check if user is lifetime (> 365 days)
+export const isUserLifetime = (dataDeExpiracao: number | string): boolean => {
+  const days = typeof dataDeExpiracao === 'string' ? parseInt(dataDeExpiracao) : dataDeExpiracao;
+  return days > 365;
+};
+
+// Format days display for admin
+export const formatUserDays = (dataDeExpiracao: number | string): string => {
+  const days = typeof dataDeExpiracao === 'string' ? parseInt(dataDeExpiracao) : dataDeExpiracao;
+  if (days > 365) {
+    return 'Vitalício';
+  }
+  return `${days} dias`;
 };

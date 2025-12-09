@@ -25,19 +25,42 @@ export const loginUser = (
   daysRemaining: number,
   email?: string
 ): UserSession => {
+  // Check if user already exists to preserve creativesUnlocked status
+  const existingSession = getUserSession();
+  const existingUser = existingSession.user?.username === username ? existingSession.user : null;
+  
   const session: UserSession = {
     user: {
       username,
       email,
       daysRemaining,
       loginAt: new Date().toISOString(),
-      registeredIGs: []
+      registeredIGs: existingUser?.registeredIGs || [],
+      creativesUnlocked: existingUser?.creativesUnlocked || false
     },
     isAuthenticated: true,
     lastSync: new Date().toISOString()
   };
   saveUserSession(session);
   return session;
+};
+
+// Admin function to unlock creatives for a lifetime user
+export const unlockCreativesForUser = (username: string): void => {
+  const session = getUserSession();
+  if (session.user && session.user.username === username) {
+    session.user.creativesUnlocked = true;
+    saveUserSession(session);
+  }
+};
+
+// Admin function to lock creatives for a lifetime user  
+export const lockCreativesForUser = (username: string): void => {
+  const session = getUserSession();
+  if (session.user && session.user.username === username) {
+    session.user.creativesUnlocked = false;
+    saveUserSession(session);
+  }
 };
 
 export const logoutUser = (): void => {

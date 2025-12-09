@@ -3,9 +3,10 @@
 export interface MROUser {
   username: string;
   email?: string;
-  daysRemaining: number; // 999999 = lifetime, otherwise actual days
+  daysRemaining: number; // >365 = lifetime, otherwise actual days
   loginAt: string;
   registeredIGs: RegisteredIG[];
+  creativesUnlocked?: boolean; // Only for lifetime users - admin can unlock
 }
 
 export interface RegisteredIG {
@@ -60,9 +61,9 @@ export const normalizeInstagramUsername = (input: string): string => {
   return username;
 };
 
-// Check if days indicate lifetime access
+// Check if days indicate lifetime access (> 365 days)
 export const isLifetimeAccess = (days: number): boolean => {
-  return days >= 9999;
+  return days > 365;
 };
 
 // Format days display
@@ -71,7 +72,28 @@ export const formatDaysRemaining = (days: number): string => {
     return 'Vitalício';
   }
   if (days <= 30) {
-    return `${days} dias (recente)`;
+    return `${days} dias`;
   }
   return `${days} dias`;
+};
+
+// Check if user can use creatives generator
+export const canUseCreatives = (user: MROUser | null): { allowed: boolean; reason?: string } => {
+  if (!user) {
+    return { allowed: false, reason: 'Usuário não autenticado' };
+  }
+  
+  // Lifetime users need admin unlock
+  if (isLifetimeAccess(user.daysRemaining)) {
+    if (user.creativesUnlocked) {
+      return { allowed: true };
+    }
+    return { 
+      allowed: false, 
+      reason: 'Usuários vitalícios precisam de liberação do administrador para usar o gerador de criativos. Entre em contato com o administrador.' 
+    };
+  }
+  
+  // Regular users (365 days or less) can use normally
+  return { allowed: true };
 };
