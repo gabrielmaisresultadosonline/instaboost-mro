@@ -3,7 +3,7 @@
 // Só busca novos dados após 30 dias para economizar requisições
 
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis, GrowthSnapshot } from '@/types/instagram';
-import { getSession, saveSession as baseSaveSession, createSnapshot } from '@/lib/storage';
+import { getSession, saveSession as baseSaveSession, createSnapshot, setServerSyncCallback } from '@/lib/storage';
 import { supabase } from '@/integrations/supabase/client';
 
 // 30 days in milliseconds
@@ -24,6 +24,7 @@ export interface PersistentProfileData {
   lastFetchDate: string;
   syncedAt: string;
   lastUpdated: string;
+  lastStrategyGeneratedAt?: string; // When the last strategy was generated
 }
 
 export interface UserServerData {
@@ -130,12 +131,16 @@ export const saveUserDataToServer = async (data: UserServerData): Promise<boolea
   }
 };
 
-// Initialize user data on login
+// Initialize user data on login and register auto-sync callback
 export const initializeUserData = async (username: string): Promise<void> => {
   const serverData = await loadUserDataFromServer(username);
   if (serverData) {
     localCache = serverData;
   }
+  
+  // Register the auto-sync callback so every saveSession() syncs to server
+  setServerSyncCallback(syncSessionToPersistent);
+  console.log('✅ Auto-sync com servidor ativado');
 };
 
 // Get current user data (from cache or server)
@@ -307,7 +312,8 @@ export const syncPersistentToSession = (): void => {
         growthHistory: persistedData.growthHistory,
         growthInsights: persistedData.growthInsights,
         startedAt: persistedData.syncedAt,
-        lastUpdated: persistedData.lastUpdated
+        lastUpdated: persistedData.lastUpdated,
+        lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt
       };
       
       session.profiles.push(profileSession);
@@ -332,6 +338,10 @@ export const syncPersistentToSession = (): void => {
       existingInSession.growthInsights = existingInSession.growthInsights.length >= persistedData.growthInsights.length
         ? existingInSession.growthInsights
         : persistedData.growthInsights;
+      // Restore lastStrategyGeneratedAt if not present
+      if (!existingInSession.lastStrategyGeneratedAt && persistedData.lastStrategyGeneratedAt) {
+        existingInSession.lastStrategyGeneratedAt = persistedData.lastStrategyGeneratedAt;
+      }
     }
   });
   
@@ -367,7 +377,8 @@ export const syncSessionToPersistent = async (loggedInUsername: string): Promise
       growthInsights: profileSession.growthInsights,
       lastFetchDate: profileSession.lastUpdated || new Date().toISOString(),
       syncedAt: profileSession.startedAt,
-      lastUpdated: profileSession.lastUpdated
+      lastUpdated: profileSession.lastUpdated,
+      lastStrategyGeneratedAt: profileSession.lastStrategyGeneratedAt
     };
   });
   
@@ -414,7 +425,8 @@ export const loadPersistedDataOnLogin = async (loggedInUsername: string, registe
           growthHistory: persistedData.growthHistory,
           growthInsights: persistedData.growthInsights,
           startedAt: persistedData.syncedAt,
-          lastUpdated: persistedData.lastUpdated
+          lastUpdated: persistedData.lastUpdated,
+          lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt
         };
         
         session.profiles.push(profileSession);
