@@ -19,20 +19,61 @@ import {
   Loader2,
   AlertCircle,
   BookOpen,
-  Play
+  Play,
+  LogIn,
+  LogOut
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
-import { PaidUser, getPaidUserSession, savePaidUserSession, PAID_USER_STORAGE_KEY } from "@/types/paidUser";
 import { StrategyDisplay } from "@/components/StrategyDisplay";
 import { CreativeGenerator } from "@/components/CreativeGenerator";
+
+interface PaidMemberUser {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
+  instagram_username?: string;
+  subscription_status: 'active' | 'pending' | 'expired';
+  subscription_end?: string;
+  strategies_generated: number;
+  creatives_used: number;
+  created_at: string;
+}
+
+const PAID_MEMBERS_KEY = 'mro_paid_members';
+const CURRENT_MEMBER_KEY = 'mro_current_member';
+
+const getPaidMembers = (): PaidMemberUser[] => {
+  const stored = localStorage.getItem(PAID_MEMBERS_KEY);
+  return stored ? JSON.parse(stored) : [];
+};
+
+const savePaidMembers = (members: PaidMemberUser[]) => {
+  localStorage.setItem(PAID_MEMBERS_KEY, JSON.stringify(members));
+};
+
+const getCurrentMember = (): PaidMemberUser | null => {
+  const stored = localStorage.getItem(CURRENT_MEMBER_KEY);
+  return stored ? JSON.parse(stored) : null;
+};
+
+const saveCurrentMember = (member: PaidMemberUser | null) => {
+  if (member) {
+    localStorage.setItem(CURRENT_MEMBER_KEY, JSON.stringify(member));
+  } else {
+    localStorage.removeItem(CURRENT_MEMBER_KEY);
+  }
+};
 
 export default function Membro() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [user, setUser] = useState<PaidUser | null>(null);
+  const [user, setUser] = useState<PaidMemberUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [instagramInput, setInstagramInput] = useState('');
   const [isAddingInstagram, setIsAddingInstagram] = useState(false);
   const [strategy, setStrategy] = useState<any>(null);
@@ -41,14 +82,12 @@ export default function Membro() {
   const [showPromo, setShowPromo] = useState(false);
 
   const success = searchParams.get('success');
-  const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
     checkUserStatus();
   }, []);
 
   useEffect(() => {
-    // Show promo after 1 day (check if user created more than 24h ago)
     if (user && user.subscription_status === 'active') {
       const createdAt = new Date(user.created_at);
       const now = new Date();
@@ -59,31 +98,35 @@ export default function Membro() {
     }
   }, [user]);
 
-  const checkUserStatus = async () => {
+  const checkUserStatus = () => {
     setIsLoading(true);
 
     try {
-      // First check local storage
-      const session = getPaidUserSession();
-      
-      if (session.isAuthenticated && session.user) {
-        setUser(session.user);
-        
-        // If coming from successful payment, verify
-        if (success === 'true' && sessionId) {
-          await verifyPayment(session.user.email);
-        }
-      } else {
-        // Check if coming from successful payment
+      // Check if coming from successful payment
+      if (success === 'true') {
         const pendingUser = localStorage.getItem('mro_pending_user');
-        if (pendingUser && success === 'true' && sessionId) {
+        if (pendingUser) {
           const userData = JSON.parse(pendingUser);
-          await verifyPayment(userData.email);
+          activatePendingUser(userData);
           localStorage.removeItem('mro_pending_user');
-        } else {
-          // No user found, redirect to sales page
-          navigate('/vendas');
           return;
+        }
+      }
+
+      // Check if user is already logged in
+      const currentMember = getCurrentMember();
+      if (currentMember) {
+        setUser(currentMember);
+        
+        // Load saved strategy if exists
+        const savedStrategy = localStorage.getItem(`mro_strategy_${currentMember.id}`);
+        if (savedStrategy) {
+          setStrategy(JSON.parse(savedStrategy));
+        }
+        
+        const savedProfile = localStorage.getItem(`mro_profile_${currentMember.id}`);
+        if (savedProfile) {
+          setProfileData(JSON.parse(savedProfile));
         }
       }
     } catch (error) {
@@ -93,43 +136,147 @@ export default function Membro() {
     }
   };
 
-  const verifyPayment = async (email: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
-        body: { email, session_id: sessionId }
-      });
-
-      if (error) throw error;
-
-      if (data.subscribed && data.user) {
-        // Facebook Pixel - Purchase
-        if (typeof window !== 'undefined' && (window as any).fbq) {
-          (window as any).fbq('track', 'Purchase', {
-            value: 33.00,
-            currency: 'BRL',
-            content_name: 'Plano Mensal I.A MRO'
-          });
-        }
-
-        setUser(data.user);
-        savePaidUserSession({
-          user: data.user,
-          isAuthenticated: true
-        });
-
-        toast({
-          title: "Pagamento confirmado!",
-          description: "Bem-vindo ao I.A MRO. Agora adicione seu Instagram para começar."
-        });
-      }
-    } catch (error: any) {
-      console.error('Error verifying payment:', error);
-      toast({
-        title: "Erro ao verificar pagamento",
-        description: "Por favor, entre em contato pelo WhatsApp",
-        variant: "destructive"
+  const activatePendingUser = (userData: any) => {
+    // Facebook Pixel - Purchase
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('track', 'Purchase', {
+        value: 33.00,
+        currency: 'BRL',
+        content_name: 'Plano Mensal I.A MRO'
       });
     }
+
+    const newMember: PaidMemberUser = {
+      id: `member_${Date.now()}`,
+      username: userData.username,
+      email: userData.email,
+      password: userData.password,
+      instagram_username: userData.instagram || undefined,
+      subscription_status: 'active',
+      subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+      strategies_generated: 0,
+      creatives_used: 0,
+      created_at: new Date().toISOString()
+    };
+
+    const members = getPaidMembers();
+    // Check if user already exists
+    const existingIndex = members.findIndex(m => m.email === userData.email);
+    if (existingIndex >= 0) {
+      // Renew subscription
+      members[existingIndex] = {
+        ...members[existingIndex],
+        subscription_status: 'active',
+        subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      };
+      savePaidMembers(members);
+      setUser(members[existingIndex]);
+      saveCurrentMember(members[existingIndex]);
+    } else {
+      members.push(newMember);
+      savePaidMembers(members);
+      setUser(newMember);
+      saveCurrentMember(newMember);
+    }
+
+    toast({
+      title: "Pagamento confirmado!",
+      description: "Bem-vindo ao I.A MRO. Agora adicione seu Instagram para começar."
+    });
+
+    setIsLoading(false);
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!loginForm.email || !loginForm.password) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha email e senha",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoggingIn(true);
+
+    try {
+      const members = getPaidMembers();
+      const member = members.find(m => 
+        m.email.toLowerCase() === loginForm.email.toLowerCase() && 
+        m.password === loginForm.password
+      );
+
+      if (!member) {
+        toast({
+          title: "Credenciais inválidas",
+          description: "Email ou senha incorretos",
+          variant: "destructive"
+        });
+        setIsLoggingIn(false);
+        return;
+      }
+
+      // Check if subscription is still active
+      if (member.subscription_end && new Date(member.subscription_end) < new Date()) {
+        member.subscription_status = 'expired';
+        const updatedMembers = members.map(m => m.id === member.id ? member : m);
+        savePaidMembers(updatedMembers);
+      }
+
+      setUser(member);
+      saveCurrentMember(member);
+
+      // Load saved data
+      const savedStrategy = localStorage.getItem(`mro_strategy_${member.id}`);
+      if (savedStrategy) {
+        setStrategy(JSON.parse(savedStrategy));
+      }
+      
+      const savedProfile = localStorage.getItem(`mro_profile_${member.id}`);
+      if (savedProfile) {
+        setProfileData(JSON.parse(savedProfile));
+      }
+
+      toast({
+        title: "Login realizado!",
+        description: `Bem-vindo de volta, ${member.username}`
+      });
+
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Erro ao fazer login",
+        description: "Tente novamente",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleLogout = () => {
+    saveCurrentMember(null);
+    setUser(null);
+    setStrategy(null);
+    setProfileData(null);
+    toast({
+      title: "Logout realizado",
+      description: "Até logo!"
+    });
+  };
+
+  const updateMember = (updates: Partial<PaidMemberUser>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    saveCurrentMember(updatedUser);
+    
+    const members = getPaidMembers();
+    const updatedMembers = members.map(m => m.id === user.id ? updatedUser : m);
+    savePaidMembers(updatedMembers);
   };
 
   const normalizeInstagram = (input: string): string => {
@@ -173,22 +320,9 @@ export default function Membro() {
       }
 
       setProfileData(profileResponse.profile);
+      localStorage.setItem(`mro_profile_${user.id}`, JSON.stringify(profileResponse.profile));
 
-      // Update user with Instagram
-      const { data: userData, error: updateError } = await supabase
-        .from('paid_users')
-        .update({ instagram_username: normalized })
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-
-      setUser(userData as unknown as PaidUser);
-      savePaidUserSession({
-        user: userData as unknown as PaidUser,
-        isAuthenticated: true
-      });
+      updateMember({ instagram_username: normalized });
 
       toast({
         title: "Instagram adicionado!",
@@ -235,12 +369,9 @@ export default function Membro() {
       if (strategyError) throw strategyError;
 
       setStrategy(strategyData.strategy);
+      localStorage.setItem(`mro_strategy_${user.id}`, JSON.stringify(strategyData.strategy));
 
-      // Update strategies generated count
-      await supabase
-        .from('paid_users')
-        .update({ strategies_generated: (user.strategies_generated || 0) + 1 })
-        .eq('id', user.id);
+      updateMember({ strategies_generated: (user.strategies_generated || 0) + 1 });
 
       toast({
         title: "Estratégia gerada!",
@@ -274,21 +405,113 @@ export default function Membro() {
     );
   }
 
+  // Login form if not authenticated
   if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <header className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <Logo size="lg" />
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/vendas')}
+              className="gap-2"
+            >
+              Criar Conta
+            </Button>
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+          <Card className="w-full max-w-md glass-card border-primary/30">
+            <CardHeader className="text-center">
+              <LogIn className="w-12 h-12 text-primary mx-auto mb-2" />
+              <CardTitle className="text-2xl">Área do Membro</CardTitle>
+              <CardDescription>
+                Entre com seu email e senha para acessar
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Email</label>
+                  <Input
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={loginForm.email}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Senha</label>
+                  <Input
+                    type="password"
+                    placeholder="Sua senha"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isLoggingIn}
+                >
+                  {isLoggingIn ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : (
+                    <>
+                      Entrar
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Ainda não tem conta?{' '}
+                  <button 
+                    onClick={() => navigate('/vendas')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Criar agora por R$33/mês
+                  </button>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if subscription expired
+  if (user.subscription_status === 'expired') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <Card className="max-w-md mx-4">
           <CardHeader className="text-center">
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <CardTitle>Acesso não autorizado</CardTitle>
+            <CardTitle>Assinatura Expirada</CardTitle>
             <CardDescription>
-              Você precisa ter uma assinatura ativa para acessar esta área.
+              Sua assinatura expirou em {new Date(user.subscription_end!).toLocaleDateString('pt-BR')}.
+              Renove para continuar acessando.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center space-y-4">
             <Button onClick={() => navigate('/vendas')}>
-              Conhecer o Plano
+              Renovar Assinatura
               <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button variant="ghost" onClick={handleLogout}>
+              Sair
             </Button>
           </CardContent>
         </Card>
@@ -311,6 +534,9 @@ export default function Membro() {
               <CheckCircle2 className="w-3 h-3 text-green-500" />
               Membro Ativo
             </Badge>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </header>
@@ -454,9 +680,7 @@ export default function Membro() {
                   niche={profileData.businessType || 'geral'}
                   creativesRemaining={creativesRemaining}
                   onCreativeGenerated={(creative, credits) => {
-                    const updated = { ...user, creatives_used: (user.creatives_used || 0) + credits };
-                    setUser(updated);
-                    savePaidUserSession({ user: updated, isAuthenticated: true });
+                    updateMember({ creatives_used: (user.creatives_used || 0) + credits });
                   }}
                   onClose={() => {}}
                 />
