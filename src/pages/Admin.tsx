@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData, addTutorialStep, addVideoToStep, deleteTutorialStep, deleteVideo } from '@/lib/adminConfig';
+import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData } from '@/lib/adminConfig';
 import { getSession } from '@/lib/storage';
 import { getUserSession } from '@/lib/userStorage';
 import { getSyncData, SyncedInstagramProfile, SyncData, getAllMergedProfiles } from '@/lib/syncStorage';
@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 import SyncDashboard from '@/components/admin/SyncDashboard';
+import ModuleManager from '@/components/admin/ModuleManager';
 import { 
   Users, Settings, Video, LogOut, Search, Download, 
   Eye, TrendingUp, Calendar, Sparkles, Plus, Trash2,
@@ -58,17 +59,6 @@ const Admin = () => {
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
-
-  // Tutorial state
-  const [newStepTitle, setNewStepTitle] = useState('');
-  const [newVideoData, setNewVideoData] = useState({
-    stepId: '',
-    title: '',
-    description: '',
-    youtubeUrl: '',
-    thumbnailUrl: ''
-  });
-  const [showAddVideo, setShowAddVideo] = useState<string | null>(null);
 
   // Settings state
   const [settings, setSettings] = useState(adminData.settings);
@@ -168,59 +158,6 @@ const Admin = () => {
     saveAdminData(updatedData);
     setAdminData(updatedData);
     toast({ title: "Configurações salvas!", description: "Todas as alterações foram salvas." });
-  };
-
-  const handleAddStep = () => {
-    if (!newStepTitle.trim()) return;
-    const newStep = addTutorialStep(newStepTitle);
-    setAdminData(getAdminData());
-    setNewStepTitle('');
-    toast({ title: "Etapa adicionada!", description: newStep.title });
-  };
-
-  const handleAddVideo = (stepId: string) => {
-    if (!newVideoData.title || !newVideoData.youtubeUrl) {
-      toast({ title: "Erro", description: "Preencha título e URL do YouTube", variant: "destructive" });
-      return;
-    }
-    
-    const step = adminData.tutorials.find(s => s.id === stepId);
-    addVideoToStep(stepId, {
-      title: newVideoData.title,
-      description: newVideoData.description,
-      youtubeUrl: newVideoData.youtubeUrl,
-      thumbnailUrl: newVideoData.thumbnailUrl || getYoutubeThumbnail(newVideoData.youtubeUrl),
-      order: (step?.videos.length || 0) + 1
-    });
-    
-    setAdminData(getAdminData());
-    setNewVideoData({ stepId: '', title: '', description: '', youtubeUrl: '', thumbnailUrl: '' });
-    setShowAddVideo(null);
-    toast({ title: "Vídeo adicionado!" });
-  };
-
-  const handleDeleteStep = (stepId: string) => {
-    if (confirm('Tem certeza que deseja excluir esta etapa e todos os vídeos?')) {
-      deleteTutorialStep(stepId);
-      setAdminData(getAdminData());
-      toast({ title: "Etapa excluída!" });
-    }
-  };
-
-  const handleDeleteVideo = (stepId: string, videoId: string) => {
-    if (confirm('Excluir este vídeo?')) {
-      deleteVideo(stepId, videoId);
-      setAdminData(getAdminData());
-      toast({ title: "Vídeo excluído!" });
-    }
-  };
-
-  const getYoutubeThumbnail = (url: string): string => {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
-    if (match) {
-      return `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
-    }
-    return '';
   };
 
   const testApi = async (apiName: string, apiKey: string) => {
@@ -976,158 +913,11 @@ const Admin = () => {
 
         {/* Tutorials Tab */}
         {activeTab === 'tutorials' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-display font-bold">MRO Ferramenta - Tutoriais</h2>
-            </div>
-
-            {/* Add New Step */}
-            <div className="glass-card p-4">
-              <div className="flex gap-3">
-                <Input
-                  placeholder="Nome da nova etapa..."
-                  value={newStepTitle}
-                  onChange={(e) => setNewStepTitle(e.target.value)}
-                  className="bg-secondary/50"
-                />
-                <Button type="button" onClick={handleAddStep} disabled={!newStepTitle.trim()} className="cursor-pointer">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Etapa
-                </Button>
-              </div>
-            </div>
-
-            {/* Download Link */}
-            <div className="glass-card p-4">
-              <Label className="mb-2 flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Link de Download (Área de Membros)
-              </Label>
-              <div className="flex gap-3">
-                <Input
-                  placeholder="https://..."
-                  value={settings.downloadLink}
-                  onChange={(e) => setSettings(prev => ({ ...prev, downloadLink: e.target.value }))}
-                  className="bg-secondary/50"
-                />
-                <Button type="button" onClick={handleSaveSettings} className="cursor-pointer">
-                  <Save className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Tutorial Steps */}
-            <div className="space-y-6">
-              {adminData.tutorials.length === 0 ? (
-                <div className="glass-card p-12 text-center">
-                  <Video className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhuma etapa criada ainda</p>
-                </div>
-              ) : (
-                adminData.tutorials.map((step) => (
-                  <div key={step.id} className="glass-card p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold">
-                          {step.order}
-                        </span>
-                        {step.title}
-                      </h3>
-                      <div className="flex gap-2">
-                        <Button 
-                          type="button"
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setShowAddVideo(showAddVideo === step.id ? null : step.id)}
-                          className="cursor-pointer"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Vídeo
-                        </Button>
-                        <Button 
-                          type="button"
-                          variant="destructive" 
-                          size="sm" 
-                          onClick={() => handleDeleteStep(step.id)}
-                          className="cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Add Video Form */}
-                    {showAddVideo === step.id && (
-                      <div className="p-4 rounded-lg bg-secondary/30 mb-4 space-y-3">
-                        <Input
-                          placeholder="Título do vídeo"
-                          value={newVideoData.title}
-                          onChange={(e) => setNewVideoData(prev => ({ ...prev, title: e.target.value }))}
-                          className="bg-secondary/50"
-                        />
-                        <Input
-                          placeholder="URL do YouTube"
-                          value={newVideoData.youtubeUrl}
-                          onChange={(e) => setNewVideoData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-                          className="bg-secondary/50"
-                        />
-                        <Textarea
-                          placeholder="Descrição (opcional)"
-                          value={newVideoData.description}
-                          onChange={(e) => setNewVideoData(prev => ({ ...prev, description: e.target.value }))}
-                          className="bg-secondary/50"
-                          rows={2}
-                        />
-                        <div className="flex gap-2">
-                          <Button type="button" onClick={() => handleAddVideo(step.id)} className="cursor-pointer">
-                            <Check className="w-4 h-4 mr-1" />
-                            Adicionar
-                          </Button>
-                          <Button type="button" variant="ghost" onClick={() => setShowAddVideo(null)} className="cursor-pointer">
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Video List */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {step.videos.map((video) => (
-                        <div key={video.id} className="relative group">
-                          <div className="aspect-video rounded-lg overflow-hidden bg-secondary">
-                            <img 
-                              src={video.thumbnailUrl || getYoutubeThumbnail(video.youtubeUrl)}
-                              alt={video.title}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.src = 'https://via.placeholder.com/320x180?text=Video';
-                              }}
-                            />
-                            <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Play className="w-8 h-8 text-primary" />
-                            </div>
-                          </div>
-                          <p className="text-sm font-medium mt-2 truncate">{video.title}</p>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteVideo(step.id, video.id)}
-                            className="absolute top-2 right-2 w-6 h-6 bg-destructive rounded-full items-center justify-center hidden group-hover:flex cursor-pointer"
-                          >
-                            <Trash2 className="w-3 h-3 text-destructive-foreground" />
-                          </button>
-                        </div>
-                      ))}
-                      {step.videos.length === 0 && (
-                        <p className="text-sm text-muted-foreground col-span-full text-center py-4">
-                          Nenhum vídeo nesta etapa
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          <ModuleManager 
+            downloadLink={settings.downloadLink}
+            onDownloadLinkChange={(link) => setSettings(prev => ({ ...prev, downloadLink: link }))}
+            onSaveSettings={handleSaveSettings}
+          />
         )}
 
         {/* Settings Tab */}
