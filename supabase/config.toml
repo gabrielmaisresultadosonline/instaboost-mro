@@ -64,3 +64,12 @@ verify_jwt = false
 
 [functions.admin-data-storage]
 verify_jwt = false
+
+[functions.register-paid-user]
+verify_jwt = false
+
+[functions.login-paid-user]
+verify_jwt = false
+
+[functions.kiwify-webhook]
+verify_jwt = false
