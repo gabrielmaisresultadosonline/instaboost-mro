@@ -115,7 +115,7 @@ serve(async (req) => {
     
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ['card', 'pix'],
+      payment_method_types: ['card'],
       line_items: [
         {
           price: "price_1ScYPiCFJxkRbtbVRjlYyDLW", // R$57/mês - Plano Premium
