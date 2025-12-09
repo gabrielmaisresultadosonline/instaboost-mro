@@ -35,7 +35,9 @@ interface CreativeRequest {
   logoUrl?: string;
   isManualMode?: boolean;
   customPrompt?: string;
-  variationSeed?: number; // For ensuring uniqueness
+  personPhotoBase64?: string;
+  includeText?: boolean;
+  variationSeed?: number;
 }
 
 serve(async (req) => {
@@ -44,7 +46,19 @@ serve(async (req) => {
   }
 
   try {
-    const { strategy, profile, niche, config, logoUrl, isManualMode, customPrompt, variationSeed }: CreativeRequest = await req.json();
+    const { 
+      strategy, 
+      profile, 
+      niche, 
+      config, 
+      logoUrl, 
+      isManualMode, 
+      customPrompt, 
+      personPhotoBase64,
+      includeText = true,
+      variationSeed 
+    }: CreativeRequest = await req.json();
+    
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -55,7 +69,8 @@ serve(async (req) => {
     }
 
     const mode = isManualMode ? 'manual' : 'estratégia';
-    console.log(`Gerando criativo para: ${profile.username} modo: ${mode} seed: ${variationSeed || 'none'}`);
+    const hasPersonPhoto = !!personPhotoBase64;
+    console.log(`Gerando criativo para: ${profile.username} modo: ${mode} seed: ${variationSeed || 'none'} hasPersonPhoto: ${hasPersonPhoto}`);
 
     // Get colors from config or use defaults
     const colors = config?.colors || { primary: '#1e40af', secondary: '#3b82f6', text: '#ffffff' };
@@ -173,6 +188,28 @@ Retorne JSON:
       ? customPrompt 
       : `${businessType} - ${strategy.type}: ${strategy.title}`;
 
+    // Person photo instructions if provided
+    const personInstructions = personPhotoBase64 
+      ? `
+PERSON IN IMAGE - CRITICAL:
+- Include the EXACT person from the reference photo in this creative
+- PRESERVE their face, physiognomy, and features IDENTICALLY - no changes to appearance
+- The person should be professionally posed and styled matching the ${businessType} context
+- Keep their natural skin tone, facial structure, and expression characteristics
+- Position the person prominently in the composition`
+      : '';
+
+    const textInstructions = includeText 
+      ? `
+LAYOUT STRUCTURE:
+- TOP: Clean gradient area for logo overlay (NO bars, NO rectangles)
+- CENTER: ${selectedPerspective} visual representing the business
+- BOTTOM 30%: Smooth gradient fade for text overlay (seamless, not a bar)`
+      : `
+LAYOUT STRUCTURE:
+- Image should fill ENTIRE space with visual content
+- Minimal space reserved for overlays`;
+
     const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image.
 
 CRITICAL QUALITY REQUIREMENTS:
@@ -186,6 +223,7 @@ CRITICAL QUALITY REQUIREMENTS:
 BUSINESS CONTEXT: ${businessType}
 CONTENT THEME: ${contentDescription}
 UNIQUE VARIATION: #${variationId % 1000} - This must look COMPLETELY DIFFERENT from any previous generation
+${personInstructions}
 
 COLOR PALETTE:
 - Dark elegant gradient base (NO solid color blocks or horizontal bars)
@@ -204,11 +242,7 @@ VISUAL CONTENT (BE UNIQUE):
 - Each generation must have DIFFERENT composition, subjects, and angles
 - DO NOT repeat patterns or concepts from other creatives
 - Fill ENTIRE image with rich, detailed visuals
-
-LAYOUT STRUCTURE:
-- TOP: Clean gradient area for logo overlay (NO bars, NO rectangles)
-- CENTER: ${selectedPerspective} visual representing the business
-- BOTTOM 30%: Smooth gradient fade for text overlay (seamless, not a bar)
+${textInstructions}
 
 ABSOLUTE RULES:
 - NO text in the image
@@ -218,6 +252,14 @@ ABSOLUTE RULES:
 - Aspect ratio: 1:1 SQUARE (1080x1080)
 - Image must extend EDGE TO EDGE with no visible boundaries
 - Background must be a seamless gradient, NOT solid blocks`;
+
+    // Build message content - include person photo if provided
+    const messageContent = personPhotoBase64 
+      ? [
+          { type: 'text', text: imagePrompt },
+          { type: 'image_url', image_url: { url: personPhotoBase64 } }
+        ]
+      : imagePrompt;
 
     const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -230,7 +272,7 @@ ABSOLUTE RULES:
         messages: [
           {
             role: 'user',
-            content: imagePrompt
+            content: messageContent
           }
         ],
         modalities: ['image', 'text']

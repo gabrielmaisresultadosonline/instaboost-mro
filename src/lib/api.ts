@@ -108,7 +108,9 @@ export const generateCreative = async (
   config?: CreativeConfig,
   logoUrl?: string,
   isManualMode?: boolean,
-  customPrompt?: string
+  customPrompt?: string,
+  personPhotoBase64?: string,
+  includeText?: boolean
 ): Promise<{
   success: boolean;
   creative?: Creative;
@@ -124,6 +126,8 @@ export const generateCreative = async (
         logoUrl,
         isManualMode,
         customPrompt,
+        personPhotoBase64,
+        includeText,
         variationSeed: Date.now() + Math.floor(Math.random() * 10000) // Ensure uniqueness
       }
     });

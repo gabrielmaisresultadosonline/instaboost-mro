@@ -53,8 +53,11 @@ export const CreativeGenerator = ({
   const [step, setStep] = useState<'config' | 'generating' | 'result'>('config');
   const [customPrompt, setCustomPrompt] = useState('');
   const [showCreditWarning, setShowCreditWarning] = useState(isManualMode);
+  const [personPhoto, setPersonPhoto] = useState<string | null>(null);
+  const [includeText, setIncludeText] = useState(true);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const personPhotoRef = useRef<HTMLInputElement>(null);
 
   const creditsNeeded = isManualMode ? 2 : 1;
   const hasEnoughCredits = creativesRemaining >= creditsNeeded;
@@ -113,6 +116,23 @@ export const CreativeGenerator = ({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const handlePersonPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setPersonPhoto(base64);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearPersonPhoto = () => {
+    setPersonPhoto(null);
+    if (personPhotoRef.current) personPhotoRef.current.value = '';
+  };
+
   const handleGenerateCreative = async () => {
     if (!hasEnoughCredits) {
       toast({
@@ -149,7 +169,9 @@ export const CreativeGenerator = ({
         config, 
         logoUrl,
         isManualMode,
-        customPrompt
+        customPrompt,
+        personPhoto || undefined,
+        includeText
       );
 
       if (result.success && result.creative) {
@@ -265,24 +287,90 @@ export const CreativeGenerator = ({
         {/* Step 1: Configuration */}
         {step === 'config' && (
           <div className="space-y-6">
-            {/* Custom Prompt for Manual Mode */}
+            {/* Custom Prompt and Photo Upload for Manual Mode */}
             {isManualMode && (
-              <div className="space-y-2">
-                <Label htmlFor="customPrompt" className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Seu Prompt Personalizado
-                </Label>
-                <textarea
-                  id="customPrompt"
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="Descreva o criativo que você deseja... Ex: Uma imagem de hambúrguer gourmet com queijo derretendo, ambiente escuro e elegante"
-                  className="w-full min-h-[100px] p-3 rounded-lg bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary resize-none"
-                  rows={4}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Descreva detalhadamente o que você quer ver no criativo
-                </p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customPrompt" className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Seu Prompt Personalizado
+                  </Label>
+                  <textarea
+                    id="customPrompt"
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="Descreva o criativo que você deseja... Ex: Uma imagem de hambúrguer gourmet com queijo derretendo, ambiente escuro e elegante"
+                    className="w-full min-h-[100px] p-3 rounded-lg bg-secondary/50 border border-border focus:border-primary focus:ring-1 focus:ring-primary resize-none"
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Descreva detalhadamente o que você quer ver no criativo
+                  </p>
+                </div>
+
+                {/* Person Photo Upload */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    Sua Foto (Opcional)
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Envie uma foto sua para aparecer no criativo com rosto e fisionomia idênticos
+                  </p>
+                  
+                  <div className="flex items-center gap-4">
+                    {personPhoto ? (
+                      <div className="relative group">
+                        <img 
+                          src={personPhoto} 
+                          alt="Sua foto" 
+                          className="w-20 h-20 rounded-lg object-cover border-2 border-primary"
+                        />
+                        <button
+                          type="button"
+                          onClick={clearPersonPhoto}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-destructive rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
+                        >
+                          <X className="w-4 h-4 text-destructive-foreground" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
+                        <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                        <span className="text-xs text-muted-foreground">Upload</span>
+                        <input
+                          ref={personPhotoRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePersonPhotoUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                    
+                    <div className="flex-1 text-sm text-muted-foreground">
+                      {personPhoto ? (
+                        <span className="text-success">✓ Foto carregada - será incluída no criativo</span>
+                      ) : (
+                        <span>A IA vai criar um criativo COM você na imagem, mantendo seu rosto idêntico</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Include Text Option */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                  <input
+                    type="checkbox"
+                    id="includeText"
+                    checked={includeText}
+                    onChange={(e) => setIncludeText(e.target.checked)}
+                    className="w-4 h-4 rounded border-border accent-primary"
+                  />
+                  <Label htmlFor="includeText" className="cursor-pointer text-sm">
+                    Incluir texto (headline e CTA) no criativo
+                  </Label>
+                </div>
               </div>
             )}
 
