@@ -190,7 +190,7 @@ export default function Membro() {
     setIsLoading(false);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!loginForm.email || !loginForm.password) {
@@ -205,31 +205,99 @@ export default function Membro() {
     setIsLoggingIn(true);
 
     try {
+      // First check in Supabase database
+      const { data: dbUser, error: dbError } = await supabase
+        .from('paid_users')
+        .select('*')
+        .eq('email', loginForm.email.toLowerCase())
+        .maybeSingle();
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+      }
+
+      // Also check localStorage for password (since we store it there for security)
+      const storedCredentials = localStorage.getItem('mro_paid_user_credentials');
+      let storedPassword = '';
+      if (storedCredentials) {
+        const creds = JSON.parse(storedCredentials);
+        if (creds.email.toLowerCase() === loginForm.email.toLowerCase()) {
+          storedPassword = creds.password;
+        }
+      }
+
+      // Also check legacy members storage
       const members = getPaidMembers();
-      const member = members.find(m => 
+      const legacyMember = members.find(m => 
         m.email.toLowerCase() === loginForm.email.toLowerCase() && 
         m.password === loginForm.password
       );
 
-      if (!member) {
+      // Validate password
+      const passwordMatch = loginForm.password === storedPassword || legacyMember;
+
+      if (!dbUser && !legacyMember) {
         toast({
-          title: "Credenciais inválidas",
-          description: "Email ou senha incorretos",
+          title: "Usuário não encontrado",
+          description: "Email não cadastrado. Crie uma conta primeiro.",
           variant: "destructive"
         });
         setIsLoggingIn(false);
         return;
       }
 
+      if (!passwordMatch) {
+        toast({
+          title: "Senha incorreta",
+          description: "Verifique sua senha e tente novamente",
+          variant: "destructive"
+        });
+        setIsLoggingIn(false);
+        return;
+      }
+
+      // Create member object from DB data or legacy data
+      let member: PaidMemberUser;
+      
+      if (dbUser) {
+        member = {
+          id: dbUser.id,
+          username: dbUser.username,
+          email: dbUser.email,
+          password: loginForm.password,
+          instagram_username: dbUser.instagram_username || undefined,
+          subscription_status: (dbUser.subscription_status as 'active' | 'pending' | 'expired') || 'pending',
+          subscription_end: dbUser.subscription_end || undefined,
+          strategies_generated: dbUser.strategies_generated || 0,
+          creatives_used: dbUser.creatives_used || 0,
+          created_at: dbUser.created_at
+        };
+      } else {
+        member = legacyMember!;
+      }
+
       // Check if subscription is still active
       if (member.subscription_end && new Date(member.subscription_end) < new Date()) {
         member.subscription_status = 'expired';
-        const updatedMembers = members.map(m => m.id === member.id ? member : m);
-        savePaidMembers(updatedMembers);
+        // Update in DB
+        if (dbUser) {
+          await supabase
+            .from('paid_users')
+            .update({ subscription_status: 'expired' })
+            .eq('id', dbUser.id);
+        }
       }
 
       setUser(member);
       saveCurrentMember(member);
+
+      // Save password to localStorage for future logins
+      localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
+        id: member.id,
+        email: member.email.toLowerCase(),
+        password: loginForm.password,
+        username: member.username
+      }));
 
       // Load saved data
       const savedStrategy = localStorage.getItem(`mro_strategy_${member.id}`);
@@ -272,16 +340,35 @@ export default function Membro() {
     });
   };
 
-  const updateMember = (updates: Partial<PaidMemberUser>) => {
+  const updateMember = async (updates: Partial<PaidMemberUser>) => {
     if (!user) return;
     
     const updatedUser = { ...user, ...updates };
     setUser(updatedUser);
     saveCurrentMember(updatedUser);
     
+    // Update in localStorage (legacy)
     const members = getPaidMembers();
     const updatedMembers = members.map(m => m.id === user.id ? updatedUser : m);
     savePaidMembers(updatedMembers);
+
+    // Update in Supabase database
+    try {
+      const dbUpdates: Record<string, any> = {};
+      if (updates.instagram_username !== undefined) dbUpdates.instagram_username = updates.instagram_username;
+      if (updates.strategies_generated !== undefined) dbUpdates.strategies_generated = updates.strategies_generated;
+      if (updates.creatives_used !== undefined) dbUpdates.creatives_used = updates.creatives_used;
+      if (updates.subscription_status !== undefined) dbUpdates.subscription_status = updates.subscription_status;
+      
+      if (Object.keys(dbUpdates).length > 0) {
+        await supabase
+          .from('paid_users')
+          .update(dbUpdates)
+          .eq('id', user.id);
+      }
+    } catch (error) {
+      console.error('Error updating user in database:', error);
+    }
   };
 
   const normalizeInstagram = (input: string): string => {

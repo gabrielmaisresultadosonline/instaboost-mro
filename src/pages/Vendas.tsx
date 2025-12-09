@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,10 +18,17 @@ import {
   Palette,
   BarChart3,
   Crown,
-  LogIn
+  LogIn,
+  Loader2,
+  User,
+  Mail,
+  Lock,
+  AtSign
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
+import { supabase } from "@/integrations/supabase/client";
+
 const benefits = [
   {
     icon: TrendingUp,
@@ -75,30 +82,52 @@ export default function Vendas() {
     instagram: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
 
   const canceled = searchParams.get('canceled');
 
   const handleStartRegistration = () => {
     setStep('register');
+    
+    // Scroll to form after state update
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    
     // Facebook Pixel - Initiate Checkout
     if (typeof window !== 'undefined' && (window as any).fbq) {
       (window as any).fbq('track', 'InitiateCheckout');
     }
   };
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.username || !formData.email || !formData.password) {
+    // Validation
+    if (!formData.username.trim()) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos para continuar",
+        title: "Nome obrigatório",
+        description: "Digite seu nome completo",
         variant: "destructive"
       });
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (!formData.email.trim() || !validateEmail(formData.email)) {
+      toast({
+        title: "Email inválido",
+        description: "Digite um email válido",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.password || formData.password.length < 6) {
       toast({
         title: "Senha muito curta",
         description: "A senha deve ter no mínimo 6 caracteres",
@@ -110,6 +139,75 @@ export default function Vendas() {
     setIsLoading(true);
 
     try {
+      // Check if user already exists
+      const { data: existingUser } = await supabase
+        .from('paid_users')
+        .select('id, email')
+        .eq('email', formData.email.toLowerCase())
+        .maybeSingle();
+
+      if (existingUser) {
+        toast({
+          title: "Email já cadastrado",
+          description: "Este email já possui uma conta. Faça login em vez de cadastrar.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Calculate subscription end date (30 days from now)
+      const subscriptionEnd = new Date();
+      subscriptionEnd.setDate(subscriptionEnd.getDate() + 30);
+
+      // Normalize Instagram username
+      let instagramUsername = formData.instagram.trim();
+      if (instagramUsername) {
+        instagramUsername = instagramUsername
+          .replace(/^@/, '')
+          .replace(/https?:\/\/(www\.)?instagram\.com\//, '')
+          .replace(/\/$/, '')
+          .toLowerCase();
+      }
+
+      // Create user in database
+      const { data: newUser, error: insertError } = await supabase
+        .from('paid_users')
+        .insert({
+          email: formData.email.toLowerCase(),
+          username: formData.username.trim(),
+          instagram_username: instagramUsername || null,
+          subscription_status: 'pending',
+          subscription_end: subscriptionEnd.toISOString(),
+          strategies_generated: 0,
+          creatives_used: 0
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating user:', insertError);
+        toast({
+          title: "Erro ao cadastrar",
+          description: "Não foi possível criar sua conta. Tente novamente.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Store password in localStorage for login (not in DB for security)
+      const paidUserCredentials = {
+        id: newUser.id,
+        email: formData.email.toLowerCase(),
+        password: formData.password,
+        username: formData.username.trim(),
+        instagram: instagramUsername,
+        createdAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('mro_paid_user_credentials', JSON.stringify(paidUserCredentials));
+      
       // Facebook Pixel - Lead
       if (typeof window !== 'undefined' && (window as any).fbq) {
         (window as any).fbq('track', 'Lead', {
@@ -119,27 +217,29 @@ export default function Vendas() {
         });
       }
 
-      // Store user data locally for pending registration
-      const pendingUser = {
-        email: formData.email,
-        username: formData.username,
-        password: formData.password,
-        instagram: formData.instagram,
-        createdAt: new Date().toISOString(),
-        status: 'pending_payment'
-      };
+      // Get Stripe payment link from localStorage (set by admin)
+      const stripePaymentLink = localStorage.getItem('mro_stripe_link');
       
-      localStorage.setItem('mro_pending_user', JSON.stringify(pendingUser));
-      
-      // Redirect to Stripe payment link (will be configured by admin)
-      const stripePaymentLink = localStorage.getItem('mro_stripe_link') || 'https://buy.stripe.com/test_placeholder';
-      
-      toast({
-        title: "Redirecionando para pagamento",
-        description: "Complete o pagamento para ativar seu acesso"
-      });
-      
-      window.open(stripePaymentLink, '_blank');
+      if (stripePaymentLink && stripePaymentLink !== 'https://buy.stripe.com/test_placeholder') {
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Redirecionando para pagamento..."
+        });
+        
+        // Add email to payment link for tracking
+        const paymentUrl = new URL(stripePaymentLink);
+        paymentUrl.searchParams.set('prefilled_email', formData.email.toLowerCase());
+        
+        window.open(paymentUrl.toString(), '_blank');
+      } else {
+        // No payment link configured - just redirect to member area
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Faça login para acessar sua conta."
+        });
+        
+        navigate('/membro');
+      }
       
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -211,6 +311,118 @@ export default function Vendas() {
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </section>
+
+      {/* Registration Form - Always visible when step is register */}
+      {step === 'register' && (
+        <section ref={formRef} className="container mx-auto px-4 py-8">
+          <Card className="max-w-lg mx-auto glass-card border-primary/30 shadow-lg shadow-primary/10">
+            <CardHeader className="text-center pb-4">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">Crie sua Conta</CardTitle>
+              <CardDescription className="text-base">
+                Preencha seus dados para começar a usar a I.A MRO
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    Seu Nome *
+                  </label>
+                  <Input
+                    placeholder="Digite seu nome completo"
+                    value={formData.username}
+                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                    className="h-12 bg-background/50"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    Seu Email *
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    className="h-12 bg-background/50"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-muted-foreground" />
+                    Sua Senha *
+                  </label>
+                  <Input
+                    type="password"
+                    placeholder="Mínimo 6 caracteres"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    className="h-12 bg-background/50"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <AtSign className="w-4 h-4 text-muted-foreground" />
+                    Instagram (opcional agora)
+                  </label>
+                  <Input
+                    placeholder="@seuinstagram ou link do perfil"
+                    value={formData.instagram}
+                    onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value }))}
+                    className="h-12 bg-background/50"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Você poderá adicionar após o pagamento
+                  </p>
+                </div>
+
+                <div className="pt-4">
+                  <Button 
+                    type="submit" 
+                    variant="gradient"
+                    className="w-full text-lg py-6 h-14"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        Pagar R$33 e Começar
+                        <Zap className="ml-2 h-5 w-5" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-center gap-6 pt-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-primary" />
+                    Pagamento Seguro
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    Acesso Imediato
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       {/* Benefits Grid */}
       <section className="container mx-auto px-4 py-16">
@@ -304,97 +516,6 @@ export default function Vendas() {
           </CardContent>
         </Card>
       </section>
-
-      {/* Registration Form */}
-      {step === 'register' && (
-        <section id="register" className="container mx-auto px-4 py-16">
-          <Card className="max-w-lg mx-auto glass-card border-primary/30">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Crie sua Conta</CardTitle>
-              <CardDescription>
-                Preencha seus dados para começar
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Seu Nome *</label>
-                  <Input
-                    placeholder="Digite seu nome completo"
-                    value={formData.username}
-                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Seu Email *</label>
-                  <Input
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Sua Senha *</label>
-                  <Input
-                    type="password"
-                    placeholder="Mínimo 6 caracteres"
-                    value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Instagram (opcional agora)
-                  </label>
-                  <Input
-                    placeholder="@seuinstagram ou link do perfil"
-                    value={formData.instagram}
-                    onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Você poderá adicionar após o pagamento
-                  </p>
-                </div>
-
-                <div className="pt-4">
-                  <Button 
-                    type="submit" 
-                    className="w-full text-lg py-6"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      "Processando..."
-                    ) : (
-                      <>
-                        Pagar R$33 e Começar
-                        <Zap className="ml-2 h-5 w-5" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-center gap-4 pt-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Shield className="w-4 h-4" />
-                    Pagamento Seguro
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    Acesso Imediato
-                  </div>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </section>
-      )}
 
       {/* CTA Final */}
       <section className="container mx-auto px-4 py-16 text-center">
