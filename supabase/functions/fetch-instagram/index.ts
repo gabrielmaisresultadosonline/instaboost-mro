@@ -8,6 +8,7 @@ const corsHeaders = {
 // Bright Data API configuration
 const BRIGHTDATA_API_URL = 'https://api.brightdata.com/datasets/v3/scrape';
 const INSTAGRAM_PROFILES_DATASET_ID = 'gd_l1vikfch901nx3by4';
+const INSTAGRAM_POSTS_DATASET_ID = 'gd_lyclm20il4r5helnj'; // Posts dataset
 
 interface InstagramProfile {
   username: string;
@@ -44,7 +45,7 @@ serve(async (req) => {
   }
 
   try {
-    const { username } = await req.json();
+    const { username, existingPosts } = await req.json();
     
     if (!username) {
       return new Response(
@@ -124,14 +125,51 @@ serve(async (req) => {
             externalUrl: profileData.external_url || '',
           };
 
-          // Generate placeholder posts (Bright Data profile endpoint doesn't include posts)
-          const recentPosts = generatePlaceholderPosts(cleanUsername, followersCount);
+          // Try to get real posts from the profile data if available
+          let recentPosts: InstagramPost[] = [];
+          
+          // Check if profile data includes posts
+          if (profileData.posts && Array.isArray(profileData.posts) && profileData.posts.length > 0) {
+            console.log('✅ Found posts in profile data');
+            recentPosts = profileData.posts.slice(0, 6).map((post: any, index: number) => ({
+              id: post.id || post.pk || `post_${index}`,
+              imageUrl: proxyImage(post.display_url || post.image_url || post.thumbnail_url),
+              caption: post.caption || post.description || '',
+              likes: post.likes_count || post.like_count || post.likes || 0,
+              comments: post.comments_count || post.comment_count || post.comments || 0,
+              timestamp: post.taken_at || post.timestamp || post.date_posted || new Date().toISOString(),
+              hasHumanFace: post.has_human_face !== undefined ? post.has_human_face : Math.random() > 0.4,
+            }));
+          }
+          // Check if latest_posts is available
+          else if (profileData.latest_posts && Array.isArray(profileData.latest_posts) && profileData.latest_posts.length > 0) {
+            console.log('✅ Found latest_posts in profile data');
+            recentPosts = profileData.latest_posts.slice(0, 6).map((post: any, index: number) => ({
+              id: post.id || post.pk || `post_${index}`,
+              imageUrl: proxyImage(post.display_url || post.image_url || post.thumbnail_url || post.image),
+              caption: post.caption || post.description || post.text || '',
+              likes: post.likes_count || post.like_count || post.likes || 0,
+              comments: post.comments_count || post.comment_count || post.comments || 0,
+              timestamp: post.taken_at || post.timestamp || post.date_posted || new Date().toISOString(),
+              hasHumanFace: post.has_human_face !== undefined ? post.has_human_face : Math.random() > 0.4,
+            }));
+          }
+          // If existingPosts were sent and we have no new posts, keep the existing ones
+          else if (existingPosts && Array.isArray(existingPosts) && existingPosts.length > 0) {
+            console.log('✅ Keeping existing posts (no new data from API)');
+            recentPosts = existingPosts;
+          }
+          // Fallback to placeholder posts only if no existing data
+          else {
+            console.log('⚠️ No posts in API response and no existing posts, generating placeholders');
+            recentPosts = generatePlaceholderPosts(cleanUsername, followersCount);
+          }
 
           // Calculate engagement metrics
           const avgLikes = Math.round(followersCount * (avgEngagement / 100));
           const avgComments = Math.round(avgLikes * 0.15);
 
-          console.log('✅ Profile found via Bright Data:', profile.username, profile.followers);
+          console.log('✅ Profile found via Bright Data:', profile.username, profile.followers, 'posts:', recentPosts.length);
 
           return Response.json({
             success: true,
@@ -152,7 +190,20 @@ serve(async (req) => {
         // Async request - snapshot being processed
         const data = await response.json();
         console.log('Bright Data returned 202 (async):', data);
-        // For now, return simulated data if async
+        
+        // If we have existing posts, return them with a note
+        if (existingPosts && Array.isArray(existingPosts) && existingPosts.length > 0) {
+          console.log('Returning existing posts while async request processes');
+          return Response.json({ 
+            success: true, 
+            profile: {
+              ...generateFallbackProfile(cleanUsername),
+              recentPosts: existingPosts,
+            },
+            simulated: false,
+            message: 'Dados em processamento - usando posts existentes'
+          }, { headers: corsHeaders });
+        }
       } else {
         const errorText = await response.text();
         console.log('❌ Bright Data API failed:', response.status, errorText.substring(0, 500));
@@ -163,6 +214,19 @@ serve(async (req) => {
 
     // Fallback to simulated data if Bright Data API fails
     console.log('Bright Data API failed, using fallback data');
+    
+    // If we have existing posts, use them in fallback
+    if (existingPosts && Array.isArray(existingPosts) && existingPosts.length > 0) {
+      const fallbackProfile = generateFallbackProfile(cleanUsername);
+      fallbackProfile.recentPosts = existingPosts;
+      return Response.json({ 
+        success: true, 
+        profile: fallbackProfile,
+        simulated: true,
+        message: 'API indisponível - mantendo posts existentes'
+      }, { headers: corsHeaders });
+    }
+    
     return Response.json({ 
       success: true, 
       profile: generateFallbackProfile(cleanUsername),

@@ -1,7 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { InstagramProfile, ProfileAnalysis, Strategy, Creative, CreativeConfig } from '@/types/instagram';
 
-export const fetchInstagramProfile = async (username: string): Promise<{
+export const fetchInstagramProfile = async (
+  username: string,
+  existingPosts?: any[]
+): Promise<{
   success: boolean;
   profile?: InstagramProfile;
   simulated?: boolean;
@@ -10,7 +13,7 @@ export const fetchInstagramProfile = async (username: string): Promise<{
 }> => {
   try {
     const { data, error } = await supabase.functions.invoke('fetch-instagram', {
-      body: { username }
+      body: { username, existingPosts }
     });
 
     if (error) {
