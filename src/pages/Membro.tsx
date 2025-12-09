@@ -171,9 +171,9 @@ export default function Membro() {
         // Facebook Pixel - Purchase
         if (typeof window !== 'undefined' && (window as any).fbq) {
           (window as any).fbq('track', 'Purchase', {
-            value: 33.00,
+            value: 57.00,
             currency: 'BRL',
-            content_name: 'Plano Mensal I.A MRO'
+            content_name: 'Plano Mensal I.A MRO Premium'
           });
         }
 
@@ -285,9 +285,9 @@ export default function Membro() {
     // Facebook Pixel - Purchase
     if (typeof window !== 'undefined' && (window as any).fbq) {
       (window as any).fbq('track', 'Purchase', {
-        value: 33.00,
+        value: 57.00,
         currency: 'BRL',
-        content_name: 'Plano Mensal I.A MRO'
+        content_name: 'Plano Mensal I.A MRO Premium'
       });
     }
 
@@ -714,7 +714,7 @@ export default function Membro() {
                       onClick={() => navigate('/vendas')}
                       className="text-primary hover:underline font-medium"
                     >
-                      Criar agora por R$33/mês
+                      Criar agora por R$57/mês
                     </button>
                   </p>
                 </div>
@@ -758,7 +758,7 @@ export default function Membro() {
                   <p className="text-sm text-muted-foreground mb-2">Plano Mensal</p>
                   <div className="flex items-center justify-center gap-2">
                     <span className="text-muted-foreground text-lg line-through">R$ 197</span>
-                    <span className="text-4xl font-bold text-primary">R$ 33</span>
+                    <span className="text-4xl font-bold text-primary">R$ 57</span>
                     <span className="text-muted-foreground">/mês</span>
                   </div>
                 </div>
@@ -800,7 +800,7 @@ export default function Membro() {
                   ) : (
                     <>
                       <Zap className="w-5 h-5 mr-2" />
-                      Pagar R$33 e Ativar Acesso
+                      Pagar R$57 e Ativar Acesso
                     </>
                   )}
                 </Button>
@@ -850,7 +850,7 @@ export default function Membro() {
                 </>
               ) : (
                 <>
-                  Renovar por R$33/mês
+                  Renovar por R$57/mês
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}

@@ -221,7 +221,7 @@ export default function SalesDashboard() {
               Link de Pagamento Stripe
             </CardTitle>
             <CardDescription>
-              Configure o link de pagamento para o plano R$33/mês
+              Configure o link de pagamento para o plano R$57/mês
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -337,7 +337,7 @@ src="https://www.facebook.com/tr?id=${pixelConfig.pixelId}&ev=PageView&noscript=
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Users className="w-5 h-5" />
-            Membros do Plano R$33/mês
+            Membros do Plano R$57/mês
           </h2>
           <div className="flex items-center gap-3">
             <Button

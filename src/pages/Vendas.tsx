@@ -281,7 +281,7 @@ export default function Vendas() {
 
         <div className="flex items-center justify-center gap-2 text-3xl md:text-4xl font-bold text-primary mb-8">
           <span className="text-muted-foreground text-lg line-through">R$ 197</span>
-          <span>R$ 33</span>
+          <span>R$ 57</span>
           <span className="text-lg font-normal text-muted-foreground">/mês</span>
         </div>
 
@@ -451,7 +451,7 @@ export default function Vendas() {
             <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto mb-4">
               2
             </div>
-            <h3 className="text-xl font-semibold mb-2">Pague R$33</h3>
+            <h3 className="text-xl font-semibold mb-2">Pague R$57</h3>
             <p className="text-muted-foreground">Via Pix ou cartão - acesso imediato</p>
           </div>
           
@@ -512,7 +512,7 @@ export default function Vendas() {
           Transforme seu Instagram hoje
         </h2>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Por apenas R$33/mês, tenha acesso a estratégias profissionais e criativos 
+          Por apenas R$57/mês, tenha acesso a estratégias profissionais e criativos 
           gerados por inteligência artificial.
         </p>
         
@@ -522,7 +522,7 @@ export default function Vendas() {
             className="text-lg px-8 py-6"
             onClick={handleStartRegistration}
           >
-            Começar Agora por R$33/mês
+            Começar Agora por R$57/mês
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         )}
