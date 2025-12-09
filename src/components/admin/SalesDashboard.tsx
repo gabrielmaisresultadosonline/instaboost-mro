@@ -267,7 +267,7 @@ export default function SalesDashboard() {
               <ol className="list-decimal list-inside space-y-1 ml-2">
                 <li>Acesse o painel da Kiwify → Configurações → Webhooks</li>
                 <li>Clique em "Criar webhook"</li>
-                <li>Nome: <span className="font-mono bg-secondary px-1 rounded">MRO MENSAL</span></li>
+                <li>Nome: <span className="font-mono bg-secondary px-1 rounded">ÁREA MENSAL</span></li>
                 <li>Cole a URL acima no campo "URL do Webhook"</li>
                 <li>Evento: <span className="font-mono bg-secondary px-1 rounded">Compra aprovada</span></li>
                 <li>Salve e teste</li>
