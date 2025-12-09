@@ -17,15 +17,16 @@ import ModuleManager from '@/components/admin/ModuleManager';
 import SnapshotGenerator from '@/components/admin/SnapshotGenerator';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import ProfileActions from '@/components/admin/ProfileActions';
+import SalesDashboard from '@/components/admin/SalesDashboard';
 import { 
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, CheckCircle, XCircle
+  Instagram, CheckCircle, XCircle, DollarSign
 } from 'lucide-react';
 
-type Tab = 'users' | 'analytics' | 'sync' | 'tutorials' | 'settings';
+type Tab = 'users' | 'analytics' | 'sync' | 'tutorials' | 'sales' | 'settings';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -159,6 +160,7 @@ const Admin = () => {
 
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
+    { id: 'sales', label: 'Vendas', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
@@ -764,6 +766,11 @@ const Admin = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* Sales Tab */}
+        {activeTab === 'sales' && (
+          <SalesDashboard />
         )}
 
         {/* Analytics Tab */}
