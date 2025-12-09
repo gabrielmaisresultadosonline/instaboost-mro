@@ -125,12 +125,11 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
 
     const normalizedIG = normalizeInstagramUsername(instagramInput);
     
-    // Check if already registered locally
+    // Check if already registered locally - if so, no need to do anything
     if (isIGRegistered(normalizedIG)) {
       toast({ 
-        title: 'Perfil já cadastrado', 
-        description: 'Este Instagram já está vinculado à sua conta',
-        variant: 'destructive'
+        title: 'Perfil já sincronizado', 
+        description: 'Este perfil já está no seu painel',
       });
       return;
     }
