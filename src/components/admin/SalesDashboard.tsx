@@ -22,7 +22,10 @@ import {
   Trash2,
   ExternalLink,
   Code,
-  Instagram
+  Instagram,
+  Webhook,
+  Copy,
+  Link
 } from 'lucide-react';
 
 interface PaidMemberUser {
@@ -48,7 +51,10 @@ interface PixelConfig {
 
 const PAID_MEMBERS_KEY = 'mro_paid_members';
 const PIXEL_CONFIG_KEY = 'mro_pixel_config';
-const STRIPE_LINK_KEY = 'mro_stripe_link';
+const KIWIFY_CONFIG_KEY = 'mro_kiwify_config';
+
+// Webhook URL for Kiwify
+const WEBHOOK_URL = 'https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/kiwify-webhook';
 
 const getPaidMembers = (): PaidMemberUser[] => {
   const stored = localStorage.getItem(PAID_MEMBERS_KEY);
@@ -71,12 +77,21 @@ const savePixelConfig = (config: PixelConfig) => {
   localStorage.setItem(PIXEL_CONFIG_KEY, JSON.stringify(config));
 };
 
-const getStripeLink = (): string => {
-  return localStorage.getItem(STRIPE_LINK_KEY) || '';
+interface KiwifyConfig {
+  checkoutLink: string;
+  webhookToken: string;
+}
+
+const getKiwifyConfig = (): KiwifyConfig => {
+  const stored = localStorage.getItem(KIWIFY_CONFIG_KEY);
+  return stored ? JSON.parse(stored) : {
+    checkoutLink: 'https://pay.kiwify.com.br/k2JBcgI',
+    webhookToken: ''
+  };
 };
 
-const saveStripeLink = (link: string) => {
-  localStorage.setItem(STRIPE_LINK_KEY, link);
+const saveKiwifyConfig = (config: KiwifyConfig) => {
+  localStorage.setItem(KIWIFY_CONFIG_KEY, JSON.stringify(config));
 };
 
 export default function SalesDashboard() {
@@ -85,7 +100,7 @@ export default function SalesDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [pixelConfig, setPixelConfig] = useState<PixelConfig>(getPixelConfig());
-  const [stripeLink, setStripeLink] = useState(getStripeLink());
+  const [kiwifyConfig, setKiwifyConfig] = useState<KiwifyConfig>(getKiwifyConfig());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
@@ -162,9 +177,14 @@ export default function SalesDashboard() {
     toast({ title: "Pixel salvo!", description: "Configuração do Facebook Pixel atualizada" });
   };
 
-  const handleSaveStripeLink = () => {
-    saveStripeLink(stripeLink);
-    toast({ title: "Link salvo!", description: "Link de pagamento Stripe atualizado" });
+  const handleSaveKiwifyConfig = () => {
+    saveKiwifyConfig(kiwifyConfig);
+    toast({ title: "Configuração salva!", description: "Kiwify configurada com sucesso" });
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copiado!", description: `${label} copiada para área de transferência` });
   };
 
   const filteredMembers = members.filter(m =>
@@ -212,35 +232,89 @@ export default function SalesDashboard() {
       </div>
 
       {/* Pixel & Stripe Config */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Stripe Link */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-green-500" />
-              Link de Pagamento Stripe
-            </CardTitle>
-            <CardDescription>
-              Configure o link de pagamento para o plano R$57/mês
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      {/* Kiwify Webhook Config */}
+      <Card className="glass-card border-green-500/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Webhook className="w-5 h-5 text-green-500" />
+            Configuração Kiwify - Webhook
+          </CardTitle>
+          <CardDescription>
+            Configure o webhook na Kiwify para ativar assinaturas automaticamente
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg space-y-3">
             <div>
-              <Label>URL do Checkout Stripe</Label>
+              <Label className="text-xs text-muted-foreground">URL do Webhook (copie e cole na Kiwify)</Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  value={WEBHOOK_URL}
+                  readOnly
+                  className="bg-background/50 font-mono text-xs"
+                />
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => copyToClipboard(WEBHOOK_URL, 'URL do Webhook')}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p className="font-medium text-foreground">Como configurar na Kiwify:</p>
+              <ol className="list-decimal list-inside space-y-1 ml-2">
+                <li>Acesse o painel da Kiwify → Configurações → Webhooks</li>
+                <li>Clique em "Criar webhook"</li>
+                <li>Nome: <span className="font-mono bg-secondary px-1 rounded">MRO MENSAL</span></li>
+                <li>Cole a URL acima no campo "URL do Webhook"</li>
+                <li>Evento: <span className="font-mono bg-secondary px-1 rounded">Compra aprovada</span></li>
+                <li>Salve e teste</li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Link de Checkout Kiwify</Label>
               <Input
-                value={stripeLink}
-                onChange={(e) => setStripeLink(e.target.value)}
-                placeholder="https://buy.stripe.com/..."
+                value={kiwifyConfig.checkoutLink}
+                onChange={(e) => setKiwifyConfig(prev => ({ ...prev, checkoutLink: e.target.value }))}
+                placeholder="https://pay.kiwify.com.br/..."
                 className="mt-1"
               />
             </div>
-            <Button onClick={handleSaveStripeLink} className="w-full gap-2">
-              <Save className="w-4 h-4" />
-              Salvar Link
-            </Button>
-          </CardContent>
-        </Card>
+            <div>
+              <Label>Token do Webhook (opcional)</Label>
+              <Input
+                value={kiwifyConfig.webhookToken}
+                onChange={(e) => setKiwifyConfig(prev => ({ ...prev, webhookToken: e.target.value }))}
+                placeholder="Token de segurança"
+                className="mt-1"
+              />
+            </div>
+          </div>
 
+          <div className="flex gap-2">
+            <Button onClick={handleSaveKiwifyConfig} className="flex-1 gap-2">
+              <Save className="w-4 h-4" />
+              Salvar Configuração
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => window.open(kiwifyConfig.checkoutLink, '_blank')}
+              className="gap-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Testar Checkout
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pixel Config */}
+      <div className="grid md:grid-cols-2 gap-6">
         {/* Facebook Pixel */}
         <Card className="glass-card">
           <CardHeader>
