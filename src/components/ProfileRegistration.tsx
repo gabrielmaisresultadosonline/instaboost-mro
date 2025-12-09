@@ -33,6 +33,11 @@ import {
   syncIGsFromSquare,
   getRegisteredIGs
 } from '@/lib/userStorage';
+import { 
+  getArchivedByUsername, 
+  restoreProfileFromArchive,
+  addProfile 
+} from '@/lib/storage';
 import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
@@ -94,7 +99,33 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
 
       updateUserEmail(email);
       
-      // Sync this single IG
+      // Check if profile was previously archived (has saved data)
+      const archivedProfile = getArchivedByUsername(pendingSyncIG);
+      
+      if (archivedProfile) {
+        // Restore from archive - keeps strategies, creatives, credits, etc.
+        setLoadingMessage('Restaurando dados salvos...');
+        const restored = restoreProfileFromArchive(pendingSyncIG);
+        
+        if (restored) {
+          syncIGsFromSquare([pendingSyncIG], email);
+          setRegisteredIGs(prev => [...prev, pendingSyncIG]);
+          
+          toast({
+            title: 'Perfil restaurado!',
+            description: `@${pendingSyncIG} foi restaurado com todos os dados anteriores`
+          });
+          
+          onSyncComplete([pendingSyncIG]);
+          setPendingSyncIG('');
+          setInstagramInput('');
+          setIsLoading(false);
+          setLoadingMessage('');
+          return;
+        }
+      }
+      
+      // No archived data - just sync normally
       syncIGsFromSquare([pendingSyncIG], email);
       setRegisteredIGs(prev => [...prev, pendingSyncIG]);
       
