@@ -70,10 +70,43 @@ export const createSnapshot = (profile: InstagramProfile): GrowthSnapshot => ({
   engagement: profile.engagement,
 });
 
+// Flag to prevent circular sync calls
+let isSyncingToServer = false;
+
+// Callback to sync to server (set by persistentStorage)
+let serverSyncCallback: ((username: string) => Promise<void>) | null = null;
+
+export const setServerSyncCallback = (callback: (username: string) => Promise<void>) => {
+  serverSyncCallback = callback;
+};
+
+// Get logged in username from userStorage
+const getLoggedUsername = (): string => {
+  try {
+    const stored = localStorage.getItem('mro_user_session');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.user?.username || 'anonymous';
+    }
+  } catch {}
+  return 'anonymous';
+};
+
 export const saveSession = (session: MROSession): void => {
   session.lastUpdated = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   console.log(`💾 Sessão salva: ${session.profiles.length} perfis`);
+  
+  // Auto-sync to server in background (only if not already syncing)
+  if (serverSyncCallback && !isSyncingToServer) {
+    const username = getLoggedUsername();
+    if (username !== 'anonymous') {
+      isSyncingToServer = true;
+      serverSyncCallback(username).finally(() => {
+        isSyncingToServer = false;
+      });
+    }
+  }
 };
 
 export const getActiveProfile = (): ProfileSession | null => {
