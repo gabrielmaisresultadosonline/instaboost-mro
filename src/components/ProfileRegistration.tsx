@@ -67,7 +67,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
     // Load registered IGs
     const igs = getRegisteredIGs();
     setRegisteredIGs(igs.map(ig => ig.username));
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, user?.username]);
 
   // Handle syncing a single profile that already exists in SquareCloud
   const handleSyncSingleProfile = async () => {
@@ -124,15 +125,6 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
     }
 
     const normalizedIG = normalizeInstagramUsername(instagramInput);
-    
-    // Check if already registered locally - if so, no need to do anything
-    if (isIGRegistered(normalizedIG)) {
-      toast({ 
-        title: 'Perfil já sincronizado', 
-        description: 'Este perfil já está no seu painel',
-      });
-      return;
-    }
 
     setIsLoading(true);
 
@@ -142,7 +134,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
       
       const checkResult = await canRegisterIG(user.username, normalizedIG);
       
-      // Case 1: Profile already exists in SquareCloud - offer sync
+      // Case 1: Profile already exists in SquareCloud - offer sync (even if it was removed from local)
       if (checkResult.alreadyExists) {
         setPendingSyncIG(normalizedIG);
         setShowSyncOfferDialog(true);
