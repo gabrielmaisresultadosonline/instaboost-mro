@@ -14,7 +14,8 @@ import {
   stopSync,
   pauseSync,
   resumeSync,
-  shouldAutoSync
+  shouldAutoSync,
+  forceSyncToServer
 } from '@/lib/syncStorage';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -346,20 +347,34 @@ const SyncDashboard = () => {
   };
 
   // Handle stop (saves progress - perfis já sincronizados NUNCA são perdidos)
-  const handleStop = () => {
+  const handleStop = async () => {
     syncAbortedRef.current = true;
     stopSync();
     
-    // Garantir que os dados estão salvos
+    // Garantir que os dados estão salvos NO SERVIDOR
     const finalData = getSyncData();
     setSyncData(finalData);
     setIsSyncing(false);
     
+    // Forçar sync com servidor
+    await forceSyncToServer();
+    
     const savedCount = finalData.profiles.length;
     toast({ 
-      title: "Sincronização parada e salva!", 
-      description: `${savedCount} perfis salvos permanentemente. Dados não serão perdidos.` 
+      title: "Sincronização parada e salva no servidor!", 
+      description: `${savedCount} perfis salvos permanentemente. Dados disponíveis em qualquer lugar.` 
     });
+  };
+
+  // Force sync to server button
+  const handleForceSaveToServer = async () => {
+    toast({ title: "Salvando no servidor...", description: "Aguarde..." });
+    const success = await forceSyncToServer();
+    if (success) {
+      toast({ title: "Dados salvos no servidor!", description: "Todos os perfis estão seguros." });
+    } else {
+      toast({ title: "Erro ao salvar", description: "Tente novamente", variant: "destructive" });
+    }
   };
 
   // Get top growing profiles for slider
@@ -481,13 +496,23 @@ const SyncDashboard = () => {
                 </Button>
               </>
             ) : (
-              <Button 
-                onClick={startFullSync}
-                className="cursor-pointer"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Sincronizar Usuários
-              </Button>
+              <>
+                <Button 
+                  onClick={startFullSync}
+                  className="cursor-pointer"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Sincronizar (Apenas Novos)
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={handleForceSaveToServer}
+                  className="cursor-pointer"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Salvar no Servidor
+                </Button>
+              </>
             )}
           </div>
         </div>
