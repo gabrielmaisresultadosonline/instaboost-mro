@@ -13,19 +13,15 @@ import {
   CheckCircle2, 
   Instagram, 
   ArrowRight,
-  MessageCircle,
-  Star,
   Shield,
   Clock,
   Palette,
   BarChart3,
-  Heart,
-  Crown
+  Crown,
+  LogIn
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
-
 const benefits = [
   {
     icon: TrendingUp,
@@ -75,6 +71,7 @@ export default function Vendas() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
+    password: '',
     instagram: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -92,10 +89,19 @@ export default function Vendas() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.username || !formData.email) {
+    if (!formData.username || !formData.email || !formData.password) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha seu nome e email para continuar",
+        description: "Preencha todos os campos para continuar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Senha muito curta",
+        description: "A senha deve ter no mínimo 6 caracteres",
         variant: "destructive"
       });
       return;
@@ -113,38 +119,30 @@ export default function Vendas() {
         });
       }
 
-      const { data, error } = await supabase.functions.invoke('create-subscription', {
-        body: {
-          email: formData.email,
-          username: formData.username,
-          instagram_username: formData.instagram || null
-        }
+      // Store user data locally for pending registration
+      const pendingUser = {
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+        instagram: formData.instagram,
+        createdAt: new Date().toISOString(),
+        status: 'pending_payment'
+      };
+      
+      localStorage.setItem('mro_pending_user', JSON.stringify(pendingUser));
+      
+      // Redirect to Stripe payment link (will be configured by admin)
+      const stripePaymentLink = localStorage.getItem('mro_stripe_link') || 'https://buy.stripe.com/test_placeholder';
+      
+      toast({
+        title: "Redirecionando para pagamento",
+        description: "Complete o pagamento para ativar seu acesso"
       });
-
-      if (error) throw error;
-
-      if (data.redirect) {
-        navigate(data.redirect);
-        return;
-      }
-
-      if (data.url) {
-        // Store user data temporarily
-        localStorage.setItem('mro_pending_user', JSON.stringify({
-          email: formData.email,
-          username: formData.username,
-          instagram: formData.instagram
-        }));
-        
-        window.open(data.url, '_blank');
-        
-        toast({
-          title: "Redirecionando para pagamento",
-          description: "Complete o pagamento na nova aba para ativar seu acesso"
-        });
-      }
+      
+      window.open(stripePaymentLink, '_blank');
+      
     } catch (error: any) {
-      console.error('Subscription error:', error);
+      console.error('Registration error:', error);
       toast({
         title: "Erro ao processar",
         description: error.message || "Tente novamente em alguns instantes",
@@ -163,8 +161,16 @@ export default function Vendas() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-between">
           <Logo size="lg" />
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/membro')}
+            className="gap-2"
+          >
+            <LogIn className="w-4 h-4" />
+            Acessar / Login
+          </Button>
         </div>
       </header>
 
@@ -185,7 +191,7 @@ export default function Vendas() {
         </p>
 
         <div className="flex items-center justify-center gap-2 text-3xl md:text-4xl font-bold text-primary mb-8">
-          <span className="text-muted-foreground text-lg line-through">R$ 97</span>
+          <span className="text-muted-foreground text-lg line-through">R$ 197</span>
           <span>R$ 33</span>
           <span className="text-lg font-normal text-muted-foreground">/mês</span>
         </div>
@@ -328,6 +334,17 @@ export default function Vendas() {
                     placeholder="seu@email.com"
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Sua Senha *</label>
+                  <Input
+                    type="password"
+                    placeholder="Mínimo 6 caracteres"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                     required
                   />
                 </div>
