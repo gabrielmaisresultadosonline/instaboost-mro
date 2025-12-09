@@ -96,14 +96,15 @@ const MROFerramenta = () => {
                   <p className="text-muted-foreground">Nenhum módulo disponível ainda</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
                   {adminData.modules.sort((a, b) => a.order - b.order).map((module) => (
                     <div 
                       key={module.id}
                       className="group cursor-pointer"
                       onClick={() => handleModuleClick(module)}
                     >
-                      <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary border-2 border-transparent group-hover:border-primary transition-all duration-300 shadow-lg group-hover:shadow-xl group-hover:shadow-primary/20">
+                      {/* Aspect ratio 1080x1350 = 4:5 */}
+                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-secondary border-2 border-transparent group-hover:border-primary transition-all duration-300 shadow-lg group-hover:shadow-xl group-hover:shadow-primary/20">
                         {module.coverUrl ? (
                           <img 
                             src={module.coverUrl}
@@ -130,8 +131,8 @@ const MROFerramenta = () => {
 
                         {/* Hover overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                          <div className="flex items-center gap-2 text-primary font-medium">
-                            <ChevronRight className="w-5 h-5" />
+                          <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                            <ChevronRight className="w-4 h-4" />
                             Ver conteúdo
                           </div>
                         </div>
@@ -141,9 +142,9 @@ const MROFerramenta = () => {
                           {module.contents.length} itens
                         </div>
                       </div>
-                      <h3 className="font-semibold mt-3 group-hover:text-primary transition-colors">{module.title}</h3>
+                      <h3 className="font-semibold mt-3 text-sm md:text-base group-hover:text-primary transition-colors line-clamp-2">{module.title}</h3>
                       {module.description && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{module.description}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">{module.description}</p>
                       )}
                     </div>
                   ))}
@@ -162,7 +163,7 @@ const MROFerramenta = () => {
                   </span>
                 )}
                 <div>
-                  <h1 className="text-3xl font-display font-bold">{selectedModule.title}</h1>
+                  <h1 className="text-2xl md:text-3xl font-display font-bold">{selectedModule.title}</h1>
                   {selectedModule.description && (
                     <p className="text-muted-foreground mt-1">{selectedModule.description}</p>
                   )}
@@ -175,7 +176,7 @@ const MROFerramenta = () => {
                   <p className="text-muted-foreground">Nenhum conteúdo neste módulo</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                   {selectedModule.contents.sort((a, b) => a.order - b.order).map((content, idx) => (
                     <div 
                       key={content.id}
@@ -184,19 +185,20 @@ const MROFerramenta = () => {
                     >
                       {content.type === 'video' ? (
                         <>
-                          <div className="relative aspect-video rounded-lg overflow-hidden bg-secondary border-2 border-transparent group-hover:border-primary transition-all duration-300">
+                          {/* Aspect ratio 1080x1350 = 4:5 */}
+                          <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-secondary border-2 border-transparent group-hover:border-primary transition-all duration-300">
                             <img 
                               src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
                               alt={content.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
-                                e.currentTarget.src = 'https://via.placeholder.com/320x180?text=Video';
+                                e.currentTarget.src = 'https://via.placeholder.com/1080x1350?text=Video';
                               }}
                             />
                             
                             {/* Number badge */}
                             {(content as ModuleVideo).showNumber && (
-                              <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-lg">
+                              <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-lg">
                                 {getVideoIndex(selectedModule, content.id)}
                               </div>
                             )}
@@ -210,14 +212,14 @@ const MROFerramenta = () => {
                           </div>
                         </>
                       ) : (
-                        <div className="relative aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center border-2 border-transparent group-hover:border-primary transition-all duration-300">
+                        <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center border-2 border-transparent group-hover:border-primary transition-all duration-300">
                           <Type className="w-10 h-10 text-muted-foreground group-hover:text-primary transition-colors" />
-                          <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-muted-foreground/30 text-foreground flex items-center justify-center text-sm font-bold">
+                          <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-muted-foreground/30 text-foreground flex items-center justify-center text-sm font-bold">
                             {idx + 1}
                           </div>
                         </div>
                       )}
-                      <h3 className="font-medium mt-3 group-hover:text-primary transition-colors">{content.title}</h3>
+                      <h3 className="font-medium mt-3 text-sm group-hover:text-primary transition-colors line-clamp-2">{content.title}</h3>
                       <p className="text-xs text-muted-foreground">
                         {content.type === 'video' ? 'Vídeo' : 'Texto'}
                       </p>

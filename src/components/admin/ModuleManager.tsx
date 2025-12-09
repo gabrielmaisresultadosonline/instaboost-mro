@@ -4,16 +4,18 @@ import {
   addVideoToModule, addTextToModule, deleteContent, updateContent,
   TutorialModule, ModuleContent, ModuleVideo, ModuleText, getYoutubeThumbnail
 } from '@/lib/adminConfig';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import CoverUploader from './CoverUploader';
 import { 
   Plus, Trash2, Save, Check, X, Play, Video, Type, 
-  ChevronDown, ChevronUp, GripVertical, Image as ImageIcon,
-  Edit2, Eye
+  ChevronDown, ChevronUp, Image as ImageIcon,
+  Edit2
 } from 'lucide-react';
 
 interface ModuleManagerProps {
@@ -21,6 +23,20 @@ interface ModuleManagerProps {
   onDownloadLinkChange: (link: string) => void;
   onSaveSettings: () => void;
 }
+
+// Helper to delete storage file
+const deleteStorageFile = async (url: string) => {
+  if (url && url.includes('supabase.co/storage')) {
+    try {
+      const match = url.match(/\/storage\/v1\/object\/public\/assets\/(.+)/);
+      if (match) {
+        await supabase.storage.from('assets').remove([match[1]]);
+      }
+    } catch (e) {
+      console.error('Error deleting file:', e);
+    }
+  }
+};
 
 const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: ModuleManagerProps) => {
   const { toast } = useToast();
@@ -78,8 +94,19 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     toast({ title: "Módulo atualizado!" });
   };
 
-  const handleDeleteModule = (moduleId: string) => {
+  const handleDeleteModule = async (moduleId: string) => {
     if (confirm('Tem certeza que deseja excluir este módulo e todo seu conteúdo?')) {
+      const module = adminData.modules.find(m => m.id === moduleId);
+      if (module) {
+        // Delete module cover from storage
+        await deleteStorageFile(module.coverUrl);
+        // Delete all content covers from storage
+        for (const content of module.contents) {
+          if (content.type === 'video') {
+            await deleteStorageFile((content as ModuleVideo).thumbnailUrl);
+          }
+        }
+      }
       deleteModule(moduleId);
       refreshData();
       toast({ title: "Módulo excluído!" });
@@ -117,8 +144,13 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     toast({ title: "Texto adicionado!" });
   };
 
-  const handleDeleteContent = (moduleId: string, contentId: string) => {
+  const handleDeleteContent = async (moduleId: string, contentId: string) => {
     if (confirm('Excluir este conteúdo?')) {
+      const module = adminData.modules.find(m => m.id === moduleId);
+      const content = module?.contents.find(c => c.id === contentId);
+      if (content && content.type === 'video') {
+        await deleteStorageFile((content as ModuleVideo).thumbnailUrl);
+      }
       deleteContent(moduleId, contentId);
       refreshData();
       toast({ title: "Conteúdo excluído!" });
@@ -178,7 +210,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
           <Plus className="w-5 h-5 text-primary" />
           Novo Módulo
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <div>
               <Label>Título do Módulo *</Label>
@@ -199,24 +231,22 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                 rows={2}
               />
             </div>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <Label>URL da Capa (opcional)</Label>
-              <Input
-                placeholder="https://..."
-                value={newModule.coverUrl}
-                onChange={(e) => setNewModule(prev => ({ ...prev, coverUrl: e.target.value }))}
-                className="bg-secondary/50 mt-1"
-              />
-            </div>
-            <div className="flex items-center gap-3 mt-4">
+            <div className="flex items-center gap-3">
               <Switch
                 checked={newModule.showNumber}
                 onCheckedChange={(checked) => setNewModule(prev => ({ ...prev, showNumber: checked }))}
               />
               <Label>Exibir número do módulo</Label>
             </div>
+          </div>
+          <div>
+            <CoverUploader
+              currentUrl={newModule.coverUrl}
+              onUpload={(url) => setNewModule(prev => ({ ...prev, coverUrl: url }))}
+              onRemove={() => setNewModule(prev => ({ ...prev, coverUrl: '' }))}
+              folder="module-covers"
+              id={`new_${Date.now()}`}
+            />
           </div>
         </div>
         <Button 
@@ -245,8 +275,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                 className="p-4 flex items-center gap-4 cursor-pointer hover:bg-secondary/30 transition-colors"
                 onClick={() => setExpandedModule(expandedModule === module.id ? null : module.id)}
               >
-                {/* Cover/Number */}
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+                {/* Cover/Number - Aspect ratio 1080x1350 = 4:5 */}
+                <div className="relative w-16 aspect-[4/5] rounded-lg overflow-hidden bg-secondary flex-shrink-0">
                   {module.coverUrl ? (
                     <img 
                       src={module.coverUrl} 
@@ -259,12 +289,12 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-mro-cyan/20">
                       {module.showNumber && (
-                        <span className="text-2xl font-bold text-primary">{module.order}</span>
+                        <span className="text-xl font-bold text-primary">{module.order}</span>
                       )}
                     </div>
                   )}
                   {module.coverUrl && module.showNumber && (
-                    <div className="absolute top-1 left-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                    <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                       {module.order}
                     </div>
                   )}
@@ -314,7 +344,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
               {editingModule === module.id && (
                 <div className="p-4 border-t border-border bg-secondary/20">
                   <h4 className="font-medium mb-3">Editar Módulo</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <div>
                         <Label>Título</Label>
@@ -333,23 +363,22 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                           rows={2}
                         />
                       </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div>
-                        <Label>URL da Capa</Label>
-                        <Input
-                          value={editModuleData.coverUrl || ''}
-                          onChange={(e) => setEditModuleData(prev => ({ ...prev, coverUrl: e.target.value }))}
-                          className="bg-secondary/50 mt-1"
-                        />
-                      </div>
-                      <div className="flex items-center gap-3 mt-4">
+                      <div className="flex items-center gap-3">
                         <Switch
                           checked={editModuleData.showNumber ?? true}
                           onCheckedChange={(checked) => setEditModuleData(prev => ({ ...prev, showNumber: checked }))}
                         />
                         <Label>Exibir número</Label>
                       </div>
+                    </div>
+                    <div>
+                      <CoverUploader
+                        currentUrl={editModuleData.coverUrl || ''}
+                        onUpload={(url) => setEditModuleData(prev => ({ ...prev, coverUrl: url }))}
+                        onRemove={() => setEditModuleData(prev => ({ ...prev, coverUrl: '' }))}
+                        folder="module-covers"
+                        id={module.id}
+                      />
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4">
@@ -393,41 +422,51 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
 
                   {/* Add Video Form */}
                   {showAddContent?.moduleId === module.id && showAddContent.type === 'video' && (
-                    <div className="p-4 rounded-lg bg-secondary/30 mb-4 space-y-3">
-                      <h4 className="font-medium">Novo Vídeo</h4>
-                      <Input
-                        placeholder="Título do vídeo"
-                        value={newVideo.title}
-                        onChange={(e) => setNewVideo(prev => ({ ...prev, title: e.target.value }))}
-                        className="bg-secondary/50"
-                      />
-                      <Input
-                        placeholder="URL do YouTube"
-                        value={newVideo.youtubeUrl}
-                        onChange={(e) => setNewVideo(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-                        className="bg-secondary/50"
-                      />
-                      <Input
-                        placeholder="URL da capa personalizada (opcional)"
-                        value={newVideo.thumbnailUrl}
-                        onChange={(e) => setNewVideo(prev => ({ ...prev, thumbnailUrl: e.target.value }))}
-                        className="bg-secondary/50"
-                      />
-                      <Textarea
-                        placeholder="Descrição (opcional)"
-                        value={newVideo.description}
-                        onChange={(e) => setNewVideo(prev => ({ ...prev, description: e.target.value }))}
-                        className="bg-secondary/50"
-                        rows={2}
-                      />
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={newVideo.showNumber}
-                          onCheckedChange={(checked) => setNewVideo(prev => ({ ...prev, showNumber: checked }))}
-                        />
-                        <Label className="text-sm">Exibir número na capa</Label>
+                    <div className="p-4 rounded-lg bg-secondary/30 mb-4">
+                      <h4 className="font-medium mb-3">Novo Vídeo</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <Input
+                            placeholder="Título do vídeo"
+                            value={newVideo.title}
+                            onChange={(e) => setNewVideo(prev => ({ ...prev, title: e.target.value }))}
+                            className="bg-secondary/50"
+                          />
+                          <Input
+                            placeholder="URL do YouTube"
+                            value={newVideo.youtubeUrl}
+                            onChange={(e) => setNewVideo(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                            className="bg-secondary/50"
+                          />
+                          <Textarea
+                            placeholder="Descrição (opcional)"
+                            value={newVideo.description}
+                            onChange={(e) => setNewVideo(prev => ({ ...prev, description: e.target.value }))}
+                            className="bg-secondary/50"
+                            rows={2}
+                          />
+                          <div className="flex items-center gap-3">
+                            <Switch
+                              checked={newVideo.showNumber}
+                              onCheckedChange={(checked) => setNewVideo(prev => ({ ...prev, showNumber: checked }))}
+                            />
+                            <Label className="text-sm">Exibir número na capa</Label>
+                          </div>
+                        </div>
+                        <div>
+                          <CoverUploader
+                            currentUrl={newVideo.thumbnailUrl}
+                            onUpload={(url) => setNewVideo(prev => ({ ...prev, thumbnailUrl: url }))}
+                            onRemove={() => setNewVideo(prev => ({ ...prev, thumbnailUrl: '' }))}
+                            folder="video-covers"
+                            id={`video_new_${Date.now()}`}
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Se não enviar capa, será usada a thumbnail do YouTube
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mt-4">
                         <Button type="button" onClick={() => handleAddVideo(module.id)} className="cursor-pointer">
                           <Check className="w-4 h-4 mr-1" />
                           Adicionar
@@ -468,40 +507,38 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                     </div>
                   )}
 
-                  {/* Content List */}
+                  {/* Content List - Aspect ratio 1080x1350 = 4:5 */}
                   {module.contents.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
                       Nenhum conteúdo neste módulo
                     </p>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {module.contents.sort((a, b) => a.order - b.order).map((content, idx) => (
                         <div key={content.id} className="relative group">
                           {content.type === 'video' ? (
-                            <>
-                              <div className="aspect-video rounded-lg overflow-hidden bg-secondary relative">
-                                <img 
-                                  src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
-                                  alt={content.title}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.src = 'https://via.placeholder.com/320x180?text=Video';
-                                  }}
-                                />
-                                {(content as ModuleVideo).showNumber && (
-                                  <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                                    {idx + 1}
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Play className="w-8 h-8 text-primary" />
+                            <div className="aspect-[4/5] rounded-lg overflow-hidden bg-secondary relative">
+                              <img 
+                                src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
+                                alt={content.title}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'https://via.placeholder.com/1080x1350?text=Video';
+                                }}
+                              />
+                              {(content as ModuleVideo).showNumber && (
+                                <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-lg">
+                                  {idx + 1}
                                 </div>
+                              )}
+                              <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Play className="w-10 h-10 text-primary" />
                               </div>
-                            </>
+                            </div>
                           ) : (
-                            <div className="aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center relative">
-                              <Type className="w-8 h-8 text-muted-foreground" />
-                              <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-muted-foreground/20 text-foreground flex items-center justify-center text-xs font-bold">
+                            <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center relative">
+                              <Type className="w-10 h-10 text-muted-foreground" />
+                              <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-muted-foreground/30 text-foreground flex items-center justify-center text-sm font-bold">
                                 {idx + 1}
                               </div>
                             </div>
@@ -513,9 +550,9 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                           <button
                             type="button"
                             onClick={() => handleDeleteContent(module.id, content.id)}
-                            className="absolute top-2 right-2 w-6 h-6 bg-destructive rounded-full items-center justify-center hidden group-hover:flex cursor-pointer"
+                            className="absolute top-2 right-2 w-7 h-7 bg-destructive rounded-full items-center justify-center hidden group-hover:flex cursor-pointer shadow-lg"
                           >
-                            <Trash2 className="w-3 h-3 text-destructive-foreground" />
+                            <Trash2 className="w-3.5 h-3.5 text-destructive-foreground" />
                           </button>
 
                           {/* Toggle number for videos */}
@@ -523,7 +560,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                             <button
                               type="button"
                               onClick={() => handleToggleContentNumber(module.id, content)}
-                              className="absolute bottom-12 right-2 w-6 h-6 bg-secondary rounded-full items-center justify-center hidden group-hover:flex cursor-pointer"
+                              className="absolute bottom-14 right-2 w-7 h-7 bg-secondary rounded-full items-center justify-center hidden group-hover:flex cursor-pointer shadow-lg"
                               title={(content as ModuleVideo).showNumber ? 'Ocultar número' : 'Mostrar número'}
                             >
                               <span className="text-xs font-bold">#</span>
