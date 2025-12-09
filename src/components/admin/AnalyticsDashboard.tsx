@@ -31,6 +31,7 @@ const AnalyticsDashboard = ({ profiles, onProfilesUpdate }: AnalyticsDashboardPr
     lastSync: string;
   }[]>([]);
   const [showChart, setShowChart] = useState(true);
+  const [showProfiles, setShowProfiles] = useState(false);
 
   // Sort profiles
   const sortedProfiles = [...profiles].sort((a, b) => {
@@ -364,7 +365,26 @@ const AnalyticsDashboard = ({ profiles, onProfilesUpdate }: AnalyticsDashboardPr
         )}
       </div>
 
-      {/* Profile Cards Grid */}
+      {/* Profile Cards Section - Hidden by default */}
+      <div className="glass-card p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Users className="w-5 h-5 text-primary" />
+            Perfis ({sortedProfiles.length})
+          </h3>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowProfiles(!showProfiles)}
+          >
+            {showProfiles ? <ChevronUp className="w-4 h-4 mr-1" /> : <ChevronDown className="w-4 h-4 mr-1" />}
+            {showProfiles ? 'Ocultar Perfis' : 'Mostrar Perfis'}
+          </Button>
+        </div>
+      </div>
+
+      {showProfiles && (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {sortedProfiles.map((profile, index) => {
           const growth = getGrowth(profile);
@@ -460,6 +480,7 @@ const AnalyticsDashboard = ({ profiles, onProfilesUpdate }: AnalyticsDashboardPr
           );
         })}
       </div>
+      )}
 
       {profiles.length === 0 && (
         <div className="glass-card p-12 text-center">
