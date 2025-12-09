@@ -181,14 +181,17 @@ export const CreativeGenerator = ({
       if (result.success && result.creative) {
         // Add config data to the creative
         result.creative.colors = config.colors;
-        result.creative.logoUrl = logoUrl;
+        result.creative.logoUrl = includeLogo ? logoUrl : undefined;
         result.creative.downloaded = false;
+        
+        // Salvar automaticamente e contar crédito
+        onCreativeGenerated(result.creative, creditsNeeded);
         
         setGeneratedCreative(result.creative);
         setStep('result');
         toast({
-          title: "Criativo gerado! 🎨",
-          description: "Imagem e textos prontos para uso",
+          title: "Criativo gerado e salvo! 🎨",
+          description: `Usado ${creditsNeeded} crédito(s). Disponível na galeria por 1 mês.`,
         });
       } else {
         setStep('config');
@@ -211,15 +214,7 @@ export const CreativeGenerator = ({
     }
   };
 
-  const saveCreative = () => {
-    if (generatedCreative) {
-      onCreativeGenerated(generatedCreative, creditsNeeded);
-      toast({
-        title: "Criativo salvo!",
-        description: `Usado ${creditsNeeded} crédito(s). Disponível na galeria por 1 mês.`,
-      });
-    }
-  };
+  // saveCreative removed - now auto-saves on generation
 
   const downloadImage = () => {
     if (generatedCreative?.imageUrl) {
@@ -746,28 +741,25 @@ export const CreativeGenerator = ({
               </div>
             </div>
 
+            {/* Action buttons - only download and close since already saved */}
             <div className="flex gap-3">
-              <Button 
-                type="button"
-                onClick={() => { setStep('config'); setGeneratedCreative(null); }} 
-                variant="outline" 
-                className="flex-1 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4" />
-                Gerar Outro
-              </Button>
-              <Button type="button" onClick={downloadImage} variant="outline" className="flex-1 cursor-pointer">
+              <Button type="button" onClick={downloadImage} variant="gradient" className="flex-1 cursor-pointer">
                 <Download className="w-4 h-4" />
                 Download
               </Button>
+              <Button type="button" onClick={onClose} variant="outline" className="flex-1 cursor-pointer">
+                Fechar
+              </Button>
             </div>
-            <Button type="button" onClick={saveCreative} variant="gradient" className="w-full cursor-pointer">
-              <Download className="w-4 h-4" />
-              Salvar Criativo
-            </Button>
+            
+            <div className="p-3 rounded-lg bg-success/10 border border-success/30">
+              <p className="text-sm text-success text-center">
+                ✅ Criativo salvo automaticamente! Disponível na galeria por 1 mês.
+              </p>
+            </div>
             
             <p className="text-xs text-muted-foreground text-center">
-              ⏰ Criativos salvos ficam disponíveis por 1 mês. Após download, conta como usado.
+              💡 Para gerar outro criativo, volte à galeria e use seus créditos restantes.
             </p>
           </div>
         )}
