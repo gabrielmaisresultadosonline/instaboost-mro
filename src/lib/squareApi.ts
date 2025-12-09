@@ -80,10 +80,16 @@ export const verifyRegisteredIGs = async (
 };
 
 // Check if user can register a new Instagram (has available slots)
+// Returns: canRegister, alreadyExists (for sync option), error
 export const canRegisterIG = async (
   username: string,
   instagram: string
-): Promise<{ canRegister: boolean; error?: string }> => {
+): Promise<{ 
+  canRegister: boolean; 
+  alreadyExists: boolean;
+  registeredIGs?: string[];
+  error?: string 
+}> => {
   try {
     const normalizedIG = normalizeInstagramUsername(instagram);
     
@@ -91,22 +97,38 @@ export const canRegisterIG = async (
     const verifyResult = await verifyRegisteredIGs(username);
     
     if (verifyResult.success && verifyResult.instagrams) {
-      // Check if IG is already registered
+      // Check if IG is already registered - offer sync
       if (verifyResult.instagrams.includes(normalizedIG)) {
-        return { canRegister: false, error: 'Este Instagram já está cadastrado na sua conta' };
+        return { 
+          canRegister: false, 
+          alreadyExists: true,
+          registeredIGs: verifyResult.instagrams,
+          error: 'Este Instagram já está cadastrado na sua conta. Deseja sincronizar?' 
+        };
       }
       
-      // Check if user has available slots (max 6)
-      const maxIGs = 6;
+      // Check if user has available slots (max 4 based on SquareCloud API)
+      const maxIGs = 4;
       if (verifyResult.instagrams.length >= maxIGs) {
-        return { canRegister: false, error: `Limite de ${maxIGs} perfis atingido. Remova um perfil para adicionar outro.` };
+        return { 
+          canRegister: false, 
+          alreadyExists: false,
+          registeredIGs: verifyResult.instagrams,
+          error: `Limite de ${maxIGs} perfis atingido. Você não pode cadastrar mais perfis.` 
+        };
       }
+      
+      return { 
+        canRegister: true, 
+        alreadyExists: false,
+        registeredIGs: verifyResult.instagrams 
+      };
     }
     
-    return { canRegister: true };
+    return { canRegister: true, alreadyExists: false };
   } catch (error) {
     console.error('Check register error:', error);
-    return { canRegister: false, error: 'Erro ao verificar disponibilidade' };
+    return { canRegister: false, alreadyExists: false, error: 'Erro ao verificar disponibilidade' };
   }
 };
 
