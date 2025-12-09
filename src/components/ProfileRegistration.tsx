@@ -688,19 +688,21 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-primary" />
-              Perfil já cadastrado
+              Perfil já vinculado
             </DialogTitle>
             <DialogDescription className="text-base">
-              O perfil @{pendingSyncIG} já está registrado na sua conta SquareCloud.
-              Deseja sincronizá-lo agora?
+              Este perfil já está vinculado à sua conta. Deseja sincronizar agora?
             </DialogDescription>
           </DialogHeader>
           
-          <div className="p-4 bg-secondary/20 rounded-lg">
-            <p className="text-sm text-muted-foreground">
-              Ao sincronizar, este perfil será adicionado ao seu painel para que você possa
-              gerar estratégias e criativos.
-            </p>
+          <div className="p-4 bg-secondary/20 rounded-lg flex items-center gap-3">
+            <Instagram className="w-8 h-8 text-primary" />
+            <div>
+              <p className="font-medium">@{pendingSyncIG}</p>
+              <p className="text-sm text-muted-foreground">
+                Será adicionado ao seu painel
+              </p>
+            </div>
           </div>
 
           {!user?.email && (
@@ -725,7 +727,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
                 setPendingSyncIG('');
               }}
             >
-              Cancelar
+              Não
             </Button>
             <Button 
               onClick={handleSyncSingleProfile}
@@ -737,10 +739,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
                   Sincronizando...
                 </>
               ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Sincronizar Agora
-                </>
+                'Sim'
               )}
             </Button>
           </DialogFooter>
