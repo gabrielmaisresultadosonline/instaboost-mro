@@ -214,16 +214,17 @@ export default function Membro() {
       if (currentMember) {
         setUser(currentMember);
         
-        // If coming from successful payment, will verify in the useEffect
-        if (success !== 'true') {
-          // Check subscription status from database
-          const { data: dbUser } = await supabase
-            .from('paid_users')
-            .select('*')
-            .eq('id', currentMember.id)
-            .maybeSingle();
+        // ALWAYS check subscription status from database to catch webhook updates
+        try {
+          const { data: response, error } = await supabase.functions.invoke('login-paid-user', {
+            body: {
+              email: currentMember.email.toLowerCase(),
+              password: currentMember.password || ''
+            }
+          });
 
-          if (dbUser) {
+          if (!error && response?.user) {
+            const dbUser = response.user;
             // Update local state with DB data
             const updatedMember: PaidMemberUser = {
               ...currentMember,
@@ -232,9 +233,29 @@ export default function Membro() {
               strategies_generated: dbUser.strategies_generated || 0,
               creatives_used: dbUser.creatives_used || 0
             };
+            
+            // If status changed from pending to active, show success message
+            if (currentMember.subscription_status === 'pending' && dbUser.subscription_status === 'active') {
+              toast({
+                title: "Pagamento confirmado! 🎉",
+                description: "Sua assinatura foi ativada. Agora adicione seu Instagram!"
+              });
+              
+              // Facebook Pixel - Purchase
+              if (typeof window !== 'undefined' && (window as any).fbq) {
+                (window as any).fbq('track', 'Purchase', {
+                  value: 57.00,
+                  currency: 'BRL',
+                  content_name: 'Plano Mensal I.A MRO Premium'
+                });
+              }
+            }
+            
             setUser(updatedMember);
             saveCurrentMember(updatedMember);
           }
+        } catch (dbError) {
+          console.error('Error checking DB status:', dbError);
         }
         
         // Load saved strategy if exists
