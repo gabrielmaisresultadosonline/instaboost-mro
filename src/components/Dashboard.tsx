@@ -61,9 +61,12 @@ export const Dashboard = ({
 
   // Clean expired creatives on mount
   useEffect(() => {
-    cleanExpiredCreatives();
-    const updatedSession = getSession();
-    onSessionUpdate(updatedSession);
+    const cleanup = async () => {
+      await cleanExpiredCreatives();
+      const updatedSession = getSession();
+      onSessionUpdate(updatedSession);
+    };
+    cleanup();
   }, []);
 
   const getLoggedInUsername = () => getCurrentUser()?.username || 'anonymous';

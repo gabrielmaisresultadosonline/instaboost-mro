@@ -223,4 +223,58 @@ export const generateCreative = async (
   }
 };
 
-// Mock posts function removed - only real data is used now
+// Upload creative image to storage and get permanent URL
+export const uploadCreativeImage = async (
+  username: string,
+  creativeId: string,
+  imageBase64: string
+): Promise<{
+  success: boolean;
+  url?: string;
+  error?: string;
+}> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('upload-creative', {
+      body: { 
+        action: 'upload',
+        username, 
+        creativeId, 
+        imageBase64 
+      }
+    });
+
+    if (error) {
+      console.error('Error uploading creative:', error);
+      return { success: false, error: error.message };
+    }
+
+    if (data.success && data.url) {
+      return { success: true, url: data.url };
+    }
+
+    return { success: false, error: data.error || 'Erro ao fazer upload' };
+  } catch (error) {
+    console.error('Error:', error);
+    return { success: false, error: 'Erro de conexão' };
+  }
+};
+
+// Delete creative from storage
+export const deleteCreativeImage = async (
+  username: string,
+  creativeId: string
+): Promise<boolean> => {
+  try {
+    await supabase.functions.invoke('upload-creative', {
+      body: { 
+        action: 'delete',
+        username, 
+        creativeId 
+      }
+    });
+    return true;
+  } catch (error) {
+    console.error('Error deleting creative:', error);
+    return false;
+  }
+};

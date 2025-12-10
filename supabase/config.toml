@@ -82,3 +82,6 @@ verify_jwt = false
 
 [functions.user-cloud-storage]
 verify_jwt = false
+
+[functions.upload-creative]
+verify_jwt = false
