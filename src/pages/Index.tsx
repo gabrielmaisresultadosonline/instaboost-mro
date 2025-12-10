@@ -61,48 +61,65 @@ const Index = () => {
 
   // Check auth status on mount and load persisted data
   useEffect(() => {
-    const authenticated = isAuthenticated();
-    setIsLoggedIn(authenticated);
-    
-    if (authenticated) {
-      const registeredIGs = getRegisteredIGs();
-      const igUsernames = registeredIGs.map(ig => ig.username);
-      setHasRegisteredProfiles(registeredIGs.length > 0);
-      const loggedInUsername = getLoggedInUsername();
+    try {
+      const authenticated = isAuthenticated();
+      setIsLoggedIn(authenticated);
       
-      // IMPORTANT: Load persisted data from server
-      if (igUsernames.length > 0) {
-        console.log('🔐 Carregando dados do servidor...');
-        loadPersistedDataOnLogin(loggedInUsername, igUsernames).then(async () => {
-          syncPersistentToSession();
-          
-          // Clean expired data (30 days)
-          await cleanExpiredCreatives();
-          cleanExpiredStrategies();
-          
+      if (authenticated) {
+        const registeredIGs = getRegisteredIGs();
+        const igUsernames = registeredIGs.map(ig => ig.username);
+        setHasRegisteredProfiles(registeredIGs.length > 0);
+        const loggedInUsername = getLoggedInUsername();
+        
+        // IMPORTANT: Load persisted data from server
+        if (igUsernames.length > 0) {
+          console.log('🔐 Carregando dados do servidor...');
+          loadPersistedDataOnLogin(loggedInUsername, igUsernames).then(async () => {
+            try {
+              syncPersistentToSession();
+              
+              // Clean expired data (30 days)
+              await cleanExpiredCreatives();
+              cleanExpiredStrategies();
+              
+              const existingSession = getSession();
+              setSession(existingSession);
+              
+              if (existingSession.profiles.length > 0) {
+                setShowDashboard(true);
+                console.log(`✅ ${existingSession.profiles.length} perfis carregados do servidor`);
+              }
+            } catch (loadError) {
+              console.error('[Index] Error loading persisted data:', loadError);
+            }
+          }).catch(err => console.error('[Index] Error in loadPersistedDataOnLogin:', err));
+        } else {
+          // No profiles, but still clean any local expired data
+          (async () => {
+            try {
+              await cleanExpiredCreatives();
+              cleanExpiredStrategies();
+            } catch (cleanError) {
+              console.error('[Index] Error cleaning expired data:', cleanError);
+            }
+          })();
+        }
+        
+        // Get session immediately (may update after async load)
+        try {
           const existingSession = getSession();
           setSession(existingSession);
           
           if (existingSession.profiles.length > 0) {
             setShowDashboard(true);
-            console.log(`✅ ${existingSession.profiles.length} perfis carregados do servidor`);
           }
-        });
-      } else {
-        // No profiles, but still clean any local expired data
-        (async () => {
-          await cleanExpiredCreatives();
-          cleanExpiredStrategies();
-        })();
+        } catch (sessionError) {
+          console.error('[Index] Error getting session:', sessionError);
+        }
       }
-      
-      // Get session immediately (may update after async load)
-      const existingSession = getSession();
-      setSession(existingSession);
-      
-      if (existingSession.profiles.length > 0) {
-        setShowDashboard(true);
-      }
+    } catch (error) {
+      console.error('[Index] Error in auth check:', error);
+      setIsLoggedIn(false);
     }
   }, []);
 
@@ -112,25 +129,34 @@ const Index = () => {
     setLoadingMessage('Carregando seus dados...');
     setLoadingSubMessage('Buscando dados salvos no servidor.');
     
-    const registeredIGs = getRegisteredIGs();
-    const igUsernames = registeredIGs.map(ig => ig.username);
-    setHasRegisteredProfiles(registeredIGs.length > 0);
-    const loggedInUsername = getLoggedInUsername();
-    
-    // IMPORTANT: Load persisted data from server on login
-    if (igUsernames.length > 0) {
-      console.log('🔐 Restaurando dados do servidor...');
-      await loadPersistedDataOnLogin(loggedInUsername, igUsernames);
-      syncPersistentToSession();
-    }
-    
-    const existingSession = getSession();
-    setSession(existingSession);
-    setIsLoading(false);
-    
-    if (existingSession.profiles.length > 0) {
-      setShowDashboard(true);
-      console.log(`✅ Login: ${existingSession.profiles.length} perfis restaurados`);
+    try {
+      const registeredIGs = getRegisteredIGs();
+      const igUsernames = registeredIGs.map(ig => ig.username);
+      setHasRegisteredProfiles(registeredIGs.length > 0);
+      const loggedInUsername = getLoggedInUsername();
+      
+      // IMPORTANT: Load persisted data from server on login
+      if (igUsernames.length > 0) {
+        console.log('🔐 Restaurando dados do servidor...');
+        try {
+          await loadPersistedDataOnLogin(loggedInUsername, igUsernames);
+          syncPersistentToSession();
+        } catch (loadError) {
+          console.error('[Index] Error loading persisted data on login:', loadError);
+        }
+      }
+      
+      const existingSession = getSession();
+      setSession(existingSession);
+      
+      if (existingSession.profiles.length > 0) {
+        setShowDashboard(true);
+        console.log(`✅ Login: ${existingSession.profiles.length} perfis restaurados`);
+      }
+    } catch (error) {
+      console.error('[Index] Error in handleLoginSuccess:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

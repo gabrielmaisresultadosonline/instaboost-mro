@@ -44,25 +44,40 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
 
       if (result.success) {
         // Login now loads profiles from database AND cloud
-        const session = await loginUser(username.trim(), result.daysRemaining || 365);
+        let session;
+        try {
+          session = await loginUser(username.trim(), result.daysRemaining || 365);
+        } catch (loginError) {
+          console.error('[LoginPage] Error in loginUser:', loginError);
+          // Continue with minimal session
+          session = { cloudData: null };
+        }
         
         // Initialize local storage from cloud data if available
-        if (session.cloudData?.profileSessions && session.cloudData.profileSessions.length > 0) {
-          initializeFromCloud(
-            session.cloudData.profileSessions,
-            session.cloudData.archivedProfiles || []
-          );
+        try {
+          if (session?.cloudData?.profileSessions && session.cloudData.profileSessions.length > 0) {
+            initializeFromCloud(
+              session.cloudData.profileSessions,
+              session.cloudData.archivedProfiles || []
+            );
+          }
+        } catch (initError) {
+          console.error('[LoginPage] Error initializing from cloud:', initError);
         }
         
         // Clean expired creatives and strategies (30 days)
-        await cleanExpiredCreatives();
-        cleanExpiredStrategies();
+        try {
+          await cleanExpiredCreatives();
+          cleanExpiredStrategies();
+        } catch (cleanError) {
+          console.error('[LoginPage] Error cleaning expired data:', cleanError);
+        }
         
         const daysText = formatDaysRemaining(result.daysRemaining || 365);
         const isLifetime = isLifetimeAccess(result.daysRemaining || 365);
         
-        // Only count profiles actually loaded in cloud storage (not just registered in SquareCloud)
-        const profileCount = session.cloudData?.profileSessions?.length || 0;
+        // Only count profiles actually loaded in cloud storage
+        const profileCount = session?.cloudData?.profileSessions?.length || 0;
         
         toast({
           title: 'Login realizado com sucesso!',
@@ -80,6 +95,7 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
         });
       }
     } catch (error) {
+      console.error('[LoginPage] Login error:', error);
       toast({
         title: 'Erro de conexão',
         description: 'Não foi possível conectar ao servidor',
