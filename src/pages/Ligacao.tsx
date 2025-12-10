@@ -127,11 +127,15 @@ const Ligacao = () => {
   const handleAnswer = () => {
     console.log('handleAnswer called');
     
-    // Stop ringtone video first
+    // CRITICAL: Change state FIRST before any audio operations
+    // This ensures iOS doesn't get stuck waiting for audio promises
+    setCallState('connected');
+    console.log('State changed to connected');
+
+    // Stop ringtone video
     if (ringtoneVideoRef.current) {
       ringtoneVideoRef.current.pause();
       ringtoneVideoRef.current.currentTime = 0;
-      console.log('Ringtone stopped');
     }
 
     // Stop vibration
@@ -140,39 +144,30 @@ const Ligacao = () => {
       clearInterval(vibrationIntervalRef.current);
     }
 
-    // For iOS: Play audio SYNCHRONOUSLY in the same user gesture context
-    // This is critical - iOS requires audio.play() to be called directly in the event handler
+    // Start duration counter
+    intervalRef.current = setInterval(() => {
+      setCallDuration(prev => prev + 1);
+    }, 1000);
+
+    // Try to play audio - don't block on this
     const audio = audioRef.current;
     if (audio) {
       audio.currentTime = 0;
       audio.volume = 1;
       audio.muted = false;
       
-      // Play immediately - this must happen synchronously with user gesture
-      const playPromise = audio.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('Audio playing successfully');
-          })
-          .catch((error) => {
-            console.error('Audio play error:', error);
-            // If blocked, try load and play again
+      // Use requestAnimationFrame to ensure state update is processed first
+      requestAnimationFrame(() => {
+        audio.play().catch((error) => {
+          console.error('Audio play error:', error);
+          // Retry once
+          setTimeout(() => {
             audio.load();
             audio.play().catch(e => console.error('Retry failed:', e));
-          });
-      }
+          }, 100);
+        });
+      });
     }
-
-    // Change state after starting audio
-    setCallState('connected');
-    console.log('State changed to connected');
-
-    // Start duration counter
-    intervalRef.current = setInterval(() => {
-      setCallDuration(prev => prev + 1);
-    }, 1000);
   };
 
   const handleAudioEnded = () => {
@@ -291,10 +286,10 @@ const Ligacao = () => {
             </button>
           </div>
 
-          {/* Main Content - moved up */}
-          <div className="flex-1 flex flex-col items-center pt-8 px-8">
+          {/* Main Content - centered vertically but closer to buttons */}
+          <div className="flex flex-col items-center justify-end flex-1 pb-8 px-8">
             {/* Profile Image */}
-            <div className="w-20 h-20 rounded-full overflow-hidden mb-3 border-2 border-white/20">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden mb-3 border-2 border-white/20">
               <img 
                 src={profileImage} 
                 alt="Mais Resultados Online"
@@ -320,13 +315,13 @@ const Ligacao = () => {
             </div>
 
             {/* Username */}
-            <h1 className="text-white text-xl font-semibold">
+            <h1 className="text-white text-lg sm:text-xl font-semibold">
               @maisresultadosonline
             </h1>
           </div>
 
-          {/* Bottom Buttons - moved up with more padding */}
-          <div className="pb-20 px-8">
+          {/* Bottom Buttons - more padding for safe area */}
+          <div className="pb-28 sm:pb-16 px-8">
             <div className="flex items-center justify-between max-w-xs mx-auto">
               {/* Decline Button - Disabled */}
               <div className="flex flex-col items-center">
@@ -379,9 +374,9 @@ const Ligacao = () => {
             </div>
           </div>
 
-          {/* Main Content - Profile Photo - moved up */}
-          <div className="flex-1 flex flex-col items-center pt-12 px-8">
-            <div className="w-18 h-18 rounded-full overflow-hidden mb-3 border-2 border-white/20">
+          {/* Main Content - Profile Photo - closer to buttons */}
+          <div className="flex flex-col items-center justify-end flex-1 pb-8 px-8">
+            <div className="w-16 h-16 rounded-full overflow-hidden mb-3 border-2 border-white/20">
               <img 
                 src={profileImage} 
                 alt="Mais Resultados Online"
@@ -394,8 +389,8 @@ const Ligacao = () => {
             </p>
           </div>
 
-          {/* Bottom Call Controls - moved up */}
-          <div className="pb-20 px-4">
+          {/* Bottom Call Controls - more padding for safe area */}
+          <div className="pb-28 sm:pb-16 px-4">
             <div className="flex items-center justify-center gap-4">
               {/* Camera Off */}
               <button className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
