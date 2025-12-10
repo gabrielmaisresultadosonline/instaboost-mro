@@ -2,11 +2,35 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Generate HMAC-based auth token
+async function generateAuthToken(userId: string, passwordHash: string): Promise<string> {
+  const timestamp = Date.now().toString();
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(passwordHash);
+  
+  const key = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const message = encoder.encode(`${userId}:${timestamp}`);
+  const signatureBuffer = await crypto.subtle.sign('HMAC', key, message);
+  const signature = Array.from(new Uint8Array(signatureBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  return `${userId}:${timestamp}:${signature}`;
+}
 
 // Input validation schema
 const loginSchema = z.object({
@@ -66,6 +90,7 @@ serve(async (req) => {
 
     // Check password using bcrypt
     let passwordValid = false;
+    let currentPasswordHash = user.password;
     
     if (user.password) {
       // Check if password is hashed (bcrypt hashes start with $2)
@@ -79,10 +104,10 @@ serve(async (req) => {
         if (passwordValid) {
           // Upgrade to hashed password
           const salt = await bcrypt.genSalt(10);
-          const hashedPassword = await bcrypt.hash(password, salt);
+          currentPasswordHash = await bcrypt.hash(password, salt);
           await supabaseAdmin
             .from("paid_users")
-            .update({ password: hashedPassword })
+            .update({ password: currentPasswordHash })
             .eq("id", user.id);
           console.log("Upgraded legacy password to bcrypt hash for user:", user.id);
         }
@@ -96,6 +121,9 @@ serve(async (req) => {
       );
     }
 
+    // Generate secure auth token for subsequent API calls
+    const auth_token = await generateAuthToken(user.id, currentPasswordHash);
+    
     console.log("User logged in successfully:", user.id);
 
     return new Response(
@@ -111,7 +139,8 @@ serve(async (req) => {
           strategies_generated: user.strategies_generated,
           creatives_used: user.creatives_used,
           created_at: user.created_at
-        }
+        },
+        auth_token // Return token to client for secure API calls
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );

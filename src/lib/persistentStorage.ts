@@ -11,6 +11,8 @@ const REFRESH_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
 
 // Local cache key (backup while server syncs)
 const LOCAL_CACHE_KEY = 'mro_server_cache';
+const AUTH_TOKEN_KEY = 'mro_paid_user_auth_token';
+const AUTH_EMAIL_KEY = 'mro_paid_user_email';
 
 export interface PersistentProfileData {
   username: string;
@@ -33,6 +35,28 @@ export interface UserServerData {
   lastFetchDates: Record<string, string>;
   lastSyncedAt: string;
 }
+
+// Store auth token from login response
+export const setAuthToken = (token: string, email: string): void => {
+  sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+  sessionStorage.setItem(AUTH_EMAIL_KEY, email.toLowerCase());
+};
+
+// Get stored auth token
+export const getAuthToken = (): string | null => {
+  return sessionStorage.getItem(AUTH_TOKEN_KEY);
+};
+
+// Get stored email for auth
+export const getAuthEmail = (): string | null => {
+  return sessionStorage.getItem(AUTH_EMAIL_KEY);
+};
+
+// Clear auth data on logout
+export const clearAuthData = (): void => {
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  sessionStorage.removeItem(AUTH_EMAIL_KEY);
+};
 
 // Local cache for faster access (syncs with server)
 let localCache: UserServerData | null = null;
@@ -57,15 +81,30 @@ const saveLocalCache = (data: UserServerData): void => {
 export const clearLocalCache = (): void => {
   localStorage.removeItem(LOCAL_CACHE_KEY);
   localCache = null;
+  clearAuthData();
 };
 
 // Load user data from server
 export const loadUserDataFromServer = async (username: string): Promise<UserServerData | null> => {
   try {
+    const auth_token = getAuthToken();
+    const email = getAuthEmail();
+    
+    // If no auth token, can't load from server securely
+    if (!auth_token || !email) {
+      console.log(`⚠️ No auth token available for server load`);
+      return getLocalCache();
+    }
+    
     console.log(`🔄 Carregando dados do servidor para: ${username}`);
     
     const { data, error } = await supabase.functions.invoke('user-data-storage', {
-      body: { action: 'load', username }
+      body: { 
+        action: 'load', 
+        username,
+        email,
+        auth_token
+      }
     });
 
     if (error) {
@@ -108,10 +147,25 @@ export const saveUserDataToServer = async (data: UserServerData): Promise<boolea
     // Always save locally first (fast)
     saveLocalCache(data);
     
+    const auth_token = getAuthToken();
+    const email = getAuthEmail();
+    
+    // If no auth token, only save locally
+    if (!auth_token || !email) {
+      console.log(`⚠️ No auth token - saving only to local cache`);
+      return true;
+    }
+    
     console.log(`💾 Salvando dados no servidor para: ${data.username}`);
     
     const { data: response, error } = await supabase.functions.invoke('user-data-storage', {
-      body: { action: 'save', username: data.username, data }
+      body: { 
+        action: 'save', 
+        username: data.username, 
+        email,
+        auth_token,
+        data 
+      }
     });
 
     if (error) {

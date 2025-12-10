@@ -32,6 +32,7 @@ import { Logo } from "@/components/Logo";
 import { StrategyDisplay } from "@/components/StrategyDisplay";
 import { CreativeGenerator } from "@/components/CreativeGenerator";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { setAuthToken, clearAuthData } from "@/lib/persistentStorage";
 
 interface PaidMemberUser {
   id: string;
@@ -427,6 +428,11 @@ export default function Membro() {
 
       const dbUser = response.user;
 
+      // Store auth token for secure API calls
+      if (response.auth_token) {
+        setAuthToken(response.auth_token, dbUser.email);
+      }
+
       // Create member object from DB data
       let member: PaidMemberUser = {
         id: dbUser.id,
@@ -454,7 +460,7 @@ export default function Membro() {
         id: member.id,
         email: member.email.toLowerCase(),
         username: member.username,
-        sessionToken: btoa(`${member.id}:${Date.now()}`),
+        sessionToken: response.auth_token || btoa(`${member.id}:${Date.now()}`),
         expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
       });
 
@@ -490,6 +496,8 @@ export default function Membro() {
     // IMPORTANT: Don't clear saved data on logout - only clear current session
     // Data persists in mro_strategy_${member.id} and mro_profile_${member.id}
     saveCurrentMember(null);
+    saveSession(null);
+    clearAuthData(); // Clear auth token on logout
     setUser(null);
     setStrategy(null);
     setProfileData(null);
