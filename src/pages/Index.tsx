@@ -12,7 +12,9 @@ import {
   addProfile,
   setActiveProfile,
   removeProfile,
-  getActiveProfile
+  getActiveProfile,
+  cleanExpiredCreatives,
+  cleanExpiredStrategies
 } from '@/lib/storage';
 import { 
   isAuthenticated, 
@@ -66,6 +68,11 @@ const Index = () => {
         console.log('🔐 Carregando dados do servidor...');
         loadPersistedDataOnLogin(loggedInUsername, igUsernames).then(() => {
           syncPersistentToSession();
+          
+          // Clean expired data (30 days)
+          cleanExpiredCreatives();
+          cleanExpiredStrategies();
+          
           const existingSession = getSession();
           setSession(existingSession);
           
@@ -74,6 +81,10 @@ const Index = () => {
             console.log(`✅ ${existingSession.profiles.length} perfis carregados do servidor`);
           }
         });
+      } else {
+        // No profiles, but still clean any local expired data
+        cleanExpiredCreatives();
+        cleanExpiredStrategies();
       }
       
       // Get session immediately (may update after async load)

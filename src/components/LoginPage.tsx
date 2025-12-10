@@ -9,7 +9,7 @@ import { loginUser, getUserSession, saveUserToCloud } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
-import { setCloudSyncCallback, initializeFromCloud } from '@/lib/storage';
+import { setCloudSyncCallback, initializeFromCloud, cleanExpiredCreatives, cleanExpiredStrategies } from '@/lib/storage';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
@@ -53,6 +53,10 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
             session.cloudData.archivedProfiles || []
           );
         }
+        
+        // Clean expired creatives and strategies (30 days)
+        cleanExpiredCreatives();
+        cleanExpiredStrategies();
         
         const daysText = formatDaysRemaining(result.daysRemaining || 365);
         const isLifetime = isLifetimeAccess(result.daysRemaining || 365);
