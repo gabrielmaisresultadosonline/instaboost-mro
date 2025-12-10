@@ -683,32 +683,6 @@ export default function VendasCompleta() {
         </p>
       </section>
 
-      {/* Top Countdown Banner - appears after scrolling */}
-      {showTopBanner && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-2 px-4 animate-slide-up">
-          <div className="container mx-auto flex flex-col md:flex-row items-center justify-center gap-3 text-white text-center">
-            <div className="flex items-center gap-2">
-              <Badge className="bg-white/20 text-white border-white/30">🔥 ÚLTIMAS VAGAS</Badge>
-              <Badge className="bg-white/20 text-white border-white/30">💰 SEM JUROS</Badge>
-            </div>
-            <span className="text-sm font-medium">Oferta acaba em:</span>
-            <div className="flex items-center gap-1">
-              <span className="bg-white/20 px-2 py-1 rounded font-bold">{time.hours}</span>
-              <span>:</span>
-              <span className="bg-white/20 px-2 py-1 rounded font-bold">{time.minutes}</span>
-              <span>:</span>
-              <span className="bg-white/20 px-2 py-1 rounded font-bold">{time.seconds}</span>
-            </div>
-            <Button 
-              size="sm"
-              className="bg-white text-red-600 hover:bg-white/90 font-bold"
-              onClick={handleBuyClick}
-            >
-              COMPRAR AGORA
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Floating CTA */}
       {showPricing && (
