@@ -831,9 +831,12 @@ const SyncDashboard = () => {
                   </p>
                 )}
                 {!profile.isConnectedToDashboard && (
-                  <span className="inline-block mt-2 text-[10px] px-2 py-0.5 bg-yellow-500/20 text-yellow-500 rounded">
-                    Não conectado
-                  </span>
+                  <div className="relative group inline-block mt-2">
+                    <div className="w-3 h-3 rounded-full bg-yellow-500 mx-auto" />
+                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-background border border-border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      Não conectado
+                    </span>
+                  </div>
                 )}
               </div>
             );
