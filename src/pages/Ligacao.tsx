@@ -127,52 +127,51 @@ const Ligacao = () => {
   const handleAnswer = () => {
     console.log('handleAnswer called');
     
-    // Stop ringtone video first
-    if (ringtoneVideoRef.current) {
-      ringtoneVideoRef.current.pause();
-      ringtoneVideoRef.current.currentTime = 0;
-      console.log('Ringtone stopped');
-    }
-
-    // Stop vibration
-    navigator.vibrate(0);
-    if (vibrationIntervalRef.current) {
-      clearInterval(vibrationIntervalRef.current);
-    }
-
-    // For iOS: Play audio SYNCHRONOUSLY in the same user gesture context
-    // This is critical - iOS requires audio.play() to be called directly in the event handler
-    const audio = audioRef.current;
-    if (audio) {
-      audio.currentTime = 0;
-      audio.volume = 1;
-      audio.muted = false;
-      
-      // Play immediately - this must happen synchronously with user gesture
-      const playPromise = audio.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('Audio playing successfully');
-          })
-          .catch((error) => {
-            console.error('Audio play error:', error);
-            // If blocked, try load and play again
-            audio.load();
-            audio.play().catch(e => console.error('Retry failed:', e));
-          });
-      }
-    }
-
-    // Change state after starting audio
+    // IMMEDIATELY change state - this is the most important thing
+    // Do this FIRST before anything else to ensure UI updates
     setCallState('connected');
     console.log('State changed to connected');
-
-    // Start duration counter
+    
+    // Start duration counter immediately
     intervalRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
+
+    // Stop ringtone video
+    try {
+      if (ringtoneVideoRef.current) {
+        ringtoneVideoRef.current.pause();
+        ringtoneVideoRef.current.currentTime = 0;
+      }
+    } catch (e) {
+      console.log('Error stopping ringtone:', e);
+    }
+
+    // Stop vibration
+    try {
+      navigator.vibrate(0);
+      if (vibrationIntervalRef.current) {
+        clearInterval(vibrationIntervalRef.current);
+      }
+    } catch (e) {
+      console.log('Error stopping vibration:', e);
+    }
+
+    // Play audio - wrapped in try/catch to never block UI
+    try {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        audio.volume = 1;
+        audio.muted = false;
+        audio.play().catch(() => {
+          // Silent fail - audio might not play on iOS but UI will still work
+          console.log('Audio autoplay blocked');
+        });
+      }
+    } catch (e) {
+      console.log('Error playing audio:', e);
+    }
   };
 
   const handleAudioEnded = () => {
