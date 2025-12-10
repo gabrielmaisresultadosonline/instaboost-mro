@@ -114,6 +114,7 @@ export default function VendasCompleta() {
   const [showPricing, setShowPricing] = useState(false);
   const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
   const [reachedPricing, setReachedPricing] = useState(false);
+  const [countdown, setCountdown] = useState(33 * 60 * 60); // 33 hours in seconds
   const videoSectionRef = useRef<HTMLDivElement>(null);
   const iaSectionRef = useRef<HTMLDivElement>(null);
   const creativeSectionRef = useRef<HTMLDivElement>(null);
@@ -122,6 +123,31 @@ export default function VendasCompleta() {
   const [currentSection, setCurrentSection] = useState(0);
 
   const sections = [iaSectionRef, creativeSectionRef, mroSectionRef, pricingSectionRef];
+
+  // Countdown timer effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 0) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatCountdown = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return {
+      hours: hours.toString().padStart(2, '0'),
+      minutes: minutes.toString().padStart(2, '0'),
+      seconds: secs.toString().padStart(2, '0')
+    };
+  };
+
+  const time = formatCountdown(countdown);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -192,6 +218,30 @@ export default function VendasCompleta() {
           </Button>
         </div>
       </header>
+
+      {/* Countdown Timer Banner */}
+      <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-3 px-4">
+        <div className="container mx-auto flex flex-col md:flex-row items-center justify-center gap-3 text-white text-center">
+          <span className="text-sm md:text-base font-medium">🔥 APROVEITE ANTES QUE ACABE! Oferta válida por apenas:</span>
+          <div className="flex items-center gap-2">
+            <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg">
+              <span className="text-2xl font-bold">{time.hours}</span>
+              <span className="text-xs block">horas</span>
+            </div>
+            <span className="text-2xl font-bold">:</span>
+            <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg">
+              <span className="text-2xl font-bold">{time.minutes}</span>
+              <span className="text-xs block">min</span>
+            </div>
+            <span className="text-2xl font-bold">:</span>
+            <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg">
+              <span className="text-2xl font-bold">{time.seconds}</span>
+              <span className="text-xs block">seg</span>
+            </div>
+          </div>
+        </div>
+        <p className="text-center text-white/80 text-xs mt-1">Você tem pouco mais de 1 dia para aproveitar esse valor!</p>
+      </div>
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 text-center">
