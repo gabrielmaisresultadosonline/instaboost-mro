@@ -14,7 +14,8 @@ import {
   removeProfile,
   getActiveProfile,
   cleanExpiredCreatives,
-  cleanExpiredStrategies
+  cleanExpiredStrategies,
+  setCloudSyncCallback
 } from '@/lib/storage';
 import { 
   isAuthenticated, 
@@ -22,7 +23,8 @@ import {
   isIGRegistered,
   addRegisteredIG,
   getCurrentUser,
-  logoutUser
+  logoutUser,
+  saveUserToCloud
 } from '@/lib/userStorage';
 import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +53,11 @@ const Index = () => {
     const user = getCurrentUser();
     return user?.username || 'anonymous';
   };
+
+  // Set up cloud sync callback on mount (critical for strategies/creatives persistence)
+  useEffect(() => {
+    setCloudSyncCallback(saveUserToCloud);
+  }, []);
 
   // Check auth status on mount and load persisted data
   useEffect(() => {
