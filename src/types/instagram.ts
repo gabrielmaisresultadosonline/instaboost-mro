@@ -157,6 +157,16 @@ export interface GrowthInsight {
   insights: string[];
 }
 
+export type StrategyType = 'mro' | 'content' | 'engagement' | 'sales' | 'bio';
+
+export interface StrategyGenerationDates {
+  mro?: string;
+  content?: string;
+  engagement?: string;
+  sales?: string;
+  bio?: string;
+}
+
 export interface ProfileSession {
   id: string;
   profile: InstagramProfile;
@@ -169,7 +179,8 @@ export interface ProfileSession {
   growthInsights: GrowthInsight[];
   startedAt: string;
   lastUpdated: string;
-  lastStrategyGeneratedAt?: string; // Track when last strategy was generated
+  lastStrategyGeneratedAt?: string; // Legacy - kept for backward compatibility
+  strategyGenerationDates?: StrategyGenerationDates; // Per-type generation dates
 }
 
 export interface MROSession {

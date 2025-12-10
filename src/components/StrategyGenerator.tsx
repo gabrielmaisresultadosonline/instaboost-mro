@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Strategy, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
-import { Sparkles, Loader2, Zap, MessageSquare, Calendar, Users, User, Clock, AlertCircle } from 'lucide-react';
+import { Strategy, InstagramProfile, ProfileAnalysis, StrategyType } from '@/types/instagram';
+import { Sparkles, Loader2, Zap, MessageSquare, Calendar, Users, User, Clock, AlertCircle, Check } from 'lucide-react';
 import { generateStrategy } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { canGenerateStrategy, getStrategyDaysRemaining } from '@/lib/storage';
@@ -16,13 +16,10 @@ interface StrategyGeneratorProps {
 
 export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, existingStrategies, profileId }: StrategyGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedType, setSelectedType] = useState<'mro' | 'content' | 'engagement' | 'sales' | 'bio'>('mro');
+  const [selectedType, setSelectedType] = useState<StrategyType>('mro');
   const { toast } = useToast();
 
-  const canGenerate = canGenerateStrategy(profileId);
-  const daysRemaining = getStrategyDaysRemaining(profileId);
-
-  const strategyTypes = [
+  const strategyTypes: { id: StrategyType; label: string; icon: React.ReactNode; description: string }[] = [
     { id: 'mro', label: 'Estratégia MRO', icon: <Zap className="w-5 h-5" />, description: 'Interações orgânicas em massa' },
     { id: 'content', label: 'Conteúdo', icon: <Calendar className="w-5 h-5" />, description: 'Calendário de publicações' },
     { id: 'engagement', label: 'Engajamento', icon: <Users className="w-5 h-5" />, description: 'Stories e interação' },
@@ -30,11 +27,24 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
     { id: 'bio', label: 'Bio Instagram', icon: <User className="w-5 h-5" />, description: 'Otimização de bio' },
   ];
 
+  // Check availability for each type
+  const getTypeAvailability = (type: StrategyType) => {
+    const canGenerate = canGenerateStrategy(profileId, type);
+    const daysRemaining = getStrategyDaysRemaining(profileId, type);
+    return { canGenerate, daysRemaining };
+  };
+
+  // Get availability for selected type
+  const selectedAvailability = getTypeAvailability(selectedType);
+  
+  // Check if any type is available
+  const anyTypeAvailable = strategyTypes.some(t => canGenerateStrategy(profileId, t.id));
+
   const handleGenerateStrategy = async () => {
-    if (!canGenerate) {
+    if (!selectedAvailability.canGenerate) {
       toast({
-        title: "Limite mensal atingido",
-        description: `Você poderá gerar nova estratégia em ${daysRemaining} dias`,
+        title: "Limite atingido para esta estratégia",
+        description: `Você poderá gerar nova ${strategyTypes.find(t => t.id === selectedType)?.label} em ${selectedAvailability.daysRemaining} dias`,
         variant: "destructive",
       });
       return;
@@ -83,15 +93,15 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
           Gerar Nova Estratégia com IA
         </h3>
         
-        {/* Days remaining indicator */}
-        {!canGenerate && (
+        {/* Selected type availability indicator */}
+        {!selectedAvailability.canGenerate && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-warning/20 text-warning border border-warning/30">
             <Clock className="w-4 h-4" />
-            <span className="text-sm font-medium">{daysRemaining} dias para próxima</span>
+            <span className="text-sm font-medium">{selectedAvailability.daysRemaining} dias para próxima</span>
           </div>
         )}
         
-        {canGenerate && existingStrategies.length > 0 && (
+        {selectedAvailability.canGenerate && existingStrategies.length > 0 && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/20 text-success border border-success/30">
             <Sparkles className="w-4 h-4" />
             <span className="text-sm font-medium">Disponível para gerar</span>
@@ -99,49 +109,72 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
         )}
       </div>
 
-      {/* Limit warning */}
-      {!canGenerate && (
-        <div className="p-4 rounded-lg bg-warning/10 border border-warning/30 mb-6">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-warning">Limite mensal atingido</p>
-              <p className="text-sm text-muted-foreground">
-                Você pode gerar <strong>1 estratégia por mês</strong> por perfil. 
-                Próxima geração disponível em <strong>{daysRemaining} dias</strong>.
-              </p>
-            </div>
+      {/* Info about per-type limits */}
+      <div className="p-4 rounded-lg bg-muted/30 border border-border mb-6">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-foreground">Limite por tipo de estratégia</p>
+            <p className="text-sm text-muted-foreground">
+              Você pode gerar <strong>1 estratégia por tipo a cada 30 dias</strong>. 
+              Cada tipo tem seu próprio limite independente.
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Strategy Type Selection */}
-      <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6 ${!canGenerate ? 'opacity-50 pointer-events-none' : ''}`}>
-        {strategyTypes.map((type) => (
-          <button
-            type="button"
-            key={type.id}
-            onClick={() => setSelectedType(type.id as typeof selectedType)}
-            disabled={!canGenerate}
-            className={`p-4 rounded-lg border transition-all duration-300 text-left cursor-pointer ${
-              selectedType === type.id 
-                ? 'border-primary bg-primary/10' 
-                : 'border-border hover:border-primary/50'
-            } ${!canGenerate ? 'cursor-not-allowed' : ''}`}
-          >
-            <div className={`mb-2 ${selectedType === type.id ? 'text-primary' : 'text-muted-foreground'}`}>
-              {type.icon}
-            </div>
-            <p className="font-semibold text-sm">{type.label}</p>
-            <p className="text-xs text-muted-foreground">{type.description}</p>
-          </button>
-        ))}
+      {/* Strategy Type Selection with individual availability */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        {strategyTypes.map((type) => {
+          const availability = getTypeAvailability(type.id);
+          return (
+            <button
+              type="button"
+              key={type.id}
+              onClick={() => setSelectedType(type.id)}
+              className={`p-4 rounded-lg border transition-all duration-300 text-left cursor-pointer relative ${
+                selectedType === type.id 
+                  ? 'border-primary bg-primary/10' 
+                  : availability.canGenerate 
+                    ? 'border-border hover:border-primary/50'
+                    : 'border-border/50 bg-muted/20'
+              }`}
+            >
+              {/* Availability badge */}
+              <div className="absolute top-2 right-2">
+                {availability.canGenerate ? (
+                  <div className="w-5 h-5 rounded-full bg-success/20 flex items-center justify-center">
+                    <Check className="w-3 h-3 text-success" />
+                  </div>
+                ) : (
+                  <div className="px-1.5 py-0.5 rounded bg-warning/20 text-warning text-[10px] font-medium">
+                    {availability.daysRemaining}d
+                  </div>
+                )}
+              </div>
+              
+              <div className={`mb-2 ${
+                selectedType === type.id 
+                  ? 'text-primary' 
+                  : availability.canGenerate 
+                    ? 'text-muted-foreground'
+                    : 'text-muted-foreground/50'
+              }`}>
+                {type.icon}
+              </div>
+              <p className={`font-semibold text-sm ${!availability.canGenerate && selectedType !== type.id ? 'text-muted-foreground/70' : ''}`}>
+                {type.label}
+              </p>
+              <p className="text-xs text-muted-foreground">{type.description}</p>
+            </button>
+          );
+        })}
       </div>
 
       <Button 
         type="button"
         onClick={handleGenerateStrategy} 
-        disabled={isGenerating || !canGenerate}
+        disabled={isGenerating || !selectedAvailability.canGenerate}
         variant="gradient"
         size="lg"
         className="w-full cursor-pointer"
@@ -151,10 +184,10 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
             <Loader2 className="w-5 h-5 animate-spin" />
             Gerando com IA...
           </>
-        ) : !canGenerate ? (
+        ) : !selectedAvailability.canGenerate ? (
           <>
             <Clock className="w-5 h-5" />
-            Disponível em {daysRemaining} dias
+            Disponível em {selectedAvailability.daysRemaining} dias
           </>
         ) : (
           <>

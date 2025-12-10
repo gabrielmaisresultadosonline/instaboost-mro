@@ -6,7 +6,8 @@ import {
   Creative,
   ProfileSession,
   GrowthSnapshot,
-  GrowthInsight
+  GrowthInsight,
+  StrategyType
 } from '@/types/instagram';
 
 const STORAGE_KEY = 'mro_session';
@@ -287,21 +288,40 @@ export const addStrategy = (strategy: Strategy): void => {
   const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
   if (activeProfile) {
     activeProfile.strategies.push(strategy);
+    
+    // Update per-type generation date
+    if (!activeProfile.strategyGenerationDates) {
+      activeProfile.strategyGenerationDates = {};
+    }
+    activeProfile.strategyGenerationDates[strategy.type as StrategyType] = new Date().toISOString();
+    
+    // Legacy support
     activeProfile.lastStrategyGeneratedAt = new Date().toISOString();
     activeProfile.lastUpdated = new Date().toISOString();
     saveSession(session);
   }
 };
 
-export const getStrategyDaysRemaining = (profileId?: string): number => {
+export const getStrategyDaysRemaining = (profileId?: string, strategyType?: StrategyType): number => {
   const session = getSession();
   const profile = profileId 
     ? session.profiles.find(p => p.id === profileId)
     : session.profiles.find(p => p.id === session.activeProfileId);
   
-  if (!profile?.lastStrategyGeneratedAt) return 0; // Can generate now
+  if (!profile) return 0;
   
-  const lastGenerated = new Date(profile.lastStrategyGeneratedAt);
+  // Get per-type date or fallback to legacy date
+  let lastGenerated: Date | null = null;
+  
+  if (strategyType && profile.strategyGenerationDates?.[strategyType]) {
+    lastGenerated = new Date(profile.strategyGenerationDates[strategyType]!);
+  } else if (!strategyType && profile.lastStrategyGeneratedAt) {
+    // Legacy behavior for backward compatibility
+    lastGenerated = new Date(profile.lastStrategyGeneratedAt);
+  }
+  
+  if (!lastGenerated) return 0; // Can generate now
+  
   const nextAvailable = new Date(lastGenerated);
   nextAvailable.setDate(nextAvailable.getDate() + 30);
   
@@ -312,15 +332,21 @@ export const getStrategyDaysRemaining = (profileId?: string): number => {
   return Math.max(0, diffDays);
 };
 
-export const canGenerateStrategy = (profileId?: string): boolean => {
-  return getStrategyDaysRemaining(profileId) === 0;
+export const canGenerateStrategy = (profileId?: string, strategyType?: StrategyType): boolean => {
+  return getStrategyDaysRemaining(profileId, strategyType) === 0;
 };
 
-export const resetProfileStrategy = (profileId: string): void => {
+export const resetProfileStrategy = (profileId: string, strategyType?: StrategyType): void => {
   const session = getSession();
   const profile = session.profiles.find(p => p.id === profileId);
   if (profile) {
-    profile.lastStrategyGeneratedAt = undefined;
+    if (strategyType && profile.strategyGenerationDates) {
+      delete profile.strategyGenerationDates[strategyType];
+    } else {
+      // Reset all
+      profile.lastStrategyGeneratedAt = undefined;
+      profile.strategyGenerationDates = {};
+    }
     profile.lastUpdated = new Date().toISOString();
     saveSession(session);
   }
