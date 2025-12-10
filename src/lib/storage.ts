@@ -125,23 +125,45 @@ const getLoggedUserData = (): { username: string; email?: string; daysRemaining:
 
 // Sync session to cloud storage
 const syncToCloud = async (session: MROSession) => {
-  if (isSyncingToCloud || !cloudSyncCallback) return;
+  if (isSyncingToCloud) {
+    console.log('☁️ Sync already in progress, skipping...');
+    return;
+  }
+  
+  if (!cloudSyncCallback) {
+    console.warn('☁️ Cloud sync callback not set - data will not persist to cloud!');
+    return;
+  }
   
   const userData = getLoggedUserData();
-  if (userData.username === 'anonymous') return;
+  if (userData.username === 'anonymous') {
+    console.log('☁️ Anonymous user, skipping cloud sync');
+    return;
+  }
   
   isSyncingToCloud = true;
   try {
     const archived = getArchivedProfiles();
-    await cloudSyncCallback(
+    const totalStrategies = session.profiles.reduce((sum, p) => sum + p.strategies.length, 0);
+    const totalCreatives = session.profiles.reduce((sum, p) => sum + p.creatives.length, 0);
+    
+    console.log(`☁️ Syncing to cloud: ${session.profiles.length} profiles, ${totalStrategies} strategies, ${totalCreatives} creatives`);
+    
+    const success = await cloudSyncCallback(
       userData.username,
       userData.email,
       userData.daysRemaining,
       session.profiles,
       archived
     );
+    
+    if (success) {
+      console.log('✅ Cloud sync completed successfully');
+    } else {
+      console.warn('⚠️ Cloud sync returned false');
+    }
   } catch (error) {
-    console.error('Error syncing to cloud:', error);
+    console.error('❌ Error syncing to cloud:', error);
   } finally {
     isSyncingToCloud = false;
   }
