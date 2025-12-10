@@ -100,30 +100,22 @@ serve(async (req) => {
         const profileData = Array.isArray(data) ? data[0] : data;
         
         if (profileData && (profileData.followers || profileData.id)) {
-          // Profile picture with HTTPS proxy - MUST have real profile pic
+          // Profile picture with HTTPS proxy - allow profiles without picture (rare but possible)
           const originalProfilePic = profileData.profile_image_link;
           
           // If onlyPosts mode, we don't need profile pic validation
           if (!onlyPosts && !originalProfilePic) {
-            console.log('❌ No profile picture in response');
-            return Response.json({ 
-              success: false, 
-              error: 'Perfil encontrado mas sem foto de perfil. O perfil pode ser privado ou temporariamente indisponível. Tente novamente em alguns minutos.'
-            }, { headers: corsHeaders }); // Return 200 with success: false for better error handling
+            console.log('⚠️ No profile picture - loading anyway');
           }
           
           const proxiedProfilePic = originalProfilePic ? proxyImage(originalProfilePic) : '';
 
-          // Calculate engagement from available data
+          // Calculate engagement from available data - allow 0 followers (new/empty profiles)
           const followersCount = profileData.followers || 0;
           
-          // If onlyPosts mode, we don't need followers validation
+          // Log but don't block empty profiles - they can grow later
           if (!onlyPosts && followersCount === 0) {
-            console.log('❌ No followers count in response - profile may be private or data unavailable');
-            return Response.json({ 
-              success: false, 
-              error: 'Perfil encontrado mas não foi possível obter dados de seguidores. O perfil pode ser privado ou a API está temporariamente indisponível. Tente novamente em alguns minutos.'
-            }, { headers: corsHeaders }); // Return 200 with success: false for better error handling
+            console.log('⚠️ Profile has 0 followers - loading anyway for growth tracking');
           }
           
           const postsCount = profileData.posts_count || profileData.post_count || 0;
