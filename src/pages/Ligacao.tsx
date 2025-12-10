@@ -354,7 +354,7 @@ const Ligacao = () => {
       )}
 
       {callState === 'connected' && (
-        <div className="flex-1 flex flex-col bg-gradient-to-b from-[#3d2c2c] via-[#2a1f1f] to-[#1a1212]">
+        <div className="flex-1 flex flex-col" style={{ backgroundColor: '#2a1f1f' }}>
           {/* Header */}
           <div className="flex items-center justify-between p-3">
             <button className="text-white/60">
