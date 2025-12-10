@@ -469,9 +469,11 @@ export default function VendasCompleta() {
           
           <div className="grid md:grid-cols-2 gap-4">
             {[
-              "Análise completa do seu perfil com I.A",
-              "Estratégia personalizada de 30 dias",
-              "6 criativos profissionais por mês",
+              "Acesso a 4 contas do Instagram",
+              "24 criativos profissionais (6 por conta)",
+              "4 estratégias mensais de 30 dias",
+              "Gerencie 4 negócios diferentes",
+              "Análise completa do perfil com I.A",
               "Calendário de postagens otimizado",
               "Otimização de bio que converte",
               "Ferramenta MRO de engajamento automático",
@@ -525,10 +527,12 @@ export default function VendasCompleta() {
               
               <ul className="space-y-3 text-left">
                 {[
+                  "Acesso a 4 contas do Instagram",
+                  "24 criativos por mês (6 por conta)",
+                  "4 estratégias mensais de 30 dias",
+                  "Gerencie 4 negócios diferentes",
                   "I.A MRO completa",
                   "Ferramenta de engajamento automático",
-                  "6 criativos por mês",
-                  "Estratégias mensais",
                   "Suporte prioritário"
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-2">
@@ -572,11 +576,15 @@ export default function VendasCompleta() {
               
               <ul className="space-y-3 text-left">
                 {[
-                  "Tudo do plano anual",
+                  "Acesso a 4 contas do Instagram",
+                  "24 criativos por mês (6 por conta)",
+                  "4 estratégias mensais de 30 dias",
+                  "Gerencie 4 negócios diferentes",
+                  "5 testes mensais extras",
+                  "Plano para prestação de serviço",
+                  "Fature mensalmente com a MRO",
                   "Acesso vitalício sem renovação",
-                  "Atualizações gratuitas para sempre",
-                  "Suporte VIP prioritário",
-                  "Bônus exclusivos futuros"
+                  "Suporte VIP prioritário"
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <Star className="w-5 h-5 text-yellow-500 flex-shrink-0" />
