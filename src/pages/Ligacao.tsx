@@ -13,9 +13,10 @@ const Ligacao = () => {
   const [callState, setCallState] = useState<'ringing' | 'connected' | 'ended'>('ringing');
   const [callDuration, setCallDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const ringtoneRef = useRef<HTMLAudioElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Facebook Pixel
+  // Initialize Facebook Pixel and start ringtone
   useEffect(() => {
     // Load Facebook Pixel script
     const script = document.createElement('script');
@@ -38,9 +39,19 @@ const Ligacao = () => {
     noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=569414052132145&ev=PageView&noscript=1" />`;
     document.body.appendChild(noscript);
 
+    // Start ringtone loop
+    if (ringtoneRef.current) {
+      ringtoneRef.current.volume = 1;
+      ringtoneRef.current.loop = true;
+      ringtoneRef.current.play().catch(console.error);
+    }
+
     return () => {
       document.head.removeChild(script);
       document.body.removeChild(noscript);
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+      }
     };
   }, []);
 
@@ -51,10 +62,17 @@ const Ligacao = () => {
   };
 
   const handleAnswer = () => {
+    // Stop ringtone
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
+
     setCallState('connected');
     
-    // Start playing audio
+    // Start playing audio at max volume
     if (audioRef.current) {
+      audioRef.current.volume = 1;
       audioRef.current.play();
     }
 
@@ -91,7 +109,14 @@ const Ligacao = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] flex items-center justify-center p-4">
-      {/* Hidden audio element */}
+      {/* Ringtone audio - loops until answered */}
+      <audio 
+        ref={ringtoneRef} 
+        src="http://maisresultadosonline.com.br/ligacaoaudio.mp3"
+        preload="auto"
+      />
+
+      {/* Call audio */}
       <audio 
         ref={audioRef} 
         src="https://maisresultadosonline.com.br/3b301aa2-e372-4b47-b35b-34d4b55bcdd9.mp3"
@@ -113,7 +138,7 @@ const Ligacao = () => {
             {callState === 'connected' && (
               <p className="text-green-400 text-sm flex items-center justify-center gap-2">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                Em chamada • {formatDuration(callDuration)}
+                Chamada ativa em andamento... • {formatDuration(callDuration)}
               </p>
             )}
             {callState === 'ended' && (
