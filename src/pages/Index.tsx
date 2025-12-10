@@ -19,7 +19,8 @@ import {
   getRegisteredIGs,
   isIGRegistered,
   addRegisteredIG,
-  getCurrentUser
+  getCurrentUser,
+  logoutUser
 } from '@/lib/userStorage';
 import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -114,9 +115,11 @@ const Index = () => {
   };
 
   const handleLogout = () => {
+    logoutUser();
     setIsLoggedIn(false);
     setShowDashboard(false);
     setHasRegisteredProfiles(false);
+    setSession(createEmptySession());
   };
 
   const handleProfileRegistered = async (profile: InstagramProfile, analysis: ProfileAnalysis) => {
@@ -373,6 +376,7 @@ const Index = () => {
         <ProfileRegistration 
           onProfileRegistered={handleProfileRegistered}
           onSyncComplete={handleSyncComplete}
+          onLogout={handleLogout}
         />
       </>
     );
@@ -405,6 +409,7 @@ const Index = () => {
       <ProfileRegistration 
         onProfileRegistered={handleProfileRegistered}
         onSyncComplete={handleSyncComplete}
+        onLogout={handleLogout}
       />
     </>
   );
