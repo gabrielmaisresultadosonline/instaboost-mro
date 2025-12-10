@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isAdminLoggedIn, logoutAdmin, getAdminData, saveAdminData, AdminData } from '@/lib/adminConfig';
+import { isAdminLoggedIn, logoutAdmin, verifyAdmin, getAdminData, saveAdminData, AdminData } from '@/lib/adminConfig';
 import { getSession } from '@/lib/storage';
 import { getUserSession } from '@/lib/userStorage';
 import { getSyncData, SyncedInstagramProfile, SyncData, getAllMergedProfiles, loadSyncDataFromServer } from '@/lib/syncStorage';
@@ -42,20 +42,26 @@ const Admin = () => {
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [selectedSyncedProfile, setSelectedSyncedProfile] = useState<SyncedInstagramProfile | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
+  const [isVerifying, setIsVerifying] = useState(true);
   // Settings state
   const [settings, setSettings] = useState(adminData.settings);
   const [testingApi, setTestingApi] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdminLoggedIn()) {
-      navigate('/admin/login');
-      return;
-    }
-    
-    // Load data from server on mount
-    const loadData = async () => {
-      // Load sync data from SERVER first
+    const checkAdminAccess = async () => {
+      setIsVerifying(true);
+      
+      // First check cached status for quick rejection
+      if (!isAdminLoggedIn()) {
+        // Verify with server to be sure
+        const isValid = await verifyAdmin();
+        if (!isValid) {
+          navigate('/admin/login');
+          return;
+        }
+      }
+      
+      // Load data from server on mount
       console.log('🔄 Admin: Carregando dados do servidor...');
       const serverSyncData = await loadSyncDataFromServer();
       setSyncData(serverSyncData);
@@ -72,9 +78,10 @@ const Admin = () => {
       setSettings(savedData.settings);
       
       console.log(`✅ Admin: ${serverSyncData.profiles.length} perfis carregados do servidor`);
+      setIsVerifying(false);
     };
     
-    loadData();
+    checkAdminAccess();
 
     // Refresh sync data periodically (from local cache)
     const interval = setInterval(() => {
@@ -84,8 +91,8 @@ const Admin = () => {
     return () => clearInterval(interval);
   }, [navigate]);
 
-  const handleLogout = () => {
-    logoutAdmin();
+  const handleLogout = async () => {
+    await logoutAdmin();
     navigate('/admin/login');
   };
 
@@ -203,6 +210,17 @@ const Admin = () => {
     const diff = nextDate.getTime() - now.getTime();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
+
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verificando acesso...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAdminLoggedIn()) {
     return null;

@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/Logo';
-import { Lock, User, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle } from 'lucide-react';
 import { loginAdmin } from '@/lib/adminConfig';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminLogin = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,17 +21,16 @@ const AdminLogin = () => {
     setError('');
     setIsLoading(true);
 
-    // Small delay for UX
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const result = await loginAdmin(email, password);
 
-    if (loginAdmin(username, password)) {
+    if (result.success) {
       toast({
         title: "Login realizado!",
         description: "Bem-vindo ao painel administrativo",
       });
       navigate('/admin');
     } else {
-      setError('Credenciais inválidas');
+      setError(result.error || 'Credenciais inválidas');
     }
 
     setIsLoading(false);
@@ -55,16 +54,16 @@ const AdminLogin = () => {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="username" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Usuário
+            <Label htmlFor="email" className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              E-mail
             </Label>
             <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Digite seu usuário"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Digite seu e-mail"
               className="bg-secondary/50"
               required
             />
@@ -93,12 +92,12 @@ const AdminLogin = () => {
             className="w-full cursor-pointer"
             disabled={isLoading}
           >
-            {isLoading ? 'Entrando...' : 'Entrar'}
+            {isLoading ? 'Verificando...' : 'Entrar'}
           </Button>
         </form>
 
         <p className="text-xs text-muted-foreground text-center mt-6">
-          Acesso restrito apenas para administradores
+          Acesso restrito apenas para administradores autorizados
         </p>
       </div>
     </div>

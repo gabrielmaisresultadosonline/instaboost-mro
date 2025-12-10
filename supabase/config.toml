@@ -57,7 +57,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.get-paid-users]
-verify_jwt = false
+verify_jwt = true
 
 [functions.user-data-storage]
 verify_jwt = false
@@ -73,3 +73,6 @@ verify_jwt = false
 
 [functions.kiwify-webhook]
 verify_jwt = false
+
+[functions.verify-admin]
+verify_jwt = true

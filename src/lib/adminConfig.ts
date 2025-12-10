@@ -1,10 +1,6 @@
-// Admin configuration stored internally
-export const ADMIN_CONFIG = {
-  credentials: {
-    username: 'MRO',
-    password: 'Ga145523@'
-  }
-};
+// Admin configuration - credentials removed for security
+// Admin authentication now uses Supabase Auth with role verification
+import { supabase } from "@/integrations/supabase/client";
 
 // Admin settings stored in localStorage
 export interface WelcomeVideo {
@@ -327,18 +323,66 @@ export const deleteVideo = (stepId: string, videoId: string): void => {
   }
 };
 
+// Check if admin is logged in via Supabase session
 export const isAdminLoggedIn = (): boolean => {
-  return sessionStorage.getItem('mro_admin_session') === 'true';
+  // Check for cached admin status (set after verifyAdmin succeeds)
+  return sessionStorage.getItem('mro_admin_verified') === 'true';
 };
 
-export const loginAdmin = (username: string, password: string): boolean => {
-  if (username === ADMIN_CONFIG.credentials.username && password === ADMIN_CONFIG.credentials.password) {
-    sessionStorage.setItem('mro_admin_session', 'true');
+// Verify admin status with server (call this on admin page load)
+export const verifyAdmin = async (): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      sessionStorage.removeItem('mro_admin_verified');
+      return false;
+    }
+
+    const { data, error } = await supabase.functions.invoke('verify-admin');
+    
+    if (error || !data?.isAdmin) {
+      sessionStorage.removeItem('mro_admin_verified');
+      return false;
+    }
+
+    sessionStorage.setItem('mro_admin_verified', 'true');
     return true;
+  } catch {
+    sessionStorage.removeItem('mro_admin_verified');
+    return false;
   }
-  return false;
 };
 
-export const logoutAdmin = (): void => {
-  sessionStorage.removeItem('mro_admin_session');
+// Login admin via Supabase Auth
+export const loginAdmin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!data.session) {
+      return { success: false, error: 'Login failed' };
+    }
+
+    // Verify admin role
+    const isAdmin = await verifyAdmin();
+    if (!isAdmin) {
+      await supabase.auth.signOut();
+      return { success: false, error: 'Acesso negado - você não é um administrador' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: 'Erro ao fazer login' };
+  }
+};
+
+export const logoutAdmin = async (): Promise<void> => {
+  sessionStorage.removeItem('mro_admin_verified');
+  await supabase.auth.signOut();
 };
