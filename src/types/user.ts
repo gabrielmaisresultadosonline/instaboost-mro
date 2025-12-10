@@ -1,4 +1,5 @@
 // User and SquareCloud API Types
+import { ProfileSession } from './instagram';
 
 export interface MROUser {
   username: string;
@@ -7,6 +8,7 @@ export interface MROUser {
   loginAt: string;
   registeredIGs: RegisteredIG[];
   creativesUnlocked?: boolean; // Only for lifetime users - admin can unlock
+  isEmailLocked?: boolean; // True if email has been set and locked
 }
 
 export interface RegisteredIG {
@@ -33,10 +35,16 @@ export interface SquareAddIGResponse {
   message?: string;
 }
 
+export interface CloudData {
+  profileSessions: ProfileSession[];
+  archivedProfiles: ProfileSession[];
+}
+
 export interface UserSession {
   user: MROUser | null;
   isAuthenticated: boolean;
   lastSync: string;
+  cloudData?: CloudData; // Data loaded from cloud storage
 }
 
 export type { UserSession as UserSessionType };

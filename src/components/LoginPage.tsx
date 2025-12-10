@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Loader2, LogIn, User, Lock, Clock } from 'lucide-react';
 import { loginToSquare } from '@/lib/squareApi';
-import { loginUser, getUserSession } from '@/lib/userStorage';
+import { loginUser, getUserSession, saveUserToCloud } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
+import { setCloudSyncCallback, initializeFromCloud } from '@/lib/storage';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
@@ -19,6 +20,11 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Set up cloud sync callback on mount
+  useEffect(() => {
+    setCloudSyncCallback(saveUserToCloud);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +43,21 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
       const result = await loginToSquare(username.trim(), password.trim());
 
       if (result.success) {
-        // Login now loads profiles from database
+        // Login now loads profiles from database AND cloud
         const session = await loginUser(username.trim(), result.daysRemaining || 365);
+        
+        // Initialize local storage from cloud data if available
+        if (session.cloudData?.profileSessions && session.cloudData.profileSessions.length > 0) {
+          initializeFromCloud(
+            session.cloudData.profileSessions,
+            session.cloudData.archivedProfiles || []
+          );
+        }
         
         const daysText = formatDaysRemaining(result.daysRemaining || 365);
         const isLifetime = isLifetimeAccess(result.daysRemaining || 365);
         
-        const profileCount = session.user?.registeredIGs?.length || 0;
+        const profileCount = session.cloudData?.profileSessions?.length || session.user?.registeredIGs?.length || 0;
         
         toast({
           title: 'Login realizado com sucesso!',

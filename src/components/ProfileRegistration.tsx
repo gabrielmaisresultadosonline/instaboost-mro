@@ -483,30 +483,37 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
           </CardHeader>
         </Card>
 
-        {/* Email input - required first time */}
-        {!user?.email && (
-          <Card className="glass-card border-amber-500/20">
-            <CardContent className="pt-6">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  Seu e-mail (obrigatório)
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-background/50"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Este e-mail será salvo e usado para todos os cadastros
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Email input - shows locked state if already set in cloud */}
+        <Card className={`glass-card ${user?.isEmailLocked ? 'border-primary/20' : 'border-amber-500/20'}`}>
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Seu e-mail {user?.isEmailLocked ? '(salvo)' : '(obrigatório)'}
+                {user?.isEmailLocked && (
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                    Vinculado
+                  </span>
+                )}
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => !user?.isEmailLocked && setEmail(e.target.value)}
+                disabled={user?.isEmailLocked}
+                className={`bg-background/50 ${user?.isEmailLocked ? 'opacity-70 cursor-not-allowed' : ''}`}
+              />
+              <p className="text-xs text-muted-foreground">
+                {user?.isEmailLocked 
+                  ? 'Este e-mail está vinculado à sua conta e não pode ser alterado'
+                  : 'Este e-mail será salvo e vinculado permanentemente à sua conta'
+                }
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Main Actions */}
         <div className="grid md:grid-cols-2 gap-4">

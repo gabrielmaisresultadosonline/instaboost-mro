@@ -1,8 +1,104 @@
-// User session storage (local JSON + Supabase persistence)
+// User session storage (local JSON + Supabase cloud persistence)
 import { MROUser, UserSession, RegisteredIG, normalizeInstagramUsername } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
+import { ProfileSession } from '@/types/instagram';
 
 const USER_STORAGE_KEY = 'mro_user_session';
+
+// Cloud storage functions
+export const loadUserFromCloud = async (username: string): Promise<{
+  email: string | null;
+  isEmailLocked: boolean;
+  daysRemaining: number;
+  profileSessions: ProfileSession[];
+  archivedProfiles: ProfileSession[];
+} | null> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('user-cloud-storage', {
+      body: {
+        action: 'load',
+        username: username.toLowerCase()
+      }
+    });
+
+    if (error) {
+      console.error('[userStorage] Error loading from cloud:', error);
+      return null;
+    }
+
+    if (data?.success && data?.exists) {
+      console.log(`☁️ Loaded cloud data for ${username}`);
+      return {
+        email: data.data.email,
+        isEmailLocked: !!data.data.email,
+        daysRemaining: data.data.daysRemaining || 365,
+        profileSessions: data.data.profileSessions || [],
+        archivedProfiles: data.data.archivedProfiles || []
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('[userStorage] Error loading from cloud:', error);
+    return null;
+  }
+};
+
+export const saveUserToCloud = async (
+  username: string,
+  email: string | undefined,
+  daysRemaining: number,
+  profileSessions: ProfileSession[],
+  archivedProfiles: ProfileSession[]
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('user-cloud-storage', {
+      body: {
+        action: 'save',
+        username: username.toLowerCase(),
+        email,
+        daysRemaining,
+        profileSessions,
+        archivedProfiles
+      }
+    });
+
+    if (error) {
+      console.error('[userStorage] Error saving to cloud:', error);
+      return false;
+    }
+
+    console.log(`☁️ Saved cloud data for ${username}: ${profileSessions.length} profiles`);
+    return data?.success || false;
+  } catch (error) {
+    console.error('[userStorage] Error saving to cloud:', error);
+    return false;
+  }
+};
+
+export const checkEmailLocked = async (username: string): Promise<{ email: string | null; isLocked: boolean }> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('user-cloud-storage', {
+      body: {
+        action: 'get_email',
+        username: username.toLowerCase()
+      }
+    });
+
+    if (error) {
+      console.error('[userStorage] Error checking email:', error);
+      return { email: null, isLocked: false };
+    }
+
+    return {
+      email: data?.email || null,
+      isLocked: data?.isLocked || false
+    };
+  } catch (error) {
+    console.error('[userStorage] Error checking email:', error);
+    return { email: null, isLocked: false };
+  }
+};
 
 export const getUserSession = (): UserSession => {
   const stored = localStorage.getItem(USER_STORAGE_KEY);
@@ -21,7 +117,7 @@ export const saveUserSession = (session: UserSession): void => {
   localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(session));
 };
 
-// Load profiles from database for a SquareCloud user
+// Load profiles from database for a SquareCloud user (legacy support)
 export const loadProfilesFromDatabase = async (squarecloudUsername: string): Promise<RegisteredIG[]> => {
   try {
     const { data, error } = await supabase.functions.invoke('squarecloud-profile-storage', {
@@ -53,7 +149,7 @@ export const loadProfilesFromDatabase = async (squarecloudUsername: string): Pro
   }
 };
 
-// Save a single profile to database
+// Save a single profile to database (legacy support)
 export const saveProfileToDatabase = async (
   squarecloudUsername: string, 
   instagramUsername: string, 
@@ -86,14 +182,21 @@ export const loginUser = async (
   daysRemaining: number,
   email?: string
 ): Promise<UserSession> => {
-  // Check if user already exists to preserve creativesUnlocked status
+  // Check if user already exists locally to preserve creativesUnlocked status
   const existingSession = getUserSession();
   const existingUser = existingSession.user?.username === username ? existingSession.user : null;
   
-  // Load profiles from database
+  // Try to load from cloud first
+  const cloudData = await loadUserFromCloud(username);
+  
+  // Load profiles from legacy database as fallback
   const dbProfiles = await loadProfilesFromDatabase(username);
   
-  // Merge with any local profiles (local takes precedence if both exist)
+  // Use cloud email if available (locked), otherwise use provided email
+  const finalEmail = cloudData?.email || email;
+  const isEmailLocked = cloudData?.isEmailLocked || false;
+  
+  // Merge profiles - local profiles + database profiles
   const existingLocalIGs = existingUser?.registeredIGs || [];
   const mergedIGs: RegisteredIG[] = [...dbProfiles];
   
@@ -107,18 +210,24 @@ export const loginUser = async (
   const session: UserSession = {
     user: {
       username,
-      email,
-      daysRemaining,
+      email: finalEmail,
+      daysRemaining: cloudData?.daysRemaining || daysRemaining,
       loginAt: new Date().toISOString(),
       registeredIGs: mergedIGs,
-      creativesUnlocked: existingUser?.creativesUnlocked || false
+      creativesUnlocked: existingUser?.creativesUnlocked || false,
+      isEmailLocked
     },
     isAuthenticated: true,
-    lastSync: new Date().toISOString()
+    lastSync: new Date().toISOString(),
+    cloudData: cloudData ? {
+      profileSessions: cloudData.profileSessions,
+      archivedProfiles: cloudData.archivedProfiles
+    } : undefined
   };
+  
   saveUserSession(session);
   
-  console.log(`[userStorage] Loaded ${mergedIGs.length} profiles from database for ${username}`);
+  console.log(`[userStorage] Logged in ${username}: ${mergedIGs.length} registered IGs, email locked: ${isEmailLocked}`);
   
   return session;
 };
@@ -145,11 +254,21 @@ export const logoutUser = (): void => {
   localStorage.removeItem(USER_STORAGE_KEY);
 };
 
-export const updateUserEmail = (email: string): void => {
+export const updateUserEmail = async (email: string): Promise<void> => {
   const session = getUserSession();
-  if (session.user) {
+  if (session.user && !session.user.isEmailLocked) {
     session.user.email = email;
+    session.user.isEmailLocked = true; // Lock email after first set
     saveUserSession(session);
+    
+    // Save to cloud to persist the email
+    await saveUserToCloud(
+      session.user.username,
+      email,
+      session.user.daysRemaining,
+      session.cloudData?.profileSessions || [],
+      session.cloudData?.archivedProfiles || []
+    );
   }
 };
 
@@ -234,4 +353,17 @@ export const isAuthenticated = (): boolean => {
 export const getCurrentUser = (): MROUser | null => {
   const session = getUserSession();
   return session.user;
+};
+
+// Get cloud data from session
+export const getCloudData = () => {
+  const session = getUserSession();
+  return session.cloudData;
+};
+
+// Update cloud data in session
+export const updateCloudData = (profileSessions: ProfileSession[], archivedProfiles: ProfileSession[]) => {
+  const session = getUserSession();
+  session.cloudData = { profileSessions, archivedProfiles };
+  saveUserSession(session);
 };
