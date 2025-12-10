@@ -286,7 +286,7 @@ const Ligacao = () => {
           </div>
 
           {/* Bottom Buttons */}
-          <div className="pb-16 px-8">
+          <div className="pb-12 px-8">
             <div className="flex items-center justify-between max-w-xs mx-auto">
               {/* Decline Button - Disabled */}
               <div className="flex flex-col items-center">
