@@ -245,27 +245,18 @@ const CallAnalyticsDashboard = () => {
             <p className="text-sm font-medium">Eventos do Pixel</p>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm">PageView (ao carregar)</span>
-                <Switch
-                  checked={adminData.settings.callPixelEvents?.pageView ?? true}
-                  onCheckedChange={(v) => updatePixelSettings('pageView', v)}
-                />
+                <span className="text-sm">PageView (ao carregar página)</span>
+                <span className="text-xs text-green-500 font-medium">Ativo</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">ViewContent (ouviu tudo)</span>
-                <Switch
-                  checked={adminData.settings.callPixelEvents?.audioCompleted ?? true}
-                  onCheckedChange={(v) => updatePixelSettings('audioCompleted', v)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Lead (clicou no CTA)</span>
-                <Switch
-                  checked={adminData.settings.callPixelEvents?.ctaClicked ?? true}
-                  onCheckedChange={(v) => updatePixelSettings('ctaClicked', v)}
-                />
+                <span className="text-sm">ViewContent (clicou CTA final)</span>
+                <span className="text-xs text-green-500 font-medium">Ativo</span>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Os eventos são disparados automaticamente: PageView ao carregar /ligacao, 
+              ViewContent quando o usuário clica no botão após ouvir o áudio completo.
+            </p>
           </div>
         </div>
         <Button onClick={handleSaveSettings} className="mt-4 cursor-pointer">
