@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type, AlertCircle, Lock, Phone } from 'lucide-react';
-import { generateCreative } from '@/lib/api';
+import { generateCreative, uploadCreativeImage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser } from '@/lib/userStorage';
 import { canUseCreatives, isLifetimeAccess } from '@/types/user';
@@ -188,6 +188,30 @@ export const CreativeGenerator = ({
         result.creative.colors = config.colors;
         result.creative.logoUrl = includeLogo ? logoUrl : undefined;
         result.creative.downloaded = false;
+        
+        // Upload image to storage for permanent URL
+        const currentUser = getCurrentUser();
+        const username = currentUser?.username || profile.username;
+        
+        if (result.creative.imageUrl.startsWith('data:')) {
+          toast({
+            title: "Salvando criativo...",
+            description: "Fazendo upload para armazenamento permanente",
+          });
+          
+          const uploadResult = await uploadCreativeImage(
+            username,
+            result.creative.id,
+            result.creative.imageUrl
+          );
+          
+          if (uploadResult.success && uploadResult.url) {
+            result.creative.imageUrl = uploadResult.url;
+            console.log('✅ Creative uploaded to storage:', uploadResult.url);
+          } else {
+            console.warn('⚠️ Failed to upload creative to storage, using base64');
+          }
+        }
         
         // Salvar automaticamente e contar crédito
         onCreativeGenerated(result.creative, creditsNeeded);

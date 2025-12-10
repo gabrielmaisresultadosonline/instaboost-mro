@@ -55,7 +55,7 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
         }
         
         // Clean expired creatives and strategies (30 days)
-        cleanExpiredCreatives();
+        await cleanExpiredCreatives();
         cleanExpiredStrategies();
         
         const daysText = formatDaysRemaining(result.daysRemaining || 365);

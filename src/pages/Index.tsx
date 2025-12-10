@@ -66,11 +66,11 @@ const Index = () => {
       // IMPORTANT: Load persisted data from server
       if (igUsernames.length > 0) {
         console.log('🔐 Carregando dados do servidor...');
-        loadPersistedDataOnLogin(loggedInUsername, igUsernames).then(() => {
+        loadPersistedDataOnLogin(loggedInUsername, igUsernames).then(async () => {
           syncPersistentToSession();
           
           // Clean expired data (30 days)
-          cleanExpiredCreatives();
+          await cleanExpiredCreatives();
           cleanExpiredStrategies();
           
           const existingSession = getSession();
@@ -83,8 +83,10 @@ const Index = () => {
         });
       } else {
         // No profiles, but still clean any local expired data
-        cleanExpiredCreatives();
-        cleanExpiredStrategies();
+        (async () => {
+          await cleanExpiredCreatives();
+          cleanExpiredStrategies();
+        })();
       }
       
       // Get session immediately (may update after async load)

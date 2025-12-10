@@ -457,22 +457,41 @@ export const addCreative = (creative: Creative): void => {
   }
 };
 
-export const cleanExpiredCreatives = (): void => {
+export const cleanExpiredCreatives = async (): Promise<void> => {
   const session = getSession();
   const now = new Date();
+  const expiredCreatives: { username: string; creativeId: string }[] = [];
   
   session.profiles.forEach(profile => {
     const validCreatives = profile.creatives.filter(c => {
       if (!c.expiresAt) return true;
-      return new Date(c.expiresAt) > now;
+      const isExpired = new Date(c.expiresAt) <= now;
+      if (isExpired) {
+        expiredCreatives.push({
+          username: profile.profile.username,
+          creativeId: c.id
+        });
+      }
+      return !isExpired;
     });
     
     const expiredCount = profile.creatives.length - validCreatives.length;
+    if (expiredCount > 0) {
+      console.log(`🗑️ Removendo ${expiredCount} criativos expirados de @${profile.profile.username}`);
+    }
     profile.creatives = validCreatives;
     profile.creativesRemaining = Math.min(6, profile.creativesRemaining + expiredCount);
   });
   
   saveSession(session);
+  
+  // Delete expired images from storage in background
+  if (expiredCreatives.length > 0) {
+    const { deleteCreativeImage } = await import('@/lib/api');
+    for (const expired of expiredCreatives) {
+      await deleteCreativeImage(expired.username, expired.creativeId);
+    }
+  }
 };
 
 // Clean expired strategies (30 days old)
