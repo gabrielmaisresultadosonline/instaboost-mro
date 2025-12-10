@@ -15,7 +15,8 @@ import {
   getActiveProfile,
   cleanExpiredCreatives,
   cleanExpiredStrategies,
-  setCloudSyncCallback
+  setCloudSyncCallback,
+  initializeFromCloud
 } from '@/lib/storage';
 import { 
   isAuthenticated, 
@@ -24,7 +25,8 @@ import {
   addRegisteredIG,
   getCurrentUser,
   logoutUser,
-  saveUserToCloud
+  saveUserToCloud,
+  getUserSession
 } from '@/lib/userStorage';
 import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -67,54 +69,43 @@ const Index = () => {
       
       if (authenticated) {
         const registeredIGs = getRegisteredIGs();
-        const igUsernames = registeredIGs.map(ig => ig.username);
         setHasRegisteredProfiles(registeredIGs.length > 0);
-        const loggedInUsername = getLoggedInUsername();
         
-        // IMPORTANT: Load persisted data from server
-        if (igUsernames.length > 0) {
-          console.log('🔐 Carregando dados do servidor...');
-          loadPersistedDataOnLogin(loggedInUsername, igUsernames).then(async () => {
-            try {
-              syncPersistentToSession();
-              
-              // Clean expired data (30 days)
-              await cleanExpiredCreatives();
-              cleanExpiredStrategies();
-              
-              const existingSession = getSession();
-              setSession(existingSession);
-              
-              if (existingSession.profiles.length > 0) {
-                setShowDashboard(true);
-                console.log(`✅ ${existingSession.profiles.length} perfis carregados do servidor`);
-              }
-            } catch (loadError) {
-              console.error('[Index] Error loading persisted data:', loadError);
-            }
-          }).catch(err => console.error('[Index] Error in loadPersistedDataOnLogin:', err));
+        // CRITICAL: First try to load from cloud storage (user_sessions table)
+        const userSession = getUserSession();
+        const cloudProfiles = userSession.cloudData?.profileSessions || [];
+        const cloudArchived = userSession.cloudData?.archivedProfiles || [];
+        
+        console.log(`🔐 Auth check: ${registeredIGs.length} registered IGs, ${cloudProfiles.length} cloud profiles`);
+        
+        if (cloudProfiles.length > 0) {
+          // Initialize from cloud data - NO external API calls needed!
+          console.log(`☁️ Inicializando ${cloudProfiles.length} perfis da nuvem...`);
+          initializeFromCloud(cloudProfiles, cloudArchived);
+          
+          // Clean expired data
+          cleanExpiredCreatives();
+          cleanExpiredStrategies();
+          
+          const existingSession = getSession();
+          setSession(existingSession);
+          
+          if (existingSession.profiles.length > 0) {
+            setShowDashboard(true);
+            toast({
+              title: `${existingSession.profiles.length} perfil(is) carregado(s)`,
+              description: 'Dados restaurados da nuvem'
+            });
+          }
         } else {
-          // No profiles, but still clean any local expired data
-          (async () => {
-            try {
-              await cleanExpiredCreatives();
-              cleanExpiredStrategies();
-            } catch (cleanError) {
-              console.error('[Index] Error cleaning expired data:', cleanError);
-            }
-          })();
-        }
-        
-        // Get session immediately (may update after async load)
-        try {
+          // No cloud profiles - user needs to sync from SquareCloud
+          console.log(`⚠️ Nenhum dado na nuvem, usuário deve sincronizar`);
           const existingSession = getSession();
           setSession(existingSession);
           
           if (existingSession.profiles.length > 0) {
             setShowDashboard(true);
           }
-        } catch (sessionError) {
-          console.error('[Index] Error getting session:', sessionError);
         }
       }
     } catch (error) {
@@ -127,31 +118,43 @@ const Index = () => {
     setIsLoggedIn(true);
     setIsLoading(true);
     setLoadingMessage('Carregando seus dados...');
-    setLoadingSubMessage('Buscando dados salvos no servidor.');
+    setLoadingSubMessage('Buscando dados salvos na nuvem.');
     
     try {
       const registeredIGs = getRegisteredIGs();
-      const igUsernames = registeredIGs.map(ig => ig.username);
       setHasRegisteredProfiles(registeredIGs.length > 0);
-      const loggedInUsername = getLoggedInUsername();
       
-      // IMPORTANT: Load persisted data from server on login
-      if (igUsernames.length > 0) {
-        console.log('🔐 Restaurando dados do servidor...');
-        try {
-          await loadPersistedDataOnLogin(loggedInUsername, igUsernames);
-          syncPersistentToSession();
-        } catch (loadError) {
-          console.error('[Index] Error loading persisted data on login:', loadError);
+      // CRITICAL: Load from cloud storage first (user_sessions table)
+      const userSession = getUserSession();
+      const cloudProfiles = userSession.cloudData?.profileSessions || [];
+      const cloudArchived = userSession.cloudData?.archivedProfiles || [];
+      
+      console.log(`🔐 Login: ${registeredIGs.length} IGs registrados, ${cloudProfiles.length} perfis na nuvem`);
+      
+      if (cloudProfiles.length > 0) {
+        // Initialize from cloud data - NO external API calls needed!
+        console.log(`☁️ Restaurando ${cloudProfiles.length} perfis da nuvem...`);
+        initializeFromCloud(cloudProfiles, cloudArchived);
+        
+        const existingSession = getSession();
+        setSession(existingSession);
+        
+        if (existingSession.profiles.length > 0) {
+          setShowDashboard(true);
+          toast({
+            title: `${existingSession.profiles.length} perfil(is) restaurado(s)`,
+            description: 'Dados carregados da nuvem com sucesso'
+          });
         }
-      }
-      
-      const existingSession = getSession();
-      setSession(existingSession);
-      
-      if (existingSession.profiles.length > 0) {
-        setShowDashboard(true);
-        console.log(`✅ Login: ${existingSession.profiles.length} perfis restaurados`);
+      } else {
+        // No cloud profiles - show registration/sync screen
+        console.log(`⚠️ Nenhum perfil na nuvem. ${registeredIGs.length} IGs aguardando sincronização.`);
+        const existingSession = getSession();
+        setSession(existingSession);
+        
+        if (existingSession.profiles.length > 0) {
+          setShowDashboard(true);
+        }
       }
     } catch (error) {
       console.error('[Index] Error in handleLoginSuccess:', error);
