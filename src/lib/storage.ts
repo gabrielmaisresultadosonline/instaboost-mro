@@ -147,6 +147,16 @@ const syncToCloud = async (session: MROSession) => {
     const totalStrategies = session.profiles.reduce((sum, p) => sum + p.strategies.length, 0);
     const totalCreatives = session.profiles.reduce((sum, p) => sum + p.creatives.length, 0);
     
+    // Log detailed creative info
+    session.profiles.forEach(p => {
+      if (p.creatives.length > 0) {
+        console.log(`☁️ Profile @${p.profile.username}: ${p.creatives.length} creatives, ${p.creativesRemaining} credits`);
+        p.creatives.forEach(c => {
+          console.log(`   - ${c.id}: ${c.imageUrl?.substring(0, 50)}...`);
+        });
+      }
+    });
+    
     console.log(`☁️ Syncing to cloud: ${session.profiles.length} profiles, ${totalStrategies} strategies, ${totalCreatives} creatives`);
     
     const success = await cloudSyncCallback(
@@ -193,6 +203,12 @@ export const saveSession = (session: MROSession): void => {
 export const initializeFromCloud = (profileSessions: ProfileSession[], archivedProfiles: ProfileSession[]): void => {
   const session = getSession();
   
+  console.log('☁️ Initializing from cloud:', {
+    cloudProfiles: profileSessions.length,
+    localProfiles: session.profiles.length,
+    currentActiveId: session.activeProfileId
+  });
+  
   // Merge cloud profiles with local (cloud takes precedence)
   const cloudUsernames = profileSessions.map(p => p.profile.username.toLowerCase());
   const localOnlyProfiles = session.profiles.filter(
@@ -201,9 +217,23 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
   
   session.profiles = [...profileSessions, ...localOnlyProfiles];
   
-  if (!session.activeProfileId && session.profiles.length > 0) {
-    session.activeProfileId = session.profiles[0].id;
+  // CRITICAL: Ensure activeProfileId is valid for the loaded profiles
+  const validProfileIds = session.profiles.map(p => p.id);
+  if (!session.activeProfileId || !validProfileIds.includes(session.activeProfileId)) {
+    if (session.profiles.length > 0) {
+      session.activeProfileId = session.profiles[0].id;
+      console.log('☁️ Set activeProfileId to first profile:', session.activeProfileId);
+    } else {
+      session.activeProfileId = null;
+    }
   }
+  
+  console.log('☁️ Initialized:', {
+    totalProfiles: session.profiles.length,
+    activeProfileId: session.activeProfileId,
+    totalCreatives: session.profiles.reduce((sum, p) => sum + p.creatives.length, 0),
+    totalStrategies: session.profiles.reduce((sum, p) => sum + p.strategies.length, 0)
+  });
   
   // Save locally but don't trigger cloud sync (would be circular)
   session.lastUpdated = new Date().toISOString();
@@ -466,17 +496,40 @@ export const resetProfileStrategy = (profileId: string, strategyType?: StrategyT
 
 export const addCreative = (creative: Creative): void => {
   const session = getSession();
+  console.log('🎨 addCreative called:', {
+    activeProfileId: session.activeProfileId,
+    profilesCount: session.profiles.length,
+    creativeId: creative.id,
+    imageUrlType: creative.imageUrl?.startsWith('data:') ? 'base64' : 'url'
+  });
+  
   const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
-  if (activeProfile && activeProfile.creativesRemaining > 0) {
-    const expiresAt = new Date();
-    expiresAt.setMonth(expiresAt.getMonth() + 1);
-    creative.expiresAt = expiresAt.toISOString();
-    
-    activeProfile.creatives.push(creative);
-    activeProfile.creativesRemaining--;
-    activeProfile.lastUpdated = new Date().toISOString();
-    saveSession(session);
+  
+  if (!activeProfile) {
+    console.error('❌ addCreative: No active profile found!');
+    return;
   }
+  
+  if (activeProfile.creativesRemaining <= 0) {
+    console.error('❌ addCreative: No credits remaining!', activeProfile.creativesRemaining);
+    return;
+  }
+  
+  const expiresAt = new Date();
+  expiresAt.setMonth(expiresAt.getMonth() + 1);
+  creative.expiresAt = expiresAt.toISOString();
+  
+  activeProfile.creatives.push(creative);
+  activeProfile.creativesRemaining--;
+  activeProfile.lastUpdated = new Date().toISOString();
+  
+  console.log('✅ Creative added to profile:', {
+    profileUsername: activeProfile.profile.username,
+    creativesCount: activeProfile.creatives.length,
+    creditsRemaining: activeProfile.creativesRemaining
+  });
+  
+  saveSession(session);
 };
 
 export const cleanExpiredCreatives = async (): Promise<void> => {
