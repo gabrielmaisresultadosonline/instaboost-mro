@@ -7,16 +7,33 @@ const USER_STORAGE_KEY = 'mro_user_session';
 const CACHE_VERSION_KEY = 'mro_cache_version';
 const CURRENT_CACHE_VERSION = '3.0'; // v3.0 - Complete data isolation fix
 
-// Clear ALL user-related data from localStorage
+// Clear ALL user-related data from localStorage - CRITICAL for user isolation
 export const clearAllUserData = (): void => {
-  console.log('[userStorage] Clearing ALL user-related data...');
+  console.log('[userStorage] 🔒 CLEARING ALL user-related data for isolation...');
+  
+  // Clear all known storage keys
   localStorage.removeItem(USER_STORAGE_KEY);
   localStorage.removeItem('mro_session');
   localStorage.removeItem('mro_archived_profiles');
   localStorage.removeItem('mro_server_cache');
-  localStorage.removeItem('mro_sync_data'); // Admin sync data
-  // Clear session storage too
+  localStorage.removeItem('mro_sync_data');
+  localStorage.removeItem('mro_user_data');
+  localStorage.removeItem('mro_persistent_data');
+  
+  // Clear any keys that start with mro_ (catch-all safety)
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('mro_')) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+  
+  // Clear session storage completely
   sessionStorage.clear();
+  
+  console.log(`[userStorage] ✅ Cleared ${keysToRemove.length + 6} storage keys`);
 };
 
 // Check and clear stale cache on load
@@ -263,18 +280,19 @@ export const loginUser = async (
   const isSameUser = existingUsername === normalizedUsername;
   
   // CRITICAL: ALWAYS clear ALL data if different user OR no existing user
-  // This prevents ANY data mixing between users
+  // This prevents ANY data mixing between 800+ users
   if (!isSameUser) {
-    console.log(`[userStorage] 🔐 Different/new user login (${existingUsername || 'none'} -> ${normalizedUsername}), clearing ALL data...`);
+    console.log(`[userStorage] 🔐 NEW USER LOGIN: ${existingUsername || 'none'} -> ${normalizedUsername}`);
+    console.log(`[userStorage] 🔒 Clearing ALL previous user data to prevent mixing...`);
     clearAllUserData();
   } else {
-    console.log(`[userStorage] Same user re-login: ${normalizedUsername}`);
+    console.log(`[userStorage] ♻️ Same user re-login: ${normalizedUsername}`);
   }
   
   // Preserve creativesUnlocked ONLY if same user
   const creativesUnlocked = isSameUser ? existingSession.user?.creativesUnlocked : false;
   
-  // Try to load from cloud first - this is the ONLY source of truth for this user
+  // CRITICAL: Load from cloud - this is the ONLY source of truth for this user
   console.log(`[userStorage] ☁️ Loading cloud data for ${normalizedUsername}...`);
   const cloudData = await loadUserFromCloud(normalizedUsername);
   
