@@ -14,7 +14,6 @@ declare global {
 const Ligacao = () => {
   const [callState, setCallState] = useState<'landing' | 'ringing' | 'connected' | 'ended'>('landing');
   const [callDuration, setCallDuration] = useState(0);
-  const [needsInteraction, setNeedsInteraction] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const ringtoneRef = useRef<HTMLAudioElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,92 +62,68 @@ const Ligacao = () => {
     };
   }, []);
 
-  // Handle ringing state - play ringtone
-  useEffect(() => {
-    if (callState !== 'ringing') return;
-
-    const playRingtone = async () => {
-      if (ringtoneRef.current) {
-        ringtoneRef.current.loop = true;
-        ringtoneRef.current.volume = 1;
-        try {
-          await ringtoneRef.current.play();
-        } catch {
-          setNeedsInteraction(true);
-        }
-      }
-    };
-    playRingtone();
-
-    // Vibration
-    if ('vibrate' in navigator) {
-      navigator.vibrate([500, 300, 500, 300, 500]);
-      vibrationIntervalRef.current = setInterval(() => {
-        navigator.vibrate([500, 300, 500, 300, 500]);
-      }, 2500);
-    }
-
-    return () => {
-      if (ringtoneRef.current) {
-        ringtoneRef.current.pause();
-        ringtoneRef.current.currentTime = 0;
-      }
-      if (vibrationIntervalRef.current) {
-        clearInterval(vibrationIntervalRef.current);
-      }
-      navigator.vibrate?.(0);
-    };
-  }, [callState]);
-
-  const handleEnableSound = () => {
-    if (ringtoneRef.current && needsInteraction) {
-      ringtoneRef.current.play().catch(console.error);
-      setNeedsInteraction(false);
-    }
-  };
-
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // User clicks "Receber chamada" - this is the first user interaction
+  // Use it to unlock audio context on iOS
   const handleReceiveCall = () => {
+    // Create and play a silent audio to unlock audio context on iOS
+    const silentAudio = new Audio();
+    silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+    silentAudio.play().catch(() => {});
+    
+    // Also try to play ringtone immediately with this user gesture
+    if (ringtoneRef.current) {
+      ringtoneRef.current.loop = true;
+      ringtoneRef.current.volume = 1;
+      ringtoneRef.current.play().catch(() => {});
+    }
+    
+    // Start vibration
+    if ('vibrate' in navigator) {
+      navigator.vibrate([500, 300, 500, 300, 500]);
+      vibrationIntervalRef.current = setInterval(() => {
+        navigator.vibrate([500, 300, 500, 300, 500]);
+      }, 2500);
+    }
+    
     setCallState('ringing');
   };
 
+  // User clicks "Accept" - use this interaction to authorize call audio
   const handleAnswer = () => {
-    // 1. STOP ringtone FIRST
+    // Stop ringtone
     if (ringtoneRef.current) {
       ringtoneRef.current.pause();
       ringtoneRef.current.currentTime = 0;
     }
 
-    // 2. Stop vibration
+    // Stop vibration
     navigator.vibrate?.(0);
     if (vibrationIntervalRef.current) {
       clearInterval(vibrationIntervalRef.current);
       vibrationIntervalRef.current = null;
     }
 
-    // 3. Change state IMMEDIATELY
+    // Change state
     setCallState('connected');
 
-    // 4. Start call duration timer
+    // Start call duration timer
     intervalRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    // 5. Play call audio after small delay to ensure ringtone stopped
-    setTimeout(() => {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.volume = 1;
-        audioRef.current.play().catch(() => {
-          console.log('Call audio blocked on iOS');
-        });
-      }
-    }, 100);
+    // Play call audio IMMEDIATELY with this user gesture (critical for iOS)
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.volume = 1;
+      // This play() is triggered by user tap, so it should work on iOS
+      audioRef.current.play().catch(() => {});
+    }
   };
 
   const handleAudioEnded = () => {
@@ -165,14 +140,29 @@ const Ligacao = () => {
     window.location.href = 'https://acessar.click/mrointeligente';
   };
 
+  // Common fullscreen container style
+  const fullscreenStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    margin: 0,
+    padding: 0,
+    overflow: 'hidden',
+  };
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#000', display: 'flex', flexDirection: 'column' }}>
-      {/* Audio elements */}
+    <>
+      {/* Hidden audio elements - preload them */}
       <audio 
         ref={ringtoneRef} 
         src="https://maisresultadosonline.com.br/1207.mp3"
         preload="auto"
         playsInline
+        webkit-playsinline="true"
       />
       <audio 
         ref={audioRef} 
@@ -180,22 +170,23 @@ const Ligacao = () => {
         onEnded={handleAudioEnded}
         preload="auto"
         playsInline
+        webkit-playsinline="true"
       />
 
       {/* Landing Page */}
       {callState === 'landing' && (
         <div 
           style={{
-            flex: 1,
+            ...fullscreenStyle,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'flex-start',
-            paddingTop: '2rem',
-            position: 'relative',
+            paddingTop: 'max(2rem, env(safe-area-inset-top))',
             backgroundImage: `url(${fundoChamada})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            backgroundColor: '#000',
           }}
         >
           <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)' }} />
@@ -241,24 +232,8 @@ const Ligacao = () => {
 
       {/* Ringing State */}
       {callState === 'ringing' && (
-        <div 
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#000' }}
-          onClick={needsInteraction ? handleEnableSound : undefined}
-        >
-          {needsInteraction && (
-            <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '4rem', height: '4rem', margin: '0 auto 1rem', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg style={{ width: '2rem', height: '2rem', color: '#fff' }} viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                  </svg>
-                </div>
-                <p style={{ color: '#fff', fontSize: '1.125rem', fontWeight: 600 }}>Toque para ativar o som</p>
-              </div>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem' }}>
+        <div style={{ ...fullscreenStyle, display: 'flex', flexDirection: 'column', backgroundColor: '#000' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
             <button style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none' }}>
               <svg style={{ width: '1.75rem', height: '1.75rem' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6,9 12,15 18,9" />
@@ -285,7 +260,7 @@ const Ligacao = () => {
             </h1>
           </div>
 
-          <div style={{ paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
+          <div style={{ paddingBottom: 'max(5rem, calc(env(safe-area-inset-bottom) + 3rem))', paddingLeft: '2rem', paddingRight: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '280px', margin: '0 auto' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <button 
@@ -313,8 +288,8 @@ const Ligacao = () => {
 
       {/* Connected State */}
       {callState === 'connected' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#2a1f1f' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem' }}>
+        <div style={{ ...fullscreenStyle, display: 'flex', flexDirection: 'column', background: 'linear-gradient(to bottom, #3d2c2c, #2a1f1f, #1a1212)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
             <button style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none' }}>
               <svg style={{ width: '1.75rem', height: '1.75rem' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6,9 12,15 18,9" />
@@ -340,7 +315,7 @@ const Ligacao = () => {
             </p>
           </div>
 
-          <div style={{ paddingBottom: '5rem', paddingLeft: '1rem', paddingRight: '1rem' }}>
+          <div style={{ paddingBottom: 'max(5rem, calc(env(safe-area-inset-bottom) + 3rem))', paddingLeft: '1rem', paddingRight: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
               <button style={{ width: '2.75rem', height: '2.75rem', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}>
                 <svg style={{ width: '1.25rem', height: '1.25rem', color: '#fff' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -374,36 +349,55 @@ const Ligacao = () => {
 
       {/* Ended State */}
       {callState === 'ended' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '3rem', paddingLeft: '1.5rem', paddingRight: '1.5rem', backgroundColor: '#000' }}>
+        <div style={{ ...fullscreenStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 'max(3rem, env(safe-area-inset-top))', paddingLeft: '1.5rem', paddingRight: '1.5rem', backgroundColor: '#000' }}>
           <div style={{ width: '6rem', height: '6rem', borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '2px solid #eab308' }}>
             <img src={profileImage} alt="Mais Resultados Online" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Chamada finalizada</p>
-          <h2 style={{ color: '#fff', fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem' }}>Mais Resultados Online</h2>
+          <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 600, textAlign: 'center', marginBottom: '0.5rem' }}>
+            Ligação encerrada!
+          </h2>
 
-          <div style={{ width: '100%', maxWidth: '24rem', background: 'linear-gradient(to right, rgba(234,179,8,0.2), rgba(249,115,22,0.2))', borderRadius: '1rem', padding: '1.25rem', border: '1px solid rgba(234,179,8,0.3)', marginBottom: '1rem' }}>
-            <p style={{ color: '#facc15', fontSize: '1.125rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '0.25rem' }}>
-              Aproveite agora mesmo!
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            Duração: {formatDuration(callDuration)}
+          </p>
+
+          <div style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '0.75rem', padding: '1.25rem', marginBottom: '1.5rem', width: '100%', maxWidth: '320px' }}>
+            <p style={{ color: '#fde047', fontSize: '1rem', fontWeight: 600, textAlign: 'center', marginBottom: '0.5rem' }}>
+              🔥 Aproveite agora mesmo!
             </p>
-            <p style={{ color: '#fff', textAlign: 'center' }}>
-              Planos a partir de{' '}
-              <span style={{ color: '#facc15', fontWeight: 'bold', fontSize: '1.25rem' }}>R$33</span>
-              {' '}mensal
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', textAlign: 'center' }}>
+              Planos a partir de <span style={{ color: '#4ade80', fontWeight: 'bold' }}>R$33 mensal</span>
             </p>
           </div>
-          
-          <Button
+
+          <button
             onClick={handleAccessSite}
-            size="lg"
-            className="w-full max-w-sm py-5 text-base bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold rounded-full shadow-lg shadow-yellow-500/30"
+            style={{
+              backgroundColor: '#eab308',
+              color: '#000',
+              fontWeight: 'bold',
+              padding: '1rem 2rem',
+              borderRadius: '9999px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '1rem',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 10px 15px -3px rgba(234, 179, 8, 0.3)',
+            }}
           >
-            <ExternalLink className="w-5 h-5 mr-2" />
-            Acessar o Site
-          </Button>
+            Acessar o site agora
+            <ExternalLink style={{ width: '1.25rem', height: '1.25rem' }} />
+          </button>
+
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginTop: '1rem', textAlign: 'center' }}>
+            @maisresultadosonline
+          </p>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
