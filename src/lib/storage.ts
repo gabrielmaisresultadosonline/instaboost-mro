@@ -14,14 +14,29 @@ const STORAGE_KEY = 'mro_session';
 const ARCHIVE_KEY = 'mro_archived_profiles';
 
 export const getSession = (): MROSession => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    const parsed = JSON.parse(stored);
-    // Migrate old session format to new multi-profile format
-    if (parsed.profile && !parsed.profiles) {
-      return migrateOldSession(parsed);
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Validate basic structure
+      if (!parsed || typeof parsed !== 'object') {
+        console.warn('[storage] Invalid session format, returning empty');
+        return createEmptySession();
+      }
+      // Migrate old session format to new multi-profile format
+      if (parsed.profile && !parsed.profiles) {
+        return migrateOldSession(parsed);
+      }
+      // Ensure profiles array exists
+      if (!Array.isArray(parsed.profiles)) {
+        console.warn('[storage] Missing profiles array, returning empty');
+        return createEmptySession();
+      }
+      return parsed;
     }
-    return parsed;
+  } catch (e) {
+    console.error('[storage] Error parsing session, clearing:', e);
+    localStorage.removeItem(STORAGE_KEY);
   }
   return createEmptySession();
 };

@@ -32,7 +32,10 @@ import {
   addRegisteredIG, 
   isIGRegistered,
   syncIGsFromSquare,
-  getRegisteredIGs
+  getRegisteredIGs,
+  loadUserFromCloud,
+  saveUserSession,
+  getUserSession
 } from '@/lib/userStorage';
 import { 
   getArchivedByUsername, 
@@ -75,6 +78,32 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
     // Load registered IGs
     const igs = getRegisteredIGs();
     setRegisteredIGs(igs.map(ig => ig.username));
+    
+    // CRITICAL FIX: If we have registered IGs but no email, try to reload from cloud
+    // This fixes the "partial data loaded" bug on some browsers
+    const checkAndFixPartialData = async () => {
+      if (user?.username && igs.length > 0 && !user?.email) {
+        console.log('[ProfileRegistration] Detected partial data (profiles but no email), reloading from cloud...');
+        try {
+          const cloudData = await loadUserFromCloud(user.username);
+          if (cloudData?.email) {
+            console.log('[ProfileRegistration] Found email in cloud, updating session...');
+            setEmail(cloudData.email);
+            // Update the session with the cloud email
+            const session = getUserSession();
+            if (session.user) {
+              session.user.email = cloudData.email;
+              session.user.isEmailLocked = cloudData.isEmailLocked;
+              saveUserSession(session);
+            }
+          }
+        } catch (e) {
+          console.error('[ProfileRegistration] Error fixing partial data:', e);
+        }
+      }
+    };
+    
+    checkAndFixPartialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email, user?.username]);
 
