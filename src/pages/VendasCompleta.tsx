@@ -504,23 +504,67 @@ export default function VendasCompleta() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {/* Monthly Plan */}
+          <Card className="glass-card border-border/50 relative overflow-hidden bg-gradient-to-br from-muted/20 to-background">
+            <CardHeader className="text-center pt-8">
+              <CardTitle className="text-2xl">Vaga Mensal</CardTitle>
+              <CardDescription className="text-base">30 dias de acesso</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-6">
+              <div>
+                <Badge variant="outline" className="mb-3 text-xs">
+                  Para 1 conta do Instagram
+                </Badge>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-4xl font-bold text-foreground">R$ 97</span>
+                </div>
+                <p className="text-muted-foreground mt-1">pagamento único</p>
+              </div>
+              
+              <ul className="space-y-3 text-left">
+                {[
+                  "I.A MRO completa",
+                  "Ferramenta de engajamento",
+                  "6 criativos no mês",
+                  "1 estratégia mensal",
+                  "Suporte via WhatsApp"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button 
+                size="lg" 
+                className="w-full text-lg py-6 bg-muted hover:bg-muted/80 text-foreground"
+                onClick={handleBuyClick}
+              >
+                Comprar Agora
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Annual Plan */}
           <Card className="glass-card border-yellow-500/30 relative overflow-hidden bg-gradient-to-br from-yellow-500/5 to-background">
             <div className="absolute top-0 right-0 bg-gradient-to-r from-yellow-500 to-primary text-background px-4 py-1 text-sm font-semibold rounded-bl-xl">
               Mais Popular
             </div>
             <CardHeader className="text-center pt-8">
-              <CardTitle className="text-2xl">Acesso Anual</CardTitle>
+              <CardTitle className="text-2xl">Vaga Anual</CardTitle>
               <CardDescription className="text-base">12 meses de acesso completo</CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-6">
               <div>
                 <p className="text-muted-foreground line-through text-lg">De R$ 997</p>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-4xl font-bold text-yellow-500">12x R$ 33</span>
+                  <span className="text-4xl font-bold text-yellow-500">12x R$ 40</span>
                 </div>
                 <p className="text-muted-foreground mt-1">ou R$ 397 à vista</p>
+                <p className="text-xs text-muted-foreground">parcelado R$ 488</p>
               </div>
               
               <ul className="space-y-3 text-left">
@@ -533,7 +577,7 @@ export default function VendasCompleta() {
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                    <span>{item}</span>
+                    <span className="text-sm">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -550,7 +594,7 @@ export default function VendasCompleta() {
           </Card>
 
           {/* Lifetime Plan */}
-          <Card className="glass-card border-yellow-500/40 relative overflow-hidden bg-gradient-to-br from-yellow-500/5 to-background">
+          <Card className="glass-card border-yellow-500/40 relative overflow-hidden bg-gradient-to-br from-yellow-500/10 to-background">
             <div className="absolute top-0 right-0 bg-yellow-500 text-background px-4 py-1 text-sm font-semibold rounded-bl-xl">
               Melhor Custo-Benefício
             </div>
@@ -558,16 +602,17 @@ export default function VendasCompleta() {
               <div className="flex justify-center mb-2">
                 <Crown className="w-8 h-8 text-yellow-500" />
               </div>
-              <CardTitle className="text-2xl">Acesso Vitalício</CardTitle>
+              <CardTitle className="text-2xl">Vaga Vitalícia</CardTitle>
               <CardDescription className="text-base">Pague uma vez, use para sempre</CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-6">
               <div>
                 <p className="text-muted-foreground line-through text-lg">De R$ 2.997</p>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-4xl font-bold text-yellow-500">12x R$ 83</span>
+                  <span className="text-4xl font-bold text-yellow-500">12x R$ 102</span>
                 </div>
                 <p className="text-muted-foreground mt-1">ou R$ 997 à vista</p>
+                <p className="text-xs text-muted-foreground">parcelado R$ 1.227</p>
               </div>
               
               <ul className="space-y-3 text-left">
@@ -580,7 +625,7 @@ export default function VendasCompleta() {
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <Star className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                    <span>{item}</span>
+                    <span className="text-sm">{item}</span>
                   </li>
                 ))}
               </ul>
