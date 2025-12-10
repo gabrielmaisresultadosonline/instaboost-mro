@@ -550,6 +550,24 @@ export default function VendasCompleta() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Scarcity Section */}
+        <div className="mt-8 text-center space-y-4">
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Badge className="bg-red-500/20 text-red-500 border-red-500/50 text-base px-4 py-2 animate-pulse">
+              🔥 ÚLTIMAS VAGAS
+            </Badge>
+            <Badge className="bg-red-500/20 text-red-500 border-red-500/50 text-base px-4 py-2">
+              💰 Valor SEM JUROS
+            </Badge>
+            <Badge className="bg-red-500/20 text-red-500 border-red-500/50 text-base px-4 py-2 animate-pulse">
+              ⏰ Antes que ACABE!
+            </Badge>
+          </div>
+          <p className="text-xl md:text-2xl font-bold text-foreground mt-6">
+            Nós da MRO mostramos a porta, <span className="text-red-500">VOCÊ DECIDE ENTRAR!</span>
+          </p>
+        </div>
       </section>
 
       {/* Guarantee Highlight */}
