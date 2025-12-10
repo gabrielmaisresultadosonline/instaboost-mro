@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Check, X, ExternalLink } from 'lucide-react';
+import { Check, X, ExternalLink, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import profileImage from '@/assets/mro-profile-call.jpg';
+import fundoChamada from '@/assets/fundo-chamada.jpg';
+import gabrielImage from '@/assets/gabriel-transparente.png';
 
 declare global {
   interface Window {
@@ -10,7 +12,7 @@ declare global {
 }
 
 const Ligacao = () => {
-  const [callState, setCallState] = useState<'ringing' | 'connected' | 'ended'>('ringing');
+  const [callState, setCallState] = useState<'landing' | 'ringing' | 'connected' | 'ended'>('landing');
   const [callDuration, setCallDuration] = useState(0);
   const [needsInteraction, setNeedsInteraction] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -18,7 +20,7 @@ const Ligacao = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Facebook Pixel and start audio/vibration immediately
+  // Initialize Facebook Pixel on mount
   useEffect(() => {
     const script = document.createElement('script');
     script.innerHTML = `
@@ -38,6 +40,16 @@ const Ligacao = () => {
     const noscript = document.createElement('noscript');
     noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=569414052132145&ev=PageView&noscript=1" />`;
     document.body.appendChild(noscript);
+
+    return () => {
+      document.head.removeChild(script);
+      document.body.removeChild(noscript);
+    };
+  }, []);
+
+  // Start ringtone and vibration when entering ringing state
+  useEffect(() => {
+    if (callState !== 'ringing') return;
 
     // Try to play video with sound
     const playWithSound = async () => {
@@ -70,8 +82,6 @@ const Ligacao = () => {
     }
 
     return () => {
-      document.head.removeChild(script);
-      document.body.removeChild(noscript);
       if (ringtoneVideoRef.current) {
         ringtoneVideoRef.current.pause();
       }
@@ -80,7 +90,7 @@ const Ligacao = () => {
       }
       navigator.vibrate(0);
     };
-  }, []);
+  }, [callState]);
 
   const handleEnableSound = () => {
     if (ringtoneVideoRef.current && needsInteraction) {
@@ -94,6 +104,10 @@ const Ligacao = () => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleReceiveCall = () => {
+    setCallState('ringing');
   };
 
   const handleAnswer = () => {
@@ -147,13 +161,12 @@ const Ligacao = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      {/* Hidden video for ringtone - autoplays muted then unmutes on click */}
+      {/* Hidden video for ringtone */}
       <video 
         ref={ringtoneVideoRef} 
         src="http://maisresultadosonline.com.br/1207.mp4"
         className="hidden"
         playsInline
-        autoPlay
         muted
         loop
       />
@@ -163,6 +176,49 @@ const Ligacao = () => {
         onEnded={handleAudioEnded}
         preload="auto"
       />
+
+      {/* Landing Page */}
+      {callState === 'landing' && (
+        <div 
+          className="flex-1 flex flex-col items-center justify-center relative"
+          style={{
+            backgroundImage: `url(${fundoChamada})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/60" />
+          
+          {/* Content */}
+          <div className="relative z-10 flex flex-col items-center px-6 text-center">
+            {/* Gabriel Image */}
+            <img 
+              src={gabrielImage} 
+              alt="Gabriel"
+              className="w-64 h-auto mb-6"
+            />
+
+            {/* Text */}
+            <h1 className="text-white text-2xl font-bold italic leading-tight mb-8">
+              <span className="text-yellow-400">Gabriel</span> esta agora{'\n'}
+              disponível para uma{'\n'}
+              chamada, atenda para{'\n'}
+              entender <span className="text-yellow-400">como não Gastar{'\n'}
+              mais com anúncios!</span>
+            </h1>
+
+            {/* CTA Button */}
+            <button
+              onClick={handleReceiveCall}
+              className="bg-[#4ade80] hover:bg-[#22c55e] text-black font-bold py-4 px-8 rounded-full flex items-center gap-3 text-lg transition-all transform hover:scale-105 shadow-lg shadow-green-500/30"
+            >
+              Receber chamada agora
+              <Phone className="w-5 h-5 animate-pulse" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {callState === 'ringing' && (
         <div className="flex-1 flex flex-col" onClick={needsInteraction ? handleEnableSound : undefined}>
