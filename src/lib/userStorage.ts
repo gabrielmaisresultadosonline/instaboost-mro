@@ -4,6 +4,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { ProfileSession } from '@/types/instagram';
 
 const USER_STORAGE_KEY = 'mro_user_session';
+const CACHE_VERSION_KEY = 'mro_cache_version';
+const CURRENT_CACHE_VERSION = '2.1'; // Increment this to force cache clear
+
+// Check and clear stale cache on load
+const validateCache = (): void => {
+  try {
+    const storedVersion = localStorage.getItem(CACHE_VERSION_KEY);
+    if (storedVersion !== CURRENT_CACHE_VERSION) {
+      console.log(`[userStorage] Cache version mismatch (${storedVersion} vs ${CURRENT_CACHE_VERSION}), clearing stale data...`);
+      // Clear all MRO-related localStorage data
+      localStorage.removeItem(USER_STORAGE_KEY);
+      localStorage.removeItem('mro_session');
+      localStorage.removeItem('mro_archived_profiles');
+      localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
+    }
+  } catch (e) {
+    console.error('[userStorage] Error validating cache:', e);
+  }
+};
+
+// Run cache validation on module load
+validateCache();
 
 // Generate auth token for secure API calls
 const generateAuthToken = (username: string): string => {
@@ -127,9 +149,25 @@ export const checkEmailLocked = async (username: string): Promise<{ email: strin
 };
 
 export const getUserSession = (): UserSession => {
-  const stored = localStorage.getItem(USER_STORAGE_KEY);
-  if (stored) {
-    return JSON.parse(stored);
+  try {
+    const stored = localStorage.getItem(USER_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Validate session structure - if corrupted, return empty session
+      if (parsed.user && typeof parsed.user.username !== 'string') {
+        console.warn('[userStorage] Corrupted session detected, returning empty session');
+        localStorage.removeItem(USER_STORAGE_KEY);
+        return {
+          user: null,
+          isAuthenticated: false,
+          lastSync: new Date().toISOString()
+        };
+      }
+      return parsed;
+    }
+  } catch (e) {
+    console.error('[userStorage] Error parsing session, clearing:', e);
+    localStorage.removeItem(USER_STORAGE_KEY);
   }
   return {
     user: null,
@@ -208,11 +246,22 @@ export const loginUser = async (
   daysRemaining: number,
   email?: string
 ): Promise<UserSession> => {
-  // Check if user already exists locally to preserve creativesUnlocked status
+  // Get existing session ONLY if same user (to preserve creativesUnlocked status)
   const existingSession = getUserSession();
-  const existingUser = existingSession.user?.username === username ? existingSession.user : null;
+  const existingUser = existingSession.user?.username?.toLowerCase() === username.toLowerCase() 
+    ? existingSession.user 
+    : null;
   
-  // Try to load from cloud first
+  // IMPORTANT: Clear old session data if logging in as different user or data seems corrupted
+  if (existingSession.user && existingSession.user.username?.toLowerCase() !== username.toLowerCase()) {
+    console.log(`[userStorage] Different user login, clearing old session data...`);
+    localStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem('mro_session');
+    localStorage.removeItem('mro_archived_profiles');
+  }
+  
+  // Try to load from cloud first - this is the source of truth
+  console.log(`[userStorage] Loading cloud data for ${username}...`);
   const cloudData = await loadUserFromCloud(username);
   
   // Load profiles from legacy database as fallback
