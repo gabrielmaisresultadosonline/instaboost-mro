@@ -187,7 +187,7 @@ export default function VendasCompleta() {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 text-center">
-        <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-yellow-500 border-yellow-500/30">
+        <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-background border-yellow-500/30">
           <Sparkles className="w-3 h-3 mr-1" />
           Inteligência Artificial + Automação
         </Badge>
@@ -234,7 +234,7 @@ export default function VendasCompleta() {
       {/* I.A Features Section */}
       <section ref={iaSectionRef} className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-yellow-500 border-yellow-500/30">
+          <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-background border-yellow-500/30">
             <Bot className="w-3 h-3 mr-1" />
             Inteligência Artificial
           </Badge>
@@ -267,7 +267,7 @@ export default function VendasCompleta() {
         <Card className="glass-card border-yellow-500/30 bg-gradient-to-br from-yellow-500/5 to-primary/5 overflow-hidden">
           <div className="grid md:grid-cols-2 gap-8 p-8">
             <div>
-              <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-yellow-500 border-yellow-500/30">
+              <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-background border-yellow-500/30">
                 <Palette className="w-3 h-3 mr-1" />
                 Criativos com I.A
               </Badge>
@@ -434,7 +434,7 @@ export default function VendasCompleta() {
       {/* Pricing Section */}
       <section ref={pricingSectionRef} className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-yellow-500 border-yellow-500/30">
+          <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-background border-yellow-500/30">
             <Gift className="w-3 h-3 mr-1" />
             Oferta Especial
           </Badge>
