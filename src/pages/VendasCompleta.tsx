@@ -292,7 +292,7 @@ export default function VendasCompleta() {
                   "CTAs que convertem visitantes em clientes",
                   "Sua logo integrada automaticamente",
                   "Cores e estilo da sua marca",
-                  "Formatos para feed e stories",
+                  "Formato feed 1080x1080px",
                   "Download instantâneo em alta qualidade"
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
