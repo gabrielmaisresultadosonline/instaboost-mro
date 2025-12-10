@@ -3,12 +3,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-key',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Hardcoded admin credentials (same as frontend)
-const ADMIN_USERNAME = 'MRO';
-const ADMIN_PASSWORD = 'Ga145523@';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -19,23 +15,61 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
     // Create service client for admin operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify admin key from header
-    const adminKey = req.headers.get('x-admin-key');
-    const expectedKey = `${ADMIN_USERNAME}:${ADMIN_PASSWORD}`;
-    
-    if (!adminKey || adminKey !== expectedKey) {
-      console.error('[admin-data-storage] Invalid or missing admin key');
+    // Verify JWT token from authorization header
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      console.error('[admin-data-storage] Missing authorization header');
       return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized - invalid admin key' }),
+        JSON.stringify({ success: false, error: 'Unauthorized - missing token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('[admin-data-storage] Admin verified via key');
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Create a client with the user's token to verify their identity
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    });
+    
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('[admin-data-storage] Invalid token:', userError?.message);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized - invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check admin role using service client and has_role function
+    const { data: isAdmin, error: roleError } = await supabaseAdmin.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+
+    if (roleError) {
+      console.error('[admin-data-storage] Error checking admin role:', roleError.message);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Error verifying permissions' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!isAdmin) {
+      console.error('[admin-data-storage] User is not admin:', user.id);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Forbidden - admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[admin-data-storage] Admin verified:', user.id);
 
     const { action, data } = await req.json();
     
@@ -55,8 +89,8 @@ serve(async (req) => {
       const jsonData = JSON.stringify(data, null, 2);
       const blob = new Blob([jsonData], { type: 'application/json' });
 
-      // Upload/update the file
-      const { error: uploadError } = await supabase.storage
+      // Upload/update the file using service client
+      const { error: uploadError } = await supabaseAdmin.storage
         .from('user-data')
         .upload(filePath, blob, {
           contentType: 'application/json',
@@ -78,8 +112,8 @@ serve(async (req) => {
       );
 
     } else if (action === 'load') {
-      // Load admin sync data from JSON file
-      const { data: fileData, error: downloadError } = await supabase.storage
+      // Load admin sync data from JSON file using service client
+      const { data: fileData, error: downloadError } = await supabaseAdmin.storage
         .from('user-data')
         .download(filePath);
 
