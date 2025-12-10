@@ -196,7 +196,7 @@ const Ligacao = () => {
             <img 
               src={gabrielImage} 
               alt="Gabriel"
-              className="w-64 h-auto mb-6"
+              className="w-64 h-auto -mb-2"
             />
 
             {/* Text */}
