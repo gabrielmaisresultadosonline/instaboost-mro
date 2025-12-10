@@ -160,7 +160,7 @@ const Ligacao = () => {
       {/* Hidden video for ringtone - plays audio only */}
       <video 
         ref={ringtoneVideoRef} 
-        src="https://maisresultadosonline.com.br/1207.mp4"
+        src="/ringtone.mp4"
         preload="auto"
         playsInline
         webkit-playsinline="true"
