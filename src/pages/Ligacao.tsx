@@ -229,7 +229,7 @@ const Ligacao = () => {
       {/* Landing Page */}
       {callState === 'landing' && (
         <div 
-          className="flex-1 flex flex-col items-center justify-center relative"
+          className="flex-1 flex flex-col items-center justify-start pt-8 sm:pt-12 relative"
           style={{
             backgroundImage: `url(${fundoChamada})`,
             backgroundSize: 'cover',
@@ -240,16 +240,16 @@ const Ligacao = () => {
           <div className="absolute inset-0 bg-black/60" />
           
           {/* Content */}
-          <div className="relative z-10 flex flex-col items-center px-4 sm:px-6 text-center -mt-5">
+          <div className="relative z-10 flex flex-col items-center px-4 sm:px-6 text-center">
             {/* Gabriel Image - muito próximo do texto */}
             <img 
               src={gabrielImage} 
               alt="Gabriel"
-              className="w-56 sm:w-64 md:w-72 lg:w-80 h-auto -mb-12 sm:-mb-14 md:-mb-16"
+              className="w-48 sm:w-56 md:w-64 lg:w-72 h-auto -mb-10 sm:-mb-12 md:-mb-14"
             />
 
             {/* Text */}
-            <h1 className="text-white text-xl sm:text-2xl md:text-3xl font-bold italic leading-tight mb-6 sm:mb-8 max-w-xs sm:max-w-sm">
+            <h1 className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold italic leading-tight mb-4 sm:mb-6 max-w-xs sm:max-w-sm">
               <span className="text-yellow-400">Gabriel</span> esta agora
               <br />disponível para uma
               <br />chamada, atenda para
@@ -287,23 +287,23 @@ const Ligacao = () => {
           )}
 
           {/* Header */}
-          <div className="flex items-center justify-between p-4">
+          <div className="flex items-center justify-between p-3">
             <button className="text-white/60">
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6,9 12,15 18,9" />
               </svg>
             </button>
             <button className="text-white/60">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
               </svg>
             </button>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col items-center justify-center px-8">
+          <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-16">
             {/* Profile Image */}
-            <div className="w-28 h-28 rounded-full overflow-hidden mb-6 border-2 border-white/20">
+            <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-white/20">
               <img 
                 src={profileImage} 
                 alt="Mais Resultados Online"
@@ -329,34 +329,34 @@ const Ligacao = () => {
             </div>
 
             {/* Username */}
-            <h1 className="text-white text-3xl font-semibold">
+            <h1 className="text-white text-2xl font-semibold">
               @maisresultadosonline
             </h1>
           </div>
 
           {/* Bottom Buttons */}
-          <div className="pb-12 px-8">
+          <div className="pb-6 px-8">
             <div className="flex items-center justify-between max-w-xs mx-auto">
               {/* Decline Button - Disabled */}
               <div className="flex flex-col items-center">
                 <button 
-                  className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center opacity-50 cursor-not-allowed"
+                  className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center opacity-50 cursor-not-allowed"
                   disabled
                 >
-                  <X className="w-10 h-10 text-white" />
+                  <X className="w-8 h-8 text-white" />
                 </button>
-                <span className="text-white/60 text-sm mt-3">Recusar</span>
+                <span className="text-white/60 text-xs mt-2">Recusar</span>
               </div>
 
               {/* Accept Button */}
               <div className="flex flex-col items-center">
                 <button
                   onClick={handleAnswer}
-                  className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-400 transition-all transform hover:scale-105 shadow-lg shadow-green-500/30 animate-pulse"
+                  className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-400 transition-all transform hover:scale-105 shadow-lg shadow-green-500/30 animate-pulse"
                 >
-                  <Check className="w-10 h-10 text-white" />
+                  <Check className="w-8 h-8 text-white" />
                 </button>
-                <span className="text-white text-sm mt-3">Aceitar</span>
+                <span className="text-white text-xs mt-2">Aceitar</span>
               </div>
             </div>
           </div>
@@ -366,31 +366,31 @@ const Ligacao = () => {
       {callState === 'connected' && (
         <div className="flex-1 flex flex-col bg-gradient-to-b from-[#3d2c2c] via-[#2a1f1f] to-[#1a1212]">
           {/* Header */}
-          <div className="flex items-center justify-between p-4">
+          <div className="flex items-center justify-between p-3">
             <button className="text-white/60">
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6,9 12,15 18,9" />
               </svg>
             </button>
             <button className="text-white/60">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
               </svg>
             </button>
           </div>
 
           {/* User placeholder at top right */}
-          <div className="absolute top-20 right-4">
-            <div className="w-16 h-20 bg-[#3a3a3a] rounded-lg flex items-center justify-center">
-              <svg className="w-8 h-8 text-white/40" viewBox="0 0 24 24" fill="currentColor">
+          <div className="absolute top-16 right-4">
+            <div className="w-14 h-18 bg-[#3a3a3a] rounded-lg flex items-center justify-center">
+              <svg className="w-7 h-7 text-white/40" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
               </svg>
             </div>
           </div>
 
           {/* Main Content - Profile Photo */}
-          <div className="flex-1 flex flex-col items-center justify-center px-8">
-            <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-white/20">
+          <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-20">
+            <div className="w-20 h-20 rounded-full overflow-hidden mb-3 border-2 border-white/20">
               <img 
                 src={profileImage} 
                 alt="Mais Resultados Online"
@@ -398,17 +398,17 @@ const Ligacao = () => {
               />
             </div>
 
-            <p className="text-white/60 text-sm text-center">
+            <p className="text-white/60 text-xs text-center">
               A câmera de Mais Resultados Online está desativada
             </p>
           </div>
 
           {/* Bottom Call Controls */}
-          <div className="pb-8 px-4">
-            <div className="flex items-center justify-center gap-6">
+          <div className="pb-6 px-4">
+            <div className="flex items-center justify-center gap-5">
               {/* Camera Off */}
-              <button className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M16.5 9.4l-2-2.1M2 4l20 20M9 9c0-.6.4-1 1-1h4c.6 0 1 .4 1 1v4"/>
                   <rect x="2" y="6" width="14" height="12" rx="2"/>
                   <path d="M22 8l-6 4 6 4V8z"/>
@@ -417,22 +417,22 @@ const Ligacao = () => {
               </button>
 
               {/* Microphone */}
-              <button className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
                 </svg>
               </button>
 
               {/* Camera Switch */}
-              <button className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/>
                 </svg>
               </button>
 
               {/* End Call */}
-              <button className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center">
-                <svg className="w-7 h-7 text-white transform rotate-135" viewBox="0 0 24 24" fill="currentColor">
+              <button className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white transform rotate-135" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
                 </svg>
               </button>
@@ -442,9 +442,9 @@ const Ligacao = () => {
       )}
 
       {callState === 'ended' && (
-        <div className="flex-1 flex flex-col items-center justify-center px-8">
+        <div className="flex-1 flex flex-col items-center justify-start pt-12 px-6">
           {/* Profile Image */}
-          <div className="w-28 h-28 rounded-full overflow-hidden mb-6 border-2 border-yellow-500">
+          <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-yellow-500">
             <img 
               src={profileImage} 
               alt="Mais Resultados Online"
@@ -452,16 +452,16 @@ const Ligacao = () => {
             />
           </div>
 
-          <p className="text-white/60 text-sm mb-2">Chamada finalizada</p>
-          <h2 className="text-white text-xl font-semibold mb-8">Mais Resultados Online</h2>
+          <p className="text-white/60 text-xs mb-1">Chamada finalizada</p>
+          <h2 className="text-white text-lg font-semibold mb-6">Mais Resultados Online</h2>
 
-          <div className="w-full max-w-sm bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl p-6 border border-yellow-500/30 mb-6">
-            <p className="text-yellow-400 text-xl font-bold text-center mb-2">
+          <div className="w-full max-w-sm bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl p-5 border border-yellow-500/30 mb-4">
+            <p className="text-yellow-400 text-lg font-bold text-center mb-1">
               Aproveite agora mesmo!
             </p>
-            <p className="text-white text-center text-lg">
+            <p className="text-white text-center">
               Planos a partir de{' '}
-              <span className="text-yellow-400 font-bold text-2xl">R$33</span>
+              <span className="text-yellow-400 font-bold text-xl">R$33</span>
               {' '}mensal
             </p>
           </div>
@@ -469,7 +469,7 @@ const Ligacao = () => {
           <Button
             onClick={handleAccessSite}
             size="lg"
-            className="w-full max-w-sm py-6 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold rounded-full shadow-lg shadow-yellow-500/30"
+            className="w-full max-w-sm py-5 text-base bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold rounded-full shadow-lg shadow-yellow-500/30"
           >
             <ExternalLink className="w-5 h-5 mr-2" />
             Acessar o Site
