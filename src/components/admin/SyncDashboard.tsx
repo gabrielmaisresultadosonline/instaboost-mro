@@ -15,14 +15,18 @@ import {
   pauseSync,
   resumeSync,
   shouldAutoSync,
-  forceSyncToServer
+  forceSyncToServer,
+  isProfileInvalid,
+  markProfileAsInvalid,
+  getInvalidProfiles,
+  clearInvalidProfiles
 } from '@/lib/syncStorage';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { 
   RefreshCw, Play, Pause, Users, TrendingUp, Instagram, 
   CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight,
-  Loader2, AlertCircle, User, Square, Check
+  Loader2, AlertCircle, User, Square, Check, Ban, Trash2
 } from 'lucide-react';
 
 const SQUARECLOUD_API = 'https://dashboardmroinstagramvini-online.squareweb.app';
@@ -120,8 +124,8 @@ const SyncDashboard = () => {
       users.forEach(user => {
         user.igInstagram.forEach(ig => {
           const username = ig.replace('@', '').toLowerCase();
-          // Only add if not already synced and not in dashboard
-          if (!isProfileAlreadySynced(username) && !isProfileInDashboard(username)) {
+          // Only add if not already synced, not in dashboard, and not marked as invalid
+          if (!isProfileAlreadySynced(username) && !isProfileInDashboard(username) && !isProfileInvalid(username)) {
             allInstagramUsernames.push({
               username,
               ownerId: user.ID,
@@ -173,13 +177,13 @@ const SyncDashboard = () => {
       // Step 1: Fetch users
       const users = await fetchSquareCloudUsers();
       
-      // Step 2: Collect all Instagram usernames (skip already synced/dashboard ones)
+      // Step 2: Collect all Instagram usernames (skip already synced/dashboard/invalid ones)
       const allInstagramUsernames: { username: string; ownerId: string; ownerName: string }[] = [];
       users.forEach(user => {
         user.igInstagram.forEach(ig => {
           const username = ig.replace('@', '').toLowerCase();
-          // Skip if already synced or in dashboard
-          if (!isProfileAlreadySynced(username) && !isProfileInDashboard(username)) {
+          // Skip if already synced, in dashboard, or marked as invalid
+          if (!isProfileAlreadySynced(username) && !isProfileInDashboard(username) && !isProfileInvalid(username)) {
             allInstagramUsernames.push({
               username,
               ownerId: user.ID,
@@ -312,8 +316,10 @@ const SyncDashboard = () => {
           description: `${fullProfile.followers.toLocaleString()} seguidores - Total salvos: ${savedCount}` 
         });
       } else {
+        // Marcar perfil como inválido para não tentar sincronizar novamente
+        markProfileAsInvalid(username, 'Perfil não encontrado ou dados indisponíveis');
         skippedCount++;
-        console.log(`⏭️ Perfil @${username} não existe ou dados indisponíveis - pulando`);
+        console.log(`🚫 Perfil @${username} marcado como inválido - não será buscado novamente`);
       }
       
       // Random delay between 2-5 seconds to avoid overloading
@@ -433,7 +439,7 @@ const SyncDashboard = () => {
       )}
 
       {/* Header Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <div className="glass-card p-4 text-center">
           <Users className="w-8 h-8 mx-auto text-primary mb-2" />
           <p className="text-2xl font-bold">{syncData.users.length}</p>
@@ -453,6 +459,11 @@ const SyncDashboard = () => {
           <XCircle className="w-8 h-8 mx-auto text-yellow-500 mb-2" />
           <p className="text-2xl font-bold">{notConnectedProfiles.length}</p>
           <p className="text-xs text-muted-foreground">Ainda não conectados</p>
+        </div>
+        <div className="glass-card p-4 text-center">
+          <Ban className="w-8 h-8 mx-auto text-red-500 mb-2" />
+          <p className="text-2xl font-bold">{(syncData.invalidProfiles || []).length}</p>
+          <p className="text-xs text-muted-foreground">Perfis Inválidos</p>
         </div>
       </div>
 
@@ -552,7 +563,55 @@ const SyncDashboard = () => {
         )}
       </div>
 
-      {/* Top Growing Profiles Slider */}
+      {/* Invalid Profiles Section */}
+      {(syncData.invalidProfiles || []).length > 0 && (
+        <div className="glass-card p-4 border-l-4 border-red-500 bg-red-500/10">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <Ban className="w-5 h-5 text-red-500" />
+              <div>
+                <p className="font-semibold text-red-500">Perfis Inválidos/Inexistentes</p>
+                <p className="text-xs text-muted-foreground">
+                  {(syncData.invalidProfiles || []).length} perfis marcados como inválidos (serão pulados em sincronizações futuras)
+                </p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                clearInvalidProfiles();
+                setSyncData(getSyncData());
+                toast({ 
+                  title: "Lista limpa!", 
+                  description: "Perfis inválidos serão verificados novamente na próxima sincronização" 
+                });
+              }}
+              className="cursor-pointer text-red-500 hover:text-red-600 border-red-500/50"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Limpar Lista
+            </Button>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+            {(syncData.invalidProfiles || []).slice(0, 50).map((invalid) => (
+              <span 
+                key={invalid.username}
+                className="px-2 py-1 bg-red-500/20 text-red-500 text-xs rounded-full"
+                title={`Marcado em: ${new Date(invalid.markedAt).toLocaleString('pt-BR')} - ${invalid.reason}`}
+              >
+                @{invalid.username}
+              </span>
+            ))}
+            {(syncData.invalidProfiles || []).length > 50 && (
+              <span className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded-full">
+                +{(syncData.invalidProfiles || []).length - 50} mais
+              </span>
+            )}
+          </div>
+        </div>
+      )}
       {topGrowing.length > 0 && (
         <div className="glass-card p-6 overflow-hidden">
           <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
