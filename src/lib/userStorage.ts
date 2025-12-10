@@ -252,12 +252,20 @@ export const loginUser = async (
     ? existingSession.user 
     : null;
   
-  // IMPORTANT: Clear old session data if logging in as different user or data seems corrupted
-  if (existingSession.user && existingSession.user.username?.toLowerCase() !== username.toLowerCase()) {
-    console.log(`[userStorage] Different user login, clearing old session data...`);
+  // CRITICAL: Always clear session data if logging in as different user OR if no existing user
+  // This prevents data mixing between users after logout
+  const isSameUser = existingSession.user?.username?.toLowerCase() === username.toLowerCase();
+  if (!isSameUser) {
+    console.log(`[userStorage] Different/new user login, clearing ALL old session data...`);
     localStorage.removeItem(USER_STORAGE_KEY);
     localStorage.removeItem('mro_session');
     localStorage.removeItem('mro_archived_profiles');
+    // Also clear any auth tokens from other users
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('mro_auth_token_') && !key.endsWith(`_${username.toLowerCase()}`)) {
+        sessionStorage.removeItem(key);
+      }
+    });
   }
   
   // Try to load from cloud first - this is the source of truth
@@ -331,7 +339,11 @@ export const logoutUser = (): void => {
   if (session.user?.username) {
     sessionStorage.removeItem(`mro_auth_token_${session.user.username.toLowerCase()}`);
   }
+  // CRITICAL: Clear ALL user-related data to prevent data mixing between users
   localStorage.removeItem(USER_STORAGE_KEY);
+  localStorage.removeItem('mro_session');
+  localStorage.removeItem('mro_archived_profiles');
+  console.log('[userStorage] Logged out and cleared all session data');
 };
 
 export const updateUserEmail = async (email: string): Promise<void> => {
