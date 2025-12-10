@@ -182,7 +182,7 @@ export default function VendasCompleta() {
           <Logo size="lg" />
           <Button 
             variant="outline" 
-            onClick={() => navigate('/membro')}
+            onClick={() => navigate('/')}
             className="gap-2"
           >
             <LogIn className="w-4 h-4" />
