@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/Logo';
-import { Lock, Mail, AlertCircle } from 'lucide-react';
+import { Lock, User, AlertCircle } from 'lucide-react';
 import { loginAdmin } from '@/lib/adminConfig';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +21,7 @@ const AdminLogin = () => {
     setError('');
     setIsLoading(true);
 
-    const result = await loginAdmin(email, password);
+    const result = await loginAdmin(username, password);
 
     if (result.success) {
       toast({
@@ -54,16 +54,16 @@ const AdminLogin = () => {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              E-mail
+            <Label htmlFor="username" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Nome de Usuário
             </Label>
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Digite seu e-mail"
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Digite seu nome de usuário"
               className="bg-secondary/50"
               required
             />

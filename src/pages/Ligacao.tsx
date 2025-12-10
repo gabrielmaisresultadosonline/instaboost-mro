@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Check, X, ExternalLink, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { trackCallEvent, getAdminData } from '@/lib/adminConfig';
 import profileImage from '@/assets/mro-profile-call.jpg';
 import fundoChamada from '@/assets/fundo-chamada.jpg';
 import gabrielImage from '@/assets/gabriel-transparente.png';
@@ -19,6 +20,10 @@ const Ligacao = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Get admin settings for pixel configuration
+  const adminSettings = getAdminData().settings;
+  const pixelId = adminSettings.facebookPixel || '569414052132145';
+
   // Initialize Facebook Pixel on mount
   useEffect(() => {
     const script = document.createElement('script');
@@ -31,20 +36,23 @@ const Ligacao = () => {
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '569414052132145');
+      fbq('init', '${pixelId}');
       fbq('track', 'PageView');
     `;
     document.head.appendChild(script);
 
     const noscript = document.createElement('noscript');
-    noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=569414052132145&ev=PageView&noscript=1" />`;
+    noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1" />`;
     document.body.appendChild(noscript);
+
+    // Track page view in local analytics
+    trackCallEvent('page_view');
 
     return () => {
       document.head.removeChild(script);
       document.body.removeChild(noscript);
     };
-  }, []);
+  }, [pixelId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -92,6 +100,9 @@ const Ligacao = () => {
       }, 2500);
     }
     
+    // Track ringtone started
+    trackCallEvent('ringtone_started');
+    
     setCallState('ringing');
   };
 
@@ -118,6 +129,9 @@ const Ligacao = () => {
       setCallDuration(prev => prev + 1);
     }, 1000);
 
+    // Track call answered
+    trackCallEvent('call_answered');
+
     // Play call audio IMMEDIATELY with this user gesture (critical for iOS)
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
@@ -132,12 +146,25 @@ const Ligacao = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
+    
+    // Track audio completed - user listened to everything
+    trackCallEvent('audio_completed');
+    
+    // Fire Facebook Pixel event for audio completion
+    if (adminSettings.callPixelEvents?.audioCompleted && window.fbq) {
+      window.fbq('track', 'ViewContent', { content_name: 'call_audio_completed' });
+    }
   };
 
   const handleAccessSite = () => {
-    if (window.fbq) {
+    // Track CTA clicked
+    trackCallEvent('cta_clicked');
+    
+    // Fire Facebook Pixel Lead event
+    if (adminSettings.callPixelEvents?.ctaClicked && window.fbq) {
       window.fbq('track', 'Lead');
     }
+    
     window.location.href = 'https://acessar.click/mrointeligente';
   };
 
@@ -168,7 +195,7 @@ const Ligacao = () => {
       />
       <audio 
         ref={audioRef} 
-        src="https://maisresultadosonline.com.br/3b301aa2-e372-4b47-b35b-34d4b55bcdd9.mp3"
+        src="/call-audio.mp3"
         onEnded={handleAudioEnded}
         preload="auto"
         playsInline
