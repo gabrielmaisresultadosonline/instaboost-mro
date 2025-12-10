@@ -210,7 +210,7 @@ const Ligacao = () => {
           <div className="absolute inset-0 bg-black/60" />
           
           {/* Content */}
-          <div className="relative z-10 flex flex-col items-center px-4 sm:px-6 text-center">
+          <div className="relative z-10 flex flex-col items-center px-4 sm:px-6 text-center -mt-5">
             {/* Gabriel Image - muito próximo do texto */}
             <img 
               src={gabrielImage} 
