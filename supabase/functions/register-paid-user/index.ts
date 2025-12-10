@@ -1,10 +1,20 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const registerSchema = z.object({
+  email: z.string().email("Email inválido").max(255, "Email muito longo").transform(v => v.toLowerCase().trim()),
+  username: z.string().min(1, "Nome é obrigatório").max(100, "Nome muito longo").transform(v => v.trim()),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres").max(72, "Senha muito longa"),
+  instagram_username: z.string().max(30, "Username do Instagram muito longo").optional().nullable()
+    .transform(v => v ? v.toLowerCase().replace(/^@/, '').trim() : null)
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,14 +22,20 @@ serve(async (req) => {
   }
 
   try {
-    const { email, username, instagram_username, password } = await req.json();
-
-    if (!email || !username || !password) {
+    const rawBody = await req.json();
+    
+    // Validate input
+    const parseResult = registerSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      const errorMessage = parseResult.error.errors.map(e => e.message).join(", ");
+      console.error("Validation error:", parseResult.error.errors);
       return new Response(
-        JSON.stringify({ error: "Email, nome e senha são obrigatórios" }),
+        JSON.stringify({ error: errorMessage }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
+
+    const { email, username, password, instagram_username } = parseResult.data;
 
     // Use service role to bypass RLS
     const supabaseAdmin = createClient(
@@ -32,7 +48,7 @@ serve(async (req) => {
     const { data: existingUser } = await supabaseAdmin
       .from("paid_users")
       .select("id, email, subscription_status")
-      .eq("email", email.toLowerCase())
+      .eq("email", email)
       .maybeSingle();
 
     if (existingUser) {
@@ -49,10 +65,10 @@ serve(async (req) => {
     const { data: newUser, error: insertError } = await supabaseAdmin
       .from("paid_users")
       .insert({
-        email: email.toLowerCase(),
-        username: username.trim(),
+        email: email,
+        username: username,
         password: password,
-        instagram_username: instagram_username || null,
+        instagram_username: instagram_username,
         subscription_status: "pending",
         strategies_generated: 0,
         creatives_used: 0,

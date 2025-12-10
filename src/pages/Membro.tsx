@@ -48,6 +48,38 @@ interface PaidMemberUser {
 
 const PAID_MEMBERS_KEY = 'mro_paid_members';
 const CURRENT_MEMBER_KEY = 'mro_current_member';
+const SESSION_KEY = 'mro_paid_user_session';
+
+interface SessionData {
+  id: string;
+  email: string;
+  username: string;
+  sessionToken: string;
+  expiresAt: number;
+  justRegistered?: boolean;
+  instagram?: string;
+}
+
+const getSession = (): SessionData | null => {
+  const stored = localStorage.getItem(SESSION_KEY);
+  if (!stored) return null;
+  
+  const session = JSON.parse(stored);
+  // Check if session is expired
+  if (session.expiresAt && session.expiresAt < Date.now()) {
+    localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
+  return session;
+};
+
+const saveSession = (session: SessionData | null) => {
+  if (session) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  } else {
+    localStorage.removeItem(SESSION_KEY);
+  }
+};
 
 const getPaidMembers = (): PaidMemberUser[] => {
   const stored = localStorage.getItem(PAID_MEMBERS_KEY);
@@ -65,7 +97,9 @@ const getCurrentMember = (): PaidMemberUser | null => {
 
 const saveCurrentMember = (member: PaidMemberUser | null) => {
   if (member) {
-    localStorage.setItem(CURRENT_MEMBER_KEY, JSON.stringify(member));
+    // Store member data WITHOUT password
+    const { password, ...memberWithoutPassword } = member;
+    localStorage.setItem(CURRENT_MEMBER_KEY, JSON.stringify(memberWithoutPassword));
   } else {
     localStorage.removeItem(CURRENT_MEMBER_KEY);
   }
@@ -102,33 +136,33 @@ export default function Membro() {
     }
   }, [success, sessionId, user]);
 
-  // Auto-login from registration
+  // Auto-login from registration (using session, not password)
   useEffect(() => {
-    const storedCreds = localStorage.getItem('mro_paid_user_credentials');
-    if (storedCreds && !user) {
-      const creds = JSON.parse(storedCreds);
-      if (creds.justRegistered) {
-        // Clear the flag and auto-login
-        const updatedCreds = { ...creds, justRegistered: false };
-        localStorage.setItem('mro_paid_user_credentials', JSON.stringify(updatedCreds));
-        
-        // Create member from creds and set as logged in
-        const member: PaidMemberUser = {
-          id: creds.id,
-          username: creds.username,
-          email: creds.email,
-          password: creds.password,
-          instagram_username: creds.instagram || undefined,
-          subscription_status: 'pending',
-          strategies_generated: 0,
-          creatives_used: 0,
-          created_at: new Date().toISOString()
-        };
-        setUser(member);
-        saveCurrentMember(member);
-        setIsLoading(false);
-      }
+    const session = getSession();
+    if (session && !user && session.justRegistered) {
+      // Clear the flag and auto-login
+      const updatedSession = { ...session, justRegistered: false };
+      saveSession(updatedSession);
+      
+      // Create member from session and set as logged in
+      const member: PaidMemberUser = {
+        id: session.id,
+        username: session.username,
+        email: session.email,
+        password: '', // No password stored
+        instagram_username: session.instagram || undefined,
+        subscription_status: 'pending',
+        strategies_generated: 0,
+        creatives_used: 0,
+        created_at: new Date().toISOString()
+      };
+      setUser(member);
+      saveCurrentMember(member);
+      setIsLoading(false);
     }
+    
+    // Clean up old credentials storage
+    localStorage.removeItem('mro_paid_user_credentials');
   }, []);
 
   useEffect(() => {
@@ -415,13 +449,14 @@ export default function Membro() {
       setUser(member);
       saveCurrentMember(member);
 
-      // Save password to localStorage for future logins
-      localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
+      // Save session token (not password) for future logins
+      saveSession({
         id: member.id,
         email: member.email.toLowerCase(),
-        password: loginForm.password,
-        username: member.username
-      }));
+        username: member.username,
+        sessionToken: btoa(`${member.id}:${Date.now()}`),
+        expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+      });
 
       // Load saved data
       const savedStrategy = localStorage.getItem(`mro_strategy_${member.id}`);
