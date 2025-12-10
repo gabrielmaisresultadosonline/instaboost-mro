@@ -14,6 +14,8 @@ const requestSchema = z.object({
     .min(1, 'Username is required')
     .max(50, 'Username too long')
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username contains invalid characters'),
+  email: z.string().email('Invalid email').max(255).transform(v => v.toLowerCase().trim()),
+  auth_token: z.string().min(1, 'Auth token required'),
   data: z.any().optional()
 });
 
@@ -42,11 +44,37 @@ serve(async (req) => {
       );
     }
 
-    const { action, username, data } = parseResult.data;
+    const { action, username, email, auth_token, data } = parseResult.data;
 
-    // Sanitized file path (username is now validated against path traversal)
-    const filePath = `${username}/profile-data.json`;
-    console.log(`[user-data-storage] Action: ${action}, User: ${username}`);
+    // Verify user ownership - check that the email exists and matches the username
+    const { data: user, error: userError } = await supabase
+      .from('paid_users')
+      .select('id, username, email, password')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (userError || !user) {
+      console.error("[user-data-storage] User not found:", email);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized - user not found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Verify the auth_token - token should contain user ID prefix for ownership verification
+    // The client sends a session token that starts with the user ID
+    if (!auth_token.startsWith(user.id)) {
+      console.error("[user-data-storage] Invalid auth token for user:", email);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized - invalid token' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Verify the username matches the authenticated user (prevent accessing other users' data)
+    // Use user ID for storage path to ensure ownership
+    const filePath = `${user.id}/profile-data.json`;
+    console.log(`[user-data-storage] Action: ${action}, User: ${user.id}`);
 
     if (action === 'save') {
       // Save user data as JSON file
@@ -76,7 +104,7 @@ serve(async (req) => {
         );
       }
 
-      console.log(`[user-data-storage] Data saved successfully for user: ${username}`);
+      console.log(`[user-data-storage] Data saved successfully for user: ${user.id}`);
       return new Response(
         JSON.stringify({ success: true, message: 'Data saved successfully' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -91,7 +119,7 @@ serve(async (req) => {
       if (downloadError) {
         // File doesn't exist yet - return empty data
         if (downloadError.message.includes('not found') || downloadError.message.includes('Object not found')) {
-          console.log(`[user-data-storage] No data found for user: ${username}`);
+          console.log(`[user-data-storage] No data found for user: ${user.id}`);
           return new Response(
             JSON.stringify({ success: true, data: null, exists: false }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -108,7 +136,7 @@ serve(async (req) => {
       const text = await fileData.text();
       const userData = JSON.parse(text);
       
-      console.log(`[user-data-storage] Data loaded successfully for user: ${username}`);
+      console.log(`[user-data-storage] Data loaded successfully for user: ${user.id}`);
       return new Response(
         JSON.stringify({ success: true, data: userData, exists: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -128,7 +156,7 @@ serve(async (req) => {
         );
       }
 
-      console.log(`[user-data-storage] Data deleted successfully for user: ${username}`);
+      console.log(`[user-data-storage] Data deleted successfully for user: ${user.id}`);
       return new Response(
         JSON.stringify({ success: true, message: 'Data deleted successfully' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,13 +62,18 @@ serve(async (req) => {
       );
     }
 
-    // Create new user with password
+    // Hash password with bcrypt before storing
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    console.log("Password hashed successfully for new user registration");
+
+    // Create new user with hashed password
     const { data: newUser, error: insertError } = await supabaseAdmin
       .from("paid_users")
       .insert({
         email: email,
         username: username,
-        password: password,
+        password: hashedPassword,
         instagram_username: instagram_username,
         subscription_status: "pending",
         strategies_generated: 0,
@@ -89,7 +95,12 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         exists: false, 
-        user: newUser 
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          username: newUser.username,
+          subscription_status: newUser.subscription_status
+        }
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
