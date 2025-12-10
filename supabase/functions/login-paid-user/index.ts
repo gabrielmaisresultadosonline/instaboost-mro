@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -63,8 +64,32 @@ serve(async (req) => {
       );
     }
 
-    // Check password
-    if (user.password !== password) {
+    // Check password using bcrypt
+    let passwordValid = false;
+    
+    if (user.password) {
+      // Check if password is hashed (bcrypt hashes start with $2)
+      if (user.password.startsWith('$2')) {
+        // Password is hashed, use bcrypt compare
+        passwordValid = await bcrypt.compare(password, user.password);
+      } else {
+        // Legacy plain text password - compare directly and upgrade
+        passwordValid = user.password === password;
+        
+        if (passwordValid) {
+          // Upgrade to hashed password
+          const salt = await bcrypt.genSalt(10);
+          const hashedPassword = await bcrypt.hash(password, salt);
+          await supabaseAdmin
+            .from("paid_users")
+            .update({ password: hashedPassword })
+            .eq("id", user.id);
+          console.log("Upgraded legacy password to bcrypt hash for user:", user.id);
+        }
+      }
+    }
+
+    if (!passwordValid) {
       return new Response(
         JSON.stringify({ error: "Senha incorreta", wrongPassword: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
