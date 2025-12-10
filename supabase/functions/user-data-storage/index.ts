@@ -1,11 +1,74 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Token expiration: 24 hours
+const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+// HMAC verification helper
+async function verifyHmacToken(
+  token: string, 
+  userId: string, 
+  passwordHash: string
+): Promise<{ valid: boolean; reason?: string }> {
+  try {
+    // Token format: userId:timestamp:hmacSignature
+    const parts = token.split(':');
+    if (parts.length !== 3) {
+      return { valid: false, reason: 'Invalid token format' };
+    }
+
+    const [tokenUserId, timestampStr, providedSignature] = parts;
+
+    // Verify user ID matches
+    if (tokenUserId !== userId) {
+      return { valid: false, reason: 'User ID mismatch' };
+    }
+
+    // Verify timestamp is within valid range
+    const timestamp = parseInt(timestampStr, 10);
+    if (isNaN(timestamp)) {
+      return { valid: false, reason: 'Invalid timestamp' };
+    }
+
+    const now = Date.now();
+    if (now - timestamp > TOKEN_MAX_AGE_MS) {
+      return { valid: false, reason: 'Token expired' };
+    }
+
+    // Verify HMAC signature
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(passwordHash);
+    const key = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const message = encoder.encode(`${userId}:${timestampStr}`);
+    const signatureBuffer = await crypto.subtle.sign('HMAC', key, message);
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    if (providedSignature !== expectedSignature) {
+      return { valid: false, reason: 'Invalid signature' };
+    }
+
+    return { valid: true };
+  } catch (error) {
+    console.error('[user-data-storage] HMAC verification error:', error);
+    return { valid: false, reason: 'Verification error' };
+  }
+}
 
 // Input validation schema - prevent path traversal and validate username
 const requestSchema = z.object({
@@ -61,15 +124,25 @@ serve(async (req) => {
       );
     }
 
-    // Verify the auth_token - token should contain user ID prefix for ownership verification
-    // The client sends a session token that starts with the user ID
-    if (!auth_token.startsWith(user.id)) {
-      console.error("[user-data-storage] Invalid auth token for user:", email);
+    // Verify HMAC-based auth token
+    if (!user.password) {
+      console.error("[user-data-storage] User has no password set:", email);
       return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized - invalid token' }),
+        JSON.stringify({ success: false, error: 'Unauthorized - invalid account' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }
+
+    const tokenVerification = await verifyHmacToken(auth_token, user.id, user.password);
+    if (!tokenVerification.valid) {
+      console.error(`[user-data-storage] Token verification failed for ${email}: ${tokenVerification.reason}`);
+      return new Response(
+        JSON.stringify({ success: false, error: `Unauthorized - ${tokenVerification.reason}` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    console.log(`[user-data-storage] Auth verified for user: ${email}`);
 
     // Verify the username matches the authenticated user (prevent accessing other users' data)
     // Use user ID for storage path to ensure ownership
