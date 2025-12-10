@@ -61,7 +61,8 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
         const daysText = formatDaysRemaining(result.daysRemaining || 365);
         const isLifetime = isLifetimeAccess(result.daysRemaining || 365);
         
-        const profileCount = session.cloudData?.profileSessions?.length || session.user?.registeredIGs?.length || 0;
+        // Only count profiles actually loaded in cloud storage (not just registered in SquareCloud)
+        const profileCount = session.cloudData?.profileSessions?.length || 0;
         
         toast({
           title: 'Login realizado com sucesso!',
