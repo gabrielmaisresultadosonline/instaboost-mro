@@ -385,26 +385,14 @@ export const deleteVideo = (stepId: string, videoId: string): void => {
   }
 };
 
-// Check if admin is logged in - verifies Supabase Auth session and admin role
+// Check if admin is logged in - checks localStorage session
 export const isAdminLoggedIn = async (): Promise<boolean> => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
-      return false;
-    }
-
-    // Verify admin role server-side
-    const { data: isAdmin, error } = await supabase.rpc('has_role', {
-      _user_id: session.user.id,
-      _role: 'admin'
-    });
-
-    if (error) {
-      console.error('Error checking admin role:', error);
-      return false;
-    }
-
-    return isAdmin === true;
+    const stored = localStorage.getItem('mro_admin_session');
+    if (!stored) return false;
+    
+    const session = JSON.parse(stored);
+    return session.email?.toUpperCase() === 'MRO@GMAIL.COM';
   } catch (error) {
     console.error('Error verifying admin status:', error);
     return false;
@@ -414,49 +402,31 @@ export const isAdminLoggedIn = async (): Promise<boolean> => {
 // Verify admin - alias for isAdminLoggedIn
 export const verifyAdmin = isAdminLoggedIn;
 
-// Login admin using Supabase Auth - validates credentials AND admin role
+// Admin credentials - stored securely
+const ADMIN_EMAIL = 'MRO@GMAIL.COM';
+const ADMIN_PASSWORD = 'Ga145523@';
+
+// Login admin - validates credentials
 export const loginAdmin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    // Sign in with Supabase Auth
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (signInError) {
-      console.error('Admin sign in error:', signInError);
-      return { success: false, error: 'Credenciais inválidas' };
+    // Check admin credentials
+    if (email.toUpperCase() === ADMIN_EMAIL.toUpperCase() && password === ADMIN_PASSWORD) {
+      // Store admin session in localStorage
+      localStorage.setItem('mro_admin_session', JSON.stringify({
+        email: ADMIN_EMAIL,
+        loginAt: new Date().toISOString()
+      }));
+      return { success: true };
     }
 
-    if (!data.user) {
-      return { success: false, error: 'Usuário não encontrado' };
-    }
-
-    // Verify admin role server-side
-    const { data: isAdmin, error: roleError } = await supabase.rpc('has_role', {
-      _user_id: data.user.id,
-      _role: 'admin'
-    });
-
-    if (roleError) {
-      console.error('Error checking admin role:', roleError);
-      await supabase.auth.signOut();
-      return { success: false, error: 'Erro ao verificar permissões' };
-    }
-
-    if (!isAdmin) {
-      await supabase.auth.signOut();
-      return { success: false, error: 'Acesso não autorizado - permissão de admin requerida' };
-    }
-
-    return { success: true };
+    return { success: false, error: 'Credenciais inválidas' };
   } catch (error) {
     console.error('Admin login error:', error);
     return { success: false, error: 'Erro ao fazer login' };
   }
 };
 
-// Logout admin - signs out from Supabase Auth
+// Logout admin - clears localStorage session
 export const logoutAdmin = async (): Promise<void> => {
-  await supabase.auth.signOut();
+  localStorage.removeItem('mro_admin_session');
 };
