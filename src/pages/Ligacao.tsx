@@ -140,7 +140,32 @@ const Ligacao = () => {
       clearInterval(vibrationIntervalRef.current);
     }
 
-    // Change state IMMEDIATELY - don't wait for audio
+    // For iOS: Play audio SYNCHRONOUSLY in the same user gesture context
+    // This is critical - iOS requires audio.play() to be called directly in the event handler
+    const audio = audioRef.current;
+    if (audio) {
+      audio.currentTime = 0;
+      audio.volume = 1;
+      audio.muted = false;
+      
+      // Play immediately - this must happen synchronously with user gesture
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Audio playing successfully');
+          })
+          .catch((error) => {
+            console.error('Audio play error:', error);
+            // If blocked, try load and play again
+            audio.load();
+            audio.play().catch(e => console.error('Retry failed:', e));
+          });
+      }
+    }
+
+    // Change state after starting audio
     setCallState('connected');
     console.log('State changed to connected');
 
@@ -148,40 +173,6 @@ const Ligacao = () => {
     intervalRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
-
-    // Play audio with a small delay to ensure state change happens first
-    // This helps iOS process the user gesture properly
-    setTimeout(() => {
-      const audio = audioRef.current;
-      if (audio) {
-        // Reset audio state
-        audio.currentTime = 0;
-        audio.volume = 1;
-        audio.muted = false;
-        
-        console.log('Attempting to play audio...');
-        
-        // Create a new promise chain for playing
-        const playAudio = () => {
-          audio.play()
-            .then(() => {
-              console.log('Audio playing successfully');
-            })
-            .catch((error) => {
-              console.error('Audio play error:', error);
-              // Try again with load
-              audio.load();
-              setTimeout(() => {
-                audio.play().catch(e => {
-                  console.error('Retry also failed:', e);
-                });
-              }, 100);
-            });
-        };
-        
-        playAudio();
-      }
-    }, 50); // Small delay to let React update state first
   };
 
   const handleAudioEnded = () => {
@@ -300,10 +291,10 @@ const Ligacao = () => {
             </button>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-16">
+          {/* Main Content - moved up */}
+          <div className="flex-1 flex flex-col items-center pt-8 px-8">
             {/* Profile Image */}
-            <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-white/20">
+            <div className="w-20 h-20 rounded-full overflow-hidden mb-3 border-2 border-white/20">
               <img 
                 src={profileImage} 
                 alt="Mais Resultados Online"
@@ -329,21 +320,21 @@ const Ligacao = () => {
             </div>
 
             {/* Username */}
-            <h1 className="text-white text-2xl font-semibold">
+            <h1 className="text-white text-xl font-semibold">
               @maisresultadosonline
             </h1>
           </div>
 
-          {/* Bottom Buttons */}
-          <div className="pb-6 px-8">
+          {/* Bottom Buttons - moved up with more padding */}
+          <div className="pb-20 px-8">
             <div className="flex items-center justify-between max-w-xs mx-auto">
               {/* Decline Button - Disabled */}
               <div className="flex flex-col items-center">
                 <button 
-                  className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center opacity-50 cursor-not-allowed"
+                  className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center opacity-50 cursor-not-allowed"
                   disabled
                 >
-                  <X className="w-8 h-8 text-white" />
+                  <X className="w-7 h-7 text-white" />
                 </button>
                 <span className="text-white/60 text-xs mt-2">Recusar</span>
               </div>
@@ -352,9 +343,9 @@ const Ligacao = () => {
               <div className="flex flex-col items-center">
                 <button
                   onClick={handleAnswer}
-                  className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-400 transition-all transform hover:scale-105 shadow-lg shadow-green-500/30 animate-pulse"
+                  className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-400 transition-all transform hover:scale-105 shadow-lg shadow-green-500/30 animate-pulse"
                 >
-                  <Check className="w-8 h-8 text-white" />
+                  <Check className="w-7 h-7 text-white" />
                 </button>
                 <span className="text-white text-xs mt-2">Aceitar</span>
               </div>
@@ -388,9 +379,9 @@ const Ligacao = () => {
             </div>
           </div>
 
-          {/* Main Content - Profile Photo */}
-          <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-20">
-            <div className="w-20 h-20 rounded-full overflow-hidden mb-3 border-2 border-white/20">
+          {/* Main Content - Profile Photo - moved up */}
+          <div className="flex-1 flex flex-col items-center pt-12 px-8">
+            <div className="w-18 h-18 rounded-full overflow-hidden mb-3 border-2 border-white/20">
               <img 
                 src={profileImage} 
                 alt="Mais Resultados Online"
@@ -403,12 +394,12 @@ const Ligacao = () => {
             </p>
           </div>
 
-          {/* Bottom Call Controls */}
-          <div className="pb-6 px-4">
-            <div className="flex items-center justify-center gap-5">
+          {/* Bottom Call Controls - moved up */}
+          <div className="pb-20 px-4">
+            <div className="flex items-center justify-center gap-4">
               {/* Camera Off */}
-              <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <button className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M16.5 9.4l-2-2.1M2 4l20 20M9 9c0-.6.4-1 1-1h4c.6 0 1 .4 1 1v4"/>
                   <rect x="2" y="6" width="14" height="12" rx="2"/>
                   <path d="M22 8l-6 4 6 4V8z"/>
@@ -417,22 +408,22 @@ const Ligacao = () => {
               </button>
 
               {/* Microphone */}
-              <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <button className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
                 </svg>
               </button>
 
               {/* Camera Switch */}
-              <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <button className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/>
                 </svg>
               </button>
 
               {/* End Call */}
-              <button className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white transform rotate-135" viewBox="0 0 24 24" fill="currentColor">
+              <button className="w-11 h-11 rounded-full bg-red-500 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white transform rotate-135" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
                 </svg>
               </button>
