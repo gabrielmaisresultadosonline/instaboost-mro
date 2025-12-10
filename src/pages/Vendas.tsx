@@ -184,12 +184,13 @@ export default function Vendas() {
       const user = response.user;
 
       if (response.exists) {
-        // User already exists - save credentials and redirect
-        localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
+        // User already exists - save session token (no password stored)
+        localStorage.setItem('mro_paid_user_session', JSON.stringify({
           id: user.id,
           email: formData.email.toLowerCase(),
-          password: formData.password,
-          username: formData.username.trim()
+          username: formData.username.trim(),
+          sessionToken: btoa(`${user.id}:${Date.now()}`),
+          expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
         }));
         
         toast({
@@ -203,13 +204,14 @@ export default function Vendas() {
 
       // New user created
 
-      // Store credentials with justRegistered flag for auto-login
-      localStorage.setItem('mro_paid_user_credentials', JSON.stringify({
+      // Store session token with justRegistered flag for auto-login (no password stored)
+      localStorage.setItem('mro_paid_user_session', JSON.stringify({
         id: user.id,
         email: formData.email.toLowerCase(),
-        password: formData.password,
         username: formData.username.trim(),
         instagram: instagramUsername,
+        sessionToken: btoa(`${user.id}:${Date.now()}`),
+        expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7 days
         justRegistered: true
       }));
       

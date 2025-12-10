@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const loginSchema = z.object({
+  email: z.string().email("Email inválido").max(255, "Email muito longo").transform(v => v.toLowerCase().trim()),
+  password: z.string().min(1, "Senha é obrigatória").max(72, "Senha muito longa")
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,14 +19,20 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
+    const rawBody = await req.json();
+    
+    // Validate input
+    const parseResult = loginSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      const errorMessage = parseResult.error.errors.map(e => e.message).join(", ");
+      console.error("Validation error:", parseResult.error.errors);
       return new Response(
-        JSON.stringify({ error: "Email e senha são obrigatórios" }),
+        JSON.stringify({ error: errorMessage }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
+
+    const { email, password } = parseResult.data;
 
     // Use service role to bypass RLS
     const supabaseAdmin = createClient(
@@ -32,7 +45,7 @@ serve(async (req) => {
     const { data: user, error: findError } = await supabaseAdmin
       .from("paid_users")
       .select("*")
-      .eq("email", email.toLowerCase())
+      .eq("email", email)
       .maybeSingle();
 
     if (findError) {
