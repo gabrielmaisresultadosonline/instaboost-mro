@@ -12,7 +12,7 @@ declare global {
 const Ligacao = () => {
   const [callState, setCallState] = useState<'ringing' | 'connected' | 'ended'>('ringing');
   const [callDuration, setCallDuration] = useState(0);
-  const [hasUnmuted, setHasUnmuted] = useState(false);
+  const [needsInteraction, setNeedsInteraction] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const ringtoneVideoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,22 +39,25 @@ const Ligacao = () => {
     noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=569414052132145&ev=PageView&noscript=1" />`;
     document.body.appendChild(noscript);
 
-    // Video autoplays muted, then we unmute on first click
-    if (ringtoneVideoRef.current) {
-      ringtoneVideoRef.current.volume = 1;
-      ringtoneVideoRef.current.loop = true;
-      ringtoneVideoRef.current.muted = true; // Start muted for autoplay
-      ringtoneVideoRef.current.play().catch(console.error);
-    }
-
-    // Unmute on first user interaction
-    const handleFirstClick = () => {
-      if (ringtoneVideoRef.current && !hasUnmuted) {
+    // Try to play video with sound
+    const playWithSound = async () => {
+      if (ringtoneVideoRef.current) {
+        ringtoneVideoRef.current.volume = 1;
+        ringtoneVideoRef.current.loop = true;
         ringtoneVideoRef.current.muted = false;
-        setHasUnmuted(true);
+        
+        try {
+          await ringtoneVideoRef.current.play();
+        } catch (error) {
+          // Autoplay with sound blocked - show tap message
+          setNeedsInteraction(true);
+          // Try muted as fallback
+          ringtoneVideoRef.current.muted = true;
+          ringtoneVideoRef.current.play().catch(console.error);
+        }
       }
     };
-    document.addEventListener('click', handleFirstClick);
+    playWithSound();
 
     // Start vibration pattern
     if ('vibrate' in navigator) {
@@ -69,7 +72,6 @@ const Ligacao = () => {
     return () => {
       document.head.removeChild(script);
       document.body.removeChild(noscript);
-      document.removeEventListener('click', handleFirstClick);
       if (ringtoneVideoRef.current) {
         ringtoneVideoRef.current.pause();
       }
@@ -78,7 +80,15 @@ const Ligacao = () => {
       }
       navigator.vibrate(0);
     };
-  }, [hasUnmuted]);
+  }, []);
+
+  const handleEnableSound = () => {
+    if (ringtoneVideoRef.current && needsInteraction) {
+      ringtoneVideoRef.current.muted = false;
+      ringtoneVideoRef.current.play().catch(console.error);
+      setNeedsInteraction(false);
+    }
+  };
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -155,7 +165,21 @@ const Ligacao = () => {
       />
 
       {callState === 'ringing' && (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col" onClick={needsInteraction ? handleEnableSound : undefined}>
+          {/* Tap to enable sound overlay */}
+          {needsInteraction && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
+              <div className="text-center animate-pulse">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                  </svg>
+                </div>
+                <p className="text-white text-lg font-semibold">Toque para ativar o som</p>
+              </div>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-center justify-between p-4">
             <button className="text-white/60">
