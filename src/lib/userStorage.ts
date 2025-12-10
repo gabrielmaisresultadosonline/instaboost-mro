@@ -260,12 +260,15 @@ export const loginUser = async (
     localStorage.removeItem(USER_STORAGE_KEY);
     localStorage.removeItem('mro_session');
     localStorage.removeItem('mro_archived_profiles');
+    localStorage.removeItem('mro_server_cache'); // Clear server cache too
     // Also clear any auth tokens from other users
     Object.keys(sessionStorage).forEach(key => {
       if (key.startsWith('mro_auth_token_') && !key.endsWith(`_${username.toLowerCase()}`)) {
         sessionStorage.removeItem(key);
       }
     });
+    sessionStorage.removeItem('mro_paid_user_auth_token');
+    sessionStorage.removeItem('mro_paid_user_email');
   }
   
   // Try to load from cloud first - this is the source of truth
@@ -343,6 +346,10 @@ export const logoutUser = (): void => {
   localStorage.removeItem(USER_STORAGE_KEY);
   localStorage.removeItem('mro_session');
   localStorage.removeItem('mro_archived_profiles');
+  localStorage.removeItem('mro_server_cache'); // Clear server cache too
+  // Clear any other potential caches
+  sessionStorage.removeItem('mro_paid_user_auth_token');
+  sessionStorage.removeItem('mro_paid_user_email');
   console.log('[userStorage] Logged out and cleared all session data');
 };
 
