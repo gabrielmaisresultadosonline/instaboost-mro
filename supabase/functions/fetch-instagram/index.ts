@@ -108,8 +108,8 @@ serve(async (req) => {
             console.log('❌ No profile picture in response');
             return Response.json({ 
               success: false, 
-              error: 'Perfil encontrado mas sem foto de perfil. Tente novamente.'
-            }, { status: 404, headers: corsHeaders });
+              error: 'Perfil encontrado mas sem foto de perfil. O perfil pode ser privado ou temporariamente indisponível. Tente novamente em alguns minutos.'
+            }, { headers: corsHeaders }); // Return 200 with success: false for better error handling
           }
           
           const proxiedProfilePic = originalProfilePic ? proxyImage(originalProfilePic) : '';
@@ -119,11 +119,11 @@ serve(async (req) => {
           
           // If onlyPosts mode, we don't need followers validation
           if (!onlyPosts && followersCount === 0) {
-            console.log('❌ No followers count in response');
+            console.log('❌ No followers count in response - profile may be private or data unavailable');
             return Response.json({ 
               success: false, 
-              error: 'Não foi possível obter dados de seguidores. Tente novamente.'
-            }, { status: 404, headers: corsHeaders });
+              error: 'Perfil encontrado mas não foi possível obter dados de seguidores. O perfil pode ser privado ou a API está temporariamente indisponível. Tente novamente em alguns minutos.'
+            }, { headers: corsHeaders }); // Return 200 with success: false for better error handling
           }
           
           const postsCount = profileData.posts_count || profileData.post_count || 0;
@@ -220,8 +220,8 @@ serve(async (req) => {
           console.log('❌ No profile data in response');
           return Response.json({ 
             success: false, 
-            error: 'Perfil não encontrado. Verifique se o username está correto.'
-          }, { status: 404, headers: corsHeaders });
+            error: 'Perfil não encontrado. Verifique se o username está correto e se o perfil é público.'
+          }, { headers: corsHeaders }); // Return 200 with success: false
         }
       } else if (response.status === 202) {
         // Async request - snapshot being processed
