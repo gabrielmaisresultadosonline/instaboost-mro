@@ -16,7 +16,7 @@ const Ligacao = () => {
   const [callDuration, setCallDuration] = useState(0);
   const [needsInteraction, setNeedsInteraction] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const ringtoneVideoRef = useRef<HTMLVideoElement>(null);
+  const ringtoneRef = useRef<HTMLAudioElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -47,55 +47,62 @@ const Ligacao = () => {
     };
   }, []);
 
-  // Start ringtone and vibration when entering ringing state
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (vibrationIntervalRef.current) clearInterval(vibrationIntervalRef.current);
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+        ringtoneRef.current.currentTime = 0;
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      navigator.vibrate?.(0);
+    };
+  }, []);
+
+  // Handle ringing state - play ringtone
   useEffect(() => {
     if (callState !== 'ringing') return;
 
-    // Try to play video with sound
-    const playWithSound = async () => {
-      if (ringtoneVideoRef.current) {
-        ringtoneVideoRef.current.volume = 1;
-        ringtoneVideoRef.current.loop = true;
-        ringtoneVideoRef.current.muted = false;
-        
+    const playRingtone = async () => {
+      if (ringtoneRef.current) {
+        ringtoneRef.current.loop = true;
+        ringtoneRef.current.volume = 1;
         try {
-          await ringtoneVideoRef.current.play();
-        } catch (error) {
-          // Autoplay with sound blocked - show tap message
+          await ringtoneRef.current.play();
+        } catch {
           setNeedsInteraction(true);
-          // Try muted as fallback
-          ringtoneVideoRef.current.muted = true;
-          ringtoneVideoRef.current.play().catch(console.error);
         }
       }
     };
-    playWithSound();
+    playRingtone();
 
-    // Start vibration pattern
+    // Vibration
     if ('vibrate' in navigator) {
       navigator.vibrate([500, 300, 500, 300, 500]);
       vibrationIntervalRef.current = setInterval(() => {
-        if (callState === 'ringing') {
-          navigator.vibrate([500, 300, 500, 300, 500]);
-        }
+        navigator.vibrate([500, 300, 500, 300, 500]);
       }, 2500);
     }
 
     return () => {
-      if (ringtoneVideoRef.current) {
-        ringtoneVideoRef.current.pause();
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+        ringtoneRef.current.currentTime = 0;
       }
       if (vibrationIntervalRef.current) {
         clearInterval(vibrationIntervalRef.current);
       }
-      navigator.vibrate(0);
+      navigator.vibrate?.(0);
     };
   }, [callState]);
 
   const handleEnableSound = () => {
-    if (ringtoneVideoRef.current && needsInteraction) {
-      ringtoneVideoRef.current.muted = false;
-      ringtoneVideoRef.current.play().catch(console.error);
+    if (ringtoneRef.current && needsInteraction) {
+      ringtoneRef.current.play().catch(console.error);
       setNeedsInteraction(false);
     }
   };
@@ -107,71 +114,41 @@ const Ligacao = () => {
   };
 
   const handleReceiveCall = () => {
-    // Pre-unlock audio for iOS - play and immediately pause
-    if (audioRef.current) {
-      audioRef.current.muted = true;
-      audioRef.current.play().then(() => {
-        audioRef.current?.pause();
-        if (audioRef.current) {
-          audioRef.current.currentTime = 0;
-          audioRef.current.muted = false;
-        }
-        console.log('Audio unlocked for iOS');
-      }).catch(() => {
-        console.log('Audio unlock not needed or failed');
-      });
-    }
     setCallState('ringing');
   };
 
   const handleAnswer = () => {
-    console.log('handleAnswer called');
-    
-    // IMMEDIATELY change state - this is the most important thing
-    // Do this FIRST before anything else to ensure UI updates
+    // 1. STOP ringtone FIRST
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
+
+    // 2. Stop vibration
+    navigator.vibrate?.(0);
+    if (vibrationIntervalRef.current) {
+      clearInterval(vibrationIntervalRef.current);
+      vibrationIntervalRef.current = null;
+    }
+
+    // 3. Change state IMMEDIATELY
     setCallState('connected');
-    console.log('State changed to connected');
-    
-    // Start duration counter immediately
+
+    // 4. Start call duration timer
     intervalRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    // Stop ringtone video
-    try {
-      if (ringtoneVideoRef.current) {
-        ringtoneVideoRef.current.pause();
-        ringtoneVideoRef.current.currentTime = 0;
-      }
-    } catch (e) {
-      console.log('Error stopping ringtone:', e);
-    }
-
-    // Stop vibration
-    try {
-      navigator.vibrate(0);
-      if (vibrationIntervalRef.current) {
-        clearInterval(vibrationIntervalRef.current);
-      }
-    } catch (e) {
-      console.log('Error stopping vibration:', e);
-    }
-
-    // Play audio - wrapped in try/catch to never block UI
-    try {
-      const audio = audioRef.current;
-      if (audio) {
-        audio.currentTime = 0;
-        audio.volume = 1;
-        audio.muted = false;
-        audio.play().catch(() => {
-          // Silent fail - audio might not play on iOS but UI will still work
-          console.log('Audio autoplay blocked');
+    // 5. Play call audio after small delay to ensure ringtone stopped
+    setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.volume = 1;
+        audioRef.current.play().catch(() => {
+          console.log('Call audio blocked on iOS');
         });
       }
-    } catch (e) {
-      console.log('Error playing audio:', e);
-    }
+    }, 100);
   };
 
   const handleAudioEnded = () => {
@@ -188,24 +165,14 @@ const Ligacao = () => {
     window.location.href = 'https://acessar.click/mrointeligente';
   };
 
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
   return (
-    <div className="min-h-screen bg-black flex flex-col">
-      {/* Hidden video for ringtone */}
-      <video 
-        ref={ringtoneVideoRef} 
-        src="http://maisresultadosonline.com.br/1207.mp4"
-        className="hidden"
+    <div style={{ minHeight: '100vh', backgroundColor: '#000', display: 'flex', flexDirection: 'column' }}>
+      {/* Audio elements */}
+      <audio 
+        ref={ringtoneRef} 
+        src="https://maisresultadosonline.com.br/1207.mp3"
+        preload="auto"
         playsInline
-        muted
-        loop
       />
       <audio 
         ref={audioRef} 
@@ -213,216 +180,190 @@ const Ligacao = () => {
         onEnded={handleAudioEnded}
         preload="auto"
         playsInline
-        webkit-playsinline="true"
       />
 
       {/* Landing Page */}
       {callState === 'landing' && (
         <div 
-          className="flex-1 flex flex-col items-center justify-start pt-8 sm:pt-12 relative"
           style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            paddingTop: '2rem',
+            position: 'relative',
             backgroundImage: `url(${fundoChamada})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
         >
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-black/60" />
+          <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)' }} />
           
-          {/* Content */}
-          <div className="relative z-10 flex flex-col items-center px-4 sm:px-6 text-center">
-            {/* Gabriel Image - muito próximo do texto */}
+          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 1rem', textAlign: 'center' }}>
             <img 
               src={gabrielImage} 
               alt="Gabriel"
-              className="w-48 sm:w-56 md:w-64 lg:w-72 h-auto -mb-10 sm:-mb-12 md:-mb-14"
+              style={{ width: '12rem', height: 'auto', marginBottom: '-2.5rem' }}
             />
 
-            {/* Text */}
-            <h1 className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold italic leading-tight mb-4 sm:mb-6 max-w-xs sm:max-w-sm">
-              <span className="text-yellow-400">Gabriel</span> esta agora
+            <h1 style={{ color: '#fff', fontSize: '1.125rem', fontWeight: 'bold', fontStyle: 'italic', lineHeight: 1.3, marginBottom: '1rem', maxWidth: '280px' }}>
+              <span style={{ color: '#facc15' }}>Gabriel</span> esta agora
               <br />disponível para uma
               <br />chamada, atenda para
-              <br />entender <span className="text-yellow-400">como não Gastar
+              <br />entender <span style={{ color: '#facc15' }}>como não Gastar
               <br />mais com anúncios!</span>
             </h1>
 
-            {/* CTA Button */}
             <button
               onClick={handleReceiveCall}
-              onTouchStart={() => {}} 
-              className="bg-[#4ade80] hover:bg-[#22c55e] active:bg-[#16a34a] text-black font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full flex items-center gap-2 sm:gap-3 text-base sm:text-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-green-500/30 touch-manipulation"
+              style={{
+                backgroundColor: '#4ade80',
+                color: '#000',
+                fontWeight: 'bold',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '1rem',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 10px 15px -3px rgba(74, 222, 128, 0.3)',
+              }}
             >
               Receber chamada agora
-              <Phone className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
+              <Phone style={{ width: '1.25rem', height: '1.25rem' }} />
             </button>
           </div>
         </div>
       )}
 
+      {/* Ringing State */}
       {callState === 'ringing' && (
-        <div className="flex-1 flex flex-col" onClick={needsInteraction ? handleEnableSound : undefined}>
-          {/* Tap to enable sound overlay */}
+        <div 
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#000' }}
+          onClick={needsInteraction ? handleEnableSound : undefined}
+        >
           {needsInteraction && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
-              <div className="text-center animate-pulse">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '4rem', height: '4rem', margin: '0 auto 1rem', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg style={{ width: '2rem', height: '2rem', color: '#fff' }} viewBox="0 0 24 24" fill="currentColor">
                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                   </svg>
                 </div>
-                <p className="text-white text-lg font-semibold">Toque para ativar o som</p>
+                <p style={{ color: '#fff', fontSize: '1.125rem', fontWeight: 600 }}>Toque para ativar o som</p>
               </div>
             </div>
           )}
 
-          {/* Header */}
-          <div className="flex items-center justify-between p-3">
-            <button className="text-white/60">
-              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem' }}>
+            <button style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none' }}>
+              <svg style={{ width: '1.75rem', height: '1.75rem' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6,9 12,15 18,9" />
               </svg>
             </button>
-            <button className="text-white/60">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <button style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none' }}>
+              <svg style={{ width: '1.25rem', height: '1.25rem' }} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
               </svg>
             </button>
           </div>
 
-          {/* Main Content - moved up */}
-          <div className="flex-1 flex flex-col items-center pt-8 px-8">
-            {/* Profile Image */}
-            <div className="w-20 h-20 rounded-full overflow-hidden mb-3 border-2 border-white/20">
-              <img 
-                src={profileImage} 
-                alt="Mais Resultados Online"
-                className="w-full h-full object-cover"
-              />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '2rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
+            <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', overflow: 'hidden', marginBottom: '0.75rem', border: '2px solid rgba(255,255,255,0.2)' }}>
+              <img src={profileImage} alt="Mais Resultados Online" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
 
-            {/* Instagram Audio Label */}
-            <div className="flex items-center gap-2 text-white/60 text-sm mb-2">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <defs>
-                  <linearGradient id="instagramGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#f09433" />
-                    <stop offset="25%" stopColor="#e6683c" />
-                    <stop offset="50%" stopColor="#dc2743" />
-                    <stop offset="75%" stopColor="#cc2366" />
-                    <stop offset="100%" stopColor="#bc1888" />
-                  </linearGradient>
-                </defs>
-                <path fill="url(#instagramGradient)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
-              </svg>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
               <span>Áudio de Instagram...</span>
             </div>
 
-            {/* Username */}
-            <h1 className="text-white text-xl font-semibold">
+            <h1 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 600 }}>
               @maisresultadosonline
             </h1>
           </div>
 
-          {/* Bottom Buttons - moved up with more padding */}
-          <div className="pb-20 px-8">
-            <div className="flex items-center justify-between max-w-xs mx-auto">
-              {/* Decline Button - Disabled */}
-              <div className="flex flex-col items-center">
+          <div style={{ paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '280px', margin: '0 auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <button 
-                  className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center opacity-50 cursor-not-allowed"
+                  style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', backgroundColor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, cursor: 'not-allowed', border: 'none' }}
                   disabled
                 >
-                  <X className="w-7 h-7 text-white" />
+                  <X style={{ width: '1.75rem', height: '1.75rem', color: '#fff' }} />
                 </button>
-                <span className="text-white/60 text-xs mt-2">Recusar</span>
+                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', marginTop: '0.5rem' }}>Recusar</span>
               </div>
 
-              {/* Accept Button */}
-              <div className="flex flex-col items-center">
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <button
                   onClick={handleAnswer}
-                  className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-400 transition-all transform hover:scale-105 shadow-lg shadow-green-500/30 animate-pulse"
+                  style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', backgroundColor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(34, 197, 94, 0.3)' }}
                 >
-                  <Check className="w-7 h-7 text-white" />
+                  <Check style={{ width: '1.75rem', height: '1.75rem', color: '#fff' }} />
                 </button>
-                <span className="text-white text-xs mt-2">Aceitar</span>
+                <span style={{ color: '#fff', fontSize: '0.75rem', marginTop: '0.5rem' }}>Aceitar</span>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Connected State */}
       {callState === 'connected' && (
-        <div className="flex-1 flex flex-col" style={{ backgroundColor: '#2a1f1f' }}>
-          {/* Header */}
-          <div className="flex items-center justify-between p-3">
-            <button className="text-white/60">
-              <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#2a1f1f' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem' }}>
+            <button style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none' }}>
+              <svg style={{ width: '1.75rem', height: '1.75rem' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6,9 12,15 18,9" />
               </svg>
             </button>
-            <button className="text-white/60">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <button style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none' }}>
+              <svg style={{ width: '1.25rem', height: '1.25rem' }} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
               </svg>
             </button>
           </div>
 
-          {/* User placeholder at top right */}
-          <div className="absolute top-16 right-4">
-            <div className="w-14 h-18 bg-[#3a3a3a] rounded-lg flex items-center justify-center">
-              <svg className="w-7 h-7 text-white/40" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            </div>
-          </div>
-
-          {/* Main Content - Profile Photo - moved up */}
-          <div className="flex-1 flex flex-col items-center pt-12 px-8">
-            <div className="w-18 h-18 rounded-full overflow-hidden mb-3 border-2 border-white/20">
-              <img 
-                src={profileImage} 
-                alt="Mais Resultados Online"
-                className="w-full h-full object-cover"
-              />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '3rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
+            <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', overflow: 'hidden', marginBottom: '0.75rem', border: '2px solid rgba(255,255,255,0.2)' }}>
+              <img src={profileImage} alt="Mais Resultados Online" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
 
-            <p className="text-white/60 text-xs text-center">
-              A câmera de Mais Resultados Online está desativada
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', textAlign: 'center', marginBottom: '0.25rem' }}>
+              Chamada ativa em andamento...
+            </p>
+            <p style={{ color: '#fff', fontSize: '0.875rem', fontWeight: 500 }}>
+              {formatDuration(callDuration)}
             </p>
           </div>
 
-          {/* Bottom Call Controls - moved up */}
-          <div className="pb-20 px-4">
-            <div className="flex items-center justify-center gap-4">
-              {/* Camera Off */}
-              <button className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M16.5 9.4l-2-2.1M2 4l20 20M9 9c0-.6.4-1 1-1h4c.6 0 1 .4 1 1v4"/>
+          <div style={{ paddingBottom: '5rem', paddingLeft: '1rem', paddingRight: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+              <button style={{ width: '2.75rem', height: '2.75rem', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}>
+                <svg style={{ width: '1.25rem', height: '1.25rem', color: '#fff' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="2" y="6" width="14" height="12" rx="2"/>
                   <path d="M22 8l-6 4 6 4V8z"/>
                   <line x1="2" y1="2" x2="22" y2="22" strokeLinecap="round"/>
                 </svg>
               </button>
 
-              {/* Microphone */}
-              <button className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <button style={{ width: '2.75rem', height: '2.75rem', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}>
+                <svg style={{ width: '1.25rem', height: '1.25rem', color: '#fff' }} viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
                 </svg>
               </button>
 
-              {/* Camera Switch */}
-              <button className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <button style={{ width: '2.75rem', height: '2.75rem', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}>
+                <svg style={{ width: '1.25rem', height: '1.25rem', color: '#fff' }} viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/>
                 </svg>
               </button>
 
-              {/* End Call */}
-              <button className="w-11 h-11 rounded-full bg-red-500 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white transform rotate-135" viewBox="0 0 24 24" fill="currentColor">
+              <button style={{ width: '2.75rem', height: '2.75rem', borderRadius: '50%', backgroundColor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}>
+                <svg style={{ width: '1.25rem', height: '1.25rem', color: '#fff', transform: 'rotate(135deg)' }} viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
                 </svg>
               </button>
@@ -431,27 +372,23 @@ const Ligacao = () => {
         </div>
       )}
 
+      {/* Ended State */}
       {callState === 'ended' && (
-        <div className="flex-1 flex flex-col items-center justify-start pt-12 px-6">
-          {/* Profile Image */}
-          <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-yellow-500">
-            <img 
-              src={profileImage} 
-              alt="Mais Resultados Online"
-              className="w-full h-full object-cover"
-            />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '3rem', paddingLeft: '1.5rem', paddingRight: '1.5rem', backgroundColor: '#000' }}>
+          <div style={{ width: '6rem', height: '6rem', borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '2px solid #eab308' }}>
+            <img src={profileImage} alt="Mais Resultados Online" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
 
-          <p className="text-white/60 text-xs mb-1">Chamada finalizada</p>
-          <h2 className="text-white text-lg font-semibold mb-6">Mais Resultados Online</h2>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Chamada finalizada</p>
+          <h2 style={{ color: '#fff', fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.5rem' }}>Mais Resultados Online</h2>
 
-          <div className="w-full max-w-sm bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl p-5 border border-yellow-500/30 mb-4">
-            <p className="text-yellow-400 text-lg font-bold text-center mb-1">
+          <div style={{ width: '100%', maxWidth: '24rem', background: 'linear-gradient(to right, rgba(234,179,8,0.2), rgba(249,115,22,0.2))', borderRadius: '1rem', padding: '1.25rem', border: '1px solid rgba(234,179,8,0.3)', marginBottom: '1rem' }}>
+            <p style={{ color: '#facc15', fontSize: '1.125rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '0.25rem' }}>
               Aproveite agora mesmo!
             </p>
-            <p className="text-white text-center">
+            <p style={{ color: '#fff', textAlign: 'center' }}>
               Planos a partir de{' '}
-              <span className="text-yellow-400 font-bold text-xl">R$33</span>
+              <span style={{ color: '#facc15', fontWeight: 'bold', fontSize: '1.25rem' }}>R$33</span>
               {' '}mensal
             </p>
           </div>
