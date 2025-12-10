@@ -107,11 +107,28 @@ const Ligacao = () => {
   };
 
   const handleReceiveCall = () => {
+    // Pre-unlock audio for iOS - play and immediately pause
+    if (audioRef.current) {
+      audioRef.current.muted = true;
+      audioRef.current.play().then(() => {
+        audioRef.current?.pause();
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.muted = false;
+        }
+        console.log('Audio unlocked for iOS');
+      }).catch(() => {
+        console.log('Audio unlock not needed or failed');
+      });
+    }
     setCallState('ringing');
   };
 
-  const handleAnswer = async () => {
-    // Stop ringtone video
+  const handleAnswer = () => {
+    // CRITICAL: On iOS, audio must be triggered IMMEDIATELY in the same user gesture
+    // Do NOT use async/await before playing - it breaks iOS audio unlock
+    
+    // Stop ringtone video first
     if (ringtoneVideoRef.current) {
       ringtoneVideoRef.current.pause();
       ringtoneVideoRef.current.currentTime = 0;
@@ -123,30 +140,32 @@ const Ligacao = () => {
       clearInterval(vibrationIntervalRef.current);
     }
 
-    setCallState('connected');
-    
-    // Start playing call audio at max volume - with iOS fix
-    if (audioRef.current) {
-      audioRef.current.volume = 1;
-      audioRef.current.muted = false;
-      audioRef.current.currentTime = 0;
+    // IMMEDIATELY trigger audio play - this must happen synchronously in user gesture
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = 1;
+      audio.muted = false;
+      audio.currentTime = 0;
       
-      try {
-        await audioRef.current.play();
-      } catch (error) {
-        console.error('Audio play failed:', error);
-        // iOS workaround: try again with a small delay
-        setTimeout(async () => {
-          try {
-            if (audioRef.current) {
-              await audioRef.current.play();
-            }
-          } catch (e) {
-            console.error('Retry audio play failed:', e);
-          }
-        }, 100);
+      // Use the promise but don't await - keep it synchronous
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Audio started successfully');
+          })
+          .catch((error) => {
+            console.error('Audio play failed:', error);
+            // Fallback: try to play again with user interaction simulation
+            audio.load();
+            audio.play().catch(e => console.error('Retry failed:', e));
+          });
       }
     }
+
+    // Change state AFTER triggering audio
+    setCallState('connected');
 
     // Start duration counter
     intervalRef.current = setInterval(() => {
