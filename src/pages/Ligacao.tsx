@@ -125,13 +125,13 @@ const Ligacao = () => {
   };
 
   const handleAnswer = () => {
-    // CRITICAL: On iOS, audio must be triggered IMMEDIATELY in the same user gesture
-    // Do NOT use async/await before playing - it breaks iOS audio unlock
+    console.log('handleAnswer called');
     
     // Stop ringtone video first
     if (ringtoneVideoRef.current) {
       ringtoneVideoRef.current.pause();
       ringtoneVideoRef.current.currentTime = 0;
+      console.log('Ringtone stopped');
     }
 
     // Stop vibration
@@ -140,37 +140,48 @@ const Ligacao = () => {
       clearInterval(vibrationIntervalRef.current);
     }
 
-    // IMMEDIATELY trigger audio play - this must happen synchronously in user gesture
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = 1;
-      audio.muted = false;
-      audio.currentTime = 0;
-      
-      // Use the promise but don't await - keep it synchronous
-      const playPromise = audio.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('Audio started successfully');
-          })
-          .catch((error) => {
-            console.error('Audio play failed:', error);
-            // Fallback: try to play again with user interaction simulation
-            audio.load();
-            audio.play().catch(e => console.error('Retry failed:', e));
-          });
-      }
-    }
-
-    // Change state AFTER triggering audio
+    // Change state IMMEDIATELY - don't wait for audio
     setCallState('connected');
+    console.log('State changed to connected');
 
     // Start duration counter
     intervalRef.current = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
+
+    // Play audio with a small delay to ensure state change happens first
+    // This helps iOS process the user gesture properly
+    setTimeout(() => {
+      const audio = audioRef.current;
+      if (audio) {
+        // Reset audio state
+        audio.currentTime = 0;
+        audio.volume = 1;
+        audio.muted = false;
+        
+        console.log('Attempting to play audio...');
+        
+        // Create a new promise chain for playing
+        const playAudio = () => {
+          audio.play()
+            .then(() => {
+              console.log('Audio playing successfully');
+            })
+            .catch((error) => {
+              console.error('Audio play error:', error);
+              // Try again with load
+              audio.load();
+              setTimeout(() => {
+                audio.play().catch(e => {
+                  console.error('Retry also failed:', e);
+                });
+              }, 100);
+            });
+        };
+        
+        playAudio();
+      }
+    }, 50); // Small delay to let React update state first
   };
 
   const handleAudioEnded = () => {
