@@ -595,15 +595,19 @@ const Admin = () => {
                           <div className="flex items-center gap-2">
                             <h3 className="text-2xl font-display font-bold">@{selectedSyncedProfile.username}</h3>
                             {selectedSyncedProfile.isConnectedToDashboard ? (
-                              <span className="px-2 py-1 rounded bg-green-500/20 text-green-500 text-xs font-medium">
-                                <CheckCircle className="w-3 h-3 inline mr-1" />
-                                Conectado
-                              </span>
+                              <div className="relative group">
+                                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-background border border-border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                  Conectado
+                                </span>
+                              </div>
                             ) : (
-                              <span className="px-2 py-1 rounded bg-yellow-500/20 text-yellow-500 text-xs font-medium">
-                                <XCircle className="w-3 h-3 inline mr-1" />
-                                Não conectado
-                              </span>
+                              <div className="relative group">
+                                <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-background border border-border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                  Não conectado
+                                </span>
+                              </div>
                             )}
                           </div>
                           <p className="text-muted-foreground">{selectedSyncedProfile.fullName}</p>
@@ -736,15 +740,19 @@ const Admin = () => {
                                   </span>
                                 )}
                                 {!profile.isBlocked && profile.isConnectedToDashboard ? (
-                                  <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-500 flex items-center gap-1">
-                                    <CheckCircle className="w-3 h-3" />
-                                    Cadastrado
-                                  </span>
+                                  <div className="relative group">
+                                    <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-background border border-border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                      Conectado
+                                    </span>
+                                  </div>
                                 ) : !profile.isBlocked && (
-                                  <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-500 flex items-center gap-1">
-                                    <XCircle className="w-3 h-3" />
-                                    Não conectado
-                                  </span>
+                                  <div className="relative group">
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-background border border-border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                      Não conectado
+                                    </span>
+                                  </div>
                                 )}
                                 <span className="text-xs px-2 py-0.5 rounded bg-secondary text-muted-foreground">
                                   <User className="w-3 h-3 inline mr-1" />
