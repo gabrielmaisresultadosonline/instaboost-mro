@@ -113,6 +113,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          archived_profiles: Json | null
+          created_at: string
+          days_remaining: number | null
+          email: string | null
+          id: string
+          profile_sessions: Json | null
+          squarecloud_username: string
+          updated_at: string
+        }
+        Insert: {
+          archived_profiles?: Json | null
+          created_at?: string
+          days_remaining?: number | null
+          email?: string | null
+          id?: string
+          profile_sessions?: Json | null
+          squarecloud_username: string
+          updated_at?: string
+        }
+        Update: {
+          archived_profiles?: Json | null
+          created_at?: string
+          days_remaining?: number | null
+          email?: string | null
+          id?: string
+          profile_sessions?: Json | null
+          squarecloud_username?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

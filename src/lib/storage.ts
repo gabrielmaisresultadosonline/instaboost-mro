@@ -73,12 +73,26 @@ export const createSnapshot = (profile: InstagramProfile): GrowthSnapshot => ({
 
 // Flag to prevent circular sync calls
 let isSyncingToServer = false;
+let isSyncingToCloud = false;
 
 // Callback to sync to server (set by persistentStorage)
 let serverSyncCallback: ((username: string) => Promise<void>) | null = null;
 
+// Cloud sync function reference (set externally)
+let cloudSyncCallback: ((
+  username: string,
+  email: string | undefined,
+  daysRemaining: number,
+  profileSessions: ProfileSession[],
+  archivedProfiles: ProfileSession[]
+) => Promise<boolean>) | null = null;
+
 export const setServerSyncCallback = (callback: (username: string) => Promise<void>) => {
   serverSyncCallback = callback;
+};
+
+export const setCloudSyncCallback = (callback: typeof cloudSyncCallback) => {
+  cloudSyncCallback = callback;
 };
 
 // Get logged in username from userStorage
@@ -91,6 +105,46 @@ const getLoggedUsername = (): string => {
     }
   } catch {}
   return 'anonymous';
+};
+
+// Get user data for cloud sync
+const getLoggedUserData = (): { username: string; email?: string; daysRemaining: number } => {
+  try {
+    const stored = localStorage.getItem('mro_user_session');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        username: parsed.user?.username || 'anonymous',
+        email: parsed.user?.email,
+        daysRemaining: parsed.user?.daysRemaining || 365
+      };
+    }
+  } catch {}
+  return { username: 'anonymous', daysRemaining: 365 };
+};
+
+// Sync session to cloud storage
+const syncToCloud = async (session: MROSession) => {
+  if (isSyncingToCloud || !cloudSyncCallback) return;
+  
+  const userData = getLoggedUserData();
+  if (userData.username === 'anonymous') return;
+  
+  isSyncingToCloud = true;
+  try {
+    const archived = getArchivedProfiles();
+    await cloudSyncCallback(
+      userData.username,
+      userData.email,
+      userData.daysRemaining,
+      session.profiles,
+      archived
+    );
+  } catch (error) {
+    console.error('Error syncing to cloud:', error);
+  } finally {
+    isSyncingToCloud = false;
+  }
 };
 
 export const saveSession = (session: MROSession): void => {
@@ -108,6 +162,42 @@ export const saveSession = (session: MROSession): void => {
       });
     }
   }
+  
+  // Auto-sync to cloud in background
+  syncToCloud(session);
+};
+
+// Initialize session from cloud data
+export const initializeFromCloud = (profileSessions: ProfileSession[], archivedProfiles: ProfileSession[]): void => {
+  const session = getSession();
+  
+  // Merge cloud profiles with local (cloud takes precedence)
+  const cloudUsernames = profileSessions.map(p => p.profile.username.toLowerCase());
+  const localOnlyProfiles = session.profiles.filter(
+    p => !cloudUsernames.includes(p.profile.username.toLowerCase())
+  );
+  
+  session.profiles = [...profileSessions, ...localOnlyProfiles];
+  
+  if (!session.activeProfileId && session.profiles.length > 0) {
+    session.activeProfileId = session.profiles[0].id;
+  }
+  
+  // Save locally but don't trigger cloud sync (would be circular)
+  session.lastUpdated = new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  
+  // Also restore archived profiles
+  if (archivedProfiles.length > 0) {
+    const existingArchived = getArchivedProfiles();
+    const archivedUsernames = existingArchived.map(p => p.profile.username.toLowerCase());
+    const newArchived = archivedProfiles.filter(
+      p => !archivedUsernames.includes(p.profile.username.toLowerCase())
+    );
+    saveArchivedProfiles([...existingArchived, ...newArchived]);
+  }
+  
+  console.log(`☁️ Initialized from cloud: ${profileSessions.length} profiles, ${archivedProfiles.length} archived`);
 };
 
 export const getActiveProfile = (): ProfileSession | null => {

@@ -79,3 +79,6 @@ verify_jwt = true
 
 [functions.squarecloud-profile-storage]
 verify_jwt = false
+
+[functions.user-cloud-storage]
+verify_jwt = false
