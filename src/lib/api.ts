@@ -223,6 +223,19 @@ export const generateCreative = async (
   }
 };
 
+// Generate auth token for secure API calls
+const generateCreativeAuthToken = (username: string): string => {
+  const tokenKey = `mro_creative_auth_${username.toLowerCase()}`;
+  let token = sessionStorage.getItem(tokenKey);
+  if (!token) {
+    const timestamp = Date.now();
+    const randomPart = Math.random().toString(36).substring(2, 15);
+    token = `${username.toLowerCase()}_${timestamp}_${randomPart}`;
+    sessionStorage.setItem(tokenKey, token);
+  }
+  return token;
+};
+
 // Upload creative image to storage and get permanent URL
 export const uploadCreativeImage = async (
   username: string,
@@ -234,12 +247,15 @@ export const uploadCreativeImage = async (
   error?: string;
 }> => {
   try {
+    const auth_token = generateCreativeAuthToken(username);
+    
     const { data, error } = await supabase.functions.invoke('upload-creative', {
       body: { 
         action: 'upload',
         username, 
         creativeId, 
-        imageBase64 
+        imageBase64,
+        auth_token
       }
     });
 
@@ -265,11 +281,14 @@ export const deleteCreativeImage = async (
   creativeId: string
 ): Promise<boolean> => {
   try {
+    const auth_token = generateCreativeAuthToken(username);
+    
     await supabase.functions.invoke('upload-creative', {
       body: { 
         action: 'delete',
         username, 
-        creativeId 
+        creativeId,
+        auth_token
       }
     });
     return true;

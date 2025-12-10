@@ -16,7 +16,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, username, creativeId, imageBase64 } = await req.json();
+    const { action, username, creativeId, imageBase64, auth_token } = await req.json();
     
     console.log(`🎨 upload-creative: action=${action}, username=${username}, creativeId=${creativeId}`);
 
@@ -26,6 +26,37 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Validate auth_token for all actions
+    if (!auth_token || typeof auth_token !== 'string' || auth_token.length < 20) {
+      console.log(`🔒 upload-creative: Invalid or missing auth_token for ${username}`);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid or missing auth_token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify auth_token format: username_timestamp_random
+    const tokenParts = auth_token.split('_');
+    if (tokenParts.length < 3) {
+      console.log(`🔒 upload-creative: Invalid auth_token format for ${username}`);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid auth_token format' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify username in token matches requested username
+    const tokenUsername = tokenParts[0].toLowerCase();
+    if (tokenUsername !== username.toLowerCase()) {
+      console.log(`🔒 upload-creative: Username mismatch - token: ${tokenUsername}, request: ${username}`);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Username mismatch in auth_token' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ upload-creative: Auth verified for ${username}`);
 
     // UPLOAD - Upload creative image to storage
     if (action === 'upload') {
