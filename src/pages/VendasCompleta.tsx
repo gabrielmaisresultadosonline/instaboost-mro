@@ -31,7 +31,9 @@ import {
   Rocket,
   Star,
   Gift,
-  MessageCircle
+  MessageCircle,
+  Monitor,
+  BadgeCheck
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import creative1 from "@/assets/creative-1.webp";
@@ -550,6 +552,23 @@ export default function VendasCompleta() {
         </div>
       </section>
 
+      {/* Guarantee Highlight */}
+      <section className="container mx-auto px-4 py-12">
+        <Card className="bg-gradient-to-r from-green-500/10 via-green-600/5 to-green-500/10 border-green-500/30">
+          <CardContent className="p-8 text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <BadgeCheck className="w-12 h-12 text-green-500" />
+              <h3 className="text-2xl md:text-3xl font-bold text-green-500">30 Dias de Garantia de Resultados</h3>
+            </div>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              Caso não aconteça <span className="text-foreground font-semibold">engajamento, vendas, clientes e resultados reais</span> no seu perfil 
+              dentro de 30 dias, <span className="text-green-500 font-semibold">cancelamos e devolvemos 100% do seu dinheiro</span>. 
+              Sem burocracia!
+            </p>
+          </CardContent>
+        </Card>
+      </section>
+
       {/* Guarantees */}
       <section className="container mx-auto px-4 py-16">
         <div className="flex flex-wrap items-center justify-center gap-8 text-center">
@@ -581,7 +600,18 @@ export default function VendasCompleta() {
               <p className="text-sm text-muted-foreground">Atendimento rápido</p>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <Monitor className="w-8 h-8 text-blue-500" />
+            <div className="text-left">
+              <p className="font-semibold">Suporte via AnyDesk</p>
+              <p className="text-sm text-muted-foreground">Acesso remoto se precisar</p>
+            </div>
+          </div>
         </div>
+        <p className="text-center text-sm text-muted-foreground mt-6 max-w-2xl mx-auto">
+          Em caso de muita dúvida ou dificuldade, conseguimos <span className="text-foreground font-medium">acessar remotamente sua máquina</span> e 
+          fazer o passo a passo junto com você!
+        </p>
       </section>
 
       {/* Floating CTA */}
