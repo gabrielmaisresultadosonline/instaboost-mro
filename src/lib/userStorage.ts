@@ -5,6 +5,24 @@ import { ProfileSession } from '@/types/instagram';
 
 const USER_STORAGE_KEY = 'mro_user_session';
 
+// Generate auth token for secure API calls
+const generateAuthToken = (username: string): string => {
+  const timestamp = Date.now();
+  const randomPart = Math.random().toString(36).substring(2, 15);
+  return `${username.toLowerCase()}_${timestamp}_${randomPart}`;
+};
+
+// Get stored auth token or generate new one
+const getOrCreateAuthToken = (username: string): string => {
+  const tokenKey = `mro_auth_token_${username.toLowerCase()}`;
+  let token = sessionStorage.getItem(tokenKey);
+  if (!token) {
+    token = generateAuthToken(username);
+    sessionStorage.setItem(tokenKey, token);
+  }
+  return token;
+};
+
 // Cloud storage functions
 export const loadUserFromCloud = async (username: string): Promise<{
   email: string | null;
@@ -14,10 +32,15 @@ export const loadUserFromCloud = async (username: string): Promise<{
   archivedProfiles: ProfileSession[];
 } | null> => {
   try {
+    const auth_token = getOrCreateAuthToken(username);
+    const session = getUserSession();
+    
     const { data, error } = await supabase.functions.invoke('user-cloud-storage', {
       body: {
         action: 'load',
-        username: username.toLowerCase()
+        username: username.toLowerCase(),
+        email: session.user?.email,
+        auth_token
       }
     });
 
@@ -52,11 +75,14 @@ export const saveUserToCloud = async (
   archivedProfiles: ProfileSession[]
 ): Promise<boolean> => {
   try {
+    const auth_token = getOrCreateAuthToken(username);
+    
     const { data, error } = await supabase.functions.invoke('user-cloud-storage', {
       body: {
         action: 'save',
         username: username.toLowerCase(),
         email,
+        auth_token,
         daysRemaining,
         profileSessions,
         archivedProfiles
@@ -251,6 +277,11 @@ export const lockCreativesForUser = (username: string): void => {
 };
 
 export const logoutUser = (): void => {
+  // Clear auth token on logout
+  const session = getUserSession();
+  if (session.user?.username) {
+    sessionStorage.removeItem(`mro_auth_token_${session.user.username.toLowerCase()}`);
+  }
   localStorage.removeItem(USER_STORAGE_KEY);
 };
 
