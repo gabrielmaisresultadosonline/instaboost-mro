@@ -224,13 +224,46 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
     currentActiveId: session.activeProfileId
   });
   
-  // Merge cloud profiles with local (cloud takes precedence)
-  const cloudUsernames = profileSessions.map(p => p.profile.username.toLowerCase());
-  const localOnlyProfiles = session.profiles.filter(
-    p => !cloudUsernames.includes(p.profile.username.toLowerCase())
-  );
+  // Log detailed info about each cloud profile
+  profileSessions.forEach(p => {
+    console.log(`☁️ Cloud profile @${p.profile.username}:`, {
+      strategies: p.strategies.length,
+      creatives: p.creatives.length,
+      creativesRemaining: p.creativesRemaining,
+      strategyDates: p.strategyGenerationDates,
+      lastStrategyGenerated: p.lastStrategyGeneratedAt
+    });
+  });
   
-  session.profiles = [...profileSessions, ...localOnlyProfiles];
+  // CRITICAL: Cloud data is the source of truth
+  // Merge cloud profiles with local - cloud takes precedence for existing profiles
+  const mergedProfiles: ProfileSession[] = [];
+  
+  // First, add all cloud profiles (these are authoritative)
+  profileSessions.forEach(cloudProfile => {
+    // Ensure all required fields are present
+    const normalizedProfile: ProfileSession = {
+      ...cloudProfile,
+      strategies: cloudProfile.strategies || [],
+      creatives: cloudProfile.creatives || [],
+      creativesRemaining: cloudProfile.creativesRemaining ?? 6,
+      strategyGenerationDates: cloudProfile.strategyGenerationDates || {},
+      lastStrategyGeneratedAt: cloudProfile.lastStrategyGeneratedAt,
+      growthHistory: cloudProfile.growthHistory || [],
+      growthInsights: cloudProfile.growthInsights || [],
+    };
+    mergedProfiles.push(normalizedProfile);
+  });
+  
+  // Then add local-only profiles (not in cloud)
+  const cloudUsernames = profileSessions.map(p => p.profile.username.toLowerCase());
+  session.profiles.forEach(localProfile => {
+    if (!cloudUsernames.includes(localProfile.profile.username.toLowerCase())) {
+      mergedProfiles.push(localProfile);
+    }
+  });
+  
+  session.profiles = mergedProfiles;
   
   // CRITICAL: Ensure activeProfileId is valid for the loaded profiles
   const validProfileIds = session.profiles.map(p => p.id);
@@ -243,11 +276,21 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
     }
   }
   
-  console.log('☁️ Initialized:', {
+  // Log final state
+  console.log('☁️ Initialized final state:', {
     totalProfiles: session.profiles.length,
     activeProfileId: session.activeProfileId,
     totalCreatives: session.profiles.reduce((sum, p) => sum + p.creatives.length, 0),
     totalStrategies: session.profiles.reduce((sum, p) => sum + p.strategies.length, 0)
+  });
+  
+  session.profiles.forEach(p => {
+    console.log(`☁️ Final @${p.profile.username}:`, {
+      strategies: p.strategies.length,
+      creatives: p.creatives.length,
+      creditsRemaining: p.creativesRemaining,
+      canGenerateStrategy: !p.strategyGenerationDates?.mro && !p.lastStrategyGeneratedAt
+    });
   });
   
   // Save locally but don't trigger cloud sync (would be circular)
