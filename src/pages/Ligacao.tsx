@@ -16,7 +16,7 @@ const Ligacao = () => {
   const ringtoneRef = useRef<HTMLAudioElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Facebook Pixel and start ringtone
+  // Initialize Facebook Pixel, start ringtone and vibration
   useEffect(() => {
     // Load Facebook Pixel script
     const script = document.createElement('script');
@@ -39,12 +39,26 @@ const Ligacao = () => {
     noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=569414052132145&ev=PageView&noscript=1" />`;
     document.body.appendChild(noscript);
 
-    // Start ringtone loop
-    if (ringtoneRef.current) {
-      ringtoneRef.current.volume = 1;
-      ringtoneRef.current.loop = true;
-      ringtoneRef.current.play().catch(console.error);
+    // Start vibration pattern (vibrate for 500ms, pause 300ms, repeat)
+    let vibrationInterval: NodeJS.Timeout | null = null;
+    if ('vibrate' in navigator) {
+      // Initial vibration
+      navigator.vibrate([500, 300, 500, 300, 500]);
+      // Repeat vibration every 2.5 seconds
+      vibrationInterval = setInterval(() => {
+        navigator.vibrate([500, 300, 500, 300, 500]);
+      }, 2500);
     }
+
+    // Start ringtone loop immediately
+    const startRingtone = () => {
+      if (ringtoneRef.current) {
+        ringtoneRef.current.volume = 1;
+        ringtoneRef.current.loop = true;
+        ringtoneRef.current.play().catch(console.error);
+      }
+    };
+    startRingtone();
 
     return () => {
       document.head.removeChild(script);
@@ -52,6 +66,10 @@ const Ligacao = () => {
       if (ringtoneRef.current) {
         ringtoneRef.current.pause();
       }
+      if (vibrationInterval) {
+        clearInterval(vibrationInterval);
+      }
+      navigator.vibrate(0); // Stop vibration
     };
   }, []);
 
@@ -66,6 +84,11 @@ const Ligacao = () => {
     if (ringtoneRef.current) {
       ringtoneRef.current.pause();
       ringtoneRef.current.currentTime = 0;
+    }
+
+    // Stop vibration
+    if ('vibrate' in navigator) {
+      navigator.vibrate(0);
     }
 
     setCallState('connected');
