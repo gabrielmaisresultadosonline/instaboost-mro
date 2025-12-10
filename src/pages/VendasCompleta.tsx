@@ -366,7 +366,7 @@ export default function VendasCompleta() {
             </div>
             <Badge className="mb-4 bg-yellow-500/20 text-yellow-500 border-yellow-500/30 mx-auto">
               <Zap className="w-3 h-3 mr-1" />
-              Bônus Exclusivo
+              Como um Funcionário!
             </Badge>
             <CardTitle className="text-3xl md:text-4xl mb-4">
               Ferramenta MRO de Engajamento Automático
