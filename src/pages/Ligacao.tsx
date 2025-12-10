@@ -149,20 +149,18 @@ const Ligacao = () => {
     
     // Track audio completed - user listened to everything
     trackCallEvent('audio_completed');
-    
-    // Fire Facebook Pixel event for audio completion
-    if (adminSettings.callPixelEvents?.audioCompleted && window.fbq) {
-      window.fbq('track', 'ViewContent', { content_name: 'call_audio_completed' });
-    }
   };
 
   const handleAccessSite = () => {
     // Track CTA clicked
     trackCallEvent('cta_clicked');
     
-    // Fire Facebook Pixel Lead event
-    if (adminSettings.callPixelEvents?.ctaClicked && window.fbq) {
-      window.fbq('track', 'Lead');
+    // Fire Facebook Pixel ViewContent event (visualização de conteúdo)
+    if (window.fbq) {
+      window.fbq('track', 'ViewContent', { 
+        content_name: 'ligacao_cta_clicked',
+        content_category: 'call_funnel'
+      });
     }
     
     window.location.href = 'https://acessar.click/mrointeligente';
