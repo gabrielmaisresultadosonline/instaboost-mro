@@ -96,24 +96,28 @@ serve(async (req) => {
     const triggers = ['escassez', 'autoridade', 'urgência', 'prova social', 'reciprocidade', 'exclusividade'];
     const selectedTrigger = triggers[variationId % triggers.length];
 
-    // Gerar CTA e headline com IA - with variation
-    const textResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'Você é um copywriter especialista em criativos para Instagram. Crie textos curtos e impactantes para alta conversão. Cada criativo deve ser ÚNICO e diferente dos anteriores.'
-          },
-          {
-            role: 'user',
-            content: isManualMode && customPrompt 
-              ? `Crie um headline e CTA para um criativo de Instagram.
+    // Gerar CTA e headline com IA - ONLY if includeText is true
+    let headline = '';
+    let ctaText = '';
+
+    if (includeText) {
+      const textResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um copywriter especialista em criativos para Instagram. Crie textos curtos e impactantes para alta conversão. Cada criativo deve ser ÚNICO e diferente dos anteriores.'
+            },
+            {
+              role: 'user',
+              content: isManualMode && customPrompt 
+                ? `Crie um headline e CTA para um criativo de Instagram.
 
 Prompt do usuário: ${customPrompt}
 Tipo de Negócio: ${businessType}
@@ -131,7 +135,7 @@ Retorne JSON:
   "headline": "frase impactante com gatilho de ${selectedTrigger} (pode ter 2-3 linhas, max 15 palavras total)",
   "cta": "chamada para ação urgente (max 5 palavras)"
 }`
-              : `Crie um headline e CTA ÚNICOS para um criativo de Instagram.
+                : `Crie um headline e CTA ÚNICOS para um criativo de Instagram.
 
 Nicho: ${niche}
 Tipo de Negócio: ${businessType}
@@ -153,29 +157,31 @@ Retorne JSON:
   "headline": "frase impactante com gatilho de ${selectedTrigger} (pode ter 2-3 linhas, max 15 palavras total)",
   "cta": "chamada para ação única e urgente (max 5 palavras)"
 }`
-          }
-        ],
-      }),
-    });
+            }
+          ],
+        }),
+      });
 
-    let headline = 'Transforme seu negócio hoje!';
-    let ctaText = 'Saiba mais agora';
-
-    if (textResponse.ok) {
-      const textData = await textResponse.json();
-      const content = textData.choices?.[0]?.message?.content;
-      if (content) {
-        try {
-          const jsonMatch = content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            headline = parsed.headline || headline;
-            ctaText = parsed.cta || ctaText;
+      if (textResponse.ok) {
+        const textData = await textResponse.json();
+        const content = textData.choices?.[0]?.message?.content;
+        if (content) {
+          try {
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]);
+              headline = parsed.headline || 'Transforme seu negócio hoje!';
+              ctaText = parsed.cta || 'Saiba mais agora';
+            }
+          } catch (e) {
+            console.log('Error parsing text response:', e);
+            headline = 'Transforme seu negócio hoje!';
+            ctaText = 'Saiba mais agora';
           }
-        } catch (e) {
-          console.log('Error parsing text response:', e);
         }
       }
+    } else {
+      console.log('Skipping text generation - includeText is false');
     }
 
     // Build detailed image prompt with professional style guidance
@@ -209,29 +215,39 @@ MANDATORY LOGO AREA - CRITICAL:
 - Position: ${logoPosition === 'center' ? 'HORIZONTALLY CENTERED' : logoPosition === 'left' ? 'LEFT SIDE (about 10% from left edge)' : 'RIGHT SIDE (about 10% from right edge)'}, approximately 8-12% from the top edge
 - This area must BLEND naturally with the background - NO solid rectangles or bars behind it
 - The logo area should be slightly darker/cleaner but NOT a separate shape`
-      : '';
+      : `
+NO LOGO SPACE:
+- Do NOT reserve any space for logos
+- Fill the top area with rich visual content`;
 
     const textInstructions = includeText 
       ? `
 LAYOUT FOR TEXT OVERLAY:
 - BOTTOM 30%: Smooth gradient fade for text overlay (seamless, not a bar)
 - Keep bottom area slightly darker for text contrast`
-      : '';
+      : `
+NO TEXT OVERLAY SPACE - CRITICAL:
+- Do NOT create any gradient fade areas at the bottom
+- Do NOT leave dark areas for text
+- Fill the BOTTOM with the same rich visual content as the rest
+- The image must be COMPLETE and STANDALONE with no reserved spaces`;
 
     // Full image mode when no text and no logo
     const fullImageMode = !includeText && !includeLogo;
     const layoutDescription = fullImageMode 
       ? `
-FULL IMAGE MODE - CRITICAL:
-- Fill the ENTIRE canvas with rich visual content
-- NO reserved areas for overlays - use 100% of the space
-- Create a complete, standalone image that works without any text or logo
-- Maximum visual impact with the selected color palette`
+FULL IMAGE MODE - ABSOLUTELY CRITICAL:
+- Fill the ENTIRE canvas from edge to edge with rich visual content
+- NO gradients fades at top or bottom
+- NO reserved areas for ANY overlays
+- NO dark areas at bottom for text - this is a clean image only
+- Create a COMPLETE, STANDALONE image with maximum visual impact
+- The image must look complete and professional WITHOUT any text or logo additions`
       : `
 LAYOUT STRUCTURE:
-- TOP: ${includeLogo ? 'Clean gradient area for logo overlay' : 'Rich visual content'}
+- TOP: ${includeLogo ? 'Clean gradient area for logo overlay' : 'Rich visual content filling the top'}
 - CENTER: ${selectedPerspective} visual representing the business
-- BOTTOM: ${includeText ? 'Smooth gradient fade for text overlay' : 'Rich visual content'}`;
+- BOTTOM: ${includeText ? 'Smooth gradient fade for text overlay' : 'Rich visual content filling the bottom - NO dark gradients'}`;
 
     const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image.
 
@@ -264,13 +280,14 @@ ${layoutDescription}
 ${textInstructions}
 
 ABSOLUTE RULES:
-- NO text in the image
+- NO text, words, letters, or numbers in the image
 - NO horizontal solid color bars or stripes
 - NO empty spaces or borders
-- ${includeLogo ? 'NO logos or brand marks (just seamless area for overlay)' : 'Complete visual without any logo space'}
+- ${includeLogo ? 'NO logos or brand marks (just seamless area for overlay)' : 'Complete visual without any logo space - fill entire top with content'}
+- ${includeText ? '' : 'NO dark gradient at bottom - fill entire bottom with visual content'}
 - Aspect ratio: 1:1 SQUARE (1080x1080)
 - Image must extend EDGE TO EDGE with no visible boundaries
-- Background must be a seamless gradient, NOT solid blocks`;
+- ${fullImageMode ? 'FULL CONTENT MODE: Every pixel must be rich visual content - NO reserved spaces anywhere' : 'Background must be a seamless gradient, NOT solid blocks'}`;
 
     // Build message content - include person photo if provided
     const messageContent = personPhotoBase64 
