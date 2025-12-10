@@ -225,39 +225,80 @@ const Ligacao = () => {
       )}
 
       {callState === 'connected' && (
-        <div className="flex-1 flex flex-col items-center justify-center px-8">
-          {/* Profile Image */}
-          <div className="w-32 h-32 rounded-full overflow-hidden mb-6 border-2 border-green-500">
-            <img 
-              src={profileImage} 
-              alt="Mais Resultados Online"
-              className="w-full h-full object-cover"
-            />
+        <div className="flex-1 flex flex-col bg-gradient-to-b from-[#3d2c2c] via-[#2a1f1f] to-[#1a1212]">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4">
+            <button className="text-white/60">
+              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6,9 12,15 18,9" />
+              </svg>
+            </button>
+            <button className="text-white/60">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+              </svg>
+            </button>
           </div>
 
-          <h2 className="text-white text-2xl font-semibold mb-2">Mais Resultados Online</h2>
-          
-          <p className="text-green-400 text-sm flex items-center gap-2 mb-8">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            Chamada ativa • {formatDuration(callDuration)}
-          </p>
+          {/* User placeholder at top right */}
+          <div className="absolute top-20 right-4">
+            <div className="w-16 h-20 bg-[#3a3a3a] rounded-lg flex items-center justify-center">
+              <svg className="w-8 h-8 text-white/40" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
+          </div>
 
-          {/* Sound wave animation */}
-          <div className="flex items-center gap-1 h-12 mb-4">
-            {[...Array(7)].map((_, i) => (
-              <div
-                key={i}
-                className="w-1.5 bg-gradient-to-t from-green-500 to-green-400 rounded-full"
-                style={{
-                  height: `${20 + Math.sin(i * 0.5) * 15 + Math.random() * 10}px`,
-                  animation: `pulse 0.5s ease-in-out infinite`,
-                  animationDelay: `${i * 0.1}s`
-                }}
+          {/* Main Content - Profile Photo */}
+          <div className="flex-1 flex flex-col items-center justify-center px-8">
+            <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-white/20">
+              <img 
+                src={profileImage} 
+                alt="Mais Resultados Online"
+                className="w-full h-full object-cover"
               />
-            ))}
+            </div>
+
+            <p className="text-white/60 text-sm text-center">
+              A câmera de Mais Resultados Online está desativada
+            </p>
           </div>
 
-          <p className="text-white/60 text-sm">Ouça a mensagem...</p>
+          {/* Bottom Call Controls */}
+          <div className="pb-8 px-4">
+            <div className="flex items-center justify-center gap-6">
+              {/* Camera Off */}
+              <button className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16.5 9.4l-2-2.1M2 4l20 20M9 9c0-.6.4-1 1-1h4c.6 0 1 .4 1 1v4"/>
+                  <rect x="2" y="6" width="14" height="12" rx="2"/>
+                  <path d="M22 8l-6 4 6 4V8z"/>
+                  <line x1="2" y1="2" x2="22" y2="22" strokeLinecap="round"/>
+                </svg>
+              </button>
+
+              {/* Microphone */}
+              <button className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
+                </svg>
+              </button>
+
+              {/* Camera Switch */}
+              <button className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
+                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/>
+                </svg>
+              </button>
+
+              {/* End Call */}
+              <button className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center">
+                <svg className="w-7 h-7 text-white transform rotate-135" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
