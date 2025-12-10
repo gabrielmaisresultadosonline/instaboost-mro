@@ -110,7 +110,7 @@ const Ligacao = () => {
     setCallState('ringing');
   };
 
-  const handleAnswer = () => {
+  const handleAnswer = async () => {
     // Stop ringtone video
     if (ringtoneVideoRef.current) {
       ringtoneVideoRef.current.pause();
@@ -125,10 +125,27 @@ const Ligacao = () => {
 
     setCallState('connected');
     
-    // Start playing call audio at max volume
+    // Start playing call audio at max volume - with iOS fix
     if (audioRef.current) {
       audioRef.current.volume = 1;
-      audioRef.current.play();
+      audioRef.current.muted = false;
+      audioRef.current.currentTime = 0;
+      
+      try {
+        await audioRef.current.play();
+      } catch (error) {
+        console.error('Audio play failed:', error);
+        // iOS workaround: try again with a small delay
+        setTimeout(async () => {
+          try {
+            if (audioRef.current) {
+              await audioRef.current.play();
+            }
+          } catch (e) {
+            console.error('Retry audio play failed:', e);
+          }
+        }, 100);
+      }
     }
 
     // Start duration counter
@@ -175,6 +192,8 @@ const Ligacao = () => {
         src="https://maisresultadosonline.com.br/3b301aa2-e372-4b47-b35b-34d4b55bcdd9.mp3"
         onEnded={handleAudioEnded}
         preload="auto"
+        playsInline
+        webkit-playsinline="true"
       />
 
       {/* Landing Page */}
