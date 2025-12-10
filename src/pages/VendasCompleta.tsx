@@ -114,6 +114,7 @@ export default function VendasCompleta() {
   const [showPricing, setShowPricing] = useState(false);
   const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
   const [reachedPricing, setReachedPricing] = useState(false);
+  const [showTopBanner, setShowTopBanner] = useState(false);
   const [countdown, setCountdown] = useState(33 * 60 * 60); // 33 hours in seconds
   const videoSectionRef = useRef<HTMLDivElement>(null);
   const iaSectionRef = useRef<HTMLDivElement>(null);
@@ -160,11 +161,15 @@ export default function VendasCompleta() {
         setShowPricing(true);
       }
       
-      // Check if reached pricing section
+      // Check if reached pricing section and show top banner when scrolling up
       if (pricingSectionRef.current) {
         const pricingTop = pricingSectionRef.current.getBoundingClientRect().top;
         if (pricingTop < windowHeight * 0.8) {
           setReachedPricing(true);
+        }
+        // Show top banner after scrolling past pricing and scrolling back up
+        if (pricingTop < 0 && scrollPosition < documentHeight - windowHeight - 200) {
+          setShowTopBanner(true);
         }
       }
     };
@@ -218,30 +223,6 @@ export default function VendasCompleta() {
           </Button>
         </div>
       </header>
-
-      {/* Countdown Timer Banner */}
-      <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-3 px-4">
-        <div className="container mx-auto flex flex-col md:flex-row items-center justify-center gap-3 text-white text-center">
-          <span className="text-sm md:text-base font-medium">🔥 APROVEITE ANTES QUE ACABE! Oferta válida por apenas:</span>
-          <div className="flex items-center gap-2">
-            <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg">
-              <span className="text-2xl font-bold">{time.hours}</span>
-              <span className="text-xs block">horas</span>
-            </div>
-            <span className="text-2xl font-bold">:</span>
-            <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg">
-              <span className="text-2xl font-bold">{time.minutes}</span>
-              <span className="text-xs block">min</span>
-            </div>
-            <span className="text-2xl font-bold">:</span>
-            <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg">
-              <span className="text-2xl font-bold">{time.seconds}</span>
-              <span className="text-xs block">seg</span>
-            </div>
-          </div>
-        </div>
-        <p className="text-center text-white/80 text-xs mt-1">Você tem pouco mais de 1 dia para aproveitar esse valor!</p>
-      </div>
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 text-center">
@@ -601,19 +582,39 @@ export default function VendasCompleta() {
           </Card>
         </div>
 
-        {/* Scarcity Section */}
+        {/* Scarcity Section with Countdown */}
         <div className="mt-8 text-center space-y-4">
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Badge className="bg-red-500/20 text-red-500 border-red-500/50 text-base px-4 py-2 animate-pulse">
               🔥 ÚLTIMAS VAGAS
             </Badge>
             <Badge className="bg-red-500/20 text-red-500 border-red-500/50 text-base px-4 py-2">
-              💰 Valor SEM JUROS
-            </Badge>
-            <Badge className="bg-red-500/20 text-red-500 border-red-500/50 text-base px-4 py-2 animate-pulse">
-              ⏰ Antes que ACABE!
+              💰 Oferta SEM JUROS
             </Badge>
           </div>
+          
+          {/* Countdown Timer */}
+          <div className="bg-gradient-to-r from-red-600/20 via-red-500/30 to-red-600/20 border border-red-500/40 rounded-xl p-6 mt-6">
+            <p className="text-lg text-red-400 font-medium mb-3">⏰ APROVEITE ANTES QUE ACABE!</p>
+            <div className="flex items-center justify-center gap-3">
+              <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 rounded-lg">
+                <span className="text-3xl font-bold text-red-400">{time.hours}</span>
+                <span className="text-xs block text-red-300">horas</span>
+              </div>
+              <span className="text-3xl font-bold text-red-400">:</span>
+              <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 rounded-lg">
+                <span className="text-3xl font-bold text-red-400">{time.minutes}</span>
+                <span className="text-xs block text-red-300">min</span>
+              </div>
+              <span className="text-3xl font-bold text-red-400">:</span>
+              <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 rounded-lg">
+                <span className="text-3xl font-bold text-red-400">{time.seconds}</span>
+                <span className="text-xs block text-red-300">seg</span>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-3">Você tem pouco mais de 1 dia para aproveitar esse valor!</p>
+          </div>
+
           <p className="text-xl md:text-2xl font-bold text-foreground mt-6">
             Nós da MRO mostramos a porta, <span className="text-red-500">VOCÊ DECIDE ENTRAR!</span>
           </p>
@@ -681,6 +682,33 @@ export default function VendasCompleta() {
           fazer o passo a passo junto com você!
         </p>
       </section>
+
+      {/* Top Countdown Banner - appears after scrolling */}
+      {showTopBanner && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-2 px-4 animate-slide-up">
+          <div className="container mx-auto flex flex-col md:flex-row items-center justify-center gap-3 text-white text-center">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-white/20 text-white border-white/30">🔥 ÚLTIMAS VAGAS</Badge>
+              <Badge className="bg-white/20 text-white border-white/30">💰 SEM JUROS</Badge>
+            </div>
+            <span className="text-sm font-medium">Oferta acaba em:</span>
+            <div className="flex items-center gap-1">
+              <span className="bg-white/20 px-2 py-1 rounded font-bold">{time.hours}</span>
+              <span>:</span>
+              <span className="bg-white/20 px-2 py-1 rounded font-bold">{time.minutes}</span>
+              <span>:</span>
+              <span className="bg-white/20 px-2 py-1 rounded font-bold">{time.seconds}</span>
+            </div>
+            <Button 
+              size="sm"
+              className="bg-white text-red-600 hover:bg-white/90 font-bold"
+              onClick={handleBuyClick}
+            >
+              COMPRAR AGORA
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Floating CTA */}
       {showPricing && (
