@@ -570,3 +570,96 @@ export const clearInvalidProfiles = (): void => {
   saveSyncData(data);
   console.log('🗑️ Lista de perfis inválidos limpa');
 };
+
+// ================== CACHE SYSTEM (7 DAYS) ==================
+
+const CACHE_DAYS = 7;
+
+export interface CachedProfileResult {
+  isCached: boolean;
+  isRecent: boolean; // Less than 7 days
+  cachedProfile: SyncedInstagramProfile | null;
+  hasRecentPosts: boolean;
+  daysSinceLastUpdate: number;
+}
+
+// Check if a profile has recent cached data (within 7 days)
+export const getCachedProfileData = (username: string): CachedProfileResult => {
+  const data = getSyncData();
+  const normalizedUsername = username.toLowerCase().replace('@', '');
+  
+  const profile = data.profiles.find(
+    p => p.username.toLowerCase() === normalizedUsername
+  );
+  
+  if (!profile) {
+    return {
+      isCached: false,
+      isRecent: false,
+      cachedProfile: null,
+      hasRecentPosts: false,
+      daysSinceLastUpdate: -1
+    };
+  }
+  
+  const lastUpdated = new Date(profile.lastUpdated);
+  const now = new Date();
+  const diffMs = now.getTime() - lastUpdated.getTime();
+  const daysSinceLastUpdate = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  // Check if profile has recent posts data (we store followers, bio etc but might not have posts)
+  // Since SyncedInstagramProfile doesn't have recentPosts array, we consider it doesn't have posts
+  const hasRecentPosts = false; // Synced profiles don't store the 6 recent posts
+  
+  const isRecent = daysSinceLastUpdate < CACHE_DAYS;
+  
+  console.log(`📦 Cache check for @${normalizedUsername}: ${isRecent ? 'RECENT' : 'STALE'} (${daysSinceLastUpdate} days old)`);
+  
+  return {
+    isCached: true,
+    isRecent,
+    cachedProfile: profile,
+    hasRecentPosts,
+    daysSinceLastUpdate
+  };
+};
+
+// Convert cached SyncedInstagramProfile to InstagramProfile format
+export const convertCachedToInstagramProfile = (cached: SyncedInstagramProfile): any => {
+  return {
+    username: cached.username,
+    fullName: cached.fullName || cached.username,
+    bio: cached.bio || '',
+    followers: cached.followers || 0,
+    following: cached.following || 0,
+    posts: cached.posts || 0,
+    profilePicUrl: cached.profilePicUrl || '',
+    isBusinessAccount: true,
+    category: '',
+    externalUrl: '',
+    recentPosts: [], // Empty - will be fetched separately if needed
+    engagement: 0,
+    avgLikes: 0,
+    avgComments: 0
+  };
+};
+
+// Update cached profile with new data
+export const updateCachedProfile = (username: string, newData: Partial<SyncedInstagramProfile>): void => {
+  const data = getSyncData();
+  const normalizedUsername = username.toLowerCase().replace('@', '');
+  
+  const profileIndex = data.profiles.findIndex(
+    p => p.username.toLowerCase() === normalizedUsername
+  );
+  
+  if (profileIndex >= 0) {
+    data.profiles[profileIndex] = {
+      ...data.profiles[profileIndex],
+      ...newData,
+      lastUpdated: new Date().toISOString()
+    };
+    saveSyncData(data);
+    console.log(`✅ Cache atualizado para @${normalizedUsername}`);
+  }
+};
