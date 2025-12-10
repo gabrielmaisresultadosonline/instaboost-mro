@@ -574,6 +574,13 @@ export default function VendasCompleta() {
               <p className="text-sm text-muted-foreground">@maisresultadosonline</p>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <MessageCircle className="w-8 h-8 text-green-500" />
+            <div className="text-left">
+              <p className="font-semibold">Suporte no WhatsApp</p>
+              <p className="text-sm text-muted-foreground">Atendimento rápido</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -652,28 +659,6 @@ export default function VendasCompleta() {
         </DialogContent>
       </Dialog>
 
-      {/* Floating Support Buttons */}
-      <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-3">
-        {/* Instagram Button */}
-        <a
-          href="https://instagram.com/maisresultadosonline"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-110 transition-all"
-          aria-label="Instagram"
-        >
-          <Instagram className="w-7 h-7" />
-        </a>
-        
-        {/* WhatsApp Button */}
-        <button
-          onClick={handleWhatsAppClick}
-          className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-500/30 hover:scale-110 transition-all"
-          aria-label="WhatsApp"
-        >
-          <MessageCircle className="w-7 h-7" fill="currentColor" />
-        </button>
-      </div>
     </div>
   );
 }
