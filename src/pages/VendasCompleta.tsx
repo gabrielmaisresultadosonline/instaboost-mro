@@ -90,12 +90,27 @@ const mroFeatures = [
   {
     icon: UserPlus,
     title: "Seguir Contas Relevantes",
-    description: "Segue pessoas que têm interesse no seu nicho baseado em hashtags e concorrentes"
+    description: "Segue pessoas que têm interesse no seu nicho buscando em contas de concorrentes"
   },
   {
     icon: Zap,
     title: "200 Pessoas por Dia",
     description: "Interação com até 200 novos potenciais clientes todos os dias, de forma segura"
+  },
+  {
+    icon: Users,
+    title: "Deixar de Seguir Automaticamente",
+    description: "Deixa de seguir quem não te segue de volta ou limpa toda sua lista de seguindo"
+  },
+  {
+    icon: Shield,
+    title: "Remover Seguidores Fakes",
+    description: "Remove seguidores falsos e corrige shadow ban do seu perfil causado por compra de seguidores"
+  },
+  {
+    icon: Target,
+    title: "Rastrear Contatos",
+    description: "Rastreia e-mails e números de WhatsApp das contas para você entrar em contato direto"
   }
 ];
 
@@ -423,7 +438,7 @@ export default function VendasCompleta() {
                     1
                   </div>
                   <h5 className="font-semibold mb-2">Configure uma vez</h5>
-                  <p className="text-sm text-muted-foreground">Defina seu nicho, hashtags e contas de concorrentes que deseja atrair seguidores</p>
+                  <p className="text-sm text-muted-foreground">Defina seu nicho e contas de concorrentes de onde deseja atrair seguidores</p>
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-yellow-500 text-background flex items-center justify-center text-xl font-bold mx-auto mb-4">
