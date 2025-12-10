@@ -3,8 +3,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-key',
 };
+
+// Hardcoded admin credentials (same as frontend)
+const ADMIN_USERNAME = 'MRO';
+const ADMIN_PASSWORD = 'Ga145523@';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -19,48 +23,19 @@ serve(async (req) => {
     // Create service client for admin operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify JWT token and check admin role
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      console.error('[admin-data-storage] Missing authorization header');
+    // Verify admin key from header
+    const adminKey = req.headers.get('x-admin-key');
+    const expectedKey = `${ADMIN_USERNAME}:${ADMIN_PASSWORD}`;
+    
+    if (!adminKey || adminKey !== expectedKey) {
+      console.error('[admin-data-storage] Invalid or missing admin key');
       return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized - missing token' }),
+        JSON.stringify({ success: false, error: 'Unauthorized - invalid admin key' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Create a client with the user's token to verify their identity
-    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    });
-    
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
-    
-    if (userError || !user) {
-      console.error('[admin-data-storage] Invalid token:', userError?.message);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized - invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Check admin role using service client
-    const { data: isAdmin, error: roleError } = await supabase.rpc('has_role', {
-      _user_id: user.id,
-      _role: 'admin'
-    });
-
-    if (roleError || !isAdmin) {
-      console.error('[admin-data-storage] User is not admin:', user.id, roleError?.message);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Forbidden - admin access required' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('[admin-data-storage] Admin verified:', user.id);
+    console.log('[admin-data-storage] Admin verified via key');
 
     const { action, data } = await req.json();
     

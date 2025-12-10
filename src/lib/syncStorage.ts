@@ -116,12 +116,16 @@ export const saveSyncData = (data: SyncData): void => {
   }
 };
 
+// Admin key for server authentication
+const ADMIN_KEY = 'MRO:Ga145523@';
+
 // Save to server (async, background)
 const saveToServer = async (data: SyncData): Promise<void> => {
   try {
     console.log('💾 Salvando dados do admin no servidor...');
     const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
-      body: { action: 'save', data }
+      body: { action: 'save', data },
+      headers: { 'x-admin-key': ADMIN_KEY }
     });
 
     if (error) {
@@ -143,7 +147,8 @@ export const loadSyncDataFromServer = async (): Promise<SyncData> => {
     console.log('🔄 Carregando dados do admin do servidor...');
     
     const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
-      body: { action: 'load' }
+      body: { action: 'load' },
+      headers: { 'x-admin-key': ADMIN_KEY }
     });
 
     if (error) {
@@ -172,7 +177,8 @@ export const forceSyncToServer = async (): Promise<boolean> => {
   const data = getSyncData();
   try {
     const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
-      body: { action: 'save', data }
+      body: { action: 'save', data },
+      headers: { 'x-admin-key': ADMIN_KEY }
     });
 
     if (error) {
