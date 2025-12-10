@@ -18,15 +18,16 @@ import SnapshotGenerator from '@/components/admin/SnapshotGenerator';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import ProfileActions from '@/components/admin/ProfileActions';
 import SalesDashboard from '@/components/admin/SalesDashboard';
+import CallAnalyticsDashboard from '@/components/admin/CallAnalyticsDashboard';
 import { 
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, CheckCircle, XCircle, DollarSign
+  Instagram, CheckCircle, XCircle, DollarSign, Phone
 } from 'lucide-react';
 
-type Tab = 'users' | 'analytics' | 'sync' | 'tutorials' | 'sales' | 'settings';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'sales' | 'settings';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -178,6 +179,7 @@ const Admin = () => {
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
     { id: 'sales', label: 'Vendas', icon: <DollarSign className="w-4 h-4" /> },
+    { id: 'calls', label: 'Chamadas', icon: <Phone className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
@@ -807,6 +809,17 @@ const Admin = () => {
         {/* Sales Tab */}
         {activeTab === 'sales' && (
           <SalesDashboard />
+        )}
+
+        {/* Calls Analytics Tab */}
+        {activeTab === 'calls' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-display font-bold">Analytics de Chamadas</h2>
+            <p className="text-muted-foreground">
+              Acompanhe métricas da página /ligacao - quem ouviu o áudio completo e quem clicou no CTA.
+            </p>
+            <CallAnalyticsDashboard />
+          </div>
         )}
 
         {/* Analytics Tab */}

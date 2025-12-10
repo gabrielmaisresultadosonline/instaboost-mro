@@ -1,6 +1,5 @@
-// Admin configuration - credentials removed for security
-// Admin authentication now uses Supabase Auth with role verification
-import { supabase } from "@/integrations/supabase/client";
+// Admin configuration with hardcoded credentials
+// Username: MRO, Password: Ga145523@
 
 // Admin settings stored in localStorage
 export interface WelcomeVideo {
@@ -9,6 +8,14 @@ export interface WelcomeVideo {
   showTitle: boolean;
   youtubeUrl: string;
   coverUrl: string;
+}
+
+export interface CallAnalytics {
+  id: string;
+  timestamp: string;
+  event: 'page_view' | 'ringtone_started' | 'call_answered' | 'audio_completed' | 'cta_clicked';
+  userAgent: string;
+  referrer: string;
 }
 
 export interface AdminSettings {
@@ -20,6 +27,11 @@ export interface AdminSettings {
   facebookPixel: string;
   downloadLink: string;
   welcomeVideo: WelcomeVideo;
+  callPixelEvents: {
+    pageView: boolean;
+    audioCompleted: boolean;
+    ctaClicked: boolean;
+  };
 }
 
 // Content types for modules
@@ -82,6 +94,7 @@ export interface AdminData {
   settings: AdminSettings;
   tutorials: TutorialStep[]; // Legacy
   modules: TutorialModule[];
+  callAnalytics: CallAnalytics[];
 }
 
 const DEFAULT_ADMIN_DATA: AdminData = {
@@ -91,7 +104,7 @@ const DEFAULT_ADMIN_DATA: AdminData = {
       gemini: '',
       nanoBanana: ''
     },
-    facebookPixel: '',
+    facebookPixel: '569414052132145',
     downloadLink: '',
     welcomeVideo: {
       enabled: false,
@@ -99,11 +112,21 @@ const DEFAULT_ADMIN_DATA: AdminData = {
       showTitle: true,
       youtubeUrl: '',
       coverUrl: ''
+    },
+    callPixelEvents: {
+      pageView: true,
+      audioCompleted: true,
+      ctaClicked: true
     }
   },
   tutorials: [],
-  modules: []
+  modules: [],
+  callAnalytics: []
 };
+
+// Hardcoded admin credentials
+const ADMIN_USERNAME = 'MRO';
+const ADMIN_PASSWORD = 'Ga145523@';
 
 export const getAdminData = (): AdminData => {
   try {
@@ -113,7 +136,16 @@ export const getAdminData = (): AdminData => {
       return { 
         ...DEFAULT_ADMIN_DATA, 
         ...parsed,
-        modules: parsed.modules || []
+        modules: parsed.modules || [],
+        callAnalytics: parsed.callAnalytics || [],
+        settings: {
+          ...DEFAULT_ADMIN_DATA.settings,
+          ...parsed.settings,
+          callPixelEvents: {
+            ...DEFAULT_ADMIN_DATA.settings.callPixelEvents,
+            ...(parsed.settings?.callPixelEvents || {})
+          }
+        }
       };
     }
   } catch (e) {
@@ -129,6 +161,34 @@ export const saveAdminData = (data: AdminData): void => {
 export const updateSettings = (settings: Partial<AdminSettings>): void => {
   const data = getAdminData();
   data.settings = { ...data.settings, ...settings };
+  saveAdminData(data);
+};
+
+// Call Analytics functions
+export const trackCallEvent = (event: CallAnalytics['event']): void => {
+  const data = getAdminData();
+  const analytics: CallAnalytics = {
+    id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    timestamp: new Date().toISOString(),
+    event,
+    userAgent: navigator.userAgent,
+    referrer: document.referrer || 'direct'
+  };
+  data.callAnalytics.push(analytics);
+  // Keep only last 1000 events
+  if (data.callAnalytics.length > 1000) {
+    data.callAnalytics = data.callAnalytics.slice(-1000);
+  }
+  saveAdminData(data);
+};
+
+export const getCallAnalytics = (): CallAnalytics[] => {
+  return getAdminData().callAnalytics;
+};
+
+export const clearCallAnalytics = (): void => {
+  const data = getAdminData();
+  data.callAnalytics = [];
   saveAdminData(data);
 };
 
@@ -323,66 +383,25 @@ export const deleteVideo = (stepId: string, videoId: string): void => {
   }
 };
 
-// Check if admin is logged in via Supabase session
+// Check if admin is logged in
 export const isAdminLoggedIn = (): boolean => {
-  // Check for cached admin status (set after verifyAdmin succeeds)
   return sessionStorage.getItem('mro_admin_verified') === 'true';
 };
 
-// Verify admin status with server (call this on admin page load)
+// Verify admin - for hardcoded credentials, just check session
 export const verifyAdmin = async (): Promise<boolean> => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      sessionStorage.removeItem('mro_admin_verified');
-      return false;
-    }
-
-    const { data, error } = await supabase.functions.invoke('verify-admin');
-    
-    if (error || !data?.isAdmin) {
-      sessionStorage.removeItem('mro_admin_verified');
-      return false;
-    }
-
-    sessionStorage.setItem('mro_admin_verified', 'true');
-    return true;
-  } catch {
-    sessionStorage.removeItem('mro_admin_verified');
-    return false;
-  }
+  return sessionStorage.getItem('mro_admin_verified') === 'true';
 };
 
-// Login admin via Supabase Auth
-export const loginAdmin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
-    if (!data.session) {
-      return { success: false, error: 'Login failed' };
-    }
-
-    // Verify admin role
-    const isAdmin = await verifyAdmin();
-    if (!isAdmin) {
-      await supabase.auth.signOut();
-      return { success: false, error: 'Acesso negado - você não é um administrador' };
-    }
-
+// Login admin with hardcoded credentials
+export const loginAdmin = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    sessionStorage.setItem('mro_admin_verified', 'true');
     return { success: true };
-  } catch (err) {
-    return { success: false, error: 'Erro ao fazer login' };
   }
+  return { success: false, error: 'Credenciais inválidas' };
 };
 
 export const logoutAdmin = async (): Promise<void> => {
   sessionStorage.removeItem('mro_admin_verified');
-  await supabase.auth.signOut();
 };
