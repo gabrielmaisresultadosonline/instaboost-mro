@@ -85,3 +85,6 @@ verify_jwt = false
 
 [functions.upload-creative]
 verify_jwt = false
+
+[functions.update-user-days]
+verify_jwt = false

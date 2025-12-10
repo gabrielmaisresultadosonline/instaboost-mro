@@ -26,8 +26,9 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   RefreshCw, Play, Pause, Users, TrendingUp, Instagram, 
   CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight,
-  Loader2, AlertCircle, User, Square, Check, Ban, Trash2
+  Loader2, AlertCircle, User, Square, Check, Ban, Trash2, Calendar
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const SQUARECLOUD_API = 'https://dashboardmroinstagramvini-online.squareweb.app';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -36,6 +37,7 @@ const SyncDashboard = () => {
   const { toast } = useToast();
   const [syncData, setSyncData] = useState<SyncData>(getSyncData());
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isUpdatingDays, setIsUpdatingDays] = useState(false);
   const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
   const [currentSlide, setCurrentSlide] = useState(0);
   const syncAbortedRef = useRef(false);
@@ -383,6 +385,38 @@ const SyncDashboard = () => {
     }
   };
 
+  // Update user days remaining from SquareCloud
+  const handleUpdateUserDays = async () => {
+    setIsUpdatingDays(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('update-user-days');
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast({
+          title: 'Dias atualizados!',
+          description: `${data.updated} usuários atualizados de ${data.totalUsers} total`,
+        });
+      } else {
+        toast({
+          title: 'Erro ao atualizar',
+          description: data?.error || 'Erro desconhecido',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating user days:', error);
+      toast({
+        title: 'Erro ao atualizar dias',
+        description: 'Não foi possível conectar ao servidor',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUpdatingDays(false);
+    }
+  };
+
   // Get top growing profiles for slider
   const topGrowing = getTopGrowingProfiles(10);
   
@@ -514,6 +548,19 @@ const SyncDashboard = () => {
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Sincronizar (Apenas Novos)
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={handleUpdateUserDays}
+                  disabled={isUpdatingDays}
+                  className="cursor-pointer"
+                >
+                  {isUpdatingDays ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Calendar className="w-4 h-4 mr-2" />
+                  )}
+                  Atualizar Dias
                 </Button>
                 <Button 
                   variant="outline"
