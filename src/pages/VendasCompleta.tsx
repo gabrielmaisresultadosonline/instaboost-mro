@@ -34,6 +34,12 @@ import {
   MessageCircle
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import creative1 from "@/assets/creative-1.webp";
+import creative2 from "@/assets/creative-2.jpg";
+import creative3 from "@/assets/creative-3.jpg";
+import creative4 from "@/assets/creative-4.jpg";
+
+const creativeImages = [creative1, creative2, creative3, creative4];
 
 const iaFeatures = [
   {
@@ -296,13 +302,17 @@ export default function VendasCompleta() {
             </div>
             <div className="flex items-center justify-center">
               <div className="grid grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((num) => (
+                {creativeImages.map((img, index) => (
                   <div 
-                    key={num} 
-                    className="w-32 h-40 md:w-40 md:h-52 rounded-xl bg-gradient-to-br from-yellow-500/20 to-primary/10 border border-yellow-500/30 flex items-center justify-center animate-float"
-                    style={{ animationDelay: `${num * 0.2}s` }}
+                    key={index} 
+                    className="w-32 h-40 md:w-40 md:h-52 rounded-xl overflow-hidden border-2 border-yellow-500/30 animate-float shadow-lg shadow-yellow-500/20"
+                    style={{ animationDelay: `${index * 0.2}s` }}
                   >
-                    <Image className="w-10 h-10 text-yellow-500/50" />
+                    <img 
+                      src={img} 
+                      alt={`Criativo exemplo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
