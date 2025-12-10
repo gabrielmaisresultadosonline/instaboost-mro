@@ -45,7 +45,7 @@ serve(async (req) => {
   }
 
   try {
-    const { username, existingPosts } = await req.json();
+    const { username, existingPosts, onlyPosts } = await req.json();
     
     if (!username) {
       return new Response(
@@ -63,7 +63,7 @@ serve(async (req) => {
       .trim()
       .toLowerCase();
 
-    console.log(`Fetching Instagram profile via Bright Data: ${cleanUsername}`);
+    console.log(`Fetching Instagram profile via Bright Data: ${cleanUsername} (onlyPosts: ${onlyPosts || false})`);
 
     const BRIGHTDATA_TOKEN = Deno.env.get('BRIGHTDATA_API_TOKEN');
     
@@ -102,7 +102,9 @@ serve(async (req) => {
         if (profileData && (profileData.followers || profileData.id)) {
           // Profile picture with HTTPS proxy - MUST have real profile pic
           const originalProfilePic = profileData.profile_image_link;
-          if (!originalProfilePic) {
+          
+          // If onlyPosts mode, we don't need profile pic validation
+          if (!onlyPosts && !originalProfilePic) {
             console.log('❌ No profile picture in response');
             return Response.json({ 
               success: false, 
@@ -110,12 +112,13 @@ serve(async (req) => {
             }, { status: 404, headers: corsHeaders });
           }
           
-          const proxiedProfilePic = proxyImage(originalProfilePic);
+          const proxiedProfilePic = originalProfilePic ? proxyImage(originalProfilePic) : '';
 
           // Calculate engagement from available data
           const followersCount = profileData.followers || 0;
           
-          if (followersCount === 0) {
+          // If onlyPosts mode, we don't need followers validation
+          if (!onlyPosts && followersCount === 0) {
             console.log('❌ No followers count in response');
             return Response.json({ 
               success: false, 
@@ -125,19 +128,6 @@ serve(async (req) => {
           
           const postsCount = profileData.posts_count || profileData.post_count || 0;
           const avgEngagement = profileData.avg_engagement || 2.5;
-
-          const profile: InstagramProfile = {
-            username: profileData.account || profileData.profile_name || cleanUsername,
-            fullName: profileData.profile_name || profileData.full_name || '',
-            bio: profileData.biography || profileData.bio || '',
-            followers: followersCount,
-            following: profileData.following || 0,
-            posts: postsCount,
-            profilePicUrl: proxiedProfilePic,
-            isBusinessAccount: profileData.is_business_account || profileData.is_professional_account || false,
-            category: profileData.category || '',
-            externalUrl: profileData.external_url || '',
-          };
 
           // Try to get real posts from the profile data
           let recentPosts: InstagramPost[] = [];
@@ -182,6 +172,35 @@ serve(async (req) => {
           // Calculate engagement metrics
           const avgLikes = Math.round(followersCount * (avgEngagement / 100));
           const avgComments = Math.round(avgLikes * 0.15);
+
+          // If onlyPosts mode, return minimal response with just posts
+          if (onlyPosts) {
+            console.log('✅ onlyPosts mode - returning just posts data:', recentPosts.length, 'posts');
+            return Response.json({
+              success: true,
+              profile: {
+                recentPosts,
+                avgLikes,
+                avgComments,
+                engagement: Math.min(avgEngagement, 15),
+              },
+              simulated: false,
+              message: 'Posts atualizados via Bright Data API'
+            }, { headers: corsHeaders });
+          }
+
+          const profile: InstagramProfile = {
+            username: profileData.account || profileData.profile_name || cleanUsername,
+            fullName: profileData.profile_name || profileData.full_name || '',
+            bio: profileData.biography || profileData.bio || '',
+            followers: followersCount,
+            following: profileData.following || 0,
+            posts: postsCount,
+            profilePicUrl: proxiedProfilePic,
+            isBusinessAccount: profileData.is_business_account || profileData.is_professional_account || false,
+            category: profileData.category || '',
+            externalUrl: profileData.external_url || '',
+          };
 
           console.log('✅ Profile found via Bright Data:', profile.username, profile.followers, 'posts:', recentPosts.length);
 

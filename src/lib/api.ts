@@ -1,19 +1,70 @@
 import { supabase } from '@/integrations/supabase/client';
 import { InstagramProfile, ProfileAnalysis, Strategy, Creative, CreativeConfig } from '@/types/instagram';
+import { 
+  getCachedProfileData, 
+  convertCachedToInstagramProfile, 
+  updateCachedProfile 
+} from '@/lib/syncStorage';
 
 export const fetchInstagramProfile = async (
   username: string,
-  existingPosts?: any[]
+  existingPosts?: any[],
+  forceRefresh: boolean = false
 ): Promise<{
   success: boolean;
   profile?: InstagramProfile;
   simulated?: boolean;
   message?: string;
   error?: string;
+  fromCache?: boolean;
 }> => {
   try {
+    const normalizedUsername = username.toLowerCase().replace('@', '');
+    
+    // STEP 1: Check cached data from server (admin synced profiles)
+    if (!forceRefresh) {
+      const cacheResult = getCachedProfileData(normalizedUsername);
+      
+      if (cacheResult.isCached && cacheResult.isRecent && cacheResult.cachedProfile) {
+        console.log(`🚀 Usando dados em cache para @${normalizedUsername} (${cacheResult.daysSinceLastUpdate} dias atrás)`);
+        
+        // Profile data is recent (< 7 days), use cached version
+        // But we still need to fetch recent posts since cached profiles don't store them
+        const cachedProfile = convertCachedToInstagramProfile(cacheResult.cachedProfile);
+        
+        // Fetch ONLY recent posts from API (saves bandwidth)
+        console.log(`📸 Buscando apenas posts recentes para @${normalizedUsername}...`);
+        const { data: postsData, error: postsError } = await supabase.functions.invoke('fetch-instagram', {
+          body: { username: normalizedUsername, onlyPosts: true }
+        });
+        
+        if (!postsError && postsData?.success && postsData?.profile?.recentPosts) {
+          cachedProfile.recentPosts = postsData.profile.recentPosts;
+          cachedProfile.avgLikes = postsData.profile.avgLikes || 0;
+          cachedProfile.avgComments = postsData.profile.avgComments || 0;
+          cachedProfile.engagement = postsData.profile.engagement || 
+            (cachedProfile.followers > 0 ? (cachedProfile.avgLikes / cachedProfile.followers) * 100 : 0);
+        }
+        
+        return {
+          success: true,
+          profile: cachedProfile,
+          simulated: false,
+          fromCache: true,
+          message: `Dados em cache (${cacheResult.daysSinceLastUpdate} dias atrás) + posts atualizados`
+        };
+      }
+      
+      // If cached but stale (> 7 days), log and proceed to fetch fresh data
+      if (cacheResult.isCached && !cacheResult.isRecent) {
+        console.log(`⏰ Cache expirado para @${normalizedUsername} (${cacheResult.daysSinceLastUpdate} dias) - buscando dados novos`);
+      }
+    }
+    
+    // STEP 2: Fetch fresh data from API
+    console.log(`🌐 Buscando dados completos da API para @${normalizedUsername}...`);
     const { data, error } = await supabase.functions.invoke('fetch-instagram', {
-      body: { username, existingPosts }
+      body: { username: normalizedUsername, existingPosts }
     });
 
     if (error) {
@@ -40,11 +91,22 @@ export const fetchInstagramProfile = async (
         avgComments: data.profile.avgComments || 0,
         recentPosts: data.profile.recentPosts || [], // Empty array if no real posts, NOT mock
       };
+      
+      // Update cache with fresh data
+      updateCachedProfile(normalizedUsername, {
+        followers: profile.followers,
+        following: profile.following,
+        posts: profile.posts,
+        profilePicUrl: profile.profilePicUrl,
+        fullName: profile.fullName,
+        bio: profile.bio
+      });
 
       return { 
         success: true, 
         profile,
         simulated: false,
+        fromCache: false,
         message: data.message
       };
     }
