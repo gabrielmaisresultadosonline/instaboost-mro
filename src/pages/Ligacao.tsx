@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Phone, PhoneCall, ExternalLink } from 'lucide-react';
+import { Phone, PhoneCall, ExternalLink, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import profileImage from '@/assets/mro-profile-call.jpg';
 
@@ -10,15 +10,15 @@ declare global {
 }
 
 const Ligacao = () => {
-  const [callState, setCallState] = useState<'ringing' | 'connected' | 'ended'>('ringing');
+  const [callState, setCallState] = useState<'start' | 'ringing' | 'connected' | 'ended'>('start');
   const [callDuration, setCallDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const ringtoneRef = useRef<HTMLAudioElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Facebook Pixel, start ringtone and vibration
+  // Initialize Facebook Pixel
   useEffect(() => {
-    // Load Facebook Pixel script
     const script = document.createElement('script');
     script.innerHTML = `
       !function(f,b,e,v,n,t,s)
@@ -34,44 +34,34 @@ const Ligacao = () => {
     `;
     document.head.appendChild(script);
 
-    // Add noscript fallback
     const noscript = document.createElement('noscript');
     noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=569414052132145&ev=PageView&noscript=1" />`;
     document.body.appendChild(noscript);
 
-    // Start vibration pattern (vibrate for 500ms, pause 300ms, repeat)
-    let vibrationInterval: NodeJS.Timeout | null = null;
-    if ('vibrate' in navigator) {
-      // Initial vibration
-      navigator.vibrate([500, 300, 500, 300, 500]);
-      // Repeat vibration every 2.5 seconds
-      vibrationInterval = setInterval(() => {
-        navigator.vibrate([500, 300, 500, 300, 500]);
-      }, 2500);
-    }
-
-    // Start ringtone loop immediately
-    const startRingtone = () => {
-      if (ringtoneRef.current) {
-        ringtoneRef.current.volume = 1;
-        ringtoneRef.current.loop = true;
-        ringtoneRef.current.play().catch(console.error);
-      }
-    };
-    startRingtone();
-
     return () => {
       document.head.removeChild(script);
       document.body.removeChild(noscript);
-      if (ringtoneRef.current) {
-        ringtoneRef.current.pause();
-      }
-      if (vibrationInterval) {
-        clearInterval(vibrationInterval);
-      }
-      navigator.vibrate(0); // Stop vibration
     };
   }, []);
+
+  const startCall = () => {
+    setCallState('ringing');
+    
+    // Start ringtone
+    if (ringtoneRef.current) {
+      ringtoneRef.current.volume = 1;
+      ringtoneRef.current.loop = true;
+      ringtoneRef.current.play().catch(console.error);
+    }
+
+    // Start vibration pattern
+    if ('vibrate' in navigator) {
+      navigator.vibrate([500, 300, 500, 300, 500]);
+      vibrationIntervalRef.current = setInterval(() => {
+        navigator.vibrate([500, 300, 500, 300, 500]);
+      }, 2500);
+    }
+  };
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -89,6 +79,9 @@ const Ligacao = () => {
     // Stop vibration
     if ('vibrate' in navigator) {
       navigator.vibrate(0);
+    }
+    if (vibrationIntervalRef.current) {
+      clearInterval(vibrationIntervalRef.current);
     }
 
     setCallState('connected');
@@ -113,12 +106,9 @@ const Ligacao = () => {
   };
 
   const handleAccessSite = () => {
-    // Track Lead event on Facebook Pixel
     if (window.fbq) {
       window.fbq('track', 'Lead');
     }
-    
-    // Redirect to the site
     window.location.href = 'https://acessar.click/mrointeligente';
   };
 
@@ -127,12 +117,19 @@ const Ligacao = () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      if (vibrationIntervalRef.current) {
+        clearInterval(vibrationIntervalRef.current);
+      }
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+      }
+      navigator.vibrate(0);
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] flex items-center justify-center p-4">
-      {/* Ringtone audio - loops until answered */}
+      {/* Ringtone audio */}
       <audio 
         ref={ringtoneRef} 
         src="http://maisresultadosonline.com.br/ligacaoaudio.mp3"
@@ -146,6 +143,28 @@ const Ligacao = () => {
         onEnded={handleAudioEnded}
         preload="auto"
       />
+
+      {/* Initial Start Screen - Required for audio autoplay */}
+      {callState === 'start' && (
+        <div 
+          onClick={startCall}
+          className="fixed inset-0 bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] flex flex-col items-center justify-center cursor-pointer z-50"
+        >
+          <div className="text-center space-y-6 animate-pulse">
+            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/50">
+              <Phone className="w-12 h-12 text-white" />
+            </div>
+            <div>
+              <p className="text-white text-xl font-semibold">Chamada recebida</p>
+              <p className="text-white/60 text-sm mt-2">Toque para ativar o som</p>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-yellow-400">
+              <Volume2 className="w-5 h-5" />
+              <p className="text-sm">Aumente o volume do celular</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="w-full max-w-sm">
         {/* Phone Call Interface */}
@@ -215,7 +234,7 @@ const Ligacao = () => {
               </div>
               
               <p className="text-white/50 text-center text-sm">
-                Deslize para atender
+                Toque para atender
               </p>
             </div>
           )}
