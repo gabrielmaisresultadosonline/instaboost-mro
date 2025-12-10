@@ -16,6 +16,7 @@ import {
   Check, 
   Instagram, 
   Loader2, 
+  LogOut,
   Mail, 
   RefreshCw, 
   UserPlus,
@@ -45,9 +46,10 @@ import html2canvas from 'html2canvas';
 interface ProfileRegistrationProps {
   onProfileRegistered: (profile: InstagramProfile, analysis: ProfileAnalysis) => void;
   onSyncComplete: (instagrams: string[]) => void;
+  onLogout?: () => void;
 }
 
-export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: ProfileRegistrationProps) => {
+export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLogout }: ProfileRegistrationProps) => {
   const [instagramInput, setInstagramInput] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -474,9 +476,22 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
                   Cadastre ou sincronize seus perfis do Instagram
                 </CardDescription>
               </div>
-              <div className="text-right text-sm text-muted-foreground">
+              <div className="flex items-center gap-3">
                 {registeredIGs.length > 0 && (
-                  <span>{registeredIGs.length} perfil(is) cadastrado(s)</span>
+                  <span className="text-sm text-muted-foreground">
+                    {registeredIGs.length} perfil(is)
+                  </span>
+                )}
+                {onLogout && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onLogout}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <LogOut className="w-4 h-4 mr-1" />
+                    Sair
+                  </Button>
                 )}
               </div>
             </div>
