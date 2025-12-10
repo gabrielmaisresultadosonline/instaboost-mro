@@ -54,14 +54,14 @@ const Ligacao = () => {
     };
   }, [pixelId]);
 
-  // Force 80% zoom on desktop
+  // Force larger zoom on desktop to fill screen better
   useEffect(() => {
     const isDesktop = window.innerWidth > 768;
     if (isDesktop) {
       // Store original zoom
       const originalZoom = (document.body.style as any).zoom || '100%';
-      // Force 80% zoom
-      (document.body.style as any).zoom = '80%';
+      // Force 125% zoom to make content bigger on desktop
+      (document.body.style as any).zoom = '125%';
       
       return () => {
         // Restore original zoom on unmount
