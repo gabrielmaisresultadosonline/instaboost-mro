@@ -11,6 +11,7 @@ import MROFerramenta from "./pages/MROFerramenta";
 import Vendas from "./pages/Vendas";
 import VendasCompleta from "./pages/VendasCompleta";
 import Membro from "./pages/Membro";
+import Ligacao from "./pages/Ligacao";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/vendas" element={<Vendas />} />
           <Route path="/mrointeligente" element={<VendasCompleta />} />
           <Route path="/membro" element={<Membro />} />
+          <Route path="/ligacao" element={<Ligacao />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
