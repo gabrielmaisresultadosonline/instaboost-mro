@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Phone, PhoneCall, ExternalLink, Volume2 } from 'lucide-react';
+import { Check, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import profileImage from '@/assets/mro-profile-call.jpg';
 
@@ -10,14 +10,14 @@ declare global {
 }
 
 const Ligacao = () => {
-  const [callState, setCallState] = useState<'start' | 'ringing' | 'connected' | 'ended'>('start');
+  const [callState, setCallState] = useState<'ringing' | 'connected' | 'ended'>('ringing');
   const [callDuration, setCallDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const ringtoneRef = useRef<HTMLAudioElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Facebook Pixel
+  // Initialize Facebook Pixel and start audio/vibration immediately
   useEffect(() => {
     const script = document.createElement('script');
     script.innerHTML = `
@@ -38,30 +38,42 @@ const Ligacao = () => {
     noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=569414052132145&ev=PageView&noscript=1" />`;
     document.body.appendChild(noscript);
 
-    return () => {
-      document.head.removeChild(script);
-      document.body.removeChild(noscript);
-    };
-  }, []);
-
-  const startCall = () => {
-    setCallState('ringing');
-    
-    // Start ringtone
+    // Try to start ringtone automatically (muted first to bypass autoplay)
     if (ringtoneRef.current) {
       ringtoneRef.current.volume = 1;
       ringtoneRef.current.loop = true;
-      ringtoneRef.current.play().catch(console.error);
+      ringtoneRef.current.play().catch(() => {
+        // If autoplay fails, try with user interaction
+        document.addEventListener('click', () => {
+          if (ringtoneRef.current && callState === 'ringing') {
+            ringtoneRef.current.play().catch(console.error);
+          }
+        }, { once: true });
+      });
     }
 
     // Start vibration pattern
     if ('vibrate' in navigator) {
       navigator.vibrate([500, 300, 500, 300, 500]);
       vibrationIntervalRef.current = setInterval(() => {
-        navigator.vibrate([500, 300, 500, 300, 500]);
+        if (callState === 'ringing') {
+          navigator.vibrate([500, 300, 500, 300, 500]);
+        }
       }, 2500);
     }
-  };
+
+    return () => {
+      document.head.removeChild(script);
+      document.body.removeChild(noscript);
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+      }
+      if (vibrationIntervalRef.current) {
+        clearInterval(vibrationIntervalRef.current);
+      }
+      navigator.vibrate(0);
+    };
+  }, []);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -77,16 +89,14 @@ const Ligacao = () => {
     }
 
     // Stop vibration
-    if ('vibrate' in navigator) {
-      navigator.vibrate(0);
-    }
+    navigator.vibrate(0);
     if (vibrationIntervalRef.current) {
       clearInterval(vibrationIntervalRef.current);
     }
 
     setCallState('connected');
     
-    // Start playing audio at max volume
+    // Start playing call audio at max volume
     if (audioRef.current) {
       audioRef.current.volume = 1;
       audioRef.current.play();
@@ -117,26 +127,17 @@ const Ligacao = () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      if (vibrationIntervalRef.current) {
-        clearInterval(vibrationIntervalRef.current);
-      }
-      if (ringtoneRef.current) {
-        ringtoneRef.current.pause();
-      }
-      navigator.vibrate(0);
     };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] flex items-center justify-center p-4">
-      {/* Ringtone audio */}
+    <div className="min-h-screen bg-black flex flex-col">
+      {/* Hidden audio elements */}
       <audio 
         ref={ringtoneRef} 
         src="http://maisresultadosonline.com.br/ligacaoaudio.mp3"
         preload="auto"
       />
-
-      {/* Call audio */}
       <audio 
         ref={audioRef} 
         src="https://maisresultadosonline.com.br/3b301aa2-e372-4b47-b35b-34d4b55bcdd9.mp3"
@@ -144,164 +145,157 @@ const Ligacao = () => {
         preload="auto"
       />
 
-      {/* Initial Start Screen - Required for audio autoplay */}
-      {callState === 'start' && (
-        <div 
-          onClick={startCall}
-          className="fixed inset-0 bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] flex flex-col items-center justify-center cursor-pointer z-50"
-        >
-          <div className="text-center space-y-6 animate-pulse">
-            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/50">
-              <Phone className="w-12 h-12 text-white" />
+      {callState === 'ringing' && (
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4">
+            <button className="text-white/60">
+              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6,9 12,15 18,9" />
+              </svg>
+            </button>
+            <button className="text-white/60">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+              </svg>
+            </button>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col items-center justify-center px-8">
+            {/* Profile Image */}
+            <div className="w-28 h-28 rounded-full overflow-hidden mb-6 border-2 border-white/20">
+              <img 
+                src={profileImage} 
+                alt="Mais Resultados Online"
+                className="w-full h-full object-cover"
+              />
             </div>
-            <div>
-              <p className="text-white text-xl font-semibold">Chamada recebida</p>
-              <p className="text-white/60 text-sm mt-2">Toque para ativar o som</p>
+
+            {/* Instagram Audio Label */}
+            <div className="flex items-center gap-2 text-white/60 text-sm mb-2">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <defs>
+                  <linearGradient id="instagramGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#f09433" />
+                    <stop offset="25%" stopColor="#e6683c" />
+                    <stop offset="50%" stopColor="#dc2743" />
+                    <stop offset="75%" stopColor="#cc2366" />
+                    <stop offset="100%" stopColor="#bc1888" />
+                  </linearGradient>
+                </defs>
+                <path fill="url(#instagramGradient)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
+              </svg>
+              <span>Áudio de Instagram...</span>
             </div>
-            <div className="flex items-center justify-center gap-2 text-yellow-400">
-              <Volume2 className="w-5 h-5" />
-              <p className="text-sm">Aumente o volume do celular</p>
+
+            {/* Username */}
+            <h1 className="text-white text-3xl font-semibold">
+              @maisresultadosonline
+            </h1>
+          </div>
+
+          {/* Bottom Buttons */}
+          <div className="pb-16 px-8">
+            <div className="flex items-center justify-between max-w-xs mx-auto">
+              {/* Decline Button - Disabled */}
+              <div className="flex flex-col items-center">
+                <button 
+                  className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  <X className="w-10 h-10 text-white" />
+                </button>
+                <span className="text-white/60 text-sm mt-3">Recusar</span>
+              </div>
+
+              {/* Accept Button */}
+              <div className="flex flex-col items-center">
+                <button
+                  onClick={handleAnswer}
+                  className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-400 transition-all transform hover:scale-105 shadow-lg shadow-green-500/30 animate-pulse"
+                >
+                  <Check className="w-10 h-10 text-white" />
+                </button>
+                <span className="text-white text-sm mt-3">Aceitar</span>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      <div className="w-full max-w-sm">
-        {/* Phone Call Interface */}
-        <div className="relative rounded-[40px] bg-gradient-to-b from-[#262626] to-[#1a1a1a] p-8 shadow-2xl border border-white/10">
-          {/* Instagram gradient bar at top */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-[#f09433] via-[#e6683c] via-[#dc2743] via-[#cc2366] to-[#bc1888] rounded-full" />
-
-          {/* Status indicator */}
-          <div className="text-center mb-8 mt-4">
-            {callState === 'ringing' && (
-              <p className="text-white/60 text-sm animate-pulse">Chamada de vídeo do Instagram</p>
-            )}
-            {callState === 'connected' && (
-              <p className="text-green-400 text-sm flex items-center justify-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                Chamada ativa em andamento... • {formatDuration(callDuration)}
-              </p>
-            )}
-            {callState === 'ended' && (
-              <p className="text-yellow-400 text-sm">Chamada finalizada</p>
-            )}
+      {callState === 'connected' && (
+        <div className="flex-1 flex flex-col items-center justify-center px-8">
+          {/* Profile Image */}
+          <div className="w-32 h-32 rounded-full overflow-hidden mb-6 border-2 border-green-500">
+            <img 
+              src={profileImage} 
+              alt="Mais Resultados Online"
+              className="w-full h-full object-cover"
+            />
           </div>
 
-          {/* Profile Picture */}
-          <div className="flex flex-col items-center mb-8">
-            <div className={`relative ${callState === 'ringing' ? 'animate-pulse' : ''}`}>
-              {/* Outer ring animation for ringing state */}
-              {callState === 'ringing' && (
-                <>
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] animate-ping opacity-30 scale-110" />
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] animate-pulse opacity-50 scale-105" />
-                </>
-              )}
-              
-              {/* Profile image container */}
-              <div className="relative w-32 h-32 rounded-full p-[3px] bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888]">
-                <img 
-                  src={profileImage} 
-                  alt="Mais Resultados Online"
-                  className="w-full h-full rounded-full object-cover border-4 border-[#262626]"
-                />
-              </div>
-            </div>
-
-            {/* Caller name */}
-            <h2 className="text-white text-2xl font-semibold mt-6">
-              Mais Resultados Online
-            </h2>
-            <p className="text-white/50 text-sm mt-1">@maisresultadosonline</p>
-          </div>
-
-          {/* Call State Content */}
-          {callState === 'ringing' && (
-            <div className="space-y-6">
-              <p className="text-white/70 text-center text-lg">
-                Ligando para você...
-              </p>
-              
-              {/* Answer button only */}
-              <div className="flex justify-center">
-                <button
-                  onClick={handleAnswer}
-                  className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30 hover:shadow-green-500/50 hover:scale-105 transition-all duration-300 animate-bounce"
-                >
-                  <Phone className="w-10 h-10 text-white" />
-                </button>
-              </div>
-              
-              <p className="text-white/50 text-center text-sm">
-                Toque para atender
-              </p>
-            </div>
-          )}
-
-          {callState === 'connected' && (
-            <div className="space-y-6">
-              {/* Sound wave animation */}
-              <div className="flex justify-center items-center gap-1 h-16">
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-2 bg-gradient-to-t from-green-500 to-green-400 rounded-full animate-pulse"
-                    style={{
-                      height: `${Math.random() * 40 + 20}px`,
-                      animationDelay: `${i * 0.1}s`,
-                      animationDuration: '0.5s'
-                    }}
-                  />
-                ))}
-              </div>
-              
-              <div className="text-center">
-                <PhoneCall className="w-12 h-12 text-green-400 mx-auto animate-pulse" />
-                <p className="text-white/70 mt-4">Ouça a mensagem...</p>
-              </div>
-            </div>
-          )}
-
-          {callState === 'ended' && (
-            <div className="space-y-6 text-center">
-              <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl p-6 border border-yellow-500/30">
-                <p className="text-yellow-400 text-xl font-bold mb-2">
-                  Aproveite agora mesmo!
-                </p>
-                <p className="text-white text-lg">
-                  Planos a partir de{' '}
-                  <span className="text-yellow-400 font-bold text-2xl">R$33</span>
-                  {' '}mensal
-                </p>
-              </div>
-              
-              <Button
-                onClick={handleAccessSite}
-                size="lg"
-                className="w-full py-6 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-background font-bold rounded-full shadow-lg shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-all duration-300"
-              >
-                <ExternalLink className="w-5 h-5 mr-2" />
-                Acessar o Site
-              </Button>
-              
-              <p className="text-white/40 text-xs">
-                Clique para conhecer a I.A MRO
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Instagram branding */}
-        <div className="text-center mt-6">
-          <p className="text-white/30 text-xs flex items-center justify-center gap-2">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-            </svg>
-            Chamada via Instagram
+          <h2 className="text-white text-2xl font-semibold mb-2">Mais Resultados Online</h2>
+          
+          <p className="text-green-400 text-sm flex items-center gap-2 mb-8">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            Chamada ativa • {formatDuration(callDuration)}
           </p>
+
+          {/* Sound wave animation */}
+          <div className="flex items-center gap-1 h-12 mb-4">
+            {[...Array(7)].map((_, i) => (
+              <div
+                key={i}
+                className="w-1.5 bg-gradient-to-t from-green-500 to-green-400 rounded-full"
+                style={{
+                  height: `${20 + Math.sin(i * 0.5) * 15 + Math.random() * 10}px`,
+                  animation: `pulse 0.5s ease-in-out infinite`,
+                  animationDelay: `${i * 0.1}s`
+                }}
+              />
+            ))}
+          </div>
+
+          <p className="text-white/60 text-sm">Ouça a mensagem...</p>
         </div>
-      </div>
+      )}
+
+      {callState === 'ended' && (
+        <div className="flex-1 flex flex-col items-center justify-center px-8">
+          {/* Profile Image */}
+          <div className="w-28 h-28 rounded-full overflow-hidden mb-6 border-2 border-yellow-500">
+            <img 
+              src={profileImage} 
+              alt="Mais Resultados Online"
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <p className="text-white/60 text-sm mb-2">Chamada finalizada</p>
+          <h2 className="text-white text-xl font-semibold mb-8">Mais Resultados Online</h2>
+
+          <div className="w-full max-w-sm bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl p-6 border border-yellow-500/30 mb-6">
+            <p className="text-yellow-400 text-xl font-bold text-center mb-2">
+              Aproveite agora mesmo!
+            </p>
+            <p className="text-white text-center text-lg">
+              Planos a partir de{' '}
+              <span className="text-yellow-400 font-bold text-2xl">R$33</span>
+              {' '}mensal
+            </p>
+          </div>
+          
+          <Button
+            onClick={handleAccessSite}
+            size="lg"
+            className="w-full max-w-sm py-6 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold rounded-full shadow-lg shadow-yellow-500/30"
+          >
+            <ExternalLink className="w-5 h-5 mr-2" />
+            Acessar o Site
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
