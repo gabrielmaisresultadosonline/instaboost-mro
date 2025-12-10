@@ -1,5 +1,8 @@
-// Admin configuration with hardcoded credentials
-// Username: MRO, Password: Ga145523@
+// Admin configuration - uses Supabase Auth for secure authentication
+// NO HARDCODED CREDENTIALS - Admin users must be created in Supabase Auth
+// with admin role assigned in user_roles table
+
+import { supabase } from '@/integrations/supabase/client';
 
 // Admin settings stored in localStorage
 export interface WelcomeVideo {
@@ -124,9 +127,8 @@ const DEFAULT_ADMIN_DATA: AdminData = {
   callAnalytics: []
 };
 
-// Hardcoded admin credentials
-const ADMIN_USERNAME = 'MRO';
-const ADMIN_PASSWORD = 'Ga145523@';
+// NO HARDCODED CREDENTIALS - Admin authentication uses Supabase Auth
+// Admin users must have 'admin' role in user_roles table
 
 export const getAdminData = (): AdminData => {
   try {
@@ -383,25 +385,78 @@ export const deleteVideo = (stepId: string, videoId: string): void => {
   }
 };
 
-// Check if admin is logged in
-export const isAdminLoggedIn = (): boolean => {
-  return sessionStorage.getItem('mro_admin_verified') === 'true';
-};
+// Check if admin is logged in - verifies Supabase Auth session and admin role
+export const isAdminLoggedIn = async (): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      return false;
+    }
 
-// Verify admin - for hardcoded credentials, just check session
-export const verifyAdmin = async (): Promise<boolean> => {
-  return sessionStorage.getItem('mro_admin_verified') === 'true';
-};
+    // Verify admin role server-side
+    const { data: isAdmin, error } = await supabase.rpc('has_role', {
+      _user_id: session.user.id,
+      _role: 'admin'
+    });
 
-// Login admin with hardcoded credentials
-export const loginAdmin = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    sessionStorage.setItem('mro_admin_verified', 'true');
-    return { success: true };
+    if (error) {
+      console.error('Error checking admin role:', error);
+      return false;
+    }
+
+    return isAdmin === true;
+  } catch (error) {
+    console.error('Error verifying admin status:', error);
+    return false;
   }
-  return { success: false, error: 'Credenciais inválidas' };
 };
 
+// Verify admin - alias for isAdminLoggedIn
+export const verifyAdmin = isAdminLoggedIn;
+
+// Login admin using Supabase Auth - validates credentials AND admin role
+export const loginAdmin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    // Sign in with Supabase Auth
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (signInError) {
+      console.error('Admin sign in error:', signInError);
+      return { success: false, error: 'Credenciais inválidas' };
+    }
+
+    if (!data.user) {
+      return { success: false, error: 'Usuário não encontrado' };
+    }
+
+    // Verify admin role server-side
+    const { data: isAdmin, error: roleError } = await supabase.rpc('has_role', {
+      _user_id: data.user.id,
+      _role: 'admin'
+    });
+
+    if (roleError) {
+      console.error('Error checking admin role:', roleError);
+      await supabase.auth.signOut();
+      return { success: false, error: 'Erro ao verificar permissões' };
+    }
+
+    if (!isAdmin) {
+      await supabase.auth.signOut();
+      return { success: false, error: 'Acesso não autorizado - permissão de admin requerida' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Admin login error:', error);
+    return { success: false, error: 'Erro ao fazer login' };
+  }
+};
+
+// Logout admin - signs out from Supabase Auth
 export const logoutAdmin = async (): Promise<void> => {
-  sessionStorage.removeItem('mro_admin_verified');
+  await supabase.auth.signOut();
 };

@@ -116,16 +116,19 @@ export const saveSyncData = (data: SyncData): void => {
   }
 };
 
-// Admin key for server authentication
-const ADMIN_KEY = 'MRO:Ga145523@';
-
-// Save to server (async, background)
+// Save to server (async, background) - uses authenticated Supabase call
 const saveToServer = async (data: SyncData): Promise<void> => {
   try {
+    // Check if user is authenticated before trying to save
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log('💾 Usuário não autenticado, salvando apenas localmente');
+      return;
+    }
+
     console.log('💾 Salvando dados do admin no servidor...');
     const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
-      body: { action: 'save', data },
-      headers: { 'x-admin-key': ADMIN_KEY }
+      body: { action: 'save', data }
     });
 
     if (error) {
@@ -141,14 +144,20 @@ const saveToServer = async (data: SyncData): Promise<void> => {
   }
 };
 
-// Load from server (call on admin login)
+// Load from server (call on admin login) - uses authenticated Supabase call
 export const loadSyncDataFromServer = async (): Promise<SyncData> => {
   try {
+    // Check if user is authenticated before trying to load
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log('🔄 Usuário não autenticado, usando dados locais');
+      return getSyncData();
+    }
+
     console.log('🔄 Carregando dados do admin do servidor...');
     
     const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
-      body: { action: 'load' },
-      headers: { 'x-admin-key': ADMIN_KEY }
+      body: { action: 'load' }
     });
 
     if (error) {
@@ -172,13 +181,19 @@ export const loadSyncDataFromServer = async (): Promise<SyncData> => {
   }
 };
 
-// Force sync local data to server (call when needed)
+// Force sync local data to server (call when needed) - uses authenticated Supabase call
 export const forceSyncToServer = async (): Promise<boolean> => {
   const data = getSyncData();
   try {
+    // Check if user is authenticated before trying to sync
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.error('Usuário não autenticado, não é possível sincronizar');
+      return false;
+    }
+
     const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
-      body: { action: 'save', data },
-      headers: { 'x-admin-key': ADMIN_KEY }
+      body: { action: 'save', data }
     });
 
     if (error) {
