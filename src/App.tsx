@@ -9,6 +9,7 @@ import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import MROFerramenta from "./pages/MROFerramenta";
 import Vendas from "./pages/Vendas";
+import VendasCompleta from "./pages/VendasCompleta";
 import Membro from "./pages/Membro";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/mro-ferramenta" element={<MROFerramenta />} />
           <Route path="/vendas" element={<Vendas />} />
+          <Route path="/vendas-completa" element={<VendasCompleta />} />
           <Route path="/membro" element={<Membro />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
