@@ -26,7 +26,8 @@ export interface PersistentProfileData {
   lastFetchDate: string;
   syncedAt: string;
   lastUpdated: string;
-  lastStrategyGeneratedAt?: string; // When the last strategy was generated
+  lastStrategyGeneratedAt?: string; // Legacy - When the last strategy was generated
+  strategyGenerationDates?: Record<string, string>; // Per-type strategy generation dates (30-day cooldown)
 }
 
 export interface UserServerData {
@@ -299,7 +300,9 @@ export const persistProfileData = async (
     growthInsights: existingData?.growthInsights || existing?.growthInsights || [],
     lastFetchDate: now,
     syncedAt: existing?.syncedAt || now,
-    lastUpdated: now
+    lastUpdated: now,
+    lastStrategyGeneratedAt: existing?.lastStrategyGeneratedAt,
+    strategyGenerationDates: existing?.strategyGenerationDates || {}
   };
   
   userData.lastFetchDates[normalizedIG] = now;
@@ -367,7 +370,8 @@ export const syncPersistentToSession = (): void => {
         growthInsights: persistedData.growthInsights,
         startedAt: persistedData.syncedAt,
         lastUpdated: persistedData.lastUpdated,
-        lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt
+        lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt,
+        strategyGenerationDates: persistedData.strategyGenerationDates || {}
       };
       
       session.profiles.push(profileSession);
@@ -375,13 +379,15 @@ export const syncPersistentToSession = (): void => {
         session.activeProfileId = profileSession.id;
       }
     } else {
-      // Update existing session with any missing data from persistent storage
+      // Update existing session with data from persistent storage
+      // CRITICAL: Cloud/server data takes precedence for limits and cooldowns
       existingInSession.strategies = existingInSession.strategies.length > 0 
         ? existingInSession.strategies 
         : persistedData.strategies;
       existingInSession.creatives = existingInSession.creatives.length > 0 
         ? existingInSession.creatives 
         : persistedData.creatives;
+      // Use the LOWER value for credits remaining (prevents abuse)
       existingInSession.creativesRemaining = Math.min(
         existingInSession.creativesRemaining,
         persistedData.creativesRemaining
@@ -392,9 +398,20 @@ export const syncPersistentToSession = (): void => {
       existingInSession.growthInsights = existingInSession.growthInsights.length >= persistedData.growthInsights.length
         ? existingInSession.growthInsights
         : persistedData.growthInsights;
-      // Restore lastStrategyGeneratedAt if not present
-      if (!existingInSession.lastStrategyGeneratedAt && persistedData.lastStrategyGeneratedAt) {
+      // CRITICAL: Restore strategy generation dates (prevents regeneration abuse)
+      if (persistedData.lastStrategyGeneratedAt) {
         existingInSession.lastStrategyGeneratedAt = persistedData.lastStrategyGeneratedAt;
+      }
+      // Merge strategy generation dates - keep the most restrictive (oldest dates)
+      if (persistedData.strategyGenerationDates) {
+        existingInSession.strategyGenerationDates = existingInSession.strategyGenerationDates || {};
+        Object.entries(persistedData.strategyGenerationDates).forEach(([type, date]) => {
+          const existingDate = existingInSession.strategyGenerationDates?.[type as keyof typeof existingInSession.strategyGenerationDates];
+          // Keep the server date if it exists (prevents bypass)
+          if (date && (!existingDate || new Date(date) < new Date(existingDate))) {
+            existingInSession.strategyGenerationDates![type as keyof typeof existingInSession.strategyGenerationDates] = date;
+          }
+        });
       }
     }
   });
@@ -432,11 +449,22 @@ export const syncSessionToPersistent = async (loggedInUsername: string): Promise
       lastFetchDate: profileSession.lastUpdated || new Date().toISOString(),
       syncedAt: profileSession.startedAt,
       lastUpdated: profileSession.lastUpdated,
-      lastStrategyGeneratedAt: profileSession.lastStrategyGeneratedAt
+      lastStrategyGeneratedAt: profileSession.lastStrategyGeneratedAt,
+      strategyGenerationDates: (profileSession.strategyGenerationDates as Record<string, string>) || {}
     };
   });
   
   userData.lastSyncedAt = new Date().toISOString();
+  
+  console.log(`🔄 Syncing to server: ${session.profiles.length} profiles`, 
+    session.profiles.map(p => ({
+      username: p.profile.username,
+      strategies: p.strategies.length,
+      creatives: p.creatives.length,
+      creditsRemaining: p.creativesRemaining,
+      strategyDates: p.strategyGenerationDates
+    }))
+  );
   
   saveLocalCache(userData);
   await saveUserDataToServer(userData);
@@ -480,11 +508,17 @@ export const loadPersistedDataOnLogin = async (loggedInUsername: string, registe
           growthInsights: persistedData.growthInsights,
           startedAt: persistedData.syncedAt,
           lastUpdated: persistedData.lastUpdated,
-          lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt
+          lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt,
+          strategyGenerationDates: persistedData.strategyGenerationDates || {}
         };
         
         session.profiles.push(profileSession);
-        console.log(`✅ Perfil @${normalizedUsername} restaurado do servidor`);
+        console.log(`✅ Perfil @${normalizedUsername} restaurado do servidor:`, {
+          strategies: profileSession.strategies.length,
+          creatives: profileSession.creatives.length,
+          creditsRemaining: profileSession.creativesRemaining,
+          strategyDates: profileSession.strategyGenerationDates
+        });
       }
     }
   });
