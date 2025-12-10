@@ -15,7 +15,7 @@ const Ligacao = () => {
   const [callState, setCallState] = useState<'landing' | 'ringing' | 'connected' | 'ended'>('landing');
   const [callDuration, setCallDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const ringtoneRef = useRef<HTMLAudioElement>(null);
+  const ringtoneVideoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -51,9 +51,9 @@ const Ligacao = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (vibrationIntervalRef.current) clearInterval(vibrationIntervalRef.current);
-      if (ringtoneRef.current) {
-        ringtoneRef.current.pause();
-        ringtoneRef.current.currentTime = 0;
+      if (ringtoneVideoRef.current) {
+        ringtoneVideoRef.current.pause();
+        ringtoneVideoRef.current.currentTime = 0;
       }
       if (audioRef.current) {
         audioRef.current.pause();
@@ -76,11 +76,12 @@ const Ligacao = () => {
     silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
     silentAudio.play().catch(() => {});
     
-    // Also try to play ringtone immediately with this user gesture
-    if (ringtoneRef.current) {
-      ringtoneRef.current.loop = true;
-      ringtoneRef.current.volume = 1;
-      ringtoneRef.current.play().catch(() => {});
+    // Play ringtone video (audio only, video invisible) with user gesture
+    if (ringtoneVideoRef.current) {
+      ringtoneVideoRef.current.loop = true;
+      ringtoneVideoRef.current.volume = 1;
+      ringtoneVideoRef.current.muted = false;
+      ringtoneVideoRef.current.play().catch(() => {});
     }
     
     // Start vibration
@@ -96,10 +97,10 @@ const Ligacao = () => {
 
   // User clicks "Accept" - use this interaction to authorize call audio
   const handleAnswer = () => {
-    // Stop ringtone
-    if (ringtoneRef.current) {
-      ringtoneRef.current.pause();
-      ringtoneRef.current.currentTime = 0;
+    // Stop ringtone video
+    if (ringtoneVideoRef.current) {
+      ringtoneVideoRef.current.pause();
+      ringtoneVideoRef.current.currentTime = 0;
     }
 
     // Stop vibration
@@ -156,13 +157,14 @@ const Ligacao = () => {
 
   return (
     <>
-      {/* Hidden audio elements - preload them */}
-      <audio 
-        ref={ringtoneRef} 
-        src="https://maisresultadosonline.com.br/1207.mp3"
+      {/* Hidden video for ringtone - plays audio only */}
+      <video 
+        ref={ringtoneVideoRef} 
+        src="https://maisresultadosonline.com.br/1207.mp4"
         preload="auto"
         playsInline
         webkit-playsinline="true"
+        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
       />
       <audio 
         ref={audioRef} 
