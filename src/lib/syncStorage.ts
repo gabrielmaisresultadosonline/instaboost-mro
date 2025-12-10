@@ -38,6 +38,12 @@ export interface SyncedInstagramProfile {
   creativesLimit?: number;
 }
 
+export interface InvalidProfile {
+  username: string;
+  markedAt: string;
+  reason: string;
+}
+
 export interface SyncData {
   lastSyncDate: string | null;
   lastFullSyncDate: string | null;
@@ -45,6 +51,7 @@ export interface SyncData {
   isSyncComplete: boolean;
   users: SquareCloudUser[];
   profiles: SyncedInstagramProfile[];
+  invalidProfiles: InvalidProfile[]; // Profiles that don't exist anymore
   syncQueue: string[]; // usernames waiting to be synced
   currentlySyncing: string | null;
   isPaused: boolean;
@@ -61,6 +68,7 @@ const DEFAULT_SYNC_DATA: SyncData = {
   isSyncComplete: false,
   users: [],
   profiles: [],
+  invalidProfiles: [],
   syncQueue: [],
   currentlySyncing: null,
   isPaused: false,
@@ -506,4 +514,59 @@ export const formatUserDays = (dataDeExpiracao: number | string): string => {
     return 'Vitalício';
   }
   return `${days} dias`;
+};
+
+// Check if profile is marked as invalid (doesn't exist anymore)
+export const isProfileInvalid = (username: string): boolean => {
+  const data = getSyncData();
+  return data.invalidProfiles?.some(p => p.username.toLowerCase() === username.toLowerCase()) || false;
+};
+
+// Mark a profile as invalid (doesn't exist)
+export const markProfileAsInvalid = (username: string, reason: string = 'Perfil não encontrado'): void => {
+  const data = getSyncData();
+  if (!data.invalidProfiles) {
+    data.invalidProfiles = [];
+  }
+  
+  // Check if already marked
+  if (data.invalidProfiles.some(p => p.username.toLowerCase() === username.toLowerCase())) {
+    return;
+  }
+  
+  data.invalidProfiles.push({
+    username: username.toLowerCase(),
+    markedAt: new Date().toISOString(),
+    reason
+  });
+  
+  saveSyncData(data);
+  console.log(`🚫 Perfil @${username} marcado como inválido: ${reason}`);
+};
+
+// Unmark a profile as invalid (re-enable syncing)
+export const unmarkProfileAsInvalid = (username: string): void => {
+  const data = getSyncData();
+  if (!data.invalidProfiles) return;
+  
+  data.invalidProfiles = data.invalidProfiles.filter(
+    p => p.username.toLowerCase() !== username.toLowerCase()
+  );
+  
+  saveSyncData(data);
+  console.log(`✅ Perfil @${username} removido da lista de inválidos`);
+};
+
+// Get all invalid profiles
+export const getInvalidProfiles = (): InvalidProfile[] => {
+  const data = getSyncData();
+  return data.invalidProfiles || [];
+};
+
+// Clear all invalid profiles
+export const clearInvalidProfiles = (): void => {
+  const data = getSyncData();
+  data.invalidProfiles = [];
+  saveSyncData(data);
+  console.log('🗑️ Lista de perfis inválidos limpa');
 };
