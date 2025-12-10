@@ -12,8 +12,9 @@ declare global {
 const Ligacao = () => {
   const [callState, setCallState] = useState<'ringing' | 'connected' | 'ended'>('ringing');
   const [callDuration, setCallDuration] = useState(0);
+  const [hasUnmuted, setHasUnmuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const ringtoneRef = useRef<HTMLAudioElement>(null);
+  const ringtoneVideoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -38,19 +39,22 @@ const Ligacao = () => {
     noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=569414052132145&ev=PageView&noscript=1" />`;
     document.body.appendChild(noscript);
 
-    // Try to start ringtone automatically (muted first to bypass autoplay)
-    if (ringtoneRef.current) {
-      ringtoneRef.current.volume = 1;
-      ringtoneRef.current.loop = true;
-      ringtoneRef.current.play().catch(() => {
-        // If autoplay fails, try with user interaction
-        document.addEventListener('click', () => {
-          if (ringtoneRef.current && callState === 'ringing') {
-            ringtoneRef.current.play().catch(console.error);
-          }
-        }, { once: true });
-      });
+    // Video autoplays muted, then we unmute on first click
+    if (ringtoneVideoRef.current) {
+      ringtoneVideoRef.current.volume = 1;
+      ringtoneVideoRef.current.loop = true;
+      ringtoneVideoRef.current.muted = true; // Start muted for autoplay
+      ringtoneVideoRef.current.play().catch(console.error);
     }
+
+    // Unmute on first user interaction
+    const handleFirstClick = () => {
+      if (ringtoneVideoRef.current && !hasUnmuted) {
+        ringtoneVideoRef.current.muted = false;
+        setHasUnmuted(true);
+      }
+    };
+    document.addEventListener('click', handleFirstClick);
 
     // Start vibration pattern
     if ('vibrate' in navigator) {
@@ -65,15 +69,16 @@ const Ligacao = () => {
     return () => {
       document.head.removeChild(script);
       document.body.removeChild(noscript);
-      if (ringtoneRef.current) {
-        ringtoneRef.current.pause();
+      document.removeEventListener('click', handleFirstClick);
+      if (ringtoneVideoRef.current) {
+        ringtoneVideoRef.current.pause();
       }
       if (vibrationIntervalRef.current) {
         clearInterval(vibrationIntervalRef.current);
       }
       navigator.vibrate(0);
     };
-  }, []);
+  }, [hasUnmuted]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -82,10 +87,10 @@ const Ligacao = () => {
   };
 
   const handleAnswer = () => {
-    // Stop ringtone
-    if (ringtoneRef.current) {
-      ringtoneRef.current.pause();
-      ringtoneRef.current.currentTime = 0;
+    // Stop ringtone video
+    if (ringtoneVideoRef.current) {
+      ringtoneVideoRef.current.pause();
+      ringtoneVideoRef.current.currentTime = 0;
     }
 
     // Stop vibration
@@ -132,11 +137,15 @@ const Ligacao = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      {/* Hidden audio elements */}
-      <audio 
-        ref={ringtoneRef} 
-        src="http://maisresultadosonline.com.br/ligacaoaudio.mp3"
-        preload="auto"
+      {/* Hidden video for ringtone - autoplays muted then unmutes on click */}
+      <video 
+        ref={ringtoneVideoRef} 
+        src="http://maisresultadosonline.com.br/1207.mp4"
+        className="hidden"
+        playsInline
+        autoPlay
+        muted
+        loop
       />
       <audio 
         ref={audioRef} 
