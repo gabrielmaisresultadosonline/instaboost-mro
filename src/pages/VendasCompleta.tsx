@@ -689,6 +689,14 @@ export default function VendasCompleta() {
         </DialogContent>
       </Dialog>
 
+      {/* Floating WhatsApp Button */}
+      <button
+        onClick={handleWhatsAppClick}
+        className="fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-500/30 hover:scale-110 transition-all"
+        aria-label="WhatsApp"
+      >
+        <MessageCircle className="w-7 h-7" fill="currentColor" />
+      </button>
     </div>
   );
 }
