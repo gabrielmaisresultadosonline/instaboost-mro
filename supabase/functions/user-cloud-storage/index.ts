@@ -69,6 +69,11 @@ serve(async (req) => {
 
     // SAVE - Save/update user data to database
     if (action === 'save') {
+      // Log detailed data for debugging
+      const totalCreatives = (profileSessions || []).reduce((sum: number, p: any) => sum + (p.creatives?.length || 0), 0);
+      const totalStrategies = (profileSessions || []).reduce((sum: number, p: any) => sum + (p.strategies?.length || 0), 0);
+      console.log(`📦 Saving: ${profileSessions?.length || 0} profiles, ${totalStrategies} strategies, ${totalCreatives} creatives`);
+      
       // First check if user exists
       const { data: existing } = await supabase
         .from('user_sessions')
