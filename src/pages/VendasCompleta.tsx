@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Sparkles, 
   TrendingUp, 
@@ -30,7 +30,8 @@ import {
   Lightbulb,
   Rocket,
   Star,
-  Gift
+  Gift,
+  MessageCircle
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
@@ -103,6 +104,8 @@ export default function VendasCompleta() {
   const navigate = useNavigate();
   const [showVideo, setShowVideo] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
+  const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
+  const videoSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -122,6 +125,23 @@ export default function VendasCompleta() {
 
   const handleBuyClick = () => {
     window.open('https://pay.maisresultadosonline.com.br/pagamento/', '_blank');
+  };
+
+  const handleWhatsAppClick = () => {
+    setShowWhatsAppDialog(true);
+  };
+
+  const handleWhatsAppConfirm = (sawContent: boolean) => {
+    setShowWhatsAppDialog(false);
+    
+    if (sawContent) {
+      const phone = "5551920536540";
+      const message = encodeURIComponent("Acabei de vim do site, gostaria de tirar algumas dúvidas.");
+      window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    } else {
+      // Scroll to video section
+      videoSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   return (
@@ -257,7 +277,7 @@ export default function VendasCompleta() {
       </section>
 
       {/* MRO Tool Section */}
-      <section id="ferramenta-mro" className="container mx-auto px-4 py-16">
+      <section id="ferramenta-mro" ref={videoSectionRef} className="container mx-auto px-4 py-16">
         <Card className="glass-card border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 via-primary/5 to-background overflow-hidden">
           <CardHeader className="text-center pb-8">
             <div className="flex justify-center mb-4">
@@ -551,6 +571,49 @@ export default function VendasCompleta() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* WhatsApp Confirmation Dialog */}
+      <Dialog open={showWhatsAppDialog} onOpenChange={setShowWhatsAppDialog}>
+        <DialogContent className="max-w-md bg-background border-primary/30">
+          <DialogHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
+                <MessageCircle className="w-8 h-8 text-green-500" />
+              </div>
+            </div>
+            <DialogTitle className="text-xl">Antes de atender você...</DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Chegou a ver todo conteúdo em nosso site? O vídeo explicativo também de nossa automação com I.A?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-4">
+            <Button 
+              size="lg"
+              className="bg-green-500 hover:bg-green-600 text-white"
+              onClick={() => handleWhatsAppConfirm(true)}
+            >
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              Sim, já vi tudo!
+            </Button>
+            <Button 
+              size="lg"
+              variant="outline"
+              onClick={() => handleWhatsAppConfirm(false)}
+            >
+              Não, quero ver primeiro
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Floating WhatsApp Button */}
+      <button
+        onClick={handleWhatsAppClick}
+        className="fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-500/30 hover:scale-110 transition-all"
+        aria-label="WhatsApp"
+      >
+        <MessageCircle className="w-7 h-7" fill="currentColor" />
+      </button>
     </div>
   );
 }
