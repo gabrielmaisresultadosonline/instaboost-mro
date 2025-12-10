@@ -16,7 +16,51 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
+    // Create service client for admin operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify JWT token and check admin role
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      console.error('[admin-data-storage] Missing authorization header');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized - missing token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Create a client with the user's token to verify their identity
+    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    });
+    
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('[admin-data-storage] Invalid token:', userError?.message);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized - invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check admin role using service client
+    const { data: isAdmin, error: roleError } = await supabase.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+
+    if (roleError || !isAdmin) {
+      console.error('[admin-data-storage] User is not admin:', user.id, roleError?.message);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Forbidden - admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[admin-data-storage] Admin verified:', user.id);
 
     const { action, data } = await req.json();
     
