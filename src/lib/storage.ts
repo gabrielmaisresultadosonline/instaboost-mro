@@ -215,13 +215,10 @@ export const saveSession = (session: MROSession): void => {
 };
 
 // Initialize session from cloud data
+// Initialize session from cloud data - REPLACES local data entirely (no merging!)
 export const initializeFromCloud = (profileSessions: ProfileSession[], archivedProfiles: ProfileSession[]): void => {
-  const session = getSession();
-  
-  console.log('☁️ Initializing from cloud:', {
+  console.log('☁️ Initializing from cloud (replacing local data):', {
     cloudProfiles: profileSessions.length,
-    localProfiles: session.profiles.length,
-    currentActiveId: session.activeProfileId
   });
   
   // Log detailed info about each cloud profile
@@ -230,51 +227,27 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
       strategies: p.strategies.length,
       creatives: p.creatives.length,
       creativesRemaining: p.creativesRemaining,
-      strategyDates: p.strategyGenerationDates,
-      lastStrategyGenerated: p.lastStrategyGeneratedAt
     });
   });
   
-  // CRITICAL: Cloud data is the source of truth
-  // Merge cloud profiles with local - cloud takes precedence for existing profiles
-  const mergedProfiles: ProfileSession[] = [];
+  // CRITICAL: Cloud data is the ONLY source of truth - NO MERGING with local data!
+  const normalizedProfiles: ProfileSession[] = profileSessions.map(cloudProfile => ({
+    ...cloudProfile,
+    strategies: cloudProfile.strategies || [],
+    creatives: cloudProfile.creatives || [],
+    creativesRemaining: cloudProfile.creativesRemaining ?? 6,
+    strategyGenerationDates: cloudProfile.strategyGenerationDates || {},
+    lastStrategyGeneratedAt: cloudProfile.lastStrategyGeneratedAt,
+    growthHistory: cloudProfile.growthHistory || [],
+    growthInsights: cloudProfile.growthInsights || [],
+  }));
   
-  // First, add all cloud profiles (these are authoritative)
-  profileSessions.forEach(cloudProfile => {
-    // Ensure all required fields are present
-    const normalizedProfile: ProfileSession = {
-      ...cloudProfile,
-      strategies: cloudProfile.strategies || [],
-      creatives: cloudProfile.creatives || [],
-      creativesRemaining: cloudProfile.creativesRemaining ?? 6,
-      strategyGenerationDates: cloudProfile.strategyGenerationDates || {},
-      lastStrategyGeneratedAt: cloudProfile.lastStrategyGeneratedAt,
-      growthHistory: cloudProfile.growthHistory || [],
-      growthInsights: cloudProfile.growthInsights || [],
-    };
-    mergedProfiles.push(normalizedProfile);
-  });
-  
-  // Then add local-only profiles (not in cloud)
-  const cloudUsernames = profileSessions.map(p => p.profile.username.toLowerCase());
-  session.profiles.forEach(localProfile => {
-    if (!cloudUsernames.includes(localProfile.profile.username.toLowerCase())) {
-      mergedProfiles.push(localProfile);
-    }
-  });
-  
-  session.profiles = mergedProfiles;
-  
-  // CRITICAL: Ensure activeProfileId is valid for the loaded profiles
-  const validProfileIds = session.profiles.map(p => p.id);
-  if (!session.activeProfileId || !validProfileIds.includes(session.activeProfileId)) {
-    if (session.profiles.length > 0) {
-      session.activeProfileId = session.profiles[0].id;
-      console.log('☁️ Set activeProfileId to first profile:', session.activeProfileId);
-    } else {
-      session.activeProfileId = null;
-    }
-  }
+  // Create fresh session with ONLY cloud profiles
+  const session: MROSession = {
+    profiles: normalizedProfiles,
+    activeProfileId: normalizedProfiles.length > 0 ? normalizedProfiles[0].id : null,
+    lastUpdated: new Date().toISOString(),
+  };
   
   // Log final state
   console.log('☁️ Initialized final state:', {
@@ -284,27 +257,15 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
     totalStrategies: session.profiles.reduce((sum, p) => sum + p.strategies.length, 0)
   });
   
-  session.profiles.forEach(p => {
-    console.log(`☁️ Final @${p.profile.username}:`, {
-      strategies: p.strategies.length,
-      creatives: p.creatives.length,
-      creditsRemaining: p.creativesRemaining,
-      canGenerateStrategy: !p.strategyGenerationDates?.mro && !p.lastStrategyGeneratedAt
-    });
-  });
-  
   // Save locally but don't trigger cloud sync (would be circular)
-  session.lastUpdated = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   
-  // Also restore archived profiles
+  // Also restore archived profiles from cloud ONLY (replace local)
   if (archivedProfiles.length > 0) {
-    const existingArchived = getArchivedProfiles();
-    const archivedUsernames = existingArchived.map(p => p.profile.username.toLowerCase());
-    const newArchived = archivedProfiles.filter(
-      p => !archivedUsernames.includes(p.profile.username.toLowerCase())
-    );
-    saveArchivedProfiles([...existingArchived, ...newArchived]);
+    saveArchivedProfiles(archivedProfiles);
+  } else {
+    // Clear local archived if cloud has none
+    localStorage.removeItem(ARCHIVE_KEY);
   }
   
   console.log(`☁️ Initialized from cloud: ${profileSessions.length} profiles, ${archivedProfiles.length} archived`);
