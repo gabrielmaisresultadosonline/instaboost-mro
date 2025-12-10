@@ -5,18 +5,27 @@ import { ProfileSession } from '@/types/instagram';
 
 const USER_STORAGE_KEY = 'mro_user_session';
 const CACHE_VERSION_KEY = 'mro_cache_version';
-const CURRENT_CACHE_VERSION = '2.1'; // Increment this to force cache clear
+const CURRENT_CACHE_VERSION = '3.0'; // v3.0 - Complete data isolation fix
+
+// Clear ALL user-related data from localStorage
+export const clearAllUserData = (): void => {
+  console.log('[userStorage] Clearing ALL user-related data...');
+  localStorage.removeItem(USER_STORAGE_KEY);
+  localStorage.removeItem('mro_session');
+  localStorage.removeItem('mro_archived_profiles');
+  localStorage.removeItem('mro_server_cache');
+  localStorage.removeItem('mro_sync_data'); // Admin sync data
+  // Clear session storage too
+  sessionStorage.clear();
+};
 
 // Check and clear stale cache on load
 const validateCache = (): void => {
   try {
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY);
     if (storedVersion !== CURRENT_CACHE_VERSION) {
-      console.log(`[userStorage] Cache version mismatch (${storedVersion} vs ${CURRENT_CACHE_VERSION}), clearing stale data...`);
-      // Clear all MRO-related localStorage data
-      localStorage.removeItem(USER_STORAGE_KEY);
-      localStorage.removeItem('mro_session');
-      localStorage.removeItem('mro_archived_profiles');
+      console.log(`[userStorage] Cache version mismatch (${storedVersion} vs ${CURRENT_CACHE_VERSION}), clearing ALL stale data...`);
+      clearAllUserData();
       localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
     }
   } catch (e) {
@@ -246,61 +255,56 @@ export const loginUser = async (
   daysRemaining: number,
   email?: string
 ): Promise<UserSession> => {
-  // Get existing session ONLY if same user (to preserve creativesUnlocked status)
-  const existingSession = getUserSession();
-  const existingUser = existingSession.user?.username?.toLowerCase() === username.toLowerCase() 
-    ? existingSession.user 
-    : null;
+  const normalizedUsername = username.toLowerCase();
   
-  // CRITICAL: Always clear session data if logging in as different user OR if no existing user
-  // This prevents data mixing between users after logout
-  const isSameUser = existingSession.user?.username?.toLowerCase() === username.toLowerCase();
+  // Get existing session to check if same user
+  const existingSession = getUserSession();
+  const existingUsername = existingSession.user?.username?.toLowerCase();
+  const isSameUser = existingUsername === normalizedUsername;
+  
+  // CRITICAL: ALWAYS clear ALL data if different user OR no existing user
+  // This prevents ANY data mixing between users
   if (!isSameUser) {
-    console.log(`[userStorage] Different/new user login, clearing ALL old session data...`);
-    localStorage.removeItem(USER_STORAGE_KEY);
-    localStorage.removeItem('mro_session');
-    localStorage.removeItem('mro_archived_profiles');
-    localStorage.removeItem('mro_server_cache'); // Clear server cache too
-    // Also clear any auth tokens from other users
-    Object.keys(sessionStorage).forEach(key => {
-      if (key.startsWith('mro_auth_token_') && !key.endsWith(`_${username.toLowerCase()}`)) {
-        sessionStorage.removeItem(key);
-      }
-    });
-    sessionStorage.removeItem('mro_paid_user_auth_token');
-    sessionStorage.removeItem('mro_paid_user_email');
+    console.log(`[userStorage] 🔐 Different/new user login (${existingUsername || 'none'} -> ${normalizedUsername}), clearing ALL data...`);
+    clearAllUserData();
+  } else {
+    console.log(`[userStorage] Same user re-login: ${normalizedUsername}`);
   }
   
-  // Try to load from cloud first - this is the source of truth
-  console.log(`[userStorage] Loading cloud data for ${username}...`);
-  const cloudData = await loadUserFromCloud(username);
+  // Preserve creativesUnlocked ONLY if same user
+  const creativesUnlocked = isSameUser ? existingSession.user?.creativesUnlocked : false;
+  
+  // Try to load from cloud first - this is the ONLY source of truth for this user
+  console.log(`[userStorage] ☁️ Loading cloud data for ${normalizedUsername}...`);
+  const cloudData = await loadUserFromCloud(normalizedUsername);
   
   // Load profiles from legacy database as fallback
-  const dbProfiles = await loadProfilesFromDatabase(username);
+  const dbProfiles = await loadProfilesFromDatabase(normalizedUsername);
   
   // Use cloud email if available (locked), otherwise use provided email
   const finalEmail = cloudData?.email || email;
   const isEmailLocked = cloudData?.isEmailLocked || false;
   
-  // Merge profiles - local profiles + database profiles
-  const existingLocalIGs = existingUser?.registeredIGs || [];
+  // Only use database profiles (cloud-linked) - no local merging for new users
   const mergedIGs: RegisteredIG[] = [...dbProfiles];
   
-  // Add local profiles that aren't in database
-  existingLocalIGs.forEach(localIG => {
-    if (!mergedIGs.find(ig => ig.username === localIG.username)) {
-      mergedIGs.push(localIG);
-    }
-  });
+  // Only add existing local IGs if same user (to preserve local changes during same session)
+  if (isSameUser && existingSession.user?.registeredIGs) {
+    existingSession.user.registeredIGs.forEach(localIG => {
+      if (!mergedIGs.find(ig => ig.username === localIG.username)) {
+        mergedIGs.push(localIG);
+      }
+    });
+  }
   
   const session: UserSession = {
     user: {
-      username,
+      username: normalizedUsername,
       email: finalEmail,
       daysRemaining: cloudData?.daysRemaining || daysRemaining,
       loginAt: new Date().toISOString(),
       registeredIGs: mergedIGs,
-      creativesUnlocked: existingUser?.creativesUnlocked || false,
+      creativesUnlocked: creativesUnlocked || false,
       isEmailLocked
     },
     isAuthenticated: true,
@@ -313,7 +317,8 @@ export const loginUser = async (
   
   saveUserSession(session);
   
-  console.log(`[userStorage] Logged in ${username}: ${mergedIGs.length} registered IGs, email locked: ${isEmailLocked}`);
+  const cloudProfileCount = cloudData?.profileSessions?.length || 0;
+  console.log(`[userStorage] ✅ Logged in ${normalizedUsername}: ${cloudProfileCount} cloud profiles, ${mergedIGs.length} registered IGs`);
   
   return session;
 };
@@ -337,20 +342,10 @@ export const lockCreativesForUser = (username: string): void => {
 };
 
 export const logoutUser = (): void => {
-  // Clear auth token on logout
-  const session = getUserSession();
-  if (session.user?.username) {
-    sessionStorage.removeItem(`mro_auth_token_${session.user.username.toLowerCase()}`);
-  }
+  console.log('[userStorage] 🚪 Logging out - clearing ALL user data...');
   // CRITICAL: Clear ALL user-related data to prevent data mixing between users
-  localStorage.removeItem(USER_STORAGE_KEY);
-  localStorage.removeItem('mro_session');
-  localStorage.removeItem('mro_archived_profiles');
-  localStorage.removeItem('mro_server_cache'); // Clear server cache too
-  // Clear any other potential caches
-  sessionStorage.removeItem('mro_paid_user_auth_token');
-  sessionStorage.removeItem('mro_paid_user_email');
-  console.log('[userStorage] Logged out and cleared all session data');
+  clearAllUserData();
+  console.log('[userStorage] ✅ Logged out and cleared all session data');
 };
 
 export const updateUserEmail = async (email: string): Promise<void> => {

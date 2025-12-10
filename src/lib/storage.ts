@@ -215,20 +215,27 @@ export const saveSession = (session: MROSession): void => {
 };
 
 // Initialize session from cloud data
-// Initialize session from cloud data - REPLACES local data entirely (no merging!)
+// CRITICAL: This REPLACES local data entirely - NO MERGING to prevent data contamination!
 export const initializeFromCloud = (profileSessions: ProfileSession[], archivedProfiles: ProfileSession[]): void => {
-  console.log('☁️ Initializing from cloud (replacing local data):', {
+  const loggedUsername = getLoggedUsername();
+  
+  console.log(`☁️ [${loggedUsername}] Initializing from cloud (REPLACING local data):`, {
     cloudProfiles: profileSessions.length,
+    cloudArchived: archivedProfiles.length,
   });
   
   // Log detailed info about each cloud profile
   profileSessions.forEach(p => {
-    console.log(`☁️ Cloud profile @${p.profile.username}:`, {
+    console.log(`☁️ [${loggedUsername}] Cloud profile @${p.profile.username}:`, {
       strategies: p.strategies.length,
       creatives: p.creatives.length,
       creativesRemaining: p.creativesRemaining,
     });
   });
+  
+  // CRITICAL: Clear local data BEFORE setting new data to prevent any contamination
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(ARCHIVE_KEY);
   
   // CRITICAL: Cloud data is the ONLY source of truth - NO MERGING with local data!
   const normalizedProfiles: ProfileSession[] = profileSessions.map(cloudProfile => ({
@@ -242,7 +249,7 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
     growthInsights: cloudProfile.growthInsights || [],
   }));
   
-  // Create fresh session with ONLY cloud profiles
+  // Create fresh session with ONLY cloud profiles for THIS user
   const session: MROSession = {
     profiles: normalizedProfiles,
     activeProfileId: normalizedProfiles.length > 0 ? normalizedProfiles[0].id : null,
@@ -250,7 +257,7 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
   };
   
   // Log final state
-  console.log('☁️ Initialized final state:', {
+  console.log(`☁️ [${loggedUsername}] Initialized final state:`, {
     totalProfiles: session.profiles.length,
     activeProfileId: session.activeProfileId,
     totalCreatives: session.profiles.reduce((sum, p) => sum + p.creatives.length, 0),
@@ -262,13 +269,10 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
   
   // Also restore archived profiles from cloud ONLY (replace local)
   if (archivedProfiles.length > 0) {
-    saveArchivedProfiles(archivedProfiles);
-  } else {
-    // Clear local archived if cloud has none
-    localStorage.removeItem(ARCHIVE_KEY);
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archivedProfiles));
   }
   
-  console.log(`☁️ Initialized from cloud: ${profileSessions.length} profiles, ${archivedProfiles.length} archived`);
+  console.log(`☁️ [${loggedUsername}] ✅ Initialized: ${profileSessions.length} profiles, ${archivedProfiles.length} archived`);
 };
 
 export const getActiveProfile = (): ProfileSession | null => {
