@@ -105,7 +105,15 @@ export default function VendasCompleta() {
   const [showVideo, setShowVideo] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
   const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
+  const [reachedPricing, setReachedPricing] = useState(false);
   const videoSectionRef = useRef<HTMLDivElement>(null);
+  const iaSectionRef = useRef<HTMLDivElement>(null);
+  const creativeSectionRef = useRef<HTMLDivElement>(null);
+  const mroSectionRef = useRef<HTMLDivElement>(null);
+  const pricingSectionRef = useRef<HTMLDivElement>(null);
+  const [currentSection, setCurrentSection] = useState(0);
+
+  const sections = [iaSectionRef, creativeSectionRef, mroSectionRef, pricingSectionRef];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -113,9 +121,17 @@ export default function VendasCompleta() {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       
-      // Show pricing after scrolling past 50% of the page
+      // Show pricing after scrolling past 40% of the page
       if (scrollPosition > (documentHeight - windowHeight) * 0.4) {
         setShowPricing(true);
+      }
+      
+      // Check if reached pricing section
+      if (pricingSectionRef.current) {
+        const pricingTop = pricingSectionRef.current.getBoundingClientRect().top;
+        if (pricingTop < windowHeight * 0.8) {
+          setReachedPricing(true);
+        }
       }
     };
 
@@ -125,6 +141,14 @@ export default function VendasCompleta() {
 
   const handleBuyClick = () => {
     window.open('https://pay.maisresultadosonline.com.br/pagamento/', '_blank');
+  };
+
+  const handleViewMore = () => {
+    const nextSection = sections[currentSection];
+    if (nextSection?.current) {
+      nextSection.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setCurrentSection(prev => Math.min(prev + 1, sections.length - 1));
+    }
   };
 
   const handleWhatsAppClick = () => {
@@ -145,7 +169,7 @@ export default function VendasCompleta() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-yellow-950/10 to-primary/10">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
@@ -163,12 +187,12 @@ export default function VendasCompleta() {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 text-center">
-        <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+        <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-yellow-500 border-yellow-500/30">
           <Sparkles className="w-3 h-3 mr-1" />
           Inteligência Artificial + Automação
         </Badge>
         
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary to-yellow-500 bg-clip-text text-transparent">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-yellow-400 via-yellow-500 to-primary bg-clip-text text-transparent">
           I.A para Instagram com Automação
         </h1>
         
@@ -180,30 +204,41 @@ export default function VendasCompleta() {
         <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
           {benefits.slice(0, 3).map((benefit, index) => (
             <div key={index} className="flex items-center gap-2 text-sm md:text-base">
-              <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
               <span>{benefit}</span>
             </div>
           ))}
         </div>
 
-        <Button 
-          size="lg" 
-          className="text-lg px-8 py-6 animate-pulse-glow"
-          onClick={handleBuyClick}
-        >
-          <Rocket className="mr-2 h-5 w-5" />
-          Quero Começar Agora
-        </Button>
+        {reachedPricing ? (
+          <Button 
+            size="lg" 
+            className="text-lg px-8 py-6 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-background animate-pulse-glow"
+            onClick={handleBuyClick}
+          >
+            <Rocket className="mr-2 h-5 w-5" />
+            Comprar Agora
+          </Button>
+        ) : (
+          <Button 
+            size="lg" 
+            className="text-lg px-8 py-6 bg-gradient-to-r from-yellow-500 to-primary hover:from-yellow-600 hover:to-primary/90 text-background"
+            onClick={handleViewMore}
+          >
+            Ver Mais
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        )}
       </section>
 
       {/* I.A Features Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section ref={iaSectionRef} className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+          <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-yellow-500 border-yellow-500/30">
             <Bot className="w-3 h-3 mr-1" />
             Inteligência Artificial
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-yellow-500 to-primary bg-clip-text text-transparent">
             O Poder da I.A MRO no seu Instagram
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -214,10 +249,10 @@ export default function VendasCompleta() {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {iaFeatures.map((feature, index) => (
-            <Card key={index} className="glass-card border-primary/20 hover:border-primary/40 transition-all group">
+            <Card key={index} className="glass-card border-yellow-500/20 hover:border-yellow-500/40 transition-all group">
               <CardHeader>
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <feature.icon className="w-7 h-7 text-primary" />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500/30 to-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <feature.icon className="w-7 h-7 text-yellow-500" />
                 </div>
                 <CardTitle className="text-xl">{feature.title}</CardTitle>
                 <CardDescription className="text-base">{feature.description}</CardDescription>
@@ -228,11 +263,11 @@ export default function VendasCompleta() {
       </section>
 
       {/* Creative Generation Highlight */}
-      <section className="container mx-auto px-4 py-16">
-        <Card className="glass-card border-primary/30 overflow-hidden">
+      <section ref={creativeSectionRef} className="container mx-auto px-4 py-16">
+        <Card className="glass-card border-yellow-500/30 bg-gradient-to-br from-yellow-500/5 to-primary/5 overflow-hidden">
           <div className="grid md:grid-cols-2 gap-8 p-8">
             <div>
-              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+              <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-yellow-500 border-yellow-500/30">
                 <Palette className="w-3 h-3 mr-1" />
                 Criativos com I.A
               </Badge>
@@ -253,7 +288,7 @@ export default function VendasCompleta() {
                   "Download instantâneo em alta qualidade"
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -264,10 +299,10 @@ export default function VendasCompleta() {
                 {[1, 2, 3, 4].map((num) => (
                   <div 
                     key={num} 
-                    className="w-32 h-40 md:w-40 md:h-52 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center animate-float"
+                    className="w-32 h-40 md:w-40 md:h-52 rounded-xl bg-gradient-to-br from-yellow-500/20 to-primary/10 border border-yellow-500/30 flex items-center justify-center animate-float"
                     style={{ animationDelay: `${num * 0.2}s` }}
                   >
-                    <Image className="w-10 h-10 text-primary/50" />
+                    <Image className="w-10 h-10 text-yellow-500/50" />
                   </div>
                 ))}
               </div>
@@ -277,8 +312,9 @@ export default function VendasCompleta() {
       </section>
 
       {/* MRO Tool Section */}
-      <section id="ferramenta-mro" ref={videoSectionRef} className="container mx-auto px-4 py-16">
-        <Card className="glass-card border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 via-primary/5 to-background overflow-hidden">
+      <section id="ferramenta-mro" ref={mroSectionRef} className="container mx-auto px-4 py-16">
+        <div ref={videoSectionRef} />
+        <Card className="glass-card border-yellow-500/40 bg-gradient-to-br from-yellow-500/15 via-yellow-500/5 to-background overflow-hidden">
           <CardHeader className="text-center pb-8">
             <div className="flex justify-center mb-4">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-500/30 to-yellow-500/10 flex items-center justify-center animate-pulse-glow">
@@ -386,8 +422,8 @@ export default function VendasCompleta() {
               "Atualizações gratuitas",
               "Acesso imediato após pagamento"
             ].map((item, index) => (
-              <div key={index} className="flex items-center gap-3 p-4 glass-card rounded-lg">
-                <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
+              <div key={index} className="flex items-center gap-3 p-4 glass-card rounded-lg border border-yellow-500/20">
+                <CheckCircle2 className="w-6 h-6 text-yellow-500 flex-shrink-0" />
                 <span className="text-lg">{item}</span>
               </div>
             ))}
@@ -396,13 +432,13 @@ export default function VendasCompleta() {
       </section>
 
       {/* Pricing Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section ref={pricingSectionRef} className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+          <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-yellow-500 border-yellow-500/30">
             <Gift className="w-3 h-3 mr-1" />
             Oferta Especial
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-yellow-500 to-primary bg-clip-text text-transparent">
             Escolha seu Plano
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -412,8 +448,8 @@ export default function VendasCompleta() {
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Annual Plan */}
-          <Card className="glass-card border-primary/30 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold rounded-bl-xl">
+          <Card className="glass-card border-yellow-500/30 relative overflow-hidden bg-gradient-to-br from-yellow-500/5 to-background">
+            <div className="absolute top-0 right-0 bg-gradient-to-r from-yellow-500 to-primary text-background px-4 py-1 text-sm font-semibold rounded-bl-xl">
               Mais Popular
             </div>
             <CardHeader className="text-center pt-8">
@@ -424,7 +460,7 @@ export default function VendasCompleta() {
               <div>
                 <p className="text-muted-foreground line-through text-lg">De R$ 997</p>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-4xl font-bold text-primary">12x R$ 33</span>
+                  <span className="text-4xl font-bold text-yellow-500">12x R$ 33</span>
                 </div>
                 <p className="text-muted-foreground mt-1">ou R$ 397 à vista</p>
               </div>
@@ -438,7 +474,7 @@ export default function VendasCompleta() {
                   "Suporte prioritário"
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -446,10 +482,10 @@ export default function VendasCompleta() {
 
               <Button 
                 size="lg" 
-                className="w-full text-lg py-6 animate-pulse-glow"
+                className="w-full text-lg py-6 bg-gradient-to-r from-yellow-500 to-primary hover:from-yellow-600 hover:to-primary/90 text-background animate-pulse-glow"
                 onClick={handleBuyClick}
               >
-                Aproveitar Valor Promocional
+                Comprar Agora
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </CardContent>
@@ -493,10 +529,10 @@ export default function VendasCompleta() {
 
               <Button 
                 size="lg" 
-                className="w-full text-lg py-6 bg-yellow-500 hover:bg-yellow-600 text-background"
+                className="w-full text-lg py-6 bg-yellow-500 hover:bg-yellow-600 text-background animate-pulse-glow"
                 onClick={handleBuyClick}
               >
-                Garantir Acesso Vitalício
+                Comprar Agora
                 <Crown className="ml-2 h-5 w-5" />
               </Button>
             </CardContent>
@@ -508,21 +544,21 @@ export default function VendasCompleta() {
       <section className="container mx-auto px-4 py-16">
         <div className="flex flex-wrap items-center justify-center gap-8 text-center">
           <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-primary" />
+            <Shield className="w-8 h-8 text-yellow-500" />
             <div className="text-left">
               <p className="font-semibold">Pagamento Seguro</p>
               <p className="text-sm text-muted-foreground">Dados protegidos</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Clock className="w-8 h-8 text-primary" />
+            <Clock className="w-8 h-8 text-yellow-500" />
             <div className="text-left">
               <p className="font-semibold">Acesso Imediato</p>
               <p className="text-sm text-muted-foreground">Após confirmação</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Instagram className="w-8 h-8 text-primary" />
+            <Instagram className="w-8 h-8 text-yellow-500" />
             <div className="text-left">
               <p className="font-semibold">Suporte no Instagram</p>
               <p className="text-sm text-muted-foreground">@maisresultadosonline</p>
@@ -533,15 +569,15 @@ export default function VendasCompleta() {
 
       {/* Floating CTA */}
       {showPricing && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-lg border-t border-border z-50 animate-slide-up">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-r from-background/95 via-yellow-950/20 to-background/95 backdrop-blur-lg border-t border-yellow-500/30 z-50 animate-slide-up">
           <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center md:text-left">
-              <p className="font-semibold">Aproveite o valor promocional!</p>
+              <p className="font-semibold text-yellow-500">Aproveite o valor promocional!</p>
               <p className="text-sm text-muted-foreground">A partir de 12x de R$ 33</p>
             </div>
             <Button 
               size="lg" 
-              className="animate-pulse-glow"
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-background animate-pulse-glow"
               onClick={handleBuyClick}
             >
               Comprar Agora
