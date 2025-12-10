@@ -200,12 +200,12 @@ const Ligacao = () => {
             />
 
             {/* Text */}
-            <h1 className="text-white text-2xl font-bold italic leading-tight mb-8">
-              <span className="text-yellow-400">Gabriel</span> esta agora{'\n'}
-              disponível para uma{'\n'}
-              chamada, atenda para{'\n'}
-              entender <span className="text-yellow-400">como não Gastar{'\n'}
-              mais com anúncios!</span>
+            <h1 className="text-white text-2xl font-bold italic leading-tight mb-8 max-w-sm">
+              <span className="text-yellow-400">Gabriel</span> esta agora
+              <br />disponível para uma
+              <br />chamada, atenda para
+              <br />entender <span className="text-yellow-400">como não Gastar
+              <br />mais com anúncios!</span>
             </h1>
 
             {/* CTA Button */}
