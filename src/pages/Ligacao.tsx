@@ -54,6 +54,22 @@ const Ligacao = () => {
     };
   }, [pixelId]);
 
+  // Force 80% zoom on desktop
+  useEffect(() => {
+    const isDesktop = window.innerWidth > 768;
+    if (isDesktop) {
+      // Store original zoom
+      const originalZoom = (document.body.style as any).zoom || '100%';
+      // Force 80% zoom
+      (document.body.style as any).zoom = '80%';
+      
+      return () => {
+        // Restore original zoom on unmount
+        (document.body.style as any).zoom = originalZoom;
+      };
+    }
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
