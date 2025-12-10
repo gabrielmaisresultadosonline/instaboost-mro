@@ -475,6 +475,42 @@ export const cleanExpiredCreatives = (): void => {
   saveSession(session);
 };
 
+// Clean expired strategies (30 days old)
+export const cleanExpiredStrategies = (): void => {
+  const session = getSession();
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  session.profiles.forEach(profile => {
+    // Filter out strategies older than 30 days
+    const validStrategies = profile.strategies.filter(s => {
+      const createdAt = new Date(s.createdAt);
+      return createdAt > thirtyDaysAgo;
+    });
+    
+    const expiredCount = profile.strategies.length - validStrategies.length;
+    if (expiredCount > 0) {
+      console.log(`🗑️ Removendo ${expiredCount} estratégias expiradas de @${profile.profile.username}`);
+      profile.strategies = validStrategies;
+      
+      // Reset the strategy generation dates for expired types
+      if (profile.strategyGenerationDates) {
+        Object.keys(profile.strategyGenerationDates).forEach(type => {
+          const genDate = profile.strategyGenerationDates?.[type as keyof typeof profile.strategyGenerationDates];
+          if (genDate) {
+            const date = new Date(genDate);
+            if (date <= thirtyDaysAgo) {
+              delete profile.strategyGenerationDates![type as keyof typeof profile.strategyGenerationDates];
+            }
+          }
+        });
+      }
+    }
+  });
+  
+  saveSession(session);
+};
+
 export const markCreativeAsDownloaded = (creativeId: string): void => {
   const session = getSession();
   session.profiles.forEach(profile => {
