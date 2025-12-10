@@ -192,30 +192,26 @@ const Ligacao = () => {
           
           {/* Content */}
           <div className="relative z-10 flex flex-col items-center px-6 text-center">
-            {/* Gabriel Image - positioned to overlap with text */}
-            <div className="relative">
-              <img 
-                src={gabrielImage} 
-                alt="Gabriel"
-                className="w-72 h-auto"
-              />
-              
-              {/* Text - overlapping Gabriel's lower body */}
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-8">
-                <h1 className="text-white text-2xl font-bold italic leading-tight mb-8 max-w-sm">
-                  <span className="text-yellow-400">Gabriel</span> esta agora
-                  <br />disponível para uma
-                  <br />chamada, atenda para
-                  <br />entender <span className="text-yellow-400">como não Gastar
-                  <br />mais com anúncios!</span>
-                </h1>
-              </div>
-            </div>
+            {/* Gabriel Image - muito próximo do texto */}
+            <img 
+              src={gabrielImage} 
+              alt="Gabriel"
+              className="w-72 h-auto -mb-16"
+            />
+
+            {/* Text */}
+            <h1 className="text-white text-2xl font-bold italic leading-tight mb-8 max-w-sm">
+              <span className="text-yellow-400">Gabriel</span> esta agora
+              <br />disponível para uma
+              <br />chamada, atenda para
+              <br />entender <span className="text-yellow-400">como não Gastar
+              <br />mais com anúncios!</span>
+            </h1>
 
             {/* CTA Button */}
             <button
               onClick={handleReceiveCall}
-              className="bg-[#4ade80] hover:bg-[#22c55e] text-black font-bold py-4 px-8 rounded-full flex items-center gap-3 text-lg transition-all transform hover:scale-105 shadow-lg shadow-green-500/30 mt-24"
+              className="bg-[#4ade80] hover:bg-[#22c55e] text-black font-bold py-4 px-8 rounded-full flex items-center gap-3 text-lg transition-all transform hover:scale-105 shadow-lg shadow-green-500/30"
             >
               Receber chamada agora
               <Phone className="w-5 h-5 animate-pulse" />
