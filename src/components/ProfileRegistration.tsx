@@ -108,7 +108,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
         const restored = restoreProfileFromArchive(pendingSyncIG);
         
         if (restored) {
-          syncIGsFromSquare([pendingSyncIG], email);
+          await syncIGsFromSquare([pendingSyncIG], email);
           setRegisteredIGs(prev => [...prev, pendingSyncIG]);
           
           toast({
@@ -126,7 +126,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
       }
       
       // No archived data - just sync normally
-      syncIGsFromSquare([pendingSyncIG], email);
+      await syncIGsFromSquare([pendingSyncIG], email);
       setRegisteredIGs(prev => [...prev, pendingSyncIG]);
       
       toast({
@@ -287,8 +287,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
         await saveEmailAndPrint(email, user.username, pendingProfile.username, printBlob);
       }
 
-      // Register locally
-      addRegisteredIG(pendingProfile.username, email, false);
+      // Register locally and save to database
+      await addRegisteredIG(pendingProfile.username, email, false);
       setRegisteredIGs(prev => [...prev, normalizeInstagramUsername(pendingProfile.username)]);
 
       toast({
@@ -333,7 +333,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete }: Pro
         }
 
         updateUserEmail(email);
-        syncIGsFromSquare(result.instagrams, email);
+        await syncIGsFromSquare(result.instagrams, email);
         setRegisteredIGs(result.instagrams);
         
         toast({

@@ -37,16 +37,19 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
       const result = await loginToSquare(username.trim(), password.trim());
 
       if (result.success) {
-        loginUser(username.trim(), result.daysRemaining || 365);
+        // Login now loads profiles from database
+        const session = await loginUser(username.trim(), result.daysRemaining || 365);
         
         const daysText = formatDaysRemaining(result.daysRemaining || 365);
         const isLifetime = isLifetimeAccess(result.daysRemaining || 365);
         
+        const profileCount = session.user?.registeredIGs?.length || 0;
+        
         toast({
           title: 'Login realizado com sucesso!',
           description: isLifetime 
-            ? 'Acesso vitalício ativado' 
-            : `Você tem ${daysText} de acesso`,
+            ? `Acesso vitalício ativado${profileCount > 0 ? ` • ${profileCount} perfil(is) carregado(s)` : ''}` 
+            : `Você tem ${daysText} de acesso${profileCount > 0 ? ` • ${profileCount} perfil(is) carregado(s)` : ''}`,
         });
 
         onLoginSuccess();

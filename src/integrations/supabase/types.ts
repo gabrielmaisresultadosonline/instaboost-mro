@@ -62,6 +62,36 @@ export type Database = {
         }
         Relationships: []
       }
+      squarecloud_user_profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          instagram_username: string
+          profile_data: Json
+          squarecloud_username: string
+          synced_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          instagram_username: string
+          profile_data?: Json
+          squarecloud_username: string
+          synced_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          instagram_username?: string
+          profile_data?: Json
+          squarecloud_username?: string
+          synced_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
