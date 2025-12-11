@@ -156,21 +156,58 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         }
       }
       
-      // No archived data - just sync normally
+      // CRITICAL: Must fetch REAL Instagram data from Bright Data API before adding to dashboard
+      setLoadingMessage(`Buscando dados de @${pendingSyncIG}...`);
+      
+      const profileResult = await fetchInstagramProfile(pendingSyncIG);
+      
+      if (!profileResult.success || !profileResult.profile) {
+        toast({
+          title: 'Erro ao buscar perfil',
+          description: profileResult.error || 'Não foi possível obter dados do Instagram',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        setLoadingMessage('');
+        return;
+      }
+      
+      // Analyze profile with AI
+      setLoadingMessage('Analisando perfil com I.A...');
+      
+      const analysisResult = await analyzeProfile(profileResult.profile);
+      
+      if (!analysisResult.success || !analysisResult.analysis) {
+        toast({
+          title: 'Erro na análise',
+          description: 'Não foi possível analisar o perfil',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        setLoadingMessage('');
+        return;
+      }
+      
+      // Register the synced profile with REAL data
       await syncIGsFromSquare([pendingSyncIG], email);
       setRegisteredIGs(prev => [...prev, pendingSyncIG]);
       
+      // Add profile to dashboard with complete data (profile + analysis)
+      addProfile(profileResult.profile, analysisResult.analysis);
+      
       toast({
         title: 'Perfil sincronizado!',
-        description: `@${pendingSyncIG} foi vinculado à sua conta`
+        description: `@${pendingSyncIG} foi vinculado com dados completos`
       });
 
       onSyncComplete([pendingSyncIG]);
       setPendingSyncIG('');
       setInstagramInput('');
     } catch (error) {
+      console.error('[ProfileRegistration] Sync error:', error);
       toast({
         title: 'Erro na sincronização',
+        description: 'Tente novamente',
         variant: 'destructive'
       });
     } finally {
