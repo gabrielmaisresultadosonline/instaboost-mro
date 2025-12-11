@@ -389,11 +389,9 @@ const SyncDashboard = () => {
   // Update user days remaining from SquareCloud
   const handleUpdateUserDays = async () => {
     setIsUpdatingDays(true);
-    setUpdateDaysLog('🔄 Conectando ao SquareCloud...');
+    setUpdateDaysLog('🔄 Iniciando atualização...');
     
     try {
-      setUpdateDaysLog('📡 Buscando usuários do SquareCloud (pode demorar ~30s para 700+ usuários)...');
-      
       const { data, error } = await supabase.functions.invoke('update-user-days');
       
       if (error) {
@@ -402,21 +400,30 @@ const SyncDashboard = () => {
       }
       
       if (data?.success) {
-        const logMsg = `✅ Atualizado! ${data.updated} de ${data.totalUsers} usuários`;
-        setUpdateDaysLog(logMsg);
-        toast({
-          title: 'Dias atualizados!',
-          description: `${data.updated} usuários atualizados de ${data.totalUsers} total`,
-        });
-        
-        // Clear log after 5 seconds
-        setTimeout(() => setUpdateDaysLog(null), 5000);
+        if (data?.background) {
+          // Background task started
+          setUpdateDaysLog('⏳ Atualização iniciada em segundo plano (~2-3 min para 700+ usuários)');
+          toast({
+            title: 'Atualização iniciada!',
+            description: 'Os dias serão atualizados em segundo plano. Aguarde ~2-3 minutos.',
+          });
+          // Clear log after 10 seconds
+          setTimeout(() => setUpdateDaysLog(null), 10000);
+        } else {
+          const logMsg = `✅ Atualizado! ${data.updated} de ${data.totalUsers} usuários`;
+          setUpdateDaysLog(logMsg);
+          toast({
+            title: 'Dias atualizados!',
+            description: `${data.updated} usuários atualizados de ${data.totalUsers} total`,
+          });
+          setTimeout(() => setUpdateDaysLog(null), 5000);
+        }
       } else {
         setUpdateDaysLog(`❌ Erro: ${data?.error || 'Erro desconhecido'}`);
         toast({
           title: 'Erro ao atualizar',
           description: data?.error || 'Erro desconhecido',
-          variant: 'destructive'
+          variant: 'destructive',
         });
       }
     } catch (error) {
@@ -425,7 +432,7 @@ const SyncDashboard = () => {
       toast({
         title: 'Erro ao atualizar dias',
         description: 'Não foi possível conectar ao servidor',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setIsUpdatingDays(false);
