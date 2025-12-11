@@ -38,6 +38,7 @@ const SyncDashboard = () => {
   const [syncData, setSyncData] = useState<SyncData>(getSyncData());
   const [isSyncing, setIsSyncing] = useState(false);
   const [isUpdatingDays, setIsUpdatingDays] = useState(false);
+  const [updateDaysLog, setUpdateDaysLog] = useState<string | null>(null);
   const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
   const [currentSlide, setCurrentSlide] = useState(0);
   const syncAbortedRef = useRef(false);
@@ -388,17 +389,30 @@ const SyncDashboard = () => {
   // Update user days remaining from SquareCloud
   const handleUpdateUserDays = async () => {
     setIsUpdatingDays(true);
+    setUpdateDaysLog('🔄 Conectando ao SquareCloud...');
+    
     try {
+      setUpdateDaysLog('📡 Buscando usuários do SquareCloud (pode demorar ~30s para 700+ usuários)...');
+      
       const { data, error } = await supabase.functions.invoke('update-user-days');
       
-      if (error) throw error;
+      if (error) {
+        setUpdateDaysLog(`❌ Erro: ${error.message}`);
+        throw error;
+      }
       
       if (data?.success) {
+        const logMsg = `✅ Atualizado! ${data.updated} de ${data.totalUsers} usuários`;
+        setUpdateDaysLog(logMsg);
         toast({
           title: 'Dias atualizados!',
           description: `${data.updated} usuários atualizados de ${data.totalUsers} total`,
         });
+        
+        // Clear log after 5 seconds
+        setTimeout(() => setUpdateDaysLog(null), 5000);
       } else {
+        setUpdateDaysLog(`❌ Erro: ${data?.error || 'Erro desconhecido'}`);
         toast({
           title: 'Erro ao atualizar',
           description: data?.error || 'Erro desconhecido',
@@ -407,6 +421,7 @@ const SyncDashboard = () => {
       }
     } catch (error) {
       console.error('Error updating user days:', error);
+      setUpdateDaysLog('❌ Erro de conexão - tente novamente');
       toast({
         title: 'Erro ao atualizar dias',
         description: 'Não foi possível conectar ao servidor',
@@ -575,7 +590,13 @@ const SyncDashboard = () => {
           </div>
         </div>
 
-        {/* Sync Progress */}
+        {/* Update Days Log */}
+        {updateDaysLog && (
+          <div className="p-3 bg-muted/50 rounded-lg border border-border/50 flex items-center gap-2">
+            {isUpdatingDays && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+            <span className="text-sm">{updateDaysLog}</span>
+          </div>
+        )}
         {isSyncing && (
           <div className="space-y-3">
             <div className="flex items-center gap-3">
