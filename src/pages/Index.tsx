@@ -294,15 +294,23 @@ const Index = () => {
           // API failed - profile may not exist on Instagram
           console.warn(`⚠️ API retornou erro para @${ig}: ${profileResult.error}`);
           
-          // Try to use cached data as fallback
-          if (persistedData) {
-            console.log(`📦 Usando cache para @${ig} (API falhou)`);
+          // Only use cached data if it has REAL data (followers > 0 OR posts > 0 OR profile picture)
+          const hasRealCachedData = persistedData && (
+            persistedData.profile.followers > 0 || 
+            persistedData.profile.posts > 0 || 
+            (persistedData.profile.profilePicUrl && persistedData.profile.profilePicUrl.length > 10)
+          );
+          
+          if (hasRealCachedData) {
+            console.log(`📦 Usando cache com dados reais para @${ig}`);
             addProfile(persistedData.profile, persistedData.analysis);
             cachedCount++;
           } else {
+            // Don't add profiles with zero data when API fails
+            console.warn(`❌ @${ig} não existe ou não tem dados reais - não adicionando`);
             toast({
               title: `@${ig} não encontrado`,
-              description: 'Perfil pode não existir ou estar privado',
+              description: 'Perfil não existe no Instagram ou está privado',
               variant: 'destructive'
             });
           }
