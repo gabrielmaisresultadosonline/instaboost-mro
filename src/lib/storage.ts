@@ -219,14 +219,33 @@ export const saveSession = (session: MROSession): void => {
 export const initializeFromCloud = (profileSessions: ProfileSession[], archivedProfiles: ProfileSession[]): void => {
   const loggedUsername = getLoggedUsername();
   
-  console.log(`☁️ [${loggedUsername}] Initializing from cloud (REPLACING local data):`, {
+  console.log(`☁️ [${loggedUsername}] ===========================================`);
+  console.log(`☁️ [${loggedUsername}] INITIALIZING FROM CLOUD (COMPLETE REPLACEMENT)`);
+  console.log(`☁️ [${loggedUsername}] ===========================================`);
+  console.log(`☁️ [${loggedUsername}] Incoming cloud data:`, {
     cloudProfiles: profileSessions.length,
     cloudArchived: archivedProfiles.length,
+    profileUsernames: profileSessions.map(p => p.profile.username)
   });
+  
+  // CRITICAL: Check what's currently in local storage BEFORE clearing
+  const existingLocal = localStorage.getItem(STORAGE_KEY);
+  if (existingLocal) {
+    try {
+      const parsed = JSON.parse(existingLocal);
+      console.log(`☁️ [${loggedUsername}] ⚠️ Existing local data being REPLACED:`, {
+        localProfiles: parsed.profiles?.length || 0,
+        localUsernames: parsed.profiles?.map((p: ProfileSession) => p.profile?.username) || []
+      });
+    } catch (e) {
+      console.log(`☁️ [${loggedUsername}] ⚠️ Corrupted local data found, will be cleared`);
+    }
+  }
   
   // Log detailed info about each cloud profile
   profileSessions.forEach(p => {
     console.log(`☁️ [${loggedUsername}] Cloud profile @${p.profile.username}:`, {
+      id: p.id,
       strategies: p.strategies.length,
       creatives: p.creatives.length,
       creativesRemaining: p.creativesRemaining,
@@ -234,6 +253,7 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
   });
   
   // CRITICAL: Clear local data BEFORE setting new data to prevent any contamination
+  console.log(`☁️ [${loggedUsername}] 🗑️ Clearing local storage...`);
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(ARCHIVE_KEY);
   
@@ -257,9 +277,10 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
   };
   
   // Log final state
-  console.log(`☁️ [${loggedUsername}] Initialized final state:`, {
+  console.log(`☁️ [${loggedUsername}] ✅ Final initialized state:`, {
     totalProfiles: session.profiles.length,
     activeProfileId: session.activeProfileId,
+    profileUsernames: session.profiles.map(p => p.profile.username),
     totalCreatives: session.profiles.reduce((sum, p) => sum + p.creatives.length, 0),
     totalStrategies: session.profiles.reduce((sum, p) => sum + p.strategies.length, 0)
   });
@@ -270,9 +291,12 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
   // Also restore archived profiles from cloud ONLY (replace local)
   if (archivedProfiles.length > 0) {
     localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archivedProfiles));
+    console.log(`☁️ [${loggedUsername}] Restored ${archivedProfiles.length} archived profiles`);
   }
   
-  console.log(`☁️ [${loggedUsername}] ✅ Initialized: ${profileSessions.length} profiles, ${archivedProfiles.length} archived`);
+  console.log(`☁️ [${loggedUsername}] ===========================================`);
+  console.log(`☁️ [${loggedUsername}] ✅ CLOUD INITIALIZATION COMPLETE`);
+  console.log(`☁️ [${loggedUsername}] ===========================================`);
 };
 
 export const getActiveProfile = (): ProfileSession | null => {
