@@ -22,9 +22,9 @@ export const UserHeader = ({ onLogout }: UserHeaderProps) => {
   const isLifetime = isLifetimeAccess(user.daysRemaining);
   const creativesAccess = canUseCreatives(user);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (confirm('Deseja realmente sair?')) {
-      logoutUser();
+      await logoutUser();
       onLogout();
     }
   };
