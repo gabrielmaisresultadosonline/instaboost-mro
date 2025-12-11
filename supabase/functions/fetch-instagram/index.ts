@@ -77,7 +77,7 @@ serve(async (req) => {
     }
 
     // Helper function to scrape Instagram directly via web page
-    const scrapeInstagramDirect = async (): Promise<any | null> => {
+    const scrapeInstagramDirect = async (): Promise<{ data: any | null; isPrivate?: boolean; isRestricted?: boolean }> => {
       console.log('🔍 Tentando scraping direto do Instagram...');
       
       try {
@@ -98,18 +98,31 @@ serve(async (req) => {
             const data = JSON.parse(text);
             if (data.graphql?.user || data.user) {
               const user = data.graphql?.user || data.user;
+              
+              // Check if profile is private
+              const isPrivate = user.is_private === true;
+              console.log(`📊 Profile private status: ${isPrivate}`);
+              
+              // Check for age restriction (usually indicated by empty data for public profiles)
+              const isRestricted = !isPrivate && user.is_age_gated === true;
+              
               console.log('✅ Direct scrape successful!');
               return {
-                profile_name: user.full_name || user.username,
-                account: user.username,
-                biography: user.biography,
-                followers: user.edge_followed_by?.count || user.follower_count || 0,
-                following: user.edge_follow?.count || user.following_count || 0,
-                posts_count: user.edge_owner_to_timeline_media?.count || user.media_count || 0,
-                profile_image_link: user.profile_pic_url_hd || user.profile_pic_url,
-                is_business_account: user.is_business_account || user.is_professional_account,
-                category: user.category_name || user.category || '',
-                external_url: user.external_url || '',
+                data: {
+                  profile_name: user.full_name || user.username,
+                  account: user.username,
+                  biography: user.biography,
+                  followers: user.edge_followed_by?.count || user.follower_count || 0,
+                  following: user.edge_follow?.count || user.following_count || 0,
+                  posts_count: user.edge_owner_to_timeline_media?.count || user.media_count || 0,
+                  profile_image_link: user.profile_pic_url_hd || user.profile_pic_url,
+                  is_business_account: user.is_business_account || user.is_professional_account,
+                  is_private: isPrivate,
+                  category: user.category_name || user.category || '',
+                  external_url: user.external_url || '',
+                },
+                isPrivate,
+                isRestricted
               };
             }
           } catch (e) {
@@ -122,7 +135,7 @@ serve(async (req) => {
         console.error('❌ Direct scrape error:', e);
       }
       
-      return null;
+      return { data: null };
     };
 
     // Helper function to make Bright Data API call
@@ -200,9 +213,16 @@ serve(async (req) => {
 
     try {
       let profileData = null;
+      let detectedIsPrivate = false;
+      let detectedIsRestricted = false;
 
       // ATTEMPT 0: Try direct scraping first (fastest)
-      profileData = await scrapeInstagramDirect();
+      const directResult = await scrapeInstagramDirect();
+      if (directResult.data) {
+        profileData = directResult.data;
+        detectedIsPrivate = directResult.isPrivate || false;
+        detectedIsRestricted = directResult.isRestricted || false;
+      }
 
       // ATTEMPT 1: Bright Data without auth
       if (!profileData) {
@@ -214,6 +234,9 @@ serve(async (req) => {
             await new Promise(resolve => setTimeout(resolve, 2000));
           } else {
             profileData = await processBrightDataResponse(response1);
+            if (profileData) {
+              detectedIsPrivate = profileData.is_private === true;
+            }
           }
         } catch (e) {
           console.error('❌ Bright Data attempt 1 failed:', e);
@@ -232,6 +255,9 @@ serve(async (req) => {
             console.log('⏳ Bright Data returned 202 (async) on attempt 2');
           } else {
             profileData = await processBrightDataResponse(response2);
+            if (profileData) {
+              detectedIsPrivate = profileData.is_private === true;
+            }
           }
         } catch (e) {
           console.error('❌ Bright Data attempt 2 failed:', e);
@@ -258,6 +284,7 @@ serve(async (req) => {
             profileData = await processBrightDataResponse(response3);
             if (profileData) {
               console.log('✅ Perfil restrito acessado via sessão autenticada!');
+              detectedIsPrivate = profileData.is_private === true;
             }
           }
         } catch (e) {
@@ -267,17 +294,51 @@ serve(async (req) => {
 
       // If still no data after all attempts, return error with retry option
       if (!profileData) {
-        const errorMsg = hasAuthSession 
-          ? 'Perfil não encontrado ou inacessível mesmo com autenticação. Verifique se o perfil existe.'
-          : 'Este perfil possui restrição de idade e não pode ser acessado automaticamente. O dono do perfil precisa desativar a restrição nas configurações do Instagram.';
-        
         console.log(`❌ Perfil @${cleanUsername} não encontrado após todas tentativas`);
         return Response.json({ 
           success: false, 
-          error: errorMsg,
+          error: 'Este perfil possui restrição de idade e não pode ser acessado automaticamente.',
           canRetry: true,
           retryAfter: 60,
-          isRestricted: true
+          isRestricted: true,
+          isPrivate: false
+        }, { headers: corsHeaders });
+      }
+
+      // Check if profile is private - we got data but it's limited
+      if (detectedIsPrivate || profileData.is_private === true) {
+        console.log(`🔒 Perfil @${cleanUsername} é privado - salvando dados parciais disponíveis`);
+        
+        // For private profiles, we can still get basic info but no posts
+        const originalProfilePic = profileData.profile_image_link;
+        const proxiedProfilePic = originalProfilePic ? proxyImage(originalProfilePic) : '';
+        const followersCount = profileData.followers || 0;
+        
+        const profile: InstagramProfile = {
+          username: profileData.account || profileData.profile_name || cleanUsername,
+          fullName: profileData.profile_name || profileData.full_name || '',
+          bio: profileData.biography || profileData.bio || '',
+          followers: followersCount,
+          following: profileData.following || 0,
+          posts: profileData.posts_count || profileData.post_count || 0,
+          profilePicUrl: proxiedProfilePic,
+          isBusinessAccount: profileData.is_business_account || profileData.is_professional_account || false,
+          category: profileData.category || '',
+          externalUrl: profileData.external_url || '',
+        };
+
+        return Response.json({
+          success: true,
+          profile: {
+            ...profile,
+            engagement: 0,
+            avgLikes: 0,
+            avgComments: 0,
+            recentPosts: [], // Private profiles have no visible posts
+          },
+          simulated: false,
+          isPrivate: true,
+          message: 'Perfil privado - dados básicos carregados. Para rastrear posts e engajamento, torne o perfil público.'
         }, { headers: corsHeaders });
       }
 

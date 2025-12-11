@@ -4,6 +4,7 @@ import { ProfileRegistration } from '@/components/ProfileRegistration';
 import { Dashboard } from '@/components/Dashboard';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { AgeRestrictionDialog } from '@/components/AgeRestrictionDialog';
+import { PrivateProfileDialog } from '@/components/PrivateProfileDialog';
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import {
   getSession, 
@@ -50,6 +51,7 @@ const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasRegisteredProfiles, setHasRegisteredProfiles] = useState(false);
   const [ageRestrictionProfile, setAgeRestrictionProfile] = useState<string | null>(null);
+  const [privateProfile, setPrivateProfile] = useState<string | null>(null);
   const [pendingSyncInstagrams, setPendingSyncInstagrams] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -283,30 +285,53 @@ const Index = () => {
         const profileResult = await fetchInstagramProfile(ig);
         
         if (profileResult.success && profileResult.profile) {
-          setLoadingMessage(`Analisando @${ig} com I.A...`);
-          const analysisResult = await analyzeProfile(profileResult.profile);
-          
-          if (analysisResult.success && analysisResult.analysis) {
-            addProfile(profileResult.profile, analysisResult.analysis);
+          // Check if profile is private
+          if (profileResult.isPrivate) {
+            console.log(`🔒 @${ig} é um perfil privado - salvando dados parciais`);
+            setLoadingMessage(`@${ig} é privado - salvando dados básicos...`);
             
-            // PERSIST DATA PERMANENTLY TO SERVER
-            await persistProfileData(loggedInUsername, ig, profileResult.profile, analysisResult.analysis);
-            loadedCount++;
+            // Still analyze and save private profiles with basic data
+            const analysisResult = await analyzeProfile(profileResult.profile);
             
-            // Mark as registered if not already
-            if (user?.email && !isIGRegistered(ig)) {
-              addRegisteredIG(ig, user.email, true);
+            if (analysisResult.success && analysisResult.analysis) {
+              addProfile(profileResult.profile, analysisResult.analysis);
+              await persistProfileData(loggedInUsername, ig, profileResult.profile, analysisResult.analysis);
+              loadedCount++;
+              
+              if (user?.email && !isIGRegistered(ig)) {
+                addRegisteredIG(ig, user.email, true);
+              }
             }
+            
+            // Show private profile dialog with tutorial
+            setPrivateProfile(ig);
+            setPendingSyncInstagrams(instagrams);
           } else {
-            console.warn(`⚠️ Análise falhou para @${ig}`);
-            // Still count as loaded if profile was fetched
-            if (persistedData) {
-              addProfile(persistedData.profile, persistedData.analysis);
-              cachedCount++;
+            setLoadingMessage(`Analisando @${ig} com I.A...`);
+            const analysisResult = await analyzeProfile(profileResult.profile);
+            
+            if (analysisResult.success && analysisResult.analysis) {
+              addProfile(profileResult.profile, analysisResult.analysis);
+              
+              // PERSIST DATA PERMANENTLY TO SERVER
+              await persistProfileData(loggedInUsername, ig, profileResult.profile, analysisResult.analysis);
+              loadedCount++;
+              
+              // Mark as registered if not already
+              if (user?.email && !isIGRegistered(ig)) {
+                addRegisteredIG(ig, user.email, true);
+              }
+            } else {
+              console.warn(`⚠️ Análise falhou para @${ig}`);
+              // Still count as loaded if profile was fetched
+              if (persistedData) {
+                addProfile(persistedData.profile, persistedData.analysis);
+                cachedCount++;
+              }
             }
           }
         } else {
-          // API failed - profile may not exist on Instagram
+          // API failed - check error type
           console.warn(`⚠️ API retornou erro para @${ig}: ${profileResult.error}`);
           
           // Only use cached data if it has REAL data (followers > 0 OR posts > 0 OR profile picture)
@@ -324,8 +349,15 @@ const Index = () => {
             // Don't add profiles with zero data when API fails
             console.warn(`❌ @${ig} não existe ou não tem dados reais - não adicionando`);
             
-            // Show age restriction dialog with tutorial
-            setAgeRestrictionProfile(ig);
+            // Check if it's a restriction issue
+            if (profileResult.isRestricted) {
+              setAgeRestrictionProfile(ig);
+            } else if (profileResult.isPrivate) {
+              setPrivateProfile(ig);
+            } else {
+              // Generic restriction error
+              setAgeRestrictionProfile(ig);
+            }
             setPendingSyncInstagrams(instagrams);
           }
         }
@@ -478,6 +510,7 @@ const Index = () => {
 
   const handleRetrySync = () => {
     setAgeRestrictionProfile(null);
+    setPrivateProfile(null);
     if (pendingSyncInstagrams.length > 0) {
       handleSyncComplete(pendingSyncInstagrams);
     }
@@ -492,6 +525,15 @@ const Index = () => {
     />
   );
 
+  const privateProfileDialogElement = (
+    <PrivateProfileDialog
+      isOpen={!!privateProfile}
+      onClose={() => setPrivateProfile(null)}
+      username={privateProfile || ''}
+      onRetrySync={handleRetrySync}
+    />
+  );
+
   // Not logged in - show login page
   if (!isLoggedIn) {
     return (
@@ -499,6 +541,7 @@ const Index = () => {
         <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
         <LoginPage onLoginSuccess={handleLoginSuccess} />
         {ageRestrictionDialogElement}
+        {privateProfileDialogElement}
       </>
     );
   }
@@ -514,6 +557,7 @@ const Index = () => {
           onLogout={handleLogout}
         />
         {ageRestrictionDialogElement}
+        {privateProfileDialogElement}
       </>
     );
   }
@@ -535,6 +579,7 @@ const Index = () => {
           onLogout={handleLogout}
         />
         {ageRestrictionDialogElement}
+        {privateProfileDialogElement}
       </>
     );
   }
@@ -549,6 +594,7 @@ const Index = () => {
         onLogout={handleLogout}
       />
       {ageRestrictionDialogElement}
+      {privateProfileDialogElement}
     </>
   );
 };
