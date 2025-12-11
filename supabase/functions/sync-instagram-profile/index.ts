@@ -140,20 +140,20 @@ serve(async (req) => {
       // Process successful profile data
       const proxiedProfilePic = profileData.profile_image_link 
         ? proxyImage(profileData.profile_image_link)
-        : '';  // Don't use fallback dicebear - that indicates no real data
+        : '';
 
       const followersCount = profileData.followers || 0;
       const postsCount = profileData.posts_count || profileData.post_count || 0;
       
-      // CRITICAL: Don't return success if profile has no real data
-      const hasRealData = followersCount > 0 || postsCount > 0 || profileData.profile_image_link;
+      // Allow 0 followers if profile has picture or posts (real profile)
+      const hasRealData = profileData.profile_image_link || postsCount > 0 || followersCount > 0;
       
       if (!hasRealData) {
-        console.log(`❌ Profile ${cleanUsername} has no real data (0 followers, 0 posts, no picture)`);
+        console.log(`❌ Profile ${cleanUsername} has no real data (no picture, 0 posts, 0 followers)`);
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: "Perfil não tem dados reais. Verifique se o perfil existe e é público.", 
+            error: "Não conseguimos buscar dados do perfil. Tente novamente.", 
             username: cleanUsername,
             canRetry: true
           }),
@@ -172,7 +172,7 @@ serve(async (req) => {
         externalUrl: profileData.external_url || ""
       };
 
-      console.log(`✅ Profile ${cleanUsername} synced with REAL data: ${profile.followers} followers, ${profile.posts} posts`);
+      console.log(`✅ Profile ${cleanUsername} synced: ${profile.followers} followers, ${profile.posts} posts, hasPic: ${!!profileData.profile_image_link}`);
 
       return new Response(
         JSON.stringify({ success: true, profile }),
