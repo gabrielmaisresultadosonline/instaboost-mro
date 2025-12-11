@@ -47,6 +47,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [loadingSubMessage, setLoadingSubMessage] = useState('');
+  const [syncProgress, setSyncProgress] = useState<{ current: number; total: number } | undefined>(undefined);
   const [showDashboard, setShowDashboard] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasRegisteredProfiles, setHasRegisteredProfiles] = useState(false);
@@ -226,14 +227,21 @@ const Index = () => {
   const handleSyncComplete = async (instagrams: string[]) => {
     setIsLoading(true);
     setLoadingMessage('Sincronizando perfis...');
-    setLoadingSubMessage('Buscando dados do Instagram. Isso pode levar até 5 minutos.');
+    setLoadingSubMessage(`Total: ${instagrams.length} conta${instagrams.length !== 1 ? 's' : ''} para sincronizar`);
+    setSyncProgress({ current: 0, total: instagrams.length });
+    
     const user = getCurrentUser();
     const loggedInUsername = getLoggedInUsername();
     let loadedCount = 0;
     let cachedCount = 0;
+    let processedCount = 0;
     
     for (const ig of instagrams) {
-      setLoadingMessage(`Buscando @${ig}...`);
+      processedCount++;
+      setSyncProgress({ current: processedCount, total: instagrams.length });
+      setLoadingMessage(`Sincronizando @${ig}...`);
+      setLoadingSubMessage(`${processedCount} de ${instagrams.length} conta${instagrams.length !== 1 ? 's' : ''}`);
+      
       const normalizedIg = ig.toLowerCase();
       
       // Check if already in session
@@ -246,7 +254,7 @@ const Index = () => {
         continue;
       }
       
-      // CHECK SERVER STORAGE FIRST - avoid unnecessary API calls
+      // CHECK SERVER STORAGE FIRST - avoid unnecessary API calls (30 day cache)
       const { shouldFetch, reason } = shouldFetchProfile(normalizedIg);
       const persistedData = getPersistedProfile(normalizedIg);
       
@@ -260,13 +268,13 @@ const Index = () => {
       );
       
       if (hasRealCachedData && !shouldFetch) {
-        // USE CACHED DATA - no API call needed (only if has real data)
-        console.log(`📦 Usando dados reais do servidor para @${ig}: ${reason}`);
+        // USE CACHED DATA - no API call needed (within 30 days)
+        console.log(`📦 Usando dados do cache (30 dias) para @${ig}: ${reason}`);
         addProfile(persistedData.profile, persistedData.analysis);
         cachedCount++;
         
         toast({
-          title: `@${ig} carregado`,
+          title: `@${ig} carregado do cache`,
           description: reason
         });
         continue;
@@ -275,7 +283,7 @@ const Index = () => {
         console.warn(`⚠️ Cache de @${ig} tem dados zerados - forçando busca na API`);
       }
       
-      // Only fetch from API if needed
+      // Only fetch from API if needed (cache expired or no cache)
       try {
         toast({
           title: `Buscando @${ig}...`,
@@ -313,7 +321,7 @@ const Index = () => {
             if (analysisResult.success && analysisResult.analysis) {
               addProfile(profileResult.profile, analysisResult.analysis);
               
-              // PERSIST DATA PERMANENTLY TO SERVER
+              // PERSIST DATA PERMANENTLY TO SERVER (cached for 30 days)
               await persistProfileData(loggedInUsername, ig, profileResult.profile, analysisResult.analysis);
               loadedCount++;
               
@@ -385,10 +393,11 @@ const Index = () => {
     }
     
     setIsLoading(false);
+    setSyncProgress(undefined);
     
     toast({
       title: 'Sincronização concluída!',
-      description: `${loadedCount} buscado(s) da API, ${cachedCount} do servidor`
+      description: `${loadedCount} da API, ${cachedCount} do cache (30 dias)`
     });
   };
 
@@ -550,7 +559,7 @@ const Index = () => {
   if (!hasRegisteredProfiles || !showDashboard) {
     return (
       <>
-        <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
+        <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} progress={syncProgress} />
         <ProfileRegistration 
           onProfileRegistered={handleProfileRegistered}
           onSyncComplete={handleSyncComplete}
@@ -566,7 +575,7 @@ const Index = () => {
   if (showDashboard && session.profiles.length > 0) {
     return (
       <>
-        <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
+        <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} progress={syncProgress} />
         <Dashboard 
           session={session} 
           onSessionUpdate={handleSessionUpdate}
@@ -587,7 +596,7 @@ const Index = () => {
   // Fallback to registration
   return (
     <>
-      <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
+      <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} progress={syncProgress} />
       <ProfileRegistration 
         onProfileRegistered={handleProfileRegistered}
         onSyncComplete={handleSyncComplete}
