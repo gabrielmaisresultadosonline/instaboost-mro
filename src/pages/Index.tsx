@@ -3,6 +3,7 @@ import { LoginPage } from '@/components/LoginPage';
 import { ProfileRegistration } from '@/components/ProfileRegistration';
 import { Dashboard } from '@/components/Dashboard';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
+import { AgeRestrictionDialog } from '@/components/AgeRestrictionDialog';
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import {
   getSession, 
@@ -48,6 +49,8 @@ const Index = () => {
   const [showDashboard, setShowDashboard] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasRegisteredProfiles, setHasRegisteredProfiles] = useState(false);
+  const [ageRestrictionProfile, setAgeRestrictionProfile] = useState<string | null>(null);
+  const [pendingSyncInstagrams, setPendingSyncInstagrams] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Get current logged in username
@@ -320,11 +323,10 @@ const Index = () => {
           } else {
             // Don't add profiles with zero data when API fails
             console.warn(`❌ @${ig} não existe ou não tem dados reais - não adicionando`);
-            toast({
-              title: `@${ig} não encontrado`,
-              description: 'Perfil não existe no Instagram ou está privado',
-              variant: 'destructive'
-            });
+            
+            // Show age restriction dialog with tutorial
+            setAgeRestrictionProfile(ig);
+            setPendingSyncInstagrams(instagrams);
           }
         }
       } catch (error) {
@@ -474,12 +476,29 @@ const Index = () => {
     setShowDashboard(false);
   };
 
+  const handleRetrySync = () => {
+    setAgeRestrictionProfile(null);
+    if (pendingSyncInstagrams.length > 0) {
+      handleSyncComplete(pendingSyncInstagrams);
+    }
+  };
+
+  const ageRestrictionDialogElement = (
+    <AgeRestrictionDialog
+      isOpen={!!ageRestrictionProfile}
+      onClose={() => setAgeRestrictionProfile(null)}
+      username={ageRestrictionProfile || ''}
+      onRetrySync={handleRetrySync}
+    />
+  );
+
   // Not logged in - show login page
   if (!isLoggedIn) {
     return (
       <>
         <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} />
         <LoginPage onLoginSuccess={handleLoginSuccess} />
+        {ageRestrictionDialogElement}
       </>
     );
   }
@@ -494,6 +513,7 @@ const Index = () => {
           onSyncComplete={handleSyncComplete}
           onLogout={handleLogout}
         />
+        {ageRestrictionDialogElement}
       </>
     );
   }
@@ -514,6 +534,7 @@ const Index = () => {
           isLoading={isLoading}
           onLogout={handleLogout}
         />
+        {ageRestrictionDialogElement}
       </>
     );
   }
@@ -527,6 +548,7 @@ const Index = () => {
         onSyncComplete={handleSyncComplete}
         onLogout={handleLogout}
       />
+      {ageRestrictionDialogElement}
     </>
   );
 };
