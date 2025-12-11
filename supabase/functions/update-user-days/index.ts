@@ -31,44 +31,84 @@ async function updateUserDaysInBackground() {
     }
 
     const usuarios = data.usuarios;
-    console.log(`[UPDATE-USER-DAYS] Found ${usuarios.length} users to update`);
+    console.log(`[UPDATE-USER-DAYS] Found ${usuarios.length} users from SquareCloud`);
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Update user_sessions table with new days_remaining values
+    // Build a map of username -> daysRemaining from SquareCloud
+    const userDaysMap = new Map<string, number>();
+    for (const usuario of usuarios) {
+      const username = usuario.ID?.toLowerCase();
+      const daysRemaining = usuario.data?.dataDeExpiracao ?? 0;
+      if (username) {
+        userDaysMap.set(username, daysRemaining);
+        console.log(`[UPDATE-USER-DAYS] SquareCloud: ${username} = ${daysRemaining} days`);
+      }
+    }
+
+    // Get all existing user_sessions from database
+    const { data: existingUsers, error: fetchError } = await supabase
+      .from('user_sessions')
+      .select('id, squarecloud_username, days_remaining');
+
+    if (fetchError) {
+      console.error('[UPDATE-USER-DAYS] Error fetching existing users:', fetchError);
+      return;
+    }
+
+    console.log(`[UPDATE-USER-DAYS] Found ${existingUsers?.length || 0} users in database`);
+
+    // Update each user with their days from SquareCloud
     let updated = 0;
+    let skipped = 0;
     let errors = 0;
 
-    for (const usuario of usuarios) {
-      const username = usuario.ID;
-      const daysRemaining = usuario.data?.dataDeExpiracao ?? 0;
+    for (const dbUser of (existingUsers || [])) {
+      const username = dbUser.squarecloud_username?.toLowerCase();
+      if (!username) continue;
+
+      // Get days from SquareCloud API
+      const squareDays = userDaysMap.get(username);
+      
+      if (squareDays === undefined) {
+        console.log(`[UPDATE-USER-DAYS] User ${username} not found in SquareCloud, skipping`);
+        skipped++;
+        continue;
+      }
+
+      // Only update if days are different
+      if (dbUser.days_remaining === squareDays) {
+        console.log(`[UPDATE-USER-DAYS] User ${username} already has ${squareDays} days, skipping`);
+        skipped++;
+        continue;
+      }
 
       try {
-        // Update user_sessions table
         const { error } = await supabase
           .from('user_sessions')
           .update({ 
-            days_remaining: daysRemaining,
+            days_remaining: squareDays,
             updated_at: new Date().toISOString()
           })
-          .eq('squarecloud_username', username);
+          .eq('id', dbUser.id);
 
         if (error) {
-          // User might not exist in our database yet - that's ok
-          console.log(`[UPDATE-USER-DAYS] User ${username} not in database (or error): ${error.message}`);
+          console.error(`[UPDATE-USER-DAYS] Error updating ${username}:`, error.message);
+          errors++;
         } else {
+          console.log(`[UPDATE-USER-DAYS] Updated ${username}: ${dbUser.days_remaining} -> ${squareDays} days`);
           updated++;
         }
       } catch (e) {
-        console.error(`[UPDATE-USER-DAYS] Error updating ${username}:`, e);
+        console.error(`[UPDATE-USER-DAYS] Exception updating ${username}:`, e);
         errors++;
       }
     }
 
-    console.log(`[UPDATE-USER-DAYS] Background task complete: Updated ${updated} of ${usuarios.length} users, ${errors} errors`);
+    console.log(`[UPDATE-USER-DAYS] Background task complete: Updated ${updated}, Skipped ${skipped}, Errors ${errors}`);
   } catch (error) {
     console.error('[UPDATE-USER-DAYS] Background task error:', error);
   }
