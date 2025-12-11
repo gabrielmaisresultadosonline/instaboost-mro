@@ -23,21 +23,45 @@ const Ligacao = () => {
   // Get admin settings for pixel configuration
   const adminSettings = getAdminData().settings;
   const pixelId = adminSettings.facebookPixel || '569414052132145';
-  const pixelCode = adminSettings.facebookPixelCode;
 
-  // Initialize Facebook Pixel on mount using complete code
+  // Initialize Facebook Pixel on mount
   useEffect(() => {
-    // Use the complete pixel code if available
-    if (pixelCode) {
-      const script = document.createElement('script');
-      script.id = 'fb-pixel-script';
-      script.innerHTML = pixelCode;
-      document.head.appendChild(script);
+    // Initialize fbq function manually (same as Meta Pixel Code)
+    if (!window.fbq) {
+      const n: any = window.fbq = function() {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!(window as any)._fbq) (window as any)._fbq = n;
+      n.push = n;
+      n.loaded = true;
+      n.version = '2.0';
+      n.queue = [];
+    }
 
-      // Add noscript fallback
+    // Load the Facebook Pixel script
+    const existingScript = document.querySelector('script[src*="fbevents.js"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+      document.head.appendChild(script);
+    }
+
+    // Initialize pixel with ID and track PageView
+    window.fbq('init', pixelId);
+    window.fbq('track', 'PageView');
+
+    // Add noscript fallback
+    const existingNoscript = document.getElementById('fb-pixel-noscript');
+    if (!existingNoscript) {
       const noscript = document.createElement('noscript');
       noscript.id = 'fb-pixel-noscript';
-      noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1" />`;
+      const img = document.createElement('img');
+      img.height = 1;
+      img.width = 1;
+      img.style.display = 'none';
+      img.src = `https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`;
+      noscript.appendChild(img);
       document.body.appendChild(noscript);
     }
 
@@ -45,13 +69,10 @@ const Ligacao = () => {
     trackCallEvent('page_view');
 
     return () => {
-      // Don't remove the script on unmount to avoid issues
-      const existingScript = document.getElementById('fb-pixel-script');
-      const existingNoscript = document.getElementById('fb-pixel-noscript');
-      if (existingScript) existingScript.remove();
-      if (existingNoscript) existingNoscript.remove();
+      const noscriptEl = document.getElementById('fb-pixel-noscript');
+      if (noscriptEl) noscriptEl.remove();
     };
-  }, [pixelCode, pixelId]);
+  }, [pixelId]);
 
   // Force larger zoom on desktop to fill screen better
   useEffect(() => {
