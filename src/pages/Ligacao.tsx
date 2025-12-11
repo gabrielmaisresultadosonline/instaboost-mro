@@ -23,36 +23,35 @@ const Ligacao = () => {
   // Get admin settings for pixel configuration
   const adminSettings = getAdminData().settings;
   const pixelId = adminSettings.facebookPixel || '569414052132145';
+  const pixelCode = adminSettings.facebookPixelCode;
 
-  // Initialize Facebook Pixel on mount
+  // Initialize Facebook Pixel on mount using complete code
   useEffect(() => {
-    const script = document.createElement('script');
-    script.innerHTML = `
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '${pixelId}');
-      fbq('track', 'PageView');
-    `;
-    document.head.appendChild(script);
+    // Use the complete pixel code if available
+    if (pixelCode) {
+      const script = document.createElement('script');
+      script.id = 'fb-pixel-script';
+      script.innerHTML = pixelCode;
+      document.head.appendChild(script);
 
-    const noscript = document.createElement('noscript');
-    noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1" />`;
-    document.body.appendChild(noscript);
+      // Add noscript fallback
+      const noscript = document.createElement('noscript');
+      noscript.id = 'fb-pixel-noscript';
+      noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1" />`;
+      document.body.appendChild(noscript);
+    }
 
     // Track page view in local analytics
     trackCallEvent('page_view');
 
     return () => {
-      document.head.removeChild(script);
-      document.body.removeChild(noscript);
+      // Don't remove the script on unmount to avoid issues
+      const existingScript = document.getElementById('fb-pixel-script');
+      const existingNoscript = document.getElementById('fb-pixel-noscript');
+      if (existingScript) existingScript.remove();
+      if (existingNoscript) existingNoscript.remove();
     };
-  }, [pixelId]);
+  }, [pixelCode, pixelId]);
 
   // Force larger zoom on desktop to fill screen better
   useEffect(() => {
