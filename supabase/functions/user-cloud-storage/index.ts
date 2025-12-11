@@ -133,12 +133,21 @@ serve(async (req) => {
         .eq('squarecloud_username', normalizedUsername)
         .maybeSingle();
 
+      // If daysRemaining is provided, use it; otherwise don't overwrite existing value
       const saveData: any = {
         squarecloud_username: normalizedUsername,
-        days_remaining: daysRemaining || 365,
         profile_sessions: profileSessions || [],
         archived_profiles: archivedProfiles || [],
       };
+
+      // Only update days_remaining if explicitly provided and not undefined
+      if (daysRemaining !== undefined && daysRemaining !== null) {
+        saveData.days_remaining = daysRemaining;
+      } else if (!existing) {
+        // New user - set default days
+        saveData.days_remaining = 365;
+      }
+      // If existing user and no daysRemaining provided, keep existing value
 
       // Only set email if user doesn't exist yet OR has no email set
       if (email && (!existing || !existing.email)) {
