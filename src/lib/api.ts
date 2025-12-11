@@ -17,6 +17,7 @@ export const fetchInstagramProfile = async (
   message?: string;
   error?: string;
   fromCache?: boolean;
+  canRetry?: boolean;
 }> => {
   try {
     const normalizedUsername = username.toLowerCase().replace('@', '');
@@ -61,7 +62,7 @@ export const fetchInstagramProfile = async (
       }
     }
     
-    // STEP 2: Fetch fresh data from API
+    // STEP 2: Fetch fresh data from API (with retry flag support)
     console.log(`🌐 Buscando dados completos da API para @${normalizedUsername}...`);
     const { data, error } = await supabase.functions.invoke('fetch-instagram', {
       body: { username: normalizedUsername, existingPosts }
@@ -69,14 +70,15 @@ export const fetchInstagramProfile = async (
 
     if (error) {
       console.error('Error fetching profile:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error.message, canRetry: true };
     }
 
     // Check for API error response
     if (!data.success) {
       return { 
         success: false, 
-        error: data.error || 'Não foi possível buscar o perfil'
+        error: data.error || 'Não foi possível buscar o perfil',
+        canRetry: data.canRetry || false
       };
     }
 
