@@ -268,6 +268,7 @@ const Index = () => {
         const profileResult = await fetchInstagramProfile(ig);
         
         if (profileResult.success && profileResult.profile) {
+          setLoadingMessage(`Analisando @${ig} com I.A...`);
           const analysisResult = await analyzeProfile(profileResult.profile);
           
           if (analysisResult.success && analysisResult.analysis) {
@@ -281,6 +282,29 @@ const Index = () => {
             if (user?.email && !isIGRegistered(ig)) {
               addRegisteredIG(ig, user.email, true);
             }
+          } else {
+            console.warn(`⚠️ Análise falhou para @${ig}`);
+            // Still count as loaded if profile was fetched
+            if (persistedData) {
+              addProfile(persistedData.profile, persistedData.analysis);
+              cachedCount++;
+            }
+          }
+        } else {
+          // API failed - profile may not exist on Instagram
+          console.warn(`⚠️ API retornou erro para @${ig}: ${profileResult.error}`);
+          
+          // Try to use cached data as fallback
+          if (persistedData) {
+            console.log(`📦 Usando cache para @${ig} (API falhou)`);
+            addProfile(persistedData.profile, persistedData.analysis);
+            cachedCount++;
+          } else {
+            toast({
+              title: `@${ig} não encontrado`,
+              description: 'Perfil pode não existir ou estar privado',
+              variant: 'destructive'
+            });
           }
         }
       } catch (error) {
