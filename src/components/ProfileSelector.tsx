@@ -61,48 +61,50 @@ export const ProfileSelector = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
-          {profiles.map((profile) => (
-            <DropdownMenuItem
-              key={profile.id}
-              className="flex items-center justify-between cursor-pointer"
-              onClick={() => onSelectProfile(profile.id)}
-            >
-              <div className="flex items-center gap-2">
-                <img
-                  src={profile.profile.profilePicUrl}
-                  alt={profile.profile.username}
-                  className="w-6 h-6 rounded-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = `https://ui-avatars.com/api/?name=${profile.profile.username}`;
-                  }}
-                />
-                <div>
-                  <p className="font-medium text-sm">@{profile.profile.username}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {profile.profile.followers.toLocaleString()} seguidores
-                  </p>
+          <div className="max-h-[50vh] overflow-y-auto">
+            {profiles.map((profile) => (
+              <DropdownMenuItem
+                key={profile.id}
+                className="flex items-center justify-between cursor-pointer"
+                onClick={() => onSelectProfile(profile.id)}
+              >
+                <div className="flex items-center gap-2">
+                  <img
+                    src={profile.profile.profilePicUrl}
+                    alt={profile.profile.username}
+                    className="w-6 h-6 rounded-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://ui-avatars.com/api/?name=${profile.profile.username}`;
+                    }}
+                  />
+                  <div>
+                    <p className="font-medium text-sm">@{profile.profile.username}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {profile.profile.followers.toLocaleString()} seguidores
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1">
-                {profile.id === activeProfileId && (
-                  <Check className="w-4 h-4 text-primary" />
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm(`Remover @${profile.profile.username} da sessão?`)) {
-                      onRemoveProfile(profile.id);
-                    }
-                  }}
-                  className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors"
-                  title="Remover perfil"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            </DropdownMenuItem>
-          ))}
+                <div className="flex items-center gap-1">
+                  {profile.id === activeProfileId && (
+                    <Check className="w-4 h-4 text-primary" />
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Remover @${profile.profile.username} da sessão?`)) {
+                        onRemoveProfile(profile.id);
+                      }
+                    }}
+                    className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors"
+                    title="Remover perfil"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              </DropdownMenuItem>
+            ))}
+          </div>
           
           <DropdownMenuSeparator />
           
