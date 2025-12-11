@@ -88,3 +88,6 @@ verify_jwt = false
 
 [functions.update-user-days]
 verify_jwt = false
+
+[functions.load-admin-data]
+verify_jwt = false

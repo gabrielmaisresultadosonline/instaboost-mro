@@ -144,20 +144,14 @@ const saveToServer = async (data: SyncData): Promise<void> => {
   }
 };
 
-// Load from server (call on admin login) - uses authenticated Supabase call
+// Load from server (call on admin login) - uses public edge function
 export const loadSyncDataFromServer = async (): Promise<SyncData> => {
   try {
-    // Check if user is authenticated before trying to load
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      console.log('🔄 Usuário não autenticado, usando dados locais');
-      return getSyncData();
-    }
-
     console.log('🔄 Carregando dados do admin do servidor...');
     
-    const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
-      body: { action: 'load' }
+    // Use public edge function to load admin data
+    const { data: response, error } = await supabase.functions.invoke('load-admin-data', {
+      body: {}
     });
 
     if (error) {
@@ -166,9 +160,9 @@ export const loadSyncDataFromServer = async (): Promise<SyncData> => {
     }
 
     if (response?.success && response?.data) {
-      console.log('✅ Dados do admin carregados do servidor');
+      console.log(`✅ Dados do admin carregados: ${response.data.profiles?.length || 0} perfis`);
       const serverData = { ...DEFAULT_SYNC_DATA, ...response.data };
-      saveToLocal(serverData); // Update local cache
+      saveToLocal(serverData);
       return serverData;
     }
 
