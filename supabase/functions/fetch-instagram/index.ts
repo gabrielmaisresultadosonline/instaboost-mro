@@ -76,13 +76,54 @@ serve(async (req) => {
       }, { status: 500, headers: corsHeaders });
     }
 
-    // Check if we have Instagram session for authenticated requests
-    const hasAuthSession = !!INSTAGRAM_SESSION_ID;
-    if (hasAuthSession) {
-      console.log('🔐 Instagram session ID configured - will use authenticated requests');
-    } else {
-      console.log('⚠️ No Instagram session ID - using unauthenticated requests (may fail for age-restricted profiles)');
-    }
+    // Helper function to scrape Instagram directly via web page
+    const scrapeInstagramDirect = async (): Promise<any | null> => {
+      console.log('🔍 Tentando scraping direto do Instagram...');
+      
+      try {
+        // Try to fetch the Instagram page directly with mobile user agent
+        const response = await fetch(`https://www.instagram.com/${cleanUsername}/?__a=1&__d=dis`, {
+          headers: {
+            'User-Agent': 'Instagram 219.0.0.12.117 Android',
+            'Accept': 'application/json',
+            'X-IG-App-ID': '936619743392459',
+          }
+        });
+        
+        if (response.ok) {
+          const text = await response.text();
+          console.log(`📥 Direct scrape response (${text.length} chars)`);
+          
+          try {
+            const data = JSON.parse(text);
+            if (data.graphql?.user || data.user) {
+              const user = data.graphql?.user || data.user;
+              console.log('✅ Direct scrape successful!');
+              return {
+                profile_name: user.full_name || user.username,
+                account: user.username,
+                biography: user.biography,
+                followers: user.edge_followed_by?.count || user.follower_count || 0,
+                following: user.edge_follow?.count || user.following_count || 0,
+                posts_count: user.edge_owner_to_timeline_media?.count || user.media_count || 0,
+                profile_image_link: user.profile_pic_url_hd || user.profile_pic_url,
+                is_business_account: user.is_business_account || user.is_professional_account,
+                category: user.category_name || user.category || '',
+                external_url: user.external_url || '',
+              };
+            }
+          } catch (e) {
+            console.log('❌ Failed to parse direct scrape response');
+          }
+        } else {
+          console.log(`❌ Direct scrape failed with status: ${response.status}`);
+        }
+      } catch (e) {
+        console.error('❌ Direct scrape error:', e);
+      }
+      
+      return null;
+    };
 
     // Helper function to make Bright Data API call
     const callBrightDataAPI = async (attempt: number, useAuth: boolean = false): Promise<Response> => {
@@ -155,24 +196,31 @@ serve(async (req) => {
       return null;
     };
 
+    const hasAuthSession = !!INSTAGRAM_SESSION_ID;
+
     try {
       let profileData = null;
 
-      // ATTEMPT 1: First try without auth
-      try {
-        const response1 = await callBrightDataAPI(1, false);
-        
-        if (response1.status === 202) {
-          console.log('⏳ Bright Data returned 202 (async) on attempt 1');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } else {
-          profileData = await processBrightDataResponse(response1);
+      // ATTEMPT 0: Try direct scraping first (fastest)
+      profileData = await scrapeInstagramDirect();
+
+      // ATTEMPT 1: Bright Data without auth
+      if (!profileData) {
+        try {
+          const response1 = await callBrightDataAPI(1, false);
+          
+          if (response1.status === 202) {
+            console.log('⏳ Bright Data returned 202 (async) on attempt 1');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          } else {
+            profileData = await processBrightDataResponse(response1);
+          }
+        } catch (e) {
+          console.error('❌ Bright Data attempt 1 failed:', e);
         }
-      } catch (e) {
-        console.error('❌ Bright Data attempt 1 failed:', e);
       }
 
-      // ATTEMPT 2: Second try without auth if first failed
+      // ATTEMPT 2: Second try Bright Data without auth if first failed
       if (!profileData) {
         console.log('⚠️ Primeira tentativa falhou, tentando novamente...');
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -221,7 +269,7 @@ serve(async (req) => {
       if (!profileData) {
         const errorMsg = hasAuthSession 
           ? 'Perfil não encontrado ou inacessível mesmo com autenticação. Verifique se o perfil existe.'
-          : 'API temporariamente indisponível para este perfil. Se for perfil restrito por idade, configure sessão autenticada.';
+          : 'Este perfil possui restrição de idade e não pode ser acessado automaticamente. O dono do perfil precisa desativar a restrição nas configurações do Instagram.';
         
         console.log(`❌ Perfil @${cleanUsername} não encontrado após todas tentativas`);
         return Response.json({ 
@@ -229,7 +277,7 @@ serve(async (req) => {
           error: errorMsg,
           canRetry: true,
           retryAfter: 60,
-          isRestricted: !hasAuthSession
+          isRestricted: true
         }, { headers: corsHeaders });
       }
 
