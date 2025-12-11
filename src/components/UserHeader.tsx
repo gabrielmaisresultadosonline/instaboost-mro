@@ -40,6 +40,7 @@ export const UserHeader = ({ onLogout }: UserHeaderProps) => {
               {isLifetime ? (
                 <div className="flex items-center gap-1">
                   <Crown className="w-4 h-4 text-amber-500" />
+                  <span className="text-amber-500 font-semibold text-xs">Vitalício</span>
                   {user.creativesUnlocked ? (
                     <Unlock className="w-3 h-3 text-green-500" />
                   ) : (
