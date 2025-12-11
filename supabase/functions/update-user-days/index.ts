@@ -8,14 +8,11 @@ const corsHeaders = {
 
 const SQUARE_API_BASE = 'https://dashboardmroinstagramvini-online.squareweb.app';
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
+// Background task to update user days
+async function updateUserDaysInBackground() {
+  console.log('[UPDATE-USER-DAYS] Background task started...');
+  
   try {
-    console.log('[UPDATE-USER-DAYS] Starting daily update...');
-
     // Fetch all users from SquareCloud
     const response = await fetch(`${SQUARE_API_BASE}/obter-usuarios`);
     const text = await response.text();
@@ -25,18 +22,12 @@ serve(async (req) => {
       data = JSON.parse(text);
     } catch {
       console.error('[UPDATE-USER-DAYS] Failed to parse SquareCloud response');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Failed to parse SquareCloud response' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return;
     }
 
     if (!data.success || !Array.isArray(data.usuarios)) {
       console.error('[UPDATE-USER-DAYS] Invalid response format from SquareCloud');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Invalid response from SquareCloud' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return;
     }
 
     const usuarios = data.usuarios;
@@ -77,19 +68,32 @@ serve(async (req) => {
       }
     }
 
-    const result = {
-      success: true,
-      message: `Updated ${updated} users, ${errors} errors`,
-      totalUsers: usuarios.length,
-      updated,
-      errors,
-      timestamp: new Date().toISOString()
-    };
+    console.log(`[UPDATE-USER-DAYS] Background task complete: Updated ${updated} of ${usuarios.length} users, ${errors} errors`);
+  } catch (error) {
+    console.error('[UPDATE-USER-DAYS] Background task error:', error);
+  }
+}
 
-    console.log('[UPDATE-USER-DAYS] Update complete:', result);
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
 
+  try {
+    console.log('[UPDATE-USER-DAYS] Request received, starting background task...');
+
+    // Start the background task without waiting
+    // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
+    EdgeRuntime.waitUntil(updateUserDaysInBackground());
+
+    // Return immediately
     return new Response(
-      JSON.stringify(result),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Atualização iniciada em segundo plano. Os dias serão atualizados em ~2-3 minutos.',
+        background: true,
+        timestamp: new Date().toISOString()
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
