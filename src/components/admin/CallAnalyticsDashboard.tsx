@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { getAdminData, saveAdminData, getCallAnalytics, clearCallAnalytics, CallAnalytics } from '@/lib/adminConfig';
 import { 
   Phone, PhoneCall, PhoneOff, ExternalLink, Eye, 
   Trash2, BarChart3, TrendingUp, Clock, Users,
-  Smartphone, Monitor, RefreshCw
+  Smartphone, Monitor, RefreshCw, Code
 } from 'lucide-react';
 
 const CallAnalyticsDashboard = () => {
@@ -225,40 +225,65 @@ const CallAnalyticsDashboard = () => {
           <BarChart3 className="w-5 h-5 text-primary" />
           Configurações do Facebook Pixel
         </h3>
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pixelId">Pixel ID</Label>
-              <Input
-                id="pixelId"
-                value={adminData.settings.facebookPixel}
-                onChange={(e) => setAdminData(prev => ({
-                  ...prev,
-                  settings: { ...prev.settings, facebookPixel: e.target.value }
-                }))}
-                placeholder="ID do Pixel do Facebook"
-                className="bg-secondary/50"
-              />
-            </div>
+        
+        <div className="space-y-6">
+          {/* Pixel ID */}
+          <div className="space-y-2">
+            <Label htmlFor="pixelId">Pixel ID (referência)</Label>
+            <Input
+              id="pixelId"
+              value={adminData.settings.facebookPixel}
+              onChange={(e) => setAdminData(prev => ({
+                ...prev,
+                settings: { ...prev.settings, facebookPixel: e.target.value }
+              }))}
+              placeholder="ID do Pixel do Facebook"
+              className="bg-secondary/50"
+            />
           </div>
-          <div className="space-y-4">
-            <p className="text-sm font-medium">Eventos do Pixel</p>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">PageView (ao carregar página)</span>
-                <span className="text-xs text-green-500 font-medium">Ativo</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">ViewContent (clicou CTA final)</span>
-                <span className="text-xs text-green-500 font-medium">Ativo</span>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              Os eventos são disparados automaticamente: PageView ao carregar /ligacao, 
-              ViewContent quando o usuário clica no botão após ouvir o áudio completo.
+
+          {/* Complete Pixel Code */}
+          <div className="space-y-2">
+            <Label htmlFor="pixelCode" className="flex items-center gap-2">
+              <Code className="w-4 h-4" />
+              Código Completo do Pixel (cole apenas o JavaScript)
+            </Label>
+            <Textarea
+              id="pixelCode"
+              value={adminData.settings.facebookPixelCode || ''}
+              onChange={(e) => setAdminData(prev => ({
+                ...prev,
+                settings: { ...prev.settings, facebookPixelCode: e.target.value }
+              }))}
+              placeholder={`!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', 'SEU_PIXEL_ID');
+fbq('track', 'PageView');`}
+              className="bg-secondary/50 font-mono text-xs min-h-[200px]"
+              rows={10}
+            />
+            <p className="text-xs text-muted-foreground">
+              Cole o código JavaScript do Meta Pixel (sem as tags &lt;script&gt;). 
+              Este código será injetado diretamente na página /ligacao.
             </p>
           </div>
+
+          {/* Events Info */}
+          <div className="bg-secondary/30 p-4 rounded-lg">
+            <p className="text-sm font-medium mb-2">Eventos Rastreados:</p>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              <li>• <span className="text-green-500 font-medium">PageView</span> - Disparado ao carregar a página /ligacao</li>
+              <li>• <span className="text-green-500 font-medium">ViewContent</span> - Disparado quando clica no botão final após ouvir o áudio</li>
+            </ul>
+          </div>
         </div>
+
         <Button onClick={handleSaveSettings} className="mt-4 cursor-pointer">
           Salvar Configurações
         </Button>
