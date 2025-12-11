@@ -24,52 +24,46 @@ const Ligacao = () => {
   const adminSettings = getAdminData().settings;
   const pixelId = adminSettings.facebookPixel || '569414052132145';
 
-  // Initialize Facebook Pixel on mount
+  // Initialize Facebook Pixel on mount - using inline script injection for proper detection
   useEffect(() => {
-    // Initialize fbq function manually (same as Meta Pixel Code)
-    if (!window.fbq) {
-      const n: any = window.fbq = function() {
-        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-      };
-      if (!(window as any)._fbq) (window as any)._fbq = n;
-      n.push = n;
-      n.loaded = true;
-      n.version = '2.0';
-      n.queue = [];
+    // Check if pixel already initialized
+    if (document.getElementById('fb-pixel-inline')) {
+      return;
     }
 
-    // Load the Facebook Pixel script
-    const existingScript = document.querySelector('script[src*="fbevents.js"]');
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = 'https://connect.facebook.net/en_US/fbevents.js';
-      document.head.appendChild(script);
-    }
-
-    // Initialize pixel with ID and track PageView
-    window.fbq('init', pixelId);
-    window.fbq('track', 'PageView');
+    // Create and inject the complete Meta Pixel code as inline script
+    const inlineScript = document.createElement('script');
+    inlineScript.id = 'fb-pixel-inline';
+    inlineScript.textContent = `
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '${pixelId}');
+      fbq('track', 'PageView');
+    `;
+    document.head.insertBefore(inlineScript, document.head.firstChild);
 
     // Add noscript fallback
-    const existingNoscript = document.getElementById('fb-pixel-noscript');
-    if (!existingNoscript) {
-      const noscript = document.createElement('noscript');
-      noscript.id = 'fb-pixel-noscript';
-      const img = document.createElement('img');
-      img.height = 1;
-      img.width = 1;
-      img.style.display = 'none';
-      img.src = `https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`;
-      noscript.appendChild(img);
-      document.body.appendChild(noscript);
-    }
+    const noscript = document.createElement('noscript');
+    noscript.id = 'fb-pixel-noscript';
+    noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1" />`;
+    document.body.appendChild(noscript);
 
     // Track page view in local analytics
     trackCallEvent('page_view');
 
+    console.log('[FB Pixel] Initialized with ID:', pixelId);
+
     return () => {
+      // Cleanup on unmount
+      const scriptEl = document.getElementById('fb-pixel-inline');
       const noscriptEl = document.getElementById('fb-pixel-noscript');
+      if (scriptEl) scriptEl.remove();
       if (noscriptEl) noscriptEl.remove();
     };
   }, [pixelId]);
