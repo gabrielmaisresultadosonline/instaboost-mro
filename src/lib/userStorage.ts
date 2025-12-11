@@ -5,13 +5,31 @@ import { ProfileSession } from '@/types/instagram';
 
 const USER_STORAGE_KEY = 'mro_user_session';
 const CACHE_VERSION_KEY = 'mro_cache_version';
-const CURRENT_CACHE_VERSION = '3.0'; // v3.0 - Complete data isolation fix
+const CURRENT_CACHE_VERSION = '4.0'; // v4.0 - Complete data isolation fix with forced days from SquareCloud
 
 // Clear ALL user-related data from localStorage - CRITICAL for user isolation
 export const clearAllUserData = (): void => {
   console.log('[userStorage] 🔒 CLEARING ALL user-related data for isolation...');
   
-  // Clear all known storage keys
+  // Collect ALL keys that need removal first (avoid mutation during iteration)
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (
+      key.startsWith('mro_') || 
+      key === 'sb-adljdeekwifwcdcgbpit-auth-token' // Supabase auth token
+    )) {
+      keysToRemove.push(key);
+    }
+  }
+  
+  // Clear all collected keys
+  keysToRemove.forEach(key => {
+    localStorage.removeItem(key);
+    console.log(`[userStorage] Removed: ${key}`);
+  });
+  
+  // Also explicitly clear known keys (redundant but safe)
   localStorage.removeItem(USER_STORAGE_KEY);
   localStorage.removeItem('mro_session');
   localStorage.removeItem('mro_archived_profiles');
@@ -20,20 +38,10 @@ export const clearAllUserData = (): void => {
   localStorage.removeItem('mro_user_data');
   localStorage.removeItem('mro_persistent_data');
   
-  // Clear any keys that start with mro_ (catch-all safety)
-  const keysToRemove: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('mro_')) {
-      keysToRemove.push(key);
-    }
-  }
-  keysToRemove.forEach(key => localStorage.removeItem(key));
-  
-  // Clear session storage completely
+  // Clear ALL session storage completely
   sessionStorage.clear();
   
-  console.log(`[userStorage] ✅ Cleared ${keysToRemove.length + 6} storage keys`);
+  console.log(`[userStorage] ✅ Cleared ${keysToRemove.length} storage keys + session storage`);
 };
 
 // Check and clear stale cache on load
@@ -41,12 +49,16 @@ const validateCache = (): void => {
   try {
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY);
     if (storedVersion !== CURRENT_CACHE_VERSION) {
-      console.log(`[userStorage] Cache version mismatch (${storedVersion} vs ${CURRENT_CACHE_VERSION}), clearing ALL stale data...`);
+      console.log(`[userStorage] 🔄 Cache version mismatch (${storedVersion} vs ${CURRENT_CACHE_VERSION}), clearing ALL stale data...`);
       clearAllUserData();
       localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
+      console.log(`[userStorage] ✅ Cache upgraded to version ${CURRENT_CACHE_VERSION}`);
     }
   } catch (e) {
     console.error('[userStorage] Error validating cache:', e);
+    // On error, force clear everything
+    clearAllUserData();
+    localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
   }
 };
 
@@ -285,6 +297,8 @@ export const loginUser = async (
     console.log(`[userStorage] 🔐 NEW USER LOGIN: ${existingUsername || 'none'} -> ${normalizedUsername}`);
     console.log(`[userStorage] 🔒 Clearing ALL previous user data to prevent mixing...`);
     clearAllUserData();
+    // Re-set cache version after clearing
+    localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
   } else {
     console.log(`[userStorage] ♻️ Same user re-login: ${normalizedUsername}`);
   }
@@ -292,7 +306,7 @@ export const loginUser = async (
   // Preserve creativesUnlocked ONLY if same user
   const creativesUnlocked = isSameUser ? existingSession.user?.creativesUnlocked : false;
   
-  // CRITICAL: Load from cloud - this is the ONLY source of truth for this user
+  // CRITICAL: Load from cloud - this is the source of profiles for this user
   console.log(`[userStorage] ☁️ Loading cloud data for ${normalizedUsername}...`);
   const cloudData = await loadUserFromCloud(normalizedUsername);
   
@@ -302,6 +316,15 @@ export const loginUser = async (
   // Use cloud email if available (locked), otherwise use provided email
   const finalEmail = cloudData?.email || email;
   const isEmailLocked = cloudData?.isEmailLocked || false;
+  
+  // CRITICAL: For daysRemaining, ALWAYS use the value from SquareCloud API (passed as parameter)
+  // The cloud data daysRemaining is only for backup/display, the authoritative source is SquareCloud
+  const finalDaysRemaining = daysRemaining; // Always from SquareCloud API, NOT from cloud storage
+  
+  console.log(`[userStorage] 📅 Days remaining: ${finalDaysRemaining} (from SquareCloud API)`);
+  if (cloudData?.daysRemaining && cloudData.daysRemaining !== finalDaysRemaining) {
+    console.log(`[userStorage] ⚠️ Cloud had different days (${cloudData.daysRemaining}), using SquareCloud value`);
+  }
   
   // Only use database profiles (cloud-linked) - no local merging for new users
   const mergedIGs: RegisteredIG[] = [...dbProfiles];
@@ -319,7 +342,7 @@ export const loginUser = async (
     user: {
       username: normalizedUsername,
       email: finalEmail,
-      daysRemaining: cloudData?.daysRemaining || daysRemaining,
+      daysRemaining: finalDaysRemaining, // ALWAYS from SquareCloud API
       loginAt: new Date().toISOString(),
       registeredIGs: mergedIGs,
       creativesUnlocked: creativesUnlocked || false,
@@ -335,8 +358,20 @@ export const loginUser = async (
   
   saveUserSession(session);
   
+  // Update cloud storage with correct days from SquareCloud
+  if (cloudData && cloudData.daysRemaining !== finalDaysRemaining) {
+    console.log(`[userStorage] ☁️ Updating cloud with correct days: ${finalDaysRemaining}`);
+    await saveUserToCloud(
+      normalizedUsername,
+      finalEmail,
+      finalDaysRemaining,
+      cloudData.profileSessions,
+      cloudData.archivedProfiles
+    );
+  }
+  
   const cloudProfileCount = cloudData?.profileSessions?.length || 0;
-  console.log(`[userStorage] ✅ Logged in ${normalizedUsername}: ${cloudProfileCount} cloud profiles, ${mergedIGs.length} registered IGs`);
+  console.log(`[userStorage] ✅ Logged in ${normalizedUsername}: ${cloudProfileCount} cloud profiles, ${mergedIGs.length} registered IGs, ${finalDaysRemaining} days`);
   
   return session;
 };
