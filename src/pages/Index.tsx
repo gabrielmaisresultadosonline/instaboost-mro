@@ -245,9 +245,18 @@ const Index = () => {
       const { shouldFetch, reason } = shouldFetchProfile(normalizedIg);
       const persistedData = getPersistedProfile(normalizedIg);
       
-      if (persistedData && !shouldFetch) {
-        // USE CACHED DATA - no API call needed
-        console.log(`📦 Usando dados do servidor para @${ig}: ${reason}`);
+      // CRITICAL: Only use cached data if it has REAL data (not zeros from failed sync)
+      const hasRealCachedData = persistedData && (
+        persistedData.profile.followers > 0 || 
+        persistedData.profile.posts > 0 || 
+        (persistedData.profile.profilePicUrl && 
+         !persistedData.profile.profilePicUrl.includes('dicebear') &&
+         persistedData.profile.profilePicUrl.length > 50)
+      );
+      
+      if (hasRealCachedData && !shouldFetch) {
+        // USE CACHED DATA - no API call needed (only if has real data)
+        console.log(`📦 Usando dados reais do servidor para @${ig}: ${reason}`);
         addProfile(persistedData.profile, persistedData.analysis);
         cachedCount++;
         
@@ -256,6 +265,9 @@ const Index = () => {
           description: reason
         });
         continue;
+      } else if (persistedData && !hasRealCachedData) {
+        // Cache has zero/invalid data - force API fetch
+        console.warn(`⚠️ Cache de @${ig} tem dados zerados - forçando busca na API`);
       }
       
       // Only fetch from API if needed
