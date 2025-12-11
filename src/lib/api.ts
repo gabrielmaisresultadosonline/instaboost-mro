@@ -18,6 +18,8 @@ export const fetchInstagramProfile = async (
   error?: string;
   fromCache?: boolean;
   canRetry?: boolean;
+  isPrivate?: boolean;
+  isRestricted?: boolean;
 }> => {
   try {
     const normalizedUsername = username.toLowerCase().replace('@', '');
@@ -78,7 +80,9 @@ export const fetchInstagramProfile = async (
       return { 
         success: false, 
         error: data.error || 'Não foi possível buscar o perfil',
-        canRetry: data.canRetry || false
+        canRetry: data.canRetry || false,
+        isPrivate: data.isPrivate || false,
+        isRestricted: data.isRestricted || false
       };
     }
 
@@ -109,7 +113,8 @@ export const fetchInstagramProfile = async (
         profile,
         simulated: false,
         fromCache: false,
-        message: data.message
+        message: data.message,
+        isPrivate: data.isPrivate || false
       };
     }
 
