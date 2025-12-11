@@ -66,6 +66,7 @@ serve(async (req) => {
     console.log(`Fetching Instagram profile via Bright Data: ${cleanUsername} (onlyPosts: ${onlyPosts || false})`);
 
     const BRIGHTDATA_TOKEN = Deno.env.get('BRIGHTDATA_API_TOKEN');
+    const INSTAGRAM_SESSION_ID = Deno.env.get('INSTAGRAM_SESSION_ID');
     
     if (!BRIGHTDATA_TOKEN) {
       console.error('BRIGHTDATA_API_TOKEN not configured');
@@ -75,10 +76,43 @@ serve(async (req) => {
       }, { status: 500, headers: corsHeaders });
     }
 
+    // Check if we have Instagram session for authenticated requests
+    const hasAuthSession = !!INSTAGRAM_SESSION_ID;
+    if (hasAuthSession) {
+      console.log('🔐 Instagram session ID configured - will use authenticated requests');
+    } else {
+      console.log('⚠️ No Instagram session ID - using unauthenticated requests (may fail for age-restricted profiles)');
+    }
+
     // Helper function to make Bright Data API call
-    const callBrightDataAPI = async (attempt: number): Promise<Response> => {
-      console.log(`🔄 Bright Data API tentativa ${attempt}/2 para: ${cleanUsername}`);
+    const callBrightDataAPI = async (attempt: number, useAuth: boolean = false): Promise<Response> => {
+      console.log(`🔄 Bright Data API tentativa ${attempt}/2 para: ${cleanUsername} (auth: ${useAuth})`);
       const profileUrl = `https://www.instagram.com/${cleanUsername}/`;
+      
+      // Build request body with optional session cookie for authenticated requests
+      const requestBody: any = {
+        input: [{ url: profileUrl }]
+      };
+      
+      // Add session cookie for authenticated requests to access age-restricted profiles
+      if (useAuth && INSTAGRAM_SESSION_ID) {
+        requestBody.browser_instructions = [
+          {
+            action: "set_cookies",
+            cookies: [
+              {
+                name: "sessionid",
+                value: INSTAGRAM_SESSION_ID,
+                domain: ".instagram.com",
+                path: "/",
+                secure: true,
+                httpOnly: true
+              }
+            ]
+          }
+        ];
+        console.log('🍪 Added Instagram session cookie for authenticated request');
+      }
       
       return await fetch(`${BRIGHTDATA_API_URL}?dataset_id=${INSTAGRAM_PROFILES_DATASET_ID}&format=json`, {
         method: 'POST',
@@ -86,9 +120,7 @@ serve(async (req) => {
           'Authorization': `Bearer ${BRIGHTDATA_TOKEN}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          input: [{ url: profileUrl }]
-        })
+        body: JSON.stringify(requestBody)
       });
     };
 
@@ -126,13 +158,12 @@ serve(async (req) => {
     try {
       let profileData = null;
 
-      // ATTEMPT 1: First try
+      // ATTEMPT 1: First try without auth
       try {
-        const response1 = await callBrightDataAPI(1);
+        const response1 = await callBrightDataAPI(1, false);
         
         if (response1.status === 202) {
           console.log('⏳ Bright Data returned 202 (async) on attempt 1');
-          // Wait 2 seconds and try again
           await new Promise(resolve => setTimeout(resolve, 2000));
         } else {
           profileData = await processBrightDataResponse(response1);
@@ -141,22 +172,16 @@ serve(async (req) => {
         console.error('❌ Bright Data attempt 1 failed:', e);
       }
 
-      // ATTEMPT 2: Second try if first failed
+      // ATTEMPT 2: Second try without auth if first failed
       if (!profileData) {
         console.log('⚠️ Primeira tentativa falhou, tentando novamente...');
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Wait 1.5s between retries
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         try {
-          const response2 = await callBrightDataAPI(2);
+          const response2 = await callBrightDataAPI(2, false);
           
           if (response2.status === 202) {
             console.log('⏳ Bright Data returned 202 (async) on attempt 2');
-            return Response.json({ 
-              success: false, 
-              error: 'Dados do perfil estão sendo processados. Clique em "Tentar novamente" em 30 segundos.',
-              retryAfter: 30,
-              canRetry: true
-            }, { headers: corsHeaders });
           } else {
             profileData = await processBrightDataResponse(response2);
           }
@@ -165,14 +190,46 @@ serve(async (req) => {
         }
       }
 
-      // If still no data after 2 attempts, return error with retry option
+      // ATTEMPT 3: Try with authenticated session if available and previous attempts failed
+      if (!profileData && hasAuthSession) {
+        console.log('🔐 Tentando com sessão autenticada para perfis restritos...');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        try {
+          const response3 = await callBrightDataAPI(3, true);
+          
+          if (response3.status === 202) {
+            console.log('⏳ Bright Data returned 202 (async) on authenticated attempt');
+            return Response.json({ 
+              success: false, 
+              error: 'Perfil restrito em processamento. Clique em "Tentar novamente" em 30 segundos.',
+              retryAfter: 30,
+              canRetry: true
+            }, { headers: corsHeaders });
+          } else {
+            profileData = await processBrightDataResponse(response3);
+            if (profileData) {
+              console.log('✅ Perfil restrito acessado via sessão autenticada!');
+            }
+          }
+        } catch (e) {
+          console.error('❌ Bright Data authenticated attempt failed:', e);
+        }
+      }
+
+      // If still no data after all attempts, return error with retry option
       if (!profileData) {
-        console.log(`❌ Perfil @${cleanUsername} não encontrado após 2 tentativas - API pode estar temporariamente indisponível`);
+        const errorMsg = hasAuthSession 
+          ? 'Perfil não encontrado ou inacessível mesmo com autenticação. Verifique se o perfil existe.'
+          : 'API temporariamente indisponível para este perfil. Se for perfil restrito por idade, configure sessão autenticada.';
+        
+        console.log(`❌ Perfil @${cleanUsername} não encontrado após todas tentativas`);
         return Response.json({ 
           success: false, 
-          error: 'API temporariamente indisponível para este perfil. Tente novamente em alguns minutos.',
+          error: errorMsg,
           canRetry: true,
-          retryAfter: 60
+          retryAfter: 60,
+          isRestricted: !hasAuthSession
         }, { headers: corsHeaders });
       }
 
