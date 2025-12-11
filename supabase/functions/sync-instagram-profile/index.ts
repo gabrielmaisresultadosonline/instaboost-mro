@@ -56,11 +56,12 @@ serve(async (req) => {
       );
     }
 
-    try {
+    // Helper function to make Bright Data API call
+    const callBrightDataAPI = async (attempt: number): Promise<Response> => {
       const profileUrl = `https://www.instagram.com/${cleanUsername}/`;
-      console.log('Calling Bright Data API for sync:', profileUrl);
+      console.log(`🔄 Bright Data API tentativa ${attempt}/2 para sync: ${profileUrl}`);
       
-      const response = await fetch(`${BRIGHTDATA_API_URL}?dataset_id=${INSTAGRAM_PROFILES_DATASET_ID}&format=json`, {
+      return await fetch(`${BRIGHTDATA_API_URL}?dataset_id=${INSTAGRAM_PROFILES_DATASET_ID}&format=json`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${BRIGHTDATA_TOKEN}`,
@@ -70,73 +71,107 @@ serve(async (req) => {
           input: [{ url: profileUrl }]
         })
       });
+    };
 
-      console.log('Bright Data API status:', response.status);
+    // Helper function to process response
+    const processBrightDataResponse = async (response: Response): Promise<any | null> => {
+      if (!response.ok && response.status !== 202) {
+        const errorText = await response.text();
+        console.log(`❌ Bright Data API error:`, response.status, errorText.substring(0, 500));
+        return null;
+      }
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Bright Data sync response:', JSON.stringify(data).substring(0, 1500));
+      if (response.status === 202) {
+        console.log('⏳ Bright Data returned 202 (async processing)');
+        return null;
+      }
+
+      const data = await response.json();
+      console.log('Bright Data sync response:', JSON.stringify(data).substring(0, 1500));
+      
+      const profileData = Array.isArray(data) ? data[0] : data;
+      
+      if (profileData && (profileData.followers !== undefined || profileData.id)) {
+        return profileData;
+      }
+      
+      console.log('❌ No valid profile data in sync response');
+      return null;
+    };
+
+    try {
+      let profileData = null;
+
+      // ATTEMPT 1: First try
+      try {
+        const response1 = await callBrightDataAPI(1);
+        profileData = await processBrightDataResponse(response1);
+      } catch (e) {
+        console.error('❌ Sync attempt 1 failed:', e);
+      }
+
+      // ATTEMPT 2: Second try if first failed
+      if (!profileData) {
+        console.log('⚠️ Primeira tentativa de sync falhou, tentando novamente...');
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Response can be an array of profiles
-        const profileData = Array.isArray(data) ? data[0] : data;
-        
-        if (profileData && (profileData.followers || profileData.id)) {
-          // Profile picture with HTTPS proxy
-          const proxiedProfilePic = profileData.profile_image_link 
-            ? proxyImage(profileData.profile_image_link)
-            : `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`;
-
-          const profile = {
-            username: profileData.account || profileData.profile_name || cleanUsername,
-            followers: profileData.followers || 0,
-            following: profileData.following || 0,
-            posts: profileData.posts_count || profileData.post_count || 0,
-            profilePicUrl: proxiedProfilePic,
-            fullName: profileData.profile_name || profileData.full_name || cleanUsername,
-            bio: profileData.biography || profileData.bio || "",
-            externalUrl: profileData.external_url || ""
-          };
-
-          console.log(`✅ Profile ${cleanUsername} synced: ${profile.followers} followers`);
-
-          return new Response(
-            JSON.stringify({ success: true, profile }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        } else {
-          console.log(`❌ Profile ${cleanUsername} not found in API response`);
+        try {
+          const response2 = await callBrightDataAPI(2);
+          profileData = await processBrightDataResponse(response2);
+        } catch (e) {
+          console.error('❌ Sync attempt 2 failed:', e);
         }
-      } else if (response.status === 202) {
-        // Async request - need to wait
-        const data = await response.json();
-        console.log('Bright Data returned 202 (async processing):', data);
+      }
+
+      // If still no data after 2 attempts
+      if (!profileData) {
+        console.log(`❌ Profile ${cleanUsername} não encontrado após 2 tentativas de sync`);
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: "Perfil está sendo processado, tente novamente em alguns segundos", 
+            error: "Não conseguimos buscar dados do perfil. Tente novamente.", 
             username: cleanUsername,
-            processing: true
+            canRetry: true
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
-      } else {
-        const errorText = await response.text();
-        console.log(`❌ Bright Data API error for ${cleanUsername}:`, response.status, errorText.substring(0, 500));
       }
+
+      // Process successful profile data
+      const proxiedProfilePic = profileData.profile_image_link 
+        ? proxyImage(profileData.profile_image_link)
+        : `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`;
+
+      const profile = {
+        username: profileData.account || profileData.profile_name || cleanUsername,
+        followers: profileData.followers || 0,
+        following: profileData.following || 0,
+        posts: profileData.posts_count || profileData.post_count || 0,
+        profilePicUrl: proxiedProfilePic,
+        fullName: profileData.profile_name || profileData.full_name || cleanUsername,
+        bio: profileData.biography || profileData.bio || "",
+        externalUrl: profileData.external_url || ""
+      };
+
+      console.log(`✅ Profile ${cleanUsername} synced: ${profile.followers} followers`);
+
+      return new Response(
+        JSON.stringify({ success: true, profile }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+
     } catch (apiError) {
       console.error(`API error for ${cleanUsername}:`, apiError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Erro de conexão. Tente novamente.", 
+          username: cleanUsername,
+          canRetry: true
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-
-    // Profile not found or API error
-    console.log(`Profile ${cleanUsername} não existe ou API indisponível`);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: "Perfil não existe ou API indisponível", 
-        username: cleanUsername 
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
