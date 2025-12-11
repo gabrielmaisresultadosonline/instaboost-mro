@@ -96,20 +96,30 @@ serve(async (req) => {
     const processBrightDataResponse = async (response: Response): Promise<any | null> => {
       if (!response.ok) {
         console.log(`❌ Bright Data API status: ${response.status}`);
+        const errorText = await response.text();
+        console.log(`❌ Bright Data error body: ${errorText.substring(0, 500)}`);
         return null;
       }
 
       const data = await response.json();
-      console.log('Bright Data response:', JSON.stringify(data).substring(0, 2000));
+      const rawResponse = JSON.stringify(data);
+      console.log(`📥 Bright Data raw response (${rawResponse.length} chars): ${rawResponse.substring(0, 2000)}`);
+      
+      // Handle empty array response - Bright Data sometimes returns [] for valid profiles
+      if (Array.isArray(data) && data.length === 0) {
+        console.log(`⚠️ Bright Data returned empty array [] for ${cleanUsername} - may be temporary issue`);
+        return null;
+      }
       
       const profileData = Array.isArray(data) ? data[0] : data;
       
       // Check if we have valid profile data
-      if (profileData && (profileData.followers !== undefined || profileData.id)) {
+      if (profileData && (profileData.followers !== undefined || profileData.id || profileData.profile_name)) {
+        console.log(`✅ Valid profile data found: followers=${profileData.followers}, id=${profileData.id}`);
         return profileData;
       }
       
-      console.log('❌ No valid profile data in response');
+      console.log('❌ No valid profile data in response structure');
       return null;
     };
 
@@ -157,11 +167,12 @@ serve(async (req) => {
 
       // If still no data after 2 attempts, return error with retry option
       if (!profileData) {
-        console.log(`❌ Perfil @${cleanUsername} não encontrado após 2 tentativas`);
+        console.log(`❌ Perfil @${cleanUsername} não encontrado após 2 tentativas - API pode estar temporariamente indisponível`);
         return Response.json({ 
           success: false, 
-          error: 'Não conseguimos buscar dados do perfil. Verifique se o perfil existe e é público.',
-          canRetry: true
+          error: 'API temporariamente indisponível para este perfil. Tente novamente em alguns minutos.',
+          canRetry: true,
+          retryAfter: 60
         }, { headers: corsHeaders });
       }
 
