@@ -5,11 +5,31 @@ import { ProfileSession } from '@/types/instagram';
 
 const USER_STORAGE_KEY = 'mro_user_session';
 const CACHE_VERSION_KEY = 'mro_cache_version';
-const CURRENT_CACHE_VERSION = '4.0'; // v4.0 - Complete data isolation fix with forced days from SquareCloud
+const CURRENT_CACHE_VERSION = '5.0'; // v5.0 - Fix persistent storage cache isolation
+
+// Import clearAllPersistentData dynamically to avoid circular dependencies
+let clearPersistentDataFn: (() => void) | null = null;
+const getClearPersistentData = async () => {
+  if (!clearPersistentDataFn) {
+    const module = await import('@/lib/persistentStorage');
+    clearPersistentDataFn = module.clearAllPersistentData;
+  }
+  return clearPersistentDataFn;
+};
 
 // Clear ALL user-related data from localStorage - CRITICAL for user isolation
-export const clearAllUserData = (): void => {
+export const clearAllUserData = async (): Promise<void> => {
   console.log('[userStorage] 🔒 CLEARING ALL user-related data for isolation...');
+  
+  // CRITICAL: Clear persistent storage cache FIRST (has in-memory cache too!)
+  try {
+    const clearPersistent = await getClearPersistentData();
+    if (clearPersistent) {
+      clearPersistent();
+    }
+  } catch (e) {
+    console.error('[userStorage] Error clearing persistent storage:', e);
+  }
   
   // Collect ALL keys that need removal first (avoid mutation during iteration)
   const keysToRemove: string[] = [];
@@ -41,23 +61,25 @@ export const clearAllUserData = (): void => {
   // Clear ALL session storage completely
   sessionStorage.clear();
   
-  console.log(`[userStorage] ✅ Cleared ${keysToRemove.length} storage keys + session storage`);
+  console.log(`[userStorage] ✅ Cleared ${keysToRemove.length} storage keys + session storage + persistent cache`);
 };
 
 // Check and clear stale cache on load
-const validateCache = (): void => {
+const validateCache = async (): Promise<void> => {
   try {
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY);
     if (storedVersion !== CURRENT_CACHE_VERSION) {
       console.log(`[userStorage] 🔄 Cache version mismatch (${storedVersion} vs ${CURRENT_CACHE_VERSION}), clearing ALL stale data...`);
-      clearAllUserData();
+      await clearAllUserData();
       localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
       console.log(`[userStorage] ✅ Cache upgraded to version ${CURRENT_CACHE_VERSION}`);
     }
   } catch (e) {
     console.error('[userStorage] Error validating cache:', e);
     // On error, force clear everything
-    clearAllUserData();
+    try {
+      await clearAllUserData();
+    } catch {}
     localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
   }
 };
@@ -296,7 +318,7 @@ export const loginUser = async (
   if (!isSameUser) {
     console.log(`[userStorage] 🔐 NEW USER LOGIN: ${existingUsername || 'none'} -> ${normalizedUsername}`);
     console.log(`[userStorage] 🔒 Clearing ALL previous user data to prevent mixing...`);
-    clearAllUserData();
+    await clearAllUserData(); // MUST await to ensure complete cleanup
     // Re-set cache version after clearing
     localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
   } else {
@@ -394,10 +416,10 @@ export const lockCreativesForUser = (username: string): void => {
   }
 };
 
-export const logoutUser = (): void => {
+export const logoutUser = async (): Promise<void> => {
   console.log('[userStorage] 🚪 Logging out - clearing ALL user data...');
   // CRITICAL: Clear ALL user-related data to prevent data mixing between users
-  clearAllUserData();
+  await clearAllUserData();
   console.log('[userStorage] ✅ Logged out and cleared all session data');
 };
 

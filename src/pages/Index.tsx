@@ -186,8 +186,8 @@ const Index = () => {
     }
   };
 
-  const handleLogout = () => {
-    logoutUser();
+  const handleLogout = async () => {
+    await logoutUser();
     setIsLoggedIn(false);
     setShowDashboard(false);
     setHasRegisteredProfiles(false);

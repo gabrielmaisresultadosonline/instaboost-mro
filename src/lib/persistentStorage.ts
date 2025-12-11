@@ -61,12 +61,31 @@ export const clearAuthData = (): void => {
 
 // Local cache for faster access (syncs with server)
 let localCache: UserServerData | null = null;
+let cachedUsername: string | null = null; // Track which user's data is cached
 
-// Get local cache (for offline/fast access)
-const getLocalCache = (): UserServerData | null => {
+// Get local cache (for offline/fast access) - ONLY for the current user
+const getLocalCache = (forUsername?: string): UserServerData | null => {
   try {
+    // If username provided, verify cache belongs to this user
+    if (forUsername && cachedUsername && cachedUsername !== forUsername.toLowerCase()) {
+      console.log(`⚠️ [persistentStorage] Cache mismatch: cached=${cachedUsername}, requested=${forUsername}`);
+      clearLocalCache();
+      return null;
+    }
+    
     const stored = localStorage.getItem(LOCAL_CACHE_KEY);
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    
+    const parsed = JSON.parse(stored);
+    
+    // Verify the cached data belongs to the requested user
+    if (forUsername && parsed.username && parsed.username.toLowerCase() !== forUsername.toLowerCase()) {
+      console.log(`⚠️ [persistentStorage] Stored cache belongs to different user: ${parsed.username}`);
+      clearLocalCache();
+      return null;
+    }
+    
+    return parsed;
   } catch {
     return null;
   }
@@ -76,17 +95,32 @@ const getLocalCache = (): UserServerData | null => {
 const saveLocalCache = (data: UserServerData): void => {
   localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(data));
   localCache = data;
+  cachedUsername = data.username?.toLowerCase() || null;
+  console.log(`[persistentStorage] Cache saved for user: ${cachedUsername}`);
 };
 
-// Clear local cache (on logout)
+// Clear local cache (on logout or user switch) - EXPORTED for external use
 export const clearLocalCache = (): void => {
+  console.log(`[persistentStorage] 🗑️ Clearing local cache (was: ${cachedUsername || 'none'})`);
   localStorage.removeItem(LOCAL_CACHE_KEY);
   localCache = null;
+  cachedUsername = null;
+  clearAuthData();
+};
+
+// Force clear ALL persistent storage data (for user isolation)
+export const clearAllPersistentData = (): void => {
+  console.log(`[persistentStorage] 🔒 CLEARING ALL persistent storage data...`);
+  localStorage.removeItem(LOCAL_CACHE_KEY);
+  localCache = null;
+  cachedUsername = null;
   clearAuthData();
 };
 
 // Load user data from server
 export const loadUserDataFromServer = async (username: string): Promise<UserServerData | null> => {
+  const normalizedUsername = username.toLowerCase();
+  
   try {
     const auth_token = getAuthToken();
     const email = getAuthEmail();
@@ -94,15 +128,15 @@ export const loadUserDataFromServer = async (username: string): Promise<UserServ
     // If no auth token, can't load from server securely
     if (!auth_token || !email) {
       console.log(`⚠️ No auth token available for server load`);
-      return getLocalCache();
+      return getLocalCache(normalizedUsername); // Verify cache belongs to this user
     }
     
-    console.log(`🔄 Carregando dados do servidor para: ${username}`);
+    console.log(`🔄 Carregando dados do servidor para: ${normalizedUsername}`);
     
     const { data, error } = await supabase.functions.invoke('user-data-storage', {
       body: { 
         action: 'load', 
-        username,
+        username: normalizedUsername,
         email,
         auth_token
       }
@@ -110,26 +144,32 @@ export const loadUserDataFromServer = async (username: string): Promise<UserServ
 
     if (error) {
       console.error('Erro ao carregar do servidor:', error);
-      // Fallback to local cache
-      return getLocalCache();
+      // Fallback to local cache - only if it belongs to this user
+      return getLocalCache(normalizedUsername);
     }
 
     if (data?.success && data?.data) {
-      console.log(`✅ Dados carregados do servidor para: ${username}`);
+      // Verify the data belongs to the correct user
+      if (data.data.username && data.data.username.toLowerCase() !== normalizedUsername) {
+        console.warn(`⚠️ Server returned data for wrong user: ${data.data.username}`);
+        return null;
+      }
+      
+      console.log(`✅ Dados carregados do servidor para: ${normalizedUsername}`);
       saveLocalCache(data.data);
       return data.data;
     }
 
-    // No data on server - check local cache
-    const localData = getLocalCache();
-    if (localData && localData.username === username) {
-      console.log(`📦 Usando cache local para: ${username}`);
+    // No data on server - check local cache (only if it belongs to this user)
+    const localData = getLocalCache(normalizedUsername);
+    if (localData && localData.username?.toLowerCase() === normalizedUsername) {
+      console.log(`📦 Usando cache local para: ${normalizedUsername}`);
       return localData;
     }
 
     // Initialize new user data
     const newUserData: UserServerData = {
-      username,
+      username: normalizedUsername,
       profiles: {},
       lastFetchDates: {},
       lastSyncedAt: new Date().toISOString()
@@ -138,7 +178,7 @@ export const loadUserDataFromServer = async (username: string): Promise<UserServ
     return newUserData;
   } catch (error) {
     console.error('Erro ao carregar dados:', error);
-    return getLocalCache();
+    return getLocalCache(normalizedUsername);
   }
 };
 
@@ -188,9 +228,18 @@ export const saveUserDataToServer = async (data: UserServerData): Promise<boolea
 
 // Initialize user data on login and register auto-sync callback
 export const initializeUserData = async (username: string): Promise<void> => {
+  const normalizedUsername = username.toLowerCase();
+  
+  // CRITICAL: Clear cache if it belongs to a different user
+  if (cachedUsername && cachedUsername !== normalizedUsername) {
+    console.log(`[persistentStorage] ⚠️ Cache belongs to different user (${cachedUsername}), clearing...`);
+    clearLocalCache();
+  }
+  
   const serverData = await loadUserDataFromServer(username);
   if (serverData) {
     localCache = serverData;
+    cachedUsername = serverData.username?.toLowerCase() || normalizedUsername;
   }
   
   // Register the auto-sync callback so every saveSession() syncs to server
@@ -198,10 +247,20 @@ export const initializeUserData = async (username: string): Promise<void> => {
   console.log('✅ Auto-sync com servidor ativado');
 };
 
-// Get current user data (from cache or server)
-export const getCurrentUserData = (): UserServerData | null => {
-  if (localCache) return localCache;
-  return getLocalCache();
+// Get current user data (from cache or server) - optionally verify against expected username
+export const getCurrentUserData = (expectedUsername?: string): UserServerData | null => {
+  // If we have in-memory cache, verify it belongs to the expected user
+  if (localCache) {
+    if (expectedUsername && cachedUsername && cachedUsername !== expectedUsername.toLowerCase()) {
+      console.log(`[persistentStorage] ⚠️ In-memory cache mismatch: expected=${expectedUsername}, cached=${cachedUsername}`);
+      clearLocalCache();
+      return null;
+    }
+    return localCache;
+  }
+  
+  // Fall back to localStorage cache
+  return getLocalCache(expectedUsername);
 };
 
 // Check if profile needs refresh (30 days since last fetch)
