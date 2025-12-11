@@ -22,51 +22,12 @@ const Ligacao = () => {
 
   // Get admin settings for pixel configuration
   const adminSettings = getAdminData().settings;
-  const pixelId = adminSettings.facebookPixel || '569414052132145';
 
-  // Initialize Facebook Pixel on mount - using inline script injection for proper detection
+  // Track page view in local analytics on mount (Pixel PageView already fires from index.html)
   useEffect(() => {
-    // Check if pixel already initialized
-    if (document.getElementById('fb-pixel-inline')) {
-      return;
-    }
-
-    // Create and inject the complete Meta Pixel code as inline script
-    const inlineScript = document.createElement('script');
-    inlineScript.id = 'fb-pixel-inline';
-    inlineScript.textContent = `
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '${pixelId}');
-      fbq('track', 'PageView');
-    `;
-    document.head.insertBefore(inlineScript, document.head.firstChild);
-
-    // Add noscript fallback
-    const noscript = document.createElement('noscript');
-    noscript.id = 'fb-pixel-noscript';
-    noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1" />`;
-    document.body.appendChild(noscript);
-
-    // Track page view in local analytics
     trackCallEvent('page_view');
-
-    console.log('[FB Pixel] Initialized with ID:', pixelId);
-
-    return () => {
-      // Cleanup on unmount
-      const scriptEl = document.getElementById('fb-pixel-inline');
-      const noscriptEl = document.getElementById('fb-pixel-noscript');
-      if (scriptEl) scriptEl.remove();
-      if (noscriptEl) noscriptEl.remove();
-    };
-  }, [pixelId]);
+    console.log('[Ligacao] Page loaded - FB Pixel PageView already fired from index.html');
+  }, []);
 
   // Force larger zoom on desktop to fill screen better
   useEffect(() => {
