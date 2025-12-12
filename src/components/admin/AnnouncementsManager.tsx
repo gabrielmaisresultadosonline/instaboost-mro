@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   Bell, Plus, Trash2, Save, Eye, EyeOff, 
   Upload, X, AlertTriangle, Image as ImageIcon,
-  Link as LinkIcon
+  Link as LinkIcon, Users, Clock, RefreshCw
 } from 'lucide-react';
 
 export interface Announcement {
@@ -19,9 +19,11 @@ export interface Announcement {
   thumbnailUrl?: string;
   isActive: boolean;
   forceRead: boolean;
+  forceReadSeconds: number;
   maxViews: number;
   createdAt: string;
   updatedAt: string;
+  viewCount?: number;
 }
 
 interface AnnouncementsData {
@@ -46,6 +48,7 @@ const AnnouncementsManager = () => {
     thumbnailUrl: '',
     isActive: true,
     forceRead: false,
+    forceReadSeconds: 5,
     maxViews: 1
   });
 
@@ -118,13 +121,11 @@ const AnnouncementsManager = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Arquivo inválido', description: 'Selecione uma imagem', variant: 'destructive' });
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: 'Arquivo muito grande', description: 'Máximo 5MB', variant: 'destructive' });
       return;
@@ -143,7 +144,6 @@ const AnnouncementsManager = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('assets')
         .getPublicUrl(fileName);
@@ -170,6 +170,7 @@ const AnnouncementsManager = () => {
       thumbnailUrl: '',
       isActive: true,
       forceRead: false,
+      forceReadSeconds: 5,
       maxViews: 1
     });
   };
@@ -183,6 +184,7 @@ const AnnouncementsManager = () => {
       thumbnailUrl: announcement.thumbnailUrl || '',
       isActive: announcement.isActive,
       forceRead: announcement.forceRead,
+      forceReadSeconds: announcement.forceReadSeconds || 5,
       maxViews: announcement.maxViews
     });
   };
@@ -203,9 +205,11 @@ const AnnouncementsManager = () => {
         thumbnailUrl: formData.thumbnailUrl || undefined,
         isActive: formData.isActive ?? true,
         forceRead: formData.forceRead ?? false,
+        forceReadSeconds: formData.forceReadSeconds ?? 5,
         maxViews: formData.maxViews ?? 1,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        viewCount: 0
       };
       updatedAnnouncements = [...announcements, newAnnouncement];
     } else {
@@ -218,6 +222,7 @@ const AnnouncementsManager = () => {
               thumbnailUrl: formData.thumbnailUrl || undefined,
               isActive: formData.isActive ?? true,
               forceRead: formData.forceRead ?? false,
+              forceReadSeconds: formData.forceReadSeconds ?? 5,
               maxViews: formData.maxViews ?? 1,
               updatedAt: new Date().toISOString()
             }
@@ -246,6 +251,15 @@ const AnnouncementsManager = () => {
     await saveAnnouncements(updatedAnnouncements);
   };
 
+  const handleResetViews = async (id: string) => {
+    const updatedAnnouncements = announcements.map(a =>
+      a.id === id ? { ...a, viewCount: 0, updatedAt: new Date().toISOString() } : a
+    );
+    setAnnouncements(updatedAnnouncements);
+    await saveAnnouncements(updatedAnnouncements);
+    toast({ title: 'Visualizações zeradas' });
+  };
+
   const handleCancel = () => {
     setEditingId(null);
     setFormData({});
@@ -270,10 +284,16 @@ const AnnouncementsManager = () => {
             ({announcements.filter(a => a.isActive).length} ativos)
           </span>
         </div>
-        <Button onClick={handleAddNew} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Novo Aviso
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={loadAnnouncements} className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Atualizar
+          </Button>
+          <Button onClick={handleAddNew} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Novo Aviso
+          </Button>
+        </div>
       </div>
 
       <div className="glass-card p-4 bg-yellow-500/10 border-yellow-500/30">
@@ -317,7 +337,6 @@ const AnnouncementsManager = () => {
             <div className="space-y-3">
               <Label>Thumbnail (opcional)</Label>
               
-              {/* Mode Toggle */}
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -418,7 +437,7 @@ const AnnouncementsManager = () => {
                 </select>
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={formData.isActive ?? true}
@@ -434,16 +453,38 @@ const AnnouncementsManager = () => {
                   />
                   <div>
                     <Label className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                      Forçar Leitura
+                      <Clock className="w-4 h-4 text-yellow-500" />
+                      Forçar Leitura (Temporizador)
                     </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Usuário precisa rolar até o final para fechar
-                    </p>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Timer seconds when force read is enabled */}
+            {formData.forceRead && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                <Label htmlFor="forceReadSeconds" className="flex items-center gap-2 text-yellow-300">
+                  <Clock className="w-4 h-4" />
+                  Segundos para aguardar antes de poder fechar
+                </Label>
+                <div className="flex items-center gap-3 mt-2">
+                  <Input
+                    id="forceReadSeconds"
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={formData.forceReadSeconds || 5}
+                    onChange={(e) => setFormData({ ...formData, forceReadSeconds: Math.min(60, Math.max(1, Number(e.target.value))) })}
+                    className="w-24 bg-secondary"
+                  />
+                  <span className="text-sm text-muted-foreground">segundos (1-60)</span>
+                </div>
+                <p className="text-xs text-yellow-400/70 mt-2">
+                  O usuário não poderá fechar o aviso até o tempo acabar
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -487,12 +528,18 @@ const AnnouncementsManager = () => {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="font-bold truncate">{announcement.title}</h4>
                   {announcement.forceRead && (
-                    <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">
-                      Força Leitura
+                    <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {announcement.forceReadSeconds}s
                     </span>
                   )}
                   <span className="text-xs bg-secondary px-2 py-0.5 rounded">
                     {announcement.maxViews === 99 ? 'Sempre' : `${announcement.maxViews}x`}
+                  </span>
+                  {/* View count badge */}
+                  <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    {announcement.viewCount || 0} views
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground truncate">
@@ -504,6 +551,15 @@ const AnnouncementsManager = () => {
               </div>
 
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleResetViews(announcement.id)}
+                  title="Zerar visualizações"
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

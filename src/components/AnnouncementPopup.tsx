@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Bell, ChevronDown } from 'lucide-react';
+import { X, Bell, Clock } from 'lucide-react';
 
 interface Announcement {
   id: string;
@@ -10,8 +10,10 @@ interface Announcement {
   thumbnailUrl?: string;
   isActive: boolean;
   forceRead: boolean;
+  forceReadSeconds: number;
   maxViews: number;
   createdAt: string;
+  viewCount?: number;
 }
 
 interface ViewedAnnouncement {
@@ -31,11 +33,12 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
   const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [canClose, setCanClose] = useState(true);
-  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
+  const [secondsRemaining, setSecondsRemaining] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   const hasTriggered = useRef(false);
   const announcementsRef = useRef<Announcement[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const getViewedAnnouncements = (): ViewedAnnouncement[] => {
     try {
@@ -62,6 +65,39 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
     }
     
     localStorage.setItem(STORAGE_KEY, JSON.stringify(viewed));
+  };
+
+  const incrementViewCount = async (announcementId: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('user-data')
+        .download('admin/announcements.json');
+      
+      if (error) return;
+
+      const text = await data.text();
+      const parsed = JSON.parse(text);
+      
+      const updatedAnnouncements = parsed.announcements.map((a: Announcement) => {
+        if (a.id === announcementId) {
+          return { ...a, viewCount: (a.viewCount || 0) + 1 };
+        }
+        return a;
+      });
+
+      const blob = new Blob([JSON.stringify({ ...parsed, announcements: updatedAnnouncements }, null, 2)], { type: 'application/json' });
+      
+      await supabase.storage
+        .from('user-data')
+        .upload('admin/announcements.json', blob, { 
+          upsert: true,
+          contentType: 'application/json'
+        });
+
+      console.log('📢 View count incrementado para:', announcementId);
+    } catch (error) {
+      console.error('📢 Erro ao incrementar view count:', error);
+    }
   };
 
   const shouldShowAnnouncement = (announcement: Announcement): boolean => {
@@ -119,22 +155,54 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
       hasTriggered.current = true;
       loadAnnouncements();
     }
+    
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
   }, [loadAnnouncements]);
 
   const showAnnouncement = (announcement: Announcement) => {
     setCurrentAnnouncement(announcement);
     setIsVisible(true);
-    setHasScrolledToEnd(false);
     
-    if (announcement.forceRead) {
+    // Increment view count
+    incrementViewCount(announcement.id);
+    
+    if (announcement.forceRead && announcement.forceReadSeconds > 0) {
       setCanClose(false);
+      setSecondsRemaining(announcement.forceReadSeconds);
+      
+      // Start countdown timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      
+      timerRef.current = setInterval(() => {
+        setSecondsRemaining(prev => {
+          if (prev <= 1) {
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+            }
+            setCanClose(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } else {
       setCanClose(true);
+      setSecondsRemaining(0);
     }
   };
 
   const handleClose = () => {
     if (!canClose) return;
+    
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
     
     if (currentAnnouncement) {
       saveViewedAnnouncement(currentAnnouncement.id);
@@ -152,32 +220,10 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
     }
   };
 
-  const handleScroll = () => {
-    if (!contentRef.current || !currentAnnouncement?.forceRead) return;
-    
-    const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
-    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
-    
-    if (isAtBottom && !hasScrolledToEnd) {
-      setHasScrolledToEnd(true);
-      setCanClose(true);
-    }
-  };
-
-  useEffect(() => {
-    if (contentRef.current && currentAnnouncement?.forceRead) {
-      const { scrollHeight, clientHeight } = contentRef.current;
-      if (scrollHeight <= clientHeight) {
-        setHasScrolledToEnd(true);
-        setCanClose(true);
-      }
-    }
-  }, [currentAnnouncement]);
-
   if (!isVisible || !currentAnnouncement) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="glass-card w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border-primary/30">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/30">
@@ -190,17 +236,18 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
             size="sm"
             onClick={handleClose}
             disabled={!canClose}
-            className={!canClose ? 'opacity-50 cursor-not-allowed' : ''}
+            className={!canClose ? 'opacity-30 cursor-not-allowed' : ''}
           >
             <X className="w-5 h-5" />
           </Button>
         </div>
 
-        {/* Content */}
+        {/* Content - Fixed height with scroll for force read */}
         <div 
           ref={contentRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-4 space-y-4"
+          className={`flex-1 overflow-y-auto p-4 space-y-4 ${
+            currentAnnouncement.forceRead ? 'max-h-64' : ''
+          }`}
         >
           {currentAnnouncement.thumbnailUrl && (
             <img 
@@ -215,20 +262,24 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
             {currentAnnouncement.content}
           </div>
 
-          {currentAnnouncement.forceRead && !hasScrolledToEnd && (
-            <div className="flex flex-col items-center gap-2 py-4 text-muted-foreground">
-              <ChevronDown className="w-6 h-6 animate-bounce" />
-              <span className="text-sm">Role para baixo para continuar</span>
-            </div>
+          {/* Add padding for short content when force read */}
+          {currentAnnouncement.forceRead && (
+            <div className="min-h-[100px]" />
           )}
         </div>
 
-        {/* Footer */}
+        {/* Timer Footer */}
         <div className="p-4 border-t border-border bg-secondary/30">
-          {currentAnnouncement.forceRead && !canClose ? (
-            <p className="text-sm text-center text-muted-foreground">
-              📖 Role o conteúdo até o final para fechar
-            </p>
+          {!canClose && secondsRemaining > 0 ? (
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex items-center gap-2 text-yellow-400">
+                <Clock className="w-5 h-5 animate-pulse" />
+                <span className="text-xl font-bold">{secondsRemaining}s</span>
+              </div>
+              <p className="text-sm text-yellow-400/80 text-center animate-pulse">
+                ⏳ Aguarde {secondsRemaining} segundos para continuar...
+              </p>
+            </div>
           ) : (
             <Button onClick={handleClose} className="w-full">
               Entendido
