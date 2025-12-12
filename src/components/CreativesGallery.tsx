@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Creative } from '@/types/instagram';
-import { Download, Image as ImageIcon, Clock, AlertCircle, X, Maximize2 } from 'lucide-react';
+import { Download, Image as ImageIcon, Clock, AlertCircle, X, Maximize2, Lock, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { getCurrentUser } from '@/lib/userStorage';
+import { isLifetimeAccess, canUseCreatives } from '@/types/user';
 
 interface CreativesGalleryProps {
   creatives: Creative[];
@@ -13,7 +15,12 @@ interface CreativesGalleryProps {
 export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: CreativesGalleryProps) => {
   const { toast } = useToast();
   const [previewCreative, setPreviewCreative] = useState<Creative | null>(null);
-
+  
+  // Check if user is lifetime and needs to show special message
+  const user = getCurrentUser();
+  const isLifetime = user ? isLifetimeAccess(user.daysRemaining) : false;
+  const creativesAccess = canUseCreatives(user);
+  const showLifetimeBlockedMessage = isLifetime && !creativesAccess.allowed;
   const downloadCreative = async (creative: Creative, e?: React.MouseEvent) => {
     e?.stopPropagation();
     
@@ -75,10 +82,17 @@ export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: Cr
         <p className="text-muted-foreground text-sm mb-4">
           Gere sua primeira estratégia e depois crie criativos personalizados.
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary">
-          <span className="text-2xl font-bold">{creativesRemaining}</span>
-          <span className="text-sm">criativos disponíveis</span>
-        </div>
+        {showLifetimeBlockedMessage ? (
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 text-amber-500">
+            <Lock className="w-4 h-4" />
+            <span className="text-sm">Libere acesso full - Fale com admin</span>
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary">
+            <span className="text-2xl font-bold">{creativesRemaining}</span>
+            <span className="text-sm">criativos disponíveis</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -89,10 +103,17 @@ export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: Cr
         {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-display font-bold">Seus Criativos</h3>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary">
-            <span className="font-bold">{creativesRemaining}</span>
-            <span className="text-sm">restantes</span>
-          </div>
+          {showLifetimeBlockedMessage ? (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-500 text-sm">
+              <Lock className="w-3 h-3" />
+              <span>Acesso bloqueado</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary">
+              <span className="font-bold">{creativesRemaining}</span>
+              <span className="text-sm">restantes</span>
+            </div>
+          )}
         </div>
 
         {/* Info Banner */}

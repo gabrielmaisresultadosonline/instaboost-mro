@@ -180,10 +180,13 @@ export const StrategyGenerator = ({ profile, analysis, onStrategyGenerated, exis
         className="w-full cursor-pointer"
       >
         {isGenerating ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Gerando com IA...
-          </>
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Gerando com IA...
+            </div>
+            <span className="text-xs text-muted-foreground">Média de tempo: 1 a 3 min</span>
+          </div>
         ) : !selectedAvailability.canGenerate ? (
           <>
             <Clock className="w-5 h-5" />
