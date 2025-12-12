@@ -76,13 +76,16 @@ serve(async (req) => {
 
     console.log('Parsed data:', JSON.stringify(data));
     
-    // Log dias remaining specifically for debugging
-    if (data.diasRestantes !== undefined) {
-      console.log('[SquareProxy] diasRestantes:', data.diasRestantes, 'type:', typeof data.diasRestantes);
-      console.log('[SquareProxy] Status:', data.diasRestantes > 365 ? 'Vitalício' : `${data.diasRestantes} dias`);
+    // Extract diasRestantes from userData.dataDeExpiracao if available
+    // The API returns userData.dataDeExpiracao, not diasRestantes at root level
+    let responseData = { ...data };
+    if (data.userData?.dataDeExpiracao !== undefined) {
+      responseData.diasRestantes = data.userData.dataDeExpiracao;
+      console.log('[SquareProxy] diasRestantes from userData.dataDeExpiracao:', responseData.diasRestantes);
+      console.log('[SquareProxy] Status:', responseData.diasRestantes > 365 ? 'Vitalício' : `${responseData.diasRestantes} dias`);
     }
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
