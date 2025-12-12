@@ -165,17 +165,51 @@ serve(async (req) => {
         creatives: totalCreatives 
       });
       
-      // First check if user exists
+      // First check if user exists AND get existing profile_sessions to preserve creativesUnlocked
       const { data: existing } = await supabase
         .from('user_sessions')
-        .select('id, email')
+        .select('id, email, profile_sessions')
         .eq('squarecloud_username', normalizedUsername)
         .maybeSingle();
+
+      // CRITICAL: Preserve creativesUnlocked flag from existing profile_sessions
+      // This prevents admin-set PRO access from being overwritten by client saves
+      let finalProfileSessions = profileSessions || [];
+      if (existing?.profile_sessions) {
+        const existingUnlockedMap = new Map<string, boolean>();
+        // Collect creativesUnlocked status from existing sessions
+        (existing.profile_sessions as any[]).forEach((ps: any) => {
+          if (ps.id && ps.creativesUnlocked !== undefined) {
+            existingUnlockedMap.set(ps.id, ps.creativesUnlocked);
+          }
+          // Also check for a global unlock flag (no id)
+          if (!ps.id && ps.creativesUnlocked !== undefined) {
+            existingUnlockedMap.set('__global__', ps.creativesUnlocked);
+          }
+        });
+        
+        // Apply existing creativesUnlocked to new sessions
+        const globalUnlocked = existingUnlockedMap.get('__global__');
+        finalProfileSessions = finalProfileSessions.map((ps: any) => {
+          const existingUnlocked = ps.id ? existingUnlockedMap.get(ps.id) : undefined;
+          // Preserve existing unlock status, or use global, or keep current value
+          const shouldBeUnlocked = existingUnlocked !== undefined ? existingUnlocked : 
+                                   (globalUnlocked !== undefined ? globalUnlocked : ps.creativesUnlocked);
+          return {
+            ...ps,
+            creativesUnlocked: shouldBeUnlocked
+          };
+        });
+        
+        logStep('Preserved creativesUnlocked from existing sessions', { 
+          unlockedCount: Array.from(existingUnlockedMap.values()).filter(v => v).length 
+        });
+      }
 
       // If daysRemaining is provided, use it; otherwise don't overwrite existing value
       const saveData: any = {
         squarecloud_username: normalizedUsername,
-        profile_sessions: profileSessions || [],
+        profile_sessions: finalProfileSessions,
         archived_profiles: archivedProfiles || [],
       };
       
