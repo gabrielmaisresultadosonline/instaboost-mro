@@ -169,7 +169,7 @@ fbq('track', 'PageView');`,
     },
     callPageSettings: {
       audioUrl: 'https://maisresultadosonline.com.br/3b301aa2-e372-4b47-b35b-34d4b55bcdd9.mp3',
-      ringtoneUrl: 'http://maisresultadosonline.com.br/1207.mp4'
+      ringtoneUrl: 'https://maisresultadosonline.com.br/1207.mp4'
     },
     pixelSettings: {
       pixelId: '569414052132145',
