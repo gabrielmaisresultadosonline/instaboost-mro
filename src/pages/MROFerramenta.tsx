@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
-import { Play, Download, X, ChevronLeft, Type, Loader2 } from 'lucide-react';
+import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const MROFerramenta = () => {
@@ -83,6 +83,137 @@ const MROFerramenta = () => {
   const getVideoIndex = (module: TutorialModule, contentId: string): number => {
     const videos = module.contents.filter(c => c.type === 'video');
     return videos.findIndex(v => v.id === contentId) + 1;
+  };
+
+  // Module Carousel Component
+  const ModuleCarousel = ({ 
+    module, 
+    onContentClick, 
+    getVideoIndex 
+  }: { 
+    module: TutorialModule; 
+    onContentClick: (content: ModuleContent) => void;
+    getVideoIndex: (module: TutorialModule, contentId: string) => number;
+  }) => {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const sortedContents = module.contents.sort((a, b) => a.order - b.order);
+    const visibleCount = 5;
+    const hasMoreThanVisible = sortedContents.length > visibleCount;
+
+    const checkScroll = () => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        setCanScrollLeft(container.scrollLeft > 0);
+        setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 10);
+      }
+    };
+
+    useEffect(() => {
+      checkScroll();
+      window.addEventListener('resize', checkScroll);
+      return () => window.removeEventListener('resize', checkScroll);
+    }, [sortedContents.length]);
+
+    const scroll = (direction: 'left' | 'right') => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        const cardWidth = container.querySelector('.content-card')?.clientWidth || 200;
+        const scrollAmount = cardWidth + 16;
+        container.scrollBy({
+          left: direction === 'left' ? -scrollAmount : scrollAmount,
+          behavior: 'smooth'
+        });
+        setTimeout(checkScroll, 300);
+      }
+    };
+
+    return (
+      <div className="relative">
+        {/* Left Arrow */}
+        {hasMoreThanVisible && canScrollLeft && (
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors -ml-3"
+          >
+            <ChevronLeft className="w-6 h-6 text-primary-foreground" />
+          </button>
+        )}
+
+        {/* Right Arrow */}
+        {hasMoreThanVisible && canScrollRight && (
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors -mr-3"
+          >
+            <ChevronRight className="w-6 h-6 text-primary-foreground" />
+          </button>
+        )}
+
+        {/* Scrollable Container */}
+        <div 
+          ref={scrollContainerRef}
+          onScroll={checkScroll}
+          className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 px-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {sortedContents.map((content, idx) => (
+            <div 
+              key={content.id}
+              className="content-card group cursor-pointer flex-shrink-0"
+              style={{ width: 'calc((100% - 64px) / 5)', minWidth: '150px', maxWidth: '200px' }}
+              onClick={() => onContentClick(content)}
+            >
+              {content.type === 'video' ? (
+                <>
+                  <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-black border-2 border-transparent group-hover:border-primary transition-all duration-300">
+                    <img 
+                      src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
+                      alt={content.title}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
+                      }}
+                    />
+                    
+                    {/* YouTube badge */}
+                    <div className="absolute top-2 left-2 w-8 h-6 bg-red-600 rounded flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                      </svg>
+                    </div>
+                    
+                    {/* Number badge */}
+                    {(content as ModuleVideo).showNumber && (
+                      <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                        {getVideoIndex(module, content.id)}
+                      </div>
+                    )}
+
+                    {/* Play overlay */}
+                    <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                        <Play className="w-5 h-5 text-primary-foreground ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center border-2 border-transparent group-hover:border-primary transition-all duration-300">
+                  <Type className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                    {idx + 1}
+                  </div>
+                </div>
+              )}
+              <h3 className="font-medium mt-2 text-sm group-hover:text-primary transition-colors line-clamp-2">{content.title}</h3>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -200,71 +331,21 @@ const MROFerramenta = () => {
                         </div>
                       </div>
 
-                      {/* Module Contents Grid */}
+                      {/* Module Contents Carousel */}
                       {module.contents.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">
                           <Play className="w-8 h-8 mx-auto mb-2 opacity-50" />
                           <p>Nenhum conteúdo neste módulo</p>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                          {module.contents.sort((a, b) => a.order - b.order).map((content, idx) => (
-                            <div 
-                              key={content.id}
-                              className="group cursor-pointer"
-                              onClick={() => {
-                                setSelectedModule(module);
-                                handleContentClick(content);
-                              }}
-                            >
-                            {content.type === 'video' ? (
-                              <>
-                                {/* Support both 1080x1350 (4:5) and 1080x1920 (9:16) */}
-                                <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-secondary border-2 border-transparent group-hover:border-primary transition-all duration-300">
-                                  <img 
-                                    src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
-                                    alt={content.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    onError={(e) => {
-                                      e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
-                                    }}
-                                  />
-                                  
-                                  {/* YouTube badge */}
-                                  <div className="absolute top-2 left-2 w-8 h-6 bg-red-600 rounded flex items-center justify-center">
-                                    <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
-                                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                    </svg>
-                                  </div>
-                                  
-                                  {/* Number badge - green circle in corner */}
-                                  {(content as ModuleVideo).showNumber && (
-                                    <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
-                                      {getVideoIndex(module, content.id)}
-                                    </div>
-                                  )}
-
-                                  {/* Play overlay */}
-                                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
-                                      <Play className="w-5 h-5 text-primary-foreground ml-0.5" />
-                                    </div>
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center border-2 border-transparent group-hover:border-primary transition-all duration-300">
-                                <Type className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
-                                {/* Number badge - green circle in corner */}
-                                <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
-                                  {idx + 1}
-                                </div>
-                              </div>
-                            )}
-                              <h3 className="font-medium mt-2 text-sm group-hover:text-primary transition-colors line-clamp-2">{content.title}</h3>
-                            </div>
-                          ))}
-                        </div>
+                        <ModuleCarousel 
+                          module={module} 
+                          onContentClick={(content) => {
+                            setSelectedModule(module);
+                            handleContentClick(content);
+                          }}
+                          getVideoIndex={getVideoIndex}
+                        />
                       )}
                     </div>
                   ))}
