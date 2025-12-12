@@ -54,6 +54,7 @@ export const CreativeGenerator = ({
   const user = getCurrentUser();
   const creativesAccess = canUseCreatives(user);
   const isLifetimeUser = user ? isLifetimeAccess(user.daysRemaining) : false;
+  const hasFullAccess = creativesAccess.hasFullAccess ?? true; // Default true for regular users
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCreative, setGeneratedCreative] = useState<Creative | null>(null);
   const [step, setStep] = useState<'config' | 'generating' | 'result'>('config');
@@ -217,12 +218,12 @@ export const CreativeGenerator = ({
         // Salvar automaticamente e contar crédito
         onCreativeGenerated(result.creative, creditsNeeded);
         
-        // If lifetime user, mark their monthly creative as used and lock (syncs to cloud)
-        if (isLifetimeUser) {
+        // If lifetime user WITHOUT full access (using free monthly creative), mark as used
+        if (isLifetimeUser && !hasFullAccess) {
           await markLifetimeCreativeUsed();
           toast({
             title: "Criativo gerado e salvo! 🎨",
-            description: "Você só pode gerar 1 criativo por mês. Para liberar mais criativos, entre em contato com o suporte.",
+            description: "Você utilizou seu criativo gratuito deste mês. Para liberar mais 6 créditos, entre em contato com o suporte.",
             duration: 8000,
           });
         } else {
