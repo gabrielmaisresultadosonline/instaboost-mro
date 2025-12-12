@@ -10,9 +10,11 @@ interface CreativesGalleryProps {
   creatives: Creative[];
   creativesRemaining: number;
   onUpdate?: () => void;
+  isVitalicioBlocked?: boolean;
+  onShowVitalicioOffer?: () => void;
 }
 
-export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate }: CreativesGalleryProps) => {
+export const CreativesGallery = ({ creatives, creativesRemaining, onUpdate, isVitalicioBlocked, onShowVitalicioOffer }: CreativesGalleryProps) => {
   const { toast } = useToast();
   const [previewCreative, setPreviewCreative] = useState<Creative | null>(null);
   

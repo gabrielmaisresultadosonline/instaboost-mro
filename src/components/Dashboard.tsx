@@ -11,6 +11,7 @@ import { GrowthTracker } from './GrowthTracker';
 import { ProfileSelector } from './ProfileSelector';
 import { UserHeader } from './UserHeader';
 import { Logo } from './Logo';
+import { VitalicioCreativeOffer } from './VitalicioCreativeOffer';
 import { Button } from '@/components/ui/button';
 import { TutorialButton } from '@/components/TutorialButton';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
@@ -19,6 +20,7 @@ import { useTutorial, dashboardTutorial, strategyTutorial, creativeTutorial } fr
 import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession, saveSession } from '@/lib/storage';
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
 import { getCurrentUser } from '@/lib/userStorage';
+import { isLifetimeAccess, canUseCreatives, hasLifetimeUsedMonthlyCreative } from '@/types/user';
 import { 
   RotateCcw, 
   User, 
@@ -59,9 +61,17 @@ export const Dashboard = ({
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [showCreativeGenerator, setShowCreativeGenerator] = useState(false);
   const [isManualCreativeMode, setIsManualCreativeMode] = useState(false);
+  const [showVitalicioOffer, setShowVitalicioOffer] = useState(false);
 
   // Tutorial system
   const tutorial = useTutorial();
+  
+  // Check if user is vitalicio and has used their free creative
+  const user = getCurrentUser();
+  const isVitalicioUser = user ? isLifetimeAccess(user.daysRemaining) : false;
+  const hasUsedFreeCreative = user ? hasLifetimeUsedMonthlyCreative(user) : false;
+  const creativesAccess = canUseCreatives(user);
+  const isVitalicioBlocked = isVitalicioUser && !user?.creativesUnlocked && hasUsedFreeCreative;
 
   // Get active profile
   const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
@@ -101,6 +111,11 @@ export const Dashboard = ({
   };
 
   const handleGenerateCreative = (strategy: Strategy) => {
+    // If vitalicio user has used their free creative and is not unlocked, show offer
+    if (isVitalicioBlocked) {
+      setShowVitalicioOffer(true);
+      return;
+    }
     setSelectedStrategy(strategy);
     setShowCreativeGenerator(true);
   };
@@ -318,8 +333,32 @@ export const Dashboard = ({
 
         {activeTab === 'creatives' && (
           <div className="max-w-4xl mx-auto space-y-6">
+            {/* Vitalicio Blocked Message */}
+            {isVitalicioBlocked && (
+              <div className="glass-card glow-border p-6 border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-display font-bold flex items-center gap-2 text-amber-500">
+                      <ImageIcon className="w-5 h-5" />
+                      Criativos Bloqueados
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Você já gerou seu criativo gratuito do mês. Libere 3 meses por apenas R$97!
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => setShowVitalicioOffer(true)}
+                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold"
+                  >
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Ver Oferta
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Manual Creative Generation Button */}
-            {activeProfile.creativesRemaining >= 2 && (
+            {!isVitalicioBlocked && activeProfile.creativesRemaining >= 2 && (
               <div className="glass-card glow-border p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -360,7 +399,7 @@ export const Dashboard = ({
               </div>
             )}
             
-            {activeProfile.creativesRemaining < 2 && activeProfile.creativesRemaining > 0 && (
+            {!isVitalicioBlocked && activeProfile.creativesRemaining < 2 && activeProfile.creativesRemaining > 0 && (
               <div className="glass-card p-4 border-warning/30 bg-warning/10">
                 <p className="text-sm text-warning">
                   Você tem apenas {activeProfile.creativesRemaining} crédito(s). Geração manual requer 2 créditos.
@@ -372,6 +411,8 @@ export const Dashboard = ({
               creatives={activeProfile.creatives}
               creativesRemaining={activeProfile.creativesRemaining}
               onUpdate={refreshSession}
+              isVitalicioBlocked={isVitalicioBlocked}
+              onShowVitalicioOffer={() => setShowVitalicioOffer(true)}
             />
           </div>
         )}
@@ -424,6 +465,14 @@ export const Dashboard = ({
         onStartInteractive={() => tutorial.startTutorial(tutorial.tutorialData)}
         title={activeTab === 'strategies' ? 'Como Gerar Estratégias' : activeTab === 'creatives' ? 'Como Gerar Criativos' : 'Tutorial do Dashboard'}
       />
+
+      {/* Vitalicio Creative Offer Modal */}
+      {showVitalicioOffer && user && (
+        <VitalicioCreativeOffer
+          username={user.username}
+          onClose={() => setShowVitalicioOffer(false)}
+        />
+      )}
     </div>
   );
 };
