@@ -96,40 +96,53 @@ export const TutorialOverlay = ({
 
   return (
     <>
-      {/* Full overlay with blur */}
+      {/* Dark overlay - NO blur, just dark background */}
       <div 
         ref={overlayRef}
         className="fixed inset-0 z-[9999] pointer-events-auto"
         style={{
-          background: 'rgba(0, 0, 0, 0.85)',
-          backdropFilter: 'blur(4px)'
+          background: 'rgba(0, 0, 0, 0.8)'
         }}
         onClick={onStop}
       />
 
-      {/* Highlight cutout */}
+      {/* Highlight cutout - creates a "hole" effect around the target */}
       {targetRect && (
-        <div
-          className="fixed z-[10000] pointer-events-none"
-          style={{
-            top: targetRect.top - 8,
-            left: targetRect.left - 8,
-            width: targetRect.width + 16,
-            height: targetRect.height + 16,
-            boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.85)',
-            borderRadius: '12px',
-            border: '3px solid hsl(var(--primary))',
-            animation: 'pulse-border 2s ease-in-out infinite'
-          }}
-        />
+        <>
+          {/* Visible element highlight with glow */}
+          <div
+            className="fixed z-[10000] pointer-events-none rounded-xl"
+            style={{
+              top: targetRect.top - 8,
+              left: targetRect.left - 8,
+              width: targetRect.width + 16,
+              height: targetRect.height + 16,
+              border: '3px solid hsl(var(--primary))',
+              boxShadow: '0 0 30px 10px hsla(var(--primary), 0.4), inset 0 0 0 2000px rgba(0,0,0,0)',
+              animation: 'tutorial-pulse 2s ease-in-out infinite'
+            }}
+          />
+          {/* Clear area behind target (remove dark overlay from target area) */}
+          <div
+            className="fixed z-[9999] pointer-events-none"
+            style={{
+              top: targetRect.top - 8,
+              left: targetRect.left - 8,
+              width: targetRect.width + 16,
+              height: targetRect.height + 16,
+              borderRadius: '12px',
+              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.8)'
+            }}
+          />
+        </>
       )}
 
-      {/* Tooltip */}
+      {/* Tooltip - completely separate from overlay, no blur effect */}
       <div
-        className="fixed z-[10002] pointer-events-auto animate-fade-in"
+        className="fixed z-[10003] pointer-events-auto animate-fade-in"
         style={tooltipStyle}
       >
-        <div className="glass-card p-4 rounded-xl shadow-2xl border-2 border-primary/50">
+        <div className="bg-card p-4 rounded-xl shadow-2xl border-2 border-primary/50">
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -210,7 +223,7 @@ export const TutorialOverlay = ({
 
         {/* Arrow indicator */}
         <div 
-          className="absolute w-4 h-4 bg-card border-2 border-primary/50 rotate-45"
+          className="absolute w-4 h-4 bg-card border-2 border-primary/50 rotate-45 -z-10"
           style={{
             top: currentStep.position === 'bottom' ? '-10px' : 'auto',
             bottom: currentStep.position === 'top' ? '-10px' : 'auto',
@@ -221,12 +234,12 @@ export const TutorialOverlay = ({
       </div>
 
       <style>{`
-        @keyframes pulse-border {
+        @keyframes tutorial-pulse {
           0%, 100% { 
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85), 0 0 0 0 hsla(var(--primary), 0.5);
+            box-shadow: 0 0 20px 5px hsla(var(--primary), 0.3);
           }
           50% { 
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85), 0 0 20px 8px hsla(var(--primary), 0.3);
+            box-shadow: 0 0 40px 15px hsla(var(--primary), 0.5);
           }
         }
       `}</style>
