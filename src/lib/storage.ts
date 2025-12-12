@@ -257,8 +257,33 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(ARCHIVE_KEY);
   
+  // CRITICAL: Deduplicate profiles by username (keep the one with most data)
+  const profileMap = new Map<string, ProfileSession>();
+  profileSessions.forEach(cloudProfile => {
+    const username = cloudProfile.profile.username.toLowerCase();
+    const existing = profileMap.get(username);
+    
+    if (!existing) {
+      profileMap.set(username, cloudProfile);
+    } else {
+      // Keep the profile with more data (strategies, creatives, etc.)
+      const existingScore = (existing.strategies?.length || 0) + (existing.creatives?.length || 0) + (existing.growthHistory?.length || 0);
+      const newScore = (cloudProfile.strategies?.length || 0) + (cloudProfile.creatives?.length || 0) + (cloudProfile.growthHistory?.length || 0);
+      
+      if (newScore > existingScore) {
+        console.log(`☁️ [${loggedUsername}] Replacing duplicate @${username} with better data`);
+        profileMap.set(username, cloudProfile);
+      } else {
+        console.log(`☁️ [${loggedUsername}] Skipping duplicate @${username}`);
+      }
+    }
+  });
+  
+  const deduplicatedProfiles = Array.from(profileMap.values());
+  console.log(`☁️ [${loggedUsername}] Deduplicated: ${profileSessions.length} -> ${deduplicatedProfiles.length} profiles`);
+  
   // CRITICAL: Cloud data is the ONLY source of truth - NO MERGING with local data!
-  const normalizedProfiles: ProfileSession[] = profileSessions.map(cloudProfile => ({
+  const normalizedProfiles: ProfileSession[] = deduplicatedProfiles.map(cloudProfile => ({
     ...cloudProfile,
     strategies: cloudProfile.strategies || [],
     creatives: cloudProfile.creatives || [],
@@ -307,6 +332,30 @@ export const getActiveProfile = (): ProfileSession | null => {
 
 export const addProfile = (profile: InstagramProfile, analysis: ProfileAnalysis): ProfileSession => {
   const session = getSession();
+  const normalizedUsername = profile.username.toLowerCase();
+  
+  // CRITICAL: Check if profile already exists in session to prevent duplicates
+  const existingProfile = session.profiles.find(
+    p => p.profile.username.toLowerCase() === normalizedUsername
+  );
+  
+  if (existingProfile) {
+    console.log(`⚠️ Profile @${profile.username} already exists in session, updating instead of adding`);
+    // Update existing profile instead of creating duplicate
+    existingProfile.profile = profile;
+    existingProfile.analysis = analysis;
+    existingProfile.lastUpdated = new Date().toISOString();
+    
+    // Add new growth snapshot if data changed
+    const lastSnapshot = existingProfile.growthHistory[existingProfile.growthHistory.length - 1];
+    if (!lastSnapshot || lastSnapshot.followers !== profile.followers) {
+      existingProfile.growthHistory.push(createSnapshot(profile));
+    }
+    
+    session.activeProfileId = existingProfile.id;
+    saveSession(session);
+    return existingProfile;
+  }
   
   // Check if this profile was previously archived (removed then re-synced)
   const archivedProfile = getArchivedByUsername(profile.username);
