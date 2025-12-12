@@ -3,10 +3,10 @@ import { Strategy, Creative, InstagramProfile, CreativeConfig, CreativeColors } 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type, AlertCircle, Lock, Phone } from 'lucide-react';
+import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type, AlertCircle, Lock, Phone, Info } from 'lucide-react';
 import { generateCreative, uploadCreativeImage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentUser } from '@/lib/userStorage';
+import { getCurrentUser, markLifetimeCreativeUsed } from '@/lib/userStorage';
 import { canUseCreatives, isLifetimeAccess } from '@/types/user';
 
 interface CreativeGeneratorProps {
@@ -53,6 +53,7 @@ export const CreativeGenerator = ({
   // Check if user can use creatives
   const user = getCurrentUser();
   const creativesAccess = canUseCreatives(user);
+  const isLifetimeUser = user ? isLifetimeAccess(user.daysRemaining) : false;
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCreative, setGeneratedCreative] = useState<Creative | null>(null);
   const [step, setStep] = useState<'config' | 'generating' | 'result'>('config');
@@ -216,12 +217,23 @@ export const CreativeGenerator = ({
         // Salvar automaticamente e contar crédito
         onCreativeGenerated(result.creative, creditsNeeded);
         
+        // If lifetime user, mark their monthly creative as used and lock
+        if (isLifetimeUser) {
+          markLifetimeCreativeUsed();
+          toast({
+            title: "Criativo gerado e salvo! 🎨",
+            description: "Você só pode gerar 1 criativo por mês. Para liberar mais criativos, entre em contato com o suporte.",
+            duration: 8000,
+          });
+        } else {
+          toast({
+            title: "Criativo gerado e salvo! 🎨",
+            description: `Usado ${creditsNeeded} crédito(s). Disponível na galeria por 1 mês.`,
+          });
+        }
+        
         setGeneratedCreative(result.creative);
         setStep('result');
-        toast({
-          title: "Criativo gerado e salvo! 🎨",
-          description: `Usado ${creditsNeeded} crédito(s). Disponível na galeria por 1 mês.`,
-        });
       } else {
         setStep('config');
         toast({
@@ -320,6 +332,21 @@ export const CreativeGenerator = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Warning for Lifetime Users - 1 creative per month */}
+        {isLifetimeUser && (
+          <div className="p-4 rounded-lg bg-amber-500/20 border border-amber-500/50 mb-6">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-amber-500">Usuário Vitalício - 1 Criativo por Mês</p>
+                <p className="text-sm text-muted-foreground">
+                  Você pode gerar <strong>apenas 1 criativo por mês</strong>. Após gerar, o acesso será bloqueado até o próximo mês ou liberação pelo suporte.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Credit Warning for Manual Mode */}
         {isManualMode && (

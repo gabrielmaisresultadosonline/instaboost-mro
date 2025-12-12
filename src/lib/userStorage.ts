@@ -402,6 +402,7 @@ export const unlockCreativesForUser = (username: string): void => {
   const session = getUserSession();
   if (session.user && session.user.username === username) {
     session.user.creativesUnlocked = true;
+    session.user.lifetimeCreativeUsedAt = undefined; // Reset the monthly usage when admin unlocks
     saveUserSession(session);
   }
 };
@@ -412,6 +413,17 @@ export const lockCreativesForUser = (username: string): void => {
   if (session.user && session.user.username === username) {
     session.user.creativesUnlocked = false;
     saveUserSession(session);
+  }
+};
+
+// Mark lifetime user as having used their monthly creative
+export const markLifetimeCreativeUsed = (): void => {
+  const session = getUserSession();
+  if (session.user) {
+    session.user.lifetimeCreativeUsedAt = new Date().toISOString();
+    session.user.creativesUnlocked = false; // Lock after using
+    saveUserSession(session);
+    console.log(`[userStorage] 🔒 Lifetime user ${session.user.username} used monthly creative - now locked`);
   }
 };
 
