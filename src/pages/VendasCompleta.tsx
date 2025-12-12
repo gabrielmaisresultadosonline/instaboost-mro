@@ -193,8 +193,12 @@ export default function VendasCompleta() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleBuyClick = () => {
-    window.open('https://pay.maisresultadosonline.com.br/pagamento/', '_blank');
+  const handleBuyAnual = () => {
+    window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+I.A+++Automação+(+ANUAL+)+","price":39700,"quantity":1}]&redirect_url=https://acessar.click/obrigado', '_blank');
+  };
+
+  const handleBuyVitalicio = () => {
+    window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+I.A+++Automação+(+ANUAL+)+","price":99700,"quantity":1}]&redirect_url=https://acessar.click/obrigado', '_blank');
   };
 
   const handleViewMore = () => {
@@ -268,7 +272,7 @@ export default function VendasCompleta() {
           <Button 
             size="lg" 
             className="text-lg px-8 py-6 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-background animate-pulse-glow"
-            onClick={handleBuyClick}
+            onClick={handleBuyAnual}
           >
             <Rocket className="mr-2 h-5 w-5" />
             Comprar Agora
@@ -545,7 +549,7 @@ export default function VendasCompleta() {
               <Button 
                 size="lg" 
                 className="w-full text-lg py-6 bg-gradient-to-r from-yellow-500 to-primary hover:from-yellow-600 hover:to-primary/90 text-background animate-pulse-glow"
-                onClick={handleBuyClick}
+                onClick={handleBuyAnual}
               >
                 Comprar Agora
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -596,7 +600,7 @@ export default function VendasCompleta() {
               <Button 
                 size="lg" 
                 className="w-full text-lg py-6 bg-yellow-500 hover:bg-yellow-600 text-background animate-pulse-glow"
-                onClick={handleBuyClick}
+                onClick={handleBuyVitalicio}
               >
                 Comprar Agora
                 <Crown className="ml-2 h-5 w-5" />
@@ -718,7 +722,7 @@ export default function VendasCompleta() {
             <Button 
               size="lg" 
               className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-background animate-pulse-glow"
-              onClick={handleBuyClick}
+              onClick={handleBuyAnual}
             >
               Comprar Agora
               <ArrowRight className="ml-2 h-5 w-5" />
