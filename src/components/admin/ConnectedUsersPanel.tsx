@@ -129,9 +129,9 @@ export const ConnectedUsersPanel = () => {
           Nenhum usuário encontrado
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-hidden">
           <table className="w-full">
-            <thead>
+            <thead className="sticky top-0 bg-card z-10">
               <tr className="border-b border-border">
                 <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Usuário</th>
                 <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Email</th>
@@ -139,44 +139,48 @@ export const ConnectedUsersPanel = () => {
                 <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Último Acesso</th>
               </tr>
             </thead>
-            <tbody>
-              {users.map((user) => {
-                const daysStatus = getDaysStatus(user.days_remaining);
-                const isOnline = isOnlineRecently(user.last_access);
-                
-                return (
-                  <tr key={user.squarecloud_username} className="border-b border-border/50 hover:bg-secondary/30">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/30'}`} />
-                        <User className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium">{user.squarecloud_username}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Mail className="w-3 h-3" />
-                        {user.email || 'Não informado'}
-                      </div>
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className={`text-sm font-medium ${daysStatus.color}`}>
-                        {daysStatus.text}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="w-3 h-3 text-muted-foreground" />
-                        <span className={isOnline ? 'text-green-500 font-medium' : 'text-muted-foreground'}>
-                          {formatLastAccess(user.last_access)}
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
           </table>
+          <div className="max-h-[400px] overflow-y-auto">
+            <table className="w-full">
+              <tbody>
+                {users.map((user) => {
+                  const daysStatus = getDaysStatus(user.days_remaining);
+                  const isOnline = isOnlineRecently(user.last_access);
+                  
+                  return (
+                    <tr key={user.squarecloud_username} className="border-b border-border/50 hover:bg-secondary/30">
+                      <td className="py-3 px-2">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/30'}`} />
+                          <User className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium">{user.squarecloud_username}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Mail className="w-3 h-3" />
+                          {user.email || 'Não informado'}
+                        </div>
+                      </td>
+                      <td className="py-3 px-2">
+                        <span className={`text-sm font-medium ${daysStatus.color}`}>
+                          {daysStatus.text}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="flex items-center gap-1 text-sm">
+                          <Calendar className="w-3 h-3 text-muted-foreground" />
+                          <span className={isOnline ? 'text-green-500 font-medium' : 'text-muted-foreground'}>
+                            {formatLastAccess(user.last_access)}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
