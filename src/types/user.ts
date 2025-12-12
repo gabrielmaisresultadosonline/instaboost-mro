@@ -114,23 +114,21 @@ export const canUseCreatives = (user: MROUser | null): { allowed: boolean; reaso
   
   // Lifetime users special handling
   if (isLifetimeAccess(user.daysRemaining)) {
-    // First check if admin has unlocked
-    if (!user.creativesUnlocked) {
-      return { 
-        allowed: false, 
-        reason: 'Usuários vitalícios precisam de liberação do administrador para usar o gerador de criativos. Entre em contato com o administrador.' 
-      };
+    // If admin has unlocked, allow full access
+    if (user.creativesUnlocked) {
+      return { allowed: true };
     }
     
-    // Check if already used this month's creative
+    // Check if already used this month's FREE creative
     if (hasLifetimeUsedMonthlyCreative(user)) {
       return { 
         allowed: false, 
-        reason: 'Você já utilizou seu criativo mensal. Usuários vitalícios podem gerar apenas 1 criativo por mês. Para liberar mais criativos, entre em contato com o suporte.',
+        reason: 'Você já utilizou seu criativo gratuito deste mês. Para liberar acesso completo ao gerador de criativos, entre em contato com o suporte.',
         isLifetimeLimit: true
       };
     }
     
+    // Lifetime user can generate 1 free creative per month
     return { allowed: true };
   }
   

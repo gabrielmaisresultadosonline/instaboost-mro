@@ -416,14 +416,14 @@ export const lockCreativesForUser = (username: string): void => {
   }
 };
 
-// Mark lifetime user as having used their monthly creative
+// Mark lifetime user as having used their monthly creative (does NOT require creativesUnlocked)
 export const markLifetimeCreativeUsed = (): void => {
   const session = getUserSession();
   if (session.user) {
     session.user.lifetimeCreativeUsedAt = new Date().toISOString();
-    session.user.creativesUnlocked = false; // Lock after using
+    // Don't change creativesUnlocked - that's for admin to control full access
     saveUserSession(session);
-    console.log(`[userStorage] 🔒 Lifetime user ${session.user.username} used monthly creative - now locked`);
+    console.log(`[userStorage] 🔒 Lifetime user ${session.user.username} used free monthly creative`);
   }
 };
 
