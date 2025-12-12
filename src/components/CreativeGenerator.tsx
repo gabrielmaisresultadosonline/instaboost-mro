@@ -333,15 +333,15 @@ export const CreativeGenerator = ({
           </button>
         </div>
 
-        {/* Warning for Lifetime Users - 1 creative per month */}
-        {isLifetimeUser && (
+        {/* Warning for Lifetime Users - 1 free creative per month */}
+        {isLifetimeUser && !user?.creativesUnlocked && (
           <div className="p-4 rounded-lg bg-amber-500/20 border border-amber-500/50 mb-6">
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-amber-500">Usuário Vitalício - 1 Criativo por Mês</p>
+                <p className="font-semibold text-amber-500">Usuário Vitalício - 1 Criativo Gratuito</p>
                 <p className="text-sm text-muted-foreground">
-                  Você pode gerar <strong>apenas 1 criativo por mês</strong>. Após gerar, o acesso será bloqueado até o próximo mês ou liberação pelo suporte.
+                  Você pode gerar <strong>1 criativo gratuito por mês</strong>. Após usar, entre em contato com o suporte para liberar acesso completo.
                 </p>
               </div>
             </div>
