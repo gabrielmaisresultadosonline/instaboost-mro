@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleColor, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
+import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
-import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Link2, Gift } from 'lucide-react';
+import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Link2, Gift, LayoutList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Color mapping for modules
@@ -102,13 +102,48 @@ const MROFerramenta = () => {
     return videos.findIndex(v => v.id === contentId) + 1;
   };
 
-  // Module Carousel Component
-  const ModuleCarousel = ({ 
-    module, 
-    onContentClick, 
-    getVideoIndex 
+  // Helper to group contents by sections
+  const groupContentsBySections = (contents: ModuleContent[]) => {
+    const sorted = [...contents].sort((a, b) => a.order - b.order);
+    const groups: { sectionTitle: string | null; contents: ModuleContent[] }[] = [];
+    let currentGroup: { sectionTitle: string | null; contents: ModuleContent[] } = { sectionTitle: null, contents: [] };
+
+    sorted.forEach(content => {
+      if (content.type === 'section') {
+        // Save current group if it has content
+        if (currentGroup.contents.length > 0 || currentGroup.sectionTitle) {
+          groups.push(currentGroup);
+        }
+        // Start new group with section title
+        const section = content as ModuleSection;
+        currentGroup = { 
+          sectionTitle: section.showTitle !== false ? section.title : null, 
+          contents: [] 
+        };
+      } else {
+        currentGroup.contents.push(content);
+      }
+    });
+
+    // Push last group
+    if (currentGroup.contents.length > 0 || currentGroup.sectionTitle) {
+      groups.push(currentGroup);
+    }
+
+    return groups;
+  };
+
+  // Content Section Component (renders a group of videos/buttons)
+  const ContentSection = ({ 
+    sectionTitle,
+    contents,
+    module,
+    onContentClick,
+    getVideoIndex
   }: { 
-    module: TutorialModule; 
+    sectionTitle: string | null;
+    contents: ModuleContent[];
+    module: TutorialModule;
     onContentClick: (content: ModuleContent) => void;
     getVideoIndex: (module: TutorialModule, contentId: string) => number;
   }) => {
@@ -116,12 +151,8 @@ const MROFerramenta = () => {
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
 
-    // Separate videos/text from buttons
-    const videoContents = module.contents.filter(c => c.type === 'video' || c.type === 'text').sort((a, b) => a.order - b.order);
-    const buttonContents = module.contents.filter(c => c.type === 'button').sort((a, b) => a.order - b.order);
-    
-    const visibleCount = 5;
-    const hasMoreThanVisible = videoContents.length > visibleCount;
+    const videoContents = contents.filter(c => c.type === 'video' || c.type === 'text');
+    const buttonContents = contents.filter(c => c.type === 'button');
 
     const checkScroll = () => {
       const container = scrollContainerRef.current;
@@ -150,12 +181,22 @@ const MROFerramenta = () => {
       }
     };
 
+    if (videoContents.length === 0 && buttonContents.length === 0) return null;
+
     return (
       <div className="space-y-4">
+        {/* Section Title */}
+        {sectionTitle && (
+          <div className="flex items-center gap-3 pt-4 pb-2">
+            <div className="w-8 h-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full" />
+            <h3 className="text-lg font-bold text-amber-400">{sectionTitle}</h3>
+            <div className="flex-1 h-0.5 bg-gradient-to-r from-yellow-500/50 to-transparent rounded-full" />
+          </div>
+        )}
+
         {/* Video/Text Carousel */}
         {videoContents.length > 0 && (
           <div className="relative">
-            {/* Left Arrow */}
             {canScrollLeft && (
               <button
                 onClick={() => scroll('left')}
@@ -165,7 +206,6 @@ const MROFerramenta = () => {
               </button>
             )}
 
-            {/* Right Arrow */}
             {canScrollRight && (
               <button
                 onClick={() => scroll('right')}
@@ -175,7 +215,6 @@ const MROFerramenta = () => {
               </button>
             )}
 
-            {/* Scrollable Container - Centered when content fits, scrollable when overflow */}
             <div 
               ref={scrollContainerRef}
               onScroll={checkScroll}
@@ -191,39 +230,34 @@ const MROFerramenta = () => {
                   onClick={() => onContentClick(content)}
                 >
                   {content.type === 'video' ? (
-                    <>
-                      <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-black border-2 border-transparent group-hover:border-primary transition-all duration-300 flex items-center justify-center">
-                        <img 
-                          src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
-                          alt={content.title}
-                          className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
-                          }}
-                        />
-                        
-                        {/* YouTube badge */}
-                        <div className="absolute top-2 left-2 w-8 h-6 bg-red-600 rounded flex items-center justify-center">
-                          <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                          </svg>
+                    <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-black border-2 border-transparent group-hover:border-primary transition-all duration-300 flex items-center justify-center">
+                      <img 
+                        src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
+                        alt={content.title}
+                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
+                        }}
+                      />
+                      
+                      <div className="absolute top-2 left-2 w-8 h-6 bg-red-600 rounded flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
+                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                      </div>
+                      
+                      {(content as ModuleVideo).showNumber && (
+                        <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                          {getVideoIndex(module, content.id)}
                         </div>
-                        
-                        {/* Number badge */}
-                        {(content as ModuleVideo).showNumber && (
-                          <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
-                            {getVideoIndex(module, content.id)}
-                          </div>
-                        )}
+                      )}
 
-                        {/* Play overlay */}
-                        <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
-                            <Play className="w-5 h-5 text-primary-foreground ml-0.5" />
-                          </div>
+                      <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                          <Play className="w-5 h-5 text-primary-foreground ml-0.5" />
                         </div>
                       </div>
-                    </>
+                    </div>
                   ) : (
                     <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center border-2 border-transparent group-hover:border-primary transition-all duration-300">
                       <Type className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -241,7 +275,7 @@ const MROFerramenta = () => {
           </div>
         )}
 
-        {/* Buttons Section - Below Videos - Centered */}
+        {/* Buttons Section */}
         {buttonContents.length > 0 && (
           <div className="flex flex-wrap gap-3 pt-2 justify-center">
             {buttonContents.map((content) => (
@@ -257,6 +291,34 @@ const MROFerramenta = () => {
             ))}
           </div>
         )}
+      </div>
+    );
+  };
+
+  // Module Carousel Component
+  const ModuleCarousel = ({ 
+    module, 
+    onContentClick, 
+    getVideoIndex 
+  }: { 
+    module: TutorialModule; 
+    onContentClick: (content: ModuleContent) => void;
+    getVideoIndex: (module: TutorialModule, contentId: string) => number;
+  }) => {
+    const groups = groupContentsBySections(module.contents);
+
+    return (
+      <div className="space-y-4">
+        {groups.map((group, idx) => (
+          <ContentSection 
+            key={idx}
+            sectionTitle={group.sectionTitle}
+            contents={group.contents}
+            module={module}
+            onContentClick={onContentClick}
+            getVideoIndex={getVideoIndex}
+          />
+        ))}
       </div>
     );
   };

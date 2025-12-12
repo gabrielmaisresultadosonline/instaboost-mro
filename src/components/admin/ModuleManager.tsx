@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   getAdminData, saveAdminData, addModule, updateModule, deleteModule,
-  addVideoToModule, addTextToModule, addButtonToModule, deleteContent, updateContent,
-  TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleColor, getYoutubeThumbnail,
+  addVideoToModule, addTextToModule, addButtonToModule, addSectionToModule, deleteContent, updateContent,
+  TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail,
   saveModulesToCloud, loadModulesFromCloud
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +16,7 @@ import CoverUploader from './CoverUploader';
 import { 
   Plus, Trash2, Save, Check, X, Play, Video, Type, 
   ChevronDown, ChevronUp, Image as ImageIcon,
-  Edit2, Upload, Loader2, Link2, ExternalLink
+  Edit2, Upload, Loader2, Link2, ExternalLink, LayoutList
 } from 'lucide-react';
 
 interface ModuleManagerProps {
@@ -45,7 +45,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent } | null>(null);
-  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' } | null>(null);
+  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' | 'section' } | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isLoadingCloud, setIsLoadingCloud] = useState(true);
   
@@ -136,6 +136,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     url: '',
     description: '',
     coverUrl: '',
+    showTitle: true
+  });
+
+  const [newSection, setNewSection] = useState({
+    title: '',
     showTitle: true
   });
 
@@ -269,6 +274,18 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     setShowAddContent(null);
     refreshData();
     toast({ title: "Botão adicionado!" });
+  };
+
+  const handleAddSection = (moduleId: string) => {
+    if (!newSection.title) {
+      toast({ title: "Erro", description: "Preencha o título da seção", variant: "destructive" });
+      return;
+    }
+    addSectionToModule(moduleId, { ...newSection });
+    setNewSection({ title: '', showTitle: true });
+    setShowAddContent(null);
+    refreshData();
+    toast({ title: "Seção adicionada!" });
   };
 
   const handleUpdateContent = (moduleId: string, contentId: string, updates: Partial<ModuleContent>) => {
@@ -720,6 +737,16 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                       <Link2 className="w-4 h-4 mr-1" />
                       Adicionar Botão/Link
                     </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowAddContent({ moduleId: module.id, type: 'section' })}
+                      className="cursor-pointer"
+                    >
+                      <LayoutList className="w-4 h-4 mr-1" />
+                      Adicionar Seção
+                    </Button>
                   </div>
 
                   {/* Add Video Form */}
@@ -860,6 +887,38 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                     </div>
                   )}
 
+                  {/* Add Section Form */}
+                  {showAddContent?.moduleId === module.id && showAddContent.type === 'section' && (
+                    <div className="p-4 rounded-lg bg-secondary/30 mb-4 space-y-3">
+                      <h4 className="font-medium">Nova Seção (Sub-módulo)</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Seções permitem dividir o conteúdo do módulo com títulos intermediários
+                      </p>
+                      <Input
+                        placeholder="Título da seção (ex: Bônus Extra)"
+                        value={newSection.title}
+                        onChange={(e) => setNewSection(prev => ({ ...prev, title: e.target.value }))}
+                        className="bg-secondary/50"
+                      />
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={newSection.showTitle}
+                          onCheckedChange={(checked) => setNewSection(prev => ({ ...prev, showTitle: checked }))}
+                        />
+                        <Label className="text-sm">Exibir título</Label>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button type="button" onClick={() => handleAddSection(module.id)} className="cursor-pointer">
+                          <Check className="w-4 h-4 mr-1" />
+                          Adicionar
+                        </Button>
+                        <Button type="button" variant="ghost" onClick={() => setShowAddContent(null)} className="cursor-pointer">
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Content List - Aspect ratio 1080x1350 = 4:5 */}
                   {module.contents.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
@@ -905,6 +964,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                                 <ExternalLink className="w-3.5 h-3.5" />
                               </div>
                             </div>
+                          ) : content.type === 'section' ? (
+                            <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex flex-col items-center justify-center relative border-2 border-dashed border-amber-500/50">
+                              <LayoutList className="w-10 h-10 text-amber-500" />
+                              <span className="text-xs text-amber-500 font-medium mt-2">SEÇÃO</span>
+                            </div>
                           ) : (
                             <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center relative">
                               <Type className="w-10 h-10 text-muted-foreground" />
@@ -917,7 +981,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                             <p className="text-sm font-medium mt-2 truncate">{content.title}</p>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            {content.type === 'video' ? 'Vídeo' : content.type === 'button' ? 'Link' : 'Texto'}
+                            {content.type === 'video' ? 'Vídeo' : content.type === 'button' ? 'Link' : content.type === 'section' ? 'Seção' : 'Texto'}
                           </p>
                           
                           {/* Action buttons overlay */}
