@@ -171,6 +171,59 @@ export const saveAdminData = (data: AdminData): void => {
   localStorage.setItem('mro_admin_data', JSON.stringify(data));
 };
 
+// Save modules to cloud storage
+export const saveModulesToCloud = async (): Promise<boolean> => {
+  try {
+    const data = getAdminData();
+    const modulesData = {
+      modules: data.modules,
+      settings: {
+        downloadLink: data.settings.downloadLink,
+        welcomeVideo: data.settings.welcomeVideo
+      }
+    };
+
+    const response = await supabase.functions.invoke('modules-storage', {
+      body: { action: 'save', data: modulesData }
+    });
+
+    if (response.error) {
+      console.error('[adminConfig] Error saving modules to cloud:', response.error);
+      return false;
+    }
+
+    console.log('[adminConfig] Modules saved to cloud successfully');
+    return true;
+  } catch (error) {
+    console.error('[adminConfig] Error saving modules to cloud:', error);
+    return false;
+  }
+};
+
+// Load modules from cloud storage (for public users)
+export const loadModulesFromCloud = async (): Promise<{ modules: TutorialModule[], settings: Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'> } | null> => {
+  try {
+    const response = await supabase.functions.invoke('modules-storage', {
+      body: { action: 'load' }
+    });
+
+    if (response.error) {
+      console.error('[adminConfig] Error loading modules from cloud:', response.error);
+      return null;
+    }
+
+    if (response.data?.success && response.data?.data) {
+      console.log('[adminConfig] Modules loaded from cloud:', response.data.data.modules?.length || 0);
+      return response.data.data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('[adminConfig] Error loading modules from cloud:', error);
+    return null;
+  }
+};
+
 export const updateSettings = (settings: Partial<AdminSettings>): void => {
   const data = getAdminData();
   data.settings = { ...data.settings, ...settings };

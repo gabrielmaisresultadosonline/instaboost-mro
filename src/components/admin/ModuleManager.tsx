@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { 
   getAdminData, saveAdminData, addModule, updateModule, deleteModule,
   addVideoToModule, addTextToModule, deleteContent, updateContent,
-  TutorialModule, ModuleContent, ModuleVideo, ModuleText, getYoutubeThumbnail
+  TutorialModule, ModuleContent, ModuleVideo, ModuleText, getYoutubeThumbnail,
+  saveModulesToCloud
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import CoverUploader from './CoverUploader';
 import { 
   Plus, Trash2, Save, Check, X, Play, Video, Type, 
   ChevronDown, ChevronUp, Image as ImageIcon,
-  Edit2
+  Edit2, Upload, Loader2
 } from 'lucide-react';
 
 interface ModuleManagerProps {
@@ -44,6 +45,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' } | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
   
   // Welcome video state
   const [welcomeVideo, setWelcomeVideo] = useState(adminData.settings.welcomeVideo || {
@@ -97,6 +99,35 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     saveAdminData(data);
     toast({ title: "Salvo!", description: "Vídeo de boas-vindas atualizado" });
     refreshData();
+  };
+
+  // Publish modules to cloud for all users
+  const handlePublishToCloud = async () => {
+    setIsPublishing(true);
+    try {
+      const success = await saveModulesToCloud();
+      if (success) {
+        toast({ 
+          title: "Publicado!", 
+          description: "Módulos publicados para todos os usuários" 
+        });
+      } else {
+        toast({ 
+          title: "Erro", 
+          description: "Não foi possível publicar os módulos", 
+          variant: "destructive" 
+        });
+      }
+    } catch (error) {
+      console.error('Error publishing modules:', error);
+      toast({ 
+        title: "Erro", 
+        description: "Erro ao publicar módulos", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   // Module handlers
@@ -206,8 +237,25 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h2 className="text-2xl font-display font-bold">MRO Ferramenta - Módulos</h2>
+        <Button 
+          onClick={handlePublishToCloud}
+          disabled={isPublishing}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          {isPublishing ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Publicando...
+            </>
+          ) : (
+            <>
+              <Upload className="w-4 h-4 mr-2" />
+              Publicar para Usuários
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Download Link */}

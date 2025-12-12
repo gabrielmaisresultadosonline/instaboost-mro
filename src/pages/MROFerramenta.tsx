@@ -1,18 +1,59 @@
-import { useState } from 'react';
-import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, getYoutubeThumbnail } from '@/lib/adminConfig';
+import { useState, useEffect } from 'react';
+import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
-import { Play, Download, X, ChevronLeft, Type } from 'lucide-react';
+import { Play, Download, X, ChevronLeft, Type, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const MROFerramenta = () => {
   const navigate = useNavigate();
-  const adminData = getAdminData();
+  const [modules, setModules] = useState<TutorialModule[]>([]);
+  const [settings, setSettings] = useState<Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedModule, setSelectedModule] = useState<TutorialModule | null>(null);
   const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
-  const welcomeVideo = adminData.settings.welcomeVideo;
+  // Load modules from cloud on mount
+  useEffect(() => {
+    const loadModules = async () => {
+      setIsLoading(true);
+      try {
+        // Try loading from cloud first
+        const cloudData = await loadModulesFromCloud();
+        
+        if (cloudData && cloudData.modules.length > 0) {
+          console.log('[MROFerramenta] Loaded from cloud:', cloudData.modules.length, 'modules');
+          setModules(cloudData.modules);
+          setSettings(cloudData.settings);
+        } else {
+          // Fallback to localStorage (for admin preview)
+          const localData = getAdminData();
+          console.log('[MROFerramenta] Fallback to localStorage:', localData.modules.length, 'modules');
+          setModules(localData.modules);
+          setSettings({
+            downloadLink: localData.settings.downloadLink,
+            welcomeVideo: localData.settings.welcomeVideo
+          });
+        }
+      } catch (error) {
+        console.error('[MROFerramenta] Error loading modules:', error);
+        // Fallback to localStorage
+        const localData = getAdminData();
+        setModules(localData.modules);
+        setSettings({
+          downloadLink: localData.settings.downloadLink,
+          welcomeVideo: localData.settings.welcomeVideo
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadModules();
+  }, []);
+
+  const welcomeVideo = settings?.welcomeVideo;
 
   const getYoutubeEmbedUrl = (url: string): string => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
@@ -62,12 +103,12 @@ const MROFerramenta = () => {
               <span className="text-sm font-medium text-primary">MRO Ferramenta</span>
             </div>
 
-            {adminData.settings.downloadLink && (
+            {settings?.downloadLink && (
               <Button 
                 type="button"
                 variant="gradient" 
                 size="sm"
-                onClick={() => window.open(adminData.settings.downloadLink, '_blank')}
+                onClick={() => window.open(settings.downloadLink, '_blank')}
                 className="cursor-pointer"
               >
                 <Download className="w-4 h-4 mr-2" />
@@ -115,20 +156,28 @@ const MROFerramenta = () => {
             </div>
           )}
 
+          {/* Loading State */}
+          {isLoading && (
+            <div className="glass-card p-12 text-center">
+              <Loader2 className="w-12 h-12 mx-auto text-primary mb-4 animate-spin" />
+              <p className="text-muted-foreground">Carregando módulos...</p>
+            </div>
+          )}
+
           {/* Module List View - Modules as containers with content inside */}
-          {!selectedModule && (
+          {!selectedModule && !isLoading && (
             <>
               <h1 className="text-3xl font-display font-bold mb-2">Módulos</h1>
               <p className="text-muted-foreground mb-8">Aprenda a usar a ferramenta MRO Inteligente</p>
 
-              {adminData.modules.length === 0 ? (
+              {modules.length === 0 ? (
                 <div className="glass-card p-12 text-center">
                   <Play className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">Nenhum módulo disponível ainda</p>
                 </div>
               ) : (
                 <div className="space-y-8">
-                  {adminData.modules.sort((a, b) => a.order - b.order).map((module) => (
+                  {modules.sort((a, b) => a.order - b.order).map((module) => (
                     <div 
                       key={module.id}
                       className="glass-card p-6 rounded-xl border border-border"
