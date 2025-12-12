@@ -25,6 +25,38 @@ serve(async (req) => {
     
     logStep("Request received", { action, username, hasEmail: !!email, hasAuthToken: !!auth_token, hasLifetimeCreativeUsedAt: !!lifetimeCreativeUsedAt });
 
+    // GET_CREATIVES_PRO_USERS - No username required
+    if (action === 'get_creatives_pro_users') {
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('squarecloud_username, updated_at, days_remaining, profile_sessions')
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        logStep('Error fetching PRO users', { error: error.message });
+        return new Response(
+          JSON.stringify({ success: false, error: error.message }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      // Filter users with creativesUnlocked = true in any profile session
+      const proUsers = (data || []).filter(user => {
+        const sessions = user.profile_sessions as any[] || [];
+        return sessions.some((s: any) => s.creativesUnlocked === true);
+      }).map(user => ({
+        squarecloud_username: user.squarecloud_username,
+        activated_at: user.updated_at,
+        days_remaining: user.days_remaining
+      }));
+
+      logStep(`Found ${proUsers.length} PRO users`);
+      return new Response(
+        JSON.stringify({ success: true, users: proUsers }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (!username) {
       return new Response(
         JSON.stringify({ success: false, error: 'Username is required' }),
@@ -291,38 +323,6 @@ serve(async (req) => {
       logStep(`Successfully ${shouldActivate ? 'activated' : 'deactivated'} PRO creatives for ${normalizedUsername}`);
       return new Response(
         JSON.stringify({ success: true, activated: shouldActivate }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // GET_CREATIVES_PRO_USERS - Get all users with PRO creatives activated
-    if (action === 'get_creatives_pro_users') {
-      const { data, error } = await supabase
-        .from('user_sessions')
-        .select('squarecloud_username, updated_at, days_remaining, profile_sessions')
-        .order('updated_at', { ascending: false });
-
-      if (error) {
-        logStep('Error fetching PRO users', { error: error.message });
-        return new Response(
-          JSON.stringify({ success: false, error: error.message }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        );
-      }
-
-      // Filter users with creativesUnlocked = true in any profile session
-      const proUsers = (data || []).filter(user => {
-        const sessions = user.profile_sessions as any[] || [];
-        return sessions.some((s: any) => s.creativesUnlocked === true);
-      }).map(user => ({
-        squarecloud_username: user.squarecloud_username,
-        activated_at: user.updated_at,
-        days_remaining: user.days_remaining
-      }));
-
-      logStep(`Found ${proUsers.length} PRO users`);
-      return new Response(
-        JSON.stringify({ success: true, users: proUsers }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
