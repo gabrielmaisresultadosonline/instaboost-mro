@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { 
   getAdminData, saveAdminData, addModule, updateModule, deleteModule,
   addVideoToModule, addTextToModule, addButtonToModule, addSectionToModule, deleteContent, updateContent,
+  addVideoToSection, addButtonToSection, deleteSectionContent,
   TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail,
-  saveModulesToCloud, loadModulesFromCloud
+  saveModulesToCloud, loadModulesFromCloud, SectionContent
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -44,10 +45,29 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const [adminData, setAdminData] = useState(getAdminData());
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
-  const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent } | null>(null);
-  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' | 'section' } | null>(null);
+  const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent; sectionId?: string } | null>(null);
+  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' | 'section'; sectionId?: string } | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isLoadingCloud, setIsLoadingCloud] = useState(true);
+
+  // New section content forms
+  const [newSectionVideo, setNewSectionVideo] = useState({
+    title: '',
+    description: '',
+    youtubeUrl: '',
+    thumbnailUrl: '',
+    showNumber: true,
+    showTitle: true
+  });
+
+  const [newSectionButton, setNewSectionButton] = useState({
+    title: '',
+    url: '',
+    description: '',
+    coverUrl: '',
+    showTitle: true
+  });
   
   // Load modules from cloud on mount
   useEffect(() => {
@@ -293,6 +313,52 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     setShowAddContent(null);
     refreshData();
     toast({ title: "Seção adicionada!" });
+  };
+
+  // Section content handlers
+  const handleAddVideoToSection = (moduleId: string, sectionId: string) => {
+    if (!newSectionVideo.title || !newSectionVideo.youtubeUrl) {
+      toast({ title: "Erro", description: "Preencha título e URL do YouTube", variant: "destructive" });
+      return;
+    }
+    addVideoToSection(moduleId, sectionId, {
+      title: newSectionVideo.title,
+      description: newSectionVideo.description,
+      youtubeUrl: newSectionVideo.youtubeUrl,
+      thumbnailUrl: newSectionVideo.thumbnailUrl || getYoutubeThumbnail(newSectionVideo.youtubeUrl),
+      showNumber: newSectionVideo.showNumber,
+      showTitle: newSectionVideo.showTitle
+    });
+    setNewSectionVideo({ title: '', description: '', youtubeUrl: '', thumbnailUrl: '', showNumber: true, showTitle: true });
+    setShowAddContent(null);
+    refreshData();
+    toast({ title: "Vídeo adicionado à seção!" });
+  };
+
+  const handleAddButtonToSection = (moduleId: string, sectionId: string) => {
+    if (!newSectionButton.title || !newSectionButton.url) {
+      toast({ title: "Erro", description: "Preencha título e URL", variant: "destructive" });
+      return;
+    }
+    addButtonToSection(moduleId, sectionId, {
+      title: newSectionButton.title,
+      url: newSectionButton.url,
+      description: newSectionButton.description,
+      coverUrl: newSectionButton.coverUrl,
+      showTitle: newSectionButton.showTitle
+    });
+    setNewSectionButton({ title: '', url: '', description: '', coverUrl: '', showTitle: true });
+    setShowAddContent(null);
+    refreshData();
+    toast({ title: "Botão adicionado à seção!" });
+  };
+
+  const handleDeleteSectionContent = async (moduleId: string, sectionId: string, contentId: string) => {
+    if (confirm('Excluir este conteúdo da seção?')) {
+      deleteSectionContent(moduleId, sectionId, contentId);
+      refreshData();
+      toast({ title: "Conteúdo excluído!" });
+    }
   };
 
   const handleUpdateContent = (moduleId: string, contentId: string, updates: Partial<ModuleContent>) => {
@@ -988,9 +1054,15 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                               </div>
                             </div>
                           ) : content.type === 'section' ? (
-                            <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex flex-col items-center justify-center relative border-2 border-dashed border-amber-500/50">
+                            <div 
+                              onClick={() => setExpandedSection(expandedSection === content.id ? null : content.id)}
+                              className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex flex-col items-center justify-center relative border-2 border-dashed border-amber-500/50 cursor-pointer hover:border-amber-400 transition-colors"
+                            >
                               <LayoutList className="w-10 h-10 text-amber-500" />
                               <span className="text-xs text-amber-500 font-medium mt-2">SEÇÃO</span>
+                              <span className="text-[10px] text-amber-400 mt-1">
+                                {(content as ModuleSection).contents?.length || 0} itens
+                              </span>
                             </div>
                           ) : (
                             <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center relative">
@@ -1071,6 +1143,207 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                       ))}
                     </div>
                   )}
+
+                  {/* Expanded Section Contents */}
+                  {module.contents.filter(c => c.type === 'section').map(sectionContent => {
+                    const section = sectionContent as ModuleSection;
+                    if (expandedSection !== section.id) return null;
+                    
+                    return (
+                      <div key={section.id} className="mt-6 p-4 rounded-xl bg-amber-500/10 border-2 border-amber-500/30">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-bold text-amber-400 flex items-center gap-2">
+                            <LayoutList className="w-5 h-5" />
+                            Conteúdos da Seção: {section.title}
+                          </h4>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setExpandedSection(null)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+
+                        {/* Add content to section buttons */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setShowAddContent({ moduleId: module.id, type: 'video', sectionId: section.id })}
+                            className="cursor-pointer border-amber-500/50 text-amber-400 hover:bg-amber-500/20"
+                          >
+                            <Video className="w-4 h-4 mr-1" />
+                            Adicionar Vídeo
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setShowAddContent({ moduleId: module.id, type: 'button', sectionId: section.id })}
+                            className="cursor-pointer border-amber-500/50 text-amber-400 hover:bg-amber-500/20"
+                          >
+                            <Link2 className="w-4 h-4 mr-1" />
+                            Adicionar Botão
+                          </Button>
+                        </div>
+
+                        {/* Add Video to Section Form */}
+                        {showAddContent?.moduleId === module.id && showAddContent.sectionId === section.id && showAddContent.type === 'video' && (
+                          <div className="p-4 rounded-lg bg-secondary/30 mb-4">
+                            <h5 className="font-medium mb-3">Novo Vídeo na Seção</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-3">
+                                <Input
+                                  placeholder="Título do vídeo"
+                                  value={newSectionVideo.title}
+                                  onChange={(e) => setNewSectionVideo(prev => ({ ...prev, title: e.target.value }))}
+                                  className="bg-secondary/50"
+                                />
+                                <Input
+                                  placeholder="URL do YouTube"
+                                  value={newSectionVideo.youtubeUrl}
+                                  onChange={(e) => setNewSectionVideo(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                                  className="bg-secondary/50"
+                                />
+                                <Textarea
+                                  placeholder="Descrição (opcional)"
+                                  value={newSectionVideo.description}
+                                  onChange={(e) => setNewSectionVideo(prev => ({ ...prev, description: e.target.value }))}
+                                  className="bg-secondary/50"
+                                  rows={2}
+                                />
+                              </div>
+                              <div>
+                                <CoverUploader
+                                  currentUrl={newSectionVideo.thumbnailUrl}
+                                  onUpload={(url) => setNewSectionVideo(prev => ({ ...prev, thumbnailUrl: url }))}
+                                  onRemove={() => setNewSectionVideo(prev => ({ ...prev, thumbnailUrl: '' }))}
+                                  folder="section-video-covers"
+                                  id={`section_video_new_${Date.now()}`}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2 mt-4">
+                              <Button type="button" onClick={() => handleAddVideoToSection(module.id, section.id)} className="cursor-pointer">
+                                <Check className="w-4 h-4 mr-1" />
+                                Adicionar
+                              </Button>
+                              <Button type="button" variant="ghost" onClick={() => setShowAddContent(null)} className="cursor-pointer">
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Add Button to Section Form */}
+                        {showAddContent?.moduleId === module.id && showAddContent.sectionId === section.id && showAddContent.type === 'button' && (
+                          <div className="p-4 rounded-lg bg-secondary/30 mb-4">
+                            <h5 className="font-medium mb-3">Novo Botão na Seção</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-3">
+                                <Input
+                                  placeholder="Título do botão"
+                                  value={newSectionButton.title}
+                                  onChange={(e) => setNewSectionButton(prev => ({ ...prev, title: e.target.value }))}
+                                  className="bg-secondary/50"
+                                />
+                                <Input
+                                  placeholder="URL do link"
+                                  value={newSectionButton.url}
+                                  onChange={(e) => setNewSectionButton(prev => ({ ...prev, url: e.target.value }))}
+                                  className="bg-secondary/50"
+                                />
+                                <Textarea
+                                  placeholder="Descrição (opcional)"
+                                  value={newSectionButton.description}
+                                  onChange={(e) => setNewSectionButton(prev => ({ ...prev, description: e.target.value }))}
+                                  className="bg-secondary/50"
+                                  rows={2}
+                                />
+                              </div>
+                              <div>
+                                <CoverUploader
+                                  currentUrl={newSectionButton.coverUrl}
+                                  onUpload={(url) => setNewSectionButton(prev => ({ ...prev, coverUrl: url }))}
+                                  onRemove={() => setNewSectionButton(prev => ({ ...prev, coverUrl: '' }))}
+                                  folder="section-button-covers"
+                                  id={`section_button_new_${Date.now()}`}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2 mt-4">
+                              <Button type="button" onClick={() => handleAddButtonToSection(module.id, section.id)} className="cursor-pointer">
+                                <Check className="w-4 h-4 mr-1" />
+                                Adicionar
+                              </Button>
+                              <Button type="button" variant="ghost" onClick={() => setShowAddContent(null)} className="cursor-pointer">
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Section contents list */}
+                        {(!section.contents || section.contents.length === 0) ? (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Nenhum conteúdo nesta seção
+                          </p>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            {section.contents.sort((a, b) => a.order - b.order).map((sContent, sIdx) => (
+                              <div key={sContent.id} className="relative group">
+                                {sContent.type === 'video' ? (
+                                  <div className="aspect-[4/5] rounded-lg overflow-hidden bg-secondary relative">
+                                    <img 
+                                      src={(sContent as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((sContent as ModuleVideo).youtubeUrl)}
+                                      alt={sContent.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                                      {sIdx + 1}
+                                    </div>
+                                    <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Play className="w-8 h-8 text-primary" />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-mro-cyan/20 relative flex items-center justify-center">
+                                    {(sContent as ModuleButton).coverUrl ? (
+                                      <img 
+                                        src={(sContent as ModuleButton).coverUrl}
+                                        alt={sContent.title}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <Link2 className="w-8 h-8 text-primary" />
+                                    )}
+                                    <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                                      <ExternalLink className="w-3 h-3" />
+                                    </div>
+                                  </div>
+                                )}
+                                <p className="text-xs font-medium mt-1 truncate">{sContent.title}</p>
+                                
+                                {/* Delete button */}
+                                <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteSectionContent(module.id, section.id, sContent.id)}
+                                    className="w-8 h-8 bg-destructive rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-destructive/90"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="w-4 h-4 text-destructive-foreground" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

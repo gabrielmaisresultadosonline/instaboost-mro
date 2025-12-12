@@ -92,7 +92,11 @@ export interface ModuleButton {
   createdAt: string;
 }
 
-// Section divider - allows grouping content with a title (sub-module)
+// Section content types (what goes inside a section)
+export type SectionContentType = 'video' | 'text' | 'button';
+export type SectionContent = ModuleVideo | ModuleText | ModuleButton;
+
+// Section divider - allows grouping content with a title (sub-module with its own contents)
 export interface ModuleSection {
   id: string;
   type: 'section';
@@ -102,6 +106,7 @@ export interface ModuleSection {
   isBonus: boolean;
   order: number;
   createdAt: string;
+  contents: SectionContent[]; // Section's own videos, texts, buttons
 }
 
 export type ModuleContent = ModuleVideo | ModuleText | ModuleButton | ModuleSection;
@@ -472,11 +477,83 @@ export const addSectionToModule = (
     showTitle: section.showTitle ?? true,
     isBonus: section.isBonus ?? false,
     order: module.contents.length + 1,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    contents: [] // Section starts with no contents
   };
   module.contents.push(newSection);
   saveAdminData(data);
   return newSection;
+};
+
+// Add content to a section inside a module
+export const addVideoToSection = (
+  moduleId: string,
+  sectionId: string,
+  video: { title: string; description: string; youtubeUrl: string; thumbnailUrl?: string; showNumber?: boolean; showTitle?: boolean }
+): ModuleVideo | null => {
+  const data = getAdminData();
+  const module = data.modules.find(m => m.id === moduleId);
+  if (!module) return null;
+  
+  const section = module.contents.find(c => c.id === sectionId && c.type === 'section') as ModuleSection | undefined;
+  if (!section) return null;
+  
+  const newVideo: ModuleVideo = {
+    id: `video_${Date.now()}`,
+    type: 'video',
+    title: video.title,
+    description: video.description,
+    youtubeUrl: video.youtubeUrl,
+    thumbnailUrl: video.thumbnailUrl || getYoutubeThumbnail(video.youtubeUrl),
+    showNumber: video.showNumber ?? true,
+    showTitle: video.showTitle ?? true,
+    order: section.contents.length + 1,
+    createdAt: new Date().toISOString()
+  };
+  section.contents.push(newVideo);
+  saveAdminData(data);
+  return newVideo;
+};
+
+export const addButtonToSection = (
+  moduleId: string,
+  sectionId: string,
+  button: { title: string; url: string; description?: string; coverUrl?: string; showTitle?: boolean }
+): ModuleButton | null => {
+  const data = getAdminData();
+  const module = data.modules.find(m => m.id === moduleId);
+  if (!module) return null;
+  
+  const section = module.contents.find(c => c.id === sectionId && c.type === 'section') as ModuleSection | undefined;
+  if (!section) return null;
+  
+  const newButton: ModuleButton = {
+    id: `button_${Date.now()}`,
+    type: 'button',
+    title: button.title,
+    url: button.url,
+    description: button.description || '',
+    coverUrl: button.coverUrl || '',
+    showTitle: button.showTitle ?? true,
+    order: section.contents.length + 1,
+    createdAt: new Date().toISOString()
+  };
+  section.contents.push(newButton);
+  saveAdminData(data);
+  return newButton;
+};
+
+export const deleteSectionContent = (moduleId: string, sectionId: string, contentId: string): void => {
+  const data = getAdminData();
+  const module = data.modules.find(m => m.id === moduleId);
+  if (module) {
+    const section = module.contents.find(c => c.id === sectionId && c.type === 'section') as ModuleSection | undefined;
+    if (section) {
+      section.contents = section.contents.filter(c => c.id !== contentId);
+      section.contents.forEach((c, i) => c.order = i + 1);
+      saveAdminData(data);
+    }
+  }
 };
 
 export const updateContent = (moduleId: string, contentId: string, updates: Partial<ModuleContent>): void => {

@@ -102,39 +102,12 @@ const MROFerramenta = () => {
     return videos.findIndex(v => v.id === contentId) + 1;
   };
 
-  // Helper to group contents by sections
-  interface ContentGroup {
-    section: ModuleSection | null;
-    contents: ModuleContent[];
-  }
-
-  const groupContentsBySections = (contents: ModuleContent[]): ContentGroup[] => {
+  // Helper: separate module contents into regular contents and sections
+  const separateContents = (contents: ModuleContent[]) => {
     const sorted = [...contents].sort((a, b) => a.order - b.order);
-    const groups: ContentGroup[] = [];
-    let currentGroup: ContentGroup = { section: null, contents: [] };
-
-    sorted.forEach(content => {
-      if (content.type === 'section') {
-        // Save current group if it has content
-        if (currentGroup.contents.length > 0) {
-          groups.push(currentGroup);
-        }
-        // Start new group with section
-        currentGroup = { 
-          section: content as ModuleSection, 
-          contents: [] 
-        };
-      } else {
-        currentGroup.contents.push(content);
-      }
-    });
-
-    // Push last group
-    if (currentGroup.contents.length > 0 || currentGroup.section) {
-      groups.push(currentGroup);
-    }
-
-    return groups;
+    const regularContents = sorted.filter(c => c.type !== 'section');
+    const sections = sorted.filter(c => c.type === 'section') as ModuleSection[];
+    return { regularContents, sections };
   };
 
   // Content Section Component (renders a group of videos/buttons)
@@ -342,15 +315,27 @@ const MROFerramenta = () => {
     onContentClick: (content: ModuleContent) => void;
     getVideoIndex: (module: TutorialModule, contentId: string) => number;
   }) => {
-    const groups = groupContentsBySections(module.contents);
+    const { regularContents, sections } = separateContents(module.contents);
 
     return (
       <div className="space-y-4">
-        {groups.map((group, idx) => (
+        {/* Regular contents (videos, text, buttons) at module level */}
+        {regularContents.length > 0 && (
           <ContentSection 
-            key={idx}
-            section={group.section}
-            contents={group.contents}
+            section={null}
+            contents={regularContents}
+            module={module}
+            onContentClick={onContentClick}
+            getVideoIndex={getVideoIndex}
+          />
+        )}
+
+        {/* Sections (sub-modules) with their own contents */}
+        {sections.map((section) => (
+          <ContentSection 
+            key={section.id}
+            section={section}
+            contents={section.contents || []}
             module={module}
             onContentClick={onContentClick}
             getVideoIndex={getVideoIndex}
