@@ -27,10 +27,17 @@ const getFacebookCookies = () => {
   };
 };
 
+// Get test_event_code from URL if present (for Facebook Events Manager testing)
+const getTestEventCode = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('test_event_code') || undefined;
+};
+
 // Send event to Meta Conversions API via Edge Function
 const sendConversionEvent = async (eventName: string, customData?: Record<string, any>) => {
   try {
     const { fbc, fbp } = getFacebookCookies();
+    const testEventCode = getTestEventCode();
     
     const { data, error } = await supabase.functions.invoke('meta-conversions', {
       body: {
@@ -39,6 +46,7 @@ const sendConversionEvent = async (eventName: string, customData?: Record<string
         user_agent: navigator.userAgent,
         fbc,
         fbp,
+        test_event_code: testEventCode,
         ...customData,
       },
     });
