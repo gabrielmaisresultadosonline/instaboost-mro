@@ -310,7 +310,10 @@ export const loginUser = async (
   daysRemaining: number,
   email?: string
 ): Promise<UserSession> => {
-  const normalizedUsername = username.toLowerCase();
+  // CRITICAL: Preserve original username case for SquareCloud API compatibility
+  // SquareCloud is case-sensitive (e.g., "123C" != "123c")
+  const originalUsername = username;
+  const normalizedUsername = username.toLowerCase(); // Only for comparison/cache keys
   
   // Get existing session to check if same user
   const existingSession = getUserSession();
@@ -333,11 +336,12 @@ export const loginUser = async (
   const creativesUnlocked = isSameUser ? existingSession.user?.creativesUnlocked : false;
   
   // CRITICAL: Load from cloud - this is the source of profiles for this user
-  console.log(`[userStorage] ☁️ Loading cloud data for ${normalizedUsername}...`);
-  const cloudData = await loadUserFromCloud(normalizedUsername);
+  // Use ORIGINAL username for cloud operations (SquareCloud case-sensitive)
+  console.log(`[userStorage] ☁️ Loading cloud data for ${originalUsername}...`);
+  const cloudData = await loadUserFromCloud(originalUsername);
   
   // Load profiles from legacy database as fallback
-  const dbProfiles = await loadProfilesFromDatabase(normalizedUsername);
+  const dbProfiles = await loadProfilesFromDatabase(originalUsername);
   
   // Use cloud email if available (locked), otherwise use provided email
   const finalEmail = cloudData?.email || email;
@@ -364,7 +368,7 @@ export const loginUser = async (
   
   const session: UserSession = {
     user: {
-      username: normalizedUsername,
+      username: originalUsername, // PRESERVE original case for SquareCloud API calls
       email: finalEmail,
       daysRemaining: finalDaysRemaining, // ALWAYS from SquareCloud API
       loginAt: new Date().toISOString(),
@@ -388,7 +392,7 @@ export const loginUser = async (
   if (cloudData) {
     console.log(`[userStorage] ☁️ Syncing cloud with SquareCloud days: ${finalDaysRemaining}`);
     await saveUserToCloud(
-      normalizedUsername,
+      originalUsername, // Use original case
       finalEmail,
       finalDaysRemaining,
       cloudData.profileSessions,
@@ -398,7 +402,7 @@ export const loginUser = async (
   }
   
   const cloudProfileCount = cloudData?.profileSessions?.length || 0;
-  console.log(`[userStorage] ✅ Logged in ${normalizedUsername}: ${cloudProfileCount} cloud profiles, ${mergedIGs.length} registered IGs, ${finalDaysRemaining} days, lifetimeCreativeUsedAt: ${cloudData?.lifetimeCreativeUsedAt || 'none'}`);
+  console.log(`[userStorage] ✅ Logged in ${originalUsername}: ${cloudProfileCount} cloud profiles, ${mergedIGs.length} registered IGs, ${finalDaysRemaining} days, lifetimeCreativeUsedAt: ${cloudData?.lifetimeCreativeUsedAt || 'none'}`);
   
   return session;
 };
