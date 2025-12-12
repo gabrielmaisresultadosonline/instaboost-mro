@@ -8,10 +8,9 @@ import {
   Sparkles, 
   UserPlus, 
   Trash2, 
-  Search, 
-  CheckCircle, 
   Loader2,
-  Crown
+  Crown,
+  RefreshCw
 } from 'lucide-react';
 
 interface CreativeProUser {
@@ -35,56 +34,27 @@ const CreativesProManager = () => {
   const loadActivatedUsers = async () => {
     setIsLoadingList(true);
     try {
-      // Query user_sessions where creativesUnlocked = true (stored in profile_sessions JSON)
-      const { data, error } = await supabase
-        .from('user_sessions')
-        .select('squarecloud_username, updated_at, days_remaining, profile_sessions')
-        .order('updated_at', { ascending: false });
+      // Load from cloud via edge function
+      const { data, error } = await supabase.functions.invoke('user-cloud-storage', {
+        body: {
+          action: 'get_creatives_pro_users'
+        }
+      });
 
       if (error) {
-        console.error('Error loading users:', error);
+        console.error('Error loading PRO users:', error);
+        toast({
+          title: 'Erro ao carregar',
+          description: 'Falha ao buscar usuários PRO da nuvem',
+          variant: 'destructive'
+        });
         return;
       }
 
-      // Filter users where at least one profile has creativesUnlocked = true
-      // OR the user session has the creativesUnlocked flag
-      const proUsers: CreativeProUser[] = [];
-      
-      for (const user of data || []) {
-        // Check if user has creativesUnlocked in any profile session
-        const profileSessions = user.profile_sessions as any[];
-        const hasUnlockedCreatives = profileSessions?.some((ps: any) => ps.creativesUnlocked === true);
-        
-        // Also load from localStorage backup for admin-saved data
-        const localKey = `mro_creatives_pro_${user.squarecloud_username}`;
-        const localData = localStorage.getItem(localKey);
-        
-        if (hasUnlockedCreatives || localData) {
-          proUsers.push({
-            squarecloud_username: user.squarecloud_username,
-            activated_at: localData ? JSON.parse(localData).activated_at : user.updated_at,
-            days_remaining: user.days_remaining || undefined
-          });
-        }
+      if (data?.success && data.users) {
+        setActivatedUsers(data.users);
+        console.log(`✅ Loaded ${data.users.length} PRO users from cloud`);
       }
-
-      // Also check local storage for any admin-activated users not in DB yet
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key?.startsWith('mro_creatives_pro_')) {
-          const username = key.replace('mro_creatives_pro_', '');
-          if (!proUsers.find(u => u.squarecloud_username === username)) {
-            const data = JSON.parse(localStorage.getItem(key) || '{}');
-            proUsers.push({
-              squarecloud_username: username,
-              activated_at: data.activated_at || new Date().toISOString(),
-              days_remaining: data.days_remaining
-            });
-          }
-        }
-      }
-
-      setActivatedUsers(proUsers);
     } catch (err) {
       console.error('Error:', err);
     } finally {
@@ -106,67 +76,42 @@ const CreativesProManager = () => {
     try {
       const normalizedUsername = username.trim();
 
-      // Check if user exists in database
-      const { data: existingUser, error: checkError } = await supabase
-        .from('user_sessions')
-        .select('squarecloud_username, profile_sessions, days_remaining')
-        .eq('squarecloud_username', normalizedUsername)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Error checking user:', checkError);
-      }
-
-      // Save activation to localStorage for persistence
-      const activationData = {
-        activated_at: new Date().toISOString(),
-        days_remaining: existingUser?.days_remaining || 9999
-      };
-      localStorage.setItem(`mro_creatives_pro_${normalizedUsername}`, JSON.stringify(activationData));
-
-      // If user exists in DB, update their profile_sessions to include creativesUnlocked
-      if (existingUser) {
-        const profileSessions = existingUser.profile_sessions as any[] || [];
-        const updatedSessions = profileSessions.map((ps: any) => ({
-          ...ps,
-          creativesUnlocked: true
-        }));
-
-        // If no sessions exist, create a placeholder
-        if (updatedSessions.length === 0) {
-          updatedSessions.push({ creativesUnlocked: true });
+      // Activate via cloud edge function
+      const { data, error } = await supabase.functions.invoke('user-cloud-storage', {
+        body: {
+          action: 'set_creatives_pro',
+          username: normalizedUsername,
+          activate: true
         }
-
-        const { error: updateError } = await supabase
-          .from('user_sessions')
-          .update({ 
-            profile_sessions: updatedSessions,
-            updated_at: new Date().toISOString()
-          })
-          .eq('squarecloud_username', normalizedUsername);
-
-        if (updateError) {
-          console.error('Error updating user:', updateError);
-        }
-      }
-
-      // Add to local list
-      setActivatedUsers(prev => {
-        const exists = prev.find(u => u.squarecloud_username === normalizedUsername);
-        if (exists) return prev;
-        return [{
-          squarecloud_username: normalizedUsername,
-          activated_at: new Date().toISOString(),
-          days_remaining: existingUser?.days_remaining
-        }, ...prev];
       });
 
-      toast({
-        title: 'Usuário Ativado! ✨',
-        description: `${normalizedUsername} agora tem acesso PRO aos criativos (6 créditos/mês como anual)`
-      });
+      if (error) {
+        console.error('Error activating user:', error);
+        toast({
+          title: 'Erro',
+          description: 'Falha ao ativar usuário na nuvem',
+          variant: 'destructive'
+        });
+        return;
+      }
 
-      setUsername('');
+      if (data?.success) {
+        // Refresh the list from cloud
+        await loadActivatedUsers();
+
+        toast({
+          title: 'Usuário Ativado! ✨',
+          description: `${normalizedUsername} agora tem acesso PRO aos criativos (6 créditos/mês como anual). Salvo na nuvem!`
+        });
+
+        setUsername('');
+      } else {
+        toast({
+          title: 'Erro',
+          description: data?.error || 'Falha ao ativar usuário',
+          variant: 'destructive'
+        });
+      }
     } catch (err) {
       console.error('Error activating user:', err);
       toast({
@@ -181,39 +126,34 @@ const CreativesProManager = () => {
 
   const deactivateUser = async (userToRemove: string) => {
     try {
-      // Remove from localStorage
-      localStorage.removeItem(`mro_creatives_pro_${userToRemove}`);
+      // Deactivate via cloud edge function
+      const { data, error } = await supabase.functions.invoke('user-cloud-storage', {
+        body: {
+          action: 'set_creatives_pro',
+          username: userToRemove,
+          activate: false
+        }
+      });
 
-      // Update database to remove creativesUnlocked flag
-      const { data: existingUser } = await supabase
-        .from('user_sessions')
-        .select('profile_sessions')
-        .eq('squarecloud_username', userToRemove)
-        .maybeSingle();
-
-      if (existingUser) {
-        const profileSessions = existingUser.profile_sessions as any[] || [];
-        const updatedSessions = profileSessions.map((ps: any) => ({
-          ...ps,
-          creativesUnlocked: false
-        }));
-
-        await supabase
-          .from('user_sessions')
-          .update({ 
-            profile_sessions: updatedSessions,
-            updated_at: new Date().toISOString()
-          })
-          .eq('squarecloud_username', userToRemove);
+      if (error) {
+        console.error('Error deactivating user:', error);
+        toast({
+          title: 'Erro',
+          description: 'Falha ao desativar usuário na nuvem',
+          variant: 'destructive'
+        });
+        return;
       }
 
-      // Remove from local list
-      setActivatedUsers(prev => prev.filter(u => u.squarecloud_username !== userToRemove));
+      if (data?.success) {
+        // Remove from local list immediately
+        setActivatedUsers(prev => prev.filter(u => u.squarecloud_username !== userToRemove));
 
-      toast({
-        title: 'Acesso Removido',
-        description: `${userToRemove} não tem mais acesso PRO aos criativos`
-      });
+        toast({
+          title: 'Acesso Removido',
+          description: `${userToRemove} não tem mais acesso PRO aos criativos`
+        });
+      }
     } catch (err) {
       console.error('Error deactivating user:', err);
       toast({
@@ -243,16 +183,29 @@ const CreativesProManager = () => {
   return (
     <div className="glass-card p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500">
-          <Crown className="w-5 h-5 text-white" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500">
+            <Crown className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold">Criativos PRO - Liberação Vitalício</h3>
+            <p className="text-sm text-muted-foreground">
+              Ativar acesso completo a criativos (6 créditos/mês) para usuários vitalícios
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-bold">Criativos PRO - Liberação Vitalício</h3>
-          <p className="text-sm text-muted-foreground">
-            Ativar acesso completo a criativos (6 créditos/mês) para usuários vitalícios
-          </p>
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={loadActivatedUsers}
+          disabled={isLoadingList}
+          className="cursor-pointer"
+        >
+          <RefreshCw className={`w-4 h-4 mr-1 ${isLoadingList ? 'animate-spin' : ''}`} />
+          Atualizar
+        </Button>
       </div>
 
       {/* Activation Form */}
@@ -292,6 +245,7 @@ const CreativesProManager = () => {
             <Sparkles className="w-4 h-4 text-amber-500" />
             Usuários com Criativos PRO ({activatedUsers.length})
           </h4>
+          <span className="text-xs text-muted-foreground">☁️ Dados salvos na nuvem</span>
         </div>
 
         {isLoadingList ? (
@@ -351,7 +305,8 @@ const CreativesProManager = () => {
       <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
         <p className="text-sm text-amber-200">
           💡 Usuários vitalícios com PRO ativado recebem <strong>6 créditos mensais</strong> para gerar criativos, 
-          igual aos usuários anuais. Sem ativação, vitalícios têm apenas 1 criativo gratuito/mês.
+          igual aos usuários anuais. Sem ativação, vitalícios têm apenas 1 criativo gratuito/mês. 
+          <strong> ☁️ Dados salvos na nuvem - funciona em qualquer dispositivo!</strong>
         </p>
       </div>
     </div>

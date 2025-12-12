@@ -223,6 +223,112 @@ serve(async (req) => {
       );
     }
 
+    // SET_CREATIVES_PRO - Admin action to activate/deactivate PRO creatives for a user
+    if (action === 'set_creatives_pro') {
+      const { activate } = await req.json().catch(() => ({ activate: true }));
+      const body = await req.clone().json();
+      const shouldActivate = body.activate !== false;
+      
+      logStep(`Setting creatives PRO for ${normalizedUsername}`, { activate: shouldActivate });
+      
+      // Check if user exists
+      const { data: existing } = await supabase
+        .from('user_sessions')
+        .select('id, profile_sessions')
+        .eq('squarecloud_username', normalizedUsername)
+        .maybeSingle();
+
+      if (!existing) {
+        // Create user record with creativesUnlocked flag
+        const { error: insertError } = await supabase
+          .from('user_sessions')
+          .insert({
+            squarecloud_username: normalizedUsername,
+            profile_sessions: [{ creativesUnlocked: shouldActivate, activatedAt: new Date().toISOString() }],
+            days_remaining: 9999 // Vitalício
+          });
+
+        if (insertError) {
+          logStep('Error creating user for PRO activation', { error: insertError.message });
+          return new Response(
+            JSON.stringify({ success: false, error: insertError.message }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+      } else {
+        // Update existing user's profile_sessions to include creativesUnlocked flag
+        const profileSessions = existing.profile_sessions || [];
+        
+        // Update all existing sessions with creativesUnlocked flag
+        const updatedSessions = profileSessions.map((ps: any) => ({
+          ...ps,
+          creativesUnlocked: shouldActivate
+        }));
+        
+        // If no sessions exist, create a placeholder with the flag
+        if (updatedSessions.length === 0) {
+          updatedSessions.push({ 
+            creativesUnlocked: shouldActivate, 
+            activatedAt: new Date().toISOString() 
+          });
+        }
+
+        const { error: updateError } = await supabase
+          .from('user_sessions')
+          .update({ 
+            profile_sessions: updatedSessions,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existing.id);
+
+        if (updateError) {
+          logStep('Error updating user for PRO activation', { error: updateError.message });
+          return new Response(
+            JSON.stringify({ success: false, error: updateError.message }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+      }
+
+      logStep(`Successfully ${shouldActivate ? 'activated' : 'deactivated'} PRO creatives for ${normalizedUsername}`);
+      return new Response(
+        JSON.stringify({ success: true, activated: shouldActivate }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // GET_CREATIVES_PRO_USERS - Get all users with PRO creatives activated
+    if (action === 'get_creatives_pro_users') {
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('squarecloud_username, updated_at, days_remaining, profile_sessions')
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        logStep('Error fetching PRO users', { error: error.message });
+        return new Response(
+          JSON.stringify({ success: false, error: error.message }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      // Filter users with creativesUnlocked = true in any profile session
+      const proUsers = (data || []).filter(user => {
+        const sessions = user.profile_sessions as any[] || [];
+        return sessions.some((s: any) => s.creativesUnlocked === true);
+      }).map(user => ({
+        squarecloud_username: user.squarecloud_username,
+        activated_at: user.updated_at,
+        days_remaining: user.days_remaining
+      }));
+
+      logStep(`Found ${proUsers.length} PRO users`);
+      return new Response(
+        JSON.stringify({ success: true, users: proUsers }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ success: false, error: 'Invalid action' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }

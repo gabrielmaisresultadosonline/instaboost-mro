@@ -113,6 +113,7 @@ export const loadUserFromCloud = async (username: string): Promise<{
   profileSessions: ProfileSession[];
   archivedProfiles: ProfileSession[];
   lifetimeCreativeUsedAt: string | null;
+  creativesUnlocked?: boolean; // PRO activated by admin
 } | null> => {
   try {
     const auth_token = getOrCreateAuthToken(username);
@@ -133,14 +134,22 @@ export const loadUserFromCloud = async (username: string): Promise<{
     }
 
     if (data?.success && data?.exists) {
-      console.log(`☁️ Loaded cloud data for ${username}`, { lifetimeCreativeUsedAt: data.data.lifetimeCreativeUsedAt });
+      // Check if any profile session has creativesUnlocked = true
+      const profileSessions = data.data.profileSessions || [];
+      const hasCreativesUnlocked = profileSessions.some((ps: any) => ps.creativesUnlocked === true);
+      
+      console.log(`☁️ Loaded cloud data for ${username}`, { 
+        lifetimeCreativeUsedAt: data.data.lifetimeCreativeUsedAt,
+        creativesUnlocked: hasCreativesUnlocked 
+      });
       return {
         email: data.data.email,
         isEmailLocked: !!data.data.email,
         daysRemaining: data.data.daysRemaining || 365,
         profileSessions: data.data.profileSessions || [],
         archivedProfiles: data.data.archivedProfiles || [],
-        lifetimeCreativeUsedAt: data.data.lifetimeCreativeUsedAt || null
+        lifetimeCreativeUsedAt: data.data.lifetimeCreativeUsedAt || null,
+        creativesUnlocked: hasCreativesUnlocked // Flag from cloud
       };
     }
 
@@ -354,16 +363,14 @@ export const loginUser = async (
   console.log(`[userStorage] 📅 Days from SquareCloud API: ${finalDaysRemaining}`);
   console.log(`[userStorage] 📅 Status: ${finalDaysRemaining > 365 ? 'Vitalício' : `${finalDaysRemaining} dias`}`);
   
-  // Check if admin has activated PRO creatives for this user
-  const adminProKey = `mro_creatives_pro_${originalUsername}`;
-  const adminProData = localStorage.getItem(adminProKey);
-  const isAdminUnlockedPro = !!adminProData;
+  // Check if admin has activated PRO creatives for this user from cloud OR existing session
+  const cloudUnlockedPro = cloudData?.creativesUnlocked || false;
   
-  // Use admin unlock OR cloud data unlock
-  const finalCreativesUnlocked = isAdminUnlockedPro || creativesUnlocked || false;
+  // Use cloud unlock (primary), existing session unlock, or passed parameter
+  const finalCreativesUnlocked = cloudUnlockedPro || creativesUnlocked || false;
   
-  if (isAdminUnlockedPro) {
-    console.log(`[userStorage] 👑 User ${originalUsername} has PRO creatives activated by admin`);
+  if (finalCreativesUnlocked) {
+    console.log(`[userStorage] 👑 User ${originalUsername} has PRO creatives activated (from cloud: ${cloudUnlockedPro})`);
   }
   
   // Only use database profiles (cloud-linked) - no local merging for new users
