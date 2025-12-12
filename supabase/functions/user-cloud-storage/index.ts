@@ -21,7 +21,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, username, email, auth_token, daysRemaining, profileSessions, archivedProfiles, lifetimeCreativeUsedAt } = await req.json();
+    const { action, username, email, auth_token, daysRemaining, profileSessions, archivedProfiles, lifetimeCreativeUsedAt, activate } = await req.json();
     
     logStep("Request received", { action, username, hasEmail: !!email, hasAuthToken: !!auth_token, hasLifetimeCreativeUsedAt: !!lifetimeCreativeUsedAt });
 
@@ -225,9 +225,7 @@ serve(async (req) => {
 
     // SET_CREATIVES_PRO - Admin action to activate/deactivate PRO creatives for a user
     if (action === 'set_creatives_pro') {
-      const { activate } = await req.json().catch(() => ({ activate: true }));
-      const body = await req.clone().json();
-      const shouldActivate = body.activate !== false;
+      const shouldActivate = activate !== false;
       
       logStep(`Setting creatives PRO for ${normalizedUsername}`, { activate: shouldActivate });
       
