@@ -20,15 +20,16 @@ import ProfileActions from '@/components/admin/ProfileActions';
 import SalesDashboard from '@/components/admin/SalesDashboard';
 import CallAnalyticsDashboard from '@/components/admin/CallAnalyticsDashboard';
 import ConnectedUsersPanel from '@/components/admin/ConnectedUsersPanel';
+import AnnouncementsManager from '@/components/admin/AnnouncementsManager';
 import { 
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, CheckCircle, XCircle, DollarSign, Phone
+  Instagram, CheckCircle, XCircle, DollarSign, Phone, Bell
 } from 'lucide-react';
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'sales' | 'settings';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'sales' | 'announcements' | 'settings';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -184,6 +185,7 @@ const Admin = () => {
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
+    { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
     { id: 'settings', label: 'Configurações', icon: <Settings className="w-4 h-4" /> },
   ];
 
@@ -846,6 +848,11 @@ const Admin = () => {
             onDownloadLinkChange={(link) => setSettings(prev => ({ ...prev, downloadLink: link }))}
             onSaveSettings={handleSaveSettings}
           />
+        )}
+
+        {/* Announcements Tab */}
+        {activeTab === 'announcements' && (
+          <AnnouncementsManager />
         )}
 
         {/* Settings Tab */}
