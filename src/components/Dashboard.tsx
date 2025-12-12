@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { TutorialButton } from '@/components/TutorialButton';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { TutorialList } from '@/components/TutorialList';
+import AnnouncementPopup from '@/components/AnnouncementPopup';
 import { useTutorial, dashboardTutorial, strategyTutorial, creativeTutorial } from '@/hooks/useTutorial';
 import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession, saveSession } from '@/lib/storage';
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
@@ -136,6 +137,9 @@ export const Dashboard = ({
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Announcement Popup */}
+      <AnnouncementPopup />
+      
       {/* Header */}
       <header className="sticky top-0 z-40 glass-card border-b border-border">
         <div className="container mx-auto px-4 py-4">
