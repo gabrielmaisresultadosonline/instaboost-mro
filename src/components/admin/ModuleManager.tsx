@@ -141,7 +141,9 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
 
   const [newSection, setNewSection] = useState({
     title: '',
-    showTitle: true
+    description: '',
+    showTitle: true,
+    isBonus: false
   });
 
   const refreshData = () => {
@@ -281,8 +283,13 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha o título da seção", variant: "destructive" });
       return;
     }
-    addSectionToModule(moduleId, { ...newSection });
-    setNewSection({ title: '', showTitle: true });
+    addSectionToModule(moduleId, { 
+      title: newSection.title, 
+      description: newSection.description,
+      showTitle: newSection.showTitle,
+      isBonus: newSection.isBonus 
+    });
+    setNewSection({ title: '', description: '', showTitle: true, isBonus: false });
     setShowAddContent(null);
     refreshData();
     toast({ title: "Seção adicionada!" });
@@ -889,23 +896,39 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
 
                   {/* Add Section Form */}
                   {showAddContent?.moduleId === module.id && showAddContent.type === 'section' && (
-                    <div className="p-4 rounded-lg bg-secondary/30 mb-4 space-y-3">
-                      <h4 className="font-medium">Nova Seção (Sub-módulo)</h4>
+                    <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 mb-4 space-y-3">
+                      <h4 className="font-medium text-amber-400">Nova Seção (Sub-módulo)</h4>
                       <p className="text-sm text-muted-foreground">
-                        Seções permitem dividir o conteúdo do módulo com títulos intermediários
+                        Seções aparecem como um card/box abaixo dos botões, com título e conteúdo próprio
                       </p>
                       <Input
-                        placeholder="Título da seção (ex: Bônus Extra)"
+                        placeholder="Título da seção (ex: Preste serviço com a MRO)"
                         value={newSection.title}
                         onChange={(e) => setNewSection(prev => ({ ...prev, title: e.target.value }))}
                         className="bg-secondary/50"
                       />
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={newSection.showTitle}
-                          onCheckedChange={(checked) => setNewSection(prev => ({ ...prev, showTitle: checked }))}
-                        />
-                        <Label className="text-sm">Exibir título</Label>
+                      <Textarea
+                        placeholder="Descrição da seção (ex: Faturando mais de 5K com a MRO !)"
+                        value={newSection.description}
+                        onChange={(e) => setNewSection(prev => ({ ...prev, description: e.target.value }))}
+                        className="bg-secondary/50"
+                        rows={2}
+                      />
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={newSection.showTitle}
+                            onCheckedChange={(checked) => setNewSection(prev => ({ ...prev, showTitle: checked }))}
+                          />
+                          <Label className="text-sm">Exibir título</Label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={newSection.isBonus}
+                            onCheckedChange={(checked) => setNewSection(prev => ({ ...prev, isBonus: checked }))}
+                          />
+                          <Label className="text-sm">🎁 Tag Bônus</Label>
+                        </div>
                       </div>
                       <div className="flex gap-2">
                         <Button type="button" onClick={() => handleAddSection(module.id)} className="cursor-pointer">

@@ -92,12 +92,14 @@ export interface ModuleButton {
   createdAt: string;
 }
 
-// Section divider - allows grouping content with a title
+// Section divider - allows grouping content with a title (sub-module)
 export interface ModuleSection {
   id: string;
   type: 'section';
   title: string;
+  description: string;
   showTitle: boolean;
+  isBonus: boolean;
   order: number;
   createdAt: string;
 }
@@ -456,7 +458,7 @@ export const addButtonToModule = (
 
 export const addSectionToModule = (
   moduleId: string,
-  section: { title: string; showTitle?: boolean }
+  section: { title: string; description?: string; showTitle?: boolean; isBonus?: boolean }
 ): ModuleSection | null => {
   const data = getAdminData();
   const module = data.modules.find(m => m.id === moduleId);
@@ -466,7 +468,9 @@ export const addSectionToModule = (
     id: `section_${Date.now()}`,
     type: 'section',
     title: section.title,
+    description: section.description || '',
     showTitle: section.showTitle ?? true,
+    isBonus: section.isBonus ?? false,
     order: module.contents.length + 1,
     createdAt: new Date().toISOString()
   };
