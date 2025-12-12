@@ -12,6 +12,7 @@ export interface TutorialSection {
   id: string;
   title: string;
   icon: string;
+  warning?: string;
   steps: TutorialStep[];
 }
 
@@ -56,7 +57,15 @@ export const profileRegistrationTutorial: TutorialSection[] = [
     id: 'sincronizar',
     title: 'Sincronizar Contas',
     icon: '🔄',
+    warning: '⚠️ Use apenas se seus perfis não carregaram corretamente ou se você já tinha contas cadastradas anteriormente. A sincronização pode demorar alguns minutos.',
     steps: [
+      {
+        id: 'sync-warning',
+        targetSelector: '[data-tutorial="sync-section"]',
+        title: '⚠️ Quando Usar Sincronização',
+        description: 'A sincronização só é necessária se: (1) Seus perfis não carregaram com dados corretos, ou (2) Você já tinha contas cadastradas antes e quer importá-las. Caso contrário, cadastre um perfil por vez.',
+        position: 'bottom'
+      },
       {
         id: 'sync-email',
         targetSelector: '[data-tutorial="sync-email"]',
@@ -68,7 +77,7 @@ export const profileRegistrationTutorial: TutorialSection[] = [
         id: 'sync-button',
         targetSelector: '[data-tutorial="sync-button"]',
         title: 'Sincronizar Contas',
-        description: 'Clique para importar todos os perfis já registrados na sua conta MRO.',
+        description: 'Clique para importar TODOS os perfis da sua conta MRO. Este processo pode demorar vários minutos dependendo da quantidade de perfis.',
         position: 'bottom'
       }
     ]

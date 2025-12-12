@@ -86,6 +86,13 @@ export const TutorialList = ({
                   </div>
                 </div>
 
+                {/* Warning banner if exists */}
+                {section.warning && (
+                  <div className="mb-4 p-3 rounded-lg bg-yellow-500/20 border border-yellow-500/40 text-yellow-200">
+                    <p className="text-xs">{section.warning}</p>
+                  </div>
+                )}
+
                 {/* Steps */}
                 <div className="space-y-3 ml-2">
                   {section.steps.map((step, stepIndex) => (

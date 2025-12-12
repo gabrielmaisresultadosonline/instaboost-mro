@@ -69,6 +69,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
   const [pendingAnalysis, setPendingAnalysis] = useState<ProfileAnalysis | null>(null);
   const [pendingSyncIG, setPendingSyncIG] = useState<string>('');
   const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
+  const [showSyncConfirmDialog, setShowSyncConfirmDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -387,7 +388,12 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
     }
   };
 
-  const handleSyncAccounts = async () => {
+  const handleSyncConfirm = () => {
+    setShowSyncConfirmDialog(false);
+    handleSyncAccountsExecute();
+  };
+
+  const handleSyncAccountsExecute = async () => {
     if (!user) return;
 
     setIsSyncing(true);
@@ -663,7 +669,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
           </Card>
 
           {/* Sync Accounts */}
-          <Card className="glass-card border-secondary/30">
+          <Card className="glass-card border-secondary/30" data-tutorial="sync-section">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <RefreshCw className="w-5 h-5" />
@@ -674,6 +680,17 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Warning banner */}
+              <div className="p-3 rounded-lg bg-yellow-500/20 border border-yellow-500/40 text-yellow-200">
+                <p className="text-xs font-medium flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Use apenas se:</strong> seus perfis não carregaram corretamente ou se você já tinha contas cadastradas antes. 
+                    Caso contrário, cadastre um perfil por vez.
+                  </span>
+                </p>
+              </div>
+              
               {user?.email ? (
                 <p className="text-sm text-muted-foreground" data-tutorial="sync-email">
                   E-mail: {user.email}
@@ -695,7 +712,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
               <Button 
                 variant="secondary"
                 className="w-full" 
-                onClick={handleSyncAccounts}
+                onClick={() => setShowSyncConfirmDialog(true)}
                 disabled={isSyncing}
                 data-tutorial="sync-button"
               >
@@ -891,6 +908,51 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
               ) : (
                 'Sim'
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sync Confirmation Dialog */}
+      <Dialog open={showSyncConfirmDialog} onOpenChange={setShowSyncConfirmDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-yellow-500">
+              <AlertTriangle className="w-5 h-5" />
+              Confirmar Sincronização
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Tem certeza que deseja sincronizar todas as contas?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3">
+            <div className="p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
+              <p className="text-sm text-yellow-200 font-medium mb-2">⚠️ Atenção:</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Este processo pode demorar <strong>vários minutos</strong></li>
+                <li>• Depende da quantidade de perfis cadastrados</li>
+                <li>• Não feche a página durante o processo</li>
+              </ul>
+            </div>
+            
+            <div className="p-3 rounded-lg bg-secondary/30 border border-border">
+              <p className="text-xs text-muted-foreground">
+                💡 <strong>Dica:</strong> Se você só precisa adicionar um perfil novo, 
+                use a opção "Cadastrar Perfil" ao lado - é mais rápido!
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSyncConfirmDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSyncConfirm}
+              className="bg-yellow-600 hover:bg-yellow-700 text-black"
+            >
+              Sim, sincronizar tudo
             </Button>
           </DialogFooter>
         </DialogContent>
