@@ -94,3 +94,6 @@ verify_jwt = false
 
 [functions.get-connected-users]
 verify_jwt = false
+
+[functions.modules-storage]
+verify_jwt = false
