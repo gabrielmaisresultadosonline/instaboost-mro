@@ -112,7 +112,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: 'Você é um copywriter especialista em criativos para Instagram. Crie textos curtos e impactantes para alta conversão. Cada criativo deve ser ÚNICO e diferente dos anteriores.'
+              content: 'Você é um copywriter especialista em criativos para Instagram. Crie textos curtos e impactantes para alta conversão. Cada criativo deve ser ÚNICO e diferente dos anteriores. IMPORTANTE: Retorne APENAS texto puro, SEM HTML, SEM tags, SEM formatação. Apenas texto simples.'
             },
             {
               role: 'user',
@@ -126,14 +126,16 @@ Cores escolhidas: ${allColors}
 
 GATILHO MENTAL OBRIGATÓRIO: Use ${selectedTrigger.toUpperCase()} como principal gatilho mental.
 
-IMPORTANTE: O headline pode ter 2-3 linhas se necessário para ficar mais impactante.
-O texto deve ser centralizado com margem, não muito grudado nas bordas.
-Seja CRIATIVO e ÚNICO - não repita fórmulas comuns.
+IMPORTANTE: 
+- O headline pode ter 2-3 linhas se necessário para ficar mais impactante.
+- O texto deve ser centralizado com margem, não muito grudado nas bordas.
+- Seja CRIATIVO e ÚNICO - não repita fórmulas comuns.
+- RETORNE APENAS TEXTO PURO - SEM HTML, SEM TAGS <p>, SEM style=, SEM formatação.
 
 Retorne JSON:
 {
-  "headline": "frase impactante com gatilho de ${selectedTrigger} (pode ter 2-3 linhas, max 15 palavras total)",
-  "cta": "chamada para ação urgente (max 5 palavras)"
+  "headline": "frase impactante com gatilho de ${selectedTrigger} (pode ter 2-3 linhas, max 15 palavras total) - TEXTO PURO APENAS",
+  "cta": "chamada para ação urgente (max 5 palavras) - TEXTO PURO APENAS"
 }`
                 : `Crie um headline e CTA ÚNICOS para um criativo de Instagram.
 
@@ -151,11 +153,12 @@ IMPORTANTE:
 - O texto deve ser centralizado com margem, não muito grudado nas bordas.
 - NÃO repita fórmulas ou frases comuns. Seja CRIATIVO e SURPREENDENTE.
 - Use linguagem que conecte emocionalmente com o público.
+- RETORNE APENAS TEXTO PURO - SEM HTML, SEM TAGS <p>, SEM style=, SEM formatação.
 
 Retorne JSON:
 {
-  "headline": "frase impactante com gatilho de ${selectedTrigger} (pode ter 2-3 linhas, max 15 palavras total)",
-  "cta": "chamada para ação única e urgente (max 5 palavras)"
+  "headline": "frase impactante com gatilho de ${selectedTrigger} (pode ter 2-3 linhas, max 15 palavras total) - TEXTO PURO APENAS",
+  "cta": "chamada para ação única e urgente (max 5 palavras) - TEXTO PURO APENAS"
 }`
             }
           ],
@@ -170,8 +173,9 @@ Retorne JSON:
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const parsed = JSON.parse(jsonMatch[0]);
-              headline = parsed.headline || 'Transforme seu negócio hoje!';
-              ctaText = parsed.cta || 'Saiba mais agora';
+              // Strip any HTML tags that might have been included
+              headline = (parsed.headline || 'Transforme seu negócio hoje!').replace(/<[^>]*>/g, '').trim();
+              ctaText = (parsed.cta || 'Saiba mais agora').replace(/<[^>]*>/g, '').trim();
             }
           } catch (e) {
             console.log('Error parsing text response:', e);
