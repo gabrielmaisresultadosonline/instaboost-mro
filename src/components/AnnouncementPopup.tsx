@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { X, Bell, ChevronDown } from 'lucide-react';
@@ -20,19 +20,22 @@ interface ViewedAnnouncement {
   lastViewed: string;
 }
 
+interface AnnouncementPopupProps {
+  onComplete?: () => void;
+}
+
 const STORAGE_KEY = 'mro_viewed_announcements';
 
-const AnnouncementPopup = () => {
+const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [canClose, setCanClose] = useState(true);
   const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    loadAnnouncements();
-  }, []);
+  const hasTriggered = useRef(false);
+  const announcementsRef = useRef<Announcement[]>([]);
 
   const getViewedAnnouncements = (): ViewedAnnouncement[] => {
     try {
@@ -66,19 +69,23 @@ const AnnouncementPopup = () => {
     const viewedRecord = viewed.find(v => v.id === announcement.id);
     
     if (!viewedRecord) return true;
-    if (announcement.maxViews === 99) return true; // Always show
+    if (announcement.maxViews === 99) return true;
     
     return viewedRecord.viewCount < announcement.maxViews;
   };
 
-  const loadAnnouncements = async () => {
+  const loadAnnouncements = useCallback(async () => {
+    setIsLoading(true);
     try {
+      console.log('📢 Carregando avisos do servidor...');
       const { data, error } = await supabase.storage
         .from('user-data')
         .download('admin/announcements.json');
       
       if (error) {
-        console.log('📢 Nenhum aviso para exibir');
+        console.log('📢 Nenhum aviso encontrado:', error.message);
+        setIsLoading(false);
+        onComplete?.();
         return;
       }
 
@@ -88,23 +95,37 @@ const AnnouncementPopup = () => {
         .filter((a: Announcement) => a.isActive)
         .filter((a: Announcement) => shouldShowAnnouncement(a));
 
-      setAnnouncements(activeAnnouncements);
-
-      // Show the first unread announcement
-      if (activeAnnouncements.length > 0) {
-        showAnnouncement(activeAnnouncements[0]);
+      console.log(`📢 ${activeAnnouncements.length} avisos ativos para exibir`);
+      
+      if (activeAnnouncements.length === 0) {
+        setIsLoading(false);
+        onComplete?.();
+        return;
       }
+
+      setAnnouncements(activeAnnouncements);
+      announcementsRef.current = activeAnnouncements;
+      showAnnouncement(activeAnnouncements[0]);
     } catch (error) {
-      console.error('Erro ao carregar avisos:', error);
+      console.error('📢 Erro ao carregar avisos:', error);
+      onComplete?.();
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [onComplete]);
+
+  useEffect(() => {
+    if (!hasTriggered.current) {
+      hasTriggered.current = true;
+      loadAnnouncements();
+    }
+  }, [loadAnnouncements]);
 
   const showAnnouncement = (announcement: Announcement) => {
     setCurrentAnnouncement(announcement);
     setIsVisible(true);
     setHasScrolledToEnd(false);
     
-    // If forceRead, user must scroll to end
     if (announcement.forceRead) {
       setCanClose(false);
     } else {
@@ -118,15 +139,15 @@ const AnnouncementPopup = () => {
     if (currentAnnouncement) {
       saveViewedAnnouncement(currentAnnouncement.id);
       
-      // Show next announcement if any
-      const currentIndex = announcements.findIndex(a => a.id === currentAnnouncement.id);
-      const nextAnnouncement = announcements[currentIndex + 1];
+      const currentIndex = announcementsRef.current.findIndex(a => a.id === currentAnnouncement.id);
+      const nextAnnouncement = announcementsRef.current[currentIndex + 1];
       
       if (nextAnnouncement) {
         showAnnouncement(nextAnnouncement);
       } else {
         setIsVisible(false);
         setCurrentAnnouncement(null);
+        onComplete?.();
       }
     }
   };
@@ -143,13 +164,23 @@ const AnnouncementPopup = () => {
     }
   };
 
+  useEffect(() => {
+    if (contentRef.current && currentAnnouncement?.forceRead) {
+      const { scrollHeight, clientHeight } = contentRef.current;
+      if (scrollHeight <= clientHeight) {
+        setHasScrolledToEnd(true);
+        setCanClose(true);
+      }
+    }
+  }, [currentAnnouncement]);
+
   if (!isVisible || !currentAnnouncement) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="glass-card w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="glass-card w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border-primary/30">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/30">
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-primary" />
             <h3 className="font-bold text-lg">{currentAnnouncement.title}</h3>
@@ -175,7 +206,7 @@ const AnnouncementPopup = () => {
             <img 
               src={currentAnnouncement.thumbnailUrl} 
               alt="" 
-              className="w-full rounded-lg object-cover max-h-64"
+              className="w-full rounded-lg object-contain max-h-80"
               onError={(e) => e.currentTarget.style.display = 'none'}
             />
           )}
@@ -193,7 +224,7 @@ const AnnouncementPopup = () => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border bg-secondary/30">
           {currentAnnouncement.forceRead && !canClose ? (
             <p className="text-sm text-center text-muted-foreground">
               📖 Role o conteúdo até o final para fechar
