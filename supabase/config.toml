@@ -97,3 +97,6 @@ verify_jwt = false
 
 [functions.modules-storage]
 verify_jwt = false
+
+[functions.meta-conversions]
+verify_jwt = false

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Check, X, ExternalLink, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { trackCallEvent, getAdminData } from '@/lib/adminConfig';
+import { supabase } from '@/integrations/supabase/client';
 import profileImage from '@/assets/mro-profile-call.jpg';
 import fundoChamada from '@/assets/fundo-chamada.jpg';
 import gabrielImage from '@/assets/gabriel-transparente.png';
@@ -11,6 +12,46 @@ declare global {
     fbq: (...args: any[]) => void;
   }
 }
+
+// Helper to get Facebook cookies
+const getFacebookCookies = () => {
+  const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    acc[key] = value;
+    return acc;
+  }, {} as Record<string, string>);
+  
+  return {
+    fbc: cookies['_fbc'] || undefined,
+    fbp: cookies['_fbp'] || undefined,
+  };
+};
+
+// Send event to Meta Conversions API via Edge Function
+const sendConversionEvent = async (eventName: string, customData?: Record<string, any>) => {
+  try {
+    const { fbc, fbp } = getFacebookCookies();
+    
+    const { data, error } = await supabase.functions.invoke('meta-conversions', {
+      body: {
+        event_name: eventName,
+        event_source_url: window.location.href,
+        user_agent: navigator.userAgent,
+        fbc,
+        fbp,
+        ...customData,
+      },
+    });
+
+    if (error) {
+      console.error('[META-CONVERSIONS] Error sending event:', error);
+    } else {
+      console.log('[META-CONVERSIONS] Event sent successfully:', eventName, data);
+    }
+  } catch (err) {
+    console.error('[META-CONVERSIONS] Failed to send event:', err);
+  }
+};
 
 const Ligacao = () => {
   const [callState, setCallState] = useState<'landing' | 'ringing' | 'connected' | 'ended'>('landing');
@@ -75,14 +116,20 @@ const Ligacao = () => {
   // User clicks "Receber chamada" - this is the first user interaction
   // Use it to unlock audio context on iOS
   const handleReceiveCall = () => {
-    // Fire Facebook Pixel Lead event - user engaged with call
+    // Fire Facebook Pixel Lead event (client-side) - user engaged with call
     if (window.fbq) {
       window.fbq('track', 'Lead', {
         content_name: 'receber_chamada_clicked',
         content_category: 'call_funnel'
       });
-      console.log('[Ligacao] FB Pixel Lead event fired');
+      console.log('[Ligacao] FB Pixel Lead event fired (client-side)');
     }
+
+    // Send Lead event via Conversions API (server-side)
+    sendConversionEvent('Lead', {
+      content_name: 'receber_chamada_clicked',
+      content_category: 'call_funnel'
+    });
 
     // Create and play a silent audio to unlock audio context on iOS
     const silentAudio = new Audio();
@@ -113,14 +160,20 @@ const Ligacao = () => {
 
   // User clicks "Accept" - use this interaction to authorize call audio
   const handleAnswer = () => {
-    // Fire Facebook Pixel InitiateCheckout event - user accepted call
+    // Fire Facebook Pixel InitiateCheckout event (client-side) - user accepted call
     if (window.fbq) {
       window.fbq('track', 'InitiateCheckout', {
         content_name: 'call_answered',
         content_category: 'call_funnel'
       });
-      console.log('[Ligacao] FB Pixel InitiateCheckout event fired');
+      console.log('[Ligacao] FB Pixel InitiateCheckout event fired (client-side)');
     }
+
+    // Send InitiateCheckout event via Conversions API (server-side)
+    sendConversionEvent('InitiateCheckout', {
+      content_name: 'call_answered',
+      content_category: 'call_funnel'
+    });
 
     // Stop ringtone video
     if (ringtoneVideoRef.current) {
@@ -169,13 +222,20 @@ const Ligacao = () => {
     // Track CTA clicked
     trackCallEvent('cta_clicked');
     
-    // Fire Facebook Pixel ViewContent event (visualização de conteúdo)
+    // Fire Facebook Pixel ViewContent event (client-side)
     if (window.fbq) {
       window.fbq('track', 'ViewContent', { 
         content_name: 'ligacao_cta_clicked',
         content_category: 'call_funnel'
       });
+      console.log('[Ligacao] FB Pixel ViewContent event fired (client-side)');
     }
+    
+    // Send ViewContent event via Conversions API (server-side)
+    sendConversionEvent('ViewContent', {
+      content_name: 'ligacao_cta_clicked',
+      content_category: 'call_funnel'
+    });
     
     // Allow default link behavior (href will handle navigation)
   };
