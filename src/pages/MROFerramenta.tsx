@@ -231,7 +231,9 @@ const MROFerramenta = () => {
                       </div>
                     </div>
                   )}
-                  <h3 className="font-medium mt-2 text-sm group-hover:text-primary transition-colors line-clamp-2">{content.title}</h3>
+                  {((content as any).showTitle !== false) && (
+                    <h3 className="font-medium mt-2 text-sm group-hover:text-primary transition-colors line-clamp-2">{content.title}</h3>
+                  )}
                 </div>
               ))}
             </div>

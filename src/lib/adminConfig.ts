@@ -49,6 +49,7 @@ export interface ModuleVideo {
   youtubeUrl: string;
   thumbnailUrl: string;
   showNumber: boolean;
+  showTitle: boolean;
   order: number;
   createdAt: string;
 }
@@ -58,6 +59,7 @@ export interface ModuleText {
   type: 'text';
   title: string;
   content: string;
+  showTitle: boolean;
   order: number;
   createdAt: string;
 }
@@ -69,6 +71,7 @@ export interface ModuleButton {
   url: string;
   description: string;
   coverUrl: string;
+  showTitle: boolean;
   order: number;
   createdAt: string;
 }
@@ -336,7 +339,7 @@ export const reorderModules = (moduleIds: string[]): void => {
 // Content functions
 export const addVideoToModule = (
   moduleId: string, 
-  video: { title: string; description: string; youtubeUrl: string; thumbnailUrl?: string; showNumber?: boolean }
+  video: { title: string; description: string; youtubeUrl: string; thumbnailUrl?: string; showNumber?: boolean; showTitle?: boolean }
 ): ModuleVideo | null => {
   const data = getAdminData();
   const module = data.modules.find(m => m.id === moduleId);
@@ -350,6 +353,7 @@ export const addVideoToModule = (
     youtubeUrl: video.youtubeUrl,
     thumbnailUrl: video.thumbnailUrl || getYoutubeThumbnail(video.youtubeUrl),
     showNumber: video.showNumber ?? true,
+    showTitle: video.showTitle ?? true,
     order: module.contents.length + 1,
     createdAt: new Date().toISOString()
   };
@@ -360,7 +364,7 @@ export const addVideoToModule = (
 
 export const addTextToModule = (
   moduleId: string,
-  text: { title: string; content: string }
+  text: { title: string; content: string; showTitle?: boolean }
 ): ModuleText | null => {
   const data = getAdminData();
   const module = data.modules.find(m => m.id === moduleId);
@@ -371,6 +375,7 @@ export const addTextToModule = (
     type: 'text',
     title: text.title,
     content: text.content,
+    showTitle: text.showTitle ?? true,
     order: module.contents.length + 1,
     createdAt: new Date().toISOString()
   };
@@ -381,7 +386,7 @@ export const addTextToModule = (
 
 export const addButtonToModule = (
   moduleId: string,
-  button: { title: string; url: string; description?: string; coverUrl?: string }
+  button: { title: string; url: string; description?: string; coverUrl?: string; showTitle?: boolean }
 ): ModuleButton | null => {
   const data = getAdminData();
   const module = data.modules.find(m => m.id === moduleId);
@@ -394,6 +399,7 @@ export const addButtonToModule = (
     url: button.url,
     description: button.description || '',
     coverUrl: button.coverUrl || '',
+    showTitle: button.showTitle ?? true,
     order: module.contents.length + 1,
     createdAt: new Date().toISOString()
   };

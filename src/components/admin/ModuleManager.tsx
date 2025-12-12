@@ -44,6 +44,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const [adminData, setAdminData] = useState(getAdminData());
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent } | null>(null);
   const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' } | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   
@@ -75,19 +76,22 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     description: '',
     youtubeUrl: '',
     thumbnailUrl: '',
-    showNumber: true
+    showNumber: true,
+    showTitle: true
   });
 
   const [newText, setNewText] = useState({
     title: '',
-    content: ''
+    content: '',
+    showTitle: true
   });
 
   const [newButton, setNewButton] = useState({
     title: '',
     url: '',
     description: '',
-    coverUrl: ''
+    coverUrl: '',
+    showTitle: true
   });
 
   const refreshData = () => {
@@ -189,9 +193,10 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       description: newVideo.description,
       youtubeUrl: newVideo.youtubeUrl,
       thumbnailUrl: newVideo.thumbnailUrl || getYoutubeThumbnail(newVideo.youtubeUrl),
-      showNumber: newVideo.showNumber
+      showNumber: newVideo.showNumber,
+      showTitle: newVideo.showTitle
     });
-    setNewVideo({ title: '', description: '', youtubeUrl: '', thumbnailUrl: '', showNumber: true });
+    setNewVideo({ title: '', description: '', youtubeUrl: '', thumbnailUrl: '', showNumber: true, showTitle: true });
     setShowAddContent(null);
     refreshData();
     toast({ title: "Vídeo adicionado!" });
@@ -202,8 +207,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha título e conteúdo", variant: "destructive" });
       return;
     }
-    addTextToModule(moduleId, newText);
-    setNewText({ title: '', content: '' });
+    addTextToModule(moduleId, { ...newText, showTitle: newText.showTitle });
+    setNewText({ title: '', content: '', showTitle: true });
     setShowAddContent(null);
     refreshData();
     toast({ title: "Texto adicionado!" });
@@ -214,11 +219,24 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha título e URL do link", variant: "destructive" });
       return;
     }
-    addButtonToModule(moduleId, newButton);
-    setNewButton({ title: '', url: '', description: '', coverUrl: '' });
+    addButtonToModule(moduleId, { ...newButton, showTitle: newButton.showTitle });
+    setNewButton({ title: '', url: '', description: '', coverUrl: '', showTitle: true });
     setShowAddContent(null);
     refreshData();
     toast({ title: "Botão adicionado!" });
+  };
+
+  const handleUpdateContent = (moduleId: string, contentId: string, updates: Partial<ModuleContent>) => {
+    updateContent(moduleId, contentId, updates);
+    setEditingContent(null);
+    refreshData();
+    toast({ title: "Conteúdo atualizado!" });
+  };
+
+  const handleToggleContentTitle = (moduleId: string, content: ModuleContent) => {
+    const showTitle = (content as any).showTitle ?? true;
+    updateContent(moduleId, content.id, { showTitle: !showTitle } as any);
+    refreshData();
   };
 
   const handleDeleteContent = async (moduleId: string, contentId: string) => {
@@ -842,31 +860,73 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                               </div>
                             </div>
                           )}
-                          <p className="text-sm font-medium mt-2 truncate">{content.title}</p>
+                          {((content as any).showTitle !== false) && (
+                            <p className="text-sm font-medium mt-2 truncate">{content.title}</p>
+                          )}
                           <p className="text-xs text-muted-foreground">
                             {content.type === 'video' ? 'Vídeo' : content.type === 'button' ? 'Link' : 'Texto'}
                           </p>
                           
-                          {/* Delete button */}
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteContent(module.id, content.id)}
-                            className="absolute top-2 right-2 w-7 h-7 bg-destructive rounded-full items-center justify-center hidden group-hover:flex cursor-pointer shadow-lg"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-destructive-foreground" />
-                          </button>
-
-                          {/* Toggle number for videos */}
-                          {content.type === 'video' && (
+                          {/* Action buttons overlay */}
+                          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            {/* Edit button */}
                             <button
                               type="button"
-                              onClick={() => handleToggleContentNumber(module.id, content)}
-                              className="absolute bottom-14 right-2 w-7 h-7 bg-secondary rounded-full items-center justify-center hidden group-hover:flex cursor-pointer shadow-lg"
-                              title={(content as ModuleVideo).showNumber ? 'Ocultar número' : 'Mostrar número'}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingContent({ moduleId: module.id, content });
+                              }}
+                              className="w-9 h-9 bg-primary rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-primary/90"
+                              title="Editar conteúdo"
                             >
-                              <span className="text-xs font-bold">#</span>
+                              <Edit2 className="w-4 h-4 text-primary-foreground" />
                             </button>
-                          )}
+                            
+                            {/* Toggle title button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleContentTitle(module.id, content);
+                              }}
+                              className={`w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shadow-lg ${
+                                (content as any).showTitle !== false ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-secondary hover:bg-secondary/80'
+                              }`}
+                              title={(content as any).showTitle !== false ? 'Ocultar título' : 'Mostrar título'}
+                            >
+                              <Type className="w-4 h-4" />
+                            </button>
+                            
+                            {/* Toggle number for videos */}
+                            {content.type === 'video' && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleContentNumber(module.id, content);
+                                }}
+                                className={`w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shadow-lg ${
+                                  (content as ModuleVideo).showNumber ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-secondary hover:bg-secondary/80'
+                                }`}
+                                title={(content as ModuleVideo).showNumber ? 'Ocultar número' : 'Mostrar número'}
+                              >
+                                <span className="text-xs font-bold">#</span>
+                              </button>
+                            )}
+                            
+                            {/* Delete button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteContent(module.id, content.id);
+                              }}
+                              className="w-9 h-9 bg-destructive rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-destructive/90"
+                              title="Excluir"
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive-foreground" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -877,6 +937,176 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
           ))
         )}
       </div>
+
+      {/* Edit Content Modal */}
+      {editingContent && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Edit2 className="w-5 h-5" />
+              Editar {editingContent.content.type === 'video' ? 'Vídeo' : editingContent.content.type === 'button' ? 'Botão/Link' : 'Texto'}
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <Label>Título</Label>
+                <Input
+                  value={editingContent.content.title}
+                  onChange={(e) => setEditingContent({
+                    ...editingContent,
+                    content: { ...editingContent.content, title: e.target.value }
+                  })}
+                  className="bg-secondary/50 mt-1"
+                />
+              </div>
+
+              {editingContent.content.type === 'video' && (
+                <>
+                  <div>
+                    <Label>URL do YouTube</Label>
+                    <Input
+                      value={(editingContent.content as ModuleVideo).youtubeUrl}
+                      onChange={(e) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, youtubeUrl: e.target.value } as ModuleVideo
+                      })}
+                      className="bg-secondary/50 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Descrição</Label>
+                    <Textarea
+                      value={(editingContent.content as ModuleVideo).description}
+                      onChange={(e) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, description: e.target.value } as ModuleVideo
+                      })}
+                      className="bg-secondary/50 mt-1"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label>Capa personalizada</Label>
+                    <CoverUploader
+                      currentUrl={(editingContent.content as ModuleVideo).thumbnailUrl}
+                      onUpload={(url) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, thumbnailUrl: url } as ModuleVideo
+                      })}
+                      onRemove={() => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, thumbnailUrl: '' } as ModuleVideo
+                      })}
+                      folder="video-covers"
+                      id={editingContent.content.id}
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={(editingContent.content as ModuleVideo).showNumber}
+                      onCheckedChange={(checked) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, showNumber: checked } as ModuleVideo
+                      })}
+                    />
+                    <Label>Exibir número na capa</Label>
+                  </div>
+                </>
+              )}
+
+              {editingContent.content.type === 'text' && (
+                <div>
+                  <Label>Conteúdo</Label>
+                  <Textarea
+                    value={(editingContent.content as ModuleText).content}
+                    onChange={(e) => setEditingContent({
+                      ...editingContent,
+                      content: { ...editingContent.content, content: e.target.value } as ModuleText
+                    })}
+                    className="bg-secondary/50 mt-1"
+                    rows={6}
+                  />
+                </div>
+              )}
+
+              {editingContent.content.type === 'button' && (
+                <>
+                  <div>
+                    <Label>URL do Link</Label>
+                    <Input
+                      value={(editingContent.content as ModuleButton).url}
+                      onChange={(e) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, url: e.target.value } as ModuleButton
+                      })}
+                      className="bg-secondary/50 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Descrição</Label>
+                    <Textarea
+                      value={(editingContent.content as ModuleButton).description}
+                      onChange={(e) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, description: e.target.value } as ModuleButton
+                      })}
+                      className="bg-secondary/50 mt-1"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label>Capa</Label>
+                    <CoverUploader
+                      currentUrl={(editingContent.content as ModuleButton).coverUrl}
+                      onUpload={(url) => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, coverUrl: url } as ModuleButton
+                      })}
+                      onRemove={() => setEditingContent({
+                        ...editingContent,
+                        content: { ...editingContent.content, coverUrl: '' } as ModuleButton
+                      })}
+                      folder="button-covers"
+                      id={editingContent.content.id}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={(editingContent.content as any).showTitle !== false}
+                  onCheckedChange={(checked) => setEditingContent({
+                    ...editingContent,
+                    content: { ...editingContent.content, showTitle: checked } as any
+                  })}
+                />
+                <Label>Exibir título abaixo da capa</Label>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <Button 
+                type="button" 
+                onClick={() => handleUpdateContent(editingContent.moduleId, editingContent.content.id, editingContent.content)}
+                className="cursor-pointer"
+              >
+                <Check className="w-4 h-4 mr-1" />
+                Salvar
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={() => setEditingContent(null)}
+                className="cursor-pointer"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
