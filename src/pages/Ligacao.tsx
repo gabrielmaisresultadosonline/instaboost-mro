@@ -124,17 +124,17 @@ const Ligacao = () => {
   // User clicks "Receber chamada" - this is the first user interaction
   // Use it to unlock audio context on iOS
   const handleReceiveCall = () => {
-    // Fire Facebook Pixel Lead event (client-side) - user engaged with call
+    // Fire Facebook Pixel ViewContent event (client-side) - user engaged with call
     if (window.fbq) {
-      window.fbq('track', 'Lead', {
+      window.fbq('track', 'ViewContent', {
         content_name: 'receber_chamada_clicked',
         content_category: 'call_funnel'
       });
-      console.log('[Ligacao] FB Pixel Lead event fired (client-side)');
+      console.log('[Ligacao] FB Pixel ViewContent event fired (client-side)');
     }
 
-    // Send Lead event via Conversions API (server-side)
-    sendConversionEvent('Lead', {
+    // Send ViewContent event via Conversions API (server-side)
+    sendConversionEvent('ViewContent', {
       content_name: 'receber_chamada_clicked',
       content_category: 'call_funnel'
     });
@@ -230,17 +230,17 @@ const Ligacao = () => {
     // Track CTA clicked
     trackCallEvent('cta_clicked');
     
-    // Fire Facebook Pixel ViewContent event (client-side)
+    // Fire Facebook Pixel Lead event (client-side) - user completed funnel
     if (window.fbq) {
-      window.fbq('track', 'ViewContent', { 
+      window.fbq('track', 'Lead', { 
         content_name: 'ligacao_cta_clicked',
         content_category: 'call_funnel'
       });
-      console.log('[Ligacao] FB Pixel ViewContent event fired (client-side)');
+      console.log('[Ligacao] FB Pixel Lead event fired (client-side)');
     }
     
-    // Send ViewContent event via Conversions API (server-side)
-    sendConversionEvent('ViewContent', {
+    // Send Lead event via Conversions API (server-side)
+    sendConversionEvent('Lead', {
       content_name: 'ligacao_cta_clicked',
       content_category: 'call_funnel'
     });
