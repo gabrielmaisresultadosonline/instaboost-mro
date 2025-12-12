@@ -45,6 +45,10 @@ import {
 import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
+import { TutorialButton } from '@/components/TutorialButton';
+import { TutorialOverlay } from '@/components/TutorialOverlay';
+import { TutorialList } from '@/components/TutorialList';
+import { useTutorial, profileRegistrationTutorial } from '@/hooks/useTutorial';
 
 interface ProfileRegistrationProps {
   onProfileRegistered: (profile: InstagramProfile, analysis: ProfileAnalysis) => void;
@@ -67,6 +71,9 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
   const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Tutorial system
+  const tutorial = useTutorial();
 
   const user = getCurrentUser();
 
@@ -543,6 +550,13 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
                 </CardDescription>
               </div>
               <div className="flex items-center gap-3">
+                {/* Tutorial Button */}
+                <TutorialButton
+                  onStartInteractive={() => tutorial.startTutorial(profileRegistrationTutorial)}
+                  onShowList={() => tutorial.startListView(profileRegistrationTutorial)}
+                  variant="outline"
+                  size="sm"
+                />
                 {registeredIGs.length > 0 && (
                   <span className="text-sm text-muted-foreground">
                     {registeredIGs.length} perfil(is)
@@ -585,6 +599,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
                 onChange={(e) => !user?.isEmailLocked && setEmail(e.target.value)}
                 disabled={user?.isEmailLocked}
                 className={`bg-background/50 ${user?.isEmailLocked ? 'opacity-70 cursor-not-allowed' : ''}`}
+                data-tutorial="email-input"
               />
               <p className="text-xs text-muted-foreground">
                 {user?.isEmailLocked 
@@ -623,12 +638,14 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
                   onChange={(e) => setInstagramInput(e.target.value)}
                   disabled={isLoading}
                   className="bg-background/50"
+                  data-tutorial="instagram-input"
                 />
               </div>
               <Button 
                 className="w-full" 
                 onClick={handleSearchProfile}
                 disabled={isLoading}
+                data-tutorial="buscar-button"
               >
                 {isLoading ? (
                   <>
@@ -658,7 +675,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
             </CardHeader>
             <CardContent className="space-y-4">
               {user?.email ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground" data-tutorial="sync-email">
                   E-mail: {user.email}
                 </p>
               ) : (
@@ -671,6 +688,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="bg-background/50"
+                    data-tutorial="sync-email"
                   />
                 </div>
               )}
@@ -679,6 +697,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
                 className="w-full" 
                 onClick={handleSyncAccounts}
                 disabled={isSyncing}
+                data-tutorial="sync-button"
               >
                 {isSyncing ? (
                   <>
@@ -698,7 +717,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
 
         {/* Registered IGs List */}
         {registeredIGs.length > 0 && (
-          <Card className="glass-card">
+          <Card className="glass-card" data-tutorial="perfis-list">
             <CardHeader>
               <CardTitle className="text-lg">Perfis Cadastrados</CardTitle>
             </CardHeader>
@@ -876,6 +895,26 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay
+        isActive={tutorial.isActive}
+        currentStep={tutorial.getCurrentStepData()}
+        currentStepNumber={tutorial.getCurrentStepNumber()}
+        totalSteps={tutorial.getTotalSteps()}
+        onNext={tutorial.nextStep}
+        onPrev={tutorial.prevStep}
+        onStop={tutorial.stopTutorial}
+      />
+
+      {/* Tutorial List Modal */}
+      <TutorialList
+        isOpen={tutorial.showList}
+        sections={tutorial.tutorialData}
+        onClose={() => tutorial.setShowList(false)}
+        onStartInteractive={() => tutorial.startTutorial(profileRegistrationTutorial)}
+        title="Como Cadastrar Perfis"
+      />
     </div>
   );
 };

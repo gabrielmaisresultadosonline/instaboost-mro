@@ -12,6 +12,10 @@ import { ProfileSelector } from './ProfileSelector';
 import { UserHeader } from './UserHeader';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
+import { TutorialButton } from '@/components/TutorialButton';
+import { TutorialOverlay } from '@/components/TutorialOverlay';
+import { TutorialList } from '@/components/TutorialList';
+import { useTutorial, dashboardTutorial, strategyTutorial, creativeTutorial } from '@/hooks/useTutorial';
 import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession, saveSession } from '@/lib/storage';
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
 import { getCurrentUser } from '@/lib/userStorage';
@@ -55,6 +59,9 @@ export const Dashboard = ({
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [showCreativeGenerator, setShowCreativeGenerator] = useState(false);
   const [isManualCreativeMode, setIsManualCreativeMode] = useState(false);
+
+  // Tutorial system
+  const tutorial = useTutorial();
 
   // Get active profile
   const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
@@ -139,11 +146,12 @@ export const Dashboard = ({
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
                 className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow"
+                data-tutorial="mro-button"
               >
                 <Wrench className="w-4 h-4 mr-2" />
                 Ferramenta MRO
               </Button>
-              <div className="hidden md:block">
+              <div className="hidden md:block" data-tutorial="profile-selector">
                 <ProfileSelector
                   profiles={session.profiles}
                   activeProfileId={session.activeProfileId}
@@ -161,6 +169,7 @@ export const Dashboard = ({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as Tab)}
+                  data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
                     activeTab === tab.id
                       ? 'bg-primary text-primary-foreground'
@@ -178,7 +187,30 @@ export const Dashboard = ({
               ))}
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" data-tutorial="user-menu">
+              {/* Tutorial Button */}
+              <TutorialButton
+                onStartInteractive={() => {
+                  if (activeTab === 'strategies') {
+                    tutorial.startTutorial(strategyTutorial);
+                  } else if (activeTab === 'creatives') {
+                    tutorial.startTutorial(creativeTutorial);
+                  } else {
+                    tutorial.startTutorial(dashboardTutorial);
+                  }
+                }}
+                onShowList={() => {
+                  if (activeTab === 'strategies') {
+                    tutorial.startListView(strategyTutorial);
+                  } else if (activeTab === 'creatives') {
+                    tutorial.startListView(creativeTutorial);
+                  } else {
+                    tutorial.startListView(dashboardTutorial);
+                  }
+                }}
+                variant="outline"
+                size="sm"
+              />
               {onLogout && <UserHeader onLogout={onLogout} />}
             </div>
           </div>
@@ -372,6 +404,26 @@ export const Dashboard = ({
           creativesRemaining={activeProfile.creativesRemaining}
         />
       )}
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay
+        isActive={tutorial.isActive}
+        currentStep={tutorial.getCurrentStepData()}
+        currentStepNumber={tutorial.getCurrentStepNumber()}
+        totalSteps={tutorial.getTotalSteps()}
+        onNext={tutorial.nextStep}
+        onPrev={tutorial.prevStep}
+        onStop={tutorial.stopTutorial}
+      />
+
+      {/* Tutorial List Modal */}
+      <TutorialList
+        isOpen={tutorial.showList}
+        sections={tutorial.tutorialData}
+        onClose={() => tutorial.setShowList(false)}
+        onStartInteractive={() => tutorial.startTutorial(tutorial.tutorialData)}
+        title={activeTab === 'strategies' ? 'Como Gerar Estratégias' : activeTab === 'creatives' ? 'Como Gerar Criativos' : 'Tutorial do Dashboard'}
+      />
     </div>
   );
 };
