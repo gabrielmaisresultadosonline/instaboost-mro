@@ -324,25 +324,36 @@ serve(async (req) => {
         const profileSessions = existing.profile_sessions || [];
         
         // Update all existing sessions with creativesUnlocked flag
+        // When activating PRO: reset creativesRemaining to 6 (fresh start)
         const updatedSessions = profileSessions.map((ps: any) => ({
           ...ps,
-          creativesUnlocked: shouldActivate
+          creativesUnlocked: shouldActivate,
+          // Reset credits to 6 when activating PRO
+          creativesRemaining: shouldActivate ? 6 : ps.creativesRemaining
         }));
         
         // If no sessions exist, create a placeholder with the flag
         if (updatedSessions.length === 0) {
           updatedSessions.push({ 
             creativesUnlocked: shouldActivate, 
+            creativesRemaining: 6,
             activatedAt: new Date().toISOString() 
           });
         }
 
+        // Also clear lifetimeCreativeUsedAt when activating PRO (user gets fresh credits)
+        const updateData: any = { 
+          profile_sessions: updatedSessions,
+          updated_at: new Date().toISOString()
+        };
+        
+        if (shouldActivate) {
+          updateData.lifetime_creative_used_at = null; // Clear monthly usage restriction
+        }
+
         const { error: updateError } = await supabase
           .from('user_sessions')
-          .update({ 
-            profile_sessions: updatedSessions,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', existing.id);
 
         if (updateError) {
@@ -352,6 +363,8 @@ serve(async (req) => {
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
           );
         }
+        
+        logStep(`Reset credits to 6 for ${normalizedUsername}`);
       }
 
       logStep(`Successfully ${shouldActivate ? 'activated' : 'deactivated'} PRO creatives for ${normalizedUsername}`);
