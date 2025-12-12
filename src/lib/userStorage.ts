@@ -339,22 +339,12 @@ export const loginUser = async (
   const finalEmail = cloudData?.email || email;
   const isEmailLocked = cloudData?.isEmailLocked || false;
   
-  // CRITICAL: For daysRemaining, prefer cloud data (synced by admin) if available and valid
-  // Cloud data is updated by admin sync from SquareCloud, so it's the most accurate source
-  // Only use API value if cloud has no data or has default 365
-  let finalDaysRemaining = daysRemaining; // Default from SquareCloud API
+  // CRITICAL: Always use days from SquareCloud API (passed as parameter)
+  // This ensures we always have the most up-to-date subscription status
+  const finalDaysRemaining = daysRemaining; // From SquareCloud API on each login
   
-  if (cloudData?.daysRemaining && cloudData.daysRemaining > 365) {
-    // Cloud has lifetime access synced by admin - use it
-    finalDaysRemaining = cloudData.daysRemaining;
-    console.log(`[userStorage] 📅 Using cloud days: ${finalDaysRemaining} (synced by admin)`);
-  } else if (cloudData?.daysRemaining && cloudData.daysRemaining !== 365) {
-    // Cloud has specific non-default days - use it
-    finalDaysRemaining = cloudData.daysRemaining;
-    console.log(`[userStorage] 📅 Using cloud days: ${finalDaysRemaining} (from cloud)`);
-  } else {
-    console.log(`[userStorage] 📅 Using API days: ${finalDaysRemaining} (from SquareCloud API)`);
-  }
+  console.log(`[userStorage] 📅 Days from SquareCloud API: ${finalDaysRemaining}`);
+  console.log(`[userStorage] 📅 Status: ${finalDaysRemaining > 365 ? 'Vitalício' : `${finalDaysRemaining} dias`}`);
   
   // Only use database profiles (cloud-linked) - no local merging for new users
   const mergedIGs: RegisteredIG[] = [...dbProfiles];
@@ -389,9 +379,9 @@ export const loginUser = async (
   
   saveUserSession(session);
   
-  // Update cloud storage with correct days from SquareCloud
-  if (cloudData && cloudData.daysRemaining !== finalDaysRemaining) {
-    console.log(`[userStorage] ☁️ Updating cloud with correct days: ${finalDaysRemaining}`);
+  // ALWAYS update cloud storage with days from SquareCloud API on each login
+  if (cloudData) {
+    console.log(`[userStorage] ☁️ Syncing cloud with SquareCloud days: ${finalDaysRemaining}`);
     await saveUserToCloud(
       normalizedUsername,
       finalEmail,
