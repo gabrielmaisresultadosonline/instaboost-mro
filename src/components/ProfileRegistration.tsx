@@ -68,6 +68,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
   const [pendingProfile, setPendingProfile] = useState<InstagramProfile | null>(null);
   const [pendingAnalysis, setPendingAnalysis] = useState<ProfileAnalysis | null>(null);
   const [pendingSyncIG, setPendingSyncIG] = useState<string>('');
+  const [pendingRegisterIG, setPendingRegisterIG] = useState<string>('');
+  const [showPreRegisterDialog, setShowPreRegisterDialog] = useState(false);
   const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
   const [showSyncConfirmDialog, setShowSyncConfirmDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
@@ -278,10 +280,35 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         return;
       }
 
-      // STEP 2: REGISTER IN SQUARECLOUD FIRST (before fetching Instagram data)
+      // Case 3: Can register - show confirmation dialog BEFORE registering
+      setIsLoading(false);
+      setLoadingMessage('');
+      setPendingRegisterIG(normalizedIG);
+      setShowPreRegisterDialog(true);
+
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível verificar disponibilidade',
+        variant: 'destructive'
+      });
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
+  // Called when user confirms they want to register the profile
+  const handleConfirmPreRegister = async () => {
+    if (!pendingRegisterIG || !user) return;
+
+    setShowPreRegisterDialog(false);
+    setIsLoading(true);
+
+    try {
+      // STEP 2: REGISTER IN SQUARECLOUD FIRST
       setLoadingMessage('Cadastrando perfil na MRO...');
       
-      const addResult = await addIGToSquare(user.username, normalizedIG);
+      const addResult = await addIGToSquare(user.username, pendingRegisterIG);
       
       if (!addResult.success) {
         toast({
@@ -291,13 +318,14 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         });
         setIsLoading(false);
         setLoadingMessage('');
+        setPendingRegisterIG('');
         return;
       }
 
       // STEP 3: Now fetch Instagram data from Bright Data
-      setLoadingMessage(`Buscando dados de @${normalizedIG}...`);
+      setLoadingMessage(`Buscando dados de @${pendingRegisterIG}...`);
       
-      const profileResult = await fetchInstagramProfile(normalizedIG);
+      const profileResult = await fetchInstagramProfile(pendingRegisterIG);
       
       if (!profileResult.success || !profileResult.profile) {
         toast({
@@ -307,6 +335,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         });
         setIsLoading(false);
         setLoadingMessage('');
+        setPendingRegisterIG('');
         return;
       }
 
@@ -323,13 +352,15 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         });
         setIsLoading(false);
         setLoadingMessage('');
+        setPendingRegisterIG('');
         return;
       }
 
-      // Store pending data and show confirmation
+      // Store pending data and show final confirmation
       setPendingProfile(profileResult.profile);
       setPendingAnalysis(analysisResult.analysis);
       setShowConfirmDialog(true);
+      setPendingRegisterIG('');
 
     } catch (error) {
       toast({
@@ -337,6 +368,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         description: 'Não foi possível processar o perfil',
         variant: 'destructive'
       });
+      setPendingRegisterIG('');
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -956,6 +988,54 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
               className="bg-yellow-600 hover:bg-yellow-700 text-black"
             >
               Sim, sincronizar tudo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pre-Register Confirmation Dialog - Ask before registering in SquareCloud */}
+      <Dialog open={showPreRegisterDialog} onOpenChange={setShowPreRegisterDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Instagram className="w-5 h-5" />
+              Cadastrar este perfil?
+            </DialogTitle>
+            <DialogDescription>
+              Deseja vincular @{pendingRegisterIG} à sua conta MRO?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex items-center gap-4 p-4 bg-secondary/20 rounded-lg">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center border-2 border-primary">
+              <Instagram className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-semibold">@{pendingRegisterIG}</p>
+              <p className="text-sm text-muted-foreground">
+                Perfil disponível para cadastro
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+            <p className="text-xs text-amber-200">
+              ⚠️ Após confirmar, o perfil ficará <strong>permanentemente vinculado</strong> à sua conta.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowPreRegisterDialog(false);
+                setPendingRegisterIG('');
+              }}
+            >
+              Ainda não
+            </Button>
+            <Button onClick={handleConfirmPreRegister}>
+              Sim, cadastrar
             </Button>
           </DialogFooter>
         </DialogContent>
