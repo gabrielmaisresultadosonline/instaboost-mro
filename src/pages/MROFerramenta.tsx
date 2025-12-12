@@ -175,11 +175,13 @@ const MROFerramenta = () => {
               </button>
             )}
 
-            {/* Scrollable Container - Starts from left, scrolls horizontally */}
+            {/* Scrollable Container - Centered when content fits, scrollable when overflow */}
             <div 
               ref={scrollContainerRef}
               onScroll={checkScroll}
-              className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-2 snap-x snap-mandatory touch-pan-x"
+              className={`flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-2 snap-x snap-mandatory touch-pan-x ${
+                videoContents.length <= 6 ? 'justify-center' : 'justify-start'
+              }`}
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {videoContents.map((content, idx) => (
