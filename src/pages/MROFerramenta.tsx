@@ -151,7 +151,7 @@ const MROFerramenta = () => {
     };
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 flex flex-col items-center">
         {/* Video/Text Carousel */}
         {videoContents.length > 0 && (
           <div className="relative">
@@ -175,11 +175,11 @@ const MROFerramenta = () => {
               </button>
             )}
 
-            {/* Scrollable Container - Touch friendly */}
+            {/* Scrollable Container - Touch friendly - Centered */}
             <div 
               ref={scrollContainerRef}
               onScroll={checkScroll}
-              className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-1 snap-x snap-mandatory touch-pan-x"
+              className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-1 snap-x snap-mandatory touch-pan-x justify-center"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {videoContents.map((content, idx) => (
@@ -240,9 +240,9 @@ const MROFerramenta = () => {
           </div>
         )}
 
-        {/* Buttons Section - Below Videos */}
+        {/* Buttons Section - Below Videos - Centered */}
         {buttonContents.length > 0 && (
-          <div className="flex flex-wrap gap-3 pt-2">
+          <div className="flex flex-wrap gap-3 pt-2 justify-center">
             {buttonContents.map((content) => (
               <Button
                 key={content.id}
@@ -303,7 +303,7 @@ const MROFerramenta = () => {
           
           {/* Welcome Video Section */}
           {welcomeVideo?.enabled && welcomeVideo.youtubeUrl && !selectedModule && (
-            <div className="mb-10">
+            <div className="mb-10 text-center">
               {welcomeVideo.showTitle && welcomeVideo.title && (
                 <h2 className="text-2xl font-display font-bold mb-4">{welcomeVideo.title}</h2>
               )}
@@ -345,8 +345,8 @@ const MROFerramenta = () => {
           {/* Module List View - Modules as containers with content inside */}
           {!selectedModule && !isLoading && (
             <>
-              <h1 className="text-3xl font-display font-bold mb-2">Módulos</h1>
-              <p className="text-muted-foreground mb-8">Aprenda a usar a ferramenta MRO Inteligente</p>
+              <h1 className="text-3xl font-display font-bold mb-2 text-center">Módulos</h1>
+              <p className="text-muted-foreground mb-8 text-center">Aprenda a usar a ferramenta MRO Inteligente</p>
 
               {modules.length === 0 ? (
                 <div className="glass-card p-12 text-center">
@@ -362,27 +362,20 @@ const MROFerramenta = () => {
                       key={module.id}
                       className={`glass-card p-6 rounded-xl border-2 ${colorTheme.border} ${colorTheme.bg}`}
                     >
-                      {/* Module Header */}
-                      <div className="flex items-center gap-4 mb-6">
-                        {module.showNumber && (
-                          <span className={`w-12 h-12 rounded-full ${colorTheme.accent} text-white flex items-center justify-center text-xl font-bold shadow-lg`}>
-                            {module.order}
-                          </span>
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h2 className="text-xl md:text-2xl font-display font-bold">{module.title}</h2>
-                            {module.isBonus && (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-amber-500 to-yellow-400 text-black text-xs font-bold rounded-full shadow-lg animate-pulse">
-                                <Gift className="w-3 h-3" />
-                                BÔNUS
-                              </span>
-                            )}
-                          </div>
-                          {module.description && (
-                            <p className="text-muted-foreground mt-1">{module.description}</p>
+                      {/* Module Header - Centered */}
+                      <div className="flex flex-col items-center gap-3 mb-6 text-center">
+                        <div className="flex items-center gap-3 flex-wrap justify-center">
+                          <h2 className="text-xl md:text-2xl font-display font-bold">{module.title}</h2>
+                          {module.isBonus && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-amber-500 to-yellow-400 text-black text-xs font-bold rounded-full shadow-lg animate-pulse">
+                              <Gift className="w-3 h-3" />
+                              BÔNUS
+                            </span>
                           )}
                         </div>
+                        {module.description && (
+                          <p className="text-muted-foreground">{module.description}</p>
+                        )}
                       </div>
 
                       {/* Module Contents Carousel */}
