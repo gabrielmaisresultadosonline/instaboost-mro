@@ -203,20 +203,28 @@ export const saveModulesToCloud = async (): Promise<boolean> => {
 // Load modules from cloud storage (for public users)
 export const loadModulesFromCloud = async (): Promise<{ modules: TutorialModule[], settings: Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'> } | null> => {
   try {
+    console.log('[adminConfig] Loading modules from cloud...');
+    
     const response = await supabase.functions.invoke('modules-storage', {
       body: { action: 'load' }
     });
+
+    console.log('[adminConfig] Raw response:', response);
 
     if (response.error) {
       console.error('[adminConfig] Error loading modules from cloud:', response.error);
       return null;
     }
 
-    if (response.data?.success && response.data?.data) {
-      console.log('[adminConfig] Modules loaded from cloud:', response.data.data.modules?.length || 0);
-      return response.data.data;
+    const responseData = response.data;
+    console.log('[adminConfig] Response data:', responseData);
+
+    if (responseData?.success && responseData?.data) {
+      console.log('[adminConfig] Modules loaded from cloud:', responseData.data.modules?.length || 0);
+      return responseData.data;
     }
 
+    console.log('[adminConfig] No valid data in response');
     return null;
   } catch (error) {
     console.error('[adminConfig] Error loading modules from cloud:', error);
