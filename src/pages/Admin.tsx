@@ -22,6 +22,7 @@ import CallAnalyticsDashboard from '@/components/admin/CallAnalyticsDashboard';
 import ConnectedUsersPanel from '@/components/admin/ConnectedUsersPanel';
 import AnnouncementsManager from '@/components/admin/AnnouncementsManager';
 import PixelAndCallSettings from '@/components/admin/PixelAndCallSettings';
+import CreativesProManager from '@/components/admin/CreativesProManager';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
@@ -301,6 +302,9 @@ const Admin = () => {
 
             {/* Connected Users Panel */}
             <ConnectedUsersPanel />
+
+            {/* Creatives PRO Manager */}
+            <CreativesProManager />
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
