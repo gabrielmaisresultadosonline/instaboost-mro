@@ -25,6 +25,7 @@ const MROFerramenta = () => {
   const [selectedModule, setSelectedModule] = useState<TutorialModule | null>(null);
   const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
   // Load modules from cloud on mount
   useEffect(() => {
@@ -442,13 +443,58 @@ const MROFerramenta = () => {
                 <div className="space-y-8">
                   {modules.sort((a, b) => a.order - b.order).map((module) => {
                     const colorTheme = moduleColorClasses[module.color || 'default'];
+                    const isCollapsed = module.collapsedByDefault && !expandedModules.has(module.id);
+                    
+                    const toggleExpand = () => {
+                      setExpandedModules(prev => {
+                        const next = new Set(prev);
+                        if (next.has(module.id)) {
+                          next.delete(module.id);
+                        } else {
+                          next.add(module.id);
+                        }
+                        return next;
+                      });
+                    };
+
                     return (
                     <div 
                       key={module.id}
                       className={`glass-card p-6 rounded-xl border-2 ${colorTheme.border} ${colorTheme.bg}`}
                     >
                       {/* Module Header - Centered */}
-                      <div className="flex flex-col items-center gap-3 mb-6 text-center">
+                      <div 
+                        className={`flex flex-col items-center gap-3 ${isCollapsed ? '' : 'mb-6'} text-center ${module.collapsedByDefault ? 'cursor-pointer' : ''}`}
+                        onClick={module.collapsedByDefault ? toggleExpand : undefined}
+                      >
+                        {/* Collapsed: Show cover image prominently */}
+                        {module.collapsedByDefault && module.coverUrl && (
+                          <div className="relative w-full max-w-xs mx-auto mb-2">
+                            <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-secondary group">
+                              <img 
+                                src={module.coverUrl} 
+                                alt={module.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                              {/* Play/Expand overlay */}
+                              <div className="absolute inset-0 bg-background/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-xl">
+                                  <Play className="w-8 h-8 text-primary-foreground" />
+                                </div>
+                              </div>
+                              {/* Expand indicator */}
+                              {isCollapsed && (
+                                <div className="absolute bottom-2 right-2 px-3 py-1 bg-background/80 rounded-full text-xs font-medium">
+                                  Clique para ver
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
                         <div className="flex items-center gap-3 flex-wrap justify-center">
                           <h2 className="text-xl md:text-2xl font-display font-bold">{module.title}</h2>
                           {module.isBonus && (
@@ -463,21 +509,25 @@ const MROFerramenta = () => {
                         )}
                       </div>
 
-                      {/* Module Contents Carousel */}
-                      {module.contents.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <Play className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                          <p>Nenhum conteúdo neste módulo</p>
-                        </div>
-                      ) : (
-                        <ModuleCarousel 
-                          module={module} 
-                          onContentClick={(content) => {
-                            setSelectedModule(module);
-                            handleContentClick(content);
-                          }}
-                          getVideoIndex={getVideoIndex}
-                        />
+                      {/* Module Contents - Hidden when collapsed */}
+                      {!isCollapsed && (
+                        <>
+                          {module.contents.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <Play className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                              <p>Nenhum conteúdo neste módulo</p>
+                            </div>
+                          ) : (
+                            <ModuleCarousel 
+                              module={module} 
+                              onContentClick={(content) => {
+                                setSelectedModule(module);
+                                handleContentClick(content);
+                              }}
+                              getVideoIndex={getVideoIndex}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                   );})}

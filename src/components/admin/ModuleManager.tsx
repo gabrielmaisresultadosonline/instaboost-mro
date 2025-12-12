@@ -129,7 +129,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     coverUrl: '',
     showNumber: true,
     color: 'default' as ModuleColor,
-    isBonus: false
+    isBonus: false,
+    collapsedByDefault: false
   });
 
   // Edit module form
@@ -221,8 +222,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha o título do módulo", variant: "destructive" });
       return;
     }
-    addModule(newModule.title, newModule.description, newModule.coverUrl, newModule.showNumber, newModule.color, newModule.isBonus);
-    setNewModule({ title: '', description: '', coverUrl: '', showNumber: true, color: 'default', isBonus: false });
+    addModule(newModule.title, newModule.description, newModule.coverUrl, newModule.showNumber, newModule.color, newModule.isBonus, newModule.collapsedByDefault);
+    setNewModule({ title: '', description: '', coverUrl: '', showNumber: true, color: 'default', isBonus: false, collapsedByDefault: false });
     refreshData();
     toast({ title: "Módulo criado!" });
   };
@@ -402,7 +403,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       coverUrl: module.coverUrl,
       showNumber: module.showNumber,
       color: module.color || 'default',
-      isBonus: module.isBonus || false
+      isBonus: module.isBonus || false,
+      collapsedByDefault: module.collapsedByDefault || false
     });
   };
 
@@ -579,6 +581,13 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
               />
               <Label>🎁 Tag Bônus</Label>
             </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={newModule.collapsedByDefault}
+                onCheckedChange={(checked) => setNewModule(prev => ({ ...prev, collapsedByDefault: checked }))}
+              />
+              <Label>📦 Colapsado (só mostra capa/nome)</Label>
+            </div>
             <div>
               <Label>Cor do Módulo</Label>
               <select
@@ -734,6 +743,13 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                           onCheckedChange={(checked) => setEditModuleData(prev => ({ ...prev, isBonus: checked }))}
                         />
                         <Label>🎁 Tag Bônus</Label>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={editModuleData.collapsedByDefault ?? false}
+                          onCheckedChange={(checked) => setEditModuleData(prev => ({ ...prev, collapsedByDefault: checked }))}
+                        />
+                        <Label>📦 Colapsado (só mostra capa/nome)</Label>
                       </div>
                       <div>
                         <Label>Cor do Módulo</Label>

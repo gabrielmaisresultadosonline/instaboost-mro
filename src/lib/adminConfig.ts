@@ -125,6 +125,7 @@ export interface TutorialModule {
   createdAt: string;
   color?: ModuleColor;
   isBonus?: boolean;
+  collapsedByDefault?: boolean; // Se true, mostra só capa/nome e expande ao clicar
 }
 
 // Legacy types for backwards compatibility
@@ -339,7 +340,7 @@ export const clearCallAnalytics = (): void => {
 };
 
 // Module functions
-export const addModule = (title: string, description: string = '', coverUrl: string = '', showNumber: boolean = true, color: ModuleColor = 'default', isBonus: boolean = false): TutorialModule => {
+export const addModule = (title: string, description: string = '', coverUrl: string = '', showNumber: boolean = true, color: ModuleColor = 'default', isBonus: boolean = false, collapsedByDefault: boolean = false): TutorialModule => {
   const data = getAdminData();
   const newModule: TutorialModule = {
     id: `module_${Date.now()}`,
@@ -351,7 +352,8 @@ export const addModule = (title: string, description: string = '', coverUrl: str
     contents: [],
     createdAt: new Date().toISOString(),
     color,
-    isBonus
+    isBonus,
+    collapsedByDefault
   };
   data.modules.push(newModule);
   saveAdminData(data);
