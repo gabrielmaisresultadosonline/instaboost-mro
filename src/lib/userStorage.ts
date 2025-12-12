@@ -354,6 +354,18 @@ export const loginUser = async (
   console.log(`[userStorage] 📅 Days from SquareCloud API: ${finalDaysRemaining}`);
   console.log(`[userStorage] 📅 Status: ${finalDaysRemaining > 365 ? 'Vitalício' : `${finalDaysRemaining} dias`}`);
   
+  // Check if admin has activated PRO creatives for this user
+  const adminProKey = `mro_creatives_pro_${originalUsername}`;
+  const adminProData = localStorage.getItem(adminProKey);
+  const isAdminUnlockedPro = !!adminProData;
+  
+  // Use admin unlock OR cloud data unlock
+  const finalCreativesUnlocked = isAdminUnlockedPro || creativesUnlocked || false;
+  
+  if (isAdminUnlockedPro) {
+    console.log(`[userStorage] 👑 User ${originalUsername} has PRO creatives activated by admin`);
+  }
+  
   // Only use database profiles (cloud-linked) - no local merging for new users
   const mergedIGs: RegisteredIG[] = [...dbProfiles];
   
@@ -373,7 +385,7 @@ export const loginUser = async (
       daysRemaining: finalDaysRemaining, // ALWAYS from SquareCloud API
       loginAt: new Date().toISOString(),
       registeredIGs: mergedIGs,
-      creativesUnlocked: creativesUnlocked || false,
+      creativesUnlocked: finalCreativesUnlocked, // Check both admin and cloud unlock
       isEmailLocked,
       lifetimeCreativeUsedAt: cloudData?.lifetimeCreativeUsedAt || undefined // Load from cloud!
     },
