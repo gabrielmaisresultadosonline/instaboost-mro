@@ -226,9 +226,11 @@ NO LOGO SPACE:
 
     const textInstructions = includeText 
       ? `
-LAYOUT FOR TEXT OVERLAY:
-- BOTTOM 30%: Smooth gradient fade for text overlay (seamless, not a bar)
-- Keep bottom area slightly darker for text contrast`
+LAYOUT FOR TEXT OVERLAY - CRITICAL:
+- BOTTOM 35%: Smooth gradient fade for text overlay (seamless dark gradient, not a solid bar)
+- Keep bottom area with smooth dark gradient for MULTI-LINE TEXT contrast
+- TEXT WILL BE 3-4 LINES, centered horizontally, with generous margins from edges
+- The text area needs enough space for headline split across 3-4 lines plus CTA button below`
       : `
 NO TEXT OVERLAY SPACE - CRITICAL:
 - Do NOT create any gradient fade areas at the bottom
@@ -256,8 +258,8 @@ LAYOUT STRUCTURE:
     const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image.
 
 MASTER QUALITY - ABSOLUTE REQUIREMENTS:
-- QUALIDADE MASTER, CRIATIVO FULL HD, NITIDEZ 90%
-- Shot with PROFESSIONAL Sony Alpha camera, extreme image quality
+- QUALIDADE MASTER, CRIATIVO FULL HD, NITIDEZ 100%
+- Shot with PROFESSIONAL Sony Alpha camera, MAXIMUM image quality
 - REALISTIC OBJECTS with perfect textures, shadows, and reflections
 - 4K advertising agency quality with rich details and ultra-sharp focus
 - Premium ${selectedMood} atmosphere with cinematic color grading
@@ -265,7 +267,13 @@ MASTER QUALITY - ABSOLUTE REQUIREMENTS:
 - ${selectedPerspective} composition with professional depth of field
 - HYPER-REALISTIC photography - every detail must look like a real professional photo shoot
 - NO artificial or cartoon-like elements - 100% photorealistic rendering
-- FULL SCREEN COVERAGE: Image must fill the ENTIRE canvas with NO empty spaces, bars, or borders
+
+CRITICAL - FULL CANVAS COVERAGE:
+- The image MUST FILL 100% of the entire canvas - EDGE TO EDGE with ZERO margins
+- NO small images in the center - the visual content must EXTEND to ALL 4 edges
+- NO borders, frames, or empty space around the main image
+- The visual MUST be LARGE, filling the ENTIRE 1080x1080 pixels without any reduction
+- Think of this as a FULL BLEED print - content goes to the absolute edge on all sides
 
 BUSINESS CONTEXT: ${businessType}
 CONTENT THEME: ${contentDescription}
@@ -283,19 +291,21 @@ VISUAL CONTENT (BE UNIQUE):
 - ${selectedMood} visual treatment
 - Each generation must have DIFFERENT composition, subjects, and angles
 - DO NOT repeat patterns or concepts from other creatives
-- Fill ENTIRE image with rich, detailed visuals
+- Fill ENTIRE image with rich, detailed visuals - NO SMALL IMAGES
 - REALISTIC textures on all objects - wood grain, fabric weave, metal shine, etc.
+- The main subject should be LARGE and PROMINENT, not small and centered
 ${layoutDescription}
 ${textInstructions}
 
 ABSOLUTE RULES:
 - NO text, words, letters, or numbers in the image
 - NO horizontal solid color bars or stripes
-- NO empty spaces or borders
+- NO empty spaces, margins, or borders - FILL EVERYTHING
+- NO small centered images - the image must be FULL SIZE edge-to-edge
 - ${includeLogo ? 'NO logos or brand marks (just seamless area for overlay)' : 'Complete visual without any logo space - fill entire top with content'}
 - ${includeText ? '' : 'NO dark gradient at bottom - fill entire bottom with visual content'}
-- Aspect ratio: 1:1 SQUARE (1080x1080)
-- Image must extend EDGE TO EDGE with no visible boundaries
+- Aspect ratio: 1:1 SQUARE (1080x1080) - COMPLETELY FILLED
+- Image must extend EDGE TO EDGE with absolutely no visible boundaries or margins
 - ${fullImageMode ? 'FULL CONTENT MODE: Every pixel must be rich visual content - NO reserved spaces anywhere' : 'Background must be a seamless gradient, NOT solid blocks'}`;
 
     // Build message content - include person photo if provided
