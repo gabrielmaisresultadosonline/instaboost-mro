@@ -96,6 +96,12 @@ serve(async (req) => {
         );
       }
 
+      // Update last_access timestamp on load (user login)
+      await supabase
+        .from('user_sessions')
+        .update({ last_access: new Date().toISOString() })
+        .eq('id', data.id);
+
       logStep(`Loaded data for ${normalizedUsername}`, { 
         profileCount: data.profile_sessions?.length || 0 
       });
