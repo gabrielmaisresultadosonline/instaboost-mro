@@ -223,8 +223,8 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
   if (!isVisible || !currentAnnouncement) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="glass-card w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border-primary/30">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="glass-card w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border-primary/30">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/30">
           <div className="flex items-center gap-2">

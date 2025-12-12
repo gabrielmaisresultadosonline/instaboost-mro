@@ -152,18 +152,18 @@ const MROFerramenta = () => {
           </button>
         )}
 
-        {/* Scrollable Container */}
+        {/* Scrollable Container - Touch friendly */}
         <div 
           ref={scrollContainerRef}
           onScroll={checkScroll}
-          className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 px-1"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-1 snap-x snap-mandatory touch-pan-x"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
         >
           {sortedContents.map((content, idx) => (
             <div 
               key={content.id}
-              className="content-card group cursor-pointer flex-shrink-0"
-              style={{ width: 'calc((100% - 64px) / 5)', minWidth: '150px', maxWidth: '200px' }}
+              className="content-card group cursor-pointer flex-shrink-0 snap-start"
+              style={{ width: 'clamp(130px, calc((100% - 32px) / 2), 200px)' }}
               onClick={() => onContentClick(content)}
             >
               {content.type === 'video' ? (
