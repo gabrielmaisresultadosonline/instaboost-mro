@@ -339,13 +339,21 @@ export const loginUser = async (
   const finalEmail = cloudData?.email || email;
   const isEmailLocked = cloudData?.isEmailLocked || false;
   
-  // CRITICAL: For daysRemaining, ALWAYS use the value from SquareCloud API (passed as parameter)
-  // The cloud data daysRemaining is only for backup/display, the authoritative source is SquareCloud
-  const finalDaysRemaining = daysRemaining; // Always from SquareCloud API, NOT from cloud storage
+  // CRITICAL: For daysRemaining, prefer cloud data (synced by admin) if available and valid
+  // Cloud data is updated by admin sync from SquareCloud, so it's the most accurate source
+  // Only use API value if cloud has no data or has default 365
+  let finalDaysRemaining = daysRemaining; // Default from SquareCloud API
   
-  console.log(`[userStorage] 📅 Days remaining: ${finalDaysRemaining} (from SquareCloud API)`);
-  if (cloudData?.daysRemaining && cloudData.daysRemaining !== finalDaysRemaining) {
-    console.log(`[userStorage] ⚠️ Cloud had different days (${cloudData.daysRemaining}), using SquareCloud value`);
+  if (cloudData?.daysRemaining && cloudData.daysRemaining > 365) {
+    // Cloud has lifetime access synced by admin - use it
+    finalDaysRemaining = cloudData.daysRemaining;
+    console.log(`[userStorage] 📅 Using cloud days: ${finalDaysRemaining} (synced by admin)`);
+  } else if (cloudData?.daysRemaining && cloudData.daysRemaining !== 365) {
+    // Cloud has specific non-default days - use it
+    finalDaysRemaining = cloudData.daysRemaining;
+    console.log(`[userStorage] 📅 Using cloud days: ${finalDaysRemaining} (from cloud)`);
+  } else {
+    console.log(`[userStorage] 📅 Using API days: ${finalDaysRemaining} (from SquareCloud API)`);
   }
   
   // Only use database profiles (cloud-linked) - no local merging for new users
