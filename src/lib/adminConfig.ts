@@ -55,7 +55,7 @@ export interface AdminSettings {
 }
 
 // Content types for modules
-export type ModuleContentType = 'video' | 'text' | 'button';
+export type ModuleContentType = 'video' | 'text' | 'button' | 'section';
 
 export interface ModuleVideo {
   id: string;
@@ -92,7 +92,17 @@ export interface ModuleButton {
   createdAt: string;
 }
 
-export type ModuleContent = ModuleVideo | ModuleText | ModuleButton;
+// Section divider - allows grouping content with a title
+export interface ModuleSection {
+  id: string;
+  type: 'section';
+  title: string;
+  showTitle: boolean;
+  order: number;
+  createdAt: string;
+}
+
+export type ModuleContent = ModuleVideo | ModuleText | ModuleButton | ModuleSection;
 
 // Module color themes
 export type ModuleColor = 'default' | 'green' | 'blue' | 'purple' | 'orange' | 'pink' | 'red' | 'cyan';
@@ -442,6 +452,27 @@ export const addButtonToModule = (
   module.contents.push(newButton);
   saveAdminData(data);
   return newButton;
+};
+
+export const addSectionToModule = (
+  moduleId: string,
+  section: { title: string; showTitle?: boolean }
+): ModuleSection | null => {
+  const data = getAdminData();
+  const module = data.modules.find(m => m.id === moduleId);
+  if (!module) return null;
+  
+  const newSection: ModuleSection = {
+    id: `section_${Date.now()}`,
+    type: 'section',
+    title: section.title,
+    showTitle: section.showTitle ?? true,
+    order: module.contents.length + 1,
+    createdAt: new Date().toISOString()
+  };
+  module.contents.push(newSection);
+  saveAdminData(data);
+  return newSection;
 };
 
 export const updateContent = (moduleId: string, contentId: string, updates: Partial<ModuleContent>): void => {
