@@ -9,6 +9,7 @@ export interface MROUser {
   registeredIGs: RegisteredIG[];
   creativesUnlocked?: boolean; // Only for lifetime users - admin can unlock
   isEmailLocked?: boolean; // True if email has been set and locked
+  lifetimeCreativeUsedAt?: string; // ISO date when lifetime user used their monthly creative
 }
 
 export interface RegisteredIG {
@@ -93,21 +94,44 @@ export const formatDaysRemaining = (days: number): string => {
   return `${days} dias`;
 };
 
+// Check if lifetime user has used their monthly creative
+export const hasLifetimeUsedMonthlyCreative = (user: MROUser): boolean => {
+  if (!user.lifetimeCreativeUsedAt) return false;
+  
+  const usedDate = new Date(user.lifetimeCreativeUsedAt);
+  const now = new Date();
+  
+  // Check if it's the same month and year
+  return usedDate.getMonth() === now.getMonth() && 
+         usedDate.getFullYear() === now.getFullYear();
+};
+
 // Check if user can use creatives generator
-export const canUseCreatives = (user: MROUser | null): { allowed: boolean; reason?: string } => {
+export const canUseCreatives = (user: MROUser | null): { allowed: boolean; reason?: string; isLifetimeLimit?: boolean } => {
   if (!user) {
     return { allowed: false, reason: 'Usuário não autenticado' };
   }
   
-  // Lifetime users need admin unlock
+  // Lifetime users special handling
   if (isLifetimeAccess(user.daysRemaining)) {
-    if (user.creativesUnlocked) {
-      return { allowed: true };
+    // First check if admin has unlocked
+    if (!user.creativesUnlocked) {
+      return { 
+        allowed: false, 
+        reason: 'Usuários vitalícios precisam de liberação do administrador para usar o gerador de criativos. Entre em contato com o administrador.' 
+      };
     }
-    return { 
-      allowed: false, 
-      reason: 'Usuários vitalícios precisam de liberação do administrador para usar o gerador de criativos. Entre em contato com o administrador.' 
-    };
+    
+    // Check if already used this month's creative
+    if (hasLifetimeUsedMonthlyCreative(user)) {
+      return { 
+        allowed: false, 
+        reason: 'Você já utilizou seu criativo mensal. Usuários vitalícios podem gerar apenas 1 criativo por mês. Para liberar mais criativos, entre em contato com o suporte.',
+        isLifetimeLimit: true
+      };
+    }
+    
+    return { allowed: true };
   }
   
   // Regular users (365 days or less) can use normally
