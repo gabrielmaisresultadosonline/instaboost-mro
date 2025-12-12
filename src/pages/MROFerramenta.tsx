@@ -151,12 +151,12 @@ const MROFerramenta = () => {
     };
 
     return (
-      <div className="space-y-4 flex flex-col items-center">
+      <div className="space-y-4">
         {/* Video/Text Carousel */}
         {videoContents.length > 0 && (
           <div className="relative">
             {/* Left Arrow */}
-            {hasMoreThanVisible && canScrollLeft && (
+            {canScrollLeft && (
               <button
                 onClick={() => scroll('left')}
                 className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors -ml-3"
@@ -166,7 +166,7 @@ const MROFerramenta = () => {
             )}
 
             {/* Right Arrow */}
-            {hasMoreThanVisible && canScrollRight && (
+            {canScrollRight && (
               <button
                 onClick={() => scroll('right')}
                 className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors -mr-3"
@@ -175,18 +175,17 @@ const MROFerramenta = () => {
               </button>
             )}
 
-            {/* Scrollable Container - Touch friendly - Centered */}
+            {/* Scrollable Container - Starts from left, scrolls horizontally */}
             <div 
               ref={scrollContainerRef}
               onScroll={checkScroll}
-              className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-1 snap-x snap-mandatory touch-pan-x justify-center"
+              className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-2 snap-x snap-mandatory touch-pan-x"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {videoContents.map((content, idx) => (
                 <div 
                   key={content.id}
-                  className="content-card group cursor-pointer flex-shrink-0 snap-start"
-                  style={{ width: 'clamp(130px, calc((100% - 32px) / 2), 200px)' }}
+                  className="content-card group cursor-pointer flex-shrink-0 snap-start w-32 sm:w-36 md:w-44 lg:w-48"
                   onClick={() => onContentClick(content)}
                 >
                   {content.type === 'video' ? (
