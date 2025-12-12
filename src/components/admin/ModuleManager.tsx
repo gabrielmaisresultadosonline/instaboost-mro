@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   getAdminData, saveAdminData, addModule, updateModule, deleteModule,
   addVideoToModule, addTextToModule, addButtonToModule, deleteContent, updateContent,
   TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleColor, getYoutubeThumbnail,
-  saveModulesToCloud
+  saveModulesToCloud, loadModulesFromCloud
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,51 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent } | null>(null);
   const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' } | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isLoadingCloud, setIsLoadingCloud] = useState(true);
+  
+  // Load modules from cloud on mount
+  useEffect(() => {
+    const loadFromCloud = async () => {
+      try {
+        console.log('[ModuleManager] Loading modules from cloud...');
+        const cloudData = await loadModulesFromCloud();
+        
+        if (cloudData && cloudData.modules && cloudData.modules.length > 0) {
+          console.log('[ModuleManager] Loaded', cloudData.modules.length, 'modules from cloud');
+          
+          // Update local storage with cloud data
+          const currentData = getAdminData();
+          currentData.modules = cloudData.modules;
+          if (cloudData.settings) {
+            currentData.settings.downloadLink = cloudData.settings.downloadLink || currentData.settings.downloadLink;
+            currentData.settings.welcomeVideo = cloudData.settings.welcomeVideo || currentData.settings.welcomeVideo;
+          }
+          saveAdminData(currentData);
+          setAdminData(currentData);
+          setWelcomeVideo(currentData.settings.welcomeVideo || {
+            enabled: false,
+            title: '',
+            showTitle: true,
+            youtubeUrl: '',
+            coverUrl: ''
+          });
+          
+          toast({
+            title: "Módulos carregados",
+            description: `${cloudData.modules.length} módulos carregados da nuvem`,
+          });
+        } else {
+          console.log('[ModuleManager] No cloud data found, using local');
+        }
+      } catch (error) {
+        console.error('[ModuleManager] Error loading from cloud:', error);
+      } finally {
+        setIsLoadingCloud(false);
+      }
+    };
+    
+    loadFromCloud();
+  }, []);
   
   // Welcome video state
   const [welcomeVideo, setWelcomeVideo] = useState(adminData.settings.welcomeVideo || {
@@ -279,7 +324,15 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className="text-2xl font-display font-bold">MRO Ferramenta - Módulos</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-display font-bold">MRO Ferramenta - Módulos</h2>
+          {isLoadingCloud && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Carregando da nuvem...
+            </div>
+          )}
+        </div>
         <Button 
           onClick={handlePublishToCloud}
           disabled={isPublishing}
