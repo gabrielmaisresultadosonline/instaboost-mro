@@ -20,8 +20,13 @@ const Ligacao = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Get admin settings for pixel configuration
+  // Get admin settings for audio and pixel configuration
   const adminSettings = getAdminData().settings;
+  const callPageSettings = adminSettings.callPageSettings || {
+    audioUrl: '/call-audio.mp3',
+    ringtoneUrl: '/ringtone.mp4'
+  };
+  const pixelSettings = adminSettings.pixelSettings;
 
   // Track page view in local analytics on mount (Pixel PageView already fires from index.html)
   useEffect(() => {
@@ -176,7 +181,7 @@ const Ligacao = () => {
       {/* Hidden video for ringtone - plays audio only */}
       <video 
         ref={ringtoneVideoRef} 
-        src="/ringtone.mp4"
+        src={callPageSettings.ringtoneUrl}
         preload="auto"
         playsInline
         webkit-playsinline="true"
@@ -184,7 +189,7 @@ const Ligacao = () => {
       />
       <audio 
         ref={audioRef} 
-        src="/call-audio.mp3"
+        src={callPageSettings.audioUrl}
         onEnded={handleAudioEnded}
         preload="auto"
         playsInline

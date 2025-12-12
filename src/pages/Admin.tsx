@@ -21,7 +21,8 @@ import SalesDashboard from '@/components/admin/SalesDashboard';
 import CallAnalyticsDashboard from '@/components/admin/CallAnalyticsDashboard';
 import ConnectedUsersPanel from '@/components/admin/ConnectedUsersPanel';
 import AnnouncementsManager from '@/components/admin/AnnouncementsManager';
-import { 
+import PixelAndCallSettings from '@/components/admin/PixelAndCallSettings';
+import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
@@ -29,7 +30,7 @@ import {
   Instagram, CheckCircle, XCircle, DollarSign, Phone, Bell
 } from 'lucide-react';
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'sales' | 'announcements' | 'settings';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'sales' | 'announcements' | 'pixel' | 'settings';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -186,7 +187,8 @@ const Admin = () => {
     { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
     { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
-    { id: 'settings', label: 'Configurações', icon: <Settings className="w-4 h-4" /> },
+    { id: 'pixel', label: 'Pixel & Ligação', icon: <ExternalLink className="w-4 h-4" /> },
+    { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
   ];
 
   const getSelectedProfileData = () => {
@@ -853,6 +855,13 @@ const Admin = () => {
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
           <AnnouncementsManager />
+        )}
+
+        {/* Pixel & Call Settings Tab */}
+        {activeTab === 'pixel' && (
+          <div className="max-w-4xl mx-auto">
+            <PixelAndCallSettings />
+          </div>
         )}
 
         {/* Settings Tab */}
