@@ -42,6 +42,7 @@ interface RequestBody {
   content_category?: string;
   value?: number;
   currency?: string;
+  test_event_code?: string;
 }
 
 // Simple hash function for user data (SHA256 would be better in production)
@@ -116,10 +117,16 @@ serve(async (req) => {
     // Send to Meta Conversions API
     const metaUrl = `https://graph.facebook.com/${META_API_VERSION}/${PIXEL_ID}/events`;
     
-    const metaPayload = {
+    const metaPayload: Record<string, any> = {
       data: [event],
       access_token: accessToken,
     };
+
+    // Add test_event_code if provided (for Facebook Events Manager testing)
+    if (body.test_event_code) {
+      metaPayload.test_event_code = body.test_event_code;
+      console.log('[META-CONVERSIONS] Using test_event_code:', body.test_event_code);
+    }
 
     console.log('[META-CONVERSIONS] Sending to Meta API:', JSON.stringify(metaPayload, null, 2));
 
