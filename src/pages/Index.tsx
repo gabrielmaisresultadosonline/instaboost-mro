@@ -17,8 +17,7 @@ import {
   getActiveProfile,
   cleanExpiredCreatives,
   cleanExpiredStrategies,
-  setCloudSyncCallback,
-  initializeFromCloud
+  setCloudSyncCallback
 } from '@/lib/storage';
 import { 
   isAuthenticated, 
@@ -27,8 +26,7 @@ import {
   addRegisteredIG,
   getCurrentUser,
   logoutUser,
-  saveUserToCloud,
-  getUserSession
+  saveUserToCloud
 } from '@/lib/userStorage';
 import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -76,52 +74,21 @@ const Index = () => {
         
         if (authenticated) {
           const registeredIGs = getRegisteredIGs();
-          const igUsernames = registeredIGs.map(ig => ig.username);
           setHasRegisteredProfiles(registeredIGs.length > 0);
           
-          // CRITICAL: First try to load from cloud storage (user_sessions table)
-          const userSession = getUserSession();
-          const cloudProfiles = userSession.cloudData?.profileSessions || [];
-          const cloudArchived = userSession.cloudData?.archivedProfiles || [];
+          // Just check the existing session - data should already be loaded
+          const existingSession = getSession();
           
-          console.log(`🔐 Auth check: ${registeredIGs.length} registered IGs, ${cloudProfiles.length} cloud profiles`);
+          console.log(`🔐 Auth check: ${registeredIGs.length} IGs registrados, ${existingSession.profiles.length} perfis na sessão`);
           
-          if (cloudProfiles.length > 0) {
-            // Initialize from cloud data - NO external API calls needed!
-            console.log(`☁️ Inicializando ${cloudProfiles.length} perfis da nuvem...`);
-            initializeFromCloud(cloudProfiles, cloudArchived);
-            
-            // Clean expired data
-            cleanExpiredCreatives();
-            cleanExpiredStrategies();
-            
-            const existingSession = getSession();
-            setSession(existingSession);
-            
-            if (existingSession.profiles.length > 0) {
-              setShowDashboard(true);
-              toast({
-                title: `${existingSession.profiles.length} perfil(is) carregado(s)`,
-                description: 'Dados restaurados da nuvem'
-              });
-            }
-          } else if (igUsernames.length > 0) {
-            // No cloud data but has registered profiles - AUTO SYNC!
-            console.log(`🔄 Auto-sincronizando ${igUsernames.length} perfis na inicialização...`);
-            setIsLoading(true);
-            setLoadingMessage('Sincronizando perfis...');
-            setLoadingSubMessage(`Carregando ${igUsernames.length} perfis. Isso pode levar alguns minutos.`);
-            
-            // Trigger auto-sync
-            await handleSyncComplete(igUsernames);
-          } else {
-            // No profiles at all
-            const existingSession = getSession();
-            setSession(existingSession);
-            
-            if (existingSession.profiles.length > 0) {
-              setShowDashboard(true);
-            }
+          // Clean expired data
+          cleanExpiredCreatives();
+          cleanExpiredStrategies();
+          
+          setSession(existingSession);
+          
+          if (existingSession.profiles.length > 0) {
+            setShowDashboard(true);
           }
         }
       } catch (error) {
@@ -135,56 +102,35 @@ const Index = () => {
 
   const handleLoginSuccess = async () => {
     setIsLoggedIn(true);
-    setIsLoading(true);
-    setLoadingMessage('Carregando seus dados...');
-    setLoadingSubMessage('Buscando dados salvos na nuvem.');
     
     try {
       const registeredIGs = getRegisteredIGs();
-      const igUsernames = registeredIGs.map(ig => ig.username);
       setHasRegisteredProfiles(registeredIGs.length > 0);
       
-      // CRITICAL: Load from cloud storage first (user_sessions table)
-      const userSession = getUserSession();
-      const cloudProfiles = userSession.cloudData?.profileSessions || [];
-      const cloudArchived = userSession.cloudData?.archivedProfiles || [];
+      // IMPORTANT: LoginPage already called initializeFromCloud if data exists
+      // Just check the current session state (already initialized from cloud)
+      const existingSession = getSession();
       
-      console.log(`🔐 Login: ${registeredIGs.length} IGs registrados, ${cloudProfiles.length} perfis na nuvem`);
+      console.log(`🔐 Login completo: ${existingSession.profiles.length} perfis na sessão, ${registeredIGs.length} IGs registrados`);
       
-      if (cloudProfiles.length > 0) {
-        // Initialize from cloud data - NO external API calls needed!
-        console.log(`☁️ Restaurando ${cloudProfiles.length} perfis da nuvem...`);
-        initializeFromCloud(cloudProfiles, cloudArchived);
-        
-        const existingSession = getSession();
+      if (existingSession.profiles.length > 0) {
+        // Data already loaded from cloud by LoginPage - just show dashboard
         setSession(existingSession);
-        
-        if (existingSession.profiles.length > 0) {
-          setShowDashboard(true);
-          toast({
-            title: `${existingSession.profiles.length} perfil(is) restaurado(s)`,
-            description: 'Dados carregados da nuvem com sucesso'
-          });
-        }
-        setIsLoading(false);
-      } else if (igUsernames.length > 0) {
-        // No cloud data but has registered profiles - AUTO SYNC!
-        console.log(`🔄 Auto-sincronizando ${igUsernames.length} perfis...`);
+        setShowDashboard(true);
+        console.log(`☁️ Perfis já carregados da nuvem - mostrando dashboard direto`);
+      } else if (registeredIGs.length > 0) {
+        // No cloud data but has registered profiles - AUTO SYNC needed
+        const igUsernames = registeredIGs.map(ig => ig.username);
+        console.log(`🔄 Nenhum dado na nuvem, sincronizando ${igUsernames.length} perfis...`);
+        setIsLoading(true);
         setLoadingMessage('Sincronizando perfis...');
         setLoadingSubMessage(`Carregando ${igUsernames.length} perfis. Isso pode levar alguns minutos.`);
         
-        // Auto sync in background - don't wait, but trigger it
-        setIsLoading(false);
-        
-        // Trigger auto-sync after a small delay
-        setTimeout(() => {
-          handleSyncComplete(igUsernames);
-        }, 500);
+        // Trigger auto-sync
+        await handleSyncComplete(igUsernames);
       } else {
-        // No profiles at all
-        const existingSession = getSession();
+        // No profiles at all - show registration screen
         setSession(existingSession);
-        setIsLoading(false);
       }
     } catch (error) {
       console.error('[Index] Error in handleLoginSuccess:', error);
