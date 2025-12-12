@@ -50,23 +50,30 @@ export interface UserSession {
 export type { UserSession as UserSessionType };
 
 // Normalize Instagram username from URL or handle
+// Handles all formats:
+// - https://www.instagram.com/maisresultadosonline/
+// - https://www.instagram.com/maisresultadosonline?igsh=xxx&utm_source=qr
+// - @maisresultadosonline
+// - maisresultadosonline
+// - MaisResultadosOnline (converts to lowercase)
 export const normalizeInstagramUsername = (input: string): string => {
-  let username = input.trim().toLowerCase();
+  let username = input.trim();
   
-  // Remove @ if present
-  username = username.replace(/^@/, '');
-  
-  // Extract from full URL
-  // Handles: https://instagram.com/username, https://www.instagram.com/username/, etc.
+  // First, check if it's a URL and extract the username
+  // Handles URLs with query params like ?igsh=xxx&utm_source=qr
   const urlMatch = username.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/i);
   if (urlMatch) {
-    username = urlMatch[1].toLowerCase();
+    username = urlMatch[1];
   }
   
-  // Remove trailing slashes or query params
-  username = username.split('/')[0].split('?')[0];
+  // Remove @ if present at the start
+  username = username.replace(/^@/, '');
   
-  return username;
+  // Remove any remaining path segments or query params
+  username = username.split('/')[0].split('?')[0].split('#')[0];
+  
+  // Always return lowercase
+  return username.toLowerCase();
 };
 
 // Check if days indicate lifetime access (> 365 days)
