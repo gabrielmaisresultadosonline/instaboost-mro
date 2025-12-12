@@ -63,7 +63,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.admin-data-storage]
-verify_jwt = true
+verify_jwt = false
 
 [functions.register-paid-user]
 verify_jwt = false
