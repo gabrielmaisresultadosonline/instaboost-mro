@@ -75,6 +75,9 @@ export interface ModuleButton {
 
 export type ModuleContent = ModuleVideo | ModuleText | ModuleButton;
 
+// Module color themes
+export type ModuleColor = 'default' | 'green' | 'blue' | 'purple' | 'orange' | 'pink' | 'red' | 'cyan';
+
 export interface TutorialModule {
   id: string;
   title: string;
@@ -84,6 +87,8 @@ export interface TutorialModule {
   order: number;
   contents: ModuleContent[];
   createdAt: string;
+  color?: ModuleColor;
+  isBonus?: boolean;
 }
 
 // Legacy types for backwards compatibility
@@ -278,7 +283,7 @@ export const clearCallAnalytics = (): void => {
 };
 
 // Module functions
-export const addModule = (title: string, description: string = '', coverUrl: string = '', showNumber: boolean = true): TutorialModule => {
+export const addModule = (title: string, description: string = '', coverUrl: string = '', showNumber: boolean = true, color: ModuleColor = 'default', isBonus: boolean = false): TutorialModule => {
   const data = getAdminData();
   const newModule: TutorialModule = {
     id: `module_${Date.now()}`,
@@ -288,7 +293,9 @@ export const addModule = (title: string, description: string = '', coverUrl: str
     showNumber,
     order: data.modules.length + 1,
     contents: [],
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    color,
+    isBonus
   };
   data.modules.push(newModule);
   saveAdminData(data);

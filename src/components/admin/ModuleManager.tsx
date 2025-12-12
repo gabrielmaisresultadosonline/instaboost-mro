@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   getAdminData, saveAdminData, addModule, updateModule, deleteModule,
   addVideoToModule, addTextToModule, addButtonToModule, deleteContent, updateContent,
-  TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, getYoutubeThumbnail,
+  TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleColor, getYoutubeThumbnail,
   saveModulesToCloud
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,7 +61,9 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     title: '',
     description: '',
     coverUrl: '',
-    showNumber: true
+    showNumber: true,
+    color: 'default' as ModuleColor,
+    isBonus: false
   });
 
   // Edit module form
@@ -143,8 +145,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha o título do módulo", variant: "destructive" });
       return;
     }
-    addModule(newModule.title, newModule.description, newModule.coverUrl, newModule.showNumber);
-    setNewModule({ title: '', description: '', coverUrl: '', showNumber: true });
+    addModule(newModule.title, newModule.description, newModule.coverUrl, newModule.showNumber, newModule.color, newModule.isBonus);
+    setNewModule({ title: '', description: '', coverUrl: '', showNumber: true, color: 'default', isBonus: false });
     refreshData();
     toast({ title: "Módulo criado!" });
   };
@@ -245,7 +247,9 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       title: module.title,
       description: module.description,
       coverUrl: module.coverUrl,
-      showNumber: module.showNumber
+      showNumber: module.showNumber,
+      color: module.color || 'default',
+      isBonus: module.isBonus || false
     });
   };
 
@@ -407,6 +411,30 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
               />
               <Label>Exibir número do módulo</Label>
             </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={newModule.isBonus}
+                onCheckedChange={(checked) => setNewModule(prev => ({ ...prev, isBonus: checked }))}
+              />
+              <Label>🎁 Tag Bônus</Label>
+            </div>
+            <div>
+              <Label>Cor do Módulo</Label>
+              <select
+                value={newModule.color}
+                onChange={(e) => setNewModule(prev => ({ ...prev, color: e.target.value as ModuleColor }))}
+                className="w-full mt-1 bg-secondary/50 border border-border rounded-md p-2 text-sm"
+              >
+                <option value="default">Padrão (Cinza)</option>
+                <option value="green">Verde</option>
+                <option value="blue">Azul</option>
+                <option value="purple">Roxo</option>
+                <option value="orange">Laranja</option>
+                <option value="pink">Rosa</option>
+                <option value="red">Vermelho</option>
+                <option value="cyan">Ciano</option>
+              </select>
+            </div>
           </div>
           <div>
             <CoverUploader
@@ -538,6 +566,30 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                           onCheckedChange={(checked) => setEditModuleData(prev => ({ ...prev, showNumber: checked }))}
                         />
                         <Label>Exibir número</Label>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={editModuleData.isBonus ?? false}
+                          onCheckedChange={(checked) => setEditModuleData(prev => ({ ...prev, isBonus: checked }))}
+                        />
+                        <Label>🎁 Tag Bônus</Label>
+                      </div>
+                      <div>
+                        <Label>Cor do Módulo</Label>
+                        <select
+                          value={editModuleData.color || 'default'}
+                          onChange={(e) => setEditModuleData(prev => ({ ...prev, color: e.target.value as ModuleColor }))}
+                          className="w-full mt-1 bg-secondary/50 border border-border rounded-md p-2 text-sm"
+                        >
+                          <option value="default">Padrão (Cinza)</option>
+                          <option value="green">Verde</option>
+                          <option value="blue">Azul</option>
+                          <option value="purple">Roxo</option>
+                          <option value="orange">Laranja</option>
+                          <option value="pink">Rosa</option>
+                          <option value="red">Vermelho</option>
+                          <option value="cyan">Ciano</option>
+                        </select>
                       </div>
                     </div>
                     <div>

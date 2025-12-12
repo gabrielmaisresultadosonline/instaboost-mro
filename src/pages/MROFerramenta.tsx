@@ -1,9 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
+import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleColor, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
-import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Link2 } from 'lucide-react';
+import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Link2, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+// Color mapping for modules
+const moduleColorClasses: Record<ModuleColor, { border: string; bg: string; accent: string }> = {
+  default: { border: 'border-border', bg: 'bg-card', accent: 'bg-muted' },
+  green: { border: 'border-emerald-500/50', bg: 'bg-emerald-950/30', accent: 'bg-emerald-500' },
+  blue: { border: 'border-blue-500/50', bg: 'bg-blue-950/30', accent: 'bg-blue-500' },
+  purple: { border: 'border-purple-500/50', bg: 'bg-purple-950/30', accent: 'bg-purple-500' },
+  orange: { border: 'border-orange-500/50', bg: 'bg-orange-950/30', accent: 'bg-orange-500' },
+  pink: { border: 'border-pink-500/50', bg: 'bg-pink-950/30', accent: 'bg-pink-500' },
+  red: { border: 'border-red-500/50', bg: 'bg-red-950/30', accent: 'bg-red-500' },
+  cyan: { border: 'border-cyan-500/50', bg: 'bg-cyan-950/30', accent: 'bg-cyan-500' },
+};
 
 const MROFerramenta = () => {
   const navigate = useNavigate();
@@ -179,11 +191,11 @@ const MROFerramenta = () => {
                 >
                   {content.type === 'video' ? (
                     <>
-                      <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-black border-2 border-transparent group-hover:border-primary transition-all duration-300">
+                      <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-black border-2 border-transparent group-hover:border-primary transition-all duration-300 flex items-center justify-center">
                         <img 
                           src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
                           alt={content.title}
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
                           onError={(e) => {
                             e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
                           }}
@@ -341,20 +353,30 @@ const MROFerramenta = () => {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  {modules.sort((a, b) => a.order - b.order).map((module) => (
+                  {modules.sort((a, b) => a.order - b.order).map((module) => {
+                    const colorTheme = moduleColorClasses[module.color || 'default'];
+                    return (
                     <div 
                       key={module.id}
-                      className="glass-card p-6 rounded-xl border border-border"
+                      className={`glass-card p-6 rounded-xl border-2 ${colorTheme.border} ${colorTheme.bg}`}
                     >
                       {/* Module Header */}
                       <div className="flex items-center gap-4 mb-6">
                         {module.showNumber && (
-                          <span className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                          <span className={`w-12 h-12 rounded-full ${colorTheme.accent} text-white flex items-center justify-center text-xl font-bold shadow-lg`}>
                             {module.order}
                           </span>
                         )}
-                        <div>
-                          <h2 className="text-xl md:text-2xl font-display font-bold">{module.title}</h2>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h2 className="text-xl md:text-2xl font-display font-bold">{module.title}</h2>
+                            {module.isBonus && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-amber-500 to-yellow-400 text-black text-xs font-bold rounded-full shadow-lg animate-pulse">
+                                <Gift className="w-3 h-3" />
+                                BÔNUS
+                              </span>
+                            )}
+                          </div>
                           {module.description && (
                             <p className="text-muted-foreground mt-1">{module.description}</p>
                           )}
@@ -378,7 +400,7 @@ const MROFerramenta = () => {
                         />
                       )}
                     </div>
-                  ))}
+                  );})}
                 </div>
               )}
             </>
