@@ -107,31 +107,33 @@ export const hasLifetimeUsedMonthlyCreative = (user: MROUser): boolean => {
 };
 
 // Check if user can use creatives generator
-export const canUseCreatives = (user: MROUser | null): { allowed: boolean; reason?: string; isLifetimeLimit?: boolean } => {
+// Vitalício sem liberação: 1 criativo grátis/mês
+// Vitalício com liberação (creativesUnlocked): 6 créditos normais como usuário anual
+export const canUseCreatives = (user: MROUser | null): { allowed: boolean; reason?: string; isLifetimeLimit?: boolean; hasFullAccess?: boolean } => {
   if (!user) {
     return { allowed: false, reason: 'Usuário não autenticado' };
   }
   
   // Lifetime users special handling
   if (isLifetimeAccess(user.daysRemaining)) {
-    // If admin has unlocked, allow full access
+    // If admin has unlocked, user has FULL access like annual user (6 credits)
     if (user.creativesUnlocked) {
-      return { allowed: true };
+      return { allowed: true, hasFullAccess: true };
     }
     
-    // Check if already used this month's FREE creative
+    // Check if already used this month's FREE creative (1 per month without unlock)
     if (hasLifetimeUsedMonthlyCreative(user)) {
       return { 
         allowed: false, 
-        reason: 'Você já utilizou seu criativo gratuito deste mês. Para liberar acesso completo ao gerador de criativos, entre em contato com o suporte.',
+        reason: 'Você já utilizou seu criativo gratuito deste mês. Para liberar acesso completo (6 créditos), entre em contato com o suporte.',
         isLifetimeLimit: true
       };
     }
     
-    // Lifetime user can generate 1 free creative per month
-    return { allowed: true };
+    // Lifetime user can generate 1 free creative per month (without full access)
+    return { allowed: true, hasFullAccess: false };
   }
   
-  // Regular users (365 days or less) can use normally
-  return { allowed: true };
+  // Regular users (365 days or less) have full access normally
+  return { allowed: true, hasFullAccess: true };
 };
