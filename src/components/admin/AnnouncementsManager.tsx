@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Bell, Plus, Trash2, Save, Eye, EyeOff, 
-  Upload, X, AlertTriangle, GripVertical 
+  Upload, X, AlertTriangle, Image as ImageIcon,
+  Link as LinkIcon
 } from 'lucide-react';
 
 export interface Announcement {
@@ -17,8 +18,8 @@ export interface Announcement {
   content: string;
   thumbnailUrl?: string;
   isActive: boolean;
-  forceRead: boolean; // User must scroll/read to dismiss
-  maxViews: number; // 1 or 2, how many times to show per user
+  forceRead: boolean;
+  maxViews: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,7 +34,10 @@ const AnnouncementsManager = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [thumbnailMode, setThumbnailMode] = useState<'url' | 'file'>('url');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form state
   const [formData, setFormData] = useState<Partial<Announcement>>({
@@ -110,8 +114,56 @@ const AnnouncementsManager = () => {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Arquivo inválido', description: 'Selecione uma imagem', variant: 'destructive' });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Arquivo muito grande', description: 'Máximo 5MB', variant: 'destructive' });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileName = `announcements/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(fileName, file, { 
+          upsert: true,
+          contentType: file.type
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('assets')
+        .getPublicUrl(fileName);
+
+      setFormData({ ...formData, thumbnailUrl: urlData.publicUrl });
+      toast({ title: 'Imagem enviada!', description: 'Thumbnail atualizada com sucesso' });
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      toast({ title: 'Erro no upload', description: 'Não foi possível enviar a imagem', variant: 'destructive' });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleAddNew = () => {
     setEditingId('new');
+    setThumbnailMode('url');
     setFormData({
       title: '',
       content: '',
@@ -124,6 +176,7 @@ const AnnouncementsManager = () => {
 
   const handleEdit = (announcement: Announcement) => {
     setEditingId(announcement.id);
+    setThumbnailMode('url');
     setFormData({
       title: announcement.title,
       content: announcement.content,
@@ -223,6 +276,14 @@ const AnnouncementsManager = () => {
         </Button>
       </div>
 
+      <div className="glass-card p-4 bg-yellow-500/10 border-yellow-500/30">
+        <p className="text-sm text-yellow-200">
+          <AlertTriangle className="w-4 h-4 inline mr-2" />
+          Os avisos aparecem como popup logo após o usuário fazer login no sistema.
+          Formatos de imagem suportados: 1920x1080, 1080x1920, 1080x1080, 1080x1350
+        </p>
+      </div>
+
       {/* Edit Form */}
       {editingId && (
         <div className="glass-card p-6 space-y-4 border-2 border-primary/50">
@@ -252,22 +313,91 @@ const AnnouncementsManager = () => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="thumbnail">URL da Thumbnail (opcional)</Label>
-              <Input
-                id="thumbnail"
-                value={formData.thumbnailUrl || ''}
-                onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
-                placeholder="https://exemplo.com/imagem.jpg"
-              />
+            {/* Thumbnail Section */}
+            <div className="space-y-3">
+              <Label>Thumbnail (opcional)</Label>
+              
+              {/* Mode Toggle */}
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={thumbnailMode === 'url' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setThumbnailMode('url')}
+                  className="gap-2"
+                >
+                  <LinkIcon className="w-4 h-4" />
+                  Link URL
+                </Button>
+                <Button
+                  type="button"
+                  variant={thumbnailMode === 'file' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setThumbnailMode('file')}
+                  className="gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Upload Arquivo
+                </Button>
+              </div>
+
+              {thumbnailMode === 'url' ? (
+                <Input
+                  value={formData.thumbnailUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
+                  placeholder="https://exemplo.com/imagem.jpg"
+                />
+              ) : (
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full gap-2"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon className="w-4 h-4" />
+                        Selecionar Imagem (max 5MB)
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Formatos: JPG, PNG, WEBP • Tamanhos: 1920x1080, 1080x1920, 1080x1080, 1080x1350
+                  </p>
+                </div>
+              )}
+
               {formData.thumbnailUrl && (
-                <div className="mt-2">
+                <div className="relative mt-2">
                   <img 
                     src={formData.thumbnailUrl} 
                     alt="Preview" 
-                    className="h-32 rounded-lg object-cover"
+                    className="max-h-48 rounded-lg object-contain bg-secondary/50"
                     onError={(e) => e.currentTarget.style.display = 'none'}
                   />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => setFormData({ ...formData, thumbnailUrl: '' })}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               )}
             </div>
@@ -348,13 +478,13 @@ const AnnouncementsManager = () => {
                 <img 
                   src={announcement.thumbnailUrl} 
                   alt="" 
-                  className="w-16 h-16 rounded-lg object-cover"
+                  className="w-20 h-20 rounded-lg object-cover"
                   onError={(e) => e.currentTarget.style.display = 'none'}
                 />
               )}
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="font-bold truncate">{announcement.title}</h4>
                   {announcement.forceRead && (
                     <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">

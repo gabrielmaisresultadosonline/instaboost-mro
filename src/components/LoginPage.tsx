@@ -10,6 +10,7 @@ import { formatDaysRemaining, isLifetimeAccess } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
 import { setCloudSyncCallback, initializeFromCloud, cleanExpiredCreatives, cleanExpiredStrategies } from '@/lib/storage';
+import AnnouncementPopup from '@/components/AnnouncementPopup';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
@@ -19,6 +20,8 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showAnnouncements, setShowAnnouncements] = useState(false);
+  const [pendingLoginSuccess, setPendingLoginSuccess] = useState(false);
   const { toast } = useToast();
 
   // Set up cloud sync callback on mount
@@ -89,7 +92,9 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
             : `Você tem ${daysText} de acesso${profileCount > 0 ? ` • ${profileCount} perfil(is) carregado(s)` : ''}`,
         });
 
-        onLoginSuccess();
+        // Show announcements after successful login
+        setShowAnnouncements(true);
+        setPendingLoginSuccess(true);
       } else {
         toast({
           title: 'Erro no login',
@@ -109,8 +114,21 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
     }
   };
 
+  const handleAnnouncementsComplete = () => {
+    if (pendingLoginSuccess) {
+      setPendingLoginSuccess(false);
+      setShowAnnouncements(false);
+      onLoginSuccess();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
+      {/* Announcement Popup after successful login */}
+      {showAnnouncements && (
+        <AnnouncementPopup onComplete={handleAnnouncementsComplete} />
+      )}
+      
       <Card className="w-full max-w-md glass-card border-primary/20">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
