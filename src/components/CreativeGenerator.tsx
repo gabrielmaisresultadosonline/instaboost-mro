@@ -803,7 +803,7 @@ export const CreativeGenerator = ({
                 className="w-full h-full object-cover"
               />
               {/* Overlay with text */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent flex flex-col justify-end p-6">
+              <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent flex flex-col justify-end p-4 sm:p-6">
                 {/* Logo with position */}
                 {getLogoPreview() && (
                   <div className={`absolute top-4 ${getLogoPositionClass()}`}>
@@ -815,17 +815,26 @@ export const CreativeGenerator = ({
                   </div>
                 )}
                 
+                {/* Headline - Centralized and split into 3-4 lines */}
                 <h4 
-                  className="text-2xl font-display font-bold text-center mb-2 px-4"
-                  style={{ color: config.fontColor }}
+                  className="text-xl sm:text-2xl font-display font-bold text-center mb-4 px-6 sm:px-10 leading-relaxed max-w-[90%] mx-auto"
+                  style={{ 
+                    color: config.fontColor,
+                    textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'pre-line'
+                  }}
                 >
                   {generatedCreative.headline}
                 </h4>
+                
+                {/* CTA Button - Centered */}
                 <span 
-                  className="mx-auto px-6 py-3 rounded-full font-semibold"
+                  className="mx-auto px-6 py-3 rounded-full font-semibold text-center shadow-lg"
                   style={{ 
                     backgroundColor: config.colors.primary, 
-                    color: config.fontColor 
+                    color: config.fontColor,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
                   }}
                 >
                   {generatedCreative.ctaText}
