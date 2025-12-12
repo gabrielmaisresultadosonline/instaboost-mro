@@ -76,8 +76,9 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
         const daysText = formatDaysRemaining(result.daysRemaining || 365);
         const isLifetime = isLifetimeAccess(result.daysRemaining || 365);
         
-        // Only count profiles actually loaded in cloud storage
-        const profileCount = session?.cloudData?.profileSessions?.length || 0;
+        // Import getSession to get DEDUPLICATED profile count after initializeFromCloud
+        const { getSession } = await import('@/lib/storage');
+        const profileCount = getSession().profiles.length;
         
         toast({
           title: 'Login realizado com sucesso!',
