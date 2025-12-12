@@ -787,7 +787,7 @@ export const CreativeGenerator = ({
             <div className="aspect-square rounded-lg bg-secondary/50 flex flex-col items-center justify-center">
               <Loader2 className="w-12 h-12 mb-4 animate-spin text-primary" />
               <p className="text-sm">Gerando criativo com I.A MRO...</p>
-              <p className="text-xs mt-2 text-muted-foreground">Isso pode levar alguns segundos</p>
+              <p className="text-xs mt-2 text-muted-foreground">Média de tempo: 1 a 3 min</p>
             </div>
           </div>
         )}
