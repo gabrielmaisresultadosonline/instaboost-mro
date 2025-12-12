@@ -18,16 +18,19 @@ const MROFerramenta = () => {
   useEffect(() => {
     const loadModules = async () => {
       setIsLoading(true);
+      console.log('[MROFerramenta] Starting to load modules...');
       try {
         // Try loading from cloud first
         const cloudData = await loadModulesFromCloud();
+        console.log('[MROFerramenta] Cloud response:', cloudData);
         
-        if (cloudData && cloudData.modules.length > 0) {
+        if (cloudData && cloudData.modules && cloudData.modules.length > 0) {
           console.log('[MROFerramenta] Loaded from cloud:', cloudData.modules.length, 'modules');
           setModules(cloudData.modules);
-          setSettings(cloudData.settings);
+          setSettings(cloudData.settings || null);
         } else {
           // Fallback to localStorage (for admin preview)
+          console.log('[MROFerramenta] Cloud data empty or null, checking localStorage...');
           const localData = getAdminData();
           console.log('[MROFerramenta] Fallback to localStorage:', localData.modules.length, 'modules');
           setModules(localData.modules);
