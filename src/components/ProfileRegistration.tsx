@@ -235,16 +235,29 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
       return;
     }
 
+    // Check email FIRST before any API calls
+    if (!email.trim()) {
+      toast({ title: 'Digite seu e-mail primeiro', variant: 'destructive' });
+      return;
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({ title: 'E-mail inválido', variant: 'destructive' });
+      return;
+    }
+
     const normalizedIG = normalizeInstagramUsername(instagramInput);
 
     setIsLoading(true);
     setLoadingMessage('Verificando disponibilidade...');
 
     try {
-      // FIRST: Check if can register in SquareCloud before fetching from Bright Data
+      // STEP 1: Check if can register in SquareCloud
       const checkResult = await canRegisterIG(user.username, normalizedIG);
       
-      // Case 1: Profile already exists in SquareCloud - offer sync (even if it was removed from local)
+      // Case 1: Profile already exists in SquareCloud - offer sync
       if (checkResult.alreadyExists) {
         setPendingSyncIG(normalizedIG);
         setShowSyncOfferDialog(true);
@@ -265,7 +278,23 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         return;
       }
 
-      // Case 3: Can register - fetch from Bright Data
+      // STEP 2: REGISTER IN SQUARECLOUD FIRST (before fetching Instagram data)
+      setLoadingMessage('Cadastrando perfil na MRO...');
+      
+      const addResult = await addIGToSquare(user.username, normalizedIG);
+      
+      if (!addResult.success) {
+        toast({
+          title: 'Erro ao cadastrar',
+          description: addResult.error || 'Não foi possível cadastrar o perfil',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        setLoadingMessage('');
+        return;
+      }
+
+      // STEP 3: Now fetch Instagram data from Bright Data
       setLoadingMessage(`Buscando dados de @${normalizedIG}...`);
       
       const profileResult = await fetchInstagramProfile(normalizedIG);
@@ -281,7 +310,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         return;
       }
 
-      // Analyze profile
+      // STEP 4: Analyze profile with AI
       setLoadingMessage('Analisando perfil com I.A...');
       
       const analysisResult = await analyzeProfile(profileResult.profile);
@@ -322,19 +351,6 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
   const handleFinalConfirmation = async () => {
     if (!pendingProfile || !pendingAnalysis || !user) return;
 
-    // Check email
-    if (!email.trim()) {
-      toast({ title: 'Digite seu e-mail', variant: 'destructive' });
-      return;
-    }
-
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({ title: 'E-mail inválido', variant: 'destructive' });
-      return;
-    }
-
     setIsLoading(true);
     setShowWarningDialog(false);
 
@@ -345,20 +361,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
       // Generate print image
       const printBlob = await generateProfilePrint(pendingProfile, pendingAnalysis);
 
-      // Add IG to SquareCloud
-      const addResult = await addIGToSquare(user.username, pendingProfile.username);
-      
-      if (!addResult.success) {
-        toast({
-          title: 'Erro ao cadastrar',
-          description: addResult.error || 'Limite de cadastros atingido',
-          variant: 'destructive'
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Send print and email
+      // Send print and email (SquareCloud registration already done in handleSearchProfile)
       if (printBlob) {
         await saveEmailAndPrint(email, user.username, pendingProfile.username, printBlob);
       }
