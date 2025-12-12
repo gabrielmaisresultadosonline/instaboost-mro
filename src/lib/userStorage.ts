@@ -112,6 +112,7 @@ export const loadUserFromCloud = async (username: string): Promise<{
   daysRemaining: number;
   profileSessions: ProfileSession[];
   archivedProfiles: ProfileSession[];
+  lifetimeCreativeUsedAt: string | null;
 } | null> => {
   try {
     const auth_token = getOrCreateAuthToken(username);
@@ -132,13 +133,14 @@ export const loadUserFromCloud = async (username: string): Promise<{
     }
 
     if (data?.success && data?.exists) {
-      console.log(`☁️ Loaded cloud data for ${username}`);
+      console.log(`☁️ Loaded cloud data for ${username}`, { lifetimeCreativeUsedAt: data.data.lifetimeCreativeUsedAt });
       return {
         email: data.data.email,
         isEmailLocked: !!data.data.email,
         daysRemaining: data.data.daysRemaining || 365,
         profileSessions: data.data.profileSessions || [],
-        archivedProfiles: data.data.archivedProfiles || []
+        archivedProfiles: data.data.archivedProfiles || [],
+        lifetimeCreativeUsedAt: data.data.lifetimeCreativeUsedAt || null
       };
     }
 
@@ -154,7 +156,8 @@ export const saveUserToCloud = async (
   email: string | undefined,
   daysRemaining: number,
   profileSessions: ProfileSession[],
-  archivedProfiles: ProfileSession[]
+  archivedProfiles: ProfileSession[],
+  lifetimeCreativeUsedAt?: string | null
 ): Promise<boolean> => {
   try {
     const auth_token = getOrCreateAuthToken(username);
@@ -167,7 +170,8 @@ export const saveUserToCloud = async (
         auth_token,
         daysRemaining,
         profileSessions,
-        archivedProfiles
+        archivedProfiles,
+        lifetimeCreativeUsedAt
       }
     });
 
@@ -366,7 +370,8 @@ export const loginUser = async (
       loginAt: new Date().toISOString(),
       registeredIGs: mergedIGs,
       creativesUnlocked: creativesUnlocked || false,
-      isEmailLocked
+      isEmailLocked,
+      lifetimeCreativeUsedAt: cloudData?.lifetimeCreativeUsedAt || undefined // Load from cloud!
     },
     isAuthenticated: true,
     lastSync: new Date().toISOString(),
@@ -387,12 +392,13 @@ export const loginUser = async (
       finalEmail,
       finalDaysRemaining,
       cloudData.profileSessions,
-      cloudData.archivedProfiles
+      cloudData.archivedProfiles,
+      cloudData.lifetimeCreativeUsedAt // Preserve the cloud value
     );
   }
   
   const cloudProfileCount = cloudData?.profileSessions?.length || 0;
-  console.log(`[userStorage] ✅ Logged in ${normalizedUsername}: ${cloudProfileCount} cloud profiles, ${mergedIGs.length} registered IGs, ${finalDaysRemaining} days`);
+  console.log(`[userStorage] ✅ Logged in ${normalizedUsername}: ${cloudProfileCount} cloud profiles, ${mergedIGs.length} registered IGs, ${finalDaysRemaining} days, lifetimeCreativeUsedAt: ${cloudData?.lifetimeCreativeUsedAt || 'none'}`);
   
   return session;
 };
@@ -417,13 +423,25 @@ export const lockCreativesForUser = (username: string): void => {
 };
 
 // Mark lifetime user as having used their monthly creative (does NOT require creativesUnlocked)
-export const markLifetimeCreativeUsed = (): void => {
+export const markLifetimeCreativeUsed = async (): Promise<void> => {
   const session = getUserSession();
   if (session.user) {
-    session.user.lifetimeCreativeUsedAt = new Date().toISOString();
+    const usedAt = new Date().toISOString();
+    session.user.lifetimeCreativeUsedAt = usedAt;
     // Don't change creativesUnlocked - that's for admin to control full access
     saveUserSession(session);
     console.log(`[userStorage] 🔒 Lifetime user ${session.user.username} used free monthly creative`);
+    
+    // CRITICAL: Also save to cloud immediately so it persists across browsers/devices
+    await saveUserToCloud(
+      session.user.username,
+      session.user.email,
+      session.user.daysRemaining,
+      session.cloudData?.profileSessions || [],
+      session.cloudData?.archivedProfiles || [],
+      usedAt // Save the usage timestamp to cloud
+    );
+    console.log(`[userStorage] ☁️ Synced lifetimeCreativeUsedAt to cloud: ${usedAt}`);
   }
 };
 

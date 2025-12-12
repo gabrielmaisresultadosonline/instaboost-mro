@@ -217,9 +217,9 @@ export const CreativeGenerator = ({
         // Salvar automaticamente e contar crédito
         onCreativeGenerated(result.creative, creditsNeeded);
         
-        // If lifetime user, mark their monthly creative as used and lock
+        // If lifetime user, mark their monthly creative as used and lock (syncs to cloud)
         if (isLifetimeUser) {
-          markLifetimeCreativeUsed();
+          await markLifetimeCreativeUsed();
           toast({
             title: "Criativo gerado e salvo! 🎨",
             description: "Você só pode gerar 1 criativo por mês. Para liberar mais criativos, entre em contato com o suporte.",
