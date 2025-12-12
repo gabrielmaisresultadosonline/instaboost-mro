@@ -21,6 +21,20 @@ export interface CallAnalytics {
   referrer: string;
 }
 
+export interface CallPageSettings {
+  audioUrl: string;
+  ringtoneUrl: string;
+}
+
+export interface FacebookPixelSettings {
+  pixelId: string;
+  enabled: boolean;
+  trackPageView: boolean;
+  trackLead: boolean;
+  trackViewContent: boolean;
+  customEvents: string[];
+}
+
 export interface AdminSettings {
   apis: {
     deepseek: string;
@@ -36,6 +50,8 @@ export interface AdminSettings {
     audioCompleted: boolean;
     ctaClicked: boolean;
   };
+  callPageSettings: CallPageSettings;
+  pixelSettings: FacebookPixelSettings;
 }
 
 // Content types for modules
@@ -150,6 +166,18 @@ fbq('track', 'PageView');`,
       pageView: true,
       audioCompleted: true,
       ctaClicked: true
+    },
+    callPageSettings: {
+      audioUrl: 'https://maisresultadosonline.com.br/3b301aa2-e372-4b47-b35b-34d4b55bcdd9.mp3',
+      ringtoneUrl: 'http://maisresultadosonline.com.br/1207.mp4'
+    },
+    pixelSettings: {
+      pixelId: '569414052132145',
+      enabled: true,
+      trackPageView: true,
+      trackLead: true,
+      trackViewContent: true,
+      customEvents: []
     }
   },
   tutorials: [],
@@ -176,6 +204,14 @@ export const getAdminData = (): AdminData => {
           callPixelEvents: {
             ...DEFAULT_ADMIN_DATA.settings.callPixelEvents,
             ...(parsed.settings?.callPixelEvents || {})
+          },
+          callPageSettings: {
+            ...DEFAULT_ADMIN_DATA.settings.callPageSettings,
+            ...(parsed.settings?.callPageSettings || {})
+          },
+          pixelSettings: {
+            ...DEFAULT_ADMIN_DATA.settings.pixelSettings,
+            ...(parsed.settings?.pixelSettings || {})
           }
         }
       };
