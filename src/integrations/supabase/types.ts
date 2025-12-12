@@ -121,6 +121,7 @@ export type Database = {
           email: string | null
           id: string
           last_access: string | null
+          lifetime_creative_used_at: string | null
           profile_sessions: Json | null
           squarecloud_username: string
           updated_at: string
@@ -132,6 +133,7 @@ export type Database = {
           email?: string | null
           id?: string
           last_access?: string | null
+          lifetime_creative_used_at?: string | null
           profile_sessions?: Json | null
           squarecloud_username: string
           updated_at?: string
@@ -143,6 +145,7 @@ export type Database = {
           email?: string | null
           id?: string
           last_access?: string | null
+          lifetime_creative_used_at?: string | null
           profile_sessions?: Json | null
           squarecloud_username?: string
           updated_at?: string

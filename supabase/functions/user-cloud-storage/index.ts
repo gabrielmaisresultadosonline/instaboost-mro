@@ -21,9 +21,9 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, username, email, auth_token, daysRemaining, profileSessions, archivedProfiles } = await req.json();
+    const { action, username, email, auth_token, daysRemaining, profileSessions, archivedProfiles, lifetimeCreativeUsedAt } = await req.json();
     
-    logStep("Request received", { action, username, hasEmail: !!email, hasAuthToken: !!auth_token });
+    logStep("Request received", { action, username, hasEmail: !!email, hasAuthToken: !!auth_token, hasLifetimeCreativeUsedAt: !!lifetimeCreativeUsedAt });
 
     if (!username) {
       return new Response(
@@ -115,6 +115,7 @@ serve(async (req) => {
             daysRemaining: data.days_remaining,
             profileSessions: data.profile_sessions || [],
             archivedProfiles: data.archived_profiles || [],
+            lifetimeCreativeUsedAt: data.lifetime_creative_used_at,
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -145,6 +146,11 @@ serve(async (req) => {
         profile_sessions: profileSessions || [],
         archived_profiles: archivedProfiles || [],
       };
+      
+      // Save lifetime creative usage timestamp if provided
+      if (lifetimeCreativeUsedAt !== undefined) {
+        saveData.lifetime_creative_used_at = lifetimeCreativeUsedAt;
+      }
 
       // Only update days_remaining if explicitly provided and not undefined
       if (daysRemaining !== undefined && daysRemaining !== null) {
