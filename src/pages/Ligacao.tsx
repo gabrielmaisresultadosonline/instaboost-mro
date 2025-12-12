@@ -147,7 +147,7 @@ const Ligacao = () => {
     trackCallEvent('audio_completed');
   };
 
-  const handleAccessSite = () => {
+  const handleAccessSite = (e?: React.MouseEvent) => {
     // Track CTA clicked
     trackCallEvent('cta_clicked');
     
@@ -159,7 +159,7 @@ const Ligacao = () => {
       });
     }
     
-    window.location.href = 'https://acessar.click/mrointeligente';
+    // Allow default link behavior (href will handle navigation)
   };
 
   // Common fullscreen container style
@@ -230,6 +230,8 @@ const Ligacao = () => {
             </h1>
 
             <button
+              id="btn-receber-chamada"
+              data-fb-event="Lead"
               onClick={handleReceiveCall}
               style={{
                 backgroundColor: '#4ade80',
@@ -394,7 +396,10 @@ const Ligacao = () => {
             </p>
           </div>
 
-          <button
+          <a
+            id="btn-acessar-site"
+            data-fb-event="ViewContent"
+            href="https://acessar.click/mrointeligente"
             onClick={handleAccessSite}
             style={{
               backgroundColor: '#eab308',
@@ -402,18 +407,19 @@ const Ligacao = () => {
               fontWeight: 'bold',
               padding: '1rem 2rem',
               borderRadius: '9999px',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
               fontSize: '1rem',
               border: 'none',
               cursor: 'pointer',
               boxShadow: '0 10px 15px -3px rgba(234, 179, 8, 0.3)',
+              textDecoration: 'none',
             }}
           >
             Acessar o site agora
             <ExternalLink style={{ width: '1.25rem', height: '1.25rem' }} />
-          </button>
+          </a>
 
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginTop: '1rem', textAlign: 'center' }}>
             @maisresultadosonline
