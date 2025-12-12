@@ -38,6 +38,7 @@ export interface SquareAddIGResponse {
 export interface CloudData {
   profileSessions: ProfileSession[];
   archivedProfiles: ProfileSession[];
+  daysRemaining?: number; // Days from cloud storage (synced by admin)
 }
 
 export interface UserSession {

@@ -382,7 +382,8 @@ export const loginUser = async (
     lastSync: new Date().toISOString(),
     cloudData: cloudData ? {
       profileSessions: cloudData.profileSessions,
-      archivedProfiles: cloudData.archivedProfiles
+      archivedProfiles: cloudData.archivedProfiles,
+      daysRemaining: finalDaysRemaining // Include days for LoginPage to use
     } : undefined
   };
   
