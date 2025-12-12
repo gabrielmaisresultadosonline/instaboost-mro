@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
+import { getAdminData, TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
-import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2 } from 'lucide-react';
+import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const MROFerramenta = () => {
@@ -67,6 +67,11 @@ const MROFerramenta = () => {
   };
 
   const handleContentClick = (content: ModuleContent) => {
+    // If it's a button/link, open in new tab
+    if (content.type === 'button') {
+      window.open((content as ModuleButton).url, '_blank', 'noopener,noreferrer');
+      return;
+    }
     setSelectedContent(content);
   };
 
@@ -200,6 +205,37 @@ const MROFerramenta = () => {
                     </div>
                   </div>
                 </>
+              ) : content.type === 'button' ? (
+                <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-mro-cyan/20 border-2 border-transparent group-hover:border-primary transition-all duration-300">
+                  {(content as ModuleButton).coverUrl ? (
+                    <img 
+                      src={(content as ModuleButton).coverUrl}
+                      alt={content.title}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
+                      <Link2 className="w-10 h-10 text-primary" />
+                      {(content as ModuleButton).description && (
+                        <p className="text-xs text-muted-foreground text-center line-clamp-3">
+                          {(content as ModuleButton).description}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Link badge */}
+                  <div className="absolute top-2 left-2 w-8 h-6 bg-primary rounded flex items-center justify-center">
+                    <ExternalLink className="w-4 h-4 text-primary-foreground" />
+                  </div>
+
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                      <ExternalLink className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center border-2 border-transparent group-hover:border-primary transition-all duration-300">
                   <Type className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />

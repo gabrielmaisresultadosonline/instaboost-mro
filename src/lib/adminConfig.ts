@@ -39,7 +39,7 @@ export interface AdminSettings {
 }
 
 // Content types for modules
-export type ModuleContentType = 'video' | 'text';
+export type ModuleContentType = 'video' | 'text' | 'button';
 
 export interface ModuleVideo {
   id: string;
@@ -62,7 +62,18 @@ export interface ModuleText {
   createdAt: string;
 }
 
-export type ModuleContent = ModuleVideo | ModuleText;
+export interface ModuleButton {
+  id: string;
+  type: 'button';
+  title: string;
+  url: string;
+  description: string;
+  coverUrl: string;
+  order: number;
+  createdAt: string;
+}
+
+export type ModuleContent = ModuleVideo | ModuleText | ModuleButton;
 
 export interface TutorialModule {
   id: string;
@@ -359,6 +370,29 @@ export const addTextToModule = (
   module.contents.push(newText);
   saveAdminData(data);
   return newText;
+};
+
+export const addButtonToModule = (
+  moduleId: string,
+  button: { title: string; url: string; description?: string; coverUrl?: string }
+): ModuleButton | null => {
+  const data = getAdminData();
+  const module = data.modules.find(m => m.id === moduleId);
+  if (!module) return null;
+  
+  const newButton: ModuleButton = {
+    id: `button_${Date.now()}`,
+    type: 'button',
+    title: button.title,
+    url: button.url,
+    description: button.description || '',
+    coverUrl: button.coverUrl || '',
+    order: module.contents.length + 1,
+    createdAt: new Date().toISOString()
+  };
+  module.contents.push(newButton);
+  saveAdminData(data);
+  return newButton;
 };
 
 export const updateContent = (moduleId: string, contentId: string, updates: Partial<ModuleContent>): void => {

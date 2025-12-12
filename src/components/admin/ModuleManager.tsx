@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { 
   getAdminData, saveAdminData, addModule, updateModule, deleteModule,
-  addVideoToModule, addTextToModule, deleteContent, updateContent,
-  TutorialModule, ModuleContent, ModuleVideo, ModuleText, getYoutubeThumbnail,
+  addVideoToModule, addTextToModule, addButtonToModule, deleteContent, updateContent,
+  TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, getYoutubeThumbnail,
   saveModulesToCloud
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +16,7 @@ import CoverUploader from './CoverUploader';
 import { 
   Plus, Trash2, Save, Check, X, Play, Video, Type, 
   ChevronDown, ChevronUp, Image as ImageIcon,
-  Edit2, Upload, Loader2
+  Edit2, Upload, Loader2, Link2, ExternalLink
 } from 'lucide-react';
 
 interface ModuleManagerProps {
@@ -44,7 +44,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const [adminData, setAdminData] = useState(getAdminData());
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
-  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' } | null>(null);
+  const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' } | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   
   // Welcome video state
@@ -79,6 +79,13 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const [newText, setNewText] = useState({
     title: '',
     content: ''
+  });
+
+  const [newButton, setNewButton] = useState({
+    title: '',
+    url: '',
+    description: '',
+    coverUrl: ''
   });
 
   const refreshData = () => {
@@ -198,6 +205,18 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     setShowAddContent(null);
     refreshData();
     toast({ title: "Texto adicionado!" });
+  };
+
+  const handleAddButton = (moduleId: string) => {
+    if (!newButton.title || !newButton.url) {
+      toast({ title: "Erro", description: "Preencha título e URL do link", variant: "destructive" });
+      return;
+    }
+    addButtonToModule(moduleId, newButton);
+    setNewButton({ title: '', url: '', description: '', coverUrl: '' });
+    setShowAddContent(null);
+    refreshData();
+    toast({ title: "Botão adicionado!" });
   };
 
   const handleDeleteContent = async (moduleId: string, contentId: string) => {
@@ -547,7 +566,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
               {expandedModule === module.id && (
                 <div className="p-4 border-t border-border">
                   {/* Add Content Buttons */}
-                  <div className="flex gap-2 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -567,6 +586,16 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                     >
                       <Type className="w-4 h-4 mr-1" />
                       Adicionar Texto
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowAddContent({ moduleId: module.id, type: 'button' })}
+                      className="cursor-pointer"
+                    >
+                      <Link2 className="w-4 h-4 mr-1" />
+                      Adicionar Botão/Link
                     </Button>
                   </div>
 
@@ -657,6 +686,57 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                     </div>
                   )}
 
+                  {/* Add Button Form */}
+                  {showAddContent?.moduleId === module.id && showAddContent.type === 'button' && (
+                    <div className="p-4 rounded-lg bg-secondary/30 mb-4">
+                      <h4 className="font-medium mb-3">Novo Botão/Link</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <Input
+                            placeholder="Título do botão"
+                            value={newButton.title}
+                            onChange={(e) => setNewButton(prev => ({ ...prev, title: e.target.value }))}
+                            className="bg-secondary/50"
+                          />
+                          <Input
+                            placeholder="URL do link (ex: https://drive.google.com/...)"
+                            value={newButton.url}
+                            onChange={(e) => setNewButton(prev => ({ ...prev, url: e.target.value }))}
+                            className="bg-secondary/50"
+                          />
+                          <Textarea
+                            placeholder="Descrição (opcional)"
+                            value={newButton.description}
+                            onChange={(e) => setNewButton(prev => ({ ...prev, description: e.target.value }))}
+                            className="bg-secondary/50"
+                            rows={2}
+                          />
+                        </div>
+                        <div>
+                          <CoverUploader
+                            currentUrl={newButton.coverUrl}
+                            onUpload={(url) => setNewButton(prev => ({ ...prev, coverUrl: url }))}
+                            onRemove={() => setNewButton(prev => ({ ...prev, coverUrl: '' }))}
+                            folder="button-covers"
+                            id={`button_new_${Date.now()}`}
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Capa opcional para o botão
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        <Button type="button" onClick={() => handleAddButton(module.id)} className="cursor-pointer">
+                          <Check className="w-4 h-4 mr-1" />
+                          Adicionar
+                        </Button>
+                        <Button type="button" variant="ghost" onClick={() => setShowAddContent(null)} className="cursor-pointer">
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Content List - Aspect ratio 1080x1350 = 4:5 */}
                   {module.contents.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
@@ -685,6 +765,23 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                                 <Play className="w-10 h-10 text-primary" />
                               </div>
                             </div>
+                          ) : content.type === 'button' ? (
+                            <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-mro-cyan/20 relative">
+                              {(content as ModuleButton).coverUrl ? (
+                                <img 
+                                  src={(content as ModuleButton).coverUrl}
+                                  alt={content.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Link2 className="w-10 h-10 text-primary" />
+                                </div>
+                              )}
+                              <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </div>
+                            </div>
                           ) : (
                             <div className="aspect-[4/5] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center relative">
                               <Type className="w-10 h-10 text-muted-foreground" />
@@ -694,7 +791,9 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
                             </div>
                           )}
                           <p className="text-sm font-medium mt-2 truncate">{content.title}</p>
-                          <p className="text-xs text-muted-foreground">{content.type === 'video' ? 'Vídeo' : 'Texto'}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {content.type === 'video' ? 'Vídeo' : content.type === 'button' ? 'Link' : 'Texto'}
+                          </p>
                           
                           {/* Delete button */}
                           <button
