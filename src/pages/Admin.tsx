@@ -717,8 +717,8 @@ const Admin = () => {
                 )}
               </div>
             ) : (
-              // Profile List View - Show synced profiles
-              <div className="grid gap-4">
+              // Profile List View - Show synced profiles with scroll
+              <div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2">
                 {filteredSyncedProfiles.length === 0 ? (
                   <div className="glass-card p-12 text-center">
                     <Instagram className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
