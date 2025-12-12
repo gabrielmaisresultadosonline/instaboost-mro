@@ -251,13 +251,17 @@ LAYOUT STRUCTURE:
 
     const imagePrompt = `Create an ULTRA PROFESSIONAL Instagram marketing creative image.
 
-CRITICAL QUALITY REQUIREMENTS:
+MASTER QUALITY - ABSOLUTE REQUIREMENTS:
+- QUALIDADE MASTER, CRIATIVO FULL HD, NITIDEZ 90%
+- Shot with PROFESSIONAL Sony Alpha camera, extreme image quality
+- REALISTIC OBJECTS with perfect textures, shadows, and reflections
+- 4K advertising agency quality with rich details and ultra-sharp focus
+- Premium ${selectedMood} atmosphere with cinematic color grading
+- ${selectedLighting} for dramatic effect with natural light falloff
+- ${selectedPerspective} composition with professional depth of field
+- HYPER-REALISTIC photography - every detail must look like a real professional photo shoot
+- NO artificial or cartoon-like elements - 100% photorealistic rendering
 - FULL SCREEN COVERAGE: Image must fill the ENTIRE canvas with NO empty spaces, bars, or borders
-- REALISTIC photography style, Full HD quality, 100% sharpness
-- 4K advertising agency quality with rich details
-- Premium ${selectedMood} atmosphere
-- ${selectedLighting} for dramatic effect
-- ${selectedPerspective} composition
 
 BUSINESS CONTEXT: ${businessType}
 CONTENT THEME: ${contentDescription}
@@ -276,6 +280,7 @@ VISUAL CONTENT (BE UNIQUE):
 - Each generation must have DIFFERENT composition, subjects, and angles
 - DO NOT repeat patterns or concepts from other creatives
 - Fill ENTIRE image with rich, detailed visuals
+- REALISTIC textures on all objects - wood grain, fabric weave, metal shine, etc.
 ${layoutDescription}
 ${textInstructions}
 
