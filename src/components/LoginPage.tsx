@@ -73,8 +73,10 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
           console.error('[LoginPage] Error cleaning expired data:', cleanError);
         }
         
-        const daysText = formatDaysRemaining(result.daysRemaining || 365);
-        const isLifetime = isLifetimeAccess(result.daysRemaining || 365);
+        // Use days from cloud session (synced by admin) if available, otherwise from API
+        const actualDays = session?.cloudData?.daysRemaining ?? result.daysRemaining ?? 365;
+        const daysText = formatDaysRemaining(actualDays);
+        const isLifetime = isLifetimeAccess(actualDays);
         
         // Import getSession to get DEDUPLICATED profile count after initializeFromCloud
         const { getSession } = await import('@/lib/storage');
