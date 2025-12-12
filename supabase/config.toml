@@ -91,3 +91,6 @@ verify_jwt = false
 
 [functions.load-admin-data]
 verify_jwt = false
+
+[functions.get-connected-users]
+verify_jwt = false

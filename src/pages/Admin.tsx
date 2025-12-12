@@ -19,6 +19,7 @@ import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import ProfileActions from '@/components/admin/ProfileActions';
 import SalesDashboard from '@/components/admin/SalesDashboard';
 import CallAnalyticsDashboard from '@/components/admin/CallAnalyticsDashboard';
+import ConnectedUsersPanel from '@/components/admin/ConnectedUsersPanel';
 import { 
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
@@ -293,6 +294,9 @@ const Admin = () => {
                 <p className="text-xs text-muted-foreground">Usuários MRO</p>
               </div>
             </div>
+
+            {/* Connected Users Panel */}
+            <ConnectedUsersPanel />
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

@@ -120,6 +120,7 @@ export type Database = {
           days_remaining: number | null
           email: string | null
           id: string
+          last_access: string | null
           profile_sessions: Json | null
           squarecloud_username: string
           updated_at: string
@@ -130,6 +131,7 @@ export type Database = {
           days_remaining?: number | null
           email?: string | null
           id?: string
+          last_access?: string | null
           profile_sessions?: Json | null
           squarecloud_username: string
           updated_at?: string
@@ -140,6 +142,7 @@ export type Database = {
           days_remaining?: number | null
           email?: string | null
           id?: string
+          last_access?: string | null
           profile_sessions?: Json | null
           squarecloud_username?: string
           updated_at?: string
