@@ -28,11 +28,21 @@ export const loginToSquare = async (
     }
 
     const result = data as SquareLoginResponse;
+    
+    console.log('[SquareAPI] Raw login response:', JSON.stringify(result));
+    console.log('[SquareAPI] diasRestantes from API:', result?.diasRestantes, 'type:', typeof result?.diasRestantes);
 
     if (result && result.senhaCorrespondente) {
+      // CRITICAL: Only use fallback if diasRestantes is truly undefined/null
+      // Don't fallback for 0 (expired) or any actual number
+      const daysFromApi = result.diasRestantes;
+      const finalDays = daysFromApi !== undefined && daysFromApi !== null ? daysFromApi : 365;
+      
+      console.log('[SquareAPI] Final days to use:', finalDays, daysFromApi > 365 ? '(Vitalício)' : `(${finalDays} dias)`);
+      
       return { 
         success: true, 
-        daysRemaining: result.diasRestantes || 365
+        daysRemaining: finalDays
       };
     } else {
       return { success: false, error: 'Usuário ou senha incorretos' };

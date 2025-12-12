@@ -75,6 +75,12 @@ serve(async (req) => {
     }
 
     console.log('Parsed data:', JSON.stringify(data));
+    
+    // Log dias remaining specifically for debugging
+    if (data.diasRestantes !== undefined) {
+      console.log('[SquareProxy] diasRestantes:', data.diasRestantes, 'type:', typeof data.diasRestantes);
+      console.log('[SquareProxy] Status:', data.diasRestantes > 365 ? 'Vitalício' : `${data.diasRestantes} dias`);
+    }
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
