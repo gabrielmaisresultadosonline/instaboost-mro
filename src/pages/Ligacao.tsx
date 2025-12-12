@@ -75,6 +75,15 @@ const Ligacao = () => {
   // User clicks "Receber chamada" - this is the first user interaction
   // Use it to unlock audio context on iOS
   const handleReceiveCall = () => {
+    // Fire Facebook Pixel Lead event - user engaged with call
+    if (window.fbq) {
+      window.fbq('track', 'Lead', {
+        content_name: 'receber_chamada_clicked',
+        content_category: 'call_funnel'
+      });
+      console.log('[Ligacao] FB Pixel Lead event fired');
+    }
+
     // Create and play a silent audio to unlock audio context on iOS
     const silentAudio = new Audio();
     silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
@@ -104,6 +113,15 @@ const Ligacao = () => {
 
   // User clicks "Accept" - use this interaction to authorize call audio
   const handleAnswer = () => {
+    // Fire Facebook Pixel InitiateCheckout event - user accepted call
+    if (window.fbq) {
+      window.fbq('track', 'InitiateCheckout', {
+        content_name: 'call_answered',
+        content_category: 'call_funnel'
+      });
+      console.log('[Ligacao] FB Pixel InitiateCheckout event fired');
+    }
+
     // Stop ringtone video
     if (ringtoneVideoRef.current) {
       ringtoneVideoRef.current.pause();
