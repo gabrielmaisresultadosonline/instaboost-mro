@@ -15,61 +15,9 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
     // Create service client for admin operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Verify JWT token from authorization header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      console.error('[admin-data-storage] Missing authorization header');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized - missing token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Create a client with the user's token to verify their identity
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    });
-    
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
-    
-    if (userError || !user) {
-      console.error('[admin-data-storage] Invalid token:', userError?.message);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized - invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Check admin role using service client and has_role function
-    const { data: isAdmin, error: roleError } = await supabaseAdmin.rpc('has_role', {
-      _user_id: user.id,
-      _role: 'admin'
-    });
-
-    if (roleError) {
-      console.error('[admin-data-storage] Error checking admin role:', roleError.message);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Error verifying permissions' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!isAdmin) {
-      console.error('[admin-data-storage] User is not admin:', user.id);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Forbidden - admin access required' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('[admin-data-storage] Admin verified:', user.id);
 
     const { action, data } = await req.json();
     
@@ -105,7 +53,7 @@ serve(async (req) => {
         );
       }
 
-      console.log(`[admin-data-storage] Admin data saved successfully`);
+      console.log(`[admin-data-storage] Admin data saved successfully: ${data.profiles?.length || 0} profiles`);
       return new Response(
         JSON.stringify({ success: true, message: 'Admin data saved successfully' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -137,7 +85,7 @@ serve(async (req) => {
       const text = await fileData.text();
       const adminData = JSON.parse(text);
       
-      console.log(`[admin-data-storage] Admin data loaded successfully`);
+      console.log(`[admin-data-storage] Admin data loaded successfully: ${adminData.profiles?.length || 0} profiles`);
       return new Response(
         JSON.stringify({ success: true, data: adminData, exists: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -116,16 +116,9 @@ export const saveSyncData = (data: SyncData): void => {
   }
 };
 
-// Save to server (async, background) - uses authenticated Supabase call
+// Save to server (async, background) - uses public edge function
 const saveToServer = async (data: SyncData): Promise<void> => {
   try {
-    // Check if user is authenticated before trying to save
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      console.log('💾 Usuário não autenticado, salvando apenas localmente');
-      return;
-    }
-
     console.log('💾 Salvando dados do admin no servidor...');
     const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
       body: { action: 'save', data }
@@ -138,6 +131,8 @@ const saveToServer = async (data: SyncData): Promise<void> => {
 
     if (response?.success) {
       console.log('✅ Dados do admin salvos no servidor');
+    } else {
+      console.error('Erro ao salvar:', response?.error);
     }
   } catch (error) {
     console.error('Erro ao salvar dados do admin:', error);
@@ -175,17 +170,11 @@ export const loadSyncDataFromServer = async (): Promise<SyncData> => {
   }
 };
 
-// Force sync local data to server (call when needed) - uses authenticated Supabase call
+// Force sync local data to server (call when needed) - uses public edge function
 export const forceSyncToServer = async (): Promise<boolean> => {
   const data = getSyncData();
   try {
-    // Check if user is authenticated before trying to sync
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      console.error('Usuário não autenticado, não é possível sincronizar');
-      return false;
-    }
-
+    console.log('💾 Forçando salvamento no servidor...');
     const { data: response, error } = await supabase.functions.invoke('admin-data-storage', {
       body: { action: 'save', data }
     });
@@ -195,8 +184,13 @@ export const forceSyncToServer = async (): Promise<boolean> => {
       return false;
     }
 
+    if (response?.success) {
+      console.log('✅ Dados salvos com sucesso no servidor');
+    }
+
     return response?.success || false;
-  } catch {
+  } catch (err) {
+    console.error('Erro ao forçar sync:', err);
     return false;
   }
 };
