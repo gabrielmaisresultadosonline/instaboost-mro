@@ -100,3 +100,6 @@ verify_jwt = false
 
 [functions.meta-conversions]
 verify_jwt = false
+
+[functions.support-tickets]
+verify_jwt = false

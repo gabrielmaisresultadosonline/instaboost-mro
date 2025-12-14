@@ -17,21 +17,21 @@ import ModuleManager from '@/components/admin/ModuleManager';
 import SnapshotGenerator from '@/components/admin/SnapshotGenerator';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import ProfileActions from '@/components/admin/ProfileActions';
-import SalesDashboard from '@/components/admin/SalesDashboard';
 import CallAnalyticsDashboard from '@/components/admin/CallAnalyticsDashboard';
 import ConnectedUsersPanel from '@/components/admin/ConnectedUsersPanel';
 import AnnouncementsManager from '@/components/admin/AnnouncementsManager';
 import PixelAndCallSettings from '@/components/admin/PixelAndCallSettings';
 import CreativesProManager from '@/components/admin/CreativesProManager';
+import TicketsManager from '@/components/admin/TicketsManager';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, CheckCircle, XCircle, DollarSign, Phone, Bell
+  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket
 } from 'lucide-react';
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'sales' | 'announcements' | 'pixel' | 'settings';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'tickets' | 'announcements' | 'pixel' | 'settings';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -182,11 +182,12 @@ const Admin = () => {
 
   const tabs = [
     { id: 'users', label: 'Usuários', icon: <Users className="w-4 h-4" /> },
-    { id: 'sales', label: 'Vendas', icon: <DollarSign className="w-4 h-4" /> },
+    { id: 'tickets', label: 'Tickets', icon: <Ticket className="w-4 h-4" /> },
     { id: 'calls', label: 'Chamadas', icon: <Phone className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
+    { id: 'zapmro', label: 'ZAPMRO', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
     { id: 'pixel', label: 'Pixel & Ligação', icon: <ExternalLink className="w-4 h-4" /> },
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
@@ -818,9 +819,9 @@ const Admin = () => {
           </div>
         )}
 
-        {/* Sales Tab */}
-        {activeTab === 'sales' && (
-          <SalesDashboard />
+        {/* Tickets Tab */}
+        {activeTab === 'tickets' && (
+          <TicketsManager />
         )}
 
         {/* Calls Analytics Tab */}
@@ -854,6 +855,26 @@ const Admin = () => {
             onDownloadLinkChange={(link) => setSettings(prev => ({ ...prev, downloadLink: link }))}
             onSaveSettings={handleSaveSettings}
           />
+        )}
+
+        {/* ZAPMRO Tab */}
+        {activeTab === 'zapmro' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <MessageCircle className="w-6 h-6 text-green-500" />
+              <h2 className="text-2xl font-display font-bold">ZAPMRO - Área de Membros</h2>
+            </div>
+            <p className="text-muted-foreground">
+              Configure os módulos e conteúdos da área de membros ZAPMRO (WhatsApp). 
+              Use a aba "Avisos" para criar anúncios específicos para ZAPMRO.
+            </p>
+            <div className="glass-card p-6 bg-green-500/10 border-green-500/30">
+              <p className="text-green-300">
+                A configuração de módulos do ZAPMRO está em desenvolvimento.
+                Por enquanto, use a aba "Avisos" para criar comunicações para usuários ZAPMRO.
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Announcements Tab */}

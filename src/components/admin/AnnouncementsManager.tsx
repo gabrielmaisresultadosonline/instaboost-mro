@@ -24,6 +24,7 @@ export interface Announcement {
   createdAt: string;
   updatedAt: string;
   viewCount?: number;
+  targetArea?: 'all' | 'instagram' | 'zapmro'; // NEW: target specific area
 }
 
 interface AnnouncementsData {
@@ -31,7 +32,11 @@ interface AnnouncementsData {
   lastUpdated: string;
 }
 
-const AnnouncementsManager = () => {
+interface AnnouncementsManagerProps {
+  filterArea?: 'instagram' | 'zapmro';
+}
+
+const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) => {
   const { toast } = useToast();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +54,8 @@ const AnnouncementsManager = () => {
     isActive: true,
     forceRead: false,
     forceReadSeconds: 5,
-    maxViews: 1
+    maxViews: 1,
+    targetArea: filterArea || 'all'
   });
 
   useEffect(() => {
@@ -171,7 +177,8 @@ const AnnouncementsManager = () => {
       isActive: true,
       forceRead: false,
       forceReadSeconds: 5,
-      maxViews: 1
+      maxViews: 1,
+      targetArea: filterArea || 'all'
     });
   };
 
@@ -185,7 +192,8 @@ const AnnouncementsManager = () => {
       isActive: announcement.isActive,
       forceRead: announcement.forceRead,
       forceReadSeconds: announcement.forceReadSeconds || 5,
-      maxViews: announcement.maxViews
+      maxViews: announcement.maxViews,
+      targetArea: announcement.targetArea || 'all'
     });
   };
 
@@ -207,6 +215,7 @@ const AnnouncementsManager = () => {
         forceRead: formData.forceRead ?? false,
         forceReadSeconds: formData.forceReadSeconds ?? 5,
         maxViews: formData.maxViews ?? 1,
+        targetArea: formData.targetArea || 'all',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         viewCount: 0
@@ -224,6 +233,7 @@ const AnnouncementsManager = () => {
               forceRead: formData.forceRead ?? false,
               forceReadSeconds: formData.forceReadSeconds ?? 5,
               maxViews: formData.maxViews ?? 1,
+              targetArea: formData.targetArea || 'all',
               updatedAt: new Date().toISOString()
             }
           : a
@@ -437,6 +447,22 @@ const AnnouncementsManager = () => {
                 </select>
               </div>
 
+              <div>
+                <Label htmlFor="targetArea">Exibir para qual área</Label>
+                <select
+                  id="targetArea"
+                  value={formData.targetArea || 'all'}
+                  onChange={(e) => setFormData({ ...formData, targetArea: e.target.value as any })}
+                  className="w-full mt-1 bg-secondary border border-border rounded-md px-3 py-2"
+                >
+                  <option value="all">Todas as áreas</option>
+                  <option value="instagram">Apenas Instagram (MRO)</option>
+                  <option value="zapmro">Apenas ZAPMRO</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Switch
