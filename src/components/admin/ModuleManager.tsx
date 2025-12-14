@@ -4,7 +4,7 @@ import {
   addVideoToModule, addTextToModule, addButtonToModule, addSectionToModule, deleteContent, updateContent,
   addVideoToSection, addButtonToSection, deleteSectionContent,
   TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail,
-  saveModulesToCloud, loadModulesFromCloud, SectionContent
+  saveModulesToCloud, loadModulesFromCloud, SectionContent, ModulePlatform, AdminData
 } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ interface ModuleManagerProps {
   downloadLink: string;
   onDownloadLinkChange: (link: string) => void;
   onSaveSettings: () => void;
+  platform?: ModulePlatform;
 }
 
 // Helper to delete storage file
@@ -40,9 +41,23 @@ const deleteStorageFile = async (url: string) => {
   }
 };
 
-const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: ModuleManagerProps) => {
+const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, platform = 'mro' }: ModuleManagerProps) => {
   const { toast } = useToast();
-  const [adminData, setAdminData] = useState(getAdminData());
+  const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : 'mro_admin_data';
+  
+  const getLocalData = (): AdminData => {
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return getAdminData();
+  };
+  
+  const saveLocalData = (data: AdminData) => {
+    localStorage.setItem(storageKey, JSON.stringify(data));
+  };
+  
+  const [adminData, setAdminData] = useState(getLocalData());
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent; sectionId?: string } | null>(null);
@@ -73,22 +88,22 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   useEffect(() => {
     const loadFromCloud = async () => {
       try {
-        console.log('[ModuleManager] Loading modules from cloud...');
-        const cloudData = await loadModulesFromCloud();
+        console.log(`[ModuleManager] Loading ${platform} modules from cloud...`);
+        const cloudData = await loadModulesFromCloud(platform);
         
         if (cloudData && cloudData.modules && cloudData.modules.length > 0) {
-          console.log('[ModuleManager] Loaded', cloudData.modules.length, 'modules from cloud');
+          console.log(`[ModuleManager] Loaded ${cloudData.modules.length} ${platform} modules from cloud`);
           
           // Update local storage with cloud data
-          const currentData = getAdminData();
+          const currentData = getLocalData();
           currentData.modules = cloudData.modules;
-          if (cloudData.settings) {
+          if (cloudData.settings && currentData.settings) {
             currentData.settings.downloadLink = cloudData.settings.downloadLink || currentData.settings.downloadLink;
             currentData.settings.welcomeVideo = cloudData.settings.welcomeVideo || currentData.settings.welcomeVideo;
           }
-          saveAdminData(currentData);
+          saveLocalData(currentData);
           setAdminData(currentData);
-          setWelcomeVideo(currentData.settings.welcomeVideo || {
+          setWelcomeVideo(currentData.settings?.welcomeVideo || {
             enabled: false,
             title: '',
             showTitle: true,
@@ -101,17 +116,17 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
             description: `${cloudData.modules.length} módulos carregados da nuvem`,
           });
         } else {
-          console.log('[ModuleManager] No cloud data found, using local');
+          console.log(`[ModuleManager] No ${platform} cloud data found, using local`);
         }
       } catch (error) {
-        console.error('[ModuleManager] Error loading from cloud:', error);
+        console.error(`[ModuleManager] Error loading ${platform} from cloud:`, error);
       } finally {
         setIsLoadingCloud(false);
       }
     };
     
     loadFromCloud();
-  }, []);
+  }, [platform]);
   
   // Welcome video state
   const [welcomeVideo, setWelcomeVideo] = useState(adminData.settings.welcomeVideo || {
@@ -168,9 +183,9 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   });
 
   const refreshData = () => {
-    const data = getAdminData();
+    const data = getLocalData();
     setAdminData(data);
-    setWelcomeVideo(data.settings.welcomeVideo || {
+    setWelcomeVideo(data.settings?.welcomeVideo || {
       enabled: false,
       title: '',
       showTitle: true,
@@ -180,9 +195,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   };
 
   const handleSaveWelcomeVideo = () => {
-    const data = getAdminData();
-    data.settings.welcomeVideo = welcomeVideo;
-    saveAdminData(data);
+    const data = getLocalData();
+    if (data.settings) {
+      data.settings.welcomeVideo = welcomeVideo;
+    }
+    saveLocalData(data);
     toast({ title: "Salvo!", description: "Vídeo de boas-vindas atualizado" });
     refreshData();
   };
@@ -191,11 +208,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
   const handlePublishToCloud = async () => {
     setIsPublishing(true);
     try {
-      const success = await saveModulesToCloud();
+      const success = await saveModulesToCloud(platform);
       if (success) {
         toast({ 
           title: "Publicado!", 
-          description: "Módulos publicados para todos os usuários" 
+          description: `Módulos ${platform.toUpperCase()} publicados para todos os usuários` 
         });
       } else {
         toast({ 
@@ -216,20 +233,40 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
     }
   };
 
-  // Module handlers
+  // Module handlers - use local storage with correct key
   const handleAddModule = () => {
     if (!newModule.title.trim()) {
       toast({ title: "Erro", description: "Preencha o título do módulo", variant: "destructive" });
       return;
     }
-    addModule(newModule.title, newModule.description, newModule.coverUrl, newModule.showNumber, newModule.color, newModule.isBonus, newModule.collapsedByDefault);
+    const data = getLocalData();
+    const newMod: TutorialModule = {
+      id: `module_${Date.now()}`,
+      title: newModule.title,
+      description: newModule.description,
+      coverUrl: newModule.coverUrl,
+      showNumber: newModule.showNumber,
+      order: (data.modules?.length || 0) + 1,
+      contents: [],
+      createdAt: new Date().toISOString(),
+      color: newModule.color,
+      isBonus: newModule.isBonus,
+      collapsedByDefault: newModule.collapsedByDefault
+    };
+    data.modules = [...(data.modules || []), newMod];
+    saveLocalData(data);
     setNewModule({ title: '', description: '', coverUrl: '', showNumber: true, color: 'default', isBonus: false, collapsedByDefault: false });
     refreshData();
     toast({ title: "Módulo criado!" });
   };
 
   const handleUpdateModule = (moduleId: string) => {
-    updateModule(moduleId, editModuleData);
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    if (module) {
+      Object.assign(module, editModuleData);
+      saveLocalData(data);
+    }
     setEditingModule(null);
     setEditModuleData({});
     refreshData();
@@ -238,7 +275,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
 
   const handleDeleteModule = async (moduleId: string) => {
     if (confirm('Tem certeza que deseja excluir este módulo e todo seu conteúdo?')) {
-      const module = adminData.modules.find(m => m.id === moduleId);
+      const module = adminData.modules?.find(m => m.id === moduleId);
       if (module) {
         // Delete module cover from storage
         await deleteStorageFile(module.coverUrl);
@@ -249,26 +286,39 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
           }
         }
       }
-      deleteModule(moduleId);
+      const data = getLocalData();
+      data.modules = (data.modules || []).filter(m => m.id !== moduleId);
+      data.modules.forEach((m, i) => m.order = i + 1);
+      saveLocalData(data);
       refreshData();
       toast({ title: "Módulo excluído!" });
     }
   };
 
-  // Content handlers
+  // Content handlers - use local storage with correct key
   const handleAddVideo = (moduleId: string) => {
     if (!newVideo.title || !newVideo.youtubeUrl) {
       toast({ title: "Erro", description: "Preencha título e URL do YouTube", variant: "destructive" });
       return;
     }
-    addVideoToModule(moduleId, {
-      title: newVideo.title,
-      description: newVideo.description,
-      youtubeUrl: newVideo.youtubeUrl,
-      thumbnailUrl: newVideo.thumbnailUrl || getYoutubeThumbnail(newVideo.youtubeUrl),
-      showNumber: newVideo.showNumber,
-      showTitle: newVideo.showTitle
-    });
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    if (module) {
+      const newVid: ModuleVideo = {
+        id: `video_${Date.now()}`,
+        type: 'video',
+        title: newVideo.title,
+        description: newVideo.description,
+        youtubeUrl: newVideo.youtubeUrl,
+        thumbnailUrl: newVideo.thumbnailUrl || getYoutubeThumbnail(newVideo.youtubeUrl),
+        showNumber: newVideo.showNumber,
+        showTitle: newVideo.showTitle,
+        order: module.contents.length + 1,
+        createdAt: new Date().toISOString()
+      };
+      module.contents.push(newVid);
+      saveLocalData(data);
+    }
     setNewVideo({ title: '', description: '', youtubeUrl: '', thumbnailUrl: '', showNumber: true, showTitle: true });
     setShowAddContent(null);
     refreshData();
@@ -280,7 +330,21 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha título e conteúdo", variant: "destructive" });
       return;
     }
-    addTextToModule(moduleId, { ...newText, showTitle: newText.showTitle });
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    if (module) {
+      const newTxt: ModuleText = {
+        id: `text_${Date.now()}`,
+        type: 'text',
+        title: newText.title,
+        content: newText.content,
+        showTitle: newText.showTitle,
+        order: module.contents.length + 1,
+        createdAt: new Date().toISOString()
+      };
+      module.contents.push(newTxt);
+      saveLocalData(data);
+    }
     setNewText({ title: '', content: '', showTitle: true });
     setShowAddContent(null);
     refreshData();
@@ -292,7 +356,23 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha título e URL do link", variant: "destructive" });
       return;
     }
-    addButtonToModule(moduleId, { ...newButton, showTitle: newButton.showTitle });
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    if (module) {
+      const newBtn: ModuleButton = {
+        id: `button_${Date.now()}`,
+        type: 'button',
+        title: newButton.title,
+        url: newButton.url,
+        description: newButton.description,
+        coverUrl: newButton.coverUrl,
+        showTitle: newButton.showTitle,
+        order: module.contents.length + 1,
+        createdAt: new Date().toISOString()
+      };
+      module.contents.push(newBtn);
+      saveLocalData(data);
+    }
     setNewButton({ title: '', url: '', description: '', coverUrl: '', showTitle: true });
     setShowAddContent(null);
     refreshData();
@@ -304,12 +384,23 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha o título da seção", variant: "destructive" });
       return;
     }
-    addSectionToModule(moduleId, { 
-      title: newSection.title, 
-      description: newSection.description,
-      showTitle: newSection.showTitle,
-      isBonus: newSection.isBonus 
-    });
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    if (module) {
+      const newSec: ModuleSection = {
+        id: `section_${Date.now()}`,
+        type: 'section',
+        title: newSection.title,
+        description: newSection.description,
+        showTitle: newSection.showTitle,
+        isBonus: newSection.isBonus,
+        contents: [],
+        order: module.contents.length + 1,
+        createdAt: new Date().toISOString()
+      };
+      module.contents.push(newSec);
+      saveLocalData(data);
+    }
     setNewSection({ title: '', description: '', showTitle: true, isBonus: false });
     setShowAddContent(null);
     refreshData();
@@ -322,14 +413,25 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha título e URL do YouTube", variant: "destructive" });
       return;
     }
-    addVideoToSection(moduleId, sectionId, {
-      title: newSectionVideo.title,
-      description: newSectionVideo.description,
-      youtubeUrl: newSectionVideo.youtubeUrl,
-      thumbnailUrl: newSectionVideo.thumbnailUrl || getYoutubeThumbnail(newSectionVideo.youtubeUrl),
-      showNumber: newSectionVideo.showNumber,
-      showTitle: newSectionVideo.showTitle
-    });
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    const section = module?.contents.find(c => c.id === sectionId && c.type === 'section') as ModuleSection | undefined;
+    if (section) {
+      const newVid: ModuleVideo = {
+        id: `video_${Date.now()}`,
+        type: 'video',
+        title: newSectionVideo.title,
+        description: newSectionVideo.description,
+        youtubeUrl: newSectionVideo.youtubeUrl,
+        thumbnailUrl: newSectionVideo.thumbnailUrl || getYoutubeThumbnail(newSectionVideo.youtubeUrl),
+        showNumber: newSectionVideo.showNumber,
+        showTitle: newSectionVideo.showTitle,
+        order: section.contents.length + 1,
+        createdAt: new Date().toISOString()
+      };
+      section.contents.push(newVid);
+      saveLocalData(data);
+    }
     setNewSectionVideo({ title: '', description: '', youtubeUrl: '', thumbnailUrl: '', showNumber: true, showTitle: true });
     setShowAddContent(null);
     refreshData();
@@ -341,13 +443,24 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
       toast({ title: "Erro", description: "Preencha título e URL", variant: "destructive" });
       return;
     }
-    addButtonToSection(moduleId, sectionId, {
-      title: newSectionButton.title,
-      url: newSectionButton.url,
-      description: newSectionButton.description,
-      coverUrl: newSectionButton.coverUrl,
-      showTitle: newSectionButton.showTitle
-    });
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    const section = module?.contents.find(c => c.id === sectionId && c.type === 'section') as ModuleSection | undefined;
+    if (section) {
+      const newBtn: ModuleButton = {
+        id: `button_${Date.now()}`,
+        type: 'button',
+        title: newSectionButton.title,
+        url: newSectionButton.url,
+        description: newSectionButton.description,
+        coverUrl: newSectionButton.coverUrl,
+        showTitle: newSectionButton.showTitle,
+        order: section.contents.length + 1,
+        createdAt: new Date().toISOString()
+      };
+      section.contents.push(newBtn);
+      saveLocalData(data);
+    }
     setNewSectionButton({ title: '', url: '', description: '', coverUrl: '', showTitle: true });
     setShowAddContent(null);
     refreshData();
@@ -356,14 +469,28 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
 
   const handleDeleteSectionContent = async (moduleId: string, sectionId: string, contentId: string) => {
     if (confirm('Excluir este conteúdo da seção?')) {
-      deleteSectionContent(moduleId, sectionId, contentId);
+      const data = getLocalData();
+      const module = data.modules?.find(m => m.id === moduleId);
+      const section = module?.contents.find(c => c.id === sectionId && c.type === 'section') as ModuleSection | undefined;
+      if (section) {
+        section.contents = section.contents.filter(c => c.id !== contentId);
+        saveLocalData(data);
+      }
       refreshData();
       toast({ title: "Conteúdo excluído!" });
     }
   };
 
   const handleUpdateContent = (moduleId: string, contentId: string, updates: Partial<ModuleContent>) => {
-    updateContent(moduleId, contentId, updates);
+    const data = getLocalData();
+    const module = data.modules?.find(m => m.id === moduleId);
+    if (module) {
+      const content = module.contents.find(c => c.id === contentId);
+      if (content) {
+        Object.assign(content, updates);
+        saveLocalData(data);
+      }
+    }
     setEditingContent(null);
     refreshData();
     toast({ title: "Conteúdo atualizado!" });
@@ -371,18 +498,22 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
 
   const handleToggleContentTitle = (moduleId: string, content: ModuleContent) => {
     const showTitle = (content as any).showTitle ?? true;
-    updateContent(moduleId, content.id, { showTitle: !showTitle } as any);
-    refreshData();
+    handleUpdateContent(moduleId, content.id, { showTitle: !showTitle } as any);
   };
 
   const handleDeleteContent = async (moduleId: string, contentId: string) => {
     if (confirm('Excluir este conteúdo?')) {
-      const module = adminData.modules.find(m => m.id === moduleId);
+      const module = adminData.modules?.find(m => m.id === moduleId);
       const content = module?.contents.find(c => c.id === contentId);
       if (content && content.type === 'video') {
         await deleteStorageFile((content as ModuleVideo).thumbnailUrl);
       }
-      deleteContent(moduleId, contentId);
+      const data = getLocalData();
+      const mod = data.modules?.find(m => m.id === moduleId);
+      if (mod) {
+        mod.contents = mod.contents.filter(c => c.id !== contentId);
+        saveLocalData(data);
+      }
       refreshData();
       toast({ title: "Conteúdo excluído!" });
     }
@@ -390,8 +521,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings }: M
 
   const handleToggleContentNumber = (moduleId: string, content: ModuleContent) => {
     if (content.type === 'video') {
-      updateContent(moduleId, content.id, { showNumber: !(content as ModuleVideo).showNumber });
-      refreshData();
+      handleUpdateContent(moduleId, content.id, { showNumber: !(content as ModuleVideo).showNumber });
     }
   };
 

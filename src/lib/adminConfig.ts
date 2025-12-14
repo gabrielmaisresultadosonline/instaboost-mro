@@ -244,48 +244,55 @@ export const saveAdminData = (data: AdminData): void => {
   localStorage.setItem('mro_admin_data', JSON.stringify(data));
 };
 
+// Platform type for module storage
+export type ModulePlatform = 'mro' | 'zapmro';
+
 // Save modules to cloud storage
-export const saveModulesToCloud = async (): Promise<boolean> => {
+export const saveModulesToCloud = async (platform: ModulePlatform = 'mro'): Promise<boolean> => {
   try {
     const data = getAdminData();
+    const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : 'mro_admin_data';
+    const localData = localStorage.getItem(storageKey);
+    const parsedData = localData ? JSON.parse(localData) : data;
+    
     const modulesData = {
-      modules: data.modules,
+      modules: parsedData.modules || [],
       settings: {
-        downloadLink: data.settings.downloadLink,
-        welcomeVideo: data.settings.welcomeVideo
+        downloadLink: parsedData.settings?.downloadLink || '',
+        welcomeVideo: parsedData.settings?.welcomeVideo || {}
       }
     };
 
     const response = await supabase.functions.invoke('modules-storage', {
-      body: { action: 'save', data: modulesData }
+      body: { action: 'save', data: modulesData, platform }
     });
 
     if (response.error) {
-      console.error('[adminConfig] Error saving modules to cloud:', response.error);
+      console.error(`[adminConfig] Error saving ${platform} modules to cloud:`, response.error);
       return false;
     }
 
-    console.log('[adminConfig] Modules saved to cloud successfully');
+    console.log(`[adminConfig] ${platform} modules saved to cloud successfully`);
     return true;
   } catch (error) {
-    console.error('[adminConfig] Error saving modules to cloud:', error);
+    console.error(`[adminConfig] Error saving ${platform} modules to cloud:`, error);
     return false;
   }
 };
 
 // Load modules from cloud storage (for public users)
-export const loadModulesFromCloud = async (): Promise<{ modules: TutorialModule[], settings: Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'> } | null> => {
+export const loadModulesFromCloud = async (platform: ModulePlatform = 'mro'): Promise<{ modules: TutorialModule[], settings: Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'> } | null> => {
   try {
-    console.log('[adminConfig] Loading modules from cloud...');
+    console.log(`[adminConfig] Loading ${platform} modules from cloud...`);
     
     const response = await supabase.functions.invoke('modules-storage', {
-      body: { action: 'load' }
+      body: { action: 'load', platform }
     });
 
     console.log('[adminConfig] Raw response:', response);
 
     if (response.error) {
-      console.error('[adminConfig] Error loading modules from cloud:', response.error);
+      console.error(`[adminConfig] Error loading ${platform} modules from cloud:`, response.error);
       return null;
     }
 
@@ -293,14 +300,14 @@ export const loadModulesFromCloud = async (): Promise<{ modules: TutorialModule[
     console.log('[adminConfig] Response data:', responseData);
 
     if (responseData?.success && responseData?.data) {
-      console.log('[adminConfig] Modules loaded from cloud:', responseData.data.modules?.length || 0);
+      console.log(`[adminConfig] ${platform} modules loaded from cloud:`, responseData.data.modules?.length || 0);
       return responseData.data;
     }
 
     console.log('[adminConfig] No valid data in response');
     return null;
   } catch (error) {
-    console.error('[adminConfig] Error loading modules from cloud:', error);
+    console.error(`[adminConfig] Error loading ${platform} modules from cloud:`, error);
     return null;
   }
 };
