@@ -187,7 +187,7 @@ const Admin = () => {
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
-    { id: 'zapmro', label: 'ZAPMRO', icon: <MessageCircle className="w-4 h-4" /> },
+    { id: 'zapmro', label: 'ZAPMRO Ferramenta', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
     { id: 'pixel', label: 'Pixel & Ligação', icon: <ExternalLink className="w-4 h-4" /> },
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
@@ -857,24 +857,14 @@ const Admin = () => {
           />
         )}
 
-        {/* ZAPMRO Tab */}
+        {/* ZAPMRO Ferramenta Tab */}
         {activeTab === 'zapmro' && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <MessageCircle className="w-6 h-6 text-green-500" />
-              <h2 className="text-2xl font-display font-bold">ZAPMRO - Área de Membros</h2>
-            </div>
-            <p className="text-muted-foreground">
-              Configure os módulos e conteúdos da área de membros ZAPMRO (WhatsApp). 
-              Use a aba "Avisos" para criar anúncios específicos para ZAPMRO.
-            </p>
-            <div className="glass-card p-6 bg-green-500/10 border-green-500/30">
-              <p className="text-green-300">
-                A configuração de módulos do ZAPMRO está em desenvolvimento.
-                Por enquanto, use a aba "Avisos" para criar comunicações para usuários ZAPMRO.
-              </p>
-            </div>
-          </div>
+          <ModuleManager 
+            downloadLink={settings.downloadLink}
+            onDownloadLinkChange={(link) => setSettings(prev => ({ ...prev, downloadLink: link }))}
+            onSaveSettings={handleSaveSettings}
+            platform="zapmro"
+          />
         )}
 
         {/* Announcements Tab */}

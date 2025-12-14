@@ -19,11 +19,12 @@ serve(async (req) => {
     // Create service client for storage operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, data } = await req.json();
+    const { action, data, platform } = await req.json();
     
-    // Modules data is stored as a single file
-    const filePath = 'admin/modules-data.json';
-    console.log(`[modules-storage] Action: ${action}`);
+    // Modules data is stored as a single file - different file per platform
+    const platformKey = platform === 'zapmro' ? 'zapmro' : 'mro';
+    const filePath = `admin/${platformKey}-modules-data.json`;
+    console.log(`[modules-storage] Action: ${action}, Platform: ${platformKey}`);
 
     if (action === 'save') {
       // Save modules data as JSON file
