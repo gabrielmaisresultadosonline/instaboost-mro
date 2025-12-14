@@ -21,10 +21,10 @@ serve(async (req) => {
 
     const { action, data, platform } = await req.json();
     
-    // Modules data is stored as a single file - different file per platform
-    const platformKey = platform === 'zapmro' ? 'zapmro' : 'mro';
-    const filePath = `admin/${platformKey}-modules-data.json`;
-    console.log(`[modules-storage] Action: ${action}, Platform: ${platformKey}`);
+    // Modules data is stored as separate files per platform
+    // MRO uses the original path for backward compatibility
+    const filePath = platform === 'zapmro' ? 'admin/zapmro-modules-data.json' : 'admin/modules-data.json';
+    console.log(`[modules-storage] Action: ${action}, Platform: ${platform || 'mro'}, Path: ${filePath}`);
 
     if (action === 'save') {
       // Save modules data as JSON file
