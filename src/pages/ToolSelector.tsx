@@ -1,37 +1,61 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Instagram, MessageCircle, Sparkles } from 'lucide-react';
+import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import logoMro from '@/assets/logo-mro.png';
 
+interface ToolOption {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ElementType;
+  color: string;
+  hoverColor: string;
+  borderColor: string;
+  badge: string;
+  membersPath: string;
+  salesPath: string;
+}
+
 const ToolSelector = () => {
   const navigate = useNavigate();
-  const [hoveredTool, setHoveredTool] = useState<string | null>(null);
+  const [selectedTool, setSelectedTool] = useState<ToolOption | null>(null);
 
-  const tools = [
+  const tools: ToolOption[] = [
     {
       id: 'instagram',
       name: 'Ferramenta para Instagram',
-      description: 'Análise de perfil, estratégias e criativos com I.A',
+      description: 'Não gaste com anúncios para aumentar seu engajamento e seus seguidores',
       icon: Instagram,
       color: 'from-pink-500 to-purple-600',
       hoverColor: 'hover:from-pink-600 hover:to-purple-700',
       borderColor: 'border-pink-500/30',
-      path: '/instagram',
-      badge: 'MRO I.A'
+      badge: 'MRO I.A',
+      membersPath: '/instagram',
+      salesPath: '/mrointeligente'
     },
     {
       id: 'whatsapp',
       name: 'Ferramenta para WhatsApp',
-      description: 'Automação e gestão de conversas',
+      description: 'Automação inteligente para suas conversas e vendas',
       icon: MessageCircle,
       color: 'from-green-500 to-emerald-600',
       hoverColor: 'hover:from-green-600 hover:to-emerald-700',
       borderColor: 'border-green-500/30',
-      path: '/zapmro',
-      badge: 'ZAP MRO'
+      badge: 'ZAP MRO',
+      membersPath: '/zapmro',
+      salesPath: '/zapmro/vendas'
     }
   ];
+
+  const handleToolClick = (tool: ToolOption) => {
+    setSelectedTool(tool);
+  };
+
+  const handleOptionSelect = (path: string) => {
+    setSelectedTool(null);
+    navigate(path);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -66,15 +90,12 @@ const ToolSelector = () => {
         {tools.map((tool) => (
           <button
             key={tool.id}
-            onClick={() => navigate(tool.path)}
-            onMouseEnter={() => setHoveredTool(tool.id)}
-            onMouseLeave={() => setHoveredTool(null)}
+            onClick={() => handleToolClick(tool)}
             className={`
               relative group p-8 rounded-2xl border-2 ${tool.borderColor}
               bg-gray-800/50 backdrop-blur-sm
               transition-all duration-500 ease-out
-              hover:scale-[1.02] hover:shadow-2xl
-              ${hoveredTool === tool.id ? 'bg-gray-700/60' : ''}
+              hover:scale-[1.02] hover:shadow-2xl hover:bg-gray-700/60
             `}
           >
             {/* Gradient overlay on hover */}
@@ -105,7 +126,7 @@ const ToolSelector = () => {
             <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-left">
               {tool.name}
             </h2>
-            <p className="text-gray-400 text-left">
+            <p className="text-gray-400 text-left text-sm md:text-base">
               {tool.description}
             </p>
 
@@ -121,6 +142,87 @@ const ToolSelector = () => {
       <p className="mt-12 text-gray-500 text-sm z-10">
         Mais Resultados Online © 2024
       </p>
+
+      {/* Modal for selecting access type */}
+      {selectedTool && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedTool(null)}
+        >
+          <div 
+            className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${selectedTool.color} flex items-center justify-center`}>
+                  <selectedTool.icon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">{selectedTool.name}</h3>
+                  <p className="text-sm text-gray-400">Como deseja acessar?</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedTool(null)}
+                className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Options */}
+            <div className="space-y-3">
+              {/* Área de Membros */}
+              <button
+                onClick={() => handleOptionSelect(selectedTool.membersPath)}
+                className={`
+                  w-full p-4 rounded-xl border-2 border-gray-600 hover:border-opacity-100
+                  bg-gray-700/50 hover:bg-gray-700 transition-all duration-300
+                  flex items-center gap-4 group
+                  ${selectedTool.id === 'instagram' ? 'hover:border-pink-500/50' : 'hover:border-green-500/50'}
+                `}
+              >
+                <div className={`
+                  w-12 h-12 rounded-xl bg-gradient-to-r ${selectedTool.color}
+                  flex items-center justify-center
+                  group-hover:scale-110 transition-transform
+                `}>
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-white font-bold">Área de Membros</h4>
+                  <p className="text-sm text-gray-400">Acesse sua conta e ferramentas</p>
+                </div>
+              </button>
+
+              {/* Página Oficial */}
+              <button
+                onClick={() => handleOptionSelect(selectedTool.salesPath)}
+                className={`
+                  w-full p-4 rounded-xl border-2 border-gray-600 hover:border-opacity-100
+                  bg-gray-700/50 hover:bg-gray-700 transition-all duration-300
+                  flex items-center gap-4 group
+                  ${selectedTool.id === 'instagram' ? 'hover:border-pink-500/50' : 'hover:border-green-500/50'}
+                `}
+              >
+                <div className={`
+                  w-12 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600
+                  flex items-center justify-center
+                  group-hover:scale-110 transition-transform
+                `}>
+                  <ExternalLink className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-white font-bold">Página Oficial</h4>
+                  <p className="text-sm text-gray-400">Conheça e adquira o produto</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
