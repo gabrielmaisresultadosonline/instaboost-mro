@@ -614,7 +614,16 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
             onChange={(e) => onDownloadLinkChange(e.target.value)}
             className="bg-secondary/50"
           />
-          <Button type="button" onClick={onSaveSettings} className="cursor-pointer">
+          <Button type="button" onClick={() => {
+            // Save download link to local storage for this platform
+            const data = getLocalData();
+            if (data.settings) {
+              data.settings.downloadLink = downloadLink;
+            }
+            saveLocalData(data);
+            onSaveSettings();
+            toast({ title: "Salvo!", description: `Link de download ${platform.toUpperCase()} salvo.` });
+          }} className="cursor-pointer">
             <Save className="w-4 h-4" />
           </Button>
         </div>
