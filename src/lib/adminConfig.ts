@@ -48,6 +48,12 @@ export interface FacebookPixelSettings {
   customEvents: string[];
 }
 
+export interface SalesPageSettings {
+  whatsappNumber: string;
+  whatsappMessage: string;
+  ctaButtonText: string;
+}
+
 export interface AdminSettings {
   apis: {
     deepseek: string;
@@ -66,6 +72,7 @@ export interface AdminSettings {
   callPageSettings: CallPageSettings;
   callPageContent: CallPageContent;
   pixelSettings: FacebookPixelSettings;
+  salesPageSettings: SalesPageSettings;
 }
 
 // Content types for modules
@@ -220,6 +227,11 @@ fbq('track', 'PageView');`,
       trackLead: true,
       trackViewContent: true,
       customEvents: []
+    },
+    salesPageSettings: {
+      whatsappNumber: '+55 51 9203-6540',
+      whatsappMessage: 'Gostaria de saber sobre a promoção.',
+      ctaButtonText: 'Gostaria de aproveitar a promoção'
     }
   },
   tutorials: [],
