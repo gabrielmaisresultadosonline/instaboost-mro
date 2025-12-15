@@ -1,32 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MROSession, Strategy, Creative, ProfileSession } from '@/types/instagram';
+import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
 import { AnalysisCard } from './AnalysisCard';
 import { StrategyGenerator } from './StrategyGenerator';
 import { StrategyDisplay } from './StrategyDisplay';
-import { CreativeGenerator } from './CreativeGenerator';
-import { CreativesGallery } from './CreativesGallery';
+import { CaptionGenerator } from './CaptionGenerator';
 import { GrowthTracker } from './GrowthTracker';
 import { ProfileSelector } from './ProfileSelector';
 import { UserHeader } from './UserHeader';
 import { Logo } from './Logo';
-import { VitalicioCreativeOffer } from './VitalicioCreativeOffer';
 import { Button } from '@/components/ui/button';
 import { TutorialButton } from '@/components/TutorialButton';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { TutorialList } from '@/components/TutorialList';
-import { useTutorial, dashboardTutorial, strategyTutorial, creativeTutorial } from '@/hooks/useTutorial';
-import { addStrategy, addCreative, resetSession, cleanExpiredCreatives, getSession, saveSession } from '@/lib/storage';
+import { useTutorial, dashboardTutorial, strategyTutorial } from '@/hooks/useTutorial';
+import { addStrategy, resetSession, getSession } from '@/lib/storage';
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
 import { getCurrentUser } from '@/lib/userStorage';
-import { isLifetimeAccess, canUseCreatives, hasLifetimeUsedMonthlyCreative } from '@/types/user';
 import { 
   RotateCcw, 
   User, 
   BarChart3, 
   Lightbulb, 
-  Image as ImageIcon,
+  Type,
   TrendingUp,
   Wrench,
 } from 'lucide-react';
@@ -43,7 +40,7 @@ interface DashboardProps {
   onLogout?: () => void;
 }
 
-type Tab = 'profile' | 'analysis' | 'strategies' | 'creatives' | 'growth';
+type Tab = 'profile' | 'analysis' | 'strategies' | 'legendas' | 'growth';
 
 export const Dashboard = ({ 
   session, 
@@ -58,33 +55,12 @@ export const Dashboard = ({
 }: DashboardProps) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
-  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
-  const [showCreativeGenerator, setShowCreativeGenerator] = useState(false);
-  const [isManualCreativeMode, setIsManualCreativeMode] = useState(false);
-  const [showVitalicioOffer, setShowVitalicioOffer] = useState(false);
 
   // Tutorial system
   const tutorial = useTutorial();
-  
-  // Check if user is vitalicio and has used their free creative
-  const user = getCurrentUser();
-  const isVitalicioUser = user ? isLifetimeAccess(user.daysRemaining) : false;
-  const hasUsedFreeCreative = user ? hasLifetimeUsedMonthlyCreative(user) : false;
-  const creativesAccess = canUseCreatives(user);
-  const isVitalicioBlocked = isVitalicioUser && !user?.creativesUnlocked && hasUsedFreeCreative;
 
   // Get active profile
   const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
-
-  // Clean expired creatives on mount
-  useEffect(() => {
-    const cleanup = async () => {
-      await cleanExpiredCreatives();
-      const updatedSession = getSession();
-      onSessionUpdate(updatedSession);
-    };
-    cleanup();
-  }, []);
 
   const getLoggedInUsername = () => getCurrentUser()?.username || 'anonymous';
 
@@ -99,7 +75,7 @@ export const Dashboard = ({
     { id: 'profile', label: 'Perfil', icon: <User className="w-4 h-4" /> },
     { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" /> },
-    { id: 'creatives', label: 'Criativos', icon: <ImageIcon className="w-4 h-4" /> },
+    { id: 'legendas', label: 'Gerar Legendas', icon: <Type className="w-4 h-4" /> },
     { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-4 h-4" /> },
   ];
 
@@ -108,34 +84,6 @@ export const Dashboard = ({
     refreshSession();
     // Sync immediately after strategy generation
     syncSessionToPersistent(getLoggedInUsername());
-  };
-
-  const handleGenerateCreative = (strategy: Strategy) => {
-    // If vitalicio user has used their free creative and is not unlocked, show offer
-    if (isVitalicioBlocked) {
-      setShowVitalicioOffer(true);
-      return;
-    }
-    setSelectedStrategy(strategy);
-    setShowCreativeGenerator(true);
-  };
-
-  const handleCreativeGenerated = (creative: Creative, creditsUsed: number = 1) => {
-    // Add creative multiple times based on credits (for tracking purposes, the creative is only added once)
-    addCreative(creative);
-    // If manual mode used 2 credits, we need to decrement an extra time
-    if (creditsUsed > 1) {
-      // The addCreative already decrements 1, so we need to manually adjust for extra credits
-      const session = getSession();
-      const activeProfileSession = session.profiles.find(p => p.id === session.activeProfileId);
-      if (activeProfileSession) {
-        activeProfileSession.creativesRemaining = Math.max(0, activeProfileSession.creativesRemaining - (creditsUsed - 1));
-        saveSession(session);
-      }
-    }
-    refreshSession();
-    setShowCreativeGenerator(false);
-    setActiveTab('creatives');
   };
 
   const handleReset = () => {
@@ -208,8 +156,6 @@ export const Dashboard = ({
                 onStartInteractive={() => {
                   if (activeTab === 'strategies') {
                     tutorial.startTutorial(strategyTutorial);
-                  } else if (activeTab === 'creatives') {
-                    tutorial.startTutorial(creativeTutorial);
                   } else {
                     tutorial.startTutorial(dashboardTutorial);
                   }
@@ -217,8 +163,6 @@ export const Dashboard = ({
                 onShowList={() => {
                   if (activeTab === 'strategies') {
                     tutorial.startListView(strategyTutorial);
-                  } else if (activeTab === 'creatives') {
-                    tutorial.startListView(creativeTutorial);
                   } else {
                     tutorial.startListView(dashboardTutorial);
                   }
@@ -322,8 +266,6 @@ export const Dashboard = ({
                   <StrategyDisplay 
                     key={strategy.id}
                     strategy={strategy}
-                    onGenerateCreative={handleGenerateCreative}
-                    creativesRemaining={activeProfile.creativesRemaining}
                   />
                 ))}
               </div>
@@ -331,88 +273,11 @@ export const Dashboard = ({
           </div>
         )}
 
-        {activeTab === 'creatives' && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            {/* Vitalicio Blocked Message */}
-            {isVitalicioBlocked && (
-              <div className="glass-card glow-border p-6 border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-display font-bold flex items-center gap-2 text-amber-500">
-                      <ImageIcon className="w-5 h-5" />
-                      Criativos Bloqueados
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Você já gerou seu criativo gratuito do mês. Libere 3 meses por apenas R$97!
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => setShowVitalicioOffer(true)}
-                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold"
-                  >
-                    <Lightbulb className="w-4 h-4 mr-2" />
-                    Ver Oferta
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Manual Creative Generation Button */}
-            {!isVitalicioBlocked && activeProfile.creativesRemaining >= 2 && (
-              <div className="glass-card glow-border p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-display font-bold flex items-center gap-2">
-                      <ImageIcon className="w-5 h-5 text-primary" />
-                      Gerar Criativo Manual
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Crie um criativo com seu próprio prompt e inclua sua foto pessoal (usa 2 créditos)
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      setIsManualCreativeMode(true);
-                      // Create a dummy strategy for manual mode
-                      setSelectedStrategy({
-                        id: 'manual',
-                        title: 'Criativo Manual',
-                        description: 'Criativo personalizado',
-                        type: 'content',
-                        steps: [],
-                        scripts: [],
-                        storiesCalendar: [],
-                        createdAt: new Date().toISOString()
-                      });
-                      setShowCreativeGenerator(true);
-                    }}
-                    variant="gradient"
-                    className="cursor-pointer"
-                  >
-                    <Lightbulb className="w-4 h-4 mr-2" />
-                    Criar com Prompt
-                  </Button>
-                </div>
-                <div className="mt-3 text-xs text-muted-foreground bg-secondary/30 p-2 rounded">
-                  💡 Você pode subir uma foto sua e a IA vai criar o criativo com você na imagem, mantendo seu rosto idêntico.
-                </div>
-              </div>
-            )}
-            
-            {!isVitalicioBlocked && activeProfile.creativesRemaining < 2 && activeProfile.creativesRemaining > 0 && (
-              <div className="glass-card p-4 border-warning/30 bg-warning/10">
-                <p className="text-sm text-warning">
-                  Você tem apenas {activeProfile.creativesRemaining} crédito(s). Geração manual requer 2 créditos.
-                </p>
-              </div>
-            )}
-
-            <CreativesGallery 
-              creatives={activeProfile.creatives}
-              creativesRemaining={activeProfile.creativesRemaining}
-              onUpdate={refreshSession}
-              isVitalicioBlocked={isVitalicioBlocked}
-              onShowVitalicioOffer={() => setShowVitalicioOffer(true)}
+        {activeTab === 'legendas' && (
+          <div className="max-w-3xl mx-auto">
+            <CaptionGenerator 
+              profileUsername={activeProfile.profile.username}
+              niche={activeProfile.analysis?.niche}
             />
           </div>
         )}
@@ -426,25 +291,6 @@ export const Dashboard = ({
           </div>
         )}
       </main>
-
-      {/* Creative Generator Modal */}
-      {showCreativeGenerator && selectedStrategy && activeProfile && (
-        <CreativeGenerator
-          strategy={selectedStrategy}
-          profile={activeProfile.profile}
-          niche={activeProfile.analysis.niche}
-          onCreativeGenerated={(creative, creditsUsed) => {
-            handleCreativeGenerated(creative, creditsUsed);
-            setIsManualCreativeMode(false);
-          }}
-          onClose={() => {
-            setShowCreativeGenerator(false);
-            setIsManualCreativeMode(false);
-          }}
-          isManualMode={isManualCreativeMode}
-          creativesRemaining={activeProfile.creativesRemaining}
-        />
-      )}
 
       {/* Tutorial Overlay */}
       <TutorialOverlay
@@ -463,16 +309,8 @@ export const Dashboard = ({
         sections={tutorial.tutorialData}
         onClose={() => tutorial.setShowList(false)}
         onStartInteractive={() => tutorial.startTutorial(tutorial.tutorialData)}
-        title={activeTab === 'strategies' ? 'Como Gerar Estratégias' : activeTab === 'creatives' ? 'Como Gerar Criativos' : 'Tutorial do Dashboard'}
+        title={activeTab === 'strategies' ? 'Como Gerar Estratégias' : 'Tutorial do Dashboard'}
       />
-
-      {/* Vitalicio Creative Offer Modal */}
-      {showVitalicioOffer && user && (
-        <VitalicioCreativeOffer
-          username={user.username}
-          onClose={() => setShowVitalicioOffer(false)}
-        />
-      )}
     </div>
   );
 };

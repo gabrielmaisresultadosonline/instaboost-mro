@@ -5,11 +5,9 @@ import { useToast } from '@/hooks/use-toast';
 
 interface StrategyDisplayProps {
   strategy: Strategy;
-  onGenerateCreative: (strategy: Strategy) => void;
-  creativesRemaining: number;
 }
 
-export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaining }: StrategyDisplayProps) => {
+export const StrategyDisplay = ({ strategy }: StrategyDisplayProps) => {
   const { toast } = useToast();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     steps: true,
@@ -357,30 +355,6 @@ export const StrategyDisplay = ({ strategy, onGenerateCreative, creativesRemaini
         </CollapsibleSection>
       )}
 
-      {/* Generate Creative Button - Only for non-bio strategies */}
-      {strategy.type !== 'bio' && (
-        <div className="mt-6 pt-6 border-t border-border">
-          <button
-            type="button"
-            onClick={() => onGenerateCreative(strategy)}
-            disabled={creativesRemaining === 0}
-            className={`w-full p-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
-              creativesRemaining > 0
-                ? 'bg-animated-gradient text-primary-foreground btn-glow hover:scale-[1.02]'
-                : 'bg-muted text-muted-foreground cursor-not-allowed'
-            }`}
-          >
-            {creativesRemaining > 0 ? (
-              <>
-                🎨 Gerar Criativo para esta Estratégia
-                <span className="text-xs opacity-80">({creativesRemaining} restantes)</span>
-              </>
-            ) : (
-              'Limite de criativos atingido este mês'
-            )}
-          </button>
-        </div>
-      )}
     </div>
   );
 };

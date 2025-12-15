@@ -1013,8 +1013,6 @@ export default function Membro() {
               {strategy ? (
                 <StrategyDisplay 
                   strategy={strategy} 
-                  onGenerateCreative={() => {}}
-                  creativesRemaining={creativesRemaining}
                 />
               ) : (
                 <Card className="glass-card">

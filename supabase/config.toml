@@ -103,3 +103,6 @@ verify_jwt = false
 
 [functions.support-tickets]
 verify_jwt = false
+
+[functions.generate-caption]
+verify_jwt = false
