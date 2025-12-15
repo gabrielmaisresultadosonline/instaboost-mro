@@ -292,19 +292,11 @@ const ZapMROVendas = () => {
                 </div>
               </div>
 
-              <div 
-                onClick={() => setShowBonusVideo(true)}
-                className="relative rounded-xl overflow-hidden cursor-pointer group aspect-video"
-              >
-                <img 
-                  src="https://img.youtube.com/vi/vfPr84KoMGM/maxresdefault.jpg" 
-                  alt="Bônus Video"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center group-hover:bg-black/40 transition-colors">
-                  <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Play className="w-8 h-8 text-white ml-1" fill="white" />
-                  </div>
+              <div className="flex items-center justify-center">
+                <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 text-center">
+                  <Gift className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                  <p className="text-lg font-semibold text-green-400">Incluído no seu plano</p>
+                  <p className="text-gray-400 text-sm mt-2">Você receberá acesso completo a esta ferramenta</p>
                 </div>
               </div>
             </div>
