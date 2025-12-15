@@ -24,6 +24,8 @@ serve(async (req) => {
     // Modules data is stored as separate files per platform
     // MRO uses the original path for backward compatibility
     const filePath = platform === 'zapmro' ? 'admin/zapmro-modules-data.json' : 'admin/modules-data.json';
+    const callSettingsPath = 'admin/call-settings.json';
+    
     console.log(`[modules-storage] Action: ${action}, Platform: ${platform || 'mro'}, Path: ${filePath}`);
 
     if (action === 'save') {
@@ -92,9 +94,73 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
+    } else if (action === 'save-call-settings') {
+      // Save call page settings to cloud
+      if (!data) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Data is required for save-call-settings action' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const jsonData = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from('user-data')
+        .upload(callSettingsPath, blob, {
+          contentType: 'application/json',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('[modules-storage] Call settings upload error:', uploadError);
+        return new Response(
+          JSON.stringify({ success: false, error: uploadError.message }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`[modules-storage] Call settings saved successfully`);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Call settings saved successfully' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
+    } else if (action === 'load-call-settings') {
+      // Load call page settings from cloud
+      const { data: fileData, error: downloadError } = await supabaseAdmin.storage
+        .from('user-data')
+        .download(callSettingsPath);
+
+      if (downloadError) {
+        if (downloadError.message.includes('not found') || downloadError.message.includes('Object not found')) {
+          console.log(`[modules-storage] No call settings found, returning defaults`);
+          return new Response(
+            JSON.stringify({ success: true, data: null, exists: false }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        console.error('[modules-storage] Call settings download error:', downloadError);
+        return new Response(
+          JSON.stringify({ success: false, error: downloadError.message }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const text = await fileData.text();
+      const callSettingsData = JSON.parse(text);
+      
+      console.log(`[modules-storage] Call settings loaded successfully`);
+      return new Response(
+        JSON.stringify({ success: true, data: callSettingsData, exists: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
     } else {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid action. Use: save or load' }),
+        JSON.stringify({ success: false, error: 'Invalid action. Use: save, load, save-call-settings, or load-call-settings' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

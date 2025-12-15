@@ -64,6 +64,7 @@ const sendConversionEvent = async (eventName: string, customData?: Record<string
 const Ligacao = () => {
   const [callState, setCallState] = useState<'landing' | 'ringing' | 'connected' | 'ended'>('landing');
   const [callDuration, setCallDuration] = useState(0);
+  const [isLoadingContent, setIsLoadingContent] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
   const ringtoneVideoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -71,11 +72,43 @@ const Ligacao = () => {
 
   // Get admin settings for audio and pixel configuration
   const adminSettings = getAdminData().settings;
-  const callPageSettings = adminSettings.callPageSettings || {
+  const [callPageSettings, setCallPageSettings] = useState(adminSettings.callPageSettings || {
     audioUrl: '/call-audio.mp3',
     ringtoneUrl: '/ringtone.mp4'
-  };
+  });
+  const [callContent, setCallContent] = useState({
+    landingTitle: 'Gabriel esta agora disponível para uma chamada, atenda para entender como não Gastar mais com anúncios!',
+    landingButtonText: 'Receber chamada agora',
+    endedTitle: '🔥 Aproveite agora mesmo!',
+    endedMessage: 'Planos a partir de',
+    endedPrice: 'R$33 mensal',
+    ctaButtonText: 'Acessar o site agora',
+    ctaButtonLink: 'https://acessar.click/mrointeligente',
+    profileUsername: '@maisresultadosonline'
+  });
   const pixelSettings = adminSettings.pixelSettings;
+
+  // Load call settings from cloud on mount
+  useEffect(() => {
+    const loadFromCloud = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('modules-storage', {
+          body: { action: 'load-call-settings' }
+        });
+        
+        if (!error && data?.success && data?.data) {
+          console.log('[Ligacao] Loaded settings from cloud:', data.data);
+          if (data.data.callSettings) setCallPageSettings(data.data.callSettings);
+          if (data.data.callContent) setCallContent(data.data.callContent);
+        }
+      } catch (err) {
+        console.error('[Ligacao] Error loading from cloud:', err);
+      } finally {
+        setIsLoadingContent(false);
+      }
+    };
+    loadFromCloud();
+  }, []);
 
   // Track page view in local analytics on mount (Pixel PageView already fires from index.html)
   useEffect(() => {
@@ -308,11 +341,7 @@ const Ligacao = () => {
             />
 
             <h1 style={{ color: '#fff', fontSize: '1.125rem', fontWeight: 'bold', fontStyle: 'italic', lineHeight: 1.3, marginBottom: '1rem', maxWidth: '280px' }}>
-              <span style={{ color: '#facc15' }}>Gabriel</span> esta agora
-              <br />disponível para uma
-              <br />chamada, atenda para
-              <br />entender <span style={{ color: '#facc15' }}>como não Gastar
-              <br />mais com anúncios!</span>
+              <span style={{ color: '#facc15' }}>Gabriel</span> {callContent.landingTitle.replace(/^Gabriel\s*/i, '').replace('Gabriel', '')}
             </h1>
 
             <button
@@ -334,7 +363,7 @@ const Ligacao = () => {
                 boxShadow: '0 10px 15px -3px rgba(74, 222, 128, 0.3)',
               }}
             >
-              Receber chamada agora
+              {callContent.landingButtonText}
               <Phone style={{ width: '1.25rem', height: '1.25rem' }} />
             </button>
           </div>
@@ -475,17 +504,17 @@ const Ligacao = () => {
 
           <div style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '0.75rem', padding: '1.25rem', marginBottom: '1.5rem', width: '100%', maxWidth: '320px' }}>
             <p style={{ color: '#fde047', fontSize: '1rem', fontWeight: 600, textAlign: 'center', marginBottom: '0.5rem' }}>
-              🔥 Aproveite agora mesmo!
+              {callContent.endedTitle}
             </p>
             <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', textAlign: 'center' }}>
-              Planos a partir de <span style={{ color: '#4ade80', fontWeight: 'bold' }}>R$33 mensal</span>
+              {callContent.endedMessage} <span style={{ color: '#4ade80', fontWeight: 'bold' }}>{callContent.endedPrice}</span>
             </p>
           </div>
 
           <a
             id="btn-acessar-site"
             data-fb-event="ViewContent"
-            href="https://acessar.click/mrointeligente"
+            href={callContent.ctaButtonLink}
             onClick={handleAccessSite}
             style={{
               backgroundColor: '#eab308',
@@ -503,12 +532,12 @@ const Ligacao = () => {
               textDecoration: 'none',
             }}
           >
-            Acessar o site agora
+            {callContent.ctaButtonText}
             <ExternalLink style={{ width: '1.25rem', height: '1.25rem' }} />
           </a>
 
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginTop: '1rem', textAlign: 'center' }}>
-            @maisresultadosonline
+            {callContent.profileUsername}
           </p>
         </div>
       )}

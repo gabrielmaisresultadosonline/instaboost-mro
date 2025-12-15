@@ -55,6 +55,16 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
       welcomeVideo: { enabled: false, title: '', showTitle: true, youtubeUrl: '', coverUrl: '' },
       callPixelEvents: { pageView: false, audioCompleted: false, ctaClicked: false },
       callPageSettings: { audioUrl: '', ringtoneUrl: '' },
+      callPageContent: {
+        landingTitle: '',
+        landingButtonText: 'Receber chamada agora',
+        endedTitle: '🔥 Aproveite agora mesmo!',
+        endedMessage: 'Planos a partir de',
+        endedPrice: 'R$33 mensal',
+        ctaButtonText: 'Acessar o site agora',
+        ctaButtonLink: 'https://acessar.click/mrointeligente',
+        profileUsername: '@maisresultadosonline'
+      },
       pixelSettings: { pixelId: '', enabled: false, trackPageView: false, trackLead: false, trackViewContent: false, customEvents: [] }
     },
     tutorials: [],
