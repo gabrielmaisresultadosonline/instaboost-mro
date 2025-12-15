@@ -553,7 +553,7 @@ const VendasCompleta = () => {
 
             <Button 
               size="xl"
-              className="w-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-black text-base sm:text-lg md:text-xl py-6 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:scale-105 transition-transform whitespace-normal h-auto min-h-[60px] leading-tight px-4 sm:px-6"
+              className="w-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-black text-xl sm:text-lg md:text-xl py-6 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:scale-105 transition-transform whitespace-normal h-auto min-h-[60px] leading-tight px-4 sm:px-6"
               onClick={() => {
                 const phone = salesSettings.whatsappNumber.replace(/\D/g, '');
                 const message = encodeURIComponent(salesSettings.whatsappMessage);
@@ -561,7 +561,7 @@ const VendasCompleta = () => {
               }}
             >
               <span className="flex items-center justify-center gap-2 flex-wrap text-center">
-                <span>💬</span>
+                <span className="hidden sm:inline">💬</span>
                 <span>{salesSettings.ctaButtonText}</span>
               </span>
             </Button>
