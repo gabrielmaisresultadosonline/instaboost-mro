@@ -34,6 +34,7 @@ const App = () => (
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/mro-ferramenta" element={<MROFerramenta />} />
           <Route path="/vendas" element={<Vendas />} />
+          <Route path="/instagram-nova" element={<VendasCompleta />} />
           <Route path="/mrointeligente" element={<VendasCompleta />} />
           <Route path="/membro" element={<Membro />} />
           <Route path="/ligacao" element={<Ligacao />} />
