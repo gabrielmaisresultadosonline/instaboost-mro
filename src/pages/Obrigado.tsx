@@ -1,15 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Sparkles, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { trackPageView, trackPurchase, trackLead } from "@/lib/facebookTracking";
 
 const Obrigado = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const { toast } = useToast();
+
+  // Track Purchase on page load (this is the thank you page after payment)
+  useEffect(() => {
+    trackPageView('Thank You Page - Purchase Complete');
+    trackPurchase(397, 'MRO I.A + Automação');
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +29,9 @@ const Obrigado = () => {
       });
       return;
     }
+
+    // Track Lead event when user submits form to WhatsApp
+    trackLead('Thank You Page - WhatsApp Access Request');
 
     const message = encodeURIComponent(
       `Olá! Acabei de comprar o MRO I.A + Automação!\n\nNome: ${nome.trim()}\nEmail: ${email.trim()}`
