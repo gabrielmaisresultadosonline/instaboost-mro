@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   Bell, Plus, Trash2, Save, Eye, EyeOff, 
   Upload, X, AlertTriangle, Image as ImageIcon,
-  Link as LinkIcon, Users, Clock, RefreshCw
+  Link as LinkIcon, Users, Clock, RefreshCw, Youtube
 } from 'lucide-react';
 
 export interface Announcement {
@@ -17,6 +17,7 @@ export interface Announcement {
   title: string;
   content: string;
   thumbnailUrl?: string;
+  youtubeUrl?: string;
   isActive: boolean;
   forceRead: boolean;
   forceReadSeconds: number;
@@ -24,7 +25,7 @@ export interface Announcement {
   createdAt: string;
   updatedAt: string;
   viewCount?: number;
-  targetArea?: 'all' | 'instagram' | 'zapmro'; // NEW: target specific area
+  targetArea?: 'all' | 'instagram' | 'zapmro';
 }
 
 interface AnnouncementsData {
@@ -51,6 +52,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
     title: '',
     content: '',
     thumbnailUrl: '',
+    youtubeUrl: '',
     isActive: true,
     forceRead: false,
     forceReadSeconds: 5,
@@ -174,6 +176,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
       title: '',
       content: '',
       thumbnailUrl: '',
+      youtubeUrl: '',
       isActive: true,
       forceRead: false,
       forceReadSeconds: 5,
@@ -189,6 +192,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
       title: announcement.title,
       content: announcement.content,
       thumbnailUrl: announcement.thumbnailUrl || '',
+      youtubeUrl: announcement.youtubeUrl || '',
       isActive: announcement.isActive,
       forceRead: announcement.forceRead,
       forceReadSeconds: announcement.forceReadSeconds || 5,
@@ -211,6 +215,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         title: formData.title!,
         content: formData.content!,
         thumbnailUrl: formData.thumbnailUrl || undefined,
+        youtubeUrl: formData.youtubeUrl || undefined,
         isActive: formData.isActive ?? true,
         forceRead: formData.forceRead ?? false,
         forceReadSeconds: formData.forceReadSeconds ?? 5,
@@ -229,6 +234,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
               title: formData.title!,
               content: formData.content!,
               thumbnailUrl: formData.thumbnailUrl || undefined,
+              youtubeUrl: formData.youtubeUrl || undefined,
               isActive: formData.isActive ?? true,
               forceRead: formData.forceRead ?? false,
               forceReadSeconds: formData.forceReadSeconds ?? 5,
@@ -429,6 +435,22 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                   </Button>
                 </div>
               )}
+            </div>
+
+            {/* YouTube Video Section */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Youtube className="w-4 h-4 text-red-500" />
+                Vídeo do YouTube (opcional)
+              </Label>
+              <Input
+                value={formData.youtubeUrl || ''}
+                onChange={(e) => setFormData({ ...formData, youtubeUrl: e.target.value })}
+                placeholder="https://www.youtube.com/watch?v=... ou https://youtu.be/..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Cole o link do vídeo do YouTube para incluir no aviso
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

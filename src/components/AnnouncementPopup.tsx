@@ -8,6 +8,7 @@ interface Announcement {
   title: string;
   content: string;
   thumbnailUrl?: string;
+  youtubeUrl?: string;
   isActive: boolean;
   forceRead: boolean;
   forceReadSeconds: number;
@@ -15,6 +16,13 @@ interface Announcement {
   createdAt: string;
   viewCount?: number;
 }
+
+const getYoutubeVideoId = (url: string): string | null => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
 
 interface ViewedAnnouncement {
   id: string;
@@ -249,6 +257,19 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
             currentAnnouncement.forceRead ? 'max-h-64' : ''
           }`}
         >
+          {currentAnnouncement.youtubeUrl && getYoutubeVideoId(currentAnnouncement.youtubeUrl) && (
+            <div className="aspect-video w-full rounded-lg overflow-hidden bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentAnnouncement.youtubeUrl)}`}
+                title="YouTube video"
+                className="w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
+
           {currentAnnouncement.thumbnailUrl && (
             <img 
               src={currentAnnouncement.thumbnailUrl} 
