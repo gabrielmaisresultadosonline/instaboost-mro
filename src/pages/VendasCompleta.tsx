@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { trackPageView, trackLead } from "@/lib/facebookTracking";
 import { 
   Sparkles, 
   CheckCircle2, 
@@ -47,6 +48,11 @@ const VendasCompleta = () => {
     whatsappMessage: 'Gostaria de saber sobre a promoção.',
     ctaButtonText: 'Gostaria de aproveitar a promoção'
   });
+
+  // Track PageView on mount
+  useEffect(() => {
+    trackPageView('Sales Page - Instagram MRO');
+  }, []);
 
   // Load sales settings from cloud
   useEffect(() => {
@@ -555,6 +561,8 @@ const VendasCompleta = () => {
               size="xl"
               className="w-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-black text-xl sm:text-lg md:text-xl py-6 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:scale-105 transition-transform whitespace-normal h-auto min-h-[60px] leading-tight px-4 sm:px-6"
               onClick={() => {
+                // Track Lead event
+                trackLead('Instagram MRO - WhatsApp CTA');
                 const phone = salesSettings.whatsappNumber.replace(/\D/g, '');
                 const message = encodeURIComponent(salesSettings.whatsappMessage);
                 window.open(`https://wa.me/${phone}?text=${message}`, '_blank');

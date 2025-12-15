@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X } from 'lucide-react';
 import logoMro from '@/assets/logo-mro.png';
+import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 
 interface ToolOption {
   id: string;
@@ -19,6 +20,11 @@ interface ToolOption {
 const ToolSelector = () => {
   const navigate = useNavigate();
   const [showMembersModal, setShowMembersModal] = useState(false);
+
+  // Track PageView on mount
+  useEffect(() => {
+    trackPageView('Tool Selector - Homepage');
+  }, []);
 
   const tools: ToolOption[] = [
     {
@@ -47,11 +53,13 @@ const ToolSelector = () => {
     }
   ];
 
-  const handleSalesClick = (path: string) => {
+  const handleSalesClick = (path: string, toolName: string) => {
+    trackViewContent(`Sales Page: ${toolName}`, 'Navigation');
     navigate(path);
   };
 
   const handleMembersSelect = (platform: 'instagram' | 'zapmro') => {
+    trackViewContent(`Members Area: ${platform}`, 'Navigation');
     setShowMembersModal(false);
     if (platform === 'instagram') {
       navigate('/instagram');
@@ -93,7 +101,7 @@ const ToolSelector = () => {
         {tools.map((tool) => (
           <button
             key={tool.id}
-            onClick={() => handleSalesClick(tool.salesPath)}
+            onClick={() => handleSalesClick(tool.salesPath, tool.name)}
             className={`
               relative group p-8 rounded-2xl border-2 ${tool.borderColor}
               bg-gray-800/50 backdrop-blur-sm

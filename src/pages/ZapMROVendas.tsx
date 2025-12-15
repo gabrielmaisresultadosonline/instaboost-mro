@@ -5,6 +5,7 @@ import {
   Calendar, Sparkles, Lock, RefreshCw, ArrowRight, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { trackPageView, trackInitiateCheckout } from '@/lib/facebookTracking';
 
 const ZapMROVendas = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -12,6 +13,11 @@ const ZapMROVendas = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
+
+  // Track PageView on mount
+  useEffect(() => {
+    trackPageView('Sales Page - ZAPMRO WhatsApp');
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -373,7 +379,10 @@ const ZapMROVendas = () => {
                 <Button 
                   size="lg"
                   className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
-                  onClick={() => window.open('https://zapmro.maisresultadosonline.com.br/zapmro-venda/', '_blank')}
+                  onClick={() => {
+                    trackInitiateCheckout('ZAPMRO Anual', 397);
+                    window.open('https://zapmro.maisresultadosonline.com.br/zapmro-venda/', '_blank');
+                  }}
                 >
                   GARANTIR MEU ACESSO AGORA
                 </Button>
@@ -437,7 +446,10 @@ const ZapMROVendas = () => {
           <Button 
             size="lg"
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl px-12 py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
-            onClick={() => window.open('https://zapmro.maisresultadosonline.com.br/zapmro-venda/', '_blank')}
+            onClick={() => {
+              trackInitiateCheckout('ZAPMRO Anual', 397);
+              window.open('https://zapmro.maisresultadosonline.com.br/zapmro-venda/', '_blank');
+            }}
           >
             GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
           </Button>
