@@ -20,9 +20,12 @@ serve(async (req) => {
   try {
     const { niche, product, objective, username }: CaptionRequest = await req.json();
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-    console.log('Gerando legenda para:', { niche, product, objective, username });
+    if (!DEEPSEEK_API_KEY) {
+      throw new Error('DEEPSEEK_API_KEY não configurada');
+    }
+
+    console.log('Gerando legenda com DeepSeek para:', { niche, product, objective, username });
 
     const prompt = `Você é um especialista em copywriting para Instagram. Crie uma legenda profissional e persuasiva para uma publicação no Instagram.
 
@@ -49,71 +52,37 @@ FORMATO:
 
 Gere APENAS a legenda pronta para copiar e colar, sem explicações adicionais.`;
 
-    let caption = '';
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: 'Você é um copywriter expert em Instagram Marketing. Crie legendas persuasivas e envolventes em português brasileiro.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.8,
+        max_tokens: 1500,
+      }),
+    });
 
-    // Try DeepSeek first
-    if (DEEPSEEK_API_KEY) {
-      try {
-        console.log('Tentando DeepSeek API...');
-        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'deepseek-chat',
-            messages: [
-              { role: 'system', content: 'Você é um copywriter expert em Instagram Marketing. Crie legendas persuasivas e envolventes em português brasileiro.' },
-              { role: 'user', content: prompt }
-            ],
-            temperature: 0.8,
-            max_tokens: 1500,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          caption = data.choices?.[0]?.message?.content || '';
-          console.log('Legenda gerada com DeepSeek');
-        }
-      } catch (error) {
-        console.error('Erro DeepSeek:', error);
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Erro DeepSeek:', response.status, errorText);
+      throw new Error(`Erro na API DeepSeek: ${response.status}`);
     }
 
-    // Fallback to Lovable AI
-    if (!caption && LOVABLE_API_KEY) {
-      try {
-        console.log('Tentando Lovable AI...');
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { role: 'system', content: 'Você é um copywriter expert em Instagram Marketing. Crie legendas persuasivas e envolventes em português brasileiro.' },
-              { role: 'user', content: prompt }
-            ],
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          caption = data.choices?.[0]?.message?.content || '';
-          console.log('Legenda gerada com Lovable AI');
-        }
-      } catch (error) {
-        console.error('Erro Lovable AI:', error);
-      }
-    }
+    const data = await response.json();
+    const caption = data.choices?.[0]?.message?.content || '';
 
     if (!caption) {
       throw new Error('Não foi possível gerar a legenda');
     }
+
+    console.log('Legenda gerada com sucesso via DeepSeek');
 
     return new Response(
       JSON.stringify({ caption }),
