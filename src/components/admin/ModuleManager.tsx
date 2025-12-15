@@ -122,6 +122,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
           if (cloudData.settings && currentData.settings) {
             currentData.settings.downloadLink = cloudData.settings.downloadLink || currentData.settings.downloadLink;
             currentData.settings.welcomeVideo = cloudData.settings.welcomeVideo || currentData.settings.welcomeVideo;
+            
+            // Update parent component with loaded download link
+            if (cloudData.settings.downloadLink) {
+              onDownloadLinkChange(cloudData.settings.downloadLink);
+            }
           }
           saveLocalData(currentData);
           setAdminData(currentData);
