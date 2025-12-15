@@ -184,15 +184,12 @@ const VendasCompleta = () => {
         <div className="max-w-5xl mx-auto text-center">
           <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-8 object-contain" />
           
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4">
-            Vendendo <span className="text-amber-400">3x mais</span>
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
+            NÃO GASTE MAIS COM ANÚNCIOS PARA AUMENTAR SEU <span className="text-amber-400">ENGAJAMENTO</span> E SEUS <span className="text-amber-400">SEGUIDORES</span>
           </h1>
-          <h2 className="text-xl md:text-3xl font-bold text-amber-400 mb-3">
-            Com nossa ferramenta no automático
+          <h2 className="text-xl md:text-3xl font-bold text-amber-400">
+            UTILIZE A MRO INTELIGENTE
           </h2>
-          <p className="text-xl md:text-2xl text-gray-400">
-            Sem gastar com anúncios.
-          </p>
 
           {/* Main Video */}
           <div className="mt-10 max-w-4xl mx-auto">
@@ -430,10 +427,9 @@ const VendasCompleta = () => {
               <p className="text-gray-400 text-sm mb-6">Método MRO + Ferramenta Completa</p>
 
               <div className="text-center mb-6">
-                <div className="text-5xl font-black text-amber-400">R$397</div>
-                <p className="text-gray-400">por ano</p>
-                <p className="text-amber-400 font-medium mt-2">ou 12x de R$33 sem juros</p>
-                <p className="text-gray-500 text-sm">À vista R$397</p>
+                <div className="text-xl text-gray-400 mb-1">12x de</div>
+                <div className="text-6xl font-black text-amber-400">R$33</div>
+                <p className="text-gray-500 text-sm mt-2">ou à vista R$397</p>
               </div>
 
               <div className="space-y-3 mb-8">
@@ -460,10 +456,9 @@ const VendasCompleta = () => {
               <p className="text-gray-400 text-sm mb-6">A solução definitiva para crescer no Instagram sem gastar com anúncios</p>
 
               <div className="text-center mb-6">
-                <div className="text-5xl font-black text-amber-400">R$997</div>
-                <p className="text-gray-400">vitalício</p>
-                <p className="text-amber-400 font-medium mt-2">ou 12x de R$83 sem juros</p>
-                <p className="text-gray-500 text-sm">À vista R$997</p>
+                <div className="text-xl text-gray-400 mb-1">12x de</div>
+                <div className="text-6xl font-black text-amber-400">R$83</div>
+                <p className="text-gray-500 text-sm mt-2">ou à vista R$997</p>
               </div>
 
               <div className="space-y-3 mb-8">
