@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Sparkles, 
   CheckCircle2, 
@@ -29,12 +30,40 @@ import {
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 
+interface SalesSettings {
+  whatsappNumber: string;
+  whatsappMessage: string;
+  ctaButtonText: string;
+}
+
 const VendasCompleta = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [timeLeft, setTimeLeft] = useState({ hours: 47, minutes: 59, seconds: 59 });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
+  const [salesSettings, setSalesSettings] = useState<SalesSettings>({
+    whatsappNumber: '+55 51 9203-6540',
+    whatsappMessage: 'Gostaria de saber sobre a promoção.',
+    ctaButtonText: 'Gostaria de aproveitar a promoção'
+  });
+
+  // Load sales settings from cloud
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('modules-storage', {
+          body: { action: 'load-call-settings' }
+        });
+        if (!error && data?.success && data?.data?.salesPageSettings) {
+          setSalesSettings(data.data.salesPageSettings);
+        }
+      } catch (err) {
+        console.error('Error loading sales settings:', err);
+      }
+    };
+    loadSettings();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -460,12 +489,12 @@ const VendasCompleta = () => {
         <div className="max-w-4xl mx-auto relative z-10">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-6 py-3 mb-6 animate-pulse">
-              <span className="text-2xl">🔥</span>
-              <span className="text-red-400 font-black text-lg">DEU A LOUCA NO CHEF!</span>
-              <span className="text-2xl">🔥</span>
+              <span className="text-2xl">🎄</span>
+              <span className="text-red-400 font-black text-lg">PROMOÇÃO DE FINAL DE ANO!</span>
+              <span className="text-2xl">🎄</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Apenas <span className="text-amber-400">PLANO VITALÍCIO</span>
+              <span className="text-amber-400">PROMOÇÃO VITALÍCIA</span> ACABANDO!
             </h2>
             <p className="text-gray-400 text-lg">
               A solução definitiva para crescer no Instagram sem gastar com anúncios
@@ -476,22 +505,41 @@ const VendasCompleta = () => {
           <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-3xl p-8 md:p-12 shadow-2xl shadow-amber-500/30 max-w-2xl mx-auto">
             <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
               <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-sm font-black px-6 py-2 rounded-full animate-bounce">
-                🎉 PROMOÇÃO ESPECIAL 🎉
+                🎉 PROMOÇÃO DE FINAL DE ANO 🎉
               </div>
             </div>
 
             <h3 className="text-3xl font-bold mb-2 mt-4 text-center">Plano Vitalício</h3>
             <p className="text-gray-400 text-center mb-8">Acesso completo para sempre + Todas as atualizações futuras</p>
 
-            <div className="text-center mb-8">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <span className="text-gray-500 line-through text-2xl">12x R$83</span>
-                <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full">-60%</span>
+            <div className="text-center mb-8 space-y-6">
+              {/* Pizza comparison */}
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-6">
+                <p className="text-amber-400 font-bold text-lg mb-2">🍕 PARCELINHA MENOR QUE UMA PIZZA MÉDIA</p>
+                <p className="text-gray-400 text-sm">em sua cidade mensal</p>
               </div>
-              <div className="text-xl text-gray-400 mb-1">12x de</div>
-              <div className="text-7xl md:text-8xl font-black text-amber-400">R$41</div>
-              <p className="text-gray-500 text-sm mt-2">ou à vista R$397</p>
-              <p className="text-green-400 font-bold mt-4 text-lg">✨ Economize mais de R$500! ✨</p>
+
+              {/* Traffic manager comparison */}
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+                <p className="text-green-400 font-bold text-lg mb-2">💰 PAGAMENTO ÚNICO</p>
+                <p className="text-gray-400 text-sm">Menor que um valor pago mensal para um gestor de tráfego!</p>
+              </div>
+
+              <p className="text-red-400 font-bold text-lg animate-pulse">⏰ Promoção válida apenas nas próximas:</p>
+              
+              <div className="flex items-center justify-center gap-2">
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-4 py-2">
+                  <span className="text-red-400 font-bold text-xl">{String(timeLeft.hours).padStart(2, '0')}h</span>
+                </div>
+                <span className="text-gray-500 text-xl">:</span>
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-4 py-2">
+                  <span className="text-red-400 font-bold text-xl">{String(timeLeft.minutes).padStart(2, '0')}m</span>
+                </div>
+                <span className="text-gray-500 text-xl">:</span>
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-4 py-2">
+                  <span className="text-red-400 font-bold text-xl">{String(timeLeft.seconds).padStart(2, '0')}s</span>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-3 mb-8">
@@ -505,28 +553,15 @@ const VendasCompleta = () => {
 
             <Button 
               size="xl"
-              className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:via-orange-600 hover:to-red-600 text-black font-black text-xl py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:scale-105 transition-transform"
-              onClick={() => window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+PROMO+VITALICIO","price":39700,"quantity":1}]&redirect_url=https://acessar.click/obrigado', '_blank')}
+              className="w-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-black text-xl py-8 rounded-xl shadow-lg shadow-green-500/30 hover:scale-105 transition-transform"
+              onClick={() => {
+                const phone = salesSettings.whatsappNumber.replace(/\D/g, '');
+                const message = encodeURIComponent(salesSettings.whatsappMessage);
+                window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+              }}
             >
-              🔥 GARANTIR MEU ACESSO VITALÍCIO 🔥
+              💬 {salesSettings.ctaButtonText}
             </Button>
-
-            <div className="mt-6 text-center">
-              <p className="text-gray-400 text-sm">Promoção válida apenas nas próximas</p>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-3 py-1">
-                  <span className="text-red-400 font-bold">{String(timeLeft.hours).padStart(2, '0')}h</span>
-                </div>
-                <span className="text-gray-500">:</span>
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-3 py-1">
-                  <span className="text-red-400 font-bold">{String(timeLeft.minutes).padStart(2, '0')}m</span>
-                </div>
-                <span className="text-gray-500">:</span>
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-3 py-1">
-                  <span className="text-red-400 font-bold">{String(timeLeft.seconds).padStart(2, '0')}s</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { getAdminData, saveAdminData, FacebookPixelSettings, CallPageSettings, CallPageContent } from '@/lib/adminConfig';
+import { getAdminData, saveAdminData, FacebookPixelSettings, CallPageSettings, CallPageContent, SalesPageSettings } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Save, Upload, Loader2, Check, Phone, ExternalLink, 
-  Volume2, Play, Trash2, Facebook, Type, Link2, CloudUpload
+  Volume2, Play, Trash2, Facebook, Type, Link2, CloudUpload, MessageCircle
 } from 'lucide-react';
 
 const DEFAULT_CALL_CONTENT: CallPageContent = {
@@ -54,6 +54,14 @@ const PixelAndCallSettings = () => {
     }
   );
 
+  const [salesPageSettings, setSalesPageSettings] = useState<SalesPageSettings>(
+    adminData.settings.salesPageSettings || {
+      whatsappNumber: '+55 51 9203-6540',
+      whatsappMessage: 'Gostaria de saber sobre a promoção.',
+      ctaButtonText: 'Gostaria de aproveitar a promoção'
+    }
+  );
+
   const [testingPixel, setTestingPixel] = useState(false);
 
   // Load settings from cloud on mount
@@ -69,6 +77,7 @@ const PixelAndCallSettings = () => {
           if (data.data.callSettings) setCallSettings(data.data.callSettings);
           if (data.data.callContent) setCallContent(data.data.callContent);
           if (data.data.pixelSettings) setPixelSettings(data.data.pixelSettings);
+          if (data.data.salesPageSettings) setSalesPageSettings(data.data.salesPageSettings);
           toast({ title: "Carregado!", description: "Configurações carregadas da nuvem." });
         }
       } catch (err) {
@@ -118,6 +127,7 @@ const PixelAndCallSettings = () => {
     data.settings.callPageSettings = callSettings;
     data.settings.callPageContent = callContent;
     data.settings.pixelSettings = pixelSettings;
+    data.settings.salesPageSettings = salesPageSettings;
     saveAdminData(data);
     
     // Save to cloud
@@ -129,13 +139,14 @@ const PixelAndCallSettings = () => {
           data: {
             callSettings,
             callContent,
-            pixelSettings
+            pixelSettings,
+            salesPageSettings
           }
         }
       });
       
       if (error) throw error;
-      toast({ title: "Salvo na nuvem!", description: "Configurações de Pixel e Ligação atualizadas e salvas na nuvem." });
+      toast({ title: "Salvo na nuvem!", description: "Configurações atualizadas e salvas na nuvem." });
     } catch (err) {
       console.error('[PixelAndCallSettings] Error saving to cloud:', err);
       toast({ title: "Salvo localmente", description: "Não foi possível salvar na nuvem, mas as configurações locais foram atualizadas.", variant: "destructive" });
@@ -538,6 +549,58 @@ const PixelAndCallSettings = () => {
         <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
           <p className="text-sm text-green-400">
             <strong>💡 Dica:</strong> As alterações serão salvas na nuvem e carregadas automaticamente na página /ligacao.
+          </p>
+        </div>
+      </div>
+
+      {/* Sales Page WhatsApp Settings */}
+      <div className="border border-border rounded-lg p-6 space-y-6 bg-card">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <MessageCircle className="w-5 h-5 text-green-500" />
+          Configurações da Página de Vendas (/instagram-nova)
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Configure o WhatsApp e botão da página de vendas promocional.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Número do WhatsApp</Label>
+            <Input
+              value={salesPageSettings.whatsappNumber}
+              onChange={(e) => setSalesPageSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+              placeholder="+55 51 9203-6540"
+              className="bg-secondary/50 mt-1"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Formato: +55 XX XXXXX-XXXX</p>
+          </div>
+          
+          <div>
+            <Label>Texto do Botão CTA</Label>
+            <Input
+              value={salesPageSettings.ctaButtonText}
+              onChange={(e) => setSalesPageSettings(prev => ({ ...prev, ctaButtonText: e.target.value }))}
+              placeholder="Gostaria de aproveitar a promoção"
+              className="bg-secondary/50 mt-1"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <Label>Mensagem Pré-preenchida do WhatsApp</Label>
+          <Textarea
+            value={salesPageSettings.whatsappMessage}
+            onChange={(e) => setSalesPageSettings(prev => ({ ...prev, whatsappMessage: e.target.value }))}
+            placeholder="Gostaria de saber sobre a promoção."
+            className="bg-secondary/50 mt-1"
+            rows={3}
+          />
+          <p className="text-xs text-muted-foreground mt-1">Mensagem que será enviada automaticamente ao clicar no botão</p>
+        </div>
+
+        <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+          <p className="text-sm text-green-400">
+            <strong>💡 Dica:</strong> Estas configurações são usadas na página /instagram-nova para o botão de promoção.
           </p>
         </div>
       </div>

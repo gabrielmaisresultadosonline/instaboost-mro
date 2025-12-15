@@ -65,7 +65,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
         ctaButtonLink: 'https://acessar.click/mrointeligente',
         profileUsername: '@maisresultadosonline'
       },
-      pixelSettings: { pixelId: '', enabled: false, trackPageView: false, trackLead: false, trackViewContent: false, customEvents: [] }
+      pixelSettings: { pixelId: '', enabled: false, trackPageView: false, trackLead: false, trackViewContent: false, customEvents: [] },
+      salesPageSettings: { whatsappNumber: '+55 51 9203-6540', whatsappMessage: 'Gostaria de saber sobre a promoção.', ctaButtonText: 'Gostaria de aproveitar a promoção' }
     },
     tutorials: [],
     modules: [],
