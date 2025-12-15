@@ -15,6 +15,7 @@ import VendasCompleta from "./pages/VendasCompleta";
 import Membro from "./pages/Membro";
 import Ligacao from "./pages/Ligacao";
 import Obrigado from "./pages/Obrigado";
+import ZapMROVendas from "./pages/ZapMROVendas";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/" element={<ToolSelector />} />
           <Route path="/instagram" element={<Index />} />
           <Route path="/zapmro" element={<ZapMRO />} />
+          <Route path="/zapmro/vendas" element={<ZapMROVendas />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/mro-ferramenta" element={<MROFerramenta />} />
