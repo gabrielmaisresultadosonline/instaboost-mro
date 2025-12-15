@@ -465,11 +465,11 @@ const VendasCompleta = () => {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             {bonusIAFeatures.slice(3).map((feature, i) => (
               <div 
                 key={i}
-                className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300"
+                className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300 w-full md:w-[calc(33.333%-1rem)] md:max-w-[350px]"
               >
                 <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
                   <feature.icon className="w-6 h-6 text-amber-400" />
