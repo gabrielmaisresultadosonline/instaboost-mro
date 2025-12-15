@@ -488,12 +488,12 @@ const VendasCompleta = () => {
         
         <div className="max-w-4xl mx-auto relative z-10">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-6 py-3 mb-6 animate-pulse">
-              <span className="text-2xl">🎄</span>
-              <span className="text-red-400 font-black text-lg">PROMOÇÃO DE FINAL DE ANO!</span>
-              <span className="text-2xl">🎄</span>
+            <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 animate-pulse">
+              <span className="text-xl sm:text-2xl">🎄</span>
+              <span className="text-red-400 font-black text-sm sm:text-lg">PROMOÇÃO DE FINAL DE ANO!</span>
+              <span className="text-xl sm:text-2xl">🎄</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
               <span className="text-amber-400">PROMOÇÃO VITALÍCIA</span> ACABANDO!
             </h2>
             <p className="text-gray-400 text-lg">
@@ -502,9 +502,9 @@ const VendasCompleta = () => {
           </div>
 
           {/* Plano Vitalício PROMO */}
-          <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-3xl p-8 md:p-12 shadow-2xl shadow-amber-500/30 max-w-2xl mx-auto">
-            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-              <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-sm font-black px-6 py-2 rounded-full animate-bounce">
+          <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-12 shadow-2xl shadow-amber-500/30 max-w-2xl mx-auto">
+            <div className="absolute -top-4 sm:-top-5 left-1/2 transform -translate-x-1/2">
+              <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-xs sm:text-sm font-black px-3 sm:px-6 py-1.5 sm:py-2 rounded-full animate-bounce whitespace-nowrap">
                 🎉 PROMOÇÃO DE FINAL DE ANO 🎉
               </div>
             </div>
@@ -514,30 +514,30 @@ const VendasCompleta = () => {
 
             <div className="text-center mb-8 space-y-6">
               {/* Pizza comparison */}
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-6">
-                <p className="text-amber-400 font-bold text-lg mb-2">🍕 PARCELINHA MENOR QUE UMA PIZZA MÉDIA</p>
-                <p className="text-gray-400 text-sm">em sua cidade mensal</p>
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 sm:p-6">
+                <p className="text-amber-400 font-bold text-sm sm:text-lg mb-2">🍕 PARCELINHA MENOR QUE UMA PIZZA MÉDIA</p>
+                <p className="text-gray-400 text-xs sm:text-sm">em sua cidade mensal</p>
               </div>
 
               {/* Traffic manager comparison */}
-              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
-                <p className="text-green-400 font-bold text-lg mb-2">💰 PAGAMENTO ÚNICO</p>
-                <p className="text-gray-400 text-sm">Menor que um valor pago mensal para um gestor de tráfego!</p>
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 sm:p-6">
+                <p className="text-green-400 font-bold text-sm sm:text-lg mb-2">💰 PAGAMENTO ÚNICO</p>
+                <p className="text-gray-400 text-xs sm:text-sm">Menor que um valor pago mensal para um gestor de tráfego!</p>
               </div>
 
-              <p className="text-red-400 font-bold text-lg animate-pulse">⏰ Promoção válida apenas nas próximas:</p>
+              <p className="text-red-400 font-bold text-sm sm:text-lg animate-pulse">⏰ Promoção válida apenas nas próximas:</p>
               
-              <div className="flex items-center justify-center gap-2">
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-4 py-2">
-                  <span className="text-red-400 font-bold text-xl">{String(timeLeft.hours).padStart(2, '0')}h</span>
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
+                  <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.hours).padStart(2, '0')}h</span>
                 </div>
-                <span className="text-gray-500 text-xl">:</span>
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-4 py-2">
-                  <span className="text-red-400 font-bold text-xl">{String(timeLeft.minutes).padStart(2, '0')}m</span>
+                <span className="text-gray-500 text-lg sm:text-xl">:</span>
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
+                  <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.minutes).padStart(2, '0')}m</span>
                 </div>
-                <span className="text-gray-500 text-xl">:</span>
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-4 py-2">
-                  <span className="text-red-400 font-bold text-xl">{String(timeLeft.seconds).padStart(2, '0')}s</span>
+                <span className="text-gray-500 text-lg sm:text-xl">:</span>
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
+                  <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.seconds).padStart(2, '0')}s</span>
                 </div>
               </div>
             </div>
@@ -553,14 +553,17 @@ const VendasCompleta = () => {
 
             <Button 
               size="xl"
-              className="w-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-black text-xl py-8 rounded-xl shadow-lg shadow-green-500/30 hover:scale-105 transition-transform"
+              className="w-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-black text-base sm:text-lg md:text-xl py-6 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:scale-105 transition-transform whitespace-normal h-auto min-h-[60px] leading-tight px-4 sm:px-6"
               onClick={() => {
                 const phone = salesSettings.whatsappNumber.replace(/\D/g, '');
                 const message = encodeURIComponent(salesSettings.whatsappMessage);
                 window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
               }}
             >
-              💬 {salesSettings.ctaButtonText}
+              <span className="flex items-center justify-center gap-2 flex-wrap text-center">
+                <span>💬</span>
+                <span>{salesSettings.ctaButtonText}</span>
+              </span>
             </Button>
           </div>
         </div>
@@ -748,10 +751,13 @@ const VendasCompleta = () => {
           </p>
           <Button 
             size="lg"
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xl px-12 py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105"
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-base sm:text-lg md:text-xl px-6 sm:px-12 py-6 sm:py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105 whitespace-normal h-auto min-h-[60px] leading-tight"
             onClick={scrollToPricing}
           >
-            GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
+            <span className="flex items-center justify-center gap-2 flex-wrap text-center">
+              <span>GARANTIR MEU ACESSO AGORA</span>
+              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            </span>
           </Button>
         </div>
       </section>
