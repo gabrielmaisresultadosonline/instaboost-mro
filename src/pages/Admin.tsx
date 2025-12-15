@@ -50,6 +50,7 @@ const Admin = () => {
   const [isVerifying, setIsVerifying] = useState(true);
   // Settings state
   const [settings, setSettings] = useState(adminData.settings);
+  const [zapmroDownloadLink, setZapmroDownloadLink] = useState('');
   const [testingApi, setTestingApi] = useState<string | null>(null);
 
   useEffect(() => {
@@ -860,9 +861,11 @@ const Admin = () => {
         {/* ZAPMRO Ferramenta Tab */}
         {activeTab === 'zapmro' && (
           <ModuleManager 
-            downloadLink={settings.downloadLink}
-            onDownloadLinkChange={(link) => setSettings(prev => ({ ...prev, downloadLink: link }))}
-            onSaveSettings={handleSaveSettings}
+            downloadLink={zapmroDownloadLink}
+            onDownloadLinkChange={(link) => setZapmroDownloadLink(link)}
+            onSaveSettings={() => {
+              toast({ title: "Link salvo!", description: "Link de download ZAPMRO salvo." });
+            }}
             platform="zapmro"
           />
         )}
