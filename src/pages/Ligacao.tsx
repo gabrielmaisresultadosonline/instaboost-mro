@@ -295,24 +295,27 @@ const Ligacao = () => {
     overflow: 'hidden',
   };
 
+  // Fallback to default URLs if cloud settings are empty
+  const ringtoneUrl = callPageSettings.ringtoneUrl || '/ringtone.mp4';
+  const audioUrl = callPageSettings.audioUrl || '/call-audio.mp3';
+
   return (
     <>
       {/* Hidden video for ringtone - plays audio only */}
       <video 
         ref={ringtoneVideoRef} 
-        src={callPageSettings.ringtoneUrl}
+        src={ringtoneUrl}
         preload="auto"
         playsInline
-        webkit-playsinline="true"
+        muted={false}
         style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
       />
       <audio 
         ref={audioRef} 
-        src={callPageSettings.audioUrl}
+        src={audioUrl}
         onEnded={handleAudioEnded}
         preload="auto"
         playsInline
-        webkit-playsinline="true"
       />
 
       {/* Landing Page */}
