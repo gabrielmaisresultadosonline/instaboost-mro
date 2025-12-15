@@ -176,49 +176,13 @@ const VendasCompleta = () => {
 
       {/* Hero Section */}
       <section className="relative pt-28 pb-16 px-4">
-        {/* Promo Banner */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="relative bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 rounded-2xl p-1 animate-pulse">
-            <div className="bg-black rounded-xl p-4 md:p-6 text-center">
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl md:text-3xl">🔥</span>
-                  <span className="text-xl md:text-2xl font-black text-white">DEU A LOUCA NO CHEF!</span>
-                  <span className="text-2xl md:text-3xl">🔥</span>
-                </div>
-                <div className="bg-red-600 rounded-lg px-4 py-2 animate-bounce">
-                  <span className="text-white font-bold text-lg">-60% OFF</span>
-                </div>
-              </div>
-              <p className="text-amber-400 font-bold mt-2 text-lg">Promoção acabando em:</p>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <div className="bg-red-600 rounded-lg px-3 py-2 min-w-[60px]">
-                  <span className="text-white font-black text-xl">{String(timeLeft.hours).padStart(2, '0')}</span>
-                  <span className="text-white/80 text-xs block">HORAS</span>
-                </div>
-                <span className="text-white font-bold text-xl">:</span>
-                <div className="bg-red-600 rounded-lg px-3 py-2 min-w-[60px]">
-                  <span className="text-white font-black text-xl">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                  <span className="text-white/80 text-xs block">MIN</span>
-                </div>
-                <span className="text-white font-bold text-xl">:</span>
-                <div className="bg-red-600 rounded-lg px-3 py-2 min-w-[60px]">
-                  <span className="text-white font-black text-xl">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                  <span className="text-white/80 text-xs block">SEG</span>
-                </div>
-              </div>
-              <p className="text-green-400 font-bold mt-3 text-sm md:text-base">⚡ APROVEITE AGORA MESMO! ⚡</p>
-            </div>
-          </div>
-        </div>
-
         <div className="max-w-5xl mx-auto text-center">
           <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-8 object-contain" />
           
           {/* Animated Title */}
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent animate-pulse">
+            <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
               NÃO GASTE MAIS COM ANÚNCIOS
             </h1>
             <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black">
