@@ -360,11 +360,15 @@ const ZapMROVendas = () => {
               </div>
 
               <div className="flex flex-col items-center justify-center text-center">
-                <p className="text-gray-400 mb-2">De <span className="line-through">R$997,00</span> por apenas:</p>
-                <div className="text-6xl md:text-7xl font-black text-green-400 mb-2">
-                  R$397
+                <p className="text-gray-500 text-sm mb-4">ou R$397 à vista</p>
+                
+                <div className="mb-2">
+                  <span className="text-2xl text-gray-400">12x de</span>
                 </div>
-                <p className="text-gray-400 mb-6">ou em até <strong className="text-white">12x de R$33,00</strong></p>
+                <div className="text-7xl md:text-8xl font-black text-green-400 mb-1">
+                  R$33
+                </div>
+                <p className="text-xl text-gray-300 font-medium mb-6">por mês</p>
 
                 <Button 
                   size="lg"
