@@ -4,7 +4,7 @@
 # Script de Instalação Automática - I.A MRO
 # Para Ubuntu LTS (VPS Hostinger)
 # Repositório: https://github.com/gabrielmaisresultadosonline/instaboost-mro.git
-# Domínio: acessar.click
+# Domínio: maisresultadosonline.com.br
 # =============================================================
 
 set -e
