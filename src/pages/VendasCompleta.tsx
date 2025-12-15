@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Sparkles, 
   TrendingUp, 
@@ -15,10 +12,7 @@ import {
   ArrowRight,
   Shield,
   Clock,
-  Palette,
   BarChart3,
-  Crown,
-  LogIn,
   Play,
   Heart,
   Eye,
@@ -28,772 +22,465 @@ import {
   FileText,
   Image,
   Lightbulb,
-  Rocket,
   Star,
   Gift,
-  MessageCircle,
-  Monitor,
-  BadgeCheck
+  X,
+  Brain,
+  RefreshCw,
+  ChevronDown
 } from "lucide-react";
-import { Logo } from "@/components/Logo";
-import creative1 from "@/assets/creative-1.webp";
-import creative2 from "@/assets/creative-2.jpg";
-import creative3 from "@/assets/creative-3.jpg";
-import creative4 from "@/assets/creative-4.jpg";
+import logoMro from "@/assets/logo-mro.png";
 
-const creativeImages = [creative1, creative2, creative3, creative4];
-
-const iaFeatures = [
-  {
-    icon: BarChart3,
-    title: "Análise Completa do Perfil",
-    description: "Nossa I.A analisa seu perfil em profundidade: bio, posts, engajamento, público-alvo e identifica pontos de melhoria"
-  },
-  {
-    icon: Calendar,
-    title: "Estratégia de 30 Dias",
-    description: "Planejamento completo com calendário de postagens, melhores horários e tipos de conteúdo que geram resultados"
-  },
-  {
-    icon: Image,
-    title: "6 Criativos Profissionais",
-    description: "Imagens geradas por I.A prontas para publicar no feed e stories, com CTAs e sua identidade visual"
-  },
-  {
-    icon: FileText,
-    title: "Bio Otimizada",
-    description: "Sugestões personalizadas para transformar sua bio em uma máquina de conversão de visitantes em seguidores"
-  },
-  {
-    icon: Lightbulb,
-    title: "Ideias de Conteúdo",
-    description: "Dezenas de ideias de posts, reels e stories alinhadas com seu nicho para nunca ficar sem conteúdo"
-  },
-  {
-    icon: Target,
-    title: "Estratégias de Vendas",
-    description: "Scripts prontos e gatilhos mentais para transformar seguidores em clientes pagantes"
-  }
-];
-
-const mroFeatures = [
-  {
-    icon: Heart,
-    title: "Curtir Fotos Automaticamente",
-    description: "A ferramenta curte fotos de potenciais clientes do seu nicho automaticamente"
-  },
-  {
-    icon: Eye,
-    title: "Visualizar Stories",
-    description: "Visualiza stories de outras contas, gerando notificações e curiosidade sobre você"
-  },
-  {
-    icon: UserPlus,
-    title: "Seguir Contas Relevantes",
-    description: "Segue pessoas que têm interesse no seu nicho buscando em contas de concorrentes"
-  },
-  {
-    icon: Zap,
-    title: "200 Pessoas por Dia",
-    description: "Interação com até 200 novos potenciais clientes todos os dias, de forma segura"
-  },
-  {
-    icon: Users,
-    title: "Deixar de Seguir Automaticamente",
-    description: "Deixa de seguir quem não te segue de volta ou limpa toda sua lista de seguindo"
-  },
-  {
-    icon: Shield,
-    title: "Remover Seguidores Fakes",
-    description: "Remove seguidores falsos e corrige shadow ban do seu perfil causado por compra de seguidores"
-  },
-  {
-    icon: Target,
-    title: "Rastrear Contatos",
-    description: "Rastreia e-mails e números de WhatsApp das contas para você entrar em contato direto"
-  }
-];
-
-const benefits = [
-  "Aumente suas vendas sem gastar com anúncios",
-  "Atraia leads qualificados organicamente",
-  "Cresça de 1.000 a 10.000 seguidores por mês",
-  "Transforme seu perfil em máquina de vendas",
-  "Economize horas de trabalho manual",
-  "Resultados comprovados em qualquer nicho"
-];
-
-export default function VendasCompleta() {
+const VendasCompleta = () => {
   const navigate = useNavigate();
-  const [showVideo, setShowVideo] = useState(false);
-  const [showPricing, setShowPricing] = useState(false);
-  const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
-  const [reachedPricing, setReachedPricing] = useState(false);
-  const [showTopBanner, setShowTopBanner] = useState(false);
-  const [countdown, setCountdown] = useState(33 * 60 * 60); // 33 hours in seconds
-  const videoSectionRef = useRef<HTMLDivElement>(null);
-  const iaSectionRef = useRef<HTMLDivElement>(null);
-  const creativeSectionRef = useRef<HTMLDivElement>(null);
-  const mroSectionRef = useRef<HTMLDivElement>(null);
-  const pricingSectionRef = useRef<HTMLDivElement>(null);
-  const [currentSection, setCurrentSection] = useState(0);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const pricingRef = useRef<HTMLDivElement>(null);
 
-  const sections = [iaSectionRef, creativeSectionRef, mroSectionRef, pricingSectionRef];
-
-  // Countdown timer effect
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 0) return 0;
-        return prev - 1;
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        return { hours: 23, minutes: 59, seconds: 59 };
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
-  const formatCountdown = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return {
-      hours: hours.toString().padStart(2, '0'),
-      minutes: minutes.toString().padStart(2, '0'),
-      seconds: secs.toString().padStart(2, '0')
-    };
+  const scrollToPricing = () => {
+    pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const time = formatCountdown(countdown);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      
-      // Show pricing after scrolling past 40% of the page
-      if (scrollPosition > (documentHeight - windowHeight) * 0.4) {
-        setShowPricing(true);
-      }
-      
-      // Check if reached pricing section and show top banner when scrolling up
-      if (pricingSectionRef.current) {
-        const pricingTop = pricingSectionRef.current.getBoundingClientRect().top;
-        if (pricingTop < windowHeight * 0.8) {
-          setReachedPricing(true);
-        }
-        // Show top banner after scrolling past pricing and scrolling back up
-        if (pricingTop < 0 && scrollPosition < documentHeight - windowHeight - 200) {
-          setShowTopBanner(true);
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleBuyAnual = () => {
-    window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+I.A+++Automação+(+ANUAL+)+","price":39700,"quantity":1}]&redirect_url=https://acessar.click/obrigado', '_blank');
-  };
-
-  const handleBuyVitalicio = () => {
-    window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+I.A+++Automação+(+ANUAL+)+","price":99700,"quantity":1}]&redirect_url=https://acessar.click/obrigado', '_blank');
-  };
-
-  const handleViewMore = () => {
-    const nextSection = sections[currentSection];
-    if (nextSection?.current) {
-      nextSection.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setCurrentSection(prev => Math.min(prev + 1, sections.length - 1));
+  const mainCards = [
+    {
+      title: "Não Gaste Com Anúncios Faça Você Mesmo",
+      description: "Ferramenta premium para crescimento orgânico no Instagram sem investir em anúncios",
+      buttonText: "ACESSAR FERRAMENTA",
+      borderColor: "border-l-amber-500",
+      action: () => scrollToPricing()
+    },
+    {
+      title: "Deixe Nós Trabalhar Para Você! Vamos Escalar Por Você!",
+      description: "Nossa equipe especializada cuida de todo o crescimento do seu perfil profissionalmente",
+      buttonText: "CONTRATAR SERVIÇO",
+      borderColor: "border-l-amber-500",
+      action: () => window.open("https://wa.me/5551920036540?text=Olá! Quero saber mais sobre o serviço de crescimento profissional!", "_blank")
     }
-  };
+  ];
 
-  const handleWhatsAppClick = () => {
-    setShowWhatsAppDialog(true);
-  };
-
-  const handleWhatsAppConfirm = (sawContent: boolean) => {
-    setShowWhatsAppDialog(false);
-    
-    if (sawContent) {
-      const phone = "5551920536540";
-      const message = encodeURIComponent("Acabei de vim do site, gostaria de tirar algumas dúvidas.");
-      window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-    } else {
-      // Scroll to video section
-      videoSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const bonusFeatures = [
+    {
+      icon: Brain,
+      title: "Análise de I.A Completa",
+      description: "Nossa inteligência artificial analisa seu perfil em profundidade: bio, posts, engajamento e identifica todas as oportunidades de melhoria"
+    },
+    {
+      icon: Calendar,
+      title: "Acompanhamento Anual",
+      description: "Suporte e acompanhamento durante todo o ano para garantir que você está sempre evoluindo e alcançando seus objetivos"
+    },
+    {
+      icon: RefreshCw,
+      title: "Estratégias Mensais (30 em 30 dias)",
+      description: "A cada 30 dias você recebe uma nova estratégia personalizada baseada no seu nicho e nos resultados do mês anterior"
+    },
+    {
+      icon: Image,
+      title: "6 Criativos por Estratégia",
+      description: "Imagens profissionais geradas por I.A prontas para publicar no feed e stories, com CTAs e sua identidade visual"
+    },
+    {
+      icon: Lightbulb,
+      title: "Ideias de Conteúdo Ilimitadas",
+      description: "Dezenas de ideias de posts, reels e stories alinhadas com seu nicho para nunca ficar sem conteúdo"
+    },
+    {
+      icon: Target,
+      title: "Scripts de Vendas",
+      description: "Scripts prontos e gatilhos mentais para transformar seguidores em clientes pagantes"
     }
-  };
+  ];
+
+  const mroFeatures = [
+    { icon: Heart, title: "Curtir Fotos", desc: "Curte fotos de potenciais clientes automaticamente" },
+    { icon: Eye, title: "Ver Stories", desc: "Visualiza stories gerando curiosidade sobre você" },
+    { icon: UserPlus, title: "Seguir Contas", desc: "Segue pessoas do seu nicho automaticamente" },
+    { icon: Zap, title: "200/dia", desc: "Interação com 200 pessoas todos os dias" },
+  ];
+
+  const planFeatures = [
+    "Ferramenta MRO completa por 1 ano",
+    "4 contas de Instagram simultaneamente",
+    "Análise de I.A do seu perfil",
+    "Estratégias mensais personalizadas (30 em 30 dias)",
+    "6 criativos por estratégia",
+    "Acompanhamento anual completo",
+    "Suporte via WhatsApp",
+    "Área de membros VIP",
+    "Atualizações incluídas",
+    "Garantia de 30 dias"
+  ];
+
+  const faqs = [
+    {
+      q: "Como funciona a ferramenta MRO?",
+      a: "A MRO é uma extensão que funciona no seu navegador. Ela automatiza interações orgânicas como curtir fotos, ver stories e seguir pessoas do seu nicho, gerando até 200 novas interações por dia de forma segura."
+    },
+    {
+      q: "Como funcionam as estratégias mensais?",
+      a: "A cada 30 dias, nossa I.A analisa seu perfil e gera uma nova estratégia personalizada com calendário de postagens, ideias de conteúdo, 6 criativos prontos e scripts de vendas baseados no seu nicho."
+    },
+    {
+      q: "Posso usar em mais de uma conta?",
+      a: "Sim! Com o plano anual você pode usar a ferramenta em até 4 contas de Instagram diferentes, gerenciando múltiplos perfis simultaneamente."
+    },
+    {
+      q: "É seguro usar a ferramenta?",
+      a: "Sim! A MRO simula comportamento humano e respeita os limites do Instagram. São apenas 200 interações por dia, dentro do padrão de uso normal."
+    },
+    {
+      q: "E se eu não gostar?",
+      a: "Você tem 30 dias de garantia. Se não tiver resultados reais de engajamento e crescimento, devolvemos 100% do seu investimento."
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-yellow-950/10 to-primary/10">
+    <div className="min-h-screen bg-gray-950 text-white overflow-x-hidden">
       {/* Header */}
-      <header className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
-          <Logo size="lg" />
+      <header className="fixed top-0 left-0 right-0 z-50 bg-gray-950/90 backdrop-blur-lg border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <img src={logoMro} alt="MRO" className="h-10 object-contain" />
           <Button 
-            variant="outline" 
-            onClick={() => navigate('/')}
-            className="gap-2"
+            onClick={scrollToPricing}
+            className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
           >
-            <LogIn className="w-4 h-4" />
-            Acessar / Login
+            Garantir Acesso
           </Button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-12 text-center">
-        <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-background border-yellow-500/30">
-          <Sparkles className="w-3 h-3 mr-1" />
-          Inteligência Artificial + Automação
-        </Badge>
-        
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-yellow-400 via-yellow-500 to-primary bg-clip-text text-transparent">
-          I.A para Instagram com Automação
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-muted-foreground mb-6 max-w-4xl mx-auto">
-          <span className="text-foreground font-semibold">Sem precisar gastar com anúncios.</span> A I.A MRO cria estratégias 
-          personalizadas, criativos profissionais e a Ferramenta MRO automatiza seu engajamento 24 horas por dia.
-        </p>
-
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
-          {benefits.slice(0, 3).map((benefit, index) => (
-            <div key={index} className="flex items-center gap-2 text-sm md:text-base">
-              <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-              <span>{benefit}</span>
-            </div>
-          ))}
+      {/* Hero */}
+      <section className="relative pt-28 pb-20 px-4">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl" />
         </div>
 
-        {reachedPricing ? (
-          <Button 
-            size="lg" 
-            className="text-lg px-8 py-6 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-background animate-pulse-glow"
-            onClick={handleBuyAnual}
-          >
-            <Rocket className="mr-2 h-5 w-5" />
-            Comprar Agora
-          </Button>
-        ) : (
-          <Button 
-            size="lg" 
-            className="text-lg px-8 py-6 bg-gradient-to-r from-yellow-500 to-primary hover:from-yellow-600 hover:to-primary/90 text-background"
-            onClick={handleViewMore}
-          >
-            Ver Mais
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        )}
-      </section>
-
-      {/* I.A Features Section */}
-      <section ref={iaSectionRef} className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-background border-yellow-500/30">
-            <Bot className="w-3 h-3 mr-1" />
-            Inteligência Artificial
-          </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-yellow-500 to-primary bg-clip-text text-transparent">
-            O Poder da I.A MRO no seu Instagram
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Nossa inteligência artificial analisa seu perfil e cria estratégias personalizadas para transformar 
-            seu Instagram em uma máquina de vendas
+        <div className="max-w-6xl mx-auto text-center relative z-10">
+          <img src={logoMro} alt="MRO" className="h-24 md:h-32 mx-auto mb-8 object-contain" />
+          
+          <h1 className="text-4xl md:text-6xl font-black mb-4 text-amber-400">
+            FERRAMENTAS & ESTRATÉGIAS
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto">
+            Soluções premium para escalar seu negócio digital
           </p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {iaFeatures.map((feature, index) => (
-            <Card key={index} className="glass-card border-yellow-500/20 hover:border-yellow-500/40 transition-all group">
-              <CardHeader>
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500/30 to-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <feature.icon className="w-7 h-7 text-yellow-500" />
-                </div>
-                <CardTitle className="text-xl">{feature.title}</CardTitle>
-                <CardDescription className="text-base">{feature.description}</CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
+
+          <div className="w-32 h-1 bg-amber-500 mx-auto mt-8" />
         </div>
       </section>
 
-      {/* Creative Generation Highlight */}
-      <section ref={creativeSectionRef} className="container mx-auto px-4 py-16">
-        <Card className="glass-card border-yellow-500/30 bg-gradient-to-br from-yellow-500/5 to-primary/5 overflow-hidden">
-          <div className="grid md:grid-cols-2 gap-8 p-8">
-            <div>
-              <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-background border-yellow-500/30">
-                <Palette className="w-3 h-3 mr-1" />
-                Criativos com I.A
-              </Badge>
-              <h3 className="text-3xl font-bold mb-4">
-                6 Criativos Profissionais Todo Mês
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Nossa I.A gera imagens únicas e profissionais baseadas no seu negócio, 
-                com CTAs estratégicos, sua logo e cores da sua marca. Prontos para publicar!
-              </p>
-              <ul className="space-y-3">
-                {[
-                  "Imagens personalizadas para seu nicho",
-                  "CTAs que convertem visitantes em clientes",
-                  "Sua logo integrada automaticamente",
-                  "Cores e estilo da sua marca",
-                  "Formato feed 1080x1080px",
-                  "Download instantâneo em alta qualidade"
-                ].map((item, index) => (
-                  <li key={index} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
+      {/* Main Cards Grid */}
+      <section className="py-12 px-4">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+          {mainCards.map((card, i) => (
+            <div 
+              key={i}
+              className={`bg-gray-900/80 border border-gray-800 border-l-4 ${card.borderColor} rounded-lg p-8 hover:bg-gray-800/80 transition-all duration-300`}
+            >
+              <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center mb-6">
+                <Instagram className="w-6 h-6 text-amber-400" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">{card.title}</h3>
+              <p className="text-gray-400 mb-6">{card.description}</p>
+              <Button 
+                onClick={card.action}
+                className="bg-transparent border-2 border-amber-500 text-amber-400 hover:bg-amber-500 hover:text-black font-bold"
+              >
+                {card.buttonText}
+              </Button>
             </div>
-            <div className="flex items-center justify-center">
-              <div className="grid grid-cols-2 gap-4">
-                {creativeImages.map((img, index) => (
-                  <div 
-                    key={index} 
-                    className="w-32 h-40 md:w-40 md:h-52 rounded-xl overflow-hidden border-2 border-yellow-500/30 animate-float shadow-lg shadow-yellow-500/20"
-                    style={{ animationDelay: `${index * 0.2}s` }}
-                  >
-                    <img 
-                      src={img} 
-                      alt={`Criativo exemplo ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
+          ))}
+        </div>
+
+        {/* Single Card - Método 5K */}
+        <div className="max-w-6xl mx-auto mt-6">
+          <div className="bg-gray-900/80 border border-gray-800 border-l-4 border-l-amber-500 rounded-lg p-8">
+            <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center mb-6">
+              <TrendingUp className="w-6 h-6 text-amber-400" />
+            </div>
+            <h3 className="text-2xl font-bold mb-3">Preste Serviço Com A MRO! E Fatura Mais De 5k</h3>
+            <p className="text-gray-400 mb-6">Método exclusivo e comprovado para faturamento recorrente trabalhando com a Mais Resultados Online</p>
+            <Button 
+              onClick={scrollToPricing}
+              className="bg-transparent border-2 border-amber-500 text-amber-400 hover:bg-amber-500 hover:text-black font-bold"
+            >
+              MÉTODO 5K+
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Video Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div 
+            onClick={() => setShowVideoModal(true)}
+            className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border-2 border-amber-500/30"
+          >
+            <img 
+              src="https://img.youtube.com/vi/U-WmszcYekA/maxresdefault.jpg" 
+              alt="Video MRO" 
+              className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center group-hover:bg-black/40 transition-colors">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/50">
+                <Play className="w-10 h-10 text-black ml-1" fill="black" />
               </div>
             </div>
           </div>
-        </Card>
+          <p className="text-center text-gray-400 mt-4">Veja como funciona a ferramenta MRO</p>
+        </div>
       </section>
 
-      {/* MRO Tool Section */}
-      <section id="ferramenta-mro" ref={mroSectionRef} className="container mx-auto px-4 py-16">
-        <div ref={videoSectionRef} />
-        <Card className="glass-card border-yellow-500/40 bg-gradient-to-br from-yellow-500/15 via-yellow-500/5 to-background overflow-hidden">
-          <CardHeader className="text-center pb-8">
-            <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-500/30 to-yellow-500/10 flex items-center justify-center animate-pulse-glow">
-                <Crown className="w-10 h-10 text-yellow-500" />
-              </div>
+      {/* MRO Tool Features */}
+      <section className="py-16 px-4 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-pink-500/10 border border-pink-500/30 rounded-full px-4 py-2 mb-4">
+              <Bot className="w-4 h-4 text-pink-400" />
+              <span className="text-pink-400 text-sm font-medium">Ferramenta MRO</span>
             </div>
-            <Badge className="mb-4 bg-yellow-500/20 text-yellow-500 border-yellow-500/30 mx-auto">
-              <Zap className="w-3 h-3 mr-1" />
-              Como um Funcionário!
-            </Badge>
-            <CardTitle className="text-3xl md:text-4xl mb-4">
-              Ferramenta MRO de Engajamento Automático
-            </CardTitle>
-            <CardDescription className="text-lg max-w-3xl mx-auto">
-              Automatize suas interações no Instagram! A Ferramenta MRO curte fotos, visualiza stories e segue 
-              contas do seu nicho automaticamente. <span className="text-foreground font-semibold">200 pessoas por dia, 24 horas por dia!</span>
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-8">
-            {/* Video Section */}
-            <div 
-              className="relative mx-auto max-w-3xl aspect-video bg-card rounded-2xl overflow-hidden cursor-pointer group border-2 border-yellow-500/30 hover:border-yellow-500/60 transition-all"
-              onClick={() => setShowVideo(true)}
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-10" />
-              <img 
-                src={`https://img.youtube.com/vi/U-WmszcYekA/maxresdefault.jpg`}
-                alt="Ferramenta MRO"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 flex items-center justify-center z-20">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-yellow-500 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-yellow-500/50">
-                  <Play className="w-10 h-10 md:w-12 md:h-12 text-background ml-1" fill="currentColor" />
-                </div>
-              </div>
-              <div className="absolute bottom-4 left-4 right-4 z-20 text-center">
-                <p className="text-lg md:text-xl font-semibold text-foreground">
-                  Clique para ver como funciona
-                </p>
-              </div>
-            </div>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              Como um <span className="text-pink-400">Funcionário</span> Trabalhando 24h
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              A MRO trabalha no automático enquanto você foca no que importa
+            </p>
+          </div>
 
-            {/* MRO Features Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {mroFeatures.map((feature, index) => (
-                <div key={index} className="p-6 rounded-xl bg-card/50 border border-yellow-500/20 hover:border-yellow-500/40 transition-all text-center">
-                  <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mx-auto mb-4">
-                    <feature.icon className="w-6 h-6 text-yellow-500" />
-                  </div>
-                  <h4 className="font-semibold mb-2">{feature.title}</h4>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {mroFeatures.map((feature, i) => (
+              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center hover:border-pink-500/50 transition-colors">
+                <div className="w-14 h-14 rounded-full bg-pink-500/20 flex items-center justify-center mx-auto mb-4">
+                  <feature.icon className="w-7 h-7 text-pink-400" />
                 </div>
-              ))}
-            </div>
-
-            {/* How MRO Works */}
-            <div className="bg-card/30 rounded-2xl p-8 border border-yellow-500/20">
-              <h4 className="text-xl font-bold mb-6 text-center">Como a Ferramenta MRO Funciona</h4>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-yellow-500 text-background flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                    1
-                  </div>
-                  <h5 className="font-semibold mb-2">Configure uma vez</h5>
-                  <p className="text-sm text-muted-foreground">Defina seu nicho e contas de concorrentes de onde deseja atrair seguidores</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-yellow-500 text-background flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                    2
-                  </div>
-                  <h5 className="font-semibold mb-2">Dê o Start</h5>
-                  <p className="text-sm text-muted-foreground">Aperte um botão e a ferramenta começa a interagir automaticamente</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-yellow-500 text-background flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                    3
-                  </div>
-                  <h5 className="font-semibold mb-2">Resultados Diários</h5>
-                  <p className="text-sm text-muted-foreground">200 pessoas impactadas por dia = novos seguidores e clientes</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Benefits Summary */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8">
-            Tudo que você precisa para crescer no Instagram
-          </h2>
-          
-          <div className="grid md:grid-cols-2 gap-4">
-            {[
-              "Acesso a 4 contas do Instagram",
-              "24 criativos profissionais (6 por conta)",
-              "4 estratégias mensais de 30 dias",
-              "Gerencie 4 negócios diferentes",
-              "Análise completa do perfil com I.A",
-              "Calendário de postagens otimizado",
-              "Otimização de bio que converte",
-              "Ferramenta MRO de engajamento automático",
-              "200 interações automáticas por dia",
-              "Suporte via WhatsApp",
-              "Atualizações gratuitas",
-              "Acesso imediato após pagamento"
-            ].map((item, index) => (
-              <div key={index} className="flex items-center gap-3 p-4 glass-card rounded-lg border border-yellow-500/20">
-                <CheckCircle2 className="w-6 h-6 text-yellow-500 flex-shrink-0" />
-                <span className="text-lg">{item}</span>
+                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
+                <p className="text-gray-400 text-sm">{feature.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section ref={pricingSectionRef} className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <Badge className="mb-4 bg-gradient-to-r from-yellow-500/20 to-primary/20 text-background border-yellow-500/30">
-            <Gift className="w-3 h-3 mr-1" />
-            Oferta Especial
-          </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-yellow-500 to-primary bg-clip-text text-transparent">
-            Escolha seu Plano
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Invista no crescimento do seu negócio
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Annual Plan */}
-          <Card className="glass-card border-yellow-500/30 relative overflow-hidden bg-gradient-to-br from-yellow-500/5 to-background">
-            <div className="absolute top-0 right-0 bg-gradient-to-r from-yellow-500 to-primary text-background px-4 py-1 text-sm font-semibold rounded-bl-xl">
-              Mais Popular
+      {/* BONUS Section - I.A Features */}
+      <section className="py-20 px-4 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-transparent to-amber-500/5" />
+        
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-2 mb-4">
+              <Gift className="w-4 h-4 text-amber-400" />
+              <span className="text-amber-400 text-sm font-bold">BÔNUS EXCLUSIVOS</span>
             </div>
-            <CardHeader className="text-center pt-8">
-              <CardTitle className="text-2xl">Acesso Anual</CardTitle>
-              <CardDescription className="text-base">12 meses de acesso completo</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <div>
-                <p className="text-muted-foreground line-through text-lg">De R$ 997</p>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-4xl font-bold text-yellow-500">12x R$ 33</span>
-                </div>
-                <p className="text-muted-foreground mt-1">ou R$ 397 à vista</p>
-              </div>
-              
-              <ul className="space-y-3 text-left">
-                {[
-                  "Acesso a 4 contas do Instagram",
-                  "24 criativos por mês (6 por conta)",
-                  "4 estratégias mensais de 30 dias",
-                  "Gerencie 4 negócios diferentes",
-                  "I.A MRO completa",
-                  "Ferramenta de engajamento automático",
-                  "Suporte prioritário"
-                ].map((item, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button 
-                size="lg" 
-                className="w-full text-lg py-6 bg-gradient-to-r from-yellow-500 to-primary hover:from-yellow-600 hover:to-primary/90 text-background animate-pulse-glow"
-                onClick={handleBuyAnual}
-              >
-                Comprar Agora
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Lifetime Plan */}
-          <Card className="glass-card border-yellow-500/40 relative overflow-hidden bg-gradient-to-br from-yellow-500/5 to-background">
-            <div className="absolute top-0 right-0 bg-yellow-500 text-background px-4 py-1 text-sm font-semibold rounded-bl-xl">
-              Melhor Custo-Benefício
-            </div>
-            <CardHeader className="text-center pt-8">
-              <div className="flex justify-center mb-2">
-                <Crown className="w-8 h-8 text-yellow-500" />
-              </div>
-              <CardTitle className="text-2xl">Acesso Vitalício</CardTitle>
-              <CardDescription className="text-base">Pague uma vez, use para sempre</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <div>
-                <p className="text-muted-foreground line-through text-lg">De R$ 2.997</p>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-4xl font-bold text-yellow-500">12x R$ 83</span>
-                </div>
-                <p className="text-muted-foreground mt-1">ou R$ 997 à vista</p>
-              </div>
-              
-              <ul className="space-y-3 text-left">
-                {[
-                  "Acesso a 4 contas do Instagram",
-                  "24 criativos por mês (6 por conta)",
-                  "4 estratégias mensais de 30 dias",
-                  "Gerencie 4 negócios diferentes",
-                  "5 testes mensais extras",
-                  "Plano para prestação de serviço",
-                  "Fature mensalmente com a MRO",
-                  "Acesso vitalício sem renovação",
-                  "Suporte VIP prioritário"
-                ].map((item, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button 
-                size="lg" 
-                className="w-full text-lg py-6 bg-yellow-500 hover:bg-yellow-600 text-background animate-pulse-glow"
-                onClick={handleBuyVitalicio}
-              >
-                Comprar Agora
-                <Crown className="ml-2 h-5 w-5" />
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Scarcity Section with Countdown */}
-        <div className="mt-8 text-center space-y-4">
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Badge className="bg-red-500/20 text-red-500 border-red-500/50 text-base px-4 py-2 animate-pulse">
-              🔥 ÚLTIMAS VAGAS
-            </Badge>
-            <Badge className="bg-red-500/20 text-red-500 border-red-500/50 text-base px-4 py-2">
-              💰 Oferta SEM JUROS
-            </Badge>
-          </div>
-          
-          {/* Countdown Timer */}
-          <div className="bg-gradient-to-r from-red-600/20 via-red-500/30 to-red-600/20 border border-red-500/40 rounded-xl p-6 mt-6">
-            <p className="text-lg text-red-400 font-medium mb-3">⏰ APROVEITE ANTES QUE ACABE!</p>
-            <div className="flex items-center justify-center gap-3">
-              <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 rounded-lg">
-                <span className="text-3xl font-bold text-red-400">{time.hours}</span>
-                <span className="text-xs block text-red-300">horas</span>
-              </div>
-              <span className="text-3xl font-bold text-red-400">:</span>
-              <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 rounded-lg">
-                <span className="text-3xl font-bold text-red-400">{time.minutes}</span>
-                <span className="text-xs block text-red-300">min</span>
-              </div>
-              <span className="text-3xl font-bold text-red-400">:</span>
-              <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 rounded-lg">
-                <span className="text-3xl font-bold text-red-400">{time.seconds}</span>
-                <span className="text-xs block text-red-300">seg</span>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">Você tem pouco mais de 1 dia para aproveitar esse valor!</p>
-          </div>
-
-          <p className="text-xl md:text-2xl font-bold text-foreground mt-6">
-            Nós da MRO mostramos a porta, <span className="text-red-500">VOCÊ DECIDE ENTRAR!</span>
-          </p>
-        </div>
-      </section>
-
-      {/* Guarantee Highlight */}
-      <section className="container mx-auto px-4 py-12">
-        <Card className="bg-gradient-to-r from-green-500/10 via-green-600/5 to-green-500/10 border-green-500/30">
-          <CardContent className="p-8 text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <BadgeCheck className="w-12 h-12 text-green-500" />
-              <h3 className="text-2xl md:text-3xl font-bold text-green-500">30 Dias de Garantia de Resultados</h3>
-            </div>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Caso não aconteça <span className="text-foreground font-semibold">engajamento, vendas, clientes e resultados reais</span> no seu perfil 
-              dentro de 30 dias, <span className="text-green-500 font-semibold">cancelamos e devolvemos 100% do seu dinheiro</span>. 
-              Sem burocracia!
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              <span className="text-amber-400">I.A da MRO</span> Trabalhando Para Você
+            </h2>
+            <p className="text-gray-400 text-lg max-w-3xl mx-auto">
+              Além da ferramenta de automação, você recebe análises e estratégias mensais personalizadas
             </p>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bonusFeatures.map((feature, i) => (
+              <div 
+                key={i}
+                className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-amber-500/30 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300"
+              >
+                <div className="w-14 h-14 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
+                  <feature.icon className="w-7 h-7 text-amber-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                <p className="text-gray-400 text-sm">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Guarantees */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="flex flex-wrap items-center justify-center gap-8 text-center">
-          <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-yellow-500" />
-            <div className="text-left">
-              <p className="font-semibold">Pagamento Seguro</p>
-              <p className="text-sm text-muted-foreground">Dados protegidos</p>
+      {/* Guarantee */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 md:p-12">
+            <Shield className="w-16 h-16 text-green-400 mx-auto mb-6" />
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">30 Dias de Garantia</h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Se você não tiver <strong className="text-white">resultados reais</strong> de engajamento e crescimento em 30 dias, 
+              devolvemos <strong className="text-green-400">100% do seu investimento</strong>. Sem perguntas.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section ref={pricingRef} className="py-20 px-4 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent" />
+        
+        <div className="max-w-4xl mx-auto relative z-10">
+          {/* Timer */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-4 bg-red-500/10 border border-red-500/30 rounded-full px-6 py-3">
+              <Clock className="w-5 h-5 text-red-400" />
+              <span className="text-red-400 font-bold">OFERTA EXPIRA EM:</span>
+              <div className="flex items-center gap-2 font-mono text-2xl font-bold">
+                <span className="bg-red-500/20 px-3 py-1 rounded">{String(timeLeft.hours).padStart(2, '0')}</span>
+                <span className="text-red-400">:</span>
+                <span className="bg-red-500/20 px-3 py-1 rounded">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                <span className="text-red-400">:</span>
+                <span className="bg-red-500/20 px-3 py-1 rounded">{String(timeLeft.seconds).padStart(2, '0')}</span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Clock className="w-8 h-8 text-yellow-500" />
-            <div className="text-left">
-              <p className="font-semibold">Acesso Imediato</p>
-              <p className="text-sm text-muted-foreground">Após confirmação</p>
-            </div>
+
+          <div className="text-center mb-10">
+            <span className="text-amber-400 font-bold text-lg">PLANO ANUAL COMPLETO</span>
+            <h2 className="text-4xl md:text-5xl font-bold mt-2">MRO + I.A + Automação</h2>
           </div>
-          <div className="flex items-center gap-3">
-            <Instagram className="w-8 h-8 text-yellow-500" />
-            <div className="text-left">
-              <p className="font-semibold">Suporte no Instagram</p>
-              <p className="text-sm text-muted-foreground">@maisresultadosonline</p>
+
+          {/* Price Card */}
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500/50 rounded-3xl p-8 md:p-12 shadow-2xl shadow-amber-500/20">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                {planFeatures.map((feature, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-black" />
+                    </div>
+                    <span className="text-gray-300">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col items-center justify-center text-center">
+                <p className="text-gray-500 text-sm mb-4">ou R$397 à vista</p>
+                
+                <div className="mb-2">
+                  <span className="text-2xl text-gray-400">12x de</span>
+                </div>
+                <div className="text-7xl md:text-8xl font-black text-amber-400 mb-1">
+                  R$33
+                </div>
+                <p className="text-xl text-gray-300 font-medium mb-6">por mês</p>
+
+                <Button 
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xl py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105"
+                  onClick={() => window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+I.A+++Automação+(+ANUAL+)+","price":39700,"quantity":1}]&redirect_url=https://acessar.click/obrigado', '_blank')}
+                >
+                  GARANTIR MEU ACESSO AGORA
+                </Button>
+
+                <p className="text-sm text-gray-500 mt-4 flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Pagamento 100% seguro
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <MessageCircle className="w-8 h-8 text-green-500" />
-            <div className="text-left">
-              <p className="font-semibold">Suporte no WhatsApp</p>
-              <p className="text-sm text-muted-foreground">Atendimento rápido</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Monitor className="w-8 h-8 text-blue-500" />
-            <div className="text-left">
-              <p className="font-semibold">Suporte via AnyDesk</p>
-              <p className="text-sm text-muted-foreground">Acesso remoto se precisar</p>
+
+            <div className="mt-8 pt-6 border-t border-gray-700 text-center">
+              <p className="text-amber-400 font-medium">
+                ⚡ Acesso imediato após confirmação do pagamento
+              </p>
             </div>
           </div>
         </div>
-        <p className="text-center text-sm text-muted-foreground mt-6 max-w-2xl mx-auto">
-          Em caso de muita dúvida ou dificuldade, conseguimos <span className="text-foreground font-medium">acessar remotamente sua máquina</span> e 
-          fazer o passo a passo junto com você!
-        </p>
       </section>
 
+      {/* FAQ */}
+      <section className="py-20 px-4">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            Dúvidas <span className="text-amber-400">Frequentes</span>
+          </h2>
 
-      {/* Floating CTA */}
-      {showPricing && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-r from-background/95 via-yellow-950/20 to-background/95 backdrop-blur-lg border-t border-yellow-500/30 z-50 animate-slide-up">
-          <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-center md:text-left">
-              <p className="font-semibold text-yellow-500">Aproveite o valor promocional!</p>
-              <p className="text-sm text-muted-foreground">A partir de 12x de R$ 33</p>
-            </div>
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-background animate-pulse-glow"
-              onClick={handleBuyAnual}
-            >
-              Comprar Agora
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+          <div className="space-y-4">
+            {faqs.map((faq, i) => (
+              <div 
+                key={i}
+                className="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between p-5 text-left"
+                >
+                  <span className="font-semibold pr-4">{faq.q}</span>
+                  <ChevronDown className={`w-5 h-5 text-amber-400 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                </button>
+                {openFaq === i && (
+                  <div className="px-5 pb-5 text-gray-400">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-gray-900">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            Pronto para <span className="text-amber-400">Escalar</span> seu Instagram?
+          </h2>
+          <p className="text-xl text-gray-400 mb-10">
+            Junte-se a milhares de empreendedores que já transformaram seus perfis
+          </p>
+          <Button 
+            size="lg"
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xl px-12 py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all hover:scale-105"
+            onClick={() => window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+I.A+++Automação+(+ANUAL+)+","price":39700,"quantity":1}]&redirect_url=https://acessar.click/obrigado', '_blank')}
+          >
+            GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
+          </Button>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 text-center text-muted-foreground border-t border-border">
-        <Logo size="sm" />
-        <p className="mt-4">© 2024 Mais Resultados Online. Todos os direitos reservados.</p>
+      <footer className="py-8 px-4 border-t border-gray-800">
+        <div className="max-w-6xl mx-auto text-center text-gray-500">
+          <img src={logoMro} alt="MRO" className="h-10 mx-auto mb-4 object-contain" />
+          <p>Mais Resultados Online © 2024. Todos os direitos reservados.</p>
+        </div>
       </footer>
 
-      {/* Video Lightbox */}
-      <Dialog open={showVideo} onOpenChange={setShowVideo}>
-        <DialogContent className="max-w-4xl p-0 bg-background border-primary/30 overflow-hidden">
-          <div className="aspect-video">
+      {/* Video Modal */}
+      {showVideoModal && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowVideoModal(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            onClick={() => setShowVideoModal(false)}
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="w-full max-w-5xl aspect-video" onClick={e => e.stopPropagation()}>
             <iframe
               src="https://www.youtube.com/embed/U-WmszcYekA?autoplay=1"
-              title="Ferramenta MRO"
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              className="w-full h-full rounded-xl"
+              allow="autoplay; encrypted-media"
               allowFullScreen
             />
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* WhatsApp Confirmation Dialog */}
-      <Dialog open={showWhatsAppDialog} onOpenChange={setShowWhatsAppDialog}>
-        <DialogContent className="max-w-md bg-background border-primary/30">
-          <DialogHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                <MessageCircle className="w-8 h-8 text-green-500" />
-              </div>
-            </div>
-            <DialogTitle className="text-xl">Antes de atender você...</DialogTitle>
-            <DialogDescription className="text-base pt-2">
-              Chegou a ver todo conteúdo em nosso site? O vídeo explicativo também de nossa automação com I.A?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3 pt-4">
-            <Button 
-              size="lg"
-              className="bg-green-500 hover:bg-green-600 text-white"
-              onClick={() => handleWhatsAppConfirm(true)}
-            >
-              <CheckCircle2 className="w-5 h-5 mr-2" />
-              Sim, já vi tudo!
-            </Button>
-            <Button 
-              size="lg"
-              variant="outline"
-              onClick={() => handleWhatsAppConfirm(false)}
-            >
-              Não, quero ver primeiro
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Floating WhatsApp Button */}
-      <button
-        onClick={handleWhatsAppClick}
-        className="fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-500/30 hover:scale-110 transition-all"
-        aria-label="WhatsApp"
-      >
-        <MessageCircle className="w-7 h-7" fill="currentColor" />
-      </button>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default VendasCompleta;
