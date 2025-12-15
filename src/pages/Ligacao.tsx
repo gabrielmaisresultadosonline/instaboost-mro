@@ -304,10 +304,9 @@ const Ligacao = () => {
       {/* Hidden video for ringtone - plays audio only */}
       <video 
         ref={ringtoneVideoRef} 
-        src={ringtoneUrl}
+        src="/ringtone.mp4"
         preload="auto"
         playsInline
-        muted={false}
         style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
       />
       <audio 
