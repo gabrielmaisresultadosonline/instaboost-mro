@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_analytics: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          event_type: string
+          id: string
+          referrer: string | null
+          source_url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          event_type: string
+          id?: string
+          referrer?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          event_type?: string
+          id?: string
+          referrer?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       paid_users: {
         Row: {
           created_at: string

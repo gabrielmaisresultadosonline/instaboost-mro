@@ -1,19 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { Check, X, ExternalLink, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { trackCallEvent, getAdminData } from '@/lib/adminConfig';
+import { getAdminData } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import profileImage from '@/assets/mro-profile-call.jpg';
 import fundoChamada from '@/assets/fundo-chamada.jpg';
 import gabrielImage from '@/assets/gabriel-transparente.png';
 
-declare global {
-  interface Window {
-    fbq: (...args: any[]) => void;
-  }
-}
+// fbq type is declared in facebookTracking.ts
 
-// Helper to get Facebook cookies
 const getFacebookCookies = () => {
   const cookies = document.cookie.split(';').reduce((acc, cookie) => {
     const [key, value] = cookie.trim().split('=');
@@ -33,12 +28,38 @@ const getTestEventCode = () => {
   return urlParams.get('test_event_code') || undefined;
 };
 
-// Send event to Meta Conversions API via Edge Function
+// Detect device type
+const getDeviceType = () => {
+  const ua = navigator.userAgent;
+  return /iPhone|iPad|iPod|Android/i.test(ua) ? 'mobile' : 'desktop';
+};
+
+// Save event to Supabase cloud analytics
+const saveToCloudAnalytics = async (eventType: string) => {
+  try {
+    await supabase.from('call_analytics').insert({
+      event_type: eventType,
+      user_agent: navigator.userAgent,
+      referrer: document.referrer || 'direct',
+      device_type: getDeviceType(),
+      source_url: window.location.href
+    });
+    console.log('[CLOUD-ANALYTICS] Event saved:', eventType);
+  } catch (err) {
+    console.error('[CLOUD-ANALYTICS] Error saving event:', err);
+  }
+};
+
+// Send event to Meta Conversions API via Edge Function AND save to cloud
 const sendConversionEvent = async (eventName: string, customData?: Record<string, any>) => {
   try {
     const { fbc, fbp } = getFacebookCookies();
     const testEventCode = getTestEventCode();
     
+    // Save to cloud analytics
+    saveToCloudAnalytics(eventName);
+    
+    // Send to Meta API
     const { data, error } = await supabase.functions.invoke('meta-conversions', {
       body: {
         event_name: eventName,
@@ -110,10 +131,10 @@ const Ligacao = () => {
     loadFromCloud();
   }, []);
 
-  // Track page view in local analytics on mount (Pixel PageView already fires from index.html)
+  // Track page view on mount - synced with Meta Pixel
   useEffect(() => {
-    trackCallEvent('page_view');
-    console.log('[Ligacao] Page loaded - FB Pixel PageView already fired from index.html');
+    sendConversionEvent('PageView', { content_name: 'ligacao_page' });
+    console.log('[Ligacao] Page loaded - PageView event sent');
   }, []);
 
   // Force larger zoom on desktop to fill screen better
@@ -193,8 +214,7 @@ const Ligacao = () => {
       }, 2500);
     }
     
-    // Track ringtone started
-    trackCallEvent('ringtone_started');
+    // Ringtone started (no separate cloud event, ViewContent already tracked)
     
     setCallState('ringing');
   };
@@ -237,8 +257,7 @@ const Ligacao = () => {
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    // Track call answered
-    trackCallEvent('call_answered');
+    // Call answered (InitiateCheckout already tracked above)
 
     // Play call audio IMMEDIATELY with this user gesture (critical for iOS)
     if (audioRef.current) {
@@ -256,12 +275,14 @@ const Ligacao = () => {
     }
     
     // Track audio completed - user listened to everything
-    trackCallEvent('audio_completed');
+    sendConversionEvent('ViewContent', {
+      content_name: 'audio_completed',
+      content_category: 'call_funnel'
+    });
   };
 
   const handleAccessSite = (e?: React.MouseEvent) => {
-    // Track CTA clicked
-    trackCallEvent('cta_clicked');
+    // Lead event is sent below (already tracked via sendConversionEvent)
     
     // Fire Facebook Pixel Lead event (client-side) - user completed funnel
     if (window.fbq) {
