@@ -1,60 +1,63 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import logoMro from '@/assets/logo-mro.png';
 
 interface ToolOption {
   id: string;
   name: string;
+  subtitle: string;
   description: string;
   icon: React.ElementType;
   color: string;
   hoverColor: string;
   borderColor: string;
   badge: string;
-  membersPath: string;
   salesPath: string;
 }
 
 const ToolSelector = () => {
   const navigate = useNavigate();
-  const [selectedTool, setSelectedTool] = useState<ToolOption | null>(null);
+  const [showMembersModal, setShowMembersModal] = useState(false);
 
   const tools: ToolOption[] = [
     {
       id: 'instagram',
       name: 'Ferramenta para Instagram',
-      description: 'Não gaste com anúncios para aumentar seu engajamento e seus seguidores',
+      subtitle: 'NÃO GASTE COM ANÚNCIOS',
+      description: 'Aumente seu engajamento e seguidores organicamente',
       icon: Instagram,
       color: 'from-pink-500 to-purple-600',
       hoverColor: 'hover:from-pink-600 hover:to-purple-700',
       borderColor: 'border-pink-500/30',
       badge: 'MRO I.A',
-      membersPath: '/instagram',
       salesPath: '/mrointeligente'
     },
     {
       id: 'whatsapp',
       name: 'Ferramenta para WhatsApp',
-      description: 'Automação inteligente para suas conversas e vendas',
+      subtitle: 'AUTOMAÇÃO INTELIGENTE',
+      description: 'Automatize suas conversas e vendas',
       icon: MessageCircle,
       color: 'from-green-500 to-emerald-600',
       hoverColor: 'hover:from-green-600 hover:to-emerald-700',
       borderColor: 'border-green-500/30',
       badge: 'ZAP MRO',
-      membersPath: '/zapmro',
       salesPath: '/zapmro/vendas'
     }
   ];
 
-  const handleToolClick = (tool: ToolOption) => {
-    setSelectedTool(tool);
+  const handleSalesClick = (path: string) => {
+    navigate(path);
   };
 
-  const handleOptionSelect = (path: string) => {
-    setSelectedTool(null);
-    navigate(path);
+  const handleMembersSelect = (platform: 'instagram' | 'zapmro') => {
+    setShowMembersModal(false);
+    if (platform === 'instagram') {
+      navigate('/instagram');
+    } else {
+      navigate('/zapmro');
+    }
   };
 
   return (
@@ -85,12 +88,12 @@ const ToolSelector = () => {
         </p>
       </div>
 
-      {/* Tool Cards */}
+      {/* Tool Cards - Sales Pages */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full z-10 px-4">
         {tools.map((tool) => (
           <button
             key={tool.id}
-            onClick={() => handleToolClick(tool)}
+            onClick={() => handleSalesClick(tool.salesPath)}
             className={`
               relative group p-8 rounded-2xl border-2 ${tool.borderColor}
               bg-gray-800/50 backdrop-blur-sm
@@ -115,12 +118,17 @@ const ToolSelector = () => {
             {/* Icon */}
             <div className={`
               w-16 h-16 rounded-xl bg-gradient-to-r ${tool.color}
-              flex items-center justify-center mb-6
+              flex items-center justify-center mb-4
               group-hover:scale-110 transition-transform duration-300
               shadow-lg
             `}>
               <tool.icon className="w-8 h-8 text-white" />
             </div>
+
+            {/* Subtitle - NÃO GASTE COM ANÚNCIOS */}
+            <p className="text-amber-400 font-bold text-sm uppercase tracking-wide mb-2 text-left">
+              {tool.subtitle}
+            </p>
 
             {/* Content */}
             <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-left">
@@ -138,16 +146,25 @@ const ToolSelector = () => {
         ))}
       </div>
 
+      {/* Área de Membros Button */}
+      <button
+        onClick={() => setShowMembersModal(true)}
+        className="mt-8 z-10 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-lg transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3"
+      >
+        <Users className="w-6 h-6" />
+        Área de Membros
+      </button>
+
       {/* Footer text */}
       <p className="mt-12 text-gray-500 text-sm z-10">
         Mais Resultados Online © 2024
       </p>
 
-      {/* Modal for selecting access type */}
-      {selectedTool && (
+      {/* Modal for Members Area Selection */}
+      {showMembersModal && (
         <div 
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedTool(null)}
+          onClick={() => setShowMembersModal(false)}
         >
           <div 
             className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-md w-full shadow-2xl"
@@ -156,16 +173,16 @@ const ToolSelector = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${selectedTool.color} flex items-center justify-center`}>
-                  <selectedTool.icon className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">{selectedTool.name}</h3>
-                  <p className="text-sm text-gray-400">Como deseja acessar?</p>
+                  <h3 className="text-lg font-bold text-white">Área de Membros</h3>
+                  <p className="text-sm text-gray-400">Qual ferramenta deseja acessar?</p>
                 </div>
               </div>
               <button 
-                onClick={() => setSelectedTool(null)}
+                onClick={() => setShowMembersModal(false)}
                 className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
               >
                 <X className="w-5 h-5 text-gray-400" />
@@ -174,49 +191,31 @@ const ToolSelector = () => {
 
             {/* Options */}
             <div className="space-y-3">
-              {/* Área de Membros */}
+              {/* MRO Instagram */}
               <button
-                onClick={() => handleOptionSelect(selectedTool.membersPath)}
-                className={`
-                  w-full p-4 rounded-xl border-2 border-gray-600 hover:border-opacity-100
-                  bg-gray-700/50 hover:bg-gray-700 transition-all duration-300
-                  flex items-center gap-4 group
-                  ${selectedTool.id === 'instagram' ? 'hover:border-pink-500/50' : 'hover:border-green-500/50'}
-                `}
+                onClick={() => handleMembersSelect('instagram')}
+                className="w-full p-4 rounded-xl border-2 border-gray-600 hover:border-pink-500/50 bg-gray-700/50 hover:bg-gray-700 transition-all duration-300 flex items-center gap-4 group"
               >
-                <div className={`
-                  w-12 h-12 rounded-xl bg-gradient-to-r ${selectedTool.color}
-                  flex items-center justify-center
-                  group-hover:scale-110 transition-transform
-                `}>
-                  <Users className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Instagram className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <h4 className="text-white font-bold">Área de Membros</h4>
-                  <p className="text-sm text-gray-400">Acesse sua conta e ferramentas</p>
+                  <h4 className="text-white font-bold">MRO Instagram</h4>
+                  <p className="text-sm text-gray-400">Ferramenta para Instagram</p>
                 </div>
               </button>
 
-              {/* Página Oficial */}
+              {/* ZAPMRO WhatsApp */}
               <button
-                onClick={() => handleOptionSelect(selectedTool.salesPath)}
-                className={`
-                  w-full p-4 rounded-xl border-2 border-gray-600 hover:border-opacity-100
-                  bg-gray-700/50 hover:bg-gray-700 transition-all duration-300
-                  flex items-center gap-4 group
-                  ${selectedTool.id === 'instagram' ? 'hover:border-pink-500/50' : 'hover:border-green-500/50'}
-                `}
+                onClick={() => handleMembersSelect('zapmro')}
+                className="w-full p-4 rounded-xl border-2 border-gray-600 hover:border-green-500/50 bg-gray-700/50 hover:bg-gray-700 transition-all duration-300 flex items-center gap-4 group"
               >
-                <div className={`
-                  w-12 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600
-                  flex items-center justify-center
-                  group-hover:scale-110 transition-transform
-                `}>
-                  <ExternalLink className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <MessageCircle className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <h4 className="text-white font-bold">Página Oficial</h4>
-                  <p className="text-sm text-gray-400">Conheça e adquira o produto</p>
+                  <h4 className="text-white font-bold">ZAPMRO</h4>
+                  <p className="text-sm text-gray-400">Ferramenta para WhatsApp</p>
                 </div>
               </button>
             </div>
