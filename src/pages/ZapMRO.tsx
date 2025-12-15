@@ -181,7 +181,9 @@ const ZapMRO = () => {
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-green-200">
           {/* Header */}
           <div className="text-center mb-8">
-            <img src={logoMro} alt="MRO" className="h-16 mx-auto mb-4" />
+            <div className="bg-gray-900 rounded-xl p-4 mx-auto w-fit mb-4">
+              <img src={logoMro} alt="MRO" className="h-16" />
+            </div>
             <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold mb-4">
               ZAPMRO
             </div>
