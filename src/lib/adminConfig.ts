@@ -217,7 +217,7 @@ fbq('track', 'PageView');`,
       endedMessage: 'Planos a partir de',
       endedPrice: 'R$33 mensal',
       ctaButtonText: 'Acessar o site agora',
-      ctaButtonLink: 'https://acessar.click/mrointeligente',
+      ctaButtonLink: 'https://maisresultadosonline.com.br/mrointeligente',
       profileUsername: '@maisresultadosonline'
     },
     pixelSettings: {

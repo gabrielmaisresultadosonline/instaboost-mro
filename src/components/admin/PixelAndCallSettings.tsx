@@ -19,7 +19,7 @@ const DEFAULT_CALL_CONTENT: CallPageContent = {
   endedMessage: 'Planos a partir de',
   endedPrice: 'R$33 mensal',
   ctaButtonText: 'Acessar o site agora',
-  ctaButtonLink: 'https://acessar.click/mrointeligente',
+  ctaButtonLink: 'https://maisresultadosonline.com.br/mrointeligente',
   profileUsername: '@maisresultadosonline'
 };
 
@@ -538,7 +538,7 @@ const PixelAndCallSettings = () => {
               <Input
                 value={callContent.ctaButtonLink}
                 onChange={(e) => setCallContent(prev => ({ ...prev, ctaButtonLink: e.target.value }))}
-                placeholder="https://acessar.click/mrointeligente"
+                placeholder="https://maisresultadosonline.com.br/mrointeligente"
                 className="bg-secondary/50 mt-1 font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground mt-1">Link que abre quando o usuário clica no botão final</p>

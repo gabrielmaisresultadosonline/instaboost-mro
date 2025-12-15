@@ -28,5 +28,5 @@ sudo systemctl restart nginx
 
 echo ""
 echo "✅ Atualização concluída!"
-echo "🌐 Acesse: https://acessar.click"
+echo "🌐 Acesse: https://maisresultadosonline.com.br"
 echo ""

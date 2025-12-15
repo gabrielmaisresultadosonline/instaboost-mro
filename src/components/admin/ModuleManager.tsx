@@ -62,7 +62,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
         endedMessage: 'Planos a partir de',
         endedPrice: 'R$33 mensal',
         ctaButtonText: 'Acessar o site agora',
-        ctaButtonLink: 'https://acessar.click/mrointeligente',
+        ctaButtonLink: 'https://maisresultadosonline.com.br/mrointeligente',
         profileUsername: '@maisresultadosonline'
       },
       pixelSettings: { pixelId: '', enabled: false, trackPageView: false, trackLead: false, trackViewContent: false, customEvents: [] },
