@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 # Variáveis
 APP_NAME="ia-mro"
 APP_DIR="/var/www/$APP_NAME"
-DOMAIN="acessar.click"
+DOMAIN="maisresultadosonline.com.br"
 REPO_URL="https://github.com/gabrielmaisresultadosonline/instaboost-mro.git"
 
 echo -e "${YELLOW}Atualizando sistema...${NC}"
