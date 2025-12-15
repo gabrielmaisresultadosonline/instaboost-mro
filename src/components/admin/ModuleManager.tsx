@@ -45,19 +45,41 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const { toast } = useToast();
   const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : 'mro_admin_data';
   
+  // Default empty data for fresh state
+  const getEmptyData = (): AdminData => ({
+    settings: {
+      apis: { deepseek: '', gemini: '', nanoBanana: '' },
+      facebookPixel: '',
+      facebookPixelCode: '',
+      downloadLink: '',
+      welcomeVideo: { enabled: false, title: '', showTitle: true, youtubeUrl: '', coverUrl: '' },
+      callPixelEvents: { pageView: false, audioCompleted: false, ctaClicked: false },
+      callPageSettings: { audioUrl: '', ringtoneUrl: '' },
+      pixelSettings: { pixelId: '', enabled: false, trackPageView: false, trackLead: false, trackViewContent: false, customEvents: [] }
+    },
+    tutorials: [],
+    modules: [],
+    callAnalytics: []
+  });
+  
   const getLocalData = (): AdminData => {
     const stored = localStorage.getItem(storageKey);
     if (stored) {
-      return JSON.parse(stored);
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return getEmptyData();
+      }
     }
-    return getAdminData();
+    return getEmptyData();
   };
   
   const saveLocalData = (data: AdminData) => {
     localStorage.setItem(storageKey, JSON.stringify(data));
   };
   
-  const [adminData, setAdminData] = useState(getLocalData());
+  // Start with empty data until cloud loads - prevents cross-platform contamination
+  const [adminData, setAdminData] = useState<AdminData>(getEmptyData());
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent; sectionId?: string } | null>(null);
