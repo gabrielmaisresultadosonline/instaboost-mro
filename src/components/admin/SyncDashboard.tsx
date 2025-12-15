@@ -42,6 +42,21 @@ const SyncDashboard = () => {
   const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
   const [currentSlide, setCurrentSlide] = useState(0);
   const syncAbortedRef = useRef(false);
+  
+  // User-specific sync state
+  const [userSyncUsername, setUserSyncUsername] = useState('');
+  const [isSyncingUser, setIsSyncingUser] = useState(false);
+  const [userSyncLog, setUserSyncLog] = useState<string | null>(null);
+  
+  // Compare growth state
+  const [isComparing, setIsComparing] = useState(false);
+  const [compareUsername, setCompareUsername] = useState('');
+  const [compareResult, setCompareResult] = useState<{
+    username: string;
+    oldFollowers: number;
+    newFollowers: number;
+    growth: number;
+  } | null>(null);
 
   // Load data on mount and check for auto-sync
   useEffect(() => {
@@ -439,6 +454,164 @@ const SyncDashboard = () => {
     }
   };
 
+  // Sync specific user's Instagram accounts
+  const syncByUsername = async () => {
+    if (!userSyncUsername.trim()) {
+      toast({ title: 'Digite um usuário', variant: 'destructive' });
+      return;
+    }
+    
+    setIsSyncingUser(true);
+    setUserSyncLog('🔍 Buscando usuário...');
+    
+    try {
+      // Fetch all users from SquareCloud
+      const users = await fetchSquareCloudUsers();
+      
+      // Find the specific user (case-insensitive)
+      const targetUser = users.find(u => 
+        u.ID.toLowerCase() === userSyncUsername.trim().toLowerCase()
+      );
+      
+      if (!targetUser) {
+        setUserSyncLog(`❌ Usuário "${userSyncUsername}" não encontrado`);
+        toast({ title: 'Usuário não encontrado', variant: 'destructive' });
+        setIsSyncingUser(false);
+        return;
+      }
+      
+      const igAccounts = targetUser.igInstagram || [];
+      
+      if (igAccounts.length === 0) {
+        setUserSyncLog(`⚠️ Usuário "${targetUser.ID}" não possui contas Instagram`);
+        toast({ title: 'Sem contas Instagram', description: 'Este usuário não possui contas vinculadas' });
+        setIsSyncingUser(false);
+        return;
+      }
+      
+      setUserSyncLog(`📱 ${igAccounts.length} conta(s) encontrada(s). Sincronizando...`);
+      
+      let syncedCount = 0;
+      let skippedCount = 0;
+      
+      for (let i = 0; i < igAccounts.length; i++) {
+        const igUsername = igAccounts[i].replace('@', '').toLowerCase();
+        setUserSyncLog(`🔄 Sincronizando @${igUsername} (${i + 1}/${igAccounts.length})...`);
+        
+        // Fetch Instagram profile data
+        const profileData = await fetchInstagramProfile(igUsername);
+        
+        if (profileData && profileData.profilePicUrl && profileData.followers !== undefined && profileData.followers > 0) {
+          const fullProfile: SyncedInstagramProfile = {
+            ...profileData as SyncedInstagramProfile,
+            ownerUserId: targetUser.ID,
+            ownerUserName: targetUser.ID,
+            syncedAt: new Date().toISOString(),
+            lastUpdated: new Date().toISOString(),
+            isConnectedToDashboard: isProfileInDashboard(igUsername),
+            growthHistory: []
+          };
+          
+          updateProfile(fullProfile);
+          syncedCount++;
+          
+          console.log(`✅ @${igUsername} sincronizado via usuário ${targetUser.ID}`);
+        } else {
+          skippedCount++;
+          console.log(`⚠️ @${igUsername} não encontrado ou sem dados`);
+        }
+        
+        // Small delay between requests
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
+      // Force save to server
+      await forceSyncToServer();
+      
+      const successMsg = `✅ Concluído! ${syncedCount} sincronizado(s), ${skippedCount} não encontrado(s)`;
+      setUserSyncLog(successMsg);
+      setSyncData(getSyncData());
+      
+      toast({ 
+        title: 'Sincronização do usuário concluída!', 
+        description: `${syncedCount} perfil(is) salvo(s)` 
+      });
+      
+      setTimeout(() => setUserSyncLog(null), 5000);
+      
+    } catch (error) {
+      console.error('Error syncing user:', error);
+      setUserSyncLog('❌ Erro ao sincronizar usuário');
+      toast({ title: 'Erro na sincronização', variant: 'destructive' });
+    } finally {
+      setIsSyncingUser(false);
+    }
+  };
+
+  // Compare growth - fetch fresh data and compare
+  const compareGrowth = async () => {
+    if (!compareUsername.trim()) {
+      toast({ title: 'Digite um @username do Instagram', variant: 'destructive' });
+      return;
+    }
+    
+    const username = compareUsername.trim().replace('@', '').toLowerCase();
+    setIsComparing(true);
+    setCompareResult(null);
+    
+    try {
+      // Find existing profile data
+      const existingProfile = syncData.profiles.find(p => 
+        p.username.toLowerCase() === username
+      );
+      
+      const oldFollowers = existingProfile?.followers || 0;
+      
+      // Fetch fresh data
+      toast({ title: 'Buscando dados atuais...', description: `@${username}` });
+      const freshData = await fetchInstagramProfile(username);
+      
+      if (!freshData || !freshData.followers) {
+        toast({ title: 'Perfil não encontrado', variant: 'destructive' });
+        setIsComparing(false);
+        return;
+      }
+      
+      const newFollowers = freshData.followers;
+      const growth = newFollowers - oldFollowers;
+      
+      setCompareResult({
+        username,
+        oldFollowers,
+        newFollowers,
+        growth
+      });
+      
+      // Update the profile with new data
+      if (existingProfile) {
+        const updatedProfile: SyncedInstagramProfile = {
+          ...existingProfile,
+          ...freshData as SyncedInstagramProfile,
+          lastUpdated: new Date().toISOString(),
+        };
+        updateProfile(updatedProfile);
+        await forceSyncToServer();
+        setSyncData(getSyncData());
+      }
+      
+      toast({ 
+        title: growth >= 0 ? '📈 Crescimento detectado!' : '📉 Queda detectada',
+        description: `${growth >= 0 ? '+' : ''}${growth.toLocaleString()} seguidores`
+      });
+      
+    } catch (error) {
+      console.error('Error comparing growth:', error);
+      toast({ title: 'Erro ao comparar', variant: 'destructive' });
+    } finally {
+      setIsComparing(false);
+    }
+  };
+
   // Get top growing profiles for slider
   const topGrowing = getTopGrowingProfiles(10);
   
@@ -638,7 +811,105 @@ const SyncDashboard = () => {
         )}
       </div>
 
-      {/* Invalid Profiles Section */}
+      {/* User-specific Sync & Compare Growth */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Sync by Username */}
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <User className="w-5 h-5 text-primary" />
+            <div>
+              <h3 className="font-semibold text-lg">Sincronizar por Usuário</h3>
+              <p className="text-xs text-muted-foreground">Digite o ID do usuário MRO para sincronizar todas as contas</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={userSyncUsername}
+              onChange={(e) => setUserSyncUsername(e.target.value)}
+              placeholder="Digite o ID do usuário (ex: 123C)"
+              className="flex-1 px-4 py-2 bg-secondary/50 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled={isSyncingUser}
+            />
+            <Button
+              onClick={syncByUsername}
+              disabled={isSyncingUser || !userSyncUsername.trim()}
+              className="cursor-pointer"
+            >
+              {isSyncingUser ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4" />
+              )}
+              <span className="ml-2">Sincronizar</span>
+            </Button>
+          </div>
+          
+          {userSyncLog && (
+            <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border/50 flex items-center gap-2">
+              {isSyncingUser && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+              <span className="text-sm">{userSyncLog}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Compare Growth */}
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <TrendingUp className="w-5 h-5 text-green-500" />
+            <div>
+              <h3 className="font-semibold text-lg">Comparar Crescimento</h3>
+              <p className="text-xs text-muted-foreground">Busque dados atuais e compare com os salvos</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={compareUsername}
+              onChange={(e) => setCompareUsername(e.target.value)}
+              placeholder="@username do Instagram"
+              className="flex-1 px-4 py-2 bg-secondary/50 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled={isComparing}
+            />
+            <Button
+              onClick={compareGrowth}
+              disabled={isComparing || !compareUsername.trim()}
+              variant="outline"
+              className="cursor-pointer"
+            >
+              {isComparing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <TrendingUp className="w-4 h-4" />
+              )}
+              <span className="ml-2">Comparar</span>
+            </Button>
+          </div>
+          
+          {compareResult && (
+            <div className={`mt-3 p-4 rounded-lg border ${
+              compareResult.growth >= 0 
+                ? 'bg-green-500/10 border-green-500/30' 
+                : 'bg-red-500/10 border-red-500/30'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">@{compareResult.username}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Anterior: {compareResult.oldFollowers.toLocaleString()} → Atual: {compareResult.newFollowers.toLocaleString()}
+                  </p>
+                </div>
+                <div className={`text-2xl font-bold ${compareResult.growth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {compareResult.growth >= 0 ? '+' : ''}{compareResult.growth.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {(syncData.invalidProfiles || []).length > 0 && (
         <div className="glass-card p-4 border-l-4 border-red-500 bg-red-500/10">
           <div className="flex items-center justify-between mb-3">
