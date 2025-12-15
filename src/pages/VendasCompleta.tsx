@@ -185,7 +185,7 @@ const VendasCompleta = () => {
           <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-8 object-contain" />
           
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
-            NÃO GASTE MAIS COM ANÚNCIOS PARA AUMENTAR SEU <span className="text-amber-400">ENGAJAMENTO</span> E SEUS <span className="text-amber-400">SEGUIDORES</span>
+            NÃO GASTE MAIS COM ANÚNCIOS
           </h1>
           <h2 className="text-xl md:text-3xl font-bold text-amber-400">
             UTILIZE A MRO INTELIGENTE
