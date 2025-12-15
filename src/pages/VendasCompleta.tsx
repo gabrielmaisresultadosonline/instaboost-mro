@@ -370,29 +370,81 @@ const VendasCompleta = () => {
         </div>
       </section>
 
-      {/* BONUS I.A Section */}
+      {/* Main 3 Bonuses Highlight */}
+      <section className="py-16 px-4 bg-black">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/50 rounded-full px-6 py-3 mb-4">
+              <Gift className="w-5 h-5 text-amber-400" />
+              <span className="text-amber-400 font-bold">+ BÔNUS INCLUSOS</span>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Bonus 1 - Análise de IA */}
+            <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-2 border-purple-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
+              <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                <Brain className="w-8 h-8 text-purple-400" />
+              </div>
+              <div className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
+                BÔNUS #1
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-purple-300">Análise de I.A Completa</h3>
+              <p className="text-gray-400 text-sm">
+                Nossa inteligência artificial analisa seu perfil em profundidade: bio, posts, engajamento e identifica todas as oportunidades de melhoria baseado no seu nicho.
+              </p>
+            </div>
+
+            {/* Bonus 2 - Acompanhamento Anual */}
+            <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
+              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+                <RefreshCw className="w-8 h-8 text-green-400" />
+              </div>
+              <div className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
+                BÔNUS #2
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-green-300">Acompanhamento Anual</h3>
+              <p className="text-gray-400 text-sm">
+                Suporte e acompanhamento durante todo o ano para garantir que você está sempre evoluindo e alcançando seus objetivos de crescimento.
+              </p>
+            </div>
+
+            {/* Bonus 3 - Estratégias Mensais */}
+            <div className="bg-gradient-to-br from-amber-900/30 to-amber-800/20 border-2 border-amber-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
+              <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-amber-400" />
+              </div>
+              <div className="bg-amber-500 text-black text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
+                BÔNUS #3
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-amber-300">Estratégias Mensais (30 em 30 dias)</h3>
+              <p className="text-gray-400 text-sm">
+                A cada 30 dias você recebe uma nova estratégia personalizada baseada no seu nicho e nos resultados do mês anterior.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* BONUS I.A Section - Additional */}
       <section className="py-16 px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-2 mb-4">
-              <Gift className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-400 text-sm font-bold">BÔNUS EXCLUSIVOS</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="text-amber-400">I.A da MRO</span> Trabalhando Para Você
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">
+              E mais recursos da <span className="text-amber-400">I.A da MRO</span>
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bonusIAFeatures.map((feature, i) => (
+          <div className="grid md:grid-cols-3 gap-6">
+            {bonusIAFeatures.slice(3).map((feature, i) => (
               <div 
                 key={i}
-                className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-amber-500/30 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300"
+                className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300"
               >
-                <div className="w-14 h-14 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
-                  <feature.icon className="w-7 h-7 text-amber-400" />
+                <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
+                  <feature.icon className="w-6 h-6 text-amber-400" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
                 <p className="text-gray-400 text-sm">{feature.description}</p>
               </div>
             ))}
