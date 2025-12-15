@@ -155,10 +155,13 @@ const ToolSelector = () => {
         Área de Membros
       </button>
 
-      {/* Footer text */}
-      <p className="mt-12 text-gray-500 text-sm z-10">
-        Mais Resultados Online © 2024
-      </p>
+      {/* Footer with business info */}
+      <div className="mt-12 text-center z-10 space-y-1">
+        <p className="text-gray-400 font-semibold">Mais Resultados Online</p>
+        <p className="text-gray-500 text-sm">Gabriel Fernandes da Silva</p>
+        <p className="text-gray-500 text-sm">CNPJ: 54.840.738/0001-96</p>
+        <p className="text-gray-600 text-xs mt-2">© 2024. Todos os direitos reservados.</p>
+      </div>
 
       {/* Modal for Members Area Selection */}
       {showMembersModal && (
