@@ -26,6 +26,19 @@ export interface CallPageSettings {
   ringtoneUrl: string;
 }
 
+export interface CallPageContent {
+  // Landing page
+  landingTitle: string; // "Gabriel esta agora disponível..."
+  landingButtonText: string; // "Receber chamada agora"
+  // Ended state
+  endedTitle: string; // "Aproveite agora mesmo!"
+  endedMessage: string; // "Planos a partir de R$33 mensal"
+  endedPrice: string; // "R$33 mensal"
+  ctaButtonText: string; // "Acessar o site agora"
+  ctaButtonLink: string; // "https://acessar.click/mrointeligente"
+  profileUsername: string; // "@maisresultadosonline"
+}
+
 export interface FacebookPixelSettings {
   pixelId: string;
   enabled: boolean;
@@ -51,6 +64,7 @@ export interface AdminSettings {
     ctaClicked: boolean;
   };
   callPageSettings: CallPageSettings;
+  callPageContent: CallPageContent;
   pixelSettings: FacebookPixelSettings;
 }
 
@@ -188,6 +202,16 @@ fbq('track', 'PageView');`,
     callPageSettings: {
       audioUrl: 'https://maisresultadosonline.com.br/3b301aa2-e372-4b47-b35b-34d4b55bcdd9.mp3',
       ringtoneUrl: 'https://maisresultadosonline.com.br/1207.mp4'
+    },
+    callPageContent: {
+      landingTitle: 'Gabriel esta agora disponível para uma chamada, atenda para entender como não Gastar mais com anúncios!',
+      landingButtonText: 'Receber chamada agora',
+      endedTitle: '🔥 Aproveite agora mesmo!',
+      endedMessage: 'Planos a partir de',
+      endedPrice: 'R$33 mensal',
+      ctaButtonText: 'Acessar o site agora',
+      ctaButtonLink: 'https://acessar.click/mrointeligente',
+      profileUsername: '@maisresultadosonline'
     },
     pixelSettings: {
       pixelId: '569414052132145',

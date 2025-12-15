@@ -1,19 +1,33 @@
-import { useState, useRef } from 'react';
-import { getAdminData, saveAdminData, FacebookPixelSettings, CallPageSettings } from '@/lib/adminConfig';
+import { useState, useRef, useEffect } from 'react';
+import { getAdminData, saveAdminData, FacebookPixelSettings, CallPageSettings, CallPageContent } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Save, Upload, Loader2, Check, Phone, ExternalLink, 
-  Volume2, Play, Trash2, Facebook
+  Volume2, Play, Trash2, Facebook, Type, Link2, CloudUpload
 } from 'lucide-react';
+
+const DEFAULT_CALL_CONTENT: CallPageContent = {
+  landingTitle: 'Gabriel esta agora disponível para uma chamada, atenda para entender como não Gastar mais com anúncios!',
+  landingButtonText: 'Receber chamada agora',
+  endedTitle: '🔥 Aproveite agora mesmo!',
+  endedMessage: 'Planos a partir de',
+  endedPrice: 'R$33 mensal',
+  ctaButtonText: 'Acessar o site agora',
+  ctaButtonLink: 'https://acessar.click/mrointeligente',
+  profileUsername: '@maisresultadosonline'
+};
 
 const PixelAndCallSettings = () => {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [isSavingCloud, setIsSavingCloud] = useState(false);
+  const [isLoadingCloud, setIsLoadingCloud] = useState(true);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const ringtoneInputRef = useRef<HTMLInputElement>(null);
   
@@ -23,6 +37,10 @@ const PixelAndCallSettings = () => {
       audioUrl: 'https://maisresultadosonline.com.br/3b301aa2-e372-4b47-b35b-34d4b55bcdd9.mp3',
       ringtoneUrl: 'http://maisresultadosonline.com.br/1207.mp4'
     }
+  );
+  
+  const [callContent, setCallContent] = useState<CallPageContent>(
+    adminData.settings.callPageContent || DEFAULT_CALL_CONTENT
   );
   
   const [pixelSettings, setPixelSettings] = useState<FacebookPixelSettings>(
@@ -37,6 +55,30 @@ const PixelAndCallSettings = () => {
   );
 
   const [testingPixel, setTestingPixel] = useState(false);
+
+  // Load settings from cloud on mount
+  useEffect(() => {
+    const loadFromCloud = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('modules-storage', {
+          body: { action: 'load-call-settings' }
+        });
+        
+        if (!error && data?.success && data?.data) {
+          console.log('[PixelAndCallSettings] Loaded from cloud:', data.data);
+          if (data.data.callSettings) setCallSettings(data.data.callSettings);
+          if (data.data.callContent) setCallContent(data.data.callContent);
+          if (data.data.pixelSettings) setPixelSettings(data.data.pixelSettings);
+          toast({ title: "Carregado!", description: "Configurações carregadas da nuvem." });
+        }
+      } catch (err) {
+        console.error('[PixelAndCallSettings] Error loading from cloud:', err);
+      } finally {
+        setIsLoadingCloud(false);
+      }
+    };
+    loadFromCloud();
+  }, []);
 
   const handleUploadAudio = async (file: File, type: 'audio' | 'ringtone') => {
     if (!file) return;
@@ -70,12 +112,36 @@ const PixelAndCallSettings = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // Save locally first
     const data = getAdminData();
     data.settings.callPageSettings = callSettings;
+    data.settings.callPageContent = callContent;
     data.settings.pixelSettings = pixelSettings;
     saveAdminData(data);
-    toast({ title: "Salvo!", description: "Configurações de Pixel e Ligação atualizadas." });
+    
+    // Save to cloud
+    setIsSavingCloud(true);
+    try {
+      const { error } = await supabase.functions.invoke('modules-storage', {
+        body: { 
+          action: 'save-call-settings',
+          data: {
+            callSettings,
+            callContent,
+            pixelSettings
+          }
+        }
+      });
+      
+      if (error) throw error;
+      toast({ title: "Salvo na nuvem!", description: "Configurações de Pixel e Ligação atualizadas e salvas na nuvem." });
+    } catch (err) {
+      console.error('[PixelAndCallSettings] Error saving to cloud:', err);
+      toast({ title: "Salvo localmente", description: "Não foi possível salvar na nuvem, mas as configurações locais foram atualizadas.", variant: "destructive" });
+    } finally {
+      setIsSavingCloud(false);
+    }
   };
 
   const testPixel = () => {
@@ -344,6 +410,138 @@ const PixelAndCallSettings = () => {
         </div>
       </div>
 
+      {/* Call Page Content Configuration */}
+      <div className="glass-card p-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-yellow-600 flex items-center justify-center">
+            <Type className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold">Conteúdo da Página de Ligação</h3>
+            <p className="text-sm text-muted-foreground">Configure textos e links exibidos na /ligacao</p>
+          </div>
+        </div>
+
+        {isLoadingCloud && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Carregando configurações da nuvem...</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-6">
+          {/* Landing Page Section */}
+          <div className="space-y-4 p-4 bg-secondary/30 rounded-lg">
+            <h4 className="font-medium flex items-center gap-2">
+              <Phone className="w-4 h-4 text-green-500" />
+              Página Inicial (Antes de Atender)
+            </h4>
+            
+            <div>
+              <Label>Texto de Título</Label>
+              <Textarea
+                value={callContent.landingTitle}
+                onChange={(e) => setCallContent(prev => ({ ...prev, landingTitle: e.target.value }))}
+                placeholder="Gabriel esta agora disponível..."
+                className="bg-secondary/50 mt-1"
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Use o nome "Gabriel" que aparece em amarelo</p>
+            </div>
+            
+            <div>
+              <Label>Texto do Botão</Label>
+              <Input
+                value={callContent.landingButtonText}
+                onChange={(e) => setCallContent(prev => ({ ...prev, landingButtonText: e.target.value }))}
+                placeholder="Receber chamada agora"
+                className="bg-secondary/50 mt-1"
+              />
+            </div>
+          </div>
+
+          {/* Ended State Section */}
+          <div className="space-y-4 p-4 bg-secondary/30 rounded-lg">
+            <h4 className="font-medium flex items-center gap-2">
+              <ExternalLink className="w-4 h-4 text-yellow-500" />
+              Tela Final (Após Ligação)
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Título de Destaque</Label>
+                <Input
+                  value={callContent.endedTitle}
+                  onChange={(e) => setCallContent(prev => ({ ...prev, endedTitle: e.target.value }))}
+                  placeholder="🔥 Aproveite agora mesmo!"
+                  className="bg-secondary/50 mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label>Mensagem</Label>
+                <Input
+                  value={callContent.endedMessage}
+                  onChange={(e) => setCallContent(prev => ({ ...prev, endedMessage: e.target.value }))}
+                  placeholder="Planos a partir de"
+                  className="bg-secondary/50 mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label>Preço em Destaque</Label>
+                <Input
+                  value={callContent.endedPrice}
+                  onChange={(e) => setCallContent(prev => ({ ...prev, endedPrice: e.target.value }))}
+                  placeholder="R$33 mensal"
+                  className="bg-secondary/50 mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label>@ do Perfil</Label>
+                <Input
+                  value={callContent.profileUsername}
+                  onChange={(e) => setCallContent(prev => ({ ...prev, profileUsername: e.target.value }))}
+                  placeholder="@maisresultadosonline"
+                  className="bg-secondary/50 mt-1"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label>Texto do Botão CTA</Label>
+              <Input
+                value={callContent.ctaButtonText}
+                onChange={(e) => setCallContent(prev => ({ ...prev, ctaButtonText: e.target.value }))}
+                placeholder="Acessar o site agora"
+                className="bg-secondary/50 mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label className="flex items-center gap-2">
+                <Link2 className="w-4 h-4" />
+                Link do Botão CTA
+              </Label>
+              <Input
+                value={callContent.ctaButtonLink}
+                onChange={(e) => setCallContent(prev => ({ ...prev, ctaButtonLink: e.target.value }))}
+                placeholder="https://acessar.click/mrointeligente"
+                className="bg-secondary/50 mt-1 font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Link que abre quando o usuário clica no botão final</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+          <p className="text-sm text-green-400">
+            <strong>💡 Dica:</strong> As alterações serão salvas na nuvem e carregadas automaticamente na página /ligacao.
+          </p>
+        </div>
+      </div>
+
       {/* Save Button */}
       <Button 
         type="button" 
@@ -351,9 +549,19 @@ const PixelAndCallSettings = () => {
         variant="gradient" 
         size="lg" 
         className="w-full cursor-pointer"
+        disabled={isSavingCloud}
       >
-        <Save className="w-5 h-5 mr-2" />
-        Salvar Configurações de Pixel e Ligação
+        {isSavingCloud ? (
+          <>
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            Salvando na nuvem...
+          </>
+        ) : (
+          <>
+            <CloudUpload className="w-5 h-5 mr-2" />
+            Salvar Configurações na Nuvem
+          </>
+        )}
       </Button>
     </div>
   );
