@@ -20,7 +20,7 @@ import {
   Star,
   Target,
   Lightbulb,
-  Image,
+  
   Brain,
   RefreshCw,
   Gift,
@@ -32,7 +32,7 @@ import logoMro from "@/assets/logo-mro.png";
 const VendasCompleta = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
-  const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
+  const [timeLeft, setTimeLeft] = useState({ hours: 47, minutes: 59, seconds: 59 });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +42,7 @@ const VendasCompleta = () => {
         if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
         if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
         if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return { hours: 23, minutes: 59, seconds: 59 };
+        return { hours: 47, minutes: 59, seconds: 59 };
       });
     }, 1000);
     return () => clearInterval(timer);
@@ -102,11 +102,6 @@ const VendasCompleta = () => {
       icon: Sparkles,
       title: "Estratégias Mensais (30 em 30 dias)",
       description: "A cada 30 dias você recebe uma nova estratégia personalizada baseada no seu nicho"
-    },
-    {
-      icon: Image,
-      title: "6 Criativos por Estratégia",
-      description: "Imagens profissionais geradas por I.A prontas para publicar no feed e stories"
     },
     {
       icon: Lightbulb,
@@ -181,21 +176,63 @@ const VendasCompleta = () => {
 
       {/* Hero Section */}
       <section className="relative pt-28 pb-16 px-4">
+        {/* Promo Banner */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="relative bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 rounded-2xl p-1 animate-pulse">
+            <div className="bg-black rounded-xl p-4 md:p-6 text-center">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl md:text-3xl">🔥</span>
+                  <span className="text-xl md:text-2xl font-black text-white">DEU A LOUCA NO CHEF!</span>
+                  <span className="text-2xl md:text-3xl">🔥</span>
+                </div>
+                <div className="bg-red-600 rounded-lg px-4 py-2 animate-bounce">
+                  <span className="text-white font-bold text-lg">-60% OFF</span>
+                </div>
+              </div>
+              <p className="text-amber-400 font-bold mt-2 text-lg">Promoção acabando em:</p>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="bg-red-600 rounded-lg px-3 py-2 min-w-[60px]">
+                  <span className="text-white font-black text-xl">{String(timeLeft.hours).padStart(2, '0')}</span>
+                  <span className="text-white/80 text-xs block">HORAS</span>
+                </div>
+                <span className="text-white font-bold text-xl">:</span>
+                <div className="bg-red-600 rounded-lg px-3 py-2 min-w-[60px]">
+                  <span className="text-white font-black text-xl">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                  <span className="text-white/80 text-xs block">MIN</span>
+                </div>
+                <span className="text-white font-bold text-xl">:</span>
+                <div className="bg-red-600 rounded-lg px-3 py-2 min-w-[60px]">
+                  <span className="text-white font-black text-xl">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                  <span className="text-white/80 text-xs block">SEG</span>
+                </div>
+              </div>
+              <p className="text-green-400 font-bold mt-3 text-sm md:text-base">⚡ APROVEITE AGORA MESMO! ⚡</p>
+            </div>
+          </div>
+        </div>
+
         <div className="max-w-5xl mx-auto text-center">
           <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-8 object-contain" />
           
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
-            NÃO GASTE MAIS COM ANÚNCIOS
-          </h1>
-          <h2 className="text-xl md:text-3xl font-bold text-amber-400">
-            UTILIZE A MRO INTELIGENTE
-          </h2>
+          {/* Animated Title */}
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
+            <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent animate-pulse">
+              NÃO GASTE MAIS COM ANÚNCIOS
+            </h1>
+            <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black">
+              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite]">
+                UTILIZE A MRO INTELIGENTE
+              </span>
+            </h2>
+          </div>
 
           {/* Main Video */}
           <div className="mt-10 max-w-4xl mx-auto">
             <div 
               onClick={() => openVideo("U-WmszcYekA")}
-              className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700"
+              className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700 hover:border-amber-500/50 transition-all"
             >
               <img 
                 src="https://img.youtube.com/vi/U-WmszcYekA/maxresdefault.jpg" 
@@ -203,7 +240,7 @@ const VendasCompleta = () => {
                 className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
                   <Play className="w-10 h-10 text-white ml-1" fill="white" />
                 </div>
               </div>
@@ -456,79 +493,75 @@ const VendasCompleta = () => {
       <section ref={pricingRef} className="py-20 px-4 bg-black relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent" />
         
-        <div className="max-w-6xl mx-auto relative z-10">
+        <div className="max-w-4xl mx-auto relative z-10">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-6 py-3 mb-6 animate-pulse">
+              <span className="text-2xl">🔥</span>
+              <span className="text-red-400 font-black text-lg">DEU A LOUCA NO CHEF!</span>
+              <span className="text-2xl">🔥</span>
+            </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Escolha Seu <span className="text-amber-400">Plano</span>
+              Apenas <span className="text-amber-400">PLANO VITALÍCIO</span>
             </h2>
             <p className="text-gray-400 text-lg">
               A solução definitiva para crescer no Instagram sem gastar com anúncios
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Plano Anual */}
-            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-3xl p-8 hover:border-amber-500/50 transition-all">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-pink-500 text-white text-sm font-bold px-4 py-1 rounded-full">
-                  MAIS POPULAR
-                </span>
+          {/* Plano Vitalício PROMO */}
+          <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-3xl p-8 md:p-12 shadow-2xl shadow-amber-500/30 max-w-2xl mx-auto">
+            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+              <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-sm font-black px-6 py-2 rounded-full animate-bounce">
+                🎉 PROMOÇÃO ESPECIAL 🎉
               </div>
-
-              <h3 className="text-2xl font-bold mb-2 mt-4">Plano Anual</h3>
-              <p className="text-gray-400 text-sm mb-6">Método MRO + Ferramenta Completa</p>
-
-              <div className="text-center mb-6">
-                <div className="text-xl text-gray-400 mb-1">12x de</div>
-                <div className="text-6xl font-black text-amber-400">R$33</div>
-                <p className="text-gray-500 text-sm mt-2">ou à vista R$397</p>
-              </div>
-
-              <div className="space-y-3 mb-8">
-                {annualFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">{feature}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Button 
-                size="lg"
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-lg py-6 rounded-xl"
-                onClick={() => window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+Inteligente+Anual","price":39700,"quantity":1}]&redirect_url=https://pay.maisresultadosonline.com.br/mro-inteligente-obrigado/', '_blank')}
-              >
-                ADQUIRIR ANUAL
-              </Button>
             </div>
 
-            {/* Plano Vitalício */}
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-3xl p-8 shadow-xl shadow-amber-500/20">
-              <h3 className="text-2xl font-bold mb-2">Plano Vitalício</h3>
-              <p className="text-gray-400 text-sm mb-6">A solução definitiva para crescer no Instagram sem gastar com anúncios</p>
+            <h3 className="text-3xl font-bold mb-2 mt-4 text-center">Plano Vitalício</h3>
+            <p className="text-gray-400 text-center mb-8">Acesso completo para sempre + Todas as atualizações futuras</p>
 
-              <div className="text-center mb-6">
-                <div className="text-xl text-gray-400 mb-1">12x de</div>
-                <div className="text-6xl font-black text-amber-400">R$83</div>
-                <p className="text-gray-500 text-sm mt-2">ou à vista R$997</p>
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <span className="text-gray-500 line-through text-2xl">12x R$83</span>
+                <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full">-60%</span>
               </div>
+              <div className="text-xl text-gray-400 mb-1">12x de</div>
+              <div className="text-7xl md:text-8xl font-black text-amber-400">R$41</div>
+              <p className="text-gray-500 text-sm mt-2">ou à vista R$397</p>
+              <p className="text-green-400 font-bold mt-4 text-lg">✨ Economize mais de R$500! ✨</p>
+            </div>
 
-              <div className="space-y-3 mb-8">
-                {lifetimeFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">{feature}</span>
-                  </div>
-                ))}
+            <div className="space-y-3 mb-8">
+              {lifetimeFeatures.map((feature, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  <span className="text-gray-300">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <Button 
+              size="xl"
+              className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:via-orange-600 hover:to-red-600 text-black font-black text-xl py-8 rounded-xl shadow-lg shadow-amber-500/30 hover:scale-105 transition-transform"
+              onClick={() => window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+PROMO+VITALICIO","price":39700,"quantity":1}]&redirect_url=https://acessar.click/obrigado', '_blank')}
+            >
+              🔥 GARANTIR MEU ACESSO VITALÍCIO 🔥
+            </Button>
+
+            <div className="mt-6 text-center">
+              <p className="text-gray-400 text-sm">Promoção válida apenas nas próximas</p>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-3 py-1">
+                  <span className="text-red-400 font-bold">{String(timeLeft.hours).padStart(2, '0')}h</span>
+                </div>
+                <span className="text-gray-500">:</span>
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-3 py-1">
+                  <span className="text-red-400 font-bold">{String(timeLeft.minutes).padStart(2, '0')}m</span>
+                </div>
+                <span className="text-gray-500">:</span>
+                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-3 py-1">
+                  <span className="text-red-400 font-bold">{String(timeLeft.seconds).padStart(2, '0')}s</span>
+                </div>
               </div>
-
-              <Button 
-                size="lg"
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-lg py-6 rounded-xl"
-                onClick={() => window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+Inteligente+Vitalício","price":99700,"quantity":1}]&redirect_url=https://pay.maisresultadosonline.com.br/mro-inteligente-obrigado/', '_blank')}
-              >
-                ADQUIRIR VITALÍCIO
-              </Button>
             </div>
           </div>
         </div>
