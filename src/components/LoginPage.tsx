@@ -132,7 +132,9 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
       <Card className="w-full max-w-md glass-card border-primary/20">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <Logo />
+            <div className="bg-gray-900 rounded-xl p-4">
+              <Logo />
+            </div>
           </div>
           <CardTitle className="text-2xl font-bold">Acesso MRO Inteligente</CardTitle>
           <CardDescription>
