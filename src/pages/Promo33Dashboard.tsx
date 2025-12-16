@@ -106,11 +106,53 @@ export default function Promo33Dashboard() {
     navigate('/promo33');
   };
 
+  // Detectar se está em navegador in-app (Instagram, Facebook, etc)
+  const isInAppBrowser = (): boolean => {
+    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+    // Detectar navegadores in-app comuns
+    return /FBAN|FBAV|Instagram|Line|KAKAOTALK|Snapchat|Twitter|LinkedInApp/i.test(ua);
+  };
+
+  // Abrir link forçando navegador externo
+  const openInExternalBrowser = (url: string) => {
+    if (isInAppBrowser()) {
+      // Para Android, tentar intent://
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      
+      if (isAndroid) {
+        // Usar intent:// para forçar Chrome no Android
+        const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+        window.location.href = intentUrl;
+        
+        // Fallback: se não funcionar após 2 segundos, abrir normalmente
+        setTimeout(() => {
+          window.location.href = url;
+        }, 2000);
+      } else if (isIOS) {
+        // No iOS, mostrar instrução e copiar link
+        const copied = navigator.clipboard?.writeText(url);
+        toast.info('Abra no Safari: toque nos 3 pontinhos e escolha "Abrir no navegador" para completar o pagamento com segurança.', {
+          duration: 8000
+        });
+        // Tentar abrir mesmo assim
+        setTimeout(() => {
+          window.location.href = url;
+        }, 1500);
+      } else {
+        window.location.href = url;
+      }
+    } else {
+      // Navegador normal, abrir em nova aba
+      window.open(url, '_blank');
+    }
+  };
+
   const handlePayment = () => {
     trackInitiateCheckout('Promo33 Monthly', 33);
     const redirectUrl = `${window.location.origin}/promo33/obrigado?email=${encodeURIComponent(user?.email || '')}`;
     const fullPaymentLink = `${PAYMENT_LINK}&redirect_url=${encodeURIComponent(redirectUrl)}`;
-    window.open(fullPaymentLink, '_blank');
+    openInExternalBrowser(fullPaymentLink);
   };
 
   const handleToolPayment = (tool: 'instagram' | 'whatsapp') => {
@@ -118,7 +160,7 @@ export default function Promo33Dashboard() {
     const redirectUrl = 'https://maisresultadosonline.com.br/obrigado';
     const paymentLink = tool === 'instagram' ? MRO_INSTAGRAM_PAYMENT : ZAPMRO_PAYMENT;
     const fullPaymentLink = `${paymentLink}&redirect_url=${encodeURIComponent(redirectUrl)}`;
-    window.open(fullPaymentLink, '_blank');
+    openInExternalBrowser(fullPaymentLink);
   };
 
   const searchInstagram = async () => {

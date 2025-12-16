@@ -323,7 +323,7 @@ export default function Promo33Admin() {
                           <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mt-2 text-xs text-gray-500">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
-                              Cadastro: {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                              Cadastro: {new Date(user.created_at).toLocaleDateString('pt-BR')} às {new Date(user.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                             {user.subscription_end && (
                               <span className="flex items-center gap-1">
