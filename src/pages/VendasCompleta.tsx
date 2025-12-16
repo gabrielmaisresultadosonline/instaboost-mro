@@ -492,7 +492,7 @@ const VendasCompleta = () => {
       <section ref={pricingRef} className="py-20 px-4 bg-black relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/5 to-transparent" />
         
-        <div className="max-w-4xl mx-auto relative z-10">
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 animate-pulse">
               <span className="text-xl sm:text-2xl">🎄</span>
@@ -500,79 +500,107 @@ const VendasCompleta = () => {
               <span className="text-xl sm:text-2xl">🎄</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
-              <span className="text-amber-400">PROMOÇÃO VITALÍCIA</span> ACABANDO!
+              ESCOLHA SEU <span className="text-amber-400">PLANO</span>
             </h2>
             <p className="text-gray-400 text-lg">
               A solução definitiva para crescer no Instagram sem gastar com anúncios
             </p>
           </div>
 
-          {/* Plano Vitalício PROMO */}
-          <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-12 shadow-2xl shadow-amber-500/30 max-w-2xl mx-auto">
-            <div className="absolute -top-4 sm:-top-5 left-1/2 transform -translate-x-1/2">
-              <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-xs sm:text-sm font-black px-3 sm:px-6 py-1.5 sm:py-2 rounded-full animate-bounce whitespace-nowrap">
-                🎉 PROMOÇÃO DE FINAL DE ANO 🎉
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {/* Plano Anual */}
+            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-blue-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl">
+              <h3 className="text-2xl font-bold mb-2 text-center text-blue-400">Plano Anual</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo por 12 meses</p>
+
+              <div className="text-center mb-6">
+                <div className="text-gray-500 line-through text-lg mb-1">De R$497</div>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-4xl sm:text-5xl font-black text-white">12x</span>
+                  <span className="text-4xl sm:text-5xl font-black text-blue-400">R$33</span>
+                </div>
+                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$300</span> à vista</p>
               </div>
+
+              <div className="space-y-2 mb-6">
+                {annualFeatures.map((feature, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    <span className="text-gray-300">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl hover:scale-105 transition-transform"
+                onClick={() => {
+                  trackLead('Instagram MRO - Plano Anual');
+                  window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+ANUAL","price":30000,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigado', '_blank');
+                }}
+              >
+                GARANTIR PLANO ANUAL
+              </Button>
             </div>
 
-            <h3 className="text-3xl font-bold mb-2 mt-4 text-center">Plano Vitalício</h3>
-            <p className="text-gray-400 text-center mb-8">Acesso completo para sempre + Todas as atualizações futuras</p>
-
-            <div className="text-center mb-8 space-y-6">
-              {/* Pizza comparison */}
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 sm:p-6">
-                <p className="text-amber-400 font-bold text-sm sm:text-lg mb-2">🍕 PARCELINHA MENOR QUE UMA PIZZA MÉDIA</p>
-                <p className="text-gray-400 text-xs sm:text-sm">em sua cidade mensal</p>
+            {/* Plano Vitalício */}
+            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl shadow-amber-500/30">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap">
+                  ⭐ MAIS POPULAR
+                </div>
               </div>
 
-              {/* Traffic manager comparison */}
-              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 sm:p-6">
-                <p className="text-green-400 font-bold text-sm sm:text-lg mb-2">💰 PAGAMENTO ÚNICO</p>
-                <p className="text-gray-400 text-xs sm:text-sm">Menor que um valor pago mensal para um gestor de tráfego!</p>
+              <h3 className="text-2xl font-bold mb-2 text-center text-amber-400 mt-2">Plano Vitalício</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo para sempre</p>
+
+              <div className="text-center mb-6">
+                <div className="text-gray-500 line-through text-lg mb-1">De R$997</div>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-4xl sm:text-5xl font-black text-white">12x</span>
+                  <span className="text-4xl sm:text-5xl font-black text-amber-400">R$81</span>
+                </div>
+                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$797</span> à vista</p>
               </div>
 
-              <p className="text-red-400 font-bold text-sm sm:text-lg animate-pulse">⏰ Promoção válida apenas nas próximas:</p>
-              
-              <div className="flex items-center justify-center gap-1 sm:gap-2">
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                  <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.hours).padStart(2, '0')}h</span>
-                </div>
-                <span className="text-gray-500 text-lg sm:text-xl">:</span>
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                  <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.minutes).padStart(2, '0')}m</span>
-                </div>
-                <span className="text-gray-500 text-lg sm:text-xl">:</span>
-                <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                  <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.seconds).padStart(2, '0')}s</span>
-                </div>
+              <div className="space-y-2 mb-6">
+                {lifetimeFeatures.map((feature, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <span className="text-gray-300">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold py-4 rounded-xl hover:scale-105 transition-transform"
+                onClick={() => {
+                  trackLead('Instagram MRO - Plano Vitalício');
+                  window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+VITALICIO","price":79700,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigado', '_blank');
+                }}
+              >
+                GARANTIR PLANO VITALÍCIO
+              </Button>
+            </div>
+          </div>
+
+          {/* Countdown Timer */}
+          <div className="text-center mt-8">
+            <p className="text-red-400 font-bold text-sm sm:text-lg animate-pulse mb-4">⏰ Promoção válida apenas nas próximas:</p>
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
+              <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
+                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.hours).padStart(2, '0')}h</span>
+              </div>
+              <span className="text-gray-500 text-lg sm:text-xl">:</span>
+              <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
+                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.minutes).padStart(2, '0')}m</span>
+              </div>
+              <span className="text-gray-500 text-lg sm:text-xl">:</span>
+              <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
+                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.seconds).padStart(2, '0')}s</span>
               </div>
             </div>
-
-            <div className="space-y-3 mb-8">
-              {lifetimeFeatures.map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-                  <span className="text-gray-300">{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            <Button 
-              size="xl"
-              className="w-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-black text-xl sm:text-lg md:text-xl py-6 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:scale-105 transition-transform whitespace-normal h-auto min-h-[60px] leading-tight px-4 sm:px-6"
-              onClick={() => {
-                // Track Lead event
-                trackLead('Instagram MRO - WhatsApp CTA');
-                const phone = salesSettings.whatsappNumber.replace(/\D/g, '');
-                const message = encodeURIComponent(salesSettings.whatsappMessage);
-                window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-              }}
-            >
-              <span className="flex items-center justify-center gap-2 flex-wrap text-center">
-                <span className="hidden sm:inline">💬</span>
-                <span>{salesSettings.ctaButtonText}</span>
-              </span>
-            </Button>
           </div>
         </div>
       </section>
