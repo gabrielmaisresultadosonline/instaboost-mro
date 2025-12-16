@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Crown, Instagram, Search, LogOut, Loader2, Users, 
   MessageSquare, Target, TrendingUp, FileText, Sparkles, 
   CreditCard, CheckCircle, AlertCircle, Gift, Play, X,
-  MessageCircle, Smartphone, Percent
+  MessageCircle, Smartphone, Percent, ChevronDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -424,134 +425,152 @@ export default function Promo33Dashboard() {
               </div>
             )}
 
-            {/* Exclusive Tools Section */}
-            <div className="mt-12">
-              <div className="text-center mb-8">
+            {/* Exclusive Tools Section - Collapsible */}
+            <div className="mt-12 space-y-4">
+              <div className="text-center mb-6">
                 <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-4 py-1 mb-4">
                   <Gift className="w-4 h-4 mr-2" />
                   EXCLUSIVO PARA CLIENTES
                 </Badge>
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
                   Nossas Ferramentas Premium
                 </h2>
-                <p className="text-gray-400">
-                  Como cliente, você tem desconto especial nas nossas ferramentas completas
+                <p className="text-gray-400 text-sm">
+                  Clique para ver os descontos exclusivos
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* MRO Instagram Tool */}
-                <Card className="bg-gradient-to-br from-pink-500/10 to-purple-600/10 border-pink-500/30 overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-                        <Instagram className="w-6 h-6 text-white" />
+              {/* MRO Instagram Tool - Collapsible */}
+              <Collapsible>
+                <CollapsibleTrigger className="w-full">
+                  <Card className="bg-gradient-to-r from-pink-500/20 to-purple-600/20 border-pink-500/30 hover:border-pink-500/50 transition-colors cursor-pointer">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                          <Instagram className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-white font-bold">Ferramenta de Instagram</h3>
+                          <p className="text-gray-400 text-xs">MRO Inteligente - R$300/anual</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white">MRO Inteligente</h3>
-                        <p className="text-gray-400 text-sm">Ferramenta para Instagram</p>
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                    </CardContent>
+                  </Card>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gradient-to-br from-pink-500/10 to-purple-600/10 border-pink-500/30 border-t-0 rounded-t-none">
+                    <CardContent className="p-6">
+                      <ul className="space-y-2 mb-4">
+                        {[
+                          'Automação de interações orgânicas',
+                          'Estratégias personalizadas por I.A',
+                          'Geração de criativos e legendas',
+                          'Análise completa do perfil',
+                          'Suporte exclusivo'
+                        ].map((item, i) => (
+                          <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
+                            <CheckCircle className="w-4 h-4 text-pink-500 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <button 
+                        onClick={() => setShowVideoModal('instagram')}
+                        className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg mb-4 transition-colors"
+                      >
+                        <Play className="w-5 h-5" />
+                        Ver como funciona
+                      </button>
+
+                      <div className="bg-black/30 rounded-lg p-4 text-center mb-4">
+                        <p className="text-gray-500 text-sm line-through">De R$397</p>
+                        <div className="flex items-center justify-center gap-2">
+                          <Percent className="w-5 h-5 text-yellow-500" />
+                          <span className="text-3xl font-bold text-yellow-400">R$300</span>
+                          <span className="text-gray-400">/anual</span>
+                        </div>
+                        <p className="text-green-400 text-sm font-semibold">Economia de R$97!</p>
                       </div>
-                    </div>
 
-                    <ul className="space-y-2 mb-4">
-                      {[
-                        'Automação de interações orgânicas',
-                        'Estratégias personalizadas por I.A',
-                        'Geração de criativos e legendas',
-                        'Análise completa do perfil',
-                        'Suporte exclusivo'
-                      ].map((item, i) => (
-                        <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
-                          <CheckCircle className="w-4 h-4 text-pink-500 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
+                      <Button 
+                        onClick={() => handleWhatsAppPromo('instagram')}
+                        className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-6"
+                      >
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        QUERO ESSE DESCONTO
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
 
-                    <button 
-                      onClick={() => setShowVideoModal('instagram')}
-                      className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg mb-4 transition-colors"
-                    >
-                      <Play className="w-5 h-5" />
-                      Ver como funciona
-                    </button>
-
-                    <div className="bg-black/30 rounded-lg p-4 text-center mb-4">
-                      <p className="text-gray-500 text-sm line-through">De R$397</p>
-                      <div className="flex items-center justify-center gap-2">
-                        <Percent className="w-5 h-5 text-yellow-500" />
-                        <span className="text-3xl font-bold text-yellow-400">R$300</span>
-                        <span className="text-gray-400">/anual</span>
+              {/* ZAPMRO WhatsApp Tool - Collapsible */}
+              <Collapsible>
+                <CollapsibleTrigger className="w-full">
+                  <Card className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 border-green-500/30 hover:border-green-500/50 transition-colors cursor-pointer">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                          <Smartphone className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-white font-bold">Ferramenta de WhatsApp</h3>
+                          <p className="text-gray-400 text-xs">ZAPMRO - R$300/anual</p>
+                        </div>
                       </div>
-                      <p className="text-green-400 text-sm font-semibold">Economia de R$97!</p>
-                    </div>
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                    </CardContent>
+                  </Card>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gradient-to-br from-green-500/10 to-emerald-600/10 border-green-500/30 border-t-0 rounded-t-none">
+                    <CardContent className="p-6">
+                      <ul className="space-y-2 mb-4">
+                        {[
+                          'Automação de mensagens em massa',
+                          'Extrator de contatos',
+                          'Disparador inteligente',
+                          'Gestão de grupos',
+                          'Suporte exclusivo'
+                        ].map((item, i) => (
+                          <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
+                            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
 
-                    <Button 
-                      onClick={() => handleWhatsAppPromo('instagram')}
-                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-6"
-                    >
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      QUERO ESSE DESCONTO
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <button 
+                        onClick={() => setShowVideoModal('whatsapp')}
+                        className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg mb-4 transition-colors"
+                      >
+                        <Play className="w-5 h-5" />
+                        Ver como funciona
+                      </button>
 
-                {/* ZAPMRO WhatsApp Tool */}
-                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-600/10 border-green-500/30 overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                        <Smartphone className="w-6 h-6 text-white" />
+                      <div className="bg-black/30 rounded-lg p-4 text-center mb-4">
+                        <p className="text-gray-500 text-sm line-through">De R$397</p>
+                        <div className="flex items-center justify-center gap-2">
+                          <Percent className="w-5 h-5 text-yellow-500" />
+                          <span className="text-3xl font-bold text-yellow-400">R$300</span>
+                          <span className="text-gray-400">/anual</span>
+                        </div>
+                        <p className="text-green-400 text-sm font-semibold">Economia de R$97!</p>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white">ZAPMRO</h3>
-                        <p className="text-gray-400 text-sm">Ferramenta para WhatsApp</p>
-                      </div>
-                    </div>
 
-                    <ul className="space-y-2 mb-4">
-                      {[
-                        'Automação de mensagens em massa',
-                        'Extrator de contatos',
-                        'Disparador inteligente',
-                        'Gestão de grupos',
-                        'Suporte exclusivo'
-                      ].map((item, i) => (
-                        <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <button 
-                      onClick={() => setShowVideoModal('whatsapp')}
-                      className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg mb-4 transition-colors"
-                    >
-                      <Play className="w-5 h-5" />
-                      Ver como funciona
-                    </button>
-
-                    <div className="bg-black/30 rounded-lg p-4 text-center mb-4">
-                      <p className="text-gray-500 text-sm line-through">De R$397</p>
-                      <div className="flex items-center justify-center gap-2">
-                        <Percent className="w-5 h-5 text-yellow-500" />
-                        <span className="text-3xl font-bold text-yellow-400">R$300</span>
-                        <span className="text-gray-400">/anual</span>
-                      </div>
-                      <p className="text-green-400 text-sm font-semibold">Economia de R$97!</p>
-                    </div>
-
-                    <Button 
-                      onClick={() => handleWhatsAppPromo('whatsapp')}
-                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6"
-                    >
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      QUERO ESSE DESCONTO
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+                      <Button 
+                        onClick={() => handleWhatsAppPromo('whatsapp')}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6"
+                      >
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        QUERO ESSE DESCONTO
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
 
               {/* Contact Admin */}
               <Card className="bg-gray-900/50 border-gray-800 mt-6">
