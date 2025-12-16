@@ -185,7 +185,7 @@ const VendasCompleta = () => {
 
   const lifetimeFeatures = [
     "Ferramenta completa para Instagram",
-    "Acesso a 4 contas simultâneas fixas",
+    "Acesso a 6 contas simultâneas fixas",
     "5 testes todo mês para testar em seus clientes/outras contas",
     "Área de membros VITALÍCIA",
     "Vídeos estratégicos passo a passo",
