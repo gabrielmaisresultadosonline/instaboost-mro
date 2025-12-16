@@ -45,15 +45,38 @@ serve(async (req) => {
 
     // Handle profile analysis request
     if (type === 'analysis') {
+      // Calculate engagement from posts
+      const posts = instagram_data.posts || [];
+      const totalLikes = posts.reduce((sum: number, p: any) => sum + (p.likes || 0), 0);
+      const totalComments = posts.reduce((sum: number, p: any) => sum + (p.comments || 0), 0);
+      const avgLikes = posts.length > 0 ? Math.round(totalLikes / posts.length) : 0;
+      const avgComments = posts.length > 0 ? Math.round(totalComments / posts.length) : 0;
+      const engagementRate = instagram_data.followers > 0 
+        ? ((avgLikes + avgComments) / instagram_data.followers * 100).toFixed(2) 
+        : '0';
+      
+      // Get external URL from bio
+      const externalUrl = Array.isArray(instagram_data.externalUrl) 
+        ? (Array.isArray(instagram_data.externalUrl[0]) ? instagram_data.externalUrl[0][0] : instagram_data.externalUrl[0])
+        : instagram_data.externalUrl || 'Não possui link na bio';
+
       const analysisPrompt = `
 Analise o seguinte perfil do Instagram e forneça uma análise objetiva.
 
 Perfil: @${instagram_username}
 Nome: ${instagram_data.fullName || 'Não informado'}
 Bio: ${instagram_data.bio || 'Não informada'}
+Link na Bio: ${externalUrl}
 Seguidores: ${instagram_data.followers || 0}
 Seguindo: ${instagram_data.following || 0}
-Total de Posts: ${instagram_data.postsCount || instagram_data.posts?.length || 0}
+Total de Posts: ${instagram_data.postsCount || posts.length || 0}
+
+ENGAJAMENTO DOS ÚLTIMOS ${posts.length} POSTS:
+- Total de Curtidas: ${totalLikes}
+- Total de Comentários: ${totalComments}
+- Média de Curtidas por Post: ${avgLikes}
+- Média de Comentários por Post: ${avgComments}
+- Taxa de Engajamento: ${engagementRate}%
 
 Responda APENAS em formato JSON válido com a seguinte estrutura:
 {
@@ -61,7 +84,7 @@ Responda APENAS em formato JSON válido com a seguinte estrutura:
   "negatives": ["ponto a melhorar 1", "ponto a melhorar 2", "ponto a melhorar 3"]
 }
 
-Liste 3 pontos positivos e 3 pontos a melhorar. Seja específico e objetivo.
+Liste 3 pontos positivos e 3 pontos a melhorar. Seja específico e objetivo, use os dados de engajamento fornecidos.
 `;
 
       const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
@@ -174,14 +197,33 @@ Liste 3 pontos positivos e 3 pontos a melhorar. Seja específico e objetivo.
       }
     }
 
-    // Build prompt based on strategy type
+    // Build prompt based on strategy type - include engagement data
+    const strategyPosts = instagram_data.posts || [];
+    const strategyTotalLikes = strategyPosts.reduce((sum: number, p: any) => sum + (p.likes || 0), 0);
+    const strategyTotalComments = strategyPosts.reduce((sum: number, p: any) => sum + (p.comments || 0), 0);
+    const strategyAvgLikes = strategyPosts.length > 0 ? Math.round(strategyTotalLikes / strategyPosts.length) : 0;
+    const strategyAvgComments = strategyPosts.length > 0 ? Math.round(strategyTotalComments / strategyPosts.length) : 0;
+    const strategyEngagement = instagram_data.followers > 0 
+      ? ((strategyAvgLikes + strategyAvgComments) / instagram_data.followers * 100).toFixed(2) 
+      : '0';
+    
+    const strategyExternalUrl = Array.isArray(instagram_data.externalUrl) 
+      ? (Array.isArray(instagram_data.externalUrl[0]) ? instagram_data.externalUrl[0][0] : instagram_data.externalUrl[0])
+      : instagram_data.externalUrl || 'Não possui';
+
     const profileInfo = `
 Perfil: @${instagram_username}
 Nome: ${instagram_data.fullName || 'Não informado'}
 Bio: ${instagram_data.bio || 'Não informada'}
+Link na Bio: ${strategyExternalUrl}
 Seguidores: ${instagram_data.followers || 0}
 Seguindo: ${instagram_data.following || 0}
-Total de Posts: ${instagram_data.postsCount || instagram_data.posts?.length || 0}
+Total de Posts: ${instagram_data.postsCount || strategyPosts.length || 0}
+
+ENGAJAMENTO (últimos ${strategyPosts.length} posts):
+- Média de Curtidas: ${strategyAvgLikes}
+- Média de Comentários: ${strategyAvgComments}
+- Taxa de Engajamento: ${strategyEngagement}%
 `;
 
     let prompt = '';
