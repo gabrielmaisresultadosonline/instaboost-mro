@@ -140,16 +140,18 @@ const ToolSelector = () => {
       </div>
 
       {/* Tool Cards - Sales Pages */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl w-full z-10 px-4">
-        {tools.map((tool) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full z-10 px-4 place-items-center">
+        {tools.map((tool, index) => (
           <button
             key={tool.id}
             onClick={() => handleSalesClick(tool.salesPath, tool.name)}
+            style={{ animationDelay: `${index * 100}ms` }}
             className={`
-              relative group p-8 rounded-2xl border-2 ${tool.borderColor}
-              bg-gray-800/50 backdrop-blur-sm
-              transition-all duration-500 ease-out
-              hover:scale-[1.02] hover:shadow-2xl hover:bg-gray-700/60
+              relative group p-6 md:p-8 rounded-2xl border-2 ${tool.borderColor}
+              bg-gray-800/50 backdrop-blur-sm w-full max-w-sm
+              transition-all duration-500 ease-out animate-fade-in
+              hover:scale-105 hover:shadow-2xl hover:shadow-${tool.color.split('-')[1]}-500/20 hover:bg-gray-700/60
+              hover:-translate-y-2
             `}
           >
             {/* Gradient overlay on hover */}
