@@ -189,7 +189,7 @@ const GestaoMensal = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white">
       {/* Hero Section com Parallax */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20 overflow-hidden">
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 py-16 sm:py-20 overflow-hidden">
         {/* Background Image with Parallax */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -201,14 +201,14 @@ const GestaoMensal = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-gray-900/70 to-black" />
         
-        <div className="relative z-10 text-center max-w-5xl mx-auto">
-          <img src={logoMro} alt="MRO Logo" className="h-16 md:h-20 mx-auto mb-6 animate-fade-in" />
+        <div className="relative z-10 text-center max-w-5xl mx-auto w-full">
+          <img src={logoMro} alt="MRO Logo" className="h-12 sm:h-16 md:h-20 mx-auto mb-4 sm:mb-6 animate-fade-in" />
           
-          <p className="text-yellow-400 font-semibold tracking-widest text-sm md:text-base mb-4 animate-fade-in">
+          <p className="text-yellow-400 font-semibold tracking-widest text-xs sm:text-sm md:text-base mb-3 sm:mb-4 animate-fade-in px-2">
             MAIS RESULTADOS ONLINE
           </p>
           
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight animate-fade-in px-2">
             Transforme sua empresa em uma{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-400">
               máquina de aquisição
@@ -216,25 +216,25 @@ const GestaoMensal = () => {
             e retenção de clientes
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto animate-fade-in">
+          <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto animate-fade-in px-2">
             com estratégia, dados e otimização contínua.
           </p>
           
-          <div className="flex flex-col items-center gap-4 animate-fade-in">
-            <p className="text-gray-400">Entenda melhor como a MRO pode ajudar você</p>
+          <div className="flex flex-col items-center gap-3 sm:gap-4 animate-fade-in px-2">
+            <p className="text-gray-400 text-sm sm:text-base">Entenda melhor como a MRO pode ajudar você</p>
             <Button 
               onClick={scrollToMethodology}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-6 text-lg rounded-full group shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all"
+              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 sm:px-8 py-4 sm:py-6 text-sm sm:text-base md:text-lg rounded-full group shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all max-w-full"
             >
-              Clique para conhecer nossa metodologia
-              <ChevronDown className="ml-2 group-hover:translate-y-1 transition-transform" />
+              <span className="whitespace-normal text-center leading-tight">Clique para conhecer nossa metodologia</span>
+              <ChevronDown className="ml-2 group-hover:translate-y-1 transition-transform flex-shrink-0" />
             </Button>
           </div>
         </div>
         
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="w-8 h-8 text-yellow-400/50" />
+        <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ChevronDown className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400/50" />
         </div>
       </section>
 
@@ -248,10 +248,10 @@ const GestaoMensal = () => {
           }}
         />
         <div className="max-w-6xl mx-auto relative z-10">
-          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-xs sm:text-sm text-center mb-2">
             O QUE É A MRO?
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8 px-2">
             UMA ESTRUTURA DE CRESCIMENTO COMPLETA
           </h2>
           
@@ -292,13 +292,13 @@ const GestaoMensal = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-gray-900/90" />
         <div className="max-w-6xl mx-auto relative z-10">
-          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-xs sm:text-sm text-center mb-2">
             NOSSA METODOLOGIA
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-3 sm:mb-4 px-2">
             METODOLOGIA CVO
           </h2>
-          <p className="text-gray-300 text-center max-w-3xl mx-auto mb-12">
+          <p className="text-gray-300 text-center max-w-3xl mx-auto mb-8 sm:mb-12 text-sm sm:text-base px-2">
             Customer Value Optimization — uma metodologia que vai além do tráfego pago tradicional. Em vez de focar só em trazer cliques, trabalhamos todo o funil.
           </p>
           
@@ -327,12 +327,12 @@ const GestaoMensal = () => {
       </section>
 
       {/* O que fazemos */}
-      <section className="py-20 px-4 bg-gray-900/50">
+      <section className="py-12 sm:py-20 px-3 sm:px-4 bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
-          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-xs sm:text-sm text-center mb-2">
             O QUE FAZEMOS
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8 sm:mb-12 px-2">
             COMO A MRO FAZ EMPRESAS CRESCEREM
           </h2>
           
@@ -362,15 +362,15 @@ const GestaoMensal = () => {
       </section>
 
       {/* Para quem é */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-20 px-3 sm:px-4">
         <div className="max-w-6xl mx-auto">
-          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-xs sm:text-sm text-center mb-2">
             PARA QUEM É
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-3 sm:mb-4 px-2">
             FUNCIONA EM QUALQUER NICHO
           </h2>
-          <p className="text-gray-300 text-center max-w-3xl mx-auto mb-12">
+          <p className="text-gray-300 text-center max-w-3xl mx-auto mb-8 sm:mb-12 text-sm sm:text-base px-2">
             Porque nossa estrutura não depende de moda, plataforma ou tendência. Ela é baseada em comportamento humano, dados e otimização contínua.
           </p>
           
@@ -392,23 +392,23 @@ const GestaoMensal = () => {
             ))}
           </div>
           
-          <div className="text-center">
-            <p className="text-2xl font-bold text-yellow-400 mb-2">SE EXISTE PÚBLICO, EXISTE ESTRATÉGIA.</p>
-            <p className="text-gray-300">E a MRO constrói a jornada mais eficiente entre o cliente e a empresa.</p>
+          <div className="text-center px-2">
+            <p className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-400 mb-2">SE EXISTE PÚBLICO, EXISTE ESTRATÉGIA.</p>
+            <p className="text-gray-300 text-sm sm:text-base">E a MRO constrói a jornada mais eficiente entre o cliente e a empresa.</p>
           </div>
         </div>
       </section>
 
       {/* Por que a MRO */}
-      <section className="py-20 px-4 bg-gray-900/50">
+      <section className="py-12 sm:py-20 px-3 sm:px-4 bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
-          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-xs sm:text-sm text-center mb-2">
             POR QUE A MRO?
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-3 sm:mb-4 px-2">
             DIFERENCIAIS REAIS
           </h2>
-          <p className="text-gray-400 text-center mb-12">MRO em ação • Parceiro Estratégico</p>
+          <p className="text-gray-400 text-center mb-8 sm:mb-12 text-sm sm:text-base">MRO em ação • Parceiro Estratégico</p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {[
@@ -446,10 +446,10 @@ const GestaoMensal = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-gray-900/85 to-black" />
         <div className="max-w-6xl mx-auto relative z-10">
-          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-xs sm:text-sm text-center mb-2">
             INVESTIMENTO
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8 sm:mb-12 px-2">
             GESTÃO MENSAL MRO
           </h2>
           
@@ -568,7 +568,7 @@ const GestaoMensal = () => {
             </div>
           </div>
           
-          <p className="text-center text-2xl md:text-3xl font-bold mt-12">
+          <p className="text-center text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mt-8 sm:mt-12 px-2">
             <span className="text-yellow-400">MAIS RESULTADOS.</span>{" "}
             <span className="text-gray-400">MENOS COMPLEXIDADE.</span>
           </p>
@@ -576,7 +576,7 @@ const GestaoMensal = () => {
       </section>
 
       {/* CTA - Botão para abrir formulário */}
-      <section className="py-20 px-4 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
+      <section className="py-12 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
           style={{ 
@@ -586,28 +586,28 @@ const GestaoMensal = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-black" />
         
-        <div className="max-w-xl mx-auto relative z-10 text-center">
-          <img src={logoMro} alt="MRO" className="h-14 mx-auto mb-6" />
-          <h2 className="text-3xl md:text-5xl font-bold mb-4">
+        <div className="max-w-xl mx-auto relative z-10 text-center px-2">
+          <img src={logoMro} alt="MRO" className="h-10 sm:h-14 mx-auto mb-4 sm:mb-6" />
+          <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight">
             GOSTARIA DA NOSSA GESTÃO NO SEU NEGÓCIO?
           </h2>
-          <p className="text-gray-400 text-lg mb-10">
+          <p className="text-gray-400 text-sm sm:text-base md:text-lg mb-6 sm:mb-10">
             Clique no botão abaixo para preencher o formulário
           </p>
           
           <Button
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black font-bold py-8 px-12 text-2xl rounded-2xl shadow-2xl shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-all hover:scale-105"
+            className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black font-bold py-5 sm:py-6 md:py-8 px-6 sm:px-8 md:px-12 text-base sm:text-xl md:text-2xl rounded-2xl shadow-2xl shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-all hover:scale-105 max-w-full"
           >
-            <CheckCircle className="w-7 h-7 mr-3" />
-            SIM, GOSTARIA!
+            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 mr-2 sm:mr-3 flex-shrink-0" />
+            <span className="whitespace-normal">SIM, GOSTARIA!</span>
           </Button>
           
-          <div className="flex items-center justify-center gap-6 mt-8 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-6 mt-6 sm:mt-8 text-xs sm:text-sm text-gray-500">
             <span>Atendimento rápido</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>Sem compromisso</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>100% gratuito</span>
           </div>
         </div>
