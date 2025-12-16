@@ -23,18 +23,29 @@ import {
   CheckCircle,
   Shield,
   ChevronDown,
-  Instagram
+  Instagram,
+  Calculator,
+  Video,
+  Image,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import logoMro from "@/assets/logo-mro.png";
 
 const GestaoMensal = () => {
   const [instagram, setInstagram] = useState("");
   const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [perspectiva, setPerspectiva] = useState("");
+  const [investimento, setInvestimento] = useState(500);
+
+  const custoPorLead = 3.80;
+  const leadsEstimados = Math.floor(investimento / custoPorLead);
 
   const handleWhatsApp = () => {
-    const message = `Olá! Gostaria de saber mais sobre a gestão mensal da MRO.\n\nInstagram: @${instagram}\nNome: ${nome}`;
+    const message = `*NOVO CADASTRO - GESTÃO MENSAL MRO*\n\n*Nome:* ${nome}\n*Email:* ${email}\n*Instagram:* @${instagram}\n*Perspectiva/Expectativa:* ${perspectiva}`;
     const whatsappUrl = `https://wa.me/5551920356540?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };
@@ -43,22 +54,26 @@ const GestaoMensal = () => {
     document.getElementById("methodology")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const scrollToPricing = () => {
+    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white">
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-900/20 via-transparent to-transparent" />
         
         <div className="relative z-10 text-center max-w-5xl mx-auto">
           <img src={logoMro} alt="MRO Logo" className="h-16 md:h-20 mx-auto mb-6" />
           
-          <p className="text-emerald-400 font-semibold tracking-widest text-sm md:text-base mb-4">
+          <p className="text-yellow-400 font-semibold tracking-widest text-sm md:text-base mb-4">
             MAIS RESULTADOS ONLINE
           </p>
           
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
             Transforme sua empresa em uma{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-400">
               máquina de aquisição
             </span>{" "}
             e retenção de clientes
@@ -72,7 +87,7 @@ const GestaoMensal = () => {
             <p className="text-gray-400">Entenda melhor como a MRO pode ajudar você</p>
             <Button 
               onClick={scrollToMethodology}
-              className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold px-8 py-6 text-lg rounded-full group"
+              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-6 text-lg rounded-full group"
             >
               Clique para conhecer nossa metodologia
               <ChevronDown className="ml-2 group-hover:translate-y-1 transition-transform" />
@@ -84,7 +99,7 @@ const GestaoMensal = () => {
       {/* O que é a MRO */}
       <section className="py-20 px-4 bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
-          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             O QUE É A MRO?
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
@@ -107,8 +122,8 @@ const GestaoMensal = () => {
               { icon: TrendingUp, title: "Crescimento", desc: "Escalabilidade sustentável" },
               { icon: Settings, title: "Otimização", desc: "Melhorias contínuas" },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center hover:border-emerald-500/50 transition-colors">
-                <item.icon className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
+              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center hover:border-yellow-500/50 transition-colors">
+                <item.icon className="w-10 h-10 text-yellow-400 mx-auto mb-3" />
                 <h3 className="font-semibold mb-1">{item.title}</h3>
                 <p className="text-sm text-gray-400">{item.desc}</p>
               </div>
@@ -120,7 +135,7 @@ const GestaoMensal = () => {
       {/* Metodologia CVO */}
       <section id="methodology" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             NOSSA METODOLOGIA
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
@@ -138,8 +153,8 @@ const GestaoMensal = () => {
               { step: 4, title: "Monetização", desc: "Maximizamos o valor de cada cliente com ofertas, upsells e estratégias de ticket médio." },
               { step: 5, title: "Retenção", desc: "Fidelizamos clientes para recompras recorrentes e indicações espontâneas." },
             ].map((item, i) => (
-              <div key={i} className="bg-gradient-to-b from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-xl p-6 hover:border-emerald-500/50 transition-colors">
-                <div className="w-10 h-10 bg-emerald-500 text-black font-bold rounded-full flex items-center justify-center mb-4">
+              <div key={i} className="bg-gradient-to-b from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-xl p-6 hover:border-yellow-500/50 transition-colors">
+                <div className="w-10 h-10 bg-yellow-500 text-black font-bold rounded-full flex items-center justify-center mb-4">
                   {item.step}
                 </div>
                 <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
@@ -148,7 +163,7 @@ const GestaoMensal = () => {
             ))}
           </div>
           
-          <p className="text-center text-xl font-semibold text-emerald-400">
+          <p className="text-center text-xl font-semibold text-yellow-400">
             Não entregamos só visitas. Entregamos resultado real.
           </p>
         </div>
@@ -157,7 +172,7 @@ const GestaoMensal = () => {
       {/* O que fazemos */}
       <section className="py-20 px-4 bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
-          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             O QUE FAZEMOS
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
@@ -175,8 +190,8 @@ const GestaoMensal = () => {
               { icon: PieChart, title: "Análise Profunda de Dados", desc: "Decisões baseadas em métricas reais, não \"achismo\". Relatórios claros e acionáveis." },
               { icon: ArrowRight, title: "Transformação da Jornada", desc: "Desde o primeiro contato até a recompra, elevamos o valor do cliente ao longo do tempo." },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/50 hover:border-emerald-500/30 transition-all">
-                <item.icon className="w-10 h-10 text-emerald-400 mb-4" />
+              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/50 hover:border-yellow-500/30 transition-all">
+                <item.icon className="w-10 h-10 text-yellow-400 mb-4" />
                 <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                 <p className="text-sm text-gray-400">{item.desc}</p>
               </div>
@@ -192,7 +207,7 @@ const GestaoMensal = () => {
       {/* Para quem é */}
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             PARA QUEM É
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
@@ -213,15 +228,15 @@ const GestaoMensal = () => {
               { icon: Building, label: "Negócios Físicos ou Digitais" },
               { icon: Building2, label: "Organizações e Instituições" },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-center hover:border-emerald-500/50 transition-colors">
-                <item.icon className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-center hover:border-yellow-500/50 transition-colors">
+                <item.icon className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
                 <p className="text-sm font-medium">{item.label}</p>
               </div>
             ))}
           </div>
           
           <div className="text-center">
-            <p className="text-2xl font-bold text-emerald-400 mb-2">SE EXISTE PÚBLICO, EXISTE ESTRATÉGIA.</p>
+            <p className="text-2xl font-bold text-yellow-400 mb-2">SE EXISTE PÚBLICO, EXISTE ESTRATÉGIA.</p>
             <p className="text-gray-300">E a MRO constrói a jornada mais eficiente entre o cliente e a empresa.</p>
           </div>
         </div>
@@ -230,7 +245,7 @@ const GestaoMensal = () => {
       {/* Por que a MRO */}
       <section className="py-20 px-4 bg-gray-900/50">
         <div className="max-w-6xl mx-auto">
-          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             POR QUE A MRO?
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
@@ -247,8 +262,8 @@ const GestaoMensal = () => {
               { icon: Globe, title: "Omnichannel Real", desc: "Todos os canais funcionando juntos, não isolados." },
               { icon: Palette, title: "Produção de Conteúdo Interna", desc: "Velocidade, consistência e estratégia alinhada." },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:border-emerald-500/30 transition-colors">
-                <item.icon className="w-10 h-10 text-emerald-400 mb-4" />
+              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:border-yellow-500/30 transition-colors">
+                <item.icon className="w-10 h-10 text-yellow-400 mb-4" />
                 <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                 <p className="text-sm text-gray-400">{item.desc}</p>
               </div>
@@ -256,40 +271,133 @@ const GestaoMensal = () => {
           </div>
           
           <p className="text-center text-gray-300 max-w-4xl mx-auto">
-            A MRO é construída para ser <strong className="text-white">parceira estratégica</strong>, não prestadora de serviço genérica. Nosso objetivo é simples: gerar <strong className="text-emerald-400">Mais Resultados Online</strong> com o melhor custo-benefício possível, entregando uma estrutura que dá retorno real.
+            A MRO é construída para ser <strong className="text-white">parceira estratégica</strong>, não prestadora de serviço genérica. Nosso objetivo é simples: gerar <strong className="text-yellow-400">Mais Resultados Online</strong> com o melhor custo-benefício possível, entregando uma estrutura que dá retorno real.
           </p>
         </div>
       </section>
 
-      {/* Resumo */}
-      <section className="py-20 px-4">
+      {/* Preços e Investimento */}
+      <section id="pricing" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
-            RESUMO
+          <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
+            INVESTIMENTO
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            O QUE A MRO FAZ POR VOCÊ
+            GESTÃO MENSAL MRO
           </h2>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
-            <div className="space-y-4">
-              {[
-                "Aumenta visibilidade",
-                "Melhora posicionamento",
-                "Gera tráfego qualificado",
-                "Converte clientes",
-                "Cria relacionamento",
-                "Transforma empresas em marcas",
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                  <span className="text-gray-300">{item}</span>
+          {/* Pricing Card */}
+          <div className="max-w-2xl mx-auto mb-16">
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-yellow-500/50 rounded-3xl p-8 md:p-12 relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-yellow-500 text-black font-bold px-6 py-2 rounded-bl-2xl">
+                PROMOÇÃO
+              </div>
+              
+              <div className="text-center mb-8">
+                <p className="text-gray-400 line-through text-2xl mb-2">R$ 2.500/mês</p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-5xl md:text-6xl font-bold text-yellow-400">R$ 1.500</span>
+                  <span className="text-gray-400">/mês</span>
                 </div>
-              ))}
+              </div>
+              
+              {/* Criativos Inclusos - Destaque */}
+              <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-2xl p-6 mb-8">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-yellow-500 rounded-xl flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 text-black" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-yellow-400">CRIATIVOS INCLUSOS!</h3>
+                    <p className="text-gray-300">Não se preocupe com nada</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3">
+                    <Video className="w-6 h-6 text-yellow-400" />
+                    <span className="text-sm">Anúncios em Vídeo</span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3">
+                    <Image className="w-6 h-6 text-yellow-400" />
+                    <span className="text-sm">Posts e Banners</span>
+                  </div>
+                </div>
+                <p className="text-center text-yellow-400 font-semibold mt-4">
+                  Deixe os criativos da campanha com a gente!
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                {[
+                  "Gestão completa de tráfego pago",
+                  "Criativos das campanhas inclusos",
+                  "Anúncios em vídeo feitos por nós",
+                  "Posts e banners de campanha",
+                  "MRO WhatsApp incluso",
+                  "MRO Inteligente incluso",
+                  "Relatórios mensais detalhados",
+                  "Suporte dedicado",
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                    <span className="text-gray-300">{item}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <Button 
+                onClick={scrollToPricing}
+                className="w-full mt-8 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-6 text-lg rounded-xl"
+              >
+                Quero essa gestão!
+              </Button>
             </div>
-            
-            <div className="bg-gradient-to-br from-emerald-900/30 to-cyan-900/30 border border-emerald-500/30 rounded-xl p-6">
-              <h3 className="text-xl font-bold mb-4 text-emerald-400">Crescimento Inteligente e Sustentável</h3>
+          </div>
+          
+          {/* Investimento em Tráfego */}
+          <div className="max-w-2xl mx-auto mb-16">
+            <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <Calculator className="w-10 h-10 text-yellow-400" />
+                <div>
+                  <h3 className="text-xl font-bold">Investimento em Tráfego Pago</h3>
+                  <p className="text-gray-400">Mínimo recomendado: R$ 500/mês</p>
+                </div>
+              </div>
+              
+              <div className="bg-gray-900/50 rounded-xl p-6">
+                <label className="block text-sm text-gray-400 mb-3">
+                  Simule seu investimento em anúncios:
+                </label>
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-gray-400">R$</span>
+                  <Input
+                    type="number"
+                    value={investimento}
+                    onChange={(e) => setInvestimento(Math.max(0, Number(e.target.value)))}
+                    className="bg-gray-800 border-gray-700 text-2xl font-bold text-yellow-400 h-14"
+                    min={0}
+                  />
+                </div>
+                
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 mt-4">
+                  <p className="text-gray-400 text-sm mb-2">Com média de R$ 3,80 por lead:</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300">Leads estimados para WhatsApp:</span>
+                    <span className="text-3xl font-bold text-yellow-400">{leadsEstimados}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    *Média de custo por lead gerado pela MRO em campanhas de conversação
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Resumo */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gradient-to-br from-yellow-900/20 to-amber-900/20 border border-yellow-500/30 rounded-xl p-6">
+              <h3 className="text-xl font-bold mb-4 text-yellow-400">Crescimento Inteligente e Sustentável</h3>
               <p className="text-gray-300 mb-4">
                 Fazemos isso unindo estratégia, execução e tecnologia — tudo em um único ecossistema.
               </p>
@@ -300,8 +408,8 @@ const GestaoMensal = () => {
             </div>
           </div>
           
-          <p className="text-center text-2xl md:text-3xl font-bold">
-            <span className="text-emerald-400">MAIS RESULTADOS.</span>{" "}
+          <p className="text-center text-2xl md:text-3xl font-bold mt-12">
+            <span className="text-yellow-400">MAIS RESULTADOS.</span>{" "}
             <span className="text-gray-400">MENOS COMPLEXIDADE.</span>
           </p>
         </div>
@@ -312,31 +420,17 @@ const GestaoMensal = () => {
         <div className="max-w-xl mx-auto">
           <div className="text-center mb-8">
             <img src={logoMro} alt="MRO" className="h-12 mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">PRONTO PARA ESCALAR?</h2>
-            <p className="text-gray-400">Você gostaria de escalar qual negócio?</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-2">
+              GOSTARIA DA NOSSA GESTÃO NO SEU NEGÓCIO?
+            </h2>
+            <p className="text-gray-400">Preencha o formulário abaixo</p>
           </div>
           
           <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 md:p-8">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-2">
-                  Tem Instagram? Preencha o @ do seu negócio
-                </label>
-                <div className="relative">
-                  <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                  <Input
-                    type="text"
-                    placeholder="seunegocio"
-                    value={instagram}
-                    onChange={(e) => setInstagram(e.target.value.replace("@", ""))}
-                    className="pl-10 bg-gray-900 border-gray-700 h-12"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  Seu nome completo
+                  Seu nome completo *
                 </label>
                 <Input
                   type="text"
@@ -347,26 +441,68 @@ const GestaoMensal = () => {
                 />
               </div>
               
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Seu melhor e-mail *
+                </label>
+                <Input
+                  type="email"
+                  placeholder="seuemail@exemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-gray-900 border-gray-700 h-12"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Instagram da empresa *
+                </label>
+                <div className="relative">
+                  <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <Input
+                    type="text"
+                    placeholder="suaempresa"
+                    value={instagram}
+                    onChange={(e) => setInstagram(e.target.value.replace("@", ""))}
+                    className="pl-10 bg-gray-900 border-gray-700 h-12"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Sua perspectiva - O que espera de nós? *
+                </label>
+                <Textarea
+                  placeholder="Descreva suas expectativas e objetivos com a gestão..."
+                  value={perspectiva}
+                  onChange={(e) => setPerspectiva(e.target.value)}
+                  className="bg-gray-900 border-gray-700 min-h-[120px] resize-none"
+                />
+              </div>
+              
               <Button
                 onClick={handleWhatsApp}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-6 text-lg rounded-xl"
+                disabled={!nome || !email || !instagram || !perspectiva}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-6 text-lg rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <MessageSquare className="w-5 h-5 mr-2" />
-                Falar com a MRO no WhatsApp
+                Cadastrar e Iniciar Conversa
               </Button>
               
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-center text-xs text-gray-500 mt-4">
                 Ao enviar, você será redirecionado para o WhatsApp da MRO.
               </p>
             </div>
-            
-            <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-gray-500">
-              <span>Atendimento rápido</span>
-              <span>•</span>
-              <span>Sem compromisso</span>
-              <span>•</span>
-              <span>100% gratuito</span>
-            </div>
+          </div>
+          
+          <div className="flex items-center justify-center gap-6 mt-6 text-sm text-gray-500">
+            <span>Atendimento rápido</span>
+            <span>•</span>
+            <span>Sem compromisso</span>
+            <span>•</span>
+            <span>100% gratuito</span>
           </div>
         </div>
       </section>
@@ -376,7 +512,7 @@ const GestaoMensal = () => {
         <div className="max-w-6xl mx-auto text-center">
           <img src={logoMro} alt="MRO" className="h-8 mx-auto mb-4" />
           <p className="text-gray-400 text-sm">Mais Resultados Online</p>
-          <p className="text-gray-500 text-xs mt-4">© 2025 MRO. Todos os direitos reservados.</p>
+          <p className="text-gray-500 text-xs mt-2">© 2025 MRO. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>
