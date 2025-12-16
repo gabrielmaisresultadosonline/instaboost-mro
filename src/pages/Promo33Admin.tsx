@@ -188,98 +188,98 @@ export default function Promo33Admin() {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <header className="py-4 px-4 border-b border-gray-800">
+      <header className="py-3 md:py-4 px-3 md:px-4 border-b border-gray-800">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logoMro} alt="MRO" className="h-10" />
-            <Badge className="bg-purple-600">Admin Promo33</Badge>
+          <div className="flex items-center gap-2 md:gap-3">
+            <img src={logoMro} alt="MRO" className="h-8 md:h-10" />
+            <Badge className="bg-purple-600 text-xs md:text-sm">Admin</Badge>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={loadUsers} disabled={isLoading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Atualizar
+          <div className="flex items-center gap-1 md:gap-3">
+            <Button variant="outline" size="sm" onClick={loadUsers} disabled={isLoading} className="px-2 md:px-3">
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="hidden md:inline ml-2">Atualizar</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-400">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-400 px-2 md:px-3">
+              <LogOut className="w-4 h-4" />
+              <span className="hidden md:inline ml-2">Sair</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-8 px-4">
+      <main className="max-w-7xl mx-auto py-4 md:py-8 px-3 md:px-4">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
           <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Total</p>
-                  <p className="text-2xl font-bold text-white">{stats.total}</p>
+                  <p className="text-gray-400 text-xs md:text-sm">Total</p>
+                  <p className="text-xl md:text-2xl font-bold text-white">{stats.total}</p>
                 </div>
-                <Users className="w-8 h-8 text-blue-500" />
+                <Users className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Ativos</p>
-                  <p className="text-2xl font-bold text-green-500">{stats.active}</p>
+                  <p className="text-gray-400 text-xs md:text-sm">Ativos</p>
+                  <p className="text-xl md:text-2xl font-bold text-green-500">{stats.active}</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-green-500" />
+                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Pendentes</p>
-                  <p className="text-2xl font-bold text-yellow-500">{stats.pending}</p>
+                  <p className="text-gray-400 text-xs md:text-sm">Pendentes</p>
+                  <p className="text-xl md:text-2xl font-bold text-yellow-500">{stats.pending}</p>
                 </div>
-                <Clock className="w-8 h-8 text-yellow-500" />
+                <Clock className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Expirados</p>
-                  <p className="text-2xl font-bold text-red-500">{stats.expired}</p>
+                  <p className="text-gray-400 text-xs md:text-sm">Expirados</p>
+                  <p className="text-xl md:text-2xl font-bold text-red-500">{stats.expired}</p>
                 </div>
-                <XCircle className="w-8 h-8 text-red-500" />
+                <XCircle className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Search */}
-        <div className="mb-6">
+        <div className="mb-4 md:mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <Input
-              placeholder="Buscar por email, nome ou Instagram..."
+              placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-800 border-gray-700 text-white"
+              className="pl-10 bg-gray-800 border-gray-700 text-white text-sm"
             />
           </div>
         </div>
 
         {/* Users Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="bg-gray-800 border-gray-700 mb-4">
-            <TabsTrigger value="all">Todos ({stats.total})</TabsTrigger>
-            <TabsTrigger value="active">Ativos ({stats.active})</TabsTrigger>
-            <TabsTrigger value="pending">Pendentes ({stats.pending})</TabsTrigger>
-            <TabsTrigger value="expired">Expirados ({stats.expired})</TabsTrigger>
+          <TabsList className="bg-gray-800 border-gray-700 mb-4 flex-wrap h-auto gap-1 w-full justify-start">
+            <TabsTrigger value="all" className="text-xs md:text-sm px-2 md:px-3">Todos ({stats.total})</TabsTrigger>
+            <TabsTrigger value="active" className="text-xs md:text-sm px-2 md:px-3">Ativos ({stats.active})</TabsTrigger>
+            <TabsTrigger value="pending" className="text-xs md:text-sm px-2 md:px-3">Pendentes ({stats.pending})</TabsTrigger>
+            <TabsTrigger value="expired" className="text-xs md:text-sm px-2 md:px-3">Expirados ({stats.expired})</TabsTrigger>
           </TabsList>
 
           <TabsContent value={selectedTab}>
@@ -295,32 +295,32 @@ export default function Promo33Admin() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 {filteredUsers.map((user) => (
                   <Card key={user.id} className="bg-gray-800 border-gray-700">
-                    <CardContent className="p-4">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <CardContent className="p-3 md:p-4">
+                      <div className="flex flex-col gap-3">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-white font-semibold">{user.name || 'Sem nome'}</h3>
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="text-white font-semibold text-sm md:text-base">{user.name || 'Sem nome'}</h3>
                             <Badge 
-                              className={
+                              className={`text-xs ${
                                 user.subscription_status === 'active' ? 'bg-green-600' :
                                 user.subscription_status === 'pending' ? 'bg-yellow-600' : 'bg-red-600'
-                              }
+                              }`}
                             >
                               {user.subscription_status === 'active' ? 'Ativo' :
                                user.subscription_status === 'pending' ? 'Pendente' : 'Expirado'}
                             </Badge>
                           </div>
                           
-                          <p className="text-gray-400 text-sm">{user.email}</p>
-                          {user.phone && <p className="text-gray-500 text-sm">{user.phone}</p>}
+                          <p className="text-gray-400 text-xs md:text-sm break-all">{user.email}</p>
+                          {user.phone && <p className="text-gray-500 text-xs md:text-sm">{user.phone}</p>}
                           {user.instagram_username && (
-                            <p className="text-pink-400 text-sm">@{user.instagram_username}</p>
+                            <p className="text-pink-400 text-xs md:text-sm">@{user.instagram_username}</p>
                           )}
                           
-                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mt-2 text-xs text-gray-500">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               Cadastro: {new Date(user.created_at).toLocaleDateString('pt-BR')}
@@ -334,15 +334,15 @@ export default function Promo33Admin() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           {user.subscription_status !== 'active' && (
                             <Button 
                               size="sm" 
                               variant="outline"
-                              className="text-green-400 border-green-400 hover:bg-green-400/10"
+                              className="text-green-400 border-green-400 hover:bg-green-400/10 text-xs px-2 py-1 h-auto"
                               onClick={() => updateUserStatus(user.id, 'active')}
                             >
-                              <CheckCircle className="w-4 h-4 mr-1" />
+                              <CheckCircle className="w-3 h-3 mr-1" />
                               Ativar
                             </Button>
                           )}
@@ -350,20 +350,20 @@ export default function Promo33Admin() {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              className="text-yellow-400 border-yellow-400 hover:bg-yellow-400/10"
+                              className="text-yellow-400 border-yellow-400 hover:bg-yellow-400/10 text-xs px-2 py-1 h-auto"
                               onClick={() => updateUserStatus(user.id, 'expired')}
                             >
-                              <XCircle className="w-4 h-4 mr-1" />
+                              <XCircle className="w-3 h-3 mr-1" />
                               Desativar
                             </Button>
                           )}
                           <Button 
                             size="sm" 
                             variant="outline"
-                            className="text-red-400 border-red-400 hover:bg-red-400/10"
+                            className="text-red-400 border-red-400 hover:bg-red-400/10 text-xs px-2 py-1 h-auto"
                             onClick={() => deleteUser(user.id)}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>

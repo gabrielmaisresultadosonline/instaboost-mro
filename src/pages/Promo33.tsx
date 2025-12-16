@@ -329,61 +329,61 @@ export default function Promo33() {
 
       {/* Register/Login Modal */}
       {showRegister && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white text-center">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-4">
+          <Card className="w-full max-w-md bg-gray-900 border-gray-800 max-h-[90vh] overflow-y-auto">
+            <CardHeader className="pb-3 md:pb-6">
+              <CardTitle className="text-white text-center text-lg md:text-xl">
                 {isLogin ? 'Acessar Conta' : 'Criar Conta'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
+              <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-3 md:space-y-4">
                 {!isLogin && (
                   <div>
-                    <label className="text-sm text-gray-400 mb-1 block">Nome Completo *</label>
+                    <label className="text-xs md:text-sm text-gray-400 mb-1 block">Nome Completo *</label>
                     <Input
                       type="text"
                       placeholder="Seu nome"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="bg-black/50 border-gray-700 text-white focus:border-yellow-500"
+                      className="bg-black/50 border-gray-700 text-white focus:border-yellow-500 text-sm"
                     />
                   </div>
                 )}
                 
                 <div>
-                  <label className="text-sm text-gray-400 mb-1 block">Email *</label>
+                  <label className="text-xs md:text-sm text-gray-400 mb-1 block">Email *</label>
                   <Input
                     type="email"
                     placeholder="seu@email.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="bg-black/50 border-gray-700 text-white focus:border-yellow-500"
+                    className="bg-black/50 border-gray-700 text-white focus:border-yellow-500 text-sm"
                     required
                   />
                 </div>
                 
                 {!isLogin && (
                   <div>
-                    <label className="text-sm text-gray-400 mb-1 block">WhatsApp</label>
+                    <label className="text-xs md:text-sm text-gray-400 mb-1 block">WhatsApp</label>
                     <Input
                       type="tel"
                       placeholder="(00) 00000-0000"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="bg-black/50 border-gray-700 text-white focus:border-yellow-500"
+                      className="bg-black/50 border-gray-700 text-white focus:border-yellow-500 text-sm"
                     />
                   </div>
                 )}
                 
                 <div>
-                  <label className="text-sm text-gray-400 mb-1 block">Senha *</label>
+                  <label className="text-xs md:text-sm text-gray-400 mb-1 block">Senha *</label>
                   <Input
                     type="password"
                     placeholder="Sua senha"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="bg-black/50 border-gray-700 text-white focus:border-yellow-500"
+                    className="bg-black/50 border-gray-700 text-white focus:border-yellow-500 text-sm"
                     required
                   />
                 </div>
@@ -391,12 +391,12 @@ export default function Promo33() {
                 <Button 
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold py-6"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold py-5 md:py-6 text-sm md:text-base"
                 >
                   {isLoading ? 'Aguarde...' : (isLogin ? 'ENTRAR' : 'CONTINUAR')}
                 </Button>
 
-                <div className="text-center text-gray-500 text-sm">
+                <div className="text-center text-gray-500 text-xs md:text-sm">
                   {isLogin ? (
                     <>
                       Não tem conta?{' '}
@@ -417,7 +417,7 @@ export default function Promo33() {
                 <button
                   type="button"
                   onClick={() => setShowRegister(false)}
-                  className="w-full text-gray-500 hover:text-white text-sm py-2"
+                  className="w-full text-gray-500 hover:text-white text-xs md:text-sm py-2"
                 >
                   Cancelar
                 </button>

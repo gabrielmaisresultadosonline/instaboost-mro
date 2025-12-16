@@ -333,39 +333,38 @@ export default function Promo33Dashboard() {
         }
       `}</style>
       {/* Header */}
-      <header className="py-4 px-4 border-b border-yellow-500/20">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <img src={logoMro} alt="MRO" className="h-10" />
+      <header className="py-3 md:py-4 px-3 md:px-4 border-b border-yellow-500/20">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+          <img src={logoMro} alt="MRO" className="h-8 md:h-10 flex-shrink-0" />
           
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 md:gap-4 flex-wrap justify-end">
             {isPremium && user?.instagram_username && user?.instagram_data && !showExclusiveTools && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowExclusiveTools(true)}
-                className="border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 text-xs md:text-sm"
+                className="border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 text-xs px-2 py-1 h-auto"
               >
-                <Gift className="w-3 h-3 mr-1" />
-                <span className="hidden md:inline">Exclusivo para Clientes</span>
-                <span className="md:hidden">Exclusivo</span>
+                <Gift className="w-3 h-3" />
+                <span className="hidden sm:inline ml-1">Exclusivo</span>
               </Button>
             )}
             {isPremium && (
-              <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold">
+              <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold text-xs px-2 py-1">
                 <Crown className="w-3 h-3 mr-1" />
-                Premium - {daysRemaining} dias
+                <span className="hidden sm:inline">Premium - </span>{daysRemaining}d
               </Badge>
             )}
             
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-400 hover:text-white">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-400 hover:text-white px-2">
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline ml-2">Sair</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto py-8 px-4">
+      <main className="max-w-6xl mx-auto py-4 md:py-8 px-3 md:px-4">
         {/* Exclusive Tools Dashboard View */}
         {showExclusiveTools && isPremium && user?.instagram_username && user?.instagram_data ? (
           <div className="animate-fade-in">
@@ -373,22 +372,22 @@ export default function Promo33Dashboard() {
             <Button
               variant="ghost"
               onClick={() => setShowExclusiveTools(false)}
-              className="text-gray-400 hover:text-white mb-6"
+              className="text-gray-400 hover:text-white mb-4 md:mb-6 text-sm"
             >
               <ChevronDown className="w-4 h-4 mr-2 rotate-90" />
-              Voltar para Dashboard
+              Voltar
             </Button>
 
-            <div className="text-center mb-8">
-              <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-4 py-2 mb-4">
-                <Gift className="w-4 h-4 mr-2" />
-                EXCLUSIVO PARA CLIENTES
+            <div className="text-center mb-6 md:mb-8">
+              <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-3 py-1 md:px-4 md:py-2 mb-3 md:mb-4 text-xs md:text-sm">
+                <Gift className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                EXCLUSIVO
               </Badge>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                Nossas Ferramentas Premium
+              <h1 className="text-xl md:text-3xl font-bold text-white mb-2">
+                Ferramentas Premium
               </h1>
-              <p className="text-gray-400">
-                Descontos exclusivos para assinantes do MRO 33
+              <p className="text-gray-400 text-sm">
+                Descontos exclusivos para assinantes
               </p>
             </div>
 
@@ -580,19 +579,20 @@ export default function Promo33Dashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <Input
-                      placeholder="@seuperfil ou link do Instagram"
+                      placeholder="@seuperfil ou link"
                       value={instagramInput}
                       onChange={(e) => setInstagramInput(e.target.value)}
-                      className="bg-black/50 border-gray-700 text-white"
+                      className="bg-black/50 border-gray-700 text-white flex-1"
                     />
                     <Button 
                       onClick={searchInstagram}
                       disabled={isSearching}
-                      className="bg-pink-500 hover:bg-pink-600"
+                      className="bg-pink-500 hover:bg-pink-600 w-full sm:w-auto"
                     >
-                      {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                      {isSearching ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Search className="w-4 h-4 mr-2" />}
+                      Buscar
                     </Button>
                   </div>
                 </CardContent>
@@ -641,36 +641,36 @@ export default function Promo33Dashboard() {
                   </div>
 
                   {/* Profile Info */}
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
                     <img 
                       src={user.instagram_data.profilePicture || user.instagram_data.profilePicUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user.instagram_username}&backgroundColor=ec4899`} 
                       alt={user.instagram_username}
-                      className="w-24 h-24 rounded-full object-cover border-4 border-pink-500 shadow-lg shadow-pink-500/20"
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-pink-500 shadow-lg shadow-pink-500/20 flex-shrink-0"
                     />
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                    <div className="flex-1 text-center sm:text-left">
+                      <h3 className="text-lg md:text-xl font-bold text-white flex items-center justify-center sm:justify-start gap-2">
                         @{user.instagram_username}
-                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
                       </h3>
                       {user.instagram_data.fullName && (
-                        <p className="text-gray-400">{user.instagram_data.fullName}</p>
+                        <p className="text-gray-400 text-sm">{user.instagram_data.fullName}</p>
                       )}
                       
-                      <div className="flex gap-6 mt-3">
+                      <div className="flex justify-center sm:justify-start gap-4 md:gap-6 mt-3">
                         <div className="text-center">
-                          <p className="text-xl font-bold text-white">
+                          <p className="text-lg md:text-xl font-bold text-white">
                             {user.instagram_data.followers?.toLocaleString() || '0'}
                           </p>
                           <p className="text-xs text-gray-500">Seguidores</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-xl font-bold text-white">
+                          <p className="text-lg md:text-xl font-bold text-white">
                             {user.instagram_data.following?.toLocaleString() || '0'}
                           </p>
                           <p className="text-xs text-gray-500">Seguindo</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-xl font-bold text-white">
+                          <p className="text-lg md:text-xl font-bold text-white">
                             {(user.instagram_data.postsCount || user.instagram_data.posts?.length || 0).toLocaleString()}
                           </p>
                           <p className="text-xs text-gray-500">Posts</p>
@@ -876,21 +876,21 @@ export default function Promo33Dashboard() {
 
             {/* Strategy Generation - Only after profile loaded */}
             {user?.instagram_username && user?.instagram_data && (
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-yellow-500" />
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-lg md:text-xl font-bold text-white mb-2 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-yellow-500" />
                   Gerar Estratégias
                 </h2>
-                <p className="text-gray-400 text-sm mb-4">
-                  Você pode gerar 1 estratégia de cada tipo a cada 30 dias
+                <p className="text-gray-400 text-xs md:text-sm mb-4">
+                  1 estratégia de cada tipo a cada 30 dias
                 </p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
                   {[
-                    { type: 'bio', icon: FileText, title: 'Estratégia de Bio', desc: 'Otimize sua bio para converter' },
-                    { type: 'growth', icon: TrendingUp, title: 'Crescimento', desc: 'Plano para crescer organicamente' },
-                    { type: 'sales', icon: Target, title: 'Script de Vendas', desc: 'Scripts para vender no direct' },
-                    { type: 'content', icon: MessageSquare, title: 'Criativos', desc: 'Ideias de conteúdo que engaja' },
+                    { type: 'bio', icon: FileText, title: 'Bio', desc: 'Otimize sua bio' },
+                    { type: 'growth', icon: TrendingUp, title: 'Crescimento', desc: 'Crescer organicamente' },
+                    { type: 'sales', icon: Target, title: 'Vendas', desc: 'Scripts de vendas' },
+                    { type: 'content', icon: MessageSquare, title: 'Criativos', desc: 'Ideias de conteúdo' },
                   ].map((strategy) => {
                     const { canGenerate, daysRemaining: strategyDaysRemaining } = canGenerateStrategy(strategy.type);
                     const hasExisting = user?.strategies_generated?.some((s: any) => s.type === strategy.type);
@@ -899,36 +899,36 @@ export default function Promo33Dashboard() {
                       <Card 
                         key={strategy.type}
                         className={`bg-gray-900/50 border-gray-800 transition-colors ${
-                          canGenerate ? 'hover:border-yellow-500/50 cursor-pointer' : 'opacity-60'
+                          canGenerate ? 'hover:border-yellow-500/50 cursor-pointer active:scale-95' : 'opacity-60'
                         }`}
                         onClick={() => canGenerate && !isGenerating && generateStrategy(strategy.type)}
                       >
-                        <CardContent className="p-4 text-center">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                        <CardContent className="p-3 md:p-4 text-center">
+                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3 ${
                             canGenerate 
                               ? 'bg-gradient-to-br from-yellow-500 to-amber-600' 
                               : 'bg-gray-700'
                           }`}>
                             {isGenerating && selectedStrategy === strategy.type ? (
-                              <Loader2 className="w-6 h-6 text-black animate-spin" />
+                              <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-black animate-spin" />
                             ) : (
-                              <strategy.icon className={`w-6 h-6 ${canGenerate ? 'text-black' : 'text-gray-400'}`} />
+                              <strategy.icon className={`w-5 h-5 md:w-6 md:h-6 ${canGenerate ? 'text-black' : 'text-gray-400'}`} />
                             )}
                           </div>
-                          <h3 className="text-white font-semibold mb-1">{strategy.title}</h3>
-                          <p className="text-gray-500 text-xs">{strategy.desc}</p>
+                          <h3 className="text-white font-semibold mb-1 text-sm md:text-base">{strategy.title}</h3>
+                          <p className="text-gray-500 text-xs hidden md:block">{strategy.desc}</p>
                           
                           {!canGenerate && hasExisting && (
                             <div className="mt-2 flex items-center justify-center gap-1 text-xs text-yellow-500">
                               <Clock className="w-3 h-3" />
-                              {strategyDaysRemaining} dias restantes
+                              {strategyDaysRemaining}d
                             </div>
                           )}
                           
                           {hasExisting && (
-                            <Badge className="mt-2 bg-green-500/20 text-green-400 text-xs">
+                            <Badge className="mt-2 bg-green-500/20 text-green-400 text-xs px-1.5 py-0.5">
                               <CheckCircle className="w-3 h-3 mr-1" />
-                              Gerada
+                              OK
                             </Badge>
                           )}
                         </CardContent>
@@ -941,19 +941,19 @@ export default function Promo33Dashboard() {
 
             {/* Generated Strategies */}
             {user?.strategies_generated && user.strategies_generated.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
                   Suas Estratégias
                 </h2>
                 
                 <Tabs defaultValue={user.strategies_generated[0]?.type} className="w-full">
-                  <TabsList className="bg-gray-900/50 border-gray-800 mb-4 flex-wrap h-auto gap-1">
+                  <TabsList className="bg-gray-900/50 border-gray-800 mb-3 md:mb-4 flex-wrap h-auto gap-1 w-full justify-start">
                     {user.strategies_generated.filter((s: any) => s.type !== 'analysis').map((strategy: any, index: number) => (
                       <TabsTrigger 
                         key={index} 
                         value={strategy.type}
-                        className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black"
+                        className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black text-xs md:text-sm px-2 md:px-3"
                       >
                         {strategy.type === 'bio' && 'Bio'}
                         {strategy.type === 'growth' && 'Crescimento'}
@@ -966,18 +966,18 @@ export default function Promo33Dashboard() {
                   {user.strategies_generated.filter((s: any) => s.type !== 'analysis').map((strategy: any, index: number) => (
                     <TabsContent key={index} value={strategy.type}>
                       <Card className="bg-gray-900/50 border-gray-800">
-                        <CardContent className="p-6">
+                        <CardContent className="p-3 md:p-6">
                           <div className="prose prose-invert max-w-none">
-                            <pre className="whitespace-pre-wrap text-gray-300 text-sm font-sans bg-black/30 p-4 rounded-lg">
+                            <pre className="whitespace-pre-wrap text-gray-300 text-xs md:text-sm font-sans bg-black/30 p-3 md:p-4 rounded-lg overflow-x-auto">
                               {strategy.content}
                             </pre>
                           </div>
-                          <div className="flex items-center justify-between mt-4">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between mt-3 md:mt-4 gap-1">
                             <p className="text-gray-500 text-xs">
-                              Gerado em: {new Date(strategy.generated_at).toLocaleDateString('pt-BR')}
+                              Gerado: {new Date(strategy.generated_at).toLocaleDateString('pt-BR')}
                             </p>
                             <p className="text-yellow-500 text-xs">
-                              Próxima geração: {new Date(new Date(strategy.generated_at).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}
+                              Próxima: {new Date(new Date(strategy.generated_at).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}
                             </p>
                           </div>
                         </CardContent>
