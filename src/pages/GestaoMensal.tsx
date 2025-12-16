@@ -1,0 +1,386 @@
+import { useState } from "react";
+import { 
+  Target, 
+  BarChart3, 
+  TrendingUp, 
+  Settings, 
+  Users, 
+  ShoppingCart, 
+  MapPin, 
+  Star, 
+  Briefcase, 
+  BookOpen, 
+  Building, 
+  Building2,
+  Megaphone,
+  LineChart,
+  Palette,
+  Globe,
+  MessageSquare,
+  Zap,
+  PieChart,
+  ArrowRight,
+  CheckCircle,
+  Shield,
+  ChevronDown,
+  Instagram
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import logoMro from "@/assets/logo-mro.png";
+
+const GestaoMensal = () => {
+  const [instagram, setInstagram] = useState("");
+  const [nome, setNome] = useState("");
+
+  const handleWhatsApp = () => {
+    const message = `Olá! Gostaria de saber mais sobre a gestão mensal da MRO.\n\nInstagram: @${instagram}\nNome: ${nome}`;
+    const whatsappUrl = `https://wa.me/5551920356540?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const scrollToMethodology = () => {
+    document.getElementById("methodology")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white">
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+        
+        <div className="relative z-10 text-center max-w-5xl mx-auto">
+          <img src={logoMro} alt="MRO Logo" className="h-16 md:h-20 mx-auto mb-6" />
+          
+          <p className="text-emerald-400 font-semibold tracking-widest text-sm md:text-base mb-4">
+            MAIS RESULTADOS ONLINE
+          </p>
+          
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+            Transforme sua empresa em uma{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+              máquina de aquisição
+            </span>{" "}
+            e retenção de clientes
+          </h1>
+          
+          <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            com estratégia, dados e otimização contínua.
+          </p>
+          
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-gray-400">Entenda melhor como a MRO pode ajudar você</p>
+            <Button 
+              onClick={scrollToMethodology}
+              className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold px-8 py-6 text-lg rounded-full group"
+            >
+              Clique para conhecer nossa metodologia
+              <ChevronDown className="ml-2 group-hover:translate-y-1 transition-transform" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* O que é a MRO */}
+      <section className="py-20 px-4 bg-gray-900/50">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+            O QUE É A MRO?
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
+            UMA ESTRUTURA DE CRESCIMENTO COMPLETA
+          </h2>
+          
+          <div className="max-w-4xl mx-auto space-y-6 text-gray-300 text-lg leading-relaxed mb-12">
+            <p>
+              A MRO é uma solução completa de crescimento para empresas que precisam escalar presença digital, vendas, captação de clientes e performance de forma inteligente e previsível.
+            </p>
+            <p>
+              Não somos apenas uma agência de marketing. Somos uma <strong className="text-white">estrutura de crescimento orientada a estratégia, dados e otimização contínua</strong>, preparada para transformar qualquer negócio — de qualquer nicho — em uma máquina estável de aquisição e retenção de clientes.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: Target, title: "Estratégia Focada", desc: "Planejamento orientado a resultados" },
+              { icon: BarChart3, title: "Dados Reais", desc: "Decisões baseadas em métricas" },
+              { icon: TrendingUp, title: "Crescimento", desc: "Escalabilidade sustentável" },
+              { icon: Settings, title: "Otimização", desc: "Melhorias contínuas" },
+            ].map((item, i) => (
+              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center hover:border-emerald-500/50 transition-colors">
+                <item.icon className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
+                <h3 className="font-semibold mb-1">{item.title}</h3>
+                <p className="text-sm text-gray-400">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Metodologia CVO */}
+      <section id="methodology" className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+            NOSSA METODOLOGIA
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            METODOLOGIA CVO
+          </h2>
+          <p className="text-gray-300 text-center max-w-3xl mx-auto mb-12">
+            Customer Value Optimization — uma metodologia que vai além do tráfego pago tradicional. Em vez de focar só em trazer cliques, trabalhamos todo o funil.
+          </p>
+          
+          <div className="grid md:grid-cols-5 gap-4 mb-12">
+            {[
+              { step: 1, title: "Atração", desc: "Captamos atenção qualificada do seu público ideal através de estratégias omnichannel." },
+              { step: 2, title: "Conversão", desc: "Transformamos visitantes em leads e leads em clientes com páginas e funis otimizados." },
+              { step: 3, title: "Relacionamento", desc: "Criamos conexão duradoura através de conteúdo estratégico e automações inteligentes." },
+              { step: 4, title: "Monetização", desc: "Maximizamos o valor de cada cliente com ofertas, upsells e estratégias de ticket médio." },
+              { step: 5, title: "Retenção", desc: "Fidelizamos clientes para recompras recorrentes e indicações espontâneas." },
+            ].map((item, i) => (
+              <div key={i} className="bg-gradient-to-b from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-xl p-6 hover:border-emerald-500/50 transition-colors">
+                <div className="w-10 h-10 bg-emerald-500 text-black font-bold rounded-full flex items-center justify-center mb-4">
+                  {item.step}
+                </div>
+                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-400">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          
+          <p className="text-center text-xl font-semibold text-emerald-400">
+            Não entregamos só visitas. Entregamos resultado real.
+          </p>
+        </div>
+      </section>
+
+      {/* O que fazemos */}
+      <section className="py-20 px-4 bg-gray-900/50">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+            O QUE FAZEMOS
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            COMO A MRO FAZ EMPRESAS CRESCEREM
+          </h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {[
+              { icon: Globe, title: "Omnichannel Completo", desc: "Gestão integrada de Google, Facebook, Instagram, WhatsApp e site, garantindo presença estratégica em todos os pontos de contato do cliente." },
+              { icon: TrendingUp, title: "Crescimento Orgânico Inteligente", desc: "Nosso sistema MRO Inteligente gera atenção orgânica qualificada, atraindo seguidores reais e alinhados ao público da empresa." },
+              { icon: Palette, title: "Criação de Conteúdo Estratégico", desc: "Banners, vídeos, carrosséis, criativos de anúncios e materiais de comunicação focados em conversão." },
+              { icon: Settings, title: "Otimização de Site e Páginas", desc: "Ajustes, testes A/B e melhorias contínuas para aumentar as taxas de conversão do funil." },
+              { icon: MessageSquare, title: "MRO WhatsApp", desc: "Atendimento automatizado e segmentado via WhatsApp: respostas rápidas, captação de leads e organização de fluxos de conversa." },
+              { icon: Megaphone, title: "Campanhas Avançadas", desc: "Campanhas de aquisição e remarketing: atingimos quem ainda não te conhece e reaproveitamos quem já demonstrou interesse." },
+              { icon: PieChart, title: "Análise Profunda de Dados", desc: "Decisões baseadas em métricas reais, não \"achismo\". Relatórios claros e acionáveis." },
+              { icon: ArrowRight, title: "Transformação da Jornada", desc: "Desde o primeiro contato até a recompra, elevamos o valor do cliente ao longo do tempo." },
+            ].map((item, i) => (
+              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/50 hover:border-emerald-500/30 transition-all">
+                <item.icon className="w-10 h-10 text-emerald-400 mb-4" />
+                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-400">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          
+          <p className="text-center text-gray-300 max-w-3xl mx-auto">
+            O foco é simples: <strong className="text-white">aumentar faturamento, reduzir custos de aquisição e melhorar a vida útil de cada cliente dentro do negócio.</strong>
+          </p>
+        </div>
+      </section>
+
+      {/* Para quem é */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+            PARA QUEM É
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            FUNCIONA EM QUALQUER NICHO
+          </h2>
+          <p className="text-gray-300 text-center max-w-3xl mx-auto mb-12">
+            Porque nossa estrutura não depende de moda, plataforma ou tendência. Ela é baseada em comportamento humano, dados e otimização contínua.
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              { icon: Briefcase, label: "Empresas de Serviços" },
+              { icon: ShoppingCart, label: "E-commerce" },
+              { icon: MapPin, label: "Negócios Locais" },
+              { icon: Star, label: "Influenciadores" },
+              { icon: Users, label: "Profissionais Liberais" },
+              { icon: BookOpen, label: "Infoprodutos" },
+              { icon: Building, label: "Negócios Físicos ou Digitais" },
+              { icon: Building2, label: "Organizações e Instituições" },
+            ].map((item, i) => (
+              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-center hover:border-emerald-500/50 transition-colors">
+                <item.icon className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                <p className="text-sm font-medium">{item.label}</p>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center">
+            <p className="text-2xl font-bold text-emerald-400 mb-2">SE EXISTE PÚBLICO, EXISTE ESTRATÉGIA.</p>
+            <p className="text-gray-300">E a MRO constrói a jornada mais eficiente entre o cliente e a empresa.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Por que a MRO */}
+      <section className="py-20 px-4 bg-gray-900/50">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+            POR QUE A MRO?
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            DIFERENCIAIS REAIS
+          </h2>
+          <p className="text-gray-400 text-center mb-12">MRO em ação • Parceiro Estratégico</p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {[
+              { icon: LineChart, title: "Metodologia CVO", desc: "Focada em lucratividade e não em métricas de vaidade." },
+              { icon: Zap, title: "Ferramentas Exclusivas", desc: "MRO WhatsApp e MRO Inteligente inclusas na gestão." },
+              { icon: CheckCircle, title: "Execução Completa", desc: "Não terceirizamos o núcleo do trabalho." },
+              { icon: Target, title: "Foco Total em Resultado", desc: "Decisões movidas por dados, otimizações constantes." },
+              { icon: Globe, title: "Omnichannel Real", desc: "Todos os canais funcionando juntos, não isolados." },
+              { icon: Palette, title: "Produção de Conteúdo Interna", desc: "Velocidade, consistência e estratégia alinhada." },
+            ].map((item, i) => (
+              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:border-emerald-500/30 transition-colors">
+                <item.icon className="w-10 h-10 text-emerald-400 mb-4" />
+                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-400">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          
+          <p className="text-center text-gray-300 max-w-4xl mx-auto">
+            A MRO é construída para ser <strong className="text-white">parceira estratégica</strong>, não prestadora de serviço genérica. Nosso objetivo é simples: gerar <strong className="text-emerald-400">Mais Resultados Online</strong> com o melhor custo-benefício possível, entregando uma estrutura que dá retorno real.
+          </p>
+        </div>
+      </section>
+
+      {/* Resumo */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-emerald-400 font-semibold tracking-widest text-sm text-center mb-2">
+            RESUMO
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            O QUE A MRO FAZ POR VOCÊ
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
+            <div className="space-y-4">
+              {[
+                "Aumenta visibilidade",
+                "Melhora posicionamento",
+                "Gera tráfego qualificado",
+                "Converte clientes",
+                "Cria relacionamento",
+                "Transforma empresas em marcas",
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span className="text-gray-300">{item}</span>
+                </div>
+              ))}
+            </div>
+            
+            <div className="bg-gradient-to-br from-emerald-900/30 to-cyan-900/30 border border-emerald-500/30 rounded-xl p-6">
+              <h3 className="text-xl font-bold mb-4 text-emerald-400">Crescimento Inteligente e Sustentável</h3>
+              <p className="text-gray-300 mb-4">
+                Fazemos isso unindo estratégia, execução e tecnologia — tudo em um único ecossistema.
+              </p>
+              <div className="flex items-center gap-2 text-gray-400">
+                <Shield className="w-5 h-5" />
+                <span className="text-sm">Não terceirizamos nada. Vamos providenciar tudo para você sem se preocupar com mais nada.</span>
+              </div>
+            </div>
+          </div>
+          
+          <p className="text-center text-2xl md:text-3xl font-bold">
+            <span className="text-emerald-400">MAIS RESULTADOS.</span>{" "}
+            <span className="text-gray-400">MENOS COMPLEXIDADE.</span>
+          </p>
+        </div>
+      </section>
+
+      {/* CTA / Formulário */}
+      <section className="py-20 px-4 bg-gradient-to-b from-gray-900 to-black">
+        <div className="max-w-xl mx-auto">
+          <div className="text-center mb-8">
+            <img src={logoMro} alt="MRO" className="h-12 mx-auto mb-4" />
+            <h2 className="text-3xl md:text-4xl font-bold mb-2">PRONTO PARA ESCALAR?</h2>
+            <p className="text-gray-400">Você gostaria de escalar qual negócio?</p>
+          </div>
+          
+          <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 md:p-8">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Tem Instagram? Preencha o @ do seu negócio
+                </label>
+                <div className="relative">
+                  <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <Input
+                    type="text"
+                    placeholder="seunegocio"
+                    value={instagram}
+                    onChange={(e) => setInstagram(e.target.value.replace("@", ""))}
+                    className="pl-10 bg-gray-900 border-gray-700 h-12"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Seu nome completo
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Digite seu nome completo"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="bg-gray-900 border-gray-700 h-12"
+                />
+              </div>
+              
+              <Button
+                onClick={handleWhatsApp}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-6 text-lg rounded-xl"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />
+                Falar com a MRO no WhatsApp
+              </Button>
+              
+              <p className="text-xs text-gray-500 text-center">
+                Ao enviar, você será redirecionado para o WhatsApp da MRO.
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-gray-500">
+              <span>Atendimento rápido</span>
+              <span>•</span>
+              <span>Sem compromisso</span>
+              <span>•</span>
+              <span>100% gratuito</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-8 px-4 border-t border-gray-800">
+        <div className="max-w-6xl mx-auto text-center">
+          <img src={logoMro} alt="MRO" className="h-8 mx-auto mb-4" />
+          <p className="text-gray-400 text-sm">Mais Resultados Online</p>
+          <p className="text-gray-500 text-xs mt-4">© 2025 MRO. Todos os direitos reservados.</p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default GestaoMensal;

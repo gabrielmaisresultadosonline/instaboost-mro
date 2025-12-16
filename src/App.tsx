@@ -20,6 +20,7 @@ import Promo33 from "./pages/Promo33";
 import Promo33Dashboard from "./pages/Promo33Dashboard";
 import Promo33Obrigado from "./pages/Promo33Obrigado";
 import Promo33Admin from "./pages/Promo33Admin";
+import GestaoMensal from "./pages/GestaoMensal";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/promo33/dashboard" element={<Promo33Dashboard />} />
           <Route path="/promo33/obrigado" element={<Promo33Obrigado />} />
           <Route path="/promo33/admin" element={<Promo33Admin />} />
+          <Route path="/gestaomensal" element={<GestaoMensal />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
