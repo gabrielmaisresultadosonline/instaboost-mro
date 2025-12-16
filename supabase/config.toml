@@ -106,3 +106,12 @@ verify_jwt = false
 
 [functions.generate-caption]
 verify_jwt = false
+
+[functions.promo33-auth]
+verify_jwt = false
+
+[functions.promo33-admin]
+verify_jwt = false
+
+[functions.promo33-generate-strategy]
+verify_jwt = false

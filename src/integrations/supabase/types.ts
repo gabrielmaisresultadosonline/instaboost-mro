@@ -92,6 +92,57 @@ export type Database = {
         }
         Relationships: []
       }
+      promo33_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          instagram_data: Json | null
+          instagram_username: string | null
+          name: string | null
+          password: string
+          payment_id: string | null
+          phone: string | null
+          strategies_generated: Json | null
+          subscription_end: string | null
+          subscription_start: string | null
+          subscription_status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          instagram_data?: Json | null
+          instagram_username?: string | null
+          name?: string | null
+          password: string
+          payment_id?: string | null
+          phone?: string | null
+          strategies_generated?: Json | null
+          subscription_end?: string | null
+          subscription_start?: string | null
+          subscription_status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          instagram_data?: Json | null
+          instagram_username?: string | null
+          name?: string | null
+          password?: string
+          payment_id?: string | null
+          phone?: string | null
+          strategies_generated?: Json | null
+          subscription_end?: string | null
+          subscription_start?: string | null
+          subscription_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       squarecloud_user_profiles: {
         Row: {
           created_at: string | null
