@@ -159,6 +159,20 @@ export default function Promo33() {
             </span>
           </h1>
           
+          {/* YouTube Video */}
+          <div className="w-full max-w-3xl mx-auto mb-8 rounded-xl overflow-hidden shadow-2xl shadow-yellow-500/20 border border-yellow-500/30">
+            <div className="relative pb-[56.25%] h-0">
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src="https://www.youtube.com/embed/UnC4qpFgucQ?rel=0"
+                title="Promo33 Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          </div>
+          
           <p className="text-lg md:text-xl text-gray-400 mb-4">
             Por apenas
           </p>
