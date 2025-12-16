@@ -11,7 +11,7 @@ import {
   MessageSquare, Target, TrendingUp, FileText, Sparkles, 
   CreditCard, CheckCircle, AlertCircle, Gift, Play, X,
   MessageCircle, Smartphone, Percent, ChevronDown, Wifi,
-  ThumbsUp, ThumbsDown, Image as ImageIcon, Clock
+  ThumbsUp, ThumbsDown, Image as ImageIcon, Clock, Link2, Heart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -686,6 +686,24 @@ export default function Promo33Dashboard() {
                     </p>
                   )}
 
+                  {/* Bio Link */}
+                  {(() => {
+                    const externalUrl = Array.isArray(user.instagram_data.externalUrl) 
+                      ? (Array.isArray(user.instagram_data.externalUrl[0]) ? user.instagram_data.externalUrl[0][0] : user.instagram_data.externalUrl[0])
+                      : user.instagram_data.externalUrl;
+                    return externalUrl ? (
+                      <a 
+                        href={externalUrl.startsWith('http') ? externalUrl : `https://${externalUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 flex items-center gap-2 text-pink-400 hover:text-pink-300 text-sm transition-colors"
+                      >
+                        <Link2 className="w-4 h-4" />
+                        {externalUrl}
+                      </a>
+                    ) : null;
+                  })()}
+
                   {/* Recent Posts Gallery */}
                   <div className="mt-6">
                     <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
@@ -740,6 +758,57 @@ export default function Promo33Dashboard() {
                       </div>
                     )}
                   </div>
+
+                  {/* Engagement Stats */}
+                  {Array.isArray(user.instagram_data.posts) && user.instagram_data.posts.length > 0 && (
+                    <div className="mt-4 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-lg p-4 border border-pink-500/20">
+                      <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-pink-500" />
+                        Engajamento dos Últimos {Math.min(user.instagram_data.posts.length, 6)} Posts
+                        <span className="text-gray-500 text-xs font-normal">(de {user.instagram_data.postsCount || user.instagram_data.posts.length} totais)</span>
+                      </h4>
+                      {(() => {
+                        const posts = user.instagram_data.posts.slice(0, 6);
+                        const totalLikes = posts.reduce((sum: number, p: any) => sum + (p.likes || 0), 0);
+                        const totalComments = posts.reduce((sum: number, p: any) => sum + (p.comments || 0), 0);
+                        const avgLikes = posts.length > 0 ? Math.round(totalLikes / posts.length) : 0;
+                        const avgComments = posts.length > 0 ? Math.round(totalComments / posts.length) : 0;
+                        const engagementRate = user.instagram_data.followers > 0 
+                          ? ((avgLikes + avgComments) / user.instagram_data.followers * 100).toFixed(2) 
+                          : '0';
+                        
+                        return (
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <div className="bg-black/30 rounded-lg p-3 text-center">
+                              <Heart className="w-4 h-4 text-pink-500 mx-auto mb-1" />
+                              <p className="text-lg font-bold text-white">{totalLikes.toLocaleString()}</p>
+                              <p className="text-xs text-gray-500">Total Curtidas</p>
+                            </div>
+                            <div className="bg-black/30 rounded-lg p-3 text-center">
+                              <MessageCircle className="w-4 h-4 text-blue-500 mx-auto mb-1" />
+                              <p className="text-lg font-bold text-white">{totalComments.toLocaleString()}</p>
+                              <p className="text-xs text-gray-500">Total Comentários</p>
+                            </div>
+                            <div className="bg-black/30 rounded-lg p-3 text-center">
+                              <Heart className="w-4 h-4 text-pink-400 mx-auto mb-1" />
+                              <p className="text-lg font-bold text-white">{avgLikes.toLocaleString()}</p>
+                              <p className="text-xs text-gray-500">Média Curtidas</p>
+                            </div>
+                            <div className="bg-black/30 rounded-lg p-3 text-center">
+                              <MessageCircle className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+                              <p className="text-lg font-bold text-white">{avgComments.toLocaleString()}</p>
+                              <p className="text-xs text-gray-500">Média Comentários</p>
+                            </div>
+                            <div className="bg-black/30 rounded-lg p-3 text-center col-span-2 md:col-span-1">
+                              <TrendingUp className="w-4 h-4 text-green-500 mx-auto mb-1" />
+                              <p className="text-lg font-bold text-green-400">{engagementRate}%</p>
+                              <p className="text-xs text-gray-500">Taxa Engajamento</p>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
 
                   {/* Profile Analysis */}
                   <div className="mt-6 border-t border-gray-800 pt-6">
