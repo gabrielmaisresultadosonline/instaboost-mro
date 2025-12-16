@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Target, 
   BarChart3, 
@@ -27,7 +27,9 @@ import {
   Calculator,
   Video,
   Image,
-  Sparkles
+  Sparkles,
+  X,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,9 +44,18 @@ const GestaoMensal = () => {
   const [email, setEmail] = useState("");
   const [perspectiva, setPerspectiva] = useState("");
   const [investimento, setInvestimento] = useState(500);
+  const [showForm, setShowForm] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   const custoPorLead = 3.80;
   const leadsEstimados = Math.floor(investimento / custoPorLead);
+
+  // Parallax effect
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleWhatsApp = () => {
     const message = `*NOVO CADASTRO - GESTÃO MENSAL MRO*\n\n*Nome:* ${nome}\n*Email:* ${email}\n*Instagram:* @${instagram}\n*Perspectiva/Expectativa:* ${perspectiva}`;
@@ -60,25 +71,144 @@ const GestaoMensal = () => {
     document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Formulário em tela cheia
+  if (showForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white relative overflow-hidden">
+        {/* Background com Parallax */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
+          style={{ 
+            backgroundImage: `url(${gestaoBg2})`,
+            transform: `translateY(${scrollY * 0.3}px) scale(1.1)`
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-gray-900/80 to-black" />
+        
+        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-12">
+          <Button
+            onClick={() => setShowForm(false)}
+            variant="ghost"
+            className="absolute top-6 left-6 text-gray-400 hover:text-white"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Voltar
+          </Button>
+          
+          <div className="w-full max-w-lg animate-fade-in">
+            <div className="text-center mb-8">
+              <img src={logoMro} alt="MRO" className="h-14 mx-auto mb-6" />
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">
+                VAMOS COMEÇAR!
+              </h2>
+              <p className="text-gray-400">Preencha os dados abaixo para iniciar</p>
+            </div>
+            
+            <div className="bg-gray-900/80 backdrop-blur-xl border border-yellow-500/30 rounded-3xl p-8 shadow-2xl shadow-yellow-500/10">
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm text-gray-300 mb-2 font-medium">
+                    Seu nome completo *
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Digite seu nome completo"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    className="bg-gray-800/50 border-gray-700 h-14 text-lg focus:border-yellow-500 transition-colors"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm text-gray-300 mb-2 font-medium">
+                    Seu melhor e-mail *
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="seuemail@exemplo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-gray-800/50 border-gray-700 h-14 text-lg focus:border-yellow-500 transition-colors"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm text-gray-300 mb-2 font-medium">
+                    Instagram da empresa *
+                  </label>
+                  <div className="relative">
+                    <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <Input
+                      type="text"
+                      placeholder="suaempresa"
+                      value={instagram}
+                      onChange={(e) => setInstagram(e.target.value.replace("@", ""))}
+                      className="pl-12 bg-gray-800/50 border-gray-700 h-14 text-lg focus:border-yellow-500 transition-colors"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm text-gray-300 mb-2 font-medium">
+                    O que espera de nós? *
+                  </label>
+                  <Textarea
+                    placeholder="Descreva suas expectativas e objetivos..."
+                    value={perspectiva}
+                    onChange={(e) => setPerspectiva(e.target.value)}
+                    className="bg-gray-800/50 border-gray-700 min-h-[140px] resize-none text-lg focus:border-yellow-500 transition-colors"
+                  />
+                </div>
+                
+                <Button
+                  onClick={handleWhatsApp}
+                  disabled={!nome || !email || !instagram || !perspectiva}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black font-bold py-7 text-xl rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-yellow-500/25 transition-all hover:scale-[1.02]"
+                >
+                  <MessageSquare className="w-6 h-6 mr-3" />
+                  Cadastrar e Conversar
+                </Button>
+                
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  Você será redirecionado para o WhatsApp da MRO
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-center gap-6 mt-8 text-sm text-gray-500">
+              <span>✓ Atendimento rápido</span>
+              <span>✓ Sem compromisso</span>
+              <span>✓ 100% gratuito</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white">
-      {/* Hero Section */}
+      {/* Hero Section com Parallax */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20 overflow-hidden">
-        {/* Background Image with Opacity */}
+        {/* Background Image with Parallax */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-          style={{ backgroundImage: `url(${gestaoBg1})` }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: `url(${gestaoBg1})`,
+            transform: `translateY(${scrollY * 0.5}px) scale(1.2)`,
+            opacity: 0.5
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-950/80 via-gray-900/90 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-gray-900/70 to-black" />
         
         <div className="relative z-10 text-center max-w-5xl mx-auto">
-          <img src={logoMro} alt="MRO Logo" className="h-16 md:h-20 mx-auto mb-6" />
+          <img src={logoMro} alt="MRO Logo" className="h-16 md:h-20 mx-auto mb-6 animate-fade-in" />
           
-          <p className="text-yellow-400 font-semibold tracking-widest text-sm md:text-base mb-4">
+          <p className="text-yellow-400 font-semibold tracking-widest text-sm md:text-base mb-4 animate-fade-in">
             MAIS RESULTADOS ONLINE
           </p>
           
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight animate-fade-in">
             Transforme sua empresa em uma{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-400">
               máquina de aquisição
@@ -86,26 +216,38 @@ const GestaoMensal = () => {
             e retenção de clientes
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto animate-fade-in">
             com estratégia, dados e otimização contínua.
           </p>
           
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 animate-fade-in">
             <p className="text-gray-400">Entenda melhor como a MRO pode ajudar você</p>
             <Button 
               onClick={scrollToMethodology}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-6 text-lg rounded-full group"
+              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-6 text-lg rounded-full group shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all"
             >
               Clique para conhecer nossa metodologia
               <ChevronDown className="ml-2 group-hover:translate-y-1 transition-transform" />
             </Button>
           </div>
         </div>
+        
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ChevronDown className="w-8 h-8 text-yellow-400/50" />
+        </div>
       </section>
 
       {/* O que é a MRO */}
-      <section className="py-20 px-4 bg-gray-900/50">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-20 px-4 bg-gray-900/50 relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+          style={{ 
+            backgroundImage: `url(${gestaoBg2})`,
+            transform: `translateY(${(scrollY - 800) * 0.2}px)`
+          }}
+        />
+        <div className="max-w-6xl mx-auto relative z-10">
           <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             O QUE É A MRO?
           </p>
@@ -129,7 +271,7 @@ const GestaoMensal = () => {
               { icon: TrendingUp, title: "Crescimento", desc: "Escalabilidade sustentável" },
               { icon: Settings, title: "Otimização", desc: "Melhorias contínuas" },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center hover:border-yellow-500/50 transition-colors">
+              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center hover:border-yellow-500/50 hover:bg-gray-800/70 transition-all hover:scale-105">
                 <item.icon className="w-10 h-10 text-yellow-400 mx-auto mb-3" />
                 <h3 className="font-semibold mb-1">{item.title}</h3>
                 <p className="text-sm text-gray-400">{item.desc}</p>
@@ -140,8 +282,16 @@ const GestaoMensal = () => {
       </section>
 
       {/* Metodologia CVO */}
-      <section id="methodology" className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
+      <section id="methodology" className="py-20 px-4 relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{ 
+            backgroundImage: `url(${gestaoBg1})`,
+            transform: `translateY(${(scrollY - 1600) * 0.15}px)`
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-gray-900/90" />
+        <div className="max-w-6xl mx-auto relative z-10">
           <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             NOSSA METODOLOGIA
           </p>
@@ -160,7 +310,7 @@ const GestaoMensal = () => {
               { step: 4, title: "Monetização", desc: "Maximizamos o valor de cada cliente com ofertas, upsells e estratégias de ticket médio." },
               { step: 5, title: "Retenção", desc: "Fidelizamos clientes para recompras recorrentes e indicações espontâneas." },
             ].map((item, i) => (
-              <div key={i} className="bg-gradient-to-b from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-xl p-6 hover:border-yellow-500/50 transition-colors">
+              <div key={i} className="bg-gradient-to-b from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-xl p-6 hover:border-yellow-500/50 transition-all hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/10">
                 <div className="w-10 h-10 bg-yellow-500 text-black font-bold rounded-full flex items-center justify-center mb-4">
                   {item.step}
                 </div>
@@ -197,7 +347,7 @@ const GestaoMensal = () => {
               { icon: PieChart, title: "Análise Profunda de Dados", desc: "Decisões baseadas em métricas reais, não \"achismo\". Relatórios claros e acionáveis." },
               { icon: ArrowRight, title: "Transformação da Jornada", desc: "Desde o primeiro contato até a recompra, elevamos o valor do cliente ao longo do tempo." },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/50 hover:border-yellow-500/30 transition-all">
+              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/50 hover:border-yellow-500/30 transition-all hover:scale-105">
                 <item.icon className="w-10 h-10 text-yellow-400 mb-4" />
                 <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                 <p className="text-sm text-gray-400">{item.desc}</p>
@@ -235,7 +385,7 @@ const GestaoMensal = () => {
               { icon: Building, label: "Negócios Físicos ou Digitais" },
               { icon: Building2, label: "Organizações e Instituições" },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-center hover:border-yellow-500/50 transition-colors">
+              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-center hover:border-yellow-500/50 transition-all hover:scale-105">
                 <item.icon className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
                 <p className="text-sm font-medium">{item.label}</p>
               </div>
@@ -269,7 +419,7 @@ const GestaoMensal = () => {
               { icon: Globe, title: "Omnichannel Real", desc: "Todos os canais funcionando juntos, não isolados." },
               { icon: Palette, title: "Produção de Conteúdo Interna", desc: "Velocidade, consistência e estratégia alinhada." },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:border-yellow-500/30 transition-colors">
+              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:border-yellow-500/30 transition-all hover:scale-105">
                 <item.icon className="w-10 h-10 text-yellow-400 mb-4" />
                 <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                 <p className="text-sm text-gray-400">{item.desc}</p>
@@ -285,12 +435,16 @@ const GestaoMensal = () => {
 
       {/* Preços e Investimento */}
       <section id="pricing" className="py-20 px-4 relative overflow-hidden">
-        {/* Background Image with Opacity */}
+        {/* Background Image with Parallax */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15"
-          style={{ backgroundImage: `url(${gestaoBg2})` }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: `url(${gestaoBg2})`,
+            transform: `translateY(${(scrollY - 3500) * 0.2}px) scale(1.1)`,
+            opacity: 0.4
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/95 via-black/90 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-gray-900/85 to-black" />
         <div className="max-w-6xl mx-auto relative z-10">
           <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             INVESTIMENTO
@@ -301,7 +455,7 @@ const GestaoMensal = () => {
           
           {/* Pricing Card */}
           <div className="max-w-2xl mx-auto mb-16">
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-yellow-500/50 rounded-3xl p-8 md:p-12 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm border-2 border-yellow-500/50 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl shadow-yellow-500/10">
               <div className="absolute top-0 right-0 bg-yellow-500 text-black font-bold px-6 py-2 rounded-bl-2xl">
                 PROMOÇÃO
               </div>
@@ -357,19 +511,12 @@ const GestaoMensal = () => {
                   </div>
                 ))}
               </div>
-              
-              <Button 
-                onClick={scrollToPricing}
-                className="w-full mt-8 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-6 text-lg rounded-xl"
-              >
-                Quero essa gestão!
-              </Button>
             </div>
           </div>
           
           {/* Investimento em Tráfego */}
           <div className="max-w-2xl mx-auto mb-16">
-            <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-8">
+            <div className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-8">
               <div className="flex items-center gap-4 mb-6">
                 <Calculator className="w-10 h-10 text-yellow-400" />
                 <div>
@@ -428,89 +575,35 @@ const GestaoMensal = () => {
         </div>
       </section>
 
-      {/* CTA / Formulário */}
-      <section className="py-20 px-4 bg-gradient-to-b from-gray-900 to-black">
-        <div className="max-w-xl mx-auto">
-          <div className="text-center mb-8">
-            <img src={logoMro} alt="MRO" className="h-12 mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">
-              GOSTARIA DA NOSSA GESTÃO NO SEU NEGÓCIO?
-            </h2>
-            <p className="text-gray-400">Preencha o formulário abaixo</p>
-          </div>
+      {/* CTA - Botão para abrir formulário */}
+      <section className="py-20 px-4 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+          style={{ 
+            backgroundImage: `url(${gestaoBg1})`,
+            transform: `translateY(${(scrollY - 4500) * 0.15}px)`
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-black" />
+        
+        <div className="max-w-xl mx-auto relative z-10 text-center">
+          <img src={logoMro} alt="MRO" className="h-14 mx-auto mb-6" />
+          <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            GOSTARIA DA NOSSA GESTÃO NO SEU NEGÓCIO?
+          </h2>
+          <p className="text-gray-400 text-lg mb-10">
+            Clique no botão abaixo para preencher o formulário
+          </p>
           
-          <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 md:p-8">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  Seu nome completo *
-                </label>
-                <Input
-                  type="text"
-                  placeholder="Digite seu nome completo"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  className="bg-gray-900 border-gray-700 h-12"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  Seu melhor e-mail *
-                </label>
-                <Input
-                  type="email"
-                  placeholder="seuemail@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-900 border-gray-700 h-12"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  Instagram da empresa *
-                </label>
-                <div className="relative">
-                  <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                  <Input
-                    type="text"
-                    placeholder="suaempresa"
-                    value={instagram}
-                    onChange={(e) => setInstagram(e.target.value.replace("@", ""))}
-                    className="pl-10 bg-gray-900 border-gray-700 h-12"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  Sua perspectiva - O que espera de nós? *
-                </label>
-                <Textarea
-                  placeholder="Descreva suas expectativas e objetivos com a gestão..."
-                  value={perspectiva}
-                  onChange={(e) => setPerspectiva(e.target.value)}
-                  className="bg-gray-900 border-gray-700 min-h-[120px] resize-none"
-                />
-              </div>
-              
-              <Button
-                onClick={handleWhatsApp}
-                disabled={!nome || !email || !instagram || !perspectiva}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-6 text-lg rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <MessageSquare className="w-5 h-5 mr-2" />
-                Cadastrar e Iniciar Conversa
-              </Button>
-              
-              <p className="text-center text-xs text-gray-500 mt-4">
-                Ao enviar, você será redirecionado para o WhatsApp da MRO.
-              </p>
-            </div>
-          </div>
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black font-bold py-8 px-12 text-2xl rounded-2xl shadow-2xl shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-all hover:scale-105"
+          >
+            <CheckCircle className="w-7 h-7 mr-3" />
+            SIM, GOSTARIA!
+          </Button>
           
-          <div className="flex items-center justify-center gap-6 mt-6 text-sm text-gray-500">
+          <div className="flex items-center justify-center gap-6 mt-8 text-sm text-gray-500">
             <span>Atendimento rápido</span>
             <span>•</span>
             <span>Sem compromisso</span>
