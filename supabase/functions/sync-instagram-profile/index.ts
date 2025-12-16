@@ -12,7 +12,13 @@ const INSTAGRAM_PROFILES_DATASET_ID = 'gd_l1vikfch901nx3by4';
 // Proxy de imagem para HTTPS
 const proxyImage = (url: string | undefined | null): string => {
   if (!url) return '';
-  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=200&h=200&fit=cover`;
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover`;
+};
+
+// Proxy para imagens de posts
+const proxyPostImage = (url: string | undefined | null): string => {
+  if (!url) return '';
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=300&h=300&fit=cover`;
 };
 
 serve(async (req) => {
@@ -87,7 +93,7 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      console.log('Bright Data sync response:', JSON.stringify(data).substring(0, 1500));
+      console.log('Bright Data sync response:', JSON.stringify(data).substring(0, 2000));
       
       const profileData = Array.isArray(data) ? data[0] : data;
       
@@ -161,18 +167,46 @@ serve(async (req) => {
         );
       }
 
+      // Process posts - get first 6 posts
+      let posts: any[] = [];
+      if (profileData.posts && Array.isArray(profileData.posts)) {
+        posts = profileData.posts.slice(0, 6).map((post: any, index: number) => ({
+          id: post.id || post.shortcode || `post_${index}`,
+          thumbnail: proxyPostImage(post.thumbnail_url || post.display_url || post.image_url),
+          displayUrl: proxyPostImage(post.display_url || post.thumbnail_url || post.image_url),
+          likes: post.likes || post.like_count || 0,
+          comments: post.comments || post.comment_count || 0,
+          caption: post.caption?.substring(0, 200) || '',
+          timestamp: post.timestamp || post.taken_at || null
+        }));
+      } else if (profileData.recent_posts && Array.isArray(profileData.recent_posts)) {
+        posts = profileData.recent_posts.slice(0, 6).map((post: any, index: number) => ({
+          id: post.id || post.shortcode || `post_${index}`,
+          thumbnail: proxyPostImage(post.thumbnail_url || post.display_url || post.image_url),
+          displayUrl: proxyPostImage(post.display_url || post.thumbnail_url || post.image_url),
+          likes: post.likes || post.like_count || 0,
+          comments: post.comments || post.comment_count || 0,
+          caption: post.caption?.substring(0, 200) || '',
+          timestamp: post.timestamp || post.taken_at || null
+        }));
+      }
+
+      console.log(`📸 Found ${posts.length} posts for ${cleanUsername}`);
+
       const profile = {
         username: profileData.account || profileData.profile_name || cleanUsername,
         followers: followersCount,
         following: profileData.following || 0,
-        posts: postsCount,
+        postsCount: postsCount,
+        posts: posts, // Array of first 6 posts
+        profilePicture: proxiedProfilePic || `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`,
         profilePicUrl: proxiedProfilePic || `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`,
         fullName: profileData.profile_name || profileData.full_name || cleanUsername,
         bio: profileData.biography || profileData.bio || "",
-        externalUrl: profileData.external_url || ""
+        externalUrl: profileData.external_url ? [profileData.external_url] : []
       };
 
-      console.log(`✅ Profile ${cleanUsername} synced: ${profile.followers} followers, ${profile.posts} posts, hasPic: ${!!profileData.profile_image_link}`);
+      console.log(`✅ Profile ${cleanUsername} synced: ${profile.followers} followers, ${profile.postsCount} posts, ${posts.length} post images, hasPic: ${!!profileData.profile_image_link}`);
 
       return new Response(
         JSON.stringify({ success: true, profile }),

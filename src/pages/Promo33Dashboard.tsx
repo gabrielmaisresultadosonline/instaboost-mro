@@ -49,6 +49,7 @@ export default function Promo33Dashboard() {
   const [showVideoModal, setShowVideoModal] = useState<string | null>(null);
   const [profileAnalysis, setProfileAnalysis] = useState<{ positives: string[]; negatives: string[] } | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isResyncingProfile, setIsResyncingProfile] = useState(false);
 
   useEffect(() => {
     trackPageView('Promo33 Dashboard');
@@ -165,6 +166,48 @@ export default function Promo33Dashboard() {
       toast.error('Erro ao buscar perfil. Tente novamente.');
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const resyncInstagramProfile = async () => {
+    if (!user?.instagram_username) return;
+    
+    setIsResyncingProfile(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-instagram-profile', {
+        body: { username: user.instagram_username }
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data.profile) {
+        const { data: updateData, error: updateError } = await supabase.functions.invoke('promo33-auth', {
+          body: {
+            action: 'update_instagram',
+            email: user?.email,
+            instagram_username: user.instagram_username,
+            instagram_data: data.profile
+          }
+        });
+
+        if (updateError) throw updateError;
+
+        if (updateData?.success) {
+          setUser(updateData.user);
+          localStorage.setItem(PROMO33_STORAGE_KEY, JSON.stringify(updateData.user));
+          toast.success('Perfil atualizado com sucesso!');
+          // Re-gerar análise após resync
+          setProfileAnalysis(null);
+        }
+      } else {
+        toast.error('Não foi possível atualizar o perfil. Tente novamente.');
+      }
+    } catch (error: any) {
+      console.error('Resync error:', error);
+      toast.error('Erro ao atualizar perfil. Tente novamente.');
+    } finally {
+      setIsResyncingProfile(false);
     }
   };
 
@@ -365,8 +408,23 @@ export default function Promo33Dashboard() {
             {user?.instagram_username && user?.instagram_data && (
               <Card className="bg-gray-900/50 border-gray-800 mb-8 overflow-hidden">
                 <CardContent className="p-6">
-                  {/* Connection Status Indicator */}
-                  <div className="flex items-center justify-end mb-4">
+                  {/* Connection Status Indicator + Resync Button */}
+                  <div className="flex items-center justify-between mb-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resyncInstagramProfile}
+                      disabled={isResyncingProfile}
+                      className="text-gray-400 hover:text-white text-xs"
+                    >
+                      {isResyncingProfile ? (
+                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                      ) : (
+                        <Search className="w-3 h-3 mr-1" />
+                      )}
+                      Atualizar dados
+                    </Button>
+                    
                     <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                       <Wifi className="w-4 h-4 text-green-500" />
@@ -376,13 +434,11 @@ export default function Promo33Dashboard() {
 
                   {/* Profile Info */}
                   <div className="flex items-start gap-4">
-                    {user.instagram_data.profilePicture && (
-                      <img 
-                        src={user.instagram_data.profilePicture} 
-                        alt={user.instagram_username}
-                        className="w-24 h-24 rounded-full object-cover border-4 border-pink-500 shadow-lg shadow-pink-500/20"
-                      />
-                    )}
+                    <img 
+                      src={user.instagram_data.profilePicture || user.instagram_data.profilePicUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user.instagram_username}&backgroundColor=ec4899`} 
+                      alt={user.instagram_username}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-pink-500 shadow-lg shadow-pink-500/20"
+                    />
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
                         @{user.instagram_username}
@@ -407,7 +463,7 @@ export default function Promo33Dashboard() {
                         </div>
                         <div className="text-center">
                           <p className="text-xl font-bold text-white">
-                            {user.instagram_data.posts?.length || user.instagram_data.postsCount || '0'}
+                            {(Array.isArray(user.instagram_data.posts) ? user.instagram_data.posts.length : user.instagram_data.postsCount) || '0'}
                           </p>
                           <p className="text-xs text-gray-500">Posts</p>
                         </div>
@@ -423,12 +479,12 @@ export default function Promo33Dashboard() {
                   )}
 
                   {/* Recent Posts Gallery */}
-                  {user.instagram_data.posts && user.instagram_data.posts.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4 text-pink-500" />
-                        Últimas Publicações
-                      </h4>
+                  <div className="mt-6">
+                    <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-pink-500" />
+                      Últimas Publicações
+                    </h4>
+                    {Array.isArray(user.instagram_data.posts) && user.instagram_data.posts.length > 0 ? (
                       <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                         {user.instagram_data.posts.slice(0, 6).map((post: any, index: number) => (
                           <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-800">
@@ -436,12 +492,36 @@ export default function Promo33Dashboard() {
                               src={post.thumbnail || post.displayUrl || post.imageUrl} 
                               alt={`Post ${index + 1}`}
                               className="w-full h-full object-cover hover:scale-110 transition-transform"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/shapes/svg?seed=post${index}`;
+                              }}
                             />
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="bg-gray-800/50 rounded-lg p-6 text-center">
+                        <ImageIcon className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                        <p className="text-gray-500 text-sm">
+                          Sem publicações carregadas
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={resyncInstagramProfile}
+                          disabled={isResyncingProfile}
+                          className="mt-2 text-pink-400 hover:text-pink-300"
+                        >
+                          {isResyncingProfile ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          ) : (
+                            <Search className="w-4 h-4 mr-2" />
+                          )}
+                          Carregar publicações
+                        </Button>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Profile Analysis */}
                   <div className="mt-6 border-t border-gray-800 pt-6">
