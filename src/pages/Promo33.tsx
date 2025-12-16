@@ -161,29 +161,19 @@ export default function Promo33() {
           </h1>
           
           {/* YouTube Video with Thumbnail */}
-          <div className="w-full max-w-3xl mx-auto mb-8 rounded-xl overflow-hidden shadow-2xl shadow-yellow-500/20 border border-yellow-500/30">
+          <div className="w-full max-w-3xl mx-auto mb-8 rounded-xl overflow-hidden shadow-2xl shadow-yellow-500/20 border-2 border-yellow-500/50">
             <div className="relative pb-[56.25%] h-0">
               {!isVideoPlaying ? (
                 <div 
-                  className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col items-center justify-center cursor-pointer group"
+                  className="absolute top-0 left-0 w-full h-full bg-gray-900 flex flex-col items-center justify-center cursor-pointer group"
                   onClick={() => setIsVideoPlaying(true)}
                 >
-                  {/* YouTube Thumbnail */}
-                  <img 
-                    src="https://img.youtube.com/vi/UnC4qpFgucQ/maxresdefault.jpg"
-                    alt="Video thumbnail"
-                    className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-50 transition-opacity"
-                  />
-                  
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
-                  
                   {/* Play Button */}
-                  <div className="relative z-10 flex flex-col items-center gap-4">
+                  <div className="flex flex-col items-center gap-4">
                     <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-2xl shadow-yellow-500/50 group-hover:scale-110 transition-transform">
                       <Play className="w-10 h-10 md:w-12 md:h-12 text-black fill-black ml-1" />
                     </div>
-                    <span className="text-white text-xl md:text-2xl font-bold tracking-wider drop-shadow-lg">
+                    <span className="text-white text-xl md:text-2xl font-bold tracking-wider">
                       ASSISTA AGORA
                     </span>
                   </div>
