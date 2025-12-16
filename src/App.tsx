@@ -16,6 +16,10 @@ import Membro from "./pages/Membro";
 import Ligacao from "./pages/Ligacao";
 import Obrigado from "./pages/Obrigado";
 import ZapMROVendas from "./pages/ZapMROVendas";
+import Promo33 from "./pages/Promo33";
+import Promo33Dashboard from "./pages/Promo33Dashboard";
+import Promo33Obrigado from "./pages/Promo33Obrigado";
+import Promo33Admin from "./pages/Promo33Admin";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +43,10 @@ const App = () => (
           <Route path="/membro" element={<Membro />} />
           <Route path="/ligacao" element={<Ligacao />} />
           <Route path="/obrigado" element={<Obrigado />} />
+          <Route path="/promo33" element={<Promo33 />} />
+          <Route path="/promo33/dashboard" element={<Promo33Dashboard />} />
+          <Route path="/promo33/obrigado" element={<Promo33Obrigado />} />
+          <Route path="/promo33/admin" element={<Promo33Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
