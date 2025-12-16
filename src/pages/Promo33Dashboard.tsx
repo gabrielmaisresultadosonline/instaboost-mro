@@ -425,7 +425,8 @@ export default function Promo33Dashboard() {
               </div>
             )}
 
-            {/* Exclusive Tools Section - Collapsible */}
+            {/* Exclusive Tools Section - Collapsible - Only show after Instagram is connected */}
+            {user?.instagram_username && (
             <div className="mt-12 space-y-4">
               <div className="text-center mb-6">
                 <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-4 py-1 mb-4">
@@ -592,6 +593,7 @@ export default function Promo33Dashboard() {
                 </CardContent>
               </Card>
             </div>
+            )}
           </>
         )}
 
