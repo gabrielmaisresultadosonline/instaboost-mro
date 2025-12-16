@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import logoMro from '@/assets/logo-mro.png';
 
+const ADMIN_EMAIL = 'mro@gmail.com';
 const ADMIN_PASSWORD = 'Ga145523@';
 const ADMIN_STORAGE_KEY = 'promo33_admin_session';
 
@@ -31,6 +32,7 @@ interface Promo33User {
 export default function Promo33Admin() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [users, setUsers] = useState<Promo33User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,12 +49,12 @@ export default function Promo33Admin() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASSWORD) {
       localStorage.setItem(ADMIN_STORAGE_KEY, 'authenticated');
       setIsAuthenticated(true);
       loadUsers();
     } else {
-      toast.error('Senha incorreta');
+      toast.error('Email ou senha incorretos');
     }
   };
 
@@ -159,8 +161,15 @@ export default function Promo33Admin() {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+              <Input
                 type="password"
-                placeholder="Senha de administrador"
+                placeholder="Senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-gray-700 border-gray-600 text-white"
