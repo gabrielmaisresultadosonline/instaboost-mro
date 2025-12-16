@@ -33,6 +33,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import logoMro from "@/assets/logo-mro.png";
+import gestaoBg1 from "@/assets/gestao-bg-1.jpg";
+import gestaoBg2 from "@/assets/gestao-bg-2.jpg";
 
 const GestaoMensal = () => {
   const [instagram, setInstagram] = useState("");
@@ -61,8 +63,13 @@ const GestaoMensal = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-900/20 via-transparent to-transparent" />
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20 overflow-hidden">
+        {/* Background Image with Opacity */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{ backgroundImage: `url(${gestaoBg1})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-950/80 via-gray-900/90 to-black" />
         
         <div className="relative z-10 text-center max-w-5xl mx-auto">
           <img src={logoMro} alt="MRO Logo" className="h-16 md:h-20 mx-auto mb-6" />
@@ -277,8 +284,14 @@ const GestaoMensal = () => {
       </section>
 
       {/* Preços e Investimento */}
-      <section id="pricing" className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
+      <section id="pricing" className="py-20 px-4 relative overflow-hidden">
+        {/* Background Image with Opacity */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15"
+          style={{ backgroundImage: `url(${gestaoBg2})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/95 via-black/90 to-black" />
+        <div className="max-w-6xl mx-auto relative z-10">
           <p className="text-yellow-400 font-semibold tracking-widest text-sm text-center mb-2">
             INVESTIMENTO
           </p>
