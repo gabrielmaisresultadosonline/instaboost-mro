@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X } from 'lucide-react';
+import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard } from 'lucide-react';
 import logoMro from '@/assets/logo-mro.png';
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 
@@ -50,12 +50,40 @@ const ToolSelector = () => {
       borderColor: 'border-green-500/30',
       badge: 'ZAP MRO',
       salesPath: '/zapmro/vendas'
+    },
+    {
+      id: 'gestao',
+      name: 'Gestão Mensal Tráfego Pago',
+      subtitle: 'A GENTE FAZ POR VOCÊ',
+      description: 'Deixe sua gestão de anúncios com especialistas',
+      icon: TrendingUp,
+      color: 'from-amber-500 to-yellow-600',
+      hoverColor: 'hover:from-amber-600 hover:to-yellow-700',
+      borderColor: 'border-amber-500/30',
+      badge: 'GESTÃO',
+      salesPath: '/gestaomensal'
+    },
+    {
+      id: 'membros',
+      name: 'Área de Membros',
+      subtitle: 'SEM TAXA + RECEBIMENTO NA HORA',
+      description: 'Crie a sua agora mesmo!',
+      icon: CreditCard,
+      color: 'from-blue-500 to-cyan-600',
+      hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
+      borderColor: 'border-blue-500/30',
+      badge: 'NOVO',
+      salesPath: 'https://acessar.click/'
     }
   ];
 
   const handleSalesClick = (path: string, toolName: string) => {
     trackViewContent(`Sales Page: ${toolName}`, 'Navigation');
-    navigate(path);
+    if (path.startsWith('http')) {
+      window.open(path, '_blank');
+    } else {
+      navigate(path);
+    }
   };
 
   const handleMembersSelect = (platform: 'instagram' | 'zapmro') => {
@@ -97,7 +125,7 @@ const ToolSelector = () => {
       </div>
 
       {/* Tool Cards - Sales Pages */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full z-10 px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl w-full z-10 px-4">
         {tools.map((tool) => (
           <button
             key={tool.id}
