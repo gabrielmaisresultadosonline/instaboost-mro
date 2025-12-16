@@ -15,6 +15,7 @@ import VendasCompleta from "./pages/VendasCompleta";
 import Membro from "./pages/Membro";
 import Ligacao from "./pages/Ligacao";
 import Obrigado from "./pages/Obrigado";
+import ObrigadoZapmro from "./pages/ObrigadoZapmro";
 import ZapMROVendas from "./pages/ZapMROVendas";
 import Promo33 from "./pages/Promo33";
 import Promo33Dashboard from "./pages/Promo33Dashboard";
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/membro" element={<Membro />} />
           <Route path="/ligacao" element={<Ligacao />} />
           <Route path="/obrigado" element={<Obrigado />} />
+          <Route path="/obrigadozapmro" element={<ObrigadoZapmro />} />
           <Route path="/promo33" element={<Promo33 />} />
           <Route path="/promo33/dashboard" element={<Promo33Dashboard />} />
           <Route path="/promo33/obrigado" element={<Promo33Obrigado />} />

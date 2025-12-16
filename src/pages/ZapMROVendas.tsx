@@ -364,7 +364,7 @@ const ZapMROVendas = () => {
                   <span className="text-2xl text-gray-400">12x de</span>
                 </div>
                 <div className="text-7xl md:text-8xl font-black text-green-400 mb-1">
-                  R$33
+                  R$41
                 </div>
                 <p className="text-xl text-gray-300 font-medium mb-6">por mês</p>
 
@@ -373,7 +373,7 @@ const ZapMROVendas = () => {
                   className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
                   onClick={() => {
                     trackInitiateCheckout('ZAPMRO Anual', 397);
-                    window.open('https://zapmro.maisresultadosonline.com.br/zapmro-venda/', '_blank');
+                    window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"ZAPMRO+ANUAL","price":39700,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigadozapmro', '_blank');
                   }}
                 >
                   GARANTIR MEU ACESSO AGORA
@@ -440,7 +440,7 @@ const ZapMROVendas = () => {
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl px-12 py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
             onClick={() => {
               trackInitiateCheckout('ZAPMRO Anual', 397);
-              window.open('https://zapmro.maisresultadosonline.com.br/zapmro-venda/', '_blank');
+              window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"ZAPMRO+ANUAL","price":39700,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigadozapmro', '_blank');
             }}
           >
             GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
