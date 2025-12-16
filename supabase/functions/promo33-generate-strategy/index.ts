@@ -53,7 +53,7 @@ Nome: ${instagram_data.fullName || 'Não informado'}
 Bio: ${instagram_data.bio || 'Não informada'}
 Seguidores: ${instagram_data.followers || 0}
 Seguindo: ${instagram_data.following || 0}
-Posts: ${instagram_data.posts?.length || 0}
+Total de Posts: ${instagram_data.postsCount || instagram_data.posts?.length || 0}
 
 Responda APENAS em formato JSON válido com a seguinte estrutura:
 {
@@ -181,7 +181,7 @@ Nome: ${instagram_data.fullName || 'Não informado'}
 Bio: ${instagram_data.bio || 'Não informada'}
 Seguidores: ${instagram_data.followers || 0}
 Seguindo: ${instagram_data.following || 0}
-Posts: ${instagram_data.posts?.length || 0}
+Total de Posts: ${instagram_data.postsCount || instagram_data.posts?.length || 0}
 `;
 
     let prompt = '';
