@@ -43,6 +43,137 @@ serve(async (req) => {
       );
     }
 
+    // Handle profile analysis request
+    if (type === 'analysis') {
+      const analysisPrompt = `
+Analise o seguinte perfil do Instagram e forneça uma análise objetiva.
+
+Perfil: @${instagram_username}
+Nome: ${instagram_data.fullName || 'Não informado'}
+Bio: ${instagram_data.bio || 'Não informada'}
+Seguidores: ${instagram_data.followers || 0}
+Seguindo: ${instagram_data.following || 0}
+Posts: ${instagram_data.posts?.length || 0}
+
+Responda APENAS em formato JSON válido com a seguinte estrutura:
+{
+  "positives": ["ponto positivo 1", "ponto positivo 2", "ponto positivo 3"],
+  "negatives": ["ponto a melhorar 1", "ponto a melhorar 2", "ponto a melhorar 3"]
+}
+
+Liste 3 pontos positivos e 3 pontos a melhorar. Seja específico e objetivo.
+`;
+
+      const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
+      
+      if (!deepseekApiKey) {
+        // Return default analysis if no API key
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            analysis: {
+              positives: [
+                'Perfil ativo com presença nas redes sociais',
+                'Base de seguidores estabelecida',
+                'Potencial para crescimento orgânico'
+              ],
+              negatives: [
+                'Bio pode ser otimizada para converter mais',
+                'Frequência de posts pode ser melhorada',
+                'Engajamento pode ser aumentado com estratégias'
+              ]
+            }
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const response = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${deepseekApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: 'Você é um especialista em marketing digital e Instagram. Responda apenas em JSON válido.' },
+            { role: 'user', content: analysisPrompt }
+          ],
+          temperature: 0.5,
+          max_tokens: 500
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao analisar perfil');
+      }
+
+      const aiResponse = await response.json();
+      const analysisText = aiResponse.choices?.[0]?.message?.content;
+      
+      let analysis;
+      try {
+        // Try to parse JSON from response
+        const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysis = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('JSON not found');
+        }
+      } catch {
+        analysis = {
+          positives: [
+            'Perfil ativo com presença nas redes sociais',
+            'Base de seguidores estabelecida',
+            'Potencial para crescimento orgânico'
+          ],
+          negatives: [
+            'Bio pode ser otimizada para converter mais',
+            'Frequência de posts pode ser melhorada',
+            'Engajamento pode ser aumentado com estratégias'
+          ]
+        };
+      }
+
+      // Save analysis to instagram_data
+      const updatedInstagramData = {
+        ...instagram_data,
+        analysis
+      };
+
+      await supabase
+        .from('promo33_users')
+        .update({ instagram_data: updatedInstagramData })
+        .eq('id', user.id);
+
+      return new Response(
+        JSON.stringify({ success: true, analysis }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check 30-day limit for each strategy type
+    const existingStrategies = user.strategies_generated || [];
+    const existingStrategy = existingStrategies.find((s: any) => s.type === type);
+    
+    if (existingStrategy) {
+      const generatedAt = new Date(existingStrategy.generated_at);
+      const now = new Date();
+      const daysSinceGeneration = Math.floor((now.getTime() - generatedAt.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceGeneration < 30) {
+        const daysRemaining = 30 - daysSinceGeneration;
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            message: `Você já gerou esta estratégia. Aguarde ${daysRemaining} dias para gerar novamente.` 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // Build prompt based on strategy type
     const profileInfo = `
 Perfil: @${instagram_username}
@@ -164,7 +295,6 @@ Seja criativo e específico para o nicho do perfil.`;
     }
 
     // Update user with new strategy
-    const existingStrategies = user.strategies_generated || [];
     const updatedStrategies = [
       ...existingStrategies.filter((s: any) => s.type !== type),
       {

@@ -10,7 +10,8 @@ import {
   Crown, Instagram, Search, LogOut, Loader2, Users, 
   MessageSquare, Target, TrendingUp, FileText, Sparkles, 
   CreditCard, CheckCircle, AlertCircle, Gift, Play, X,
-  MessageCircle, Smartphone, Percent, ChevronDown
+  MessageCircle, Smartphone, Percent, ChevronDown, Wifi,
+  ThumbsUp, ThumbsDown, Image as ImageIcon, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,10 @@ import logoMro from '@/assets/logo-mro.png';
 
 const PROMO33_STORAGE_KEY = 'promo33_user_session';
 const PAYMENT_LINK = 'https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+PROMO33+MENSAL","price":3300,"quantity":1}]';
+
+// Links de pagamento para as ferramentas
+const MRO_INSTAGRAM_PAYMENT = 'https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+INTELIGENTE+ANUAL+DESCONTO","price":30000,"quantity":1}]';
+const ZAPMRO_PAYMENT = 'https://checkout.infinitepay.io/paguemro?items=[{"name":"ZAPMRO+ANUAL+DESCONTO","price":30000,"quantity":1}]';
 
 interface Promo33User {
   id: string;
@@ -42,11 +47,20 @@ export default function Promo33Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
   const [showVideoModal, setShowVideoModal] = useState<string | null>(null);
+  const [profileAnalysis, setProfileAnalysis] = useState<{ positives: string[]; negatives: string[] } | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
     trackPageView('Promo33 Dashboard');
     loadUser();
   }, []);
+
+  // Gerar análise automática quando o perfil for carregado
+  useEffect(() => {
+    if (user?.instagram_data && !profileAnalysis && !isAnalyzing) {
+      generateProfileAnalysis();
+    }
+  }, [user?.instagram_data]);
 
   const loadUser = async () => {
     const session = localStorage.getItem(PROMO33_STORAGE_KEY);
@@ -68,6 +82,11 @@ export default function Promo33Dashboard() {
       if (data?.success && data.user) {
         setUser(data.user);
         localStorage.setItem(PROMO33_STORAGE_KEY, JSON.stringify(data.user));
+        
+        // Carregar análise salva se existir
+        if (data.user.instagram_data?.analysis) {
+          setProfileAnalysis(data.user.instagram_data.analysis);
+        }
       } else {
         setUser(storedUser);
       }
@@ -91,9 +110,12 @@ export default function Promo33Dashboard() {
     window.open(fullPaymentLink, '_blank');
   };
 
-  const handleWhatsAppPromo = (tool: string) => {
-    const message = encodeURIComponent(`Sou cliente I.A MRO estratégia, gostaria de receber a promoção do anual ${tool === 'instagram' ? 'MRO Inteligente' : 'ZAPMRO'} por R$300`);
-    window.open(`https://wa.me/5551920036540?text=${message}`, '_blank');
+  const handleToolPayment = (tool: 'instagram' | 'whatsapp') => {
+    trackInitiateCheckout(tool === 'instagram' ? 'MRO Inteligente Desconto' : 'ZAPMRO Desconto', 300);
+    const redirectUrl = 'https://maisresultadosonline.com.br/obrigado';
+    const paymentLink = tool === 'instagram' ? MRO_INSTAGRAM_PAYMENT : ZAPMRO_PAYMENT;
+    const fullPaymentLink = `${paymentLink}&redirect_url=${encodeURIComponent(redirectUrl)}`;
+    window.open(fullPaymentLink, '_blank');
   };
 
   const searchInstagram = async () => {
@@ -146,9 +168,57 @@ export default function Promo33Dashboard() {
     }
   };
 
+  const generateProfileAnalysis = async () => {
+    if (!user?.instagram_data) return;
+    
+    setIsAnalyzing(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('promo33-generate-strategy', {
+        body: {
+          type: 'analysis',
+          email: user.email,
+          instagram_username: user.instagram_username,
+          instagram_data: user.instagram_data
+        }
+      });
+
+      if (data?.success && data.analysis) {
+        setProfileAnalysis(data.analysis);
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const canGenerateStrategy = (type: string): { canGenerate: boolean; daysRemaining: number } => {
+    if (!user?.strategies_generated) return { canGenerate: true, daysRemaining: 0 };
+    
+    const existingStrategy = user.strategies_generated.find((s: any) => s.type === type);
+    if (!existingStrategy) return { canGenerate: true, daysRemaining: 0 };
+    
+    const generatedAt = new Date(existingStrategy.generated_at);
+    const now = new Date();
+    const daysSinceGeneration = Math.floor((now.getTime() - generatedAt.getTime()) / (1000 * 60 * 60 * 24));
+    const daysRemaining = Math.max(0, 30 - daysSinceGeneration);
+    
+    return { 
+      canGenerate: daysSinceGeneration >= 30, 
+      daysRemaining 
+    };
+  };
+
   const generateStrategy = async (type: string) => {
     if (!user?.instagram_data || !user?.instagram_username) {
       toast.error('Adicione seu Instagram primeiro');
+      return;
+    }
+
+    const { canGenerate, daysRemaining } = canGenerateStrategy(type);
+    if (!canGenerate) {
+      toast.error(`Você já gerou esta estratégia. Aguarde ${daysRemaining} dias para gerar novamente.`);
       return;
     }
 
@@ -291,16 +361,26 @@ export default function Promo33Dashboard() {
               </Card>
             )}
 
-            {/* Instagram Profile Card */}
+            {/* Instagram Profile Card - Complete */}
             {user?.instagram_username && user?.instagram_data && (
-              <Card className="bg-gray-900/50 border-gray-800 mb-8">
+              <Card className="bg-gray-900/50 border-gray-800 mb-8 overflow-hidden">
                 <CardContent className="p-6">
+                  {/* Connection Status Indicator */}
+                  <div className="flex items-center justify-end mb-4">
+                    <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      <Wifi className="w-4 h-4 text-green-500" />
+                      <span className="text-green-400 text-xs font-medium">Conectado ao MRO</span>
+                    </div>
+                  </div>
+
+                  {/* Profile Info */}
                   <div className="flex items-start gap-4">
                     {user.instagram_data.profilePicture && (
                       <img 
                         src={user.instagram_data.profilePicture} 
                         alt={user.instagram_username}
-                        className="w-20 h-20 rounded-full object-cover border-2 border-pink-500"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-pink-500 shadow-lg shadow-pink-500/20"
                       />
                     )}
                     <div className="flex-1">
@@ -327,7 +407,7 @@ export default function Promo33Dashboard() {
                         </div>
                         <div className="text-center">
                           <p className="text-xl font-bold text-white">
-                            {user.instagram_data.posts?.length || '0'}
+                            {user.instagram_data.posts?.length || user.instagram_data.postsCount || '0'}
                           </p>
                           <p className="text-xs text-gray-500">Posts</p>
                         </div>
@@ -335,22 +415,108 @@ export default function Promo33Dashboard() {
                     </div>
                   </div>
 
+                  {/* Bio */}
                   {user.instagram_data.bio && (
                     <p className="text-gray-300 mt-4 text-sm bg-black/30 p-3 rounded-lg">
                       {user.instagram_data.bio}
                     </p>
                   )}
+
+                  {/* Recent Posts Gallery */}
+                  {user.instagram_data.posts && user.instagram_data.posts.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-pink-500" />
+                        Últimas Publicações
+                      </h4>
+                      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                        {user.instagram_data.posts.slice(0, 6).map((post: any, index: number) => (
+                          <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-800">
+                            <img 
+                              src={post.thumbnail || post.displayUrl || post.imageUrl} 
+                              alt={`Post ${index + 1}`}
+                              className="w-full h-full object-cover hover:scale-110 transition-transform"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Profile Analysis */}
+                  <div className="mt-6 border-t border-gray-800 pt-6">
+                    <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-yellow-500" />
+                      Análise do Perfil
+                      {isAnalyzing && <Loader2 className="w-4 h-4 animate-spin text-yellow-500" />}
+                    </h4>
+                    
+                    {profileAnalysis ? (
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {/* Pontos Positivos */}
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                          <h5 className="text-green-400 font-semibold mb-3 flex items-center gap-2">
+                            <ThumbsUp className="w-4 h-4" />
+                            Pontos Positivos
+                          </h5>
+                          <ul className="space-y-2">
+                            {profileAnalysis.positives.map((point, i) => (
+                              <li key={i} className="text-gray-300 text-sm flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                {point}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Pontos a Melhorar */}
+                        <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
+                          <h5 className="text-orange-400 font-semibold mb-3 flex items-center gap-2">
+                            <ThumbsDown className="w-4 h-4" />
+                            Pontos a Melhorar
+                          </h5>
+                          <ul className="space-y-2">
+                            {profileAnalysis.negatives.map((point, i) => (
+                              <li key={i} className="text-gray-300 text-sm flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                                {point}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ) : isAnalyzing ? (
+                      <div className="text-center py-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-yellow-500 mx-auto mb-2" />
+                        <p className="text-gray-400 text-sm">Analisando seu perfil...</p>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <Button 
+                          onClick={generateProfileAnalysis}
+                          variant="outline"
+                          className="border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Gerar Análise
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Strategy Generation */}
-            {user?.instagram_username && (
+            {/* Strategy Generation - Only after profile loaded */}
+            {user?.instagram_username && user?.instagram_data && (
               <div className="mb-8">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-yellow-500" />
                   Gerar Estratégias
                 </h2>
+                <p className="text-gray-400 text-sm mb-4">
+                  Você pode gerar 1 estratégia de cada tipo a cada 30 dias
+                </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {[
@@ -358,25 +524,50 @@ export default function Promo33Dashboard() {
                     { type: 'growth', icon: TrendingUp, title: 'Crescimento', desc: 'Plano para crescer organicamente' },
                     { type: 'sales', icon: Target, title: 'Script de Vendas', desc: 'Scripts para vender no direct' },
                     { type: 'content', icon: MessageSquare, title: 'Criativos', desc: 'Ideias de conteúdo que engaja' },
-                  ].map((strategy) => (
-                    <Card 
-                      key={strategy.type}
-                      className="bg-gray-900/50 border-gray-800 hover:border-yellow-500/50 transition-colors cursor-pointer"
-                      onClick={() => !isGenerating && generateStrategy(strategy.type)}
-                    >
-                      <CardContent className="p-4 text-center">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center mx-auto mb-3">
-                          {isGenerating && selectedStrategy === strategy.type ? (
-                            <Loader2 className="w-6 h-6 text-black animate-spin" />
-                          ) : (
-                            <strategy.icon className="w-6 h-6 text-black" />
+                  ].map((strategy) => {
+                    const { canGenerate, daysRemaining: strategyDaysRemaining } = canGenerateStrategy(strategy.type);
+                    const hasExisting = user?.strategies_generated?.some((s: any) => s.type === strategy.type);
+                    
+                    return (
+                      <Card 
+                        key={strategy.type}
+                        className={`bg-gray-900/50 border-gray-800 transition-colors ${
+                          canGenerate ? 'hover:border-yellow-500/50 cursor-pointer' : 'opacity-60'
+                        }`}
+                        onClick={() => canGenerate && !isGenerating && generateStrategy(strategy.type)}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                            canGenerate 
+                              ? 'bg-gradient-to-br from-yellow-500 to-amber-600' 
+                              : 'bg-gray-700'
+                          }`}>
+                            {isGenerating && selectedStrategy === strategy.type ? (
+                              <Loader2 className="w-6 h-6 text-black animate-spin" />
+                            ) : (
+                              <strategy.icon className={`w-6 h-6 ${canGenerate ? 'text-black' : 'text-gray-400'}`} />
+                            )}
+                          </div>
+                          <h3 className="text-white font-semibold mb-1">{strategy.title}</h3>
+                          <p className="text-gray-500 text-xs">{strategy.desc}</p>
+                          
+                          {!canGenerate && hasExisting && (
+                            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-yellow-500">
+                              <Clock className="w-3 h-3" />
+                              {strategyDaysRemaining} dias restantes
+                            </div>
                           )}
-                        </div>
-                        <h3 className="text-white font-semibold mb-1">{strategy.title}</h3>
-                        <p className="text-gray-500 text-xs">{strategy.desc}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          
+                          {hasExisting && (
+                            <Badge className="mt-2 bg-green-500/20 text-green-400 text-xs">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Gerada
+                            </Badge>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -391,7 +582,7 @@ export default function Promo33Dashboard() {
                 
                 <Tabs defaultValue={user.strategies_generated[0]?.type} className="w-full">
                   <TabsList className="bg-gray-900/50 border-gray-800 mb-4 flex-wrap h-auto gap-1">
-                    {user.strategies_generated.map((strategy: any, index: number) => (
+                    {user.strategies_generated.filter((s: any) => s.type !== 'analysis').map((strategy: any, index: number) => (
                       <TabsTrigger 
                         key={index} 
                         value={strategy.type}
@@ -405,7 +596,7 @@ export default function Promo33Dashboard() {
                     ))}
                   </TabsList>
                   
-                  {user.strategies_generated.map((strategy: any, index: number) => (
+                  {user.strategies_generated.filter((s: any) => s.type !== 'analysis').map((strategy: any, index: number) => (
                     <TabsContent key={index} value={strategy.type}>
                       <Card className="bg-gray-900/50 border-gray-800">
                         <CardContent className="p-6">
@@ -414,9 +605,14 @@ export default function Promo33Dashboard() {
                               {strategy.content}
                             </pre>
                           </div>
-                          <p className="text-gray-500 text-xs mt-4">
-                            Gerado em: {new Date(strategy.generated_at).toLocaleDateString('pt-BR')}
-                          </p>
+                          <div className="flex items-center justify-between mt-4">
+                            <p className="text-gray-500 text-xs">
+                              Gerado em: {new Date(strategy.generated_at).toLocaleDateString('pt-BR')}
+                            </p>
+                            <p className="text-yellow-500 text-xs">
+                              Próxima geração: {new Date(new Date(strategy.generated_at).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
                         </CardContent>
                       </Card>
                     </TabsContent>
@@ -426,7 +622,7 @@ export default function Promo33Dashboard() {
             )}
 
             {/* Exclusive Tools Section - Collapsible - Only show after Instagram is connected */}
-            {user?.instagram_username && (
+            {user?.instagram_username && user?.instagram_data && (
             <div className="mt-12 space-y-4">
               <div className="text-center mb-6">
                 <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-4 py-1 mb-4">
@@ -496,10 +692,10 @@ export default function Promo33Dashboard() {
                       </div>
 
                       <Button 
-                        onClick={() => handleWhatsAppPromo('instagram')}
+                        onClick={() => handleToolPayment('instagram')}
                         className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-6"
                       >
-                        <MessageCircle className="w-5 h-5 mr-2" />
+                        <CreditCard className="w-5 h-5 mr-2" />
                         QUERO ESSE DESCONTO
                       </Button>
                     </CardContent>
@@ -562,36 +758,16 @@ export default function Promo33Dashboard() {
                       </div>
 
                       <Button 
-                        onClick={() => handleWhatsAppPromo('whatsapp')}
+                        onClick={() => handleToolPayment('whatsapp')}
                         className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6"
                       >
-                        <MessageCircle className="w-5 h-5 mr-2" />
+                        <CreditCard className="w-5 h-5 mr-2" />
                         QUERO ESSE DESCONTO
                       </Button>
                     </CardContent>
                   </Card>
                 </CollapsibleContent>
               </Collapsible>
-
-              {/* Contact Admin */}
-              <Card className="bg-gray-900/50 border-gray-800 mt-6">
-                <CardContent className="p-6 text-center">
-                  <p className="text-gray-400 mb-4">
-                    Dúvidas sobre as ferramentas? Entre em contato com nosso administrador
-                  </p>
-                  <Button 
-                    onClick={() => {
-                      const message = encodeURIComponent('Sou cliente I.A MRO estratégia, gostaria de mais informações sobre as ferramentas MRO Inteligente e ZAPMRO');
-                      window.open(`https://wa.me/5551920036540?text=${message}`, '_blank');
-                    }}
-                    variant="outline"
-                    className="border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Falar com Administrador
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
             )}
           </>
