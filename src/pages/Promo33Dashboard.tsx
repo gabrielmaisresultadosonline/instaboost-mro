@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Crown, Instagram, Search, LogOut, Loader2, Users, Heart, 
+  Crown, Instagram, Search, LogOut, Loader2, Users, 
   MessageSquare, Target, TrendingUp, FileText, Sparkles, 
-  CreditCard, Calendar, CheckCircle, AlertCircle, RefreshCw
+  CreditCard, CheckCircle, AlertCircle, Gift, Play, X,
+  MessageCircle, Smartphone, Percent
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +40,7 @@ export default function Promo33Dashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
+  const [showVideoModal, setShowVideoModal] = useState<string | null>(null);
 
   useEffect(() => {
     trackPageView('Promo33 Dashboard');
@@ -54,7 +56,6 @@ export default function Promo33Dashboard() {
 
     const storedUser = JSON.parse(session);
     
-    // Refresh user data from server
     try {
       const { data, error } = await supabase.functions.invoke('promo33-auth', {
         body: { 
@@ -84,12 +85,14 @@ export default function Promo33Dashboard() {
 
   const handlePayment = () => {
     trackInitiateCheckout('Promo33 Monthly', 33);
-    
-    // Store user email for payment verification
     const redirectUrl = `${window.location.origin}/promo33/obrigado?email=${encodeURIComponent(user?.email || '')}`;
     const fullPaymentLink = `${PAYMENT_LINK}&redirect_url=${encodeURIComponent(redirectUrl)}`;
-    
     window.open(fullPaymentLink, '_blank');
+  };
+
+  const handleWhatsAppPromo = (tool: string) => {
+    const message = encodeURIComponent(`Sou cliente I.A MRO estratégia, gostaria de receber a promoção do anual ${tool === 'instagram' ? 'MRO Inteligente' : 'ZAPMRO'} por R$300`);
+    window.open(`https://wa.me/5551920036540?text=${message}`, '_blank');
   };
 
   const searchInstagram = async () => {
@@ -98,7 +101,6 @@ export default function Promo33Dashboard() {
       return;
     }
 
-    // Clean username
     let username = instagramInput.trim().toLowerCase();
     if (username.startsWith('@')) username = username.slice(1);
     if (username.includes('instagram.com/')) {
@@ -109,7 +111,6 @@ export default function Promo33Dashboard() {
     setIsSearching(true);
 
     try {
-      // Fetch from Bright Data API
       const { data, error } = await supabase.functions.invoke('sync-instagram-profile', {
         body: { username }
       });
@@ -117,7 +118,6 @@ export default function Promo33Dashboard() {
       if (error) throw error;
 
       if (data?.success && data.profile) {
-        // Update user with Instagram data
         const { data: updateData, error: updateError } = await supabase.functions.invoke('promo33-auth', {
           body: {
             action: 'update_instagram',
@@ -190,21 +190,21 @@ export default function Promo33Dashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
       {/* Header */}
-      <header className="py-4 px-4 border-b border-white/10">
+      <header className="py-4 px-4 border-b border-yellow-500/20">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <img src={logoMro} alt="MRO" className="h-10" />
           
           <div className="flex items-center gap-4">
             {isPremium && (
-              <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white">
+              <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold">
                 <Crown className="w-3 h-3 mr-1" />
                 Premium - {daysRemaining} dias
               </Badge>
@@ -231,18 +231,18 @@ export default function Promo33Dashboard() {
 
         {/* Payment Section (if not premium) */}
         {!isPremium && (
-          <Card className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 border-green-500/30 mb-8">
+          <Card className="bg-gradient-to-r from-yellow-500/20 to-amber-600/20 border-yellow-500/30 mb-8">
             <CardContent className="p-6 md:p-8 text-center">
               <Crown className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-white mb-2">Ative seu Premium</h2>
               <p className="text-gray-300 mb-6">
-                Desbloqueie todas as funcionalidades por apenas <strong className="text-green-400">R$33/mês</strong>
+                Desbloqueie todas as funcionalidades por apenas <strong className="text-yellow-400">R$33/mês</strong>
               </p>
               
               <Button 
                 onClick={handlePayment}
                 size="lg"
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-6 text-lg"
+                className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold px-8 py-6 text-lg"
               >
                 <CreditCard className="w-5 h-5 mr-2" />
                 PAGAR AGORA - R$33
@@ -260,7 +260,7 @@ export default function Promo33Dashboard() {
           <>
             {/* Add Instagram Section */}
             {!user?.instagram_username && (
-              <Card className="bg-white/5 border-white/10 mb-8">
+              <Card className="bg-gray-900/50 border-gray-800 mb-8">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Instagram className="w-5 h-5 text-pink-500" />
@@ -276,7 +276,7 @@ export default function Promo33Dashboard() {
                       placeholder="@seuperfil ou link do Instagram"
                       value={instagramInput}
                       onChange={(e) => setInstagramInput(e.target.value)}
-                      className="bg-white/10 border-white/20 text-white"
+                      className="bg-black/50 border-gray-700 text-white"
                     />
                     <Button 
                       onClick={searchInstagram}
@@ -292,7 +292,7 @@ export default function Promo33Dashboard() {
 
             {/* Instagram Profile Card */}
             {user?.instagram_username && user?.instagram_data && (
-              <Card className="bg-white/5 border-white/10 mb-8">
+              <Card className="bg-gray-900/50 border-gray-800 mb-8">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     {user.instagram_data.profilePicture && (
@@ -335,7 +335,7 @@ export default function Promo33Dashboard() {
                   </div>
 
                   {user.instagram_data.bio && (
-                    <p className="text-gray-300 mt-4 text-sm bg-white/5 p-3 rounded-lg">
+                    <p className="text-gray-300 mt-4 text-sm bg-black/30 p-3 rounded-lg">
                       {user.instagram_data.bio}
                     </p>
                   )}
@@ -360,15 +360,15 @@ export default function Promo33Dashboard() {
                   ].map((strategy) => (
                     <Card 
                       key={strategy.type}
-                      className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                      className="bg-gray-900/50 border-gray-800 hover:border-yellow-500/50 transition-colors cursor-pointer"
                       onClick={() => !isGenerating && generateStrategy(strategy.type)}
                     >
                       <CardContent className="p-4 text-center">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center mx-auto mb-3">
                           {isGenerating && selectedStrategy === strategy.type ? (
-                            <Loader2 className="w-6 h-6 text-white animate-spin" />
+                            <Loader2 className="w-6 h-6 text-black animate-spin" />
                           ) : (
-                            <strategy.icon className="w-6 h-6 text-white" />
+                            <strategy.icon className="w-6 h-6 text-black" />
                           )}
                         </div>
                         <h3 className="text-white font-semibold mb-1">{strategy.title}</h3>
@@ -382,19 +382,19 @@ export default function Promo33Dashboard() {
 
             {/* Generated Strategies */}
             {user?.strategies_generated && user.strategies_generated.length > 0 && (
-              <div>
+              <div className="mb-8">
                 <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
                   Suas Estratégias
                 </h2>
                 
                 <Tabs defaultValue={user.strategies_generated[0]?.type} className="w-full">
-                  <TabsList className="bg-white/5 border-white/10 mb-4 flex-wrap h-auto gap-1">
+                  <TabsList className="bg-gray-900/50 border-gray-800 mb-4 flex-wrap h-auto gap-1">
                     {user.strategies_generated.map((strategy: any, index: number) => (
                       <TabsTrigger 
                         key={index} 
                         value={strategy.type}
-                        className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+                        className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black"
                       >
                         {strategy.type === 'bio' && 'Bio'}
                         {strategy.type === 'growth' && 'Crescimento'}
@@ -406,10 +406,10 @@ export default function Promo33Dashboard() {
                   
                   {user.strategies_generated.map((strategy: any, index: number) => (
                     <TabsContent key={index} value={strategy.type}>
-                      <Card className="bg-white/5 border-white/10">
+                      <Card className="bg-gray-900/50 border-gray-800">
                         <CardContent className="p-6">
                           <div className="prose prose-invert max-w-none">
-                            <pre className="whitespace-pre-wrap text-gray-300 text-sm font-sans bg-white/5 p-4 rounded-lg">
+                            <pre className="whitespace-pre-wrap text-gray-300 text-sm font-sans bg-black/30 p-4 rounded-lg">
                               {strategy.content}
                             </pre>
                           </div>
@@ -423,12 +423,162 @@ export default function Promo33Dashboard() {
                 </Tabs>
               </div>
             )}
+
+            {/* Exclusive Tools Section */}
+            <div className="mt-12">
+              <div className="text-center mb-8">
+                <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-4 py-1 mb-4">
+                  <Gift className="w-4 h-4 mr-2" />
+                  EXCLUSIVO PARA CLIENTES
+                </Badge>
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                  Nossas Ferramentas Premium
+                </h2>
+                <p className="text-gray-400">
+                  Como cliente, você tem desconto especial nas nossas ferramentas completas
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* MRO Instagram Tool */}
+                <Card className="bg-gradient-to-br from-pink-500/10 to-purple-600/10 border-pink-500/30 overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                        <Instagram className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">MRO Inteligente</h3>
+                        <p className="text-gray-400 text-sm">Ferramenta para Instagram</p>
+                      </div>
+                    </div>
+
+                    <ul className="space-y-2 mb-4">
+                      {[
+                        'Automação de interações orgânicas',
+                        'Estratégias personalizadas por I.A',
+                        'Geração de criativos e legendas',
+                        'Análise completa do perfil',
+                        'Suporte exclusivo'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
+                          <CheckCircle className="w-4 h-4 text-pink-500 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button 
+                      onClick={() => setShowVideoModal('instagram')}
+                      className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg mb-4 transition-colors"
+                    >
+                      <Play className="w-5 h-5" />
+                      Ver como funciona
+                    </button>
+
+                    <div className="bg-black/30 rounded-lg p-4 text-center mb-4">
+                      <p className="text-gray-500 text-sm line-through">De R$397</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Percent className="w-5 h-5 text-yellow-500" />
+                        <span className="text-3xl font-bold text-yellow-400">R$300</span>
+                        <span className="text-gray-400">/anual</span>
+                      </div>
+                      <p className="text-green-400 text-sm font-semibold">Economia de R$97!</p>
+                    </div>
+
+                    <Button 
+                      onClick={() => handleWhatsAppPromo('instagram')}
+                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-6"
+                    >
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      QUERO ESSE DESCONTO
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* ZAPMRO WhatsApp Tool */}
+                <Card className="bg-gradient-to-br from-green-500/10 to-emerald-600/10 border-green-500/30 overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <Smartphone className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">ZAPMRO</h3>
+                        <p className="text-gray-400 text-sm">Ferramenta para WhatsApp</p>
+                      </div>
+                    </div>
+
+                    <ul className="space-y-2 mb-4">
+                      {[
+                        'Automação de mensagens em massa',
+                        'Extrator de contatos',
+                        'Disparador inteligente',
+                        'Gestão de grupos',
+                        'Suporte exclusivo'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
+                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button 
+                      onClick={() => setShowVideoModal('whatsapp')}
+                      className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg mb-4 transition-colors"
+                    >
+                      <Play className="w-5 h-5" />
+                      Ver como funciona
+                    </button>
+
+                    <div className="bg-black/30 rounded-lg p-4 text-center mb-4">
+                      <p className="text-gray-500 text-sm line-through">De R$397</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Percent className="w-5 h-5 text-yellow-500" />
+                        <span className="text-3xl font-bold text-yellow-400">R$300</span>
+                        <span className="text-gray-400">/anual</span>
+                      </div>
+                      <p className="text-green-400 text-sm font-semibold">Economia de R$97!</p>
+                    </div>
+
+                    <Button 
+                      onClick={() => handleWhatsAppPromo('whatsapp')}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6"
+                    >
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      QUERO ESSE DESCONTO
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Contact Admin */}
+              <Card className="bg-gray-900/50 border-gray-800 mt-6">
+                <CardContent className="p-6 text-center">
+                  <p className="text-gray-400 mb-4">
+                    Dúvidas sobre as ferramentas? Entre em contato com nosso administrador
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      const message = encodeURIComponent('Sou cliente I.A MRO estratégia, gostaria de mais informações sobre as ferramentas MRO Inteligente e ZAPMRO');
+                      window.open(`https://wa.me/5551920036540?text=${message}`, '_blank');
+                    }}
+                    variant="outline"
+                    className="border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Falar com Administrador
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </>
         )}
 
         {/* Non-premium message */}
         {!isPremium && (
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-gray-900/50 border-gray-800">
             <CardContent className="p-8 text-center">
               <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">Acesso Bloqueado</h3>
@@ -439,6 +589,44 @@ export default function Promo33Dashboard() {
           </Card>
         )}
       </main>
+
+      {/* Video Modal */}
+      {showVideoModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-3xl">
+            <button
+              onClick={() => setShowVideoModal(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300"
+            >
+              <X className="w-8 h-8" />
+            </button>
+            
+            <div className="aspect-video bg-gray-900 rounded-xl overflow-hidden">
+              {showVideoModal === 'instagram' ? (
+                <iframe
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  title="MRO Inteligente"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <iframe
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  title="ZAPMRO"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
+            </div>
+            
+            <p className="text-center text-gray-400 mt-4">
+              {showVideoModal === 'instagram' ? 'MRO Inteligente - Ferramenta para Instagram' : 'ZAPMRO - Ferramenta para WhatsApp'}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
