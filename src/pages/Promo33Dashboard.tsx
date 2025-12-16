@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPageView, trackInitiateCheckout } from '@/lib/facebookTracking';
 import logoMro from '@/assets/logo-mro.png';
+import StrategyContentFormatter from '@/components/StrategyContentFormatter';
 
 const PROMO33_STORAGE_KEY = 'promo33_user_session';
 const PAYMENT_LINK = 'https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+PROMO33+MENSAL","price":3300,"quantity":1}]';
@@ -967,11 +968,7 @@ export default function Promo33Dashboard() {
                     <TabsContent key={index} value={strategy.type}>
                       <Card className="bg-gray-900/50 border-gray-800">
                         <CardContent className="p-3 md:p-6">
-                          <div className="prose prose-invert max-w-none">
-                            <pre className="whitespace-pre-wrap text-gray-300 text-xs md:text-sm font-sans bg-black/30 p-3 md:p-4 rounded-lg overflow-x-auto">
-                              {strategy.content}
-                            </pre>
-                          </div>
+                          <StrategyContentFormatter content={strategy.content} />
                           <div className="flex flex-col md:flex-row md:items-center justify-between mt-3 md:mt-4 gap-1">
                             <p className="text-gray-500 text-xs">
                               Gerado: {new Date(strategy.generated_at).toLocaleDateString('pt-BR')}
