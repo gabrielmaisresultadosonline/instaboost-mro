@@ -169,12 +169,7 @@ export default function Promo33() {
             <span className="text-yellow-400 text-xl">/mês</span>
           </div>
 
-          <p className="text-lg md:text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Receba a <strong className="text-white">estratégia infalível</strong> para o seu perfil no Instagram. 
-            Uma <strong className="text-yellow-400">Inteligência Artificial</strong> desenvolvida para o seu crescimento no automático.
-          </p>
-
-          <Button 
+          <Button
             onClick={openRegister}
             size="lg"
             className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 rounded-full shadow-2xl shadow-yellow-500/30 transform hover:scale-105 transition-all"
