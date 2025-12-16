@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Smartphone, Laptop, Monitor, Zap, TrendingUp, Target, Users, ArrowRight, Star, Shield, Clock, UserPlus, CreditCard, Instagram, Brain, LogIn } from 'lucide-react';
+import { Smartphone, Laptop, Monitor, Zap, TrendingUp, Target, Users, ArrowRight, Star, Shield, Clock, UserPlus, CreditCard, Instagram, Brain, LogIn, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPageView, trackLead } from '@/lib/facebookTracking';
@@ -16,6 +16,7 @@ export default function Promo33() {
   const [showRegister, setShowRegister] = useState(false);
   const [isLogin, setIsLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -150,26 +151,53 @@ export default function Promo33() {
               Venda Mais
             </span>
             <br />
-            <span className="text-gray-100">Tenha Mais Seguidores, Mais Clientes</span>
+            <span className="text-gray-100">Tenha Mais Seguidores</span>
             <br />
-            <span className="text-lg md:text-2xl lg:text-3xl text-gray-400 mt-2 block">
-              com nossa <span className="text-yellow-400 font-bold">INTELIGÊNCIA ARTIFICIAL</span>
-              <br />
-              <span className="text-yellow-500">no automático!</span>
+            <span className="text-gray-100">Mais Clientes</span>
+            <br />
+            <span className="text-lg md:text-2xl lg:text-3xl text-yellow-400 mt-2 block font-bold">
+              Com a inteligência MRO!
             </span>
           </h1>
           
-          {/* YouTube Video */}
+          {/* YouTube Video with Thumbnail */}
           <div className="w-full max-w-3xl mx-auto mb-8 rounded-xl overflow-hidden shadow-2xl shadow-yellow-500/20 border border-yellow-500/30">
             <div className="relative pb-[56.25%] h-0">
-              <iframe
-                className="absolute top-0 left-0 w-full h-full"
-                src="https://www.youtube.com/embed/UnC4qpFgucQ?rel=0"
-                title="Promo33 Video"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
+              {!isVideoPlaying ? (
+                <div 
+                  className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col items-center justify-center cursor-pointer group"
+                  onClick={() => setIsVideoPlaying(true)}
+                >
+                  {/* YouTube Thumbnail */}
+                  <img 
+                    src="https://img.youtube.com/vi/UnC4qpFgucQ/maxresdefault.jpg"
+                    alt="Video thumbnail"
+                    className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-50 transition-opacity"
+                  />
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
+                  
+                  {/* Play Button */}
+                  <div className="relative z-10 flex flex-col items-center gap-4">
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-2xl shadow-yellow-500/50 group-hover:scale-110 transition-transform">
+                      <Play className="w-10 h-10 md:w-12 md:h-12 text-black fill-black ml-1" />
+                    </div>
+                    <span className="text-white text-xl md:text-2xl font-bold tracking-wider drop-shadow-lg">
+                      ASSISTA AGORA
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src="https://www.youtube.com/embed/UnC4qpFgucQ?rel=0&autoplay=1"
+                  title="Promo33 Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              )}
             </div>
           </div>
           
