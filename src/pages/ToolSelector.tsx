@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard } from 'lucide-react';
+import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Brain } from 'lucide-react';
 import logoMro from '@/assets/logo-mro.png';
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 
@@ -74,6 +74,18 @@ const ToolSelector = () => {
       borderColor: 'border-blue-500/30',
       badge: 'NOVO',
       salesPath: 'https://acessar.click/'
+    },
+    {
+      id: 'ia-mro',
+      name: 'I.A MRO',
+      subtitle: 'INTELIGÊNCIA ARTIFICIAL',
+      description: 'IA exclusiva para seu Instagram crescer',
+      icon: Brain,
+      color: 'from-violet-500 to-purple-600',
+      hoverColor: 'hover:from-violet-600 hover:to-purple-700',
+      borderColor: 'border-violet-500/30',
+      badge: 'I.A',
+      salesPath: '/promo33'
     }
   ];
 
@@ -116,11 +128,14 @@ const ToolSelector = () => {
 
       {/* Title */}
       <div className="text-center mb-12 z-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-          Escolha sua <span className="text-amber-400">Ferramenta</span>
+        <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
+          Sua <span className="text-amber-400 animate-pulse">Solução Inteligente</span>
         </h1>
-        <p className="text-gray-400 text-lg">
-          Selecione a plataforma que deseja acessar
+        <p className="text-xl md:text-2xl text-gray-300 mb-2 font-medium">
+          Soluções que <span className="text-green-400">cabem no seu bolso</span>!
+        </p>
+        <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto">
+          Ajudamos empreendedores a crescer com tecnologia acessível e resultados reais
         </p>
       </div>
 
