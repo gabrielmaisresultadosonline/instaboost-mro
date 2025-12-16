@@ -173,10 +173,10 @@ export default function Promo33Dashboard() {
   const resyncInstagramProfile = async () => {
     if (!user?.instagram_username) return;
     
-    // Verificar limite de 2 atualizações
+    // Verificar limite de 3 atualizações
     const syncCount = user?.instagram_data?.syncCount || 0;
-    if (syncCount >= 2) {
-      toast.error('Você já utilizou suas 2 atualizações disponíveis.');
+    if (syncCount >= 3) {
+      toast.error('Você já utilizou suas 3 atualizações disponíveis.');
       return;
     }
     
@@ -607,7 +607,7 @@ export default function Promo33Dashboard() {
                   <div className="flex items-center justify-between mb-4">
                     {(() => {
                       const syncCount = user.instagram_data?.syncCount || 0;
-                      const canSync = syncCount < 2;
+                      const canSync = syncCount < 3;
                       return (
                         <Button
                           variant="ghost"
@@ -621,7 +621,7 @@ export default function Promo33Dashboard() {
                           ) : (
                             <Search className="w-3 h-3 mr-1" />
                           )}
-                          {canSync ? `Atualizar dados (${2 - syncCount} restantes)` : 'Limite atingido'}
+                          {canSync ? `Atualizar dados (${3 - syncCount} restantes)` : 'Limite atingido'}
                         </Button>
                       );
                     })()}
@@ -733,7 +733,7 @@ export default function Promo33Dashboard() {
                         </p>
                         {(() => {
                           const syncCount = user.instagram_data?.syncCount || 0;
-                          const canSync = syncCount < 2;
+                          const canSync = syncCount < 3;
                           return canSync ? (
                             <Button
                               variant="ghost"
@@ -747,7 +747,7 @@ export default function Promo33Dashboard() {
                               ) : (
                                 <Search className="w-4 h-4 mr-2" />
                               )}
-                              Carregar publicações ({2 - syncCount} restantes)
+                              Carregar publicações ({3 - syncCount} restantes)
                             </Button>
                           ) : (
                             <p className="mt-2 text-gray-600 text-xs">
