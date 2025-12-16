@@ -50,6 +50,7 @@ export default function Promo33Dashboard() {
   const [profileAnalysis, setProfileAnalysis] = useState<{ positives: string[]; negatives: string[] } | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isResyncingProfile, setIsResyncingProfile] = useState(false);
+  const [showExclusiveTools, setShowExclusiveTools] = useState(false);
 
   useEffect(() => {
     trackPageView('Promo33 Dashboard');
@@ -324,12 +325,31 @@ export default function Promo33Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
+      {/* Custom animation styles */}
+      <style>{`
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 1; filter: brightness(1); }
+          50% { opacity: 0.4; filter: brightness(0.5); }
+        }
+      `}</style>
       {/* Header */}
       <header className="py-4 px-4 border-b border-yellow-500/20">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <img src={logoMro} alt="MRO" className="h-10" />
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            {isPremium && user?.instagram_username && user?.instagram_data && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowExclusiveTools(!showExclusiveTools)}
+                className="border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 text-xs md:text-sm"
+              >
+                <Gift className="w-3 h-3 mr-1" />
+                <span className="hidden md:inline">Exclusivo para Clientes</span>
+                <span className="md:hidden">Exclusivo</span>
+              </Button>
+            )}
             {isPremium && (
               <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold">
                 <Crown className="w-3 h-3 mr-1" />
@@ -445,8 +465,15 @@ export default function Promo33Dashboard() {
                     })()}
                     
                     <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                      <Wifi className="w-4 h-4 text-green-500" />
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-[pulse-glow_2s_ease-in-out_infinite]" 
+                           style={{ 
+                             animation: 'pulse-glow 2s ease-in-out infinite',
+                             boxShadow: '0 0 8px rgba(34, 197, 94, 0.8)'
+                           }} 
+                      />
+                      <Wifi className="w-4 h-4 text-green-500 animate-[pulse-glow_2s_ease-in-out_infinite]" 
+                            style={{ animation: 'pulse-glow 2s ease-in-out infinite' }}
+                      />
                       <span className="text-green-400 text-xs font-medium">Conectado ao MRO</span>
                     </div>
                   </div>
@@ -730,9 +757,9 @@ export default function Promo33Dashboard() {
               </div>
             )}
 
-            {/* Exclusive Tools Section - Collapsible - Only show after Instagram is connected */}
-            {user?.instagram_username && user?.instagram_data && (
-            <div className="mt-12 space-y-4">
+            {/* Exclusive Tools Section - Hidden by default, toggle via header button */}
+            {showExclusiveTools && user?.instagram_username && user?.instagram_data && (
+            <div className="mt-12 space-y-4 animate-fade-in">
               <div className="text-center mb-6">
                 <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-4 py-1 mb-4">
                   <Gift className="w-4 h-4 mr-2" />
