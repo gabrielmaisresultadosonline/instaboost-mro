@@ -172,6 +172,13 @@ export default function Promo33Dashboard() {
   const resyncInstagramProfile = async () => {
     if (!user?.instagram_username) return;
     
+    // Verificar limite de 2 atualizações
+    const syncCount = user?.instagram_data?.syncCount || 0;
+    if (syncCount >= 2) {
+      toast.error('Você já utilizou suas 2 atualizações disponíveis.');
+      return;
+    }
+    
     setIsResyncingProfile(true);
     
     try {
@@ -182,12 +189,18 @@ export default function Promo33Dashboard() {
       if (error) throw error;
 
       if (data?.success && data.profile) {
+        // Incrementar contador de sync
+        const updatedProfile = {
+          ...data.profile,
+          syncCount: syncCount + 1
+        };
+        
         const { data: updateData, error: updateError } = await supabase.functions.invoke('promo33-auth', {
           body: {
             action: 'update_instagram',
             email: user?.email,
             instagram_username: user.instagram_username,
-            instagram_data: data.profile
+            instagram_data: updatedProfile
           }
         });
 
@@ -196,7 +209,7 @@ export default function Promo33Dashboard() {
         if (updateData?.success) {
           setUser(updateData.user);
           localStorage.setItem(PROMO33_STORAGE_KEY, JSON.stringify(updateData.user));
-          toast.success('Perfil atualizado com sucesso!');
+          toast.success(`Perfil atualizado! (${syncCount + 1}/2 atualizações usadas)`);
           // Re-gerar análise após resync
           setProfileAnalysis(null);
         }
@@ -410,20 +423,26 @@ export default function Promo33Dashboard() {
                 <CardContent className="p-6">
                   {/* Connection Status Indicator + Resync Button */}
                   <div className="flex items-center justify-between mb-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={resyncInstagramProfile}
-                      disabled={isResyncingProfile}
-                      className="text-gray-400 hover:text-white text-xs"
-                    >
-                      {isResyncingProfile ? (
-                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                      ) : (
-                        <Search className="w-3 h-3 mr-1" />
-                      )}
-                      Atualizar dados
-                    </Button>
+                    {(() => {
+                      const syncCount = user.instagram_data?.syncCount || 0;
+                      const canSync = syncCount < 2;
+                      return (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={resyncInstagramProfile}
+                          disabled={isResyncingProfile || !canSync}
+                          className={`text-xs ${canSync ? 'text-gray-400 hover:text-white' : 'text-gray-600 cursor-not-allowed'}`}
+                        >
+                          {isResyncingProfile ? (
+                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                          ) : (
+                            <Search className="w-3 h-3 mr-1" />
+                          )}
+                          {canSync ? `Atualizar dados (${2 - syncCount} restantes)` : 'Limite atingido'}
+                        </Button>
+                      );
+                    })()}
                     
                     <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -463,7 +482,7 @@ export default function Promo33Dashboard() {
                         </div>
                         <div className="text-center">
                           <p className="text-xl font-bold text-white">
-                            {(Array.isArray(user.instagram_data.posts) ? user.instagram_data.posts.length : user.instagram_data.postsCount) || '0'}
+                            {(user.instagram_data.postsCount || user.instagram_data.posts?.length || 0).toLocaleString()}
                           </p>
                           <p className="text-xs text-gray-500">Posts</p>
                         </div>
@@ -505,20 +524,30 @@ export default function Promo33Dashboard() {
                         <p className="text-gray-500 text-sm">
                           Sem publicações carregadas
                         </p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={resyncInstagramProfile}
-                          disabled={isResyncingProfile}
-                          className="mt-2 text-pink-400 hover:text-pink-300"
-                        >
-                          {isResyncingProfile ? (
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        {(() => {
+                          const syncCount = user.instagram_data?.syncCount || 0;
+                          const canSync = syncCount < 2;
+                          return canSync ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={resyncInstagramProfile}
+                              disabled={isResyncingProfile}
+                              className="mt-2 text-pink-400 hover:text-pink-300"
+                            >
+                              {isResyncingProfile ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : (
+                                <Search className="w-4 h-4 mr-2" />
+                              )}
+                              Carregar publicações ({2 - syncCount} restantes)
+                            </Button>
                           ) : (
-                            <Search className="w-4 h-4 mr-2" />
-                          )}
-                          Carregar publicações
-                        </Button>
+                            <p className="mt-2 text-gray-600 text-xs">
+                              Limite de atualizações atingido
+                            </p>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
