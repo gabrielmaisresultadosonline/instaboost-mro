@@ -150,10 +150,12 @@ export default function Promo33() {
               Venda Mais
             </span>
             <br />
-            <span className="text-gray-100">Tenha Mais Seguidores e Resultados</span>
+            <span className="text-gray-100">Tenha Mais Seguidores, Mais Clientes</span>
             <br />
             <span className="text-lg md:text-2xl lg:text-3xl text-gray-400 mt-2 block">
               com nossa <span className="text-yellow-400 font-bold">INTELIGÊNCIA ARTIFICIAL</span>
+              <br />
+              <span className="text-yellow-500">no automático!</span>
             </span>
           </h1>
           
@@ -267,9 +269,9 @@ export default function Promo33() {
               <CardContent className="p-6 flex items-start gap-4">
                 <Shield className="w-10 h-10 text-yellow-500 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Garantia de 7 Dias</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">Garantia de 30 Dias</h3>
                   <p className="text-gray-500 text-sm">
-                    Se não gostar, devolvemos 100% do seu dinheiro. Sem perguntas.
+                    Se não ter resultados com nossa estratégia, devolvemos seu dinheiro!
                   </p>
                 </div>
               </CardContent>
