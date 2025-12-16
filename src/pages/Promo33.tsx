@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Smartphone, Laptop, Monitor, Zap, TrendingUp, Target, Users, ArrowRight, Star, Shield, Clock } from 'lucide-react';
+import { Smartphone, Laptop, Monitor, Zap, TrendingUp, Target, Users, ArrowRight, Star, Shield, Clock, UserPlus, CreditCard, Instagram, Brain, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPageView, trackLead } from '@/lib/facebookTracking';
@@ -14,6 +14,7 @@ const PROMO33_STORAGE_KEY = 'promo33_user_session';
 export default function Promo33() {
   const navigate = useNavigate();
   const [showRegister, setShowRegister] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -25,7 +26,6 @@ export default function Promo33() {
   useEffect(() => {
     trackPageView('Promo33 Sales');
     
-    // Check if user is already logged in
     const session = localStorage.getItem(PROMO33_STORAGE_KEY);
     if (session) {
       const user = JSON.parse(session);
@@ -58,7 +58,7 @@ export default function Promo33() {
       if (data.success) {
         localStorage.setItem(PROMO33_STORAGE_KEY, JSON.stringify(data.user));
         trackLead('Promo33 Registration');
-        toast.success('Cadastro realizado! Redirecionando para pagamento...');
+        toast.success('Cadastro realizado! Redirecionando...');
         navigate('/promo33/dashboard');
       } else {
         toast.error(data.message || 'Erro ao cadastrar');
@@ -107,57 +107,82 @@ export default function Promo33() {
     }
   };
 
+  const openLogin = () => {
+    setIsLogin(true);
+    setShowRegister(true);
+    setFormData({ name: '', email: '', phone: '', password: '' });
+  };
+
+  const openRegister = () => {
+    setIsLogin(false);
+    setShowRegister(true);
+    setFormData({ name: '', email: '', phone: '', password: '' });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
       {/* Header */}
-      <header className="py-4 px-4 border-b border-white/10">
-        <div className="max-w-6xl mx-auto flex justify-center">
-          <img src={logoMro} alt="MRO" className="h-12 md:h-16" />
+      <header className="py-4 px-4 border-b border-yellow-500/20">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <img src={logoMro} alt="MRO" className="h-10 md:h-14" />
+          
+          <Button 
+            onClick={openLogin}
+            variant="outline"
+            className="border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black"
+          >
+            <LogIn className="w-4 h-4 mr-2" />
+            Acessar
+          </Button>
         </div>
       </header>
 
       {/* Hero Section */}
       <section className="py-12 md:py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-2 rounded-full mb-6 text-sm font-medium">
+          <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full mb-6 text-sm font-medium border border-yellow-500/30">
             <Zap className="w-4 h-4" />
             Oferta Especial por Tempo Limitado
           </div>
           
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">
               Venda Mais
             </span>
             <br />
-            Tenha Mais Seguidores e Resultados
+            <span className="text-gray-100">Tenha Mais Seguidores e Resultados</span>
+            <br />
+            <span className="text-lg md:text-2xl lg:text-3xl text-gray-400 mt-2 block">
+              com nossa <span className="text-yellow-400 font-bold">INTELIGÊNCIA ARTIFICIAL</span>
+            </span>
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-300 mb-4">
+          <p className="text-lg md:text-xl text-gray-400 mb-4">
             Por apenas
           </p>
           
           <div className="flex items-center justify-center gap-3 mb-6">
-            <span className="text-gray-500 line-through text-2xl">R$197</span>
-            <span className="text-5xl md:text-7xl font-bold text-green-400">R$33</span>
-            <span className="text-green-400 text-xl">/mês</span>
+            <span className="text-gray-600 line-through text-2xl">R$197</span>
+            <span className="text-5xl md:text-7xl font-bold text-yellow-400">R$33</span>
+            <span className="text-yellow-400 text-xl">/mês</span>
           </div>
 
-          <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
             Receba a <strong className="text-white">estratégia infalível</strong> para o seu perfil no Instagram. 
-            Uma <strong className="text-white">Inteligência Artificial</strong> desenvolvida para o seu crescimento no automático.
+            Uma <strong className="text-yellow-400">Inteligência Artificial</strong> desenvolvida para o seu crescimento no automático.
           </p>
 
           <Button 
-            onClick={() => setShowRegister(true)}
+            onClick={openRegister}
             size="lg"
-            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 rounded-full shadow-2xl shadow-green-500/30 transform hover:scale-105 transition-all"
+            className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold text-lg md:text-xl px-8 md:px-12 py-6 md:py-8 rounded-full shadow-2xl shadow-yellow-500/30 transform hover:scale-105 transition-all"
           >
             CADASTRAR AGORA MESMO
             <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
 
           {/* Device Icons */}
-          <div className="flex items-center justify-center gap-6 mt-8 text-gray-400">
+          <div className="flex items-center justify-center gap-6 mt-8 text-gray-500">
             <div className="flex flex-col items-center gap-1">
               <Smartphone className="w-6 h-6" />
               <span className="text-xs">Celular</span>
@@ -171,12 +196,43 @@ export default function Promo33() {
               <span className="text-xs">Desktop</span>
             </div>
           </div>
-          <p className="text-gray-500 text-sm mt-2">Acesse de qualquer dispositivo</p>
+          <p className="text-gray-600 text-sm mt-2">Acesse de qualquer dispositivo</p>
+        </div>
+      </section>
+
+      {/* How it Works */}
+      <section className="py-12 md:py-16 px-4 bg-gray-900/50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
+            Como Funciona
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              { step: '1', icon: UserPlus, title: 'Faça seu cadastro', desc: 'Crie sua conta em menos de 1 minuto' },
+              { step: '2', icon: CreditCard, title: 'Realize o pagamento', desc: 'Apenas R$33 por mês - cancele quando quiser' },
+              { step: '3', icon: Instagram, title: 'Adicione seu Instagram', desc: 'Perfil que você precisa crescer' },
+              { step: '4', icon: Brain, title: 'Utilize nossa I.A', desc: 'Inteligência focada para o seu crescimento' },
+            ].map((item, index) => (
+              <div key={index} className="flex items-start gap-4 bg-black/50 border border-gray-800 rounded-xl p-5 hover:border-yellow-500/50 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center flex-shrink-0">
+                  <item.icon className="w-6 h-6 text-black" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-yellow-500 font-bold text-sm">PASSO {item.step}</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-1">{item.title}</h3>
+                  <p className="text-gray-500">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Benefits Section */}
-      <section className="py-12 md:py-16 px-4 bg-black/30">
+      <section className="py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
             O que você vai receber
@@ -189,13 +245,13 @@ export default function Promo33() {
               { icon: Users, title: 'Script de Vendas', desc: 'Scripts prontos para vender no direct' },
               { icon: Star, title: 'Ideias de Criativos', desc: 'Conteúdo que engaja e converte' },
             ].map((benefit, index) => (
-              <Card key={index} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+              <Card key={index} className="bg-gray-900/50 border-gray-800 hover:border-yellow-500/50 transition-colors">
                 <CardContent className="p-6 text-center">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-4">
-                    <benefit.icon className="w-7 h-7 text-white" />
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center mx-auto mb-4">
+                    <benefit.icon className="w-7 h-7 text-black" />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">{benefit.title}</h3>
-                  <p className="text-gray-400 text-sm">{benefit.desc}</p>
+                  <p className="text-gray-500 text-sm">{benefit.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -203,56 +259,28 @@ export default function Promo33() {
         </div>
       </section>
 
-      {/* How it Works */}
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
-            Como Funciona
-          </h2>
-          
-          <div className="space-y-6">
-            {[
-              { step: '1', title: 'Faça seu cadastro', desc: 'Crie sua conta em menos de 1 minuto' },
-              { step: '2', title: 'Realize o pagamento', desc: 'Apenas R$33 por mês - cancele quando quiser' },
-              { step: '3', title: 'Adicione seu Instagram', desc: 'Nossa IA vai analisar seu perfil' },
-              { step: '4', title: 'Receba suas estratégias', desc: 'Estratégias personalizadas geradas por IA' },
-            ].map((item, index) => (
-              <div key={index} className="flex items-start gap-4 bg-white/5 rounded-xl p-4 md:p-6">
-                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold">{item.step}</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-1">{item.title}</h3>
-                  <p className="text-gray-400">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Guarantees */}
-      <section className="py-12 md:py-16 px-4 bg-black/30">
+      <section className="py-12 md:py-16 px-4 bg-gray-900/50">
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-black/50 border-gray-800">
               <CardContent className="p-6 flex items-start gap-4">
-                <Shield className="w-10 h-10 text-green-400 flex-shrink-0" />
+                <Shield className="w-10 h-10 text-yellow-500 flex-shrink-0" />
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-2">Garantia de 7 Dias</h3>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-500 text-sm">
                     Se não gostar, devolvemos 100% do seu dinheiro. Sem perguntas.
                   </p>
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-black/50 border-gray-800">
               <CardContent className="p-6 flex items-start gap-4">
-                <Clock className="w-10 h-10 text-green-400 flex-shrink-0" />
+                <Clock className="w-10 h-10 text-yellow-500 flex-shrink-0" />
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-2">Acesso Imediato</h3>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-500 text-sm">
                     Após o pagamento, acesse imediatamente todas as funcionalidades.
                   </p>
                 </div>
@@ -268,23 +296,23 @@ export default function Promo33() {
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">
             Comece Agora Mesmo
           </h2>
-          <p className="text-gray-300 mb-8">
+          <p className="text-gray-400 mb-8">
             Junte-se a centenas de empreendedores que já estão crescendo no Instagram
           </p>
           
           <Button 
-            onClick={() => setShowRegister(true)}
+            onClick={openRegister}
             size="lg"
-            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-lg px-10 py-6 rounded-full shadow-2xl shadow-green-500/30"
+            className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold text-lg px-10 py-6 rounded-full shadow-2xl shadow-yellow-500/30"
           >
             QUERO COMEÇAR POR R$33/MÊS
           </Button>
 
-          <p className="text-gray-500 text-sm mt-4">
+          <p className="text-gray-600 text-sm mt-4">
             Já tem uma conta?{' '}
             <button 
-              onClick={() => setShowRegister(true)}
-              className="text-green-400 hover:underline"
+              onClick={openLogin}
+              className="text-yellow-500 hover:underline"
             >
               Fazer login
             </button>
@@ -293,8 +321,8 @@ export default function Promo33() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 border-t border-white/10">
-        <div className="max-w-4xl mx-auto text-center text-gray-500 text-sm">
+      <footer className="py-8 px-4 border-t border-gray-800">
+        <div className="max-w-4xl mx-auto text-center text-gray-600 text-sm">
           <p>MRO - Mais Resultados Online</p>
           <p>Gabriel Fernandes da Silva</p>
           <p>CNPJ: 54.840.738/0001-96</p>
@@ -304,25 +332,27 @@ export default function Promo33() {
 
       {/* Register/Login Modal */}
       {showRegister && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md bg-gray-900 border-white/10">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md bg-gray-900 border-gray-800">
             <CardHeader>
               <CardTitle className="text-white text-center">
-                {formData.name === '' ? 'Criar Conta' : 'Acessar Conta'}
+                {isLogin ? 'Acessar Conta' : 'Criar Conta'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={formData.name !== '' || !showRegister ? handleRegister : handleLogin} className="space-y-4">
-                <div>
-                  <label className="text-sm text-gray-400 mb-1 block">Nome Completo</label>
-                  <Input
-                    type="text"
-                    placeholder="Seu nome"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white"
-                  />
-                </div>
+              <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
+                {!isLogin && (
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Nome Completo *</label>
+                    <Input
+                      type="text"
+                      placeholder="Seu nome"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="bg-black/50 border-gray-700 text-white focus:border-yellow-500"
+                    />
+                  </div>
+                )}
                 
                 <div>
                   <label className="text-sm text-gray-400 mb-1 block">Email *</label>
@@ -331,21 +361,23 @@ export default function Promo33() {
                     placeholder="seu@email.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white"
+                    className="bg-black/50 border-gray-700 text-white focus:border-yellow-500"
                     required
                   />
                 </div>
                 
-                <div>
-                  <label className="text-sm text-gray-400 mb-1 block">WhatsApp</label>
-                  <Input
-                    type="tel"
-                    placeholder="(00) 00000-0000"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white"
-                  />
-                </div>
+                {!isLogin && (
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">WhatsApp</label>
+                    <Input
+                      type="tel"
+                      placeholder="(00) 00000-0000"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="bg-black/50 border-gray-700 text-white focus:border-yellow-500"
+                    />
+                  </div>
+                )}
                 
                 <div>
                   <label className="text-sm text-gray-400 mb-1 block">Senha *</label>
@@ -354,7 +386,7 @@ export default function Promo33() {
                     placeholder="Sua senha"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white"
+                    className="bg-black/50 border-gray-700 text-white focus:border-yellow-500"
                     required
                   />
                 </div>
@@ -362,15 +394,33 @@ export default function Promo33() {
                 <Button 
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-6"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold py-6"
                 >
-                  {isLoading ? 'Aguarde...' : 'CONTINUAR'}
+                  {isLoading ? 'Aguarde...' : (isLogin ? 'ENTRAR' : 'CONTINUAR')}
                 </Button>
+
+                <div className="text-center text-gray-500 text-sm">
+                  {isLogin ? (
+                    <>
+                      Não tem conta?{' '}
+                      <button type="button" onClick={() => setIsLogin(false)} className="text-yellow-500 hover:underline">
+                        Criar conta
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      Já tem conta?{' '}
+                      <button type="button" onClick={() => setIsLogin(true)} className="text-yellow-500 hover:underline">
+                        Fazer login
+                      </button>
+                    </>
+                  )}
+                </div>
 
                 <button
                   type="button"
                   onClick={() => setShowRegister(false)}
-                  className="w-full text-gray-400 hover:text-white text-sm py-2"
+                  className="w-full text-gray-500 hover:text-white text-sm py-2"
                 >
                   Cancelar
                 </button>
