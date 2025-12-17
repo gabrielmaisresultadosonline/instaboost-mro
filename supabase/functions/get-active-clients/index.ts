@@ -11,6 +11,13 @@ type Body = {
   offset?: number;
 };
 
+type ActiveClient = {
+  username: string;
+  profilePicture: string;
+  fallbackProfilePicture?: string;
+  followers: number;
+};
+
 const safeNumber = (value: unknown, fallback: number) => {
   const n = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(n) ? n : fallback;
@@ -262,11 +269,14 @@ serve(async (req) => {
     const page = unique.slice(offset, offset + limit);
 
     // Ensure images are cached in our own storage (more reliable on VPS/mobile)
-    const clientsWithImages = await mapWithConcurrency(page, 8, async (p) => {
+    const clientsWithImages: ActiveClient[] = await mapWithConcurrency(page, 8, async (p) => {
       const imageUrl = await ensureCachedProfileImage(supabase, supabaseUrl, p.username, p.originalImageUrl);
+      const fallback = p.originalImageUrl ? toWeservUrl(p.originalImageUrl) : '';
+
       return {
         username: p.username,
         profilePicture: imageUrl,
+        fallbackProfilePicture: fallback || undefined,
         followers: p.followers,
       };
     });
