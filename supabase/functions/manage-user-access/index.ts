@@ -47,69 +47,79 @@ async function sendAccessEmail(
     const serviceName = serviceType === 'whatsapp' ? 'ZAPMRO' : 'MRO Instagram';
     const memberAreaUrl = 'https://maisresultadosonline.com.br';
 
-    const htmlContent = `
-<!DOCTYPE html>
+    const whatsappGroupLink = 'https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi';
+    const logoUrl = 'https://maisresultadosonline.com.br/logo-mro-email.png';
+
+    const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
-    .header { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 30px; text-align: center; }
-    .header h1 { color: #000; margin: 0; font-size: 28px; }
-    .content { padding: 30px; background: #f9f9f9; }
-    .credentials { background: #fff; border: 2px solid #FFD700; border-radius: 10px; padding: 20px; margin: 20px 0; }
-    .credentials h3 { color: #333; margin-top: 0; }
-    .credential-item { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px; }
-    .credential-label { font-weight: bold; color: #666; }
-    .credential-value { font-size: 18px; color: #000; font-family: monospace; }
-    .button { display: inline-block; background: #FFD700; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
-    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-    .expiration { background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 10px; margin: 15px 0; text-align: center; }
-    .expiration strong { color: #856404; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-  <div class="header">
-    <h1>🎉 MRO - Acesso Liberado!</h1>
-  </div>
-  <div class="content">
-    <p>Olá${customerName ? ` <strong>${customerName}</strong>` : ''},</p>
-    <p>Seu acesso ao <strong>${serviceName}</strong> foi liberado com sucesso!</p>
-    
-    <div class="credentials">
-      <h3>📋 Seus Dados de Acesso:</h3>
-      <div class="credential-item">
-        <div class="credential-label">Usuário:</div>
-        <div class="credential-value">${username}</div>
-      </div>
-      <div class="credential-item">
-        <div class="credential-label">Senha:</div>
-        <div class="credential-value">${password}</div>
-      </div>
-    </div>
-    
-    {EXPIRATION_SECTION}
-    
-    <p>Para acessar a área de membros, clique no botão abaixo:</p>
-    
-    <center>
-      <a href="${memberAreaUrl}" class="button">🔑 ACESSAR ÁREA DE MEMBROS</a>
-    </center>
-    
-    <p style="color: #666; font-size: 14px;">
-      Ou acesse diretamente: <a href="${memberAreaUrl}">${memberAreaUrl}</a>
-    </p>
-    
-    <p>Se tiver qualquer dúvida, entre em contato conosco pelo WhatsApp: <strong>+55 51 9203-6540</strong></p>
-  </div>
-  <div class="footer">
-    <p>MRO - Mais Resultados Online</p>
-    <p>Gabriel Fernandes da Silva</p>
-    <p>CNPJ: 54.840.738/0001-96</p>
-  </div>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
+<tr>
+<td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
+<img src="${logoUrl}" alt="MRO" style="max-width:120px;height:auto;margin-bottom:10px;">
+<h1 style="color:#000;margin:10px 0 0 0;font-size:24px;">Acesso Liberado!</h1>
+</td>
+</tr>
+<tr>
+<td style="padding:30px;background:#ffffff;">
+<p style="margin:0 0 15px 0;">Olá${customerName ? ` <strong>${customerName}</strong>` : ''},</p>
+<p style="margin:0 0 20px 0;">Seu acesso ao <strong>${serviceName}</strong> foi liberado com sucesso!</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border:2px solid #FFD700;border-radius:10px;margin:20px 0;">
+<tr>
+<td style="padding:20px;">
+<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📋 Seus Dados de Acesso:</h3>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td style="padding:12px;background:#f8f9fa;border-radius:5px;margin-bottom:10px;">
+<span style="font-size:12px;color:#666;display:block;">Usuário:</span>
+<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${username}</span>
+</td>
+</tr>
+<tr><td style="height:10px;"></td></tr>
+<tr>
+<td style="padding:12px;background:#f8f9fa;border-radius:5px;">
+<span style="font-size:12px;color:#666;display:block;">Senha:</span>
+<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${password}</span>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+{EXPIRATION_SECTION}
+<p style="margin:20px 0 15px 0;color:#333;">Para acessar a área de membros:</p>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td align="center" style="padding:10px 0;">
+<a href="${memberAreaUrl}" style="display:inline-block;background:#000;color:#fff;padding:16px 40px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">🚀 ACESSAR ÁREA DE MEMBROS</a>
+</td>
+</tr>
+</table>
+<p style="color:#666;font-size:13px;text-align:center;margin:15px 0;">Ou acesse: <a href="${memberAreaUrl}" style="color:#000;">${memberAreaUrl}</a></p>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:25px;">
+<tr>
+<td align="center">
+<a href="${whatsappGroupLink}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 30px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;">
+<img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;">GRUPO DE AVISOS</a>
+</td>
+</tr>
+</table>
+<p style="color:#666;font-size:13px;text-align:center;margin:20px 0 0 0;">Dúvidas? WhatsApp: <strong>+55 51 9203-6540</strong></p>
+</td>
+</tr>
+<tr>
+<td style="text-align:center;padding:20px;background:#f8f9fa;color:#666;font-size:11px;">
+<p style="margin:0;">MRO - Mais Resultados Online</p>
+<p style="margin:5px 0 0 0;">Gabriel Fernandes da Silva | CNPJ: 54.840.738/0001-96</p>
+</td>
+</tr>
+</table>
 </body>
-</html>
-    `;
+</html>`;
 
     // Build expiration section
     let expirationSection = '';
@@ -121,17 +131,9 @@ async function sendAccessEmail(
         year: 'numeric' 
       });
       const planType = accessType === 'annual' ? 'Anual' : 'Mensal';
-      expirationSection = `
-        <div class="expiration">
-          📅 <strong>Plano ${planType}</strong> - Acesso disponível até <strong>${formattedDate}</strong>
-        </div>
-      `;
+      expirationSection = `<table width="100%" cellpadding="0" cellspacing="0" style="margin:15px 0;"><tr><td style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:15px;text-align:center;"><span style="color:#856404;font-weight:bold;">🎁 Plano ${planType}</span> - Acesso até <strong style="color:#856404;">${formattedDate}</strong></td></tr></table>`;
     } else if (accessType === 'lifetime') {
-      expirationSection = `
-        <div class="expiration" style="background: #d4edda; border-color: #28a745;">
-          ♾️ <strong style="color: #155724;">Acesso Vitalício</strong> - Sem data de expiração!
-        </div>
-      `;
+      expirationSection = `<table width="100%" cellpadding="0" cellspacing="0" style="margin:15px 0;"><tr><td style="background:#d4edda;border:1px solid #28a745;border-radius:8px;padding:15px;text-align:center;"><span style="color:#155724;font-weight:bold;">♾️ Acesso Vitalício</span> - Sem data de expiração!</td></tr></table>`;
     }
 
     const finalHtml = htmlContent.replace('{EXPIRATION_SECTION}', expirationSection);
