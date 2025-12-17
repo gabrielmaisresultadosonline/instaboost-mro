@@ -31,24 +31,101 @@ const unwrapImageUrl = (url: string): string => {
   return url;
 };
 
-// Get profile image URL - use weserv proxy URL from admin data or DiceBear fallback
-const getProfileImageUrl = (username: string, originalUrl: string): string => {
+// Build a stable proxy URL using weserv (and force jpg output)
+const toWeservUrl = (url: string): string => {
+  const original = unwrapImageUrl(url || '');
+  if (!original) return '';
+
+  // If already a weserv url, use as-is
+  if (original.includes('images.weserv.nl')) return original;
+
+  if (!original.startsWith('http')) return '';
+
+  return `https://images.weserv.nl/?url=${encodeURIComponent(original)}&w=200&h=200&fit=cover&output=jpg&q=85`;
+};
+
+const dicebearFallback = (username: string) =>
+  `https://api.dicebear.com/7.x/initials/svg?seed=${username}&backgroundColor=10b981`;
+
+const publicCacheUrl = (supabaseUrl: string, objectPath: string) =>
+  `${supabaseUrl}/storage/v1/object/public/profile-cache/${objectPath}`;
+
+// Cache in our own public storage (so it works on VPS + mobile consistently)
+const ensureCachedProfileImage = async (
+  supabase: any,
+  supabaseUrl: string,
+  username: string,
+  sourceUrl: string
+): Promise<string> => {
   if (!username) return '';
 
-  // If we have a valid URL from admin data (weserv proxy or direct), use it
-  if (originalUrl && originalUrl.length > 10) {
-    // If it's already a weserv proxy URL, use it directly
-    if (originalUrl.includes('images.weserv.nl')) {
-      return originalUrl;
-    }
-    // If it's a direct URL, wrap in weserv proxy for CORS
-    if (originalUrl.startsWith('http')) {
-      return `https://images.weserv.nl/?url=${encodeURIComponent(originalUrl)}&w=150&h=150&fit=cover`;
-    }
+  const fileName = `${username.toLowerCase()}.jpg`;
+  const folder = 'profiles';
+  const objectPath = `${folder}/${fileName}`;
+
+  // Check if already cached
+  const { data: existing } = await supabase.storage
+    .from('profile-cache')
+    .list(folder, { search: fileName });
+
+  if (existing && existing.length > 0) {
+    return publicCacheUrl(supabaseUrl, objectPath);
   }
 
-  // Fallback to DiceBear avatar
-  return `https://api.dicebear.com/7.x/initials/svg?seed=${username}&backgroundColor=10b981`;
+  const fetchUrl = toWeservUrl(sourceUrl);
+  if (!fetchUrl) return dicebearFallback(username);
+
+  try {
+    const resp = await fetch(fetchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
+        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+      },
+    });
+
+    if (!resp.ok) {
+      console.log(`[get-active-clients] Image fetch failed for ${username}: ${resp.status}`);
+      return fetchUrl;
+    }
+
+    const blob = await resp.blob();
+    const contentType = resp.headers.get('content-type') || 'image/jpeg';
+
+    const { error: uploadError } = await supabase.storage
+      .from('profile-cache')
+      .upload(objectPath, blob, {
+        contentType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.log(`[get-active-clients] Image upload failed for ${username}:`, uploadError.message);
+      return fetchUrl;
+    }
+
+    return publicCacheUrl(supabaseUrl, objectPath);
+  } catch (e) {
+    console.log(`[get-active-clients] Image cache error for ${username}:`, e);
+    return fetchUrl;
+  }
+};
+
+// Simple concurrency control to avoid timeouts when loading larger pages
+const mapWithConcurrency = async (items: any[], concurrency: number, mapper: (item: any, idx: number) => Promise<any>) => {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  const worker = async () => {
+    while (true) {
+      const i = nextIndex++;
+      if (i >= items.length) return;
+      results[i] = await mapper(items[i], i);
+    }
+  };
+
+  const workers = Array.from({ length: Math.max(1, Math.min(concurrency, items.length)) }, worker);
+  await Promise.all(workers);
+  return results;
 };
 
 serve(async (req) => {
@@ -89,13 +166,26 @@ serve(async (req) => {
 
     const rawProfiles: any[] = Array.isArray(adminData?.profiles) ? adminData.profiles : [];
 
-    // Map profiles with original URLs
+    // Map profiles and try multiple picture fields (admin data can vary)
     const mapped = rawProfiles
-      .map((p) => ({
-        username: String(p?.username ?? '').trim(),
-        originalImageUrl: String(p?.profilePicUrl ?? '').trim(),
-        followers: safeNumber(p?.followers, 0),
-      }))
+      .map((p) => {
+        const username = String(p?.username ?? p?.profile?.username ?? '').trim();
+        const pic = String(
+          p?.profilePicUrl ??
+            p?.profilePicture ??
+            p?.profile_pic_url ??
+            p?.profile_image_link ??
+            p?.profile?.profilePicUrl ??
+            p?.profile?.profilePicture ??
+            ''
+        ).trim();
+
+        return {
+          username,
+          originalImageUrl: pic,
+          followers: safeNumber(p?.followers ?? p?.profile?.followers, 0),
+        };
+      })
       .filter((p) => p.username && p.followers > 0);
 
     // De-duplicate by username
@@ -113,9 +203,9 @@ serve(async (req) => {
     const total = unique.length;
     const page = unique.slice(offset, offset + limit);
 
-    // Get images for this page (from admin data URLs or fallback)
-    const clientsWithImages = page.map((p) => {
-      const imageUrl = getProfileImageUrl(p.username, p.originalImageUrl);
+    // Ensure images are cached in our own storage (more reliable on VPS/mobile)
+    const clientsWithImages = await mapWithConcurrency(page, 8, async (p) => {
+      const imageUrl = await ensureCachedProfileImage(supabase, supabaseUrl, p.username, p.originalImageUrl);
       return {
         username: p.username,
         profilePicture: imageUrl,
