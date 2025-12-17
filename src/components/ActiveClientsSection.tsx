@@ -29,21 +29,8 @@ const formatFollowers = (count: number): string => {
   return count.toLocaleString('pt-BR');
 };
 
-// Prefer the raw Instagram CDN URL. If the backend stored a weserv proxy URL,
-// unwrap it so production doesn't depend on a third-party proxy.
-const getImageUrl = (url: string): string => {
-  if (!url) return '';
-  try {
-    const u = new URL(url);
-    if (u.hostname === 'images.weserv.nl') {
-      const original = u.searchParams.get('url');
-      return original ? decodeURIComponent(original) : url;
-    }
-  } catch {
-    // ignore
-  }
-  return url;
-};
+// Images are now served from our own storage (cached by backend)
+const getImageUrl = (url: string): string => url || '';
 
 const PAGE_SIZE = 96;
 
@@ -157,9 +144,6 @@ export default function ActiveClientsSection({
         alt={`Foto do perfil do Instagram @${client.username}`}
         className="w-full h-full object-cover"
         loading="lazy"
-        decoding="async"
-        referrerPolicy="no-referrer"
-        crossOrigin="anonymous"
         onError={() => handleImageError(client.username)}
       />
     );
