@@ -74,15 +74,33 @@ async function sendAccessEmail(
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td style="padding:12px;background:#f8f9fa;border-radius:5px;margin-bottom:10px;">
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td>
 <span style="font-size:12px;color:#666;display:block;">Usuário:</span>
 <span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${username}</span>
+</td>
+<td width="40" style="text-align:right;vertical-align:middle;">
+<span style="font-size:18px;" title="Copie o usuário">📋</span>
+</td>
+</tr>
+</table>
 </td>
 </tr>
 <tr><td style="height:10px;"></td></tr>
 <tr>
 <td style="padding:12px;background:#f8f9fa;border-radius:5px;">
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td>
 <span style="font-size:12px;color:#666;display:block;">Senha:</span>
 <span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${password}</span>
+</td>
+<td width="40" style="text-align:right;vertical-align:middle;">
+<span style="font-size:18px;" title="Copie a senha">📋</span>
+</td>
+</tr>
+</table>
 </td>
 </tr>
 </table>
