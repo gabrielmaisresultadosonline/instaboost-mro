@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 interface ActiveClient {
   username: string;
   profilePicture: string;
-  fallbackProfilePicture?: string;
   followers: number;
 }
 
@@ -131,7 +130,7 @@ export default function ActiveClientsSection({
     if (hasError || !client.profilePicture) {
       return (
         <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center text-black font-bold text-lg">
-          {client.username.charAt(0).toUpperCase()}
+          {client.username.substring(0, 2).toUpperCase()}
         </div>
       );
     }
@@ -139,21 +138,10 @@ export default function ActiveClientsSection({
     return (
       <img
         src={client.profilePicture}
-        alt={`Foto do perfil do Instagram @${client.username}`}
+        alt={`@${client.username}`}
         className="w-full h-full object-cover"
         loading="lazy"
-        onError={(e) => {
-          const img = e.currentTarget;
-          const triedFallback = img.dataset.fallbackTried === '1';
-
-          if (!triedFallback && client.fallbackProfilePicture) {
-            img.dataset.fallbackTried = '1';
-            img.src = client.fallbackProfilePicture;
-            return;
-          }
-
-          handleImageError(client.username);
-        }}
+        onError={() => handleImageError(client.username)}
       />
     );
   };
@@ -286,8 +274,7 @@ export default function ActiveClientsSection({
               {isLoadingMore && (
                 <div className="flex items-center justify-center gap-2 mt-6 text-gray-300">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Carregando mais...
-</span>
+                  <span className="text-sm">Carregando mais...</span>
                 </div>
               )}
 
@@ -309,4 +296,3 @@ export default function ActiveClientsSection({
     </>
   );
 }
-
