@@ -83,27 +83,28 @@ const ACCESS_DAYS = {
 const DEFAULT_SETTINGS: AdminSettings = {
   memberAreaLink: 'https://maisresultadosonline.com.br',
   whatsappGroupLink: 'https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi',
-  messageTemplateInstagram: `Obrigado por fazer parte do nosso sistema!
+  messageTemplateInstagram: `Obrigado por fazer parte do nosso sistema!✅
 
-🚀 Ferramenta para Instagram Vip acesso!
-
-▪️ Vou colocar você no grupo de avisos sobre nossa ferramenta.
+🚀🔥 *Ferramenta para Instagram Vip acesso!*
 
 Preciso que assista os vídeos da área de membros com o link abaixo:
 
 ( {MEMBER_LINK} ) 
 
-Acesse Área Membros
-Acesse ferramenta para instagram
+1 - Acesse Área Membros
+
+2 - Acesse ferramenta para instagram
 
 Para acessar a ferramenta e área de membros, utilize os acessos:
 
-usuário: {USERNAME}
-senha: {PASSWORD}
+*usuário:* {USERNAME}
+
+*senha:* {PASSWORD}
 
 ⚠ Assista todos os vídeos, por favor!
 
 Participe também do nosso GRUPO DE AVISOS
+
 {GROUP_LINK}`,
   messageTemplateWhatsapp: `Obrigado por fazer parte do nosso sistema!
 
