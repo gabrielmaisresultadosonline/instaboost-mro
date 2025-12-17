@@ -638,11 +638,14 @@ const SyncDashboard = () => {
   }, []);
 
   // Start batch image caching
-  const startImageCaching = async () => {
+  const startImageCaching = async (forceRefresh: boolean = false) => {
     setIsCachingImages(true);
     setCacheProgress({ cached: 0, failed: 0, processed: 0, total: imageCacheStatus?.total || 0 });
     
-    toast({ title: 'Cache de Imagens', description: 'Iniciando pré-cache em lote...' });
+    toast({ 
+      title: 'Cache de Imagens', 
+      description: forceRefresh ? 'Forçando recache de todas as imagens...' : 'Iniciando pré-cache em lote...' 
+    });
     
     let offset = 0;
     const batchSize = 50;
@@ -653,7 +656,7 @@ const SyncDashboard = () => {
     while (hasMore) {
       try {
         const { data, error } = await supabase.functions.invoke('cache-profile-images', {
-          body: { action: 'process-batch', batchSize, offset }
+          body: { action: 'process-batch', batchSize, offset, forceRefresh }
         });
         
         if (error || !data?.success) {
@@ -922,7 +925,7 @@ const SyncDashboard = () => {
               Atualizar Status
             </Button>
             <Button
-              onClick={startImageCaching}
+              onClick={() => startImageCaching(false)}
               disabled={isCachingImages || (imageCacheStatus?.remaining === 0)}
               className="cursor-pointer bg-purple-600 hover:bg-purple-700"
             >
@@ -931,7 +934,16 @@ const SyncDashboard = () => {
               ) : (
                 <ImageIcon className="w-4 h-4 mr-2" />
               )}
-              {isCachingImages ? 'Cacheando...' : 'Cachear Todas'}
+              {isCachingImages ? 'Cacheando...' : 'Cachear Pendentes'}
+            </Button>
+            <Button
+              onClick={() => startImageCaching(true)}
+              disabled={isCachingImages}
+              variant="outline"
+              className="cursor-pointer border-orange-500 text-orange-500 hover:bg-orange-500/10"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Forçar Recache Todas
             </Button>
           </div>
         </div>
