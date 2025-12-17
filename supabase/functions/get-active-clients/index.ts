@@ -60,17 +60,33 @@ serve(async (req) => {
 
     const rawProfiles: any[] = Array.isArray(adminData?.profiles) ? adminData.profiles : [];
 
-    // Map profiles - proxy all images through weserv.nl for consistent cross-browser loading
-    const proxyImage = (url: string): string => {
-      if (!url) return '';
-      // Already proxied
-      if (url.includes('images.weserv.nl')) return url;
-      // Proxy Instagram CDN and other URLs through weserv.nl for CORS/caching
+    // Check which images are already cached in Supabase Storage
+    const { data: cachedFiles } = await supabase.storage
+      .from('profile-cache')
+      .list('profiles', { limit: 2000 });
+    
+    const cachedUsernames = new Set(
+      (cachedFiles || []).map(f => f.name.replace('.jpg', '').toLowerCase())
+    );
+
+    // Build cached URL or fallback to weserv.nl proxy
+    const getImageUrl = (username: string, originalUrl: string): string => {
+      const lowerUsername = username.toLowerCase();
+      
+      // If cached in Supabase Storage, use that (most reliable)
+      if (cachedUsernames.has(lowerUsername)) {
+        return `${supabaseUrl}/storage/v1/object/public/profile-cache/profiles/${lowerUsername}.jpg`;
+      }
+      
+      // Fallback to weserv.nl proxy
+      if (!originalUrl) return '';
+      if (originalUrl.includes('images.weserv.nl')) return originalUrl;
+      
       try {
-        const encoded = encodeURIComponent(url);
+        const encoded = encodeURIComponent(originalUrl);
         return `https://images.weserv.nl/?url=${encoded}&w=200&h=200&fit=cover&output=webp`;
       } catch {
-        return url;
+        return originalUrl;
       }
     };
 
@@ -78,8 +94,7 @@ serve(async (req) => {
       .map((p) => {
         const username = String(p?.username ?? '').trim();
         const originalPic = String(p?.profilePicUrl ?? '').trim();
-        // Always proxy through weserv.nl for reliable cross-browser loading
-        const pic = proxyImage(originalPic);
+        const pic = getImageUrl(username, originalPic);
 
         return {
           username,
