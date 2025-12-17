@@ -44,6 +44,57 @@ export type Database = {
         }
         Relationships: []
       }
+      created_accesses: {
+        Row: {
+          access_type: string
+          api_created: boolean | null
+          created_at: string
+          customer_email: string
+          customer_name: string | null
+          days_access: number | null
+          email_sent: boolean | null
+          email_sent_at: string | null
+          id: string
+          notes: string | null
+          password: string
+          service_type: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          access_type: string
+          api_created?: boolean | null
+          created_at?: string
+          customer_email: string
+          customer_name?: string | null
+          days_access?: number | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          id?: string
+          notes?: string | null
+          password: string
+          service_type: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          access_type?: string
+          api_created?: boolean | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string | null
+          days_access?: number | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          id?: string
+          notes?: string | null
+          password?: string
+          service_type?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       paid_users: {
         Row: {
           created_at: string
