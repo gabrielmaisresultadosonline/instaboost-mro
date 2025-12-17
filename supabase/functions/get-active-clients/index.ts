@@ -6,6 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type Body = {
+  limit?: number;
+  offset?: number;
+};
+
+const safeNumber = (value: unknown, fallback: number) => {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : fallback;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -16,63 +26,65 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('[get-active-clients] Fetching profiles from user_sessions...');
+    const body: Body = await req.json().catch(() => ({}));
+    const limit = Math.min(Math.max(safeNumber(body.limit, 60), 1), 200);
+    const offset = Math.max(safeNumber(body.offset, 0), 0);
 
-    // Fetch all user sessions with profile data
-    const { data: sessions, error } = await supabase
-      .from('user_sessions')
-      .select('profile_sessions')
-      .not('profile_sessions', 'is', null);
+    console.log('[get-active-clients] Loading admin sync-data.json...', { limit, offset });
 
-    if (error) {
-      console.error('[get-active-clients] Error:', error.message);
+    // Read from the same cloud file the admin uses (admin/sync-data.json)
+    const filePath = 'admin/sync-data.json';
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('user-data')
+      .download(filePath);
+
+    if (downloadError) {
+      const msg = downloadError.message || '';
+      const isNotFound = msg.includes('not found') || msg.includes('Object not found');
+      console.log('[get-active-clients] No admin data found', { isNotFound, msg });
+
       return new Response(
-        JSON.stringify({ success: false, error: error.message }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        JSON.stringify({ success: true, clients: [], total: 0, hasMore: false }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Extract profiles from all sessions
-    const allProfiles: any[] = [];
-    
-    for (const session of (sessions || [])) {
-      const profileSessions = session.profile_sessions as any[];
-      if (Array.isArray(profileSessions)) {
-        for (const ps of profileSessions) {
-          if (ps.profile) {
-            allProfiles.push({
-              username: ps.profile.username || '',
-              profilePicture: ps.profile.profilePicture || ps.profile.profile_pic_url || '',
-              followers: ps.profile.followers || ps.profile.follower_count || 0,
-            });
-          }
-        }
-      }
-    }
+    const text = await fileData.text();
+    const adminData = JSON.parse(text);
 
-    // Filter valid profiles and remove duplicates
-    const validProfiles = allProfiles.filter(p => p.username && p.followers > 0);
-    
-    const uniqueClients = validProfiles.reduce((acc: any[], client: any) => {
-      if (!acc.find((c: any) => c.username.toLowerCase() === client.username.toLowerCase())) {
-        acc.push(client);
-      }
-      return acc;
-    }, []);
+    const rawProfiles: any[] = Array.isArray(adminData?.profiles) ? adminData.profiles : [];
 
-    // Sort by followers descending
-    uniqueClients.sort((a, b) => b.followers - a.followers);
+    // Only public info: photo, username, followers
+    const mapped = rawProfiles
+      .map((p) => ({
+        username: String(p?.username ?? '').trim(),
+        profilePicture: String(p?.profilePicUrl ?? '').trim(),
+        followers: safeNumber(p?.followers, 0),
+      }))
+      .filter((p) => p.username && p.followers > 0);
 
-    console.log(`[get-active-clients] Found ${uniqueClients.length} unique active clients`);
+    // De-duplicate by username
+    const seen = new Set<string>();
+    const unique = mapped.filter((p) => {
+      const key = p.username.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort by followers desc
+    unique.sort((a, b) => b.followers - a.followers);
+
+    const total = unique.length;
+    const page = unique.slice(offset, offset + limit);
+    const hasMore = offset + limit < total;
+
+    console.log('[get-active-clients] Returning page', { total, count: page.length, hasMore });
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        clients: uniqueClients
-      }),
+      JSON.stringify({ success: true, clients: page, total, hasMore }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('[get-active-clients] Error:', error);
     return new Response(
@@ -81,3 +93,4 @@ serve(async (req) => {
     );
   }
 });
+
