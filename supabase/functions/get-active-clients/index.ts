@@ -45,10 +45,30 @@ const toWeservUrl = (url: string): string => {
 };
 
 const dicebearFallback = (username: string) =>
-  `https://api.dicebear.com/7.x/initials/svg?seed=${username}&backgroundColor=10b981`;
+  `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(username)}&size=200&backgroundColor=10b981`;
 
 const publicCacheUrl = (supabaseUrl: string, objectPath: string) =>
   `${supabaseUrl}/storage/v1/object/public/profile-cache/${objectPath}`;
+
+const fetchWithTimeout = async (url: string, timeoutMs: number) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Cache-Control': 'no-cache',
+        'Referer': 'https://www.instagram.com/',
+      },
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 // Cache in our own public storage (so it works on VPS + mobile consistently)
 const ensureCachedProfileImage = async (
@@ -72,41 +92,79 @@ const ensureCachedProfileImage = async (
     return publicCacheUrl(supabaseUrl, objectPath);
   }
 
-  const fetchUrl = toWeservUrl(sourceUrl);
-  if (!fetchUrl) return dicebearFallback(username);
+  const candidates = [
+    toWeservUrl(sourceUrl),
+    unwrapImageUrl(sourceUrl),
+  ].filter(Boolean);
 
-  try {
-    const resp = await fetch(fetchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
-        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-      },
-    });
+  const uniqueCandidates = Array.from(new Set(candidates));
 
-    if (!resp.ok) {
-      console.log(`[get-active-clients] Image fetch failed for ${username}: ${resp.status}`);
-      return fetchUrl;
+  for (const url of uniqueCandidates) {
+    try {
+      const resp = await fetchWithTimeout(url, 15000);
+
+      if (!resp.ok) {
+        console.log(`[get-active-clients] Image fetch failed for ${username}: ${resp.status}`);
+        continue;
+      }
+
+      const contentType = resp.headers.get('content-type') || 'image/jpeg';
+      if (!contentType.includes('image')) {
+        console.log(`[get-active-clients] Not an image for ${username}: ${contentType}`);
+        continue;
+      }
+
+      const arrayBuffer = await resp.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+
+      if (bytes.length < 1024) {
+        console.log(`[get-active-clients] Image too small for ${username}: ${bytes.length} bytes`);
+        continue;
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-cache')
+        .upload(objectPath, bytes, {
+          contentType,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.log(`[get-active-clients] Image upload failed for ${username}: ${uploadError.message}`);
+        continue;
+      }
+
+      return publicCacheUrl(supabaseUrl, objectPath);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.log(`[get-active-clients] Image cache error for ${username}: ${msg}`);
+      continue;
     }
+  }
 
-    const blob = await resp.blob();
-    const contentType = resp.headers.get('content-type') || 'image/jpeg';
+  // Fallback: cache a generated avatar into our storage to avoid broken images.
+  try {
+    const fallbackUrl = dicebearFallback(username);
+    const resp = await fetchWithTimeout(fallbackUrl, 15000);
+    if (!resp.ok) throw new Error(`fallback HTTP ${resp.status}`);
+
+    const contentType = resp.headers.get('content-type') || 'image/png';
+    const arrayBuffer = await resp.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
 
     const { error: uploadError } = await supabase.storage
       .from('profile-cache')
-      .upload(objectPath, blob, {
+      .upload(objectPath, bytes, {
         contentType,
         upsert: true,
       });
 
-    if (uploadError) {
-      console.log(`[get-active-clients] Image upload failed for ${username}:`, uploadError.message);
-      return fetchUrl;
-    }
+    if (uploadError) throw new Error(uploadError.message);
 
     return publicCacheUrl(supabaseUrl, objectPath);
   } catch (e) {
-    console.log(`[get-active-clients] Image cache error for ${username}:`, e);
-    return fetchUrl;
+    console.log(`[get-active-clients] Fallback cache error for ${username}:`, e);
+    return dicebearFallback(username);
   }
 };
 
