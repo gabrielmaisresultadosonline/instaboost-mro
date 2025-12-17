@@ -93,7 +93,7 @@ const MROFerramenta = () => {
       setSelectedContent(null);
       setSelectedModule(null);
     } else {
-      navigate('/');
+      navigate('/instagram');
     }
   };
 
