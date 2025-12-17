@@ -115,3 +115,6 @@ verify_jwt = false
 
 [functions.promo33-generate-strategy]
 verify_jwt = false
+
+[functions.get-active-clients]
+verify_jwt = false

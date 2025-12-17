@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPageView, trackLead } from '@/lib/facebookTracking';
 import logoMro from '@/assets/logo-mro.png';
+import ActiveClientsSection from '@/components/ActiveClientsSection';
 
 const PROMO33_STORAGE_KEY = 'promo33_user_session';
 
@@ -286,6 +287,11 @@ export default function Promo33() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Active Clients Section */}
+      <section className="py-8 px-4">
+        <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
       </section>
 
       {/* Guarantees */}

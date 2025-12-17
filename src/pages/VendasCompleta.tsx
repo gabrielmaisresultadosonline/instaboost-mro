@@ -30,6 +30,7 @@ import {
   Laptop
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
+import ActiveClientsSection from "@/components/ActiveClientsSection";
 
 interface SalesSettings {
   whatsappNumber: string;
@@ -251,6 +252,11 @@ const VendasCompleta = () => {
             <ChevronDown className="w-10 h-10 text-gray-500 mx-auto" />
           </div>
         </div>
+      </section>
+
+      {/* Active Clients Section */}
+      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
+        <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
       </section>
 
       {/* O QUE VOCÊ VAI RECEBER */}
