@@ -9,34 +9,59 @@ const corsHeaders = {
 // Get the best URL to fetch (prefer weserv if already wrapped, otherwise wrap it)
 const getBestFetchUrl = (url: string): string => {
   if (!url) return '';
-  
+
   // If already a weserv URL, use it directly
   if (url.includes('images.weserv.nl')) {
     return url;
   }
-  
+
   // If it's an Instagram CDN URL, wrap with weserv
   if (url.includes('instagram') || url.includes('cdninstagram') || url.includes('fbcdn')) {
     return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=200&h=200&fit=cover&output=jpg&q=85`;
   }
-  
+
   // For other URLs, try direct fetch first
   if (url.startsWith('http')) {
     return url;
   }
-  
+
   return '';
 };
 
-// Download and cache a single profile image with timeout
+const dicebearFallback = (username: string) =>
+  `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(username)}&size=200&backgroundColor=10b981`;
+
+const fetchWithTimeout = async (url: string, timeoutMs: number) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Cache-Control': 'no-cache',
+        'Referer': 'https://www.instagram.com/',
+      },
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
+// Download and cache a single profile image with timeout.
+// If the source image is 404/blocked, we cache a fallback avatar into our public bucket
+// so the frontend never depends on external CDNs.
 const cacheProfileImage = async (
   supabase: any,
   supabaseUrl: string,
   username: string,
   sourceUrl: string
 ): Promise<{ username: string; success: boolean; url?: string; error?: string }> => {
-  if (!username || !sourceUrl) {
-    return { username, success: false, error: 'Missing data' };
+  if (!username) {
+    return { username, success: false, error: 'Missing username' };
   }
 
   const fileName = `${username.toLowerCase()}.jpg`;
@@ -53,74 +78,73 @@ const cacheProfileImage = async (
     return { username, success: true, url: publicUrl };
   }
 
-  const fetchUrl = getBestFetchUrl(sourceUrl);
-  if (!fetchUrl) {
-    console.log(`[cache] ${username}: Invalid URL - ${sourceUrl}`);
-    return { username, success: false, error: 'Invalid source URL' };
+  const candidates: string[] = [];
+
+  if (sourceUrl) {
+    const best = getBestFetchUrl(sourceUrl);
+    if (best) candidates.push(best);
+    // If we wrapped with weserv, also try the original as a fallback.
+    if (best && best.includes('images.weserv.nl') && sourceUrl.startsWith('http')) {
+      candidates.push(sourceUrl);
+    }
   }
 
-  try {
-    // Create abort controller for timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+  const uniqueCandidates = Array.from(new Set(candidates)).filter(Boolean);
 
-    const resp = await fetch(fetchUrl, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache',
-        'Referer': 'https://www.instagram.com/',
-      },
-    });
-
-    clearTimeout(timeoutId);
+  const tryUploadFrom = async (url: string) => {
+    const resp = await fetchWithTimeout(url, 15000);
 
     if (!resp.ok) {
-      console.log(`[cache] ${username}: HTTP ${resp.status} - ${fetchUrl.substring(0, 80)}...`);
-      return { username, success: false, error: `HTTP ${resp.status}` };
+      throw new Error(`HTTP ${resp.status}`);
     }
 
     const contentType = resp.headers.get('content-type') || 'image/jpeg';
-    
-    // Verify it's actually an image
     if (!contentType.includes('image')) {
-      console.log(`[cache] ${username}: Not an image - ${contentType}`);
-      return { username, success: false, error: 'Not an image' };
+      throw new Error(`Not an image (${contentType})`);
     }
 
     const arrayBuffer = await resp.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
+    const bytes = new Uint8Array(arrayBuffer);
 
     // Verify we got actual image data (at least 1KB)
-    if (uint8Array.length < 1024) {
-      console.log(`[cache] ${username}: Image too small - ${uint8Array.length} bytes`);
-      return { username, success: false, error: 'Image too small' };
+    if (bytes.length < 1024) {
+      throw new Error(`Image too small (${bytes.length} bytes)`);
     }
 
     const { error: uploadError } = await supabase.storage
       .from('profile-cache')
-      .upload(objectPath, uint8Array, {
-        contentType: 'image/jpeg',
+      .upload(objectPath, bytes, {
+        contentType,
         upsert: true,
       });
 
     if (uploadError) {
-      console.log(`[cache] ${username}: Upload error - ${uploadError.message}`);
-      return { username, success: false, error: uploadError.message };
+      throw new Error(uploadError.message);
     }
+  };
 
-    console.log(`[cache] ${username}: ✓ Cached successfully`);
+  // 1) Try the real image URLs
+  for (const url of uniqueCandidates) {
+    try {
+      await tryUploadFrom(url);
+      console.log(`[cache] ${username}: ✓ Cached successfully`);
+      return { username, success: true, url: publicUrl };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.log(`[cache] ${username}: ${msg} - ${url.substring(0, 80)}...`);
+    }
+  }
+
+  // 2) Fallback avatar (cached into our bucket)
+  try {
+    await tryUploadFrom(dicebearFallback(username));
+    console.log(`[cache] ${username}: ✓ Cached fallback avatar`);
     return { username, success: true, url: publicUrl };
   } catch (e) {
-    const errorMsg = e instanceof Error ? e.message : String(e);
-    if (errorMsg.includes('abort')) {
-      console.log(`[cache] ${username}: Timeout`);
-      return { username, success: false, error: 'Timeout' };
-    }
-    console.log(`[cache] ${username}: Error - ${errorMsg}`);
-    return { username, success: false, error: errorMsg };
+    const msg = e instanceof Error ? e.message : String(e);
+    console.log(`[cache] ${username}: Fallback error - ${msg}`);
+    // As a last resort, return a direct dicebear URL so the UI isn't broken.
+    return { username, success: true, url: dicebearFallback(username) };
   }
 };
 
