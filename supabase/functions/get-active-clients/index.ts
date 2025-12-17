@@ -16,13 +16,13 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('[get-active-clients] Fetching profiles from squarecloud_user_profiles...');
+    console.log('[get-active-clients] Fetching profiles from user_sessions...');
 
-    // Fetch all profiles with their data
-    const { data: profiles, error } = await supabase
-      .from('squarecloud_user_profiles')
-      .select('instagram_username, profile_data, synced_at')
-      .order('synced_at', { ascending: false });
+    // Fetch all user sessions with profile data
+    const { data: sessions, error } = await supabase
+      .from('user_sessions')
+      .select('profile_sessions')
+      .not('profile_sessions', 'is', null);
 
     if (error) {
       console.error('[get-active-clients] Error:', error.message);
@@ -32,23 +32,36 @@ serve(async (req) => {
       );
     }
 
-    // Extract only public info: photo, username, followers
-    const activeClients = (profiles || []).map((profile: any) => {
-      const data = profile.profile_data || {};
-      return {
-        username: profile.instagram_username || data.username || '',
-        profilePicture: data.profilePicture || data.profile_pic_url || '',
-        followers: data.followers || data.follower_count || 0,
-      };
-    }).filter((client: any) => client.username && client.followers > 0);
+    // Extract profiles from all sessions
+    const allProfiles: any[] = [];
+    
+    for (const session of (sessions || [])) {
+      const profileSessions = session.profile_sessions as any[];
+      if (Array.isArray(profileSessions)) {
+        for (const ps of profileSessions) {
+          if (ps.profile) {
+            allProfiles.push({
+              username: ps.profile.username || '',
+              profilePicture: ps.profile.profilePicture || ps.profile.profile_pic_url || '',
+              followers: ps.profile.followers || ps.profile.follower_count || 0,
+            });
+          }
+        }
+      }
+    }
 
-    // Remove duplicates by username
-    const uniqueClients = activeClients.reduce((acc: any[], client: any) => {
-      if (!acc.find((c: any) => c.username === client.username)) {
+    // Filter valid profiles and remove duplicates
+    const validProfiles = allProfiles.filter(p => p.username && p.followers > 0);
+    
+    const uniqueClients = validProfiles.reduce((acc: any[], client: any) => {
+      if (!acc.find((c: any) => c.username.toLowerCase() === client.username.toLowerCase())) {
         acc.push(client);
       }
       return acc;
     }, []);
+
+    // Sort by followers descending
+    uniqueClients.sort((a, b) => b.followers - a.followers);
 
     console.log(`[get-active-clients] Found ${uniqueClients.length} unique active clients`);
 
