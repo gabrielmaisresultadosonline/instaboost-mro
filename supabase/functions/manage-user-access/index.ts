@@ -338,6 +338,124 @@ serve(async (req) => {
         });
       }
 
+      case "test_whatsapp_api": {
+        try {
+          const response = await fetch(`${WHATSAPP_API_URL}/status`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          
+          const success = response.ok;
+          logStep("WhatsApp API test", { status: response.status, success });
+          
+          return new Response(JSON.stringify({ 
+            success, 
+            message: success ? 'API WhatsApp respondendo!' : `Erro: Status ${response.status}` 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (error: any) {
+          logStep("WhatsApp API test error", { error: error?.message });
+          return new Response(JSON.stringify({ 
+            success: false, 
+            message: `Erro de conexão: ${error?.message || 'Desconhecido'}` 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      case "test_instagram_api": {
+        try {
+          const response = await fetch(`${INSTAGRAM_API_URL}/status`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          
+          const success = response.ok;
+          logStep("Instagram API test", { status: response.status, success });
+          
+          return new Response(JSON.stringify({ 
+            success, 
+            message: success ? 'API Instagram respondendo!' : `Erro: Status ${response.status}` 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (error: any) {
+          logStep("Instagram API test error", { error: error?.message });
+          return new Response(JSON.stringify({ 
+            success: false, 
+            message: `Erro de conexão: ${error?.message || 'Desconhecido'}` 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      case "test_email": {
+        const { email } = data;
+        
+        if (!email) {
+          return new Response(JSON.stringify({ success: false, message: 'Email não informado' }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        try {
+          const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+          if (!smtpPassword) {
+            return new Response(JSON.stringify({ success: false, message: 'SMTP não configurado' }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+
+          const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
+          
+          const client = new SMTPClient({
+            connection: {
+              hostname: "smtp.hostinger.com",
+              port: 465,
+              tls: true,
+              auth: {
+                username: "suporte@maisresultadosonline.com.br",
+                password: smtpPassword,
+              },
+            },
+          });
+
+          await client.send({
+            from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
+            to: email,
+            subject: "🧪 Email de Teste - MRO Admin",
+            content: "Este é um email de teste do sistema MRO Admin.",
+            html: `
+              <div style="font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: #fff;">
+                <h2 style="color: #FFD700;">🧪 Email de Teste</h2>
+                <p>Este é um email de teste do sistema <strong>MRO Admin</strong>.</p>
+                <p>Se você recebeu este email, o sistema de envio está funcionando corretamente!</p>
+                <hr style="border-color: #333;">
+                <p style="color: #888; font-size: 12px;">MRO - Mais Resultados Online</p>
+              </div>
+            `,
+          });
+
+          await client.close();
+          logStep("Test email sent successfully", { to: email });
+
+          return new Response(JSON.stringify({ success: true, message: `Email enviado para ${email}` }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (error: any) {
+          logStep("Test email error", { error: error?.message });
+          return new Response(JSON.stringify({ 
+            success: false, 
+            message: `Erro ao enviar: ${error?.message || 'Desconhecido'}` 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       default:
         return new Response(JSON.stringify({ error: "Unknown action" }), {
           status: 400,
