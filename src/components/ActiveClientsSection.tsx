@@ -144,6 +144,9 @@ export default function ActiveClientsSection({
         alt={`Foto do perfil do Instagram @${client.username}`}
         className="w-full h-full object-cover"
         loading="lazy"
+        decoding="async"
+        crossOrigin="anonymous"
+        referrerPolicy="no-referrer"
         onError={() => handleImageError(client.username)}
       />
     );
