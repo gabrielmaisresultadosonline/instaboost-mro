@@ -456,6 +456,58 @@ serve(async (req) => {
         }
       }
 
+      case "get_settings": {
+        try {
+          const { data, error } = await supabase.storage
+            .from('user-data')
+            .download('admin/user-access-settings.json');
+
+          if (error || !data) {
+            return new Response(JSON.stringify({ success: true, settings: null }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+
+          const text = await data.text();
+          const settings = JSON.parse(text);
+          
+          return new Response(JSON.stringify({ success: true, settings }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({ success: true, settings: null }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      case "save_settings": {
+        const { settings } = data;
+        
+        try {
+          const jsonBlob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+          
+          const { error } = await supabase.storage
+            .from('user-data')
+            .upload('admin/user-access-settings.json', jsonBlob, {
+              upsert: true,
+              contentType: 'application/json',
+            });
+
+          if (error) throw error;
+
+          logStep("Settings saved successfully");
+          return new Response(JSON.stringify({ success: true }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (error: any) {
+          logStep("Error saving settings", { error: error?.message });
+          return new Response(JSON.stringify({ success: false, error: error?.message }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       default:
         return new Response(JSON.stringify({ error: "Unknown action" }), {
           status: 400,
