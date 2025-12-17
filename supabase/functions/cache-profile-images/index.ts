@@ -58,7 +58,8 @@ const cacheProfileImage = async (
   supabase: any,
   supabaseUrl: string,
   username: string,
-  sourceUrl: string
+  sourceUrl: string,
+  forceRefresh: boolean = false
 ): Promise<{ username: string; success: boolean; url?: string; error?: string }> => {
   if (!username) {
     return { username, success: false, error: 'Missing username' };
@@ -69,13 +70,20 @@ const cacheProfileImage = async (
   const objectPath = `${folder}/${fileName}`;
   const publicUrl = `${supabaseUrl}/storage/v1/object/public/profile-cache/${objectPath}`;
 
-  // Check if already cached
-  const { data: existing } = await supabase.storage
-    .from('profile-cache')
-    .list(folder, { search: fileName });
+  // Check if already cached (skip if force refresh)
+  if (!forceRefresh) {
+    const { data: existing } = await supabase.storage
+      .from('profile-cache')
+      .list(folder, { search: fileName });
 
-  if (existing && existing.length > 0) {
-    return { username, success: true, url: publicUrl };
+    if (existing && existing.length > 0) {
+      return { username, success: true, url: publicUrl };
+    }
+  } else {
+    // Delete existing file if force refresh
+    await supabase.storage
+      .from('profile-cache')
+      .remove([objectPath]);
   }
 
   const candidates: string[] = [];
@@ -153,7 +161,8 @@ const processBatch = async (
   supabase: any,
   supabaseUrl: string,
   profiles: Array<{ username: string; imageUrl: string }>,
-  concurrency: number = 5
+  concurrency: number = 5,
+  forceRefresh: boolean = false
 ): Promise<{ cached: number; failed: number; skipped: number; errors: string[] }> => {
   let cached = 0;
   let failed = 0;
@@ -161,7 +170,7 @@ const processBatch = async (
   const errors: string[] = [];
 
   const processItem = async (profile: { username: string; imageUrl: string }) => {
-    const result = await cacheProfileImage(supabase, supabaseUrl, profile.username, profile.imageUrl);
+    const result = await cacheProfileImage(supabase, supabaseUrl, profile.username, profile.imageUrl, forceRefresh);
     if (result.success) {
       if (result.url?.includes('profile-cache')) {
         cached++;
@@ -207,7 +216,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { action, batchSize = 50, offset = 0 } = body;
+    const { action, batchSize = 50, offset = 0, forceRefresh = false } = body;
 
     // Load admin sync data
     const filePath = 'admin/sync-data.json';
@@ -283,7 +292,7 @@ serve(async (req) => {
         });
       }
 
-      const result = await processBatch(supabase, supabaseUrl, batch, 6);
+      const result = await processBatch(supabase, supabaseUrl, batch, 6, forceRefresh);
 
       const hasMore = offset + batchSize < total;
 
@@ -312,7 +321,7 @@ serve(async (req) => {
           const batch = allProfiles.slice(currentOffset, currentOffset + batchSz);
           console.log(`[cache-profile-images] Background: processing ${currentOffset}-${currentOffset + batch.length} of ${total}`);
           
-          const result = await processBatch(supabase, supabaseUrl, batch, 4);
+          const result = await processBatch(supabase, supabaseUrl, batch, 4, forceRefresh);
           totalCached += result.cached;
           totalFailed += result.failed;
           
