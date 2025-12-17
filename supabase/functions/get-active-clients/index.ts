@@ -16,6 +16,84 @@ const safeNumber = (value: unknown, fallback: number) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
+// Extract original URL if wrapped in weserv proxy
+const unwrapImageUrl = (url: string): string => {
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'images.weserv.nl') {
+      const original = u.searchParams.get('url');
+      return original ? decodeURIComponent(original) : url;
+    }
+  } catch {
+    // ignore
+  }
+  return url;
+};
+
+// Cache image in our storage and return public URL
+const cacheProfileImage = async (
+  supabase: any,
+  username: string,
+  imageUrl: string,
+  supabaseUrl: string
+): Promise<string> => {
+  if (!imageUrl || !username) return '';
+
+  const originalUrl = unwrapImageUrl(imageUrl);
+  if (!originalUrl) return '';
+
+  const fileName = `${username.toLowerCase()}.jpg`;
+  const bucketName = 'profile-cache';
+
+  // Check if already cached
+  const { data: existingFile } = await supabase.storage
+    .from(bucketName)
+    .list('', { search: fileName });
+
+  if (existingFile && existingFile.length > 0) {
+    // Return cached URL
+    return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
+  }
+
+  // Download image from Instagram CDN
+  try {
+    const response = await fetch(originalUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
+        'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+        'Referer': 'https://www.instagram.com/',
+      },
+    });
+
+    if (!response.ok) {
+      console.log(`[get-active-clients] Failed to fetch image for ${username}: ${response.status}`);
+      return '';
+    }
+
+    const imageBlob = await response.blob();
+    
+    // Upload to our storage
+    const { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(fileName, imageBlob, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.log(`[get-active-clients] Failed to upload image for ${username}:`, uploadError.message);
+      return '';
+    }
+
+    console.log(`[get-active-clients] Cached image for ${username}`);
+    return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
+  } catch (err) {
+    console.log(`[get-active-clients] Error caching image for ${username}:`, err);
+    return '';
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -54,11 +132,11 @@ serve(async (req) => {
 
     const rawProfiles: any[] = Array.isArray(adminData?.profiles) ? adminData.profiles : [];
 
-    // Only public info: photo, username, followers
+    // Map profiles with original URLs
     const mapped = rawProfiles
       .map((p) => ({
         username: String(p?.username ?? '').trim(),
-        profilePicture: String(p?.profilePicUrl ?? '').trim(),
+        originalImageUrl: String(p?.profilePicUrl ?? '').trim(),
         followers: safeNumber(p?.followers, 0),
       }))
       .filter((p) => p.username && p.followers > 0);
@@ -77,12 +155,25 @@ serve(async (req) => {
 
     const total = unique.length;
     const page = unique.slice(offset, offset + limit);
+
+    // Cache images for this page and return our storage URLs
+    const clientsWithCachedImages = await Promise.all(
+      page.map(async (p) => {
+        const cachedUrl = await cacheProfileImage(supabase, p.username, p.originalImageUrl, supabaseUrl);
+        return {
+          username: p.username,
+          profilePicture: cachedUrl, // Now points to our storage
+          followers: p.followers,
+        };
+      })
+    );
+
     const hasMore = offset + limit < total;
 
-    console.log('[get-active-clients] Returning page', { total, count: page.length, hasMore });
+    console.log('[get-active-clients] Returning page with cached images', { total, count: clientsWithCachedImages.length, hasMore });
 
     return new Response(
-      JSON.stringify({ success: true, clients: page, total, hasMore }),
+      JSON.stringify({ success: true, clients: clientsWithCachedImages, total, hasMore }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
@@ -93,4 +184,3 @@ serve(async (req) => {
     );
   }
 });
-
