@@ -118,3 +118,6 @@ verify_jwt = false
 
 [functions.get-active-clients]
 verify_jwt = false
+
+[functions.cache-profile-images]
+verify_jwt = false
