@@ -31,67 +31,30 @@ const unwrapImageUrl = (url: string): string => {
   return url;
 };
 
-// Cache image in our storage and return public URL
-const cacheProfileImage = async (
+// Get profile image URL - check cache first, then fallback to DiceBear
+const getProfileImageUrl = async (
   supabase: any,
   username: string,
-  imageUrl: string,
   supabaseUrl: string
 ): Promise<string> => {
-  if (!imageUrl || !username) return '';
-
-  const originalUrl = unwrapImageUrl(imageUrl);
-  if (!originalUrl) return '';
+  if (!username) return '';
 
   const fileName = `${username.toLowerCase()}.jpg`;
   const bucketName = 'profile-cache';
 
-  // Check if already cached
+  // Check if already cached in our storage
   const { data: existingFile } = await supabase.storage
     .from(bucketName)
     .list('', { search: fileName });
 
   if (existingFile && existingFile.length > 0) {
-    // Return cached URL
+    // Return cached URL from our storage
     return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
   }
 
-  // Download image from Instagram CDN
-  try {
-    const response = await fetch(originalUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
-        'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
-        'Referer': 'https://www.instagram.com/',
-      },
-    });
-
-    if (!response.ok) {
-      console.log(`[get-active-clients] Failed to fetch image for ${username}: ${response.status}`);
-      return '';
-    }
-
-    const imageBlob = await response.blob();
-    
-    // Upload to our storage
-    const { error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(fileName, imageBlob, {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.log(`[get-active-clients] Failed to upload image for ${username}:`, uploadError.message);
-      return '';
-    }
-
-    console.log(`[get-active-clients] Cached image for ${username}`);
-    return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
-  } catch (err) {
-    console.log(`[get-active-clients] Error caching image for ${username}:`, err);
-    return '';
-  }
+  // Not cached - return DiceBear avatar as fallback
+  // (Instagram CDN URLs expire and return 403)
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${username}&backgroundColor=10b981`;
 };
 
 serve(async (req) => {
@@ -156,13 +119,13 @@ serve(async (req) => {
     const total = unique.length;
     const page = unique.slice(offset, offset + limit);
 
-    // Cache images for this page and return our storage URLs
-    const clientsWithCachedImages = await Promise.all(
+    // Get images for this page (from cache or fallback)
+    const clientsWithImages = await Promise.all(
       page.map(async (p) => {
-        const cachedUrl = await cacheProfileImage(supabase, p.username, p.originalImageUrl, supabaseUrl);
+        const imageUrl = await getProfileImageUrl(supabase, p.username, supabaseUrl);
         return {
           username: p.username,
-          profilePicture: cachedUrl, // Now points to our storage
+          profilePicture: imageUrl,
           followers: p.followers,
         };
       })
@@ -170,10 +133,10 @@ serve(async (req) => {
 
     const hasMore = offset + limit < total;
 
-    console.log('[get-active-clients] Returning page with cached images', { total, count: clientsWithCachedImages.length, hasMore });
+    console.log('[get-active-clients] Returning page', { total, count: clientsWithImages.length, hasMore });
 
     return new Response(
-      JSON.stringify({ success: true, clients: clientsWithCachedImages, total, hasMore }),
+      JSON.stringify({ success: true, clients: clientsWithImages, total, hasMore }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
