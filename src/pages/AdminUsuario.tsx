@@ -70,7 +70,9 @@ interface AdminSettings {
   messageTemplateWhatsapp: string;
 }
 
-const ADMIN_PASSWORD = 'MRO2024@admin';
+// Admin credentials stored in Supabase
+const ADMIN_EMAIL = 'mro@gmail.com';
+const ADMIN_PASSWORD = 'Ga145523@';
 
 const ACCESS_DAYS = {
   monthly: 30,
@@ -126,6 +128,7 @@ Participe também do nosso GRUPO DE AVISOS
 
 export default function AdminUsuario() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [accesses, setAccesses] = useState<CreatedAccess[]>([]);
@@ -203,15 +206,15 @@ export default function AdminUsuario() {
     }
   };
 
-  const handleLogin = () => {
-    if (adminPassword === ADMIN_PASSWORD) {
+  const handleLogin = async () => {
+    if (adminEmail.toLowerCase() === ADMIN_EMAIL && adminPassword === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       localStorage.setItem('adminusuario_auth', 'true');
       loadAccesses();
       loadSettings();
       toast.success('Login realizado com sucesso!');
     } else {
-      toast.error('Senha incorreta!');
+      toast.error('Email ou senha incorretos!');
     }
   };
 
@@ -627,10 +630,21 @@ export default function AdminUsuario() {
             <Lock className="w-12 h-12 mx-auto text-yellow-500 mb-4" />
             <CardTitle className="text-white text-2xl">Admin Usuários</CardTitle>
             <CardDescription className="text-gray-400">
-              Digite a senha para acessar
+              Digite seu email e senha para acessar
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Email</Label>
+              <Input
+                type="email"
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                placeholder="Digite seu email..."
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+            </div>
             <div>
               <Label className="text-gray-300">Senha</Label>
               <Input
@@ -664,21 +678,21 @@ export default function AdminUsuario() {
             <p className="text-gray-400">Gerencie acessos WhatsApp e Instagram</p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Button onClick={checkExpirations} variant="outline" disabled={loading} className="border-orange-500 text-orange-500 hover:bg-orange-500/20">
-              <Bell className="w-4 h-4 mr-2" />
-              Verificar Expirações
+            <Button onClick={checkExpirations} variant="outline" disabled={loading} className="border-orange-500 text-orange-500 hover:bg-orange-500/20 text-xs sm:text-sm">
+              <Bell className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Verificar Expirações</span>
             </Button>
-            <Button onClick={exportToCSV} variant="outline" className="border-green-500 text-green-500 hover:bg-green-500/20">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar CSV
+            <Button onClick={exportToCSV} variant="outline" className="border-green-500 text-green-500 hover:bg-green-500/20 text-xs sm:text-sm">
+              <Download className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Exportar CSV</span>
             </Button>
-            <Button onClick={loadAccesses} variant="outline" disabled={loading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Atualizar
+            <Button onClick={loadAccesses} variant="outline" disabled={loading} className="text-xs sm:text-sm">
+              <RefreshCw className={`w-4 h-4 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Atualizar</span>
             </Button>
-            <Button onClick={handleLogout} variant="destructive">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
+            <Button onClick={handleLogout} variant="destructive" className="text-xs sm:text-sm">
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
@@ -702,26 +716,26 @@ export default function AdminUsuario() {
         )}
 
         <Tabs defaultValue="create" className="space-y-6">
-          <TabsList className="bg-gray-800 border-gray-700 flex-wrap">
-            <TabsTrigger value="create" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Criar
+          <TabsList className="bg-gray-800 border-gray-700 flex-wrap h-auto gap-1 p-1">
+            <TabsTrigger value="create" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black text-xs sm:text-sm">
+              <UserPlus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Criar</span>
             </TabsTrigger>
-            <TabsTrigger value="list" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
-              <Users className="w-4 h-4 mr-2" />
-              Acessos ({accesses.length})
+            <TabsTrigger value="list" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black text-xs sm:text-sm">
+              <Users className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Acessos</span> ({accesses.length})
             </TabsTrigger>
-            <TabsTrigger value="test" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
-              <TestTube className="w-4 h-4 mr-2" />
-              Testar
+            <TabsTrigger value="test" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black text-xs sm:text-sm">
+              <TestTube className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Testar</span>
             </TabsTrigger>
-            <TabsTrigger value="mass-email" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
-              <Send className="w-4 h-4 mr-2" />
-              Disparo
+            <TabsTrigger value="mass-email" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black text-xs sm:text-sm">
+              <Send className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Disparo</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
-              <Settings className="w-4 h-4 mr-2" />
-              Config
+            <TabsTrigger value="settings" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black text-xs sm:text-sm">
+              <Settings className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Config</span>
             </TabsTrigger>
           </TabsList>
 
@@ -923,76 +937,161 @@ export default function AdminUsuario() {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge className={access.service_type === 'instagram' ? 'bg-pink-600' : 'bg-green-600'}>
-                                {access.service_type === 'instagram' ? 'IG' : 'WA'}
+                        <div className="space-y-3">
+                          {/* Badges row */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge className={access.service_type === 'instagram' ? 'bg-pink-600' : 'bg-green-600'}>
+                              {access.service_type === 'instagram' ? 'Instagram' : 'WhatsApp'}
+                            </Badge>
+                            <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
+                              {access.access_type === 'lifetime' ? 'Vitalício' : access.access_type === 'annual' ? 'Anual' : 'Mensal'}
+                            </Badge>
+                            {access.api_created && <Badge className="bg-blue-600 text-xs">API✓</Badge>}
+                            {access.email_sent && <Badge className="bg-purple-600 text-xs">Email✓</Badge>}
+                            {access.email_opened && (
+                              <Badge className="bg-cyan-600 text-xs flex items-center gap-1">
+                                <MailOpen className="w-3 h-3" /> Lido
                               </Badge>
-                              <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
-                                {access.access_type === 'lifetime' ? 'Vitalício' : access.access_type === 'annual' ? 'Anual' : 'Mensal'}
+                            )}
+                            {access.expiration_warning_sent && (
+                              <Badge className="bg-orange-600 text-xs flex items-center gap-1">
+                                <Bell className="w-3 h-3" /> Avisado
                               </Badge>
-                              {access.api_created && <Badge className="bg-blue-600 text-xs">API✓</Badge>}
-                              {access.email_sent && <Badge className="bg-purple-600 text-xs">Email✓</Badge>}
-                              {access.email_opened && (
-                                <Badge className="bg-cyan-600 text-xs flex items-center gap-1">
-                                  <MailOpen className="w-3 h-3" /> Lido
-                                </Badge>
-                              )}
-                              {access.expiration_warning_sent && (
-                                <Badge className="bg-orange-600 text-xs flex items-center gap-1">
-                                  <Bell className="w-3 h-3" /> Avisado
-                                </Badge>
-                              )}
-                              {access.expired_notification_sent && (
-                                <Badge className="bg-red-600 text-xs flex items-center gap-1">
-                                  <AlertTriangle className="w-3 h-3" /> Expirou
-                                </Badge>
-                              )}
-                              {/* Check if expired */}
-                              {access.expiration_date && access.access_type !== 'lifetime' && new Date(access.expiration_date) < new Date() && (
-                                <Badge className="bg-red-900 text-red-300 text-xs">EXPIRADO</Badge>
-                              )}
-                            </div>
-                            <div className="text-white text-sm">{access.customer_email}</div>
-                            <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
-                              <span>
-                                <code className="text-yellow-400">{access.username}</code>
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <code className="text-yellow-400">
-                                  {showPasswords[access.id] ? access.password : '••••'}
-                                </code>
-                                <button onClick={() => setShowPasswords({ ...showPasswords, [access.id]: !showPasswords[access.id] })}>
-                                  {showPasswords[access.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                                </button>
-                              </span>
-                              <span>{new Date(access.created_at).toLocaleDateString('pt-BR')}</span>
-                              {access.expiration_date && access.access_type !== 'lifetime' && (
-                                <span className={new Date(access.expiration_date) < new Date() ? 'text-red-400' : 'text-orange-400'}>
-                                  {new Date(access.expiration_date) < new Date() ? 'expirou' : 'até'} {new Date(access.expiration_date).toLocaleDateString('pt-BR')}
-                                </span>
-                              )}
-                              {access.email_opened_at && (
-                                <span className="text-cyan-400 flex items-center gap-1">
-                                  <MailOpen className="w-3 h-3" />
-                                  lido {new Date(access.email_opened_at).toLocaleDateString('pt-BR')}
-                                </span>
-                              )}
-                            </div>
+                            )}
+                            {access.expired_notification_sent && (
+                              <Badge className="bg-red-600 text-xs flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3" /> Expirou
+                              </Badge>
+                            )}
+                            {access.expiration_date && access.access_type !== 'lifetime' && new Date(access.expiration_date) < new Date() && (
+                              <Badge className="bg-red-900 text-red-300 text-xs">EXPIRADO</Badge>
+                            )}
                           </div>
-                          <div className="flex gap-1 shrink-0">
-                            <Button onClick={() => copyToClipboard(access)} size="sm" className="bg-green-600 hover:bg-green-700" title="Copiar">
-                              <Copy className="w-4 h-4" />
+
+                          {/* Mobile: One field per line / Desktop: Grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
+                            {/* Serviço */}
+                            <div className="bg-gray-900/50 rounded-lg p-2">
+                              <span className="text-gray-500 text-xs block">Serviço</span>
+                              <span className="text-white font-medium">
+                                {access.service_type === 'instagram' ? 'Instagram' : 'WhatsApp'}
+                              </span>
+                            </div>
+
+                            {/* Email */}
+                            <div className="bg-gray-900/50 rounded-lg p-2 md:col-span-2 lg:col-span-2">
+                              <span className="text-gray-500 text-xs block">Email</span>
+                              <span className="text-white font-medium break-all">{access.customer_email}</span>
+                            </div>
+
+                            {/* Usuário */}
+                            <div className="bg-gray-900/50 rounded-lg p-2">
+                              <span className="text-gray-500 text-xs block">Usuário</span>
+                              <code className="text-yellow-400 font-medium">{access.username}</code>
+                            </div>
+
+                            {/* Senha */}
+                            <div className="bg-gray-900/50 rounded-lg p-2">
+                              <span className="text-gray-500 text-xs block">Senha</span>
+                              <div className="flex items-center gap-2">
+                                <code className="text-yellow-400 font-medium">
+                                  {showPasswords[access.id] ? access.password : '••••••••'}
+                                </code>
+                                <button 
+                                  onClick={() => setShowPasswords({ ...showPasswords, [access.id]: !showPasswords[access.id] })}
+                                  className="text-gray-400 hover:text-white"
+                                >
+                                  {showPasswords[access.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Tipo de Acesso */}
+                            <div className="bg-gray-900/50 rounded-lg p-2">
+                              <span className="text-gray-500 text-xs block">Tipo de Acesso</span>
+                              <span className="text-white font-medium">
+                                {access.access_type === 'lifetime' ? 'Vitalício' : access.access_type === 'annual' ? 'Anual (365d)' : 'Mensal (30d)'}
+                              </span>
+                            </div>
+
+                            {/* Data de Criação */}
+                            <div className="bg-gray-900/50 rounded-lg p-2">
+                              <span className="text-gray-500 text-xs block">Criado em</span>
+                              <span className="text-white font-medium">
+                                {new Date(access.created_at).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+
+                            {/* Data de Expiração */}
+                            {access.access_type !== 'lifetime' && (
+                              <div className="bg-gray-900/50 rounded-lg p-2">
+                                <span className="text-gray-500 text-xs block">Expira em</span>
+                                <span className={`font-medium ${access.expiration_date && new Date(access.expiration_date) < new Date() ? 'text-red-400' : 'text-orange-400'}`}>
+                                  {access.expiration_date 
+                                    ? new Date(access.expiration_date).toLocaleDateString('pt-BR')
+                                    : 'N/A'}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Email Lido */}
+                            {access.email_opened_at && (
+                              <div className="bg-gray-900/50 rounded-lg p-2">
+                                <span className="text-gray-500 text-xs block">Email Lido</span>
+                                <span className="text-cyan-400 font-medium flex items-center gap-1">
+                                  <MailOpen className="w-3 h-3" />
+                                  {new Date(access.email_opened_at).toLocaleDateString('pt-BR')}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Observações */}
+                            {access.notes && (
+                              <div className="bg-gray-900/50 rounded-lg p-2 col-span-1 md:col-span-2 lg:col-span-3">
+                                <span className="text-gray-500 text-xs block">Observações</span>
+                                <span className="text-gray-300">{access.notes}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action buttons - Always visible */}
+                          <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-700">
+                            <Button 
+                              onClick={() => copyToClipboard(access)} 
+                              size="sm" 
+                              className="bg-green-600 hover:bg-green-700 flex-1 min-w-[100px]"
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              <span className="hidden sm:inline">Copiar</span>
                             </Button>
-                            <Button onClick={() => handleResendEmail(access.id)} size="sm" variant="outline" disabled={loading} title="Reenviar email">
-                              <Mail className="w-4 h-4" />
+                            <Button 
+                              onClick={() => handleResendEmail(access.id)} 
+                              size="sm" 
+                              variant="outline" 
+                              disabled={loading}
+                              className="flex-1 min-w-[100px]"
+                            >
+                              <Mail className="w-4 h-4 mr-2" />
+                              <span className="hidden sm:inline">Email</span>
                             </Button>
-                            <Button onClick={() => startEditing(access)} size="sm" variant="outline" title="Editar">
-                              <Edit className="w-4 h-4" />
+                            <Button 
+                              onClick={() => startEditing(access)} 
+                              size="sm" 
+                              variant="outline"
+                              className="flex-1 min-w-[100px]"
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              <span className="hidden sm:inline">Editar</span>
                             </Button>
-                            <Button onClick={() => handleDeleteAccess(access.id)} size="sm" variant="destructive" disabled={loading} title="Excluir">
-                              <Trash2 className="w-4 h-4" />
+                            <Button 
+                              onClick={() => handleDeleteAccess(access.id)} 
+                              size="sm" 
+                              variant="destructive" 
+                              disabled={loading}
+                              className="flex-1 min-w-[100px]"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              <span className="hidden sm:inline">Excluir</span>
                             </Button>
                           </div>
                         </div>
