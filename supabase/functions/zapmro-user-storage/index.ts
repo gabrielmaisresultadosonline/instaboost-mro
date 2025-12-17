@@ -151,17 +151,6 @@ serve(async (req) => {
         );
       }
 
-      // Format days remaining display
-      let daysDisplay = '';
-      let daysStyle = '';
-      if (daysRemaining && daysRemaining > 365) {
-        daysDisplay = '♾️ Vitalício';
-        daysStyle = 'background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;';
-      } else if (daysRemaining && daysRemaining > 0) {
-        daysDisplay = `${daysRemaining} dias de acesso`;
-        daysStyle = 'background:#f8f9fa;color:#333;';
-      }
-
       const client = new SMTPClient({
         connection: {
           hostname: "smtp.hostinger.com",
@@ -232,14 +221,6 @@ serve(async (req) => {
 </table>
 </td>
 </tr>
-${daysDisplay ? `
-<tr><td style="height:10px;"></td></tr>
-<tr>
-<td style="padding:12px;${daysStyle}border-radius:5px;text-align:center;">
-<span style="font-size:14px;font-weight:bold;">⏱️ Tempo de Acesso: ${daysDisplay}</span>
-</td>
-</tr>
-` : ''}
 </table>
 </td>
 </tr>
