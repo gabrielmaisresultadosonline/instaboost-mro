@@ -21,7 +21,9 @@ async function sendAccessEmail(
   customerName: string,
   username: string,
   password: string,
-  serviceType: string
+  serviceType: string,
+  accessType?: string,
+  expirationDate?: string | null
 ): Promise<boolean> {
   try {
     const smtpPassword = Deno.env.get("SMTP_PASSWORD");
@@ -62,6 +64,8 @@ async function sendAccessEmail(
     .credential-value { font-size: 18px; color: #000; font-family: monospace; }
     .button { display: inline-block; background: #FFD700; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
     .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    .expiration { background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 10px; margin: 15px 0; text-align: center; }
+    .expiration strong { color: #856404; }
   </style>
 </head>
 <body>
@@ -84,6 +88,8 @@ async function sendAccessEmail(
       </div>
     </div>
     
+    {EXPIRATION_SECTION}
+    
     <p>Para acessar a área de membros, clique no botão abaixo:</p>
     
     <center>
@@ -105,12 +111,37 @@ async function sendAccessEmail(
 </html>
     `;
 
+    // Build expiration section
+    let expirationSection = '';
+    if (accessType && accessType !== 'lifetime' && expirationDate) {
+      const expDate = new Date(expirationDate);
+      const formattedDate = expDate.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+      });
+      const planType = accessType === 'annual' ? 'Anual' : 'Mensal';
+      expirationSection = `
+        <div class="expiration">
+          📅 <strong>Plano ${planType}</strong> - Acesso disponível até <strong>${formattedDate}</strong>
+        </div>
+      `;
+    } else if (accessType === 'lifetime') {
+      expirationSection = `
+        <div class="expiration" style="background: #d4edda; border-color: #28a745;">
+          ♾️ <strong style="color: #155724;">Acesso Vitalício</strong> - Sem data de expiração!
+        </div>
+      `;
+    }
+
+    const finalHtml = htmlContent.replace('{EXPIRATION_SECTION}', expirationSection);
+
     await client.send({
       from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
       to: customerEmail,
       subject: `MRO - Acesso Liberado ao ${serviceName}!`,
       content: "Seu acesso foi liberado! Veja os detalhes no email HTML.",
-      html: htmlContent,
+      html: finalHtml,
     });
 
     await client.close();
@@ -226,8 +257,17 @@ serve(async (req) => {
           apiCreated = await createInstagramUser(username, password, daysAccess || 365);
         }
 
+        // Calculate expiration date
+        let expirationDate: string | null = null;
+        if (accessType !== 'lifetime') {
+          const days = daysAccess || (accessType === 'annual' ? 365 : 30);
+          const expDate = new Date();
+          expDate.setDate(expDate.getDate() + days);
+          expirationDate = expDate.toISOString();
+        }
+
         // Send email
-        const emailSent = await sendAccessEmail(customerEmail, customerName, username, password, serviceType);
+        const emailSent = await sendAccessEmail(customerEmail, customerName, username, password, serviceType, accessType, expirationDate);
 
         // Save to database
         const { data: accessRecord, error } = await supabase
@@ -240,6 +280,7 @@ serve(async (req) => {
             service_type: serviceType,
             access_type: accessType,
             days_access: daysAccess || 365,
+            expiration_date: expirationDate,
             api_created: apiCreated,
             email_sent: emailSent,
             email_sent_at: emailSent ? new Date().toISOString() : null,
@@ -293,7 +334,9 @@ serve(async (req) => {
           access.customer_name,
           access.username,
           access.password,
-          access.service_type
+          access.service_type,
+          access.access_type,
+          access.expiration_date
         );
 
         if (emailSent) {
