@@ -127,7 +127,10 @@ export default function ActiveClientsSection({
   const renderAvatarInner = (client: ActiveClient) => {
     const hasError = imageErrors.has(client.username);
 
-    if (hasError || !client.profilePicture) {
+    // If image is from our cache and hasn't errored, always show it
+    const isCached = client.profilePicture?.includes('profile-cache/profiles/');
+    
+    if ((hasError && !isCached) || !client.profilePicture) {
       return (
         <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center text-black font-bold text-lg">
           {client.username.substring(0, 2).toUpperCase()}
@@ -135,12 +138,18 @@ export default function ActiveClientsSection({
       );
     }
 
+    // For cached images, append timestamp to bypass browser cache issues
+    const imgSrc = isCached 
+      ? `${client.profilePicture}?t=${Date.now() % 86400000}` // Cache bust daily
+      : client.profilePicture;
+
     return (
       <img
-        src={client.profilePicture}
+        src={imgSrc}
         alt={`@${client.username}`}
         className="w-full h-full object-cover"
         loading="lazy"
+        crossOrigin="anonymous"
         onError={() => handleImageError(client.username)}
       />
     );
