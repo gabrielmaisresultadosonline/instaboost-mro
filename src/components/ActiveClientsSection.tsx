@@ -140,13 +140,10 @@ export default function ActiveClientsSection({
 
     return (
       <img
-        src={getImageUrl(client.profilePicture)}
-        alt={`Foto do perfil do Instagram @${client.username}`}
+        src={client.profilePicture}
+        alt={`@${client.username}`}
         className="w-full h-full object-cover"
         loading="lazy"
-        decoding="async"
-        crossOrigin="anonymous"
-        referrerPolicy="no-referrer"
         onError={() => handleImageError(client.username)}
       />
     );
