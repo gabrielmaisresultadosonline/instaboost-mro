@@ -247,14 +247,18 @@ serve(async (req) => {
 
     switch (action) {
       case "create_access": {
-        const { customerEmail, customerName, username, password, serviceType, accessType, daysAccess, notes } = data;
+        const { customerEmail, customerName, username, password, serviceType, accessType, daysAccess, notes, createInApi = true } = data;
 
-        // Create user in external API
+        // Create user in external API only if createInApi is true
         let apiCreated = false;
-        if (serviceType === 'whatsapp') {
-          apiCreated = await createWhatsAppUser(username, password, accessType);
-        } else if (serviceType === 'instagram') {
-          apiCreated = await createInstagramUser(username, password, daysAccess || 365);
+        if (createInApi) {
+          if (serviceType === 'whatsapp') {
+            apiCreated = await createWhatsAppUser(username, password, accessType);
+          } else if (serviceType === 'instagram') {
+            apiCreated = await createInstagramUser(username, password, daysAccess || 365);
+          }
+        } else {
+          logStep("Skipping API creation - user requested local only");
         }
 
         // Calculate expiration date

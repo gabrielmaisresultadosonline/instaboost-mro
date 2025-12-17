@@ -167,6 +167,7 @@ export default function AdminUsuario() {
     serviceType: 'instagram' as 'whatsapp' | 'instagram',
     accessType: 'annual' as 'annual' | 'lifetime' | 'monthly',
     notes: '',
+    createInApi: true, // Criar usuário na API (SquareCloud)
   });
 
   useEffect(() => {
@@ -292,6 +293,7 @@ export default function AdminUsuario() {
           accessType: form.accessType,
           daysAccess,
           notes: form.notes || null,
+          createInApi: form.createInApi, // Nova opção
         },
       });
 
@@ -311,6 +313,7 @@ export default function AdminUsuario() {
         serviceType: 'instagram',
         accessType: 'annual',
         notes: '',
+        createInApi: true,
       });
 
       loadAccesses();
@@ -835,6 +838,26 @@ export default function AdminUsuario() {
                     />
                   </div>
 
+                  {/* Opção para criar na API */}
+                  <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.createInApi}
+                        onChange={(e) => setForm({ ...form, createInApi: e.target.checked })}
+                        className="mt-1 w-5 h-5 rounded border-gray-500 bg-gray-700 text-yellow-500 focus:ring-yellow-500"
+                      />
+                      <div>
+                        <span className="text-white font-medium">Criar na API (SquareCloud)</span>
+                        <p className="text-gray-400 text-xs mt-1">
+                          {form.createInApi 
+                            ? '✅ Usuário será criado na API externa automaticamente'
+                            : '⚠️ Apenas salvar no admin e enviar email (usuário já existe na API)'}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+
                   <Button
                     onClick={handleCreateAccess}
                     disabled={loading}
@@ -845,7 +868,7 @@ export default function AdminUsuario() {
                     ) : (
                       <UserPlus className="w-5 h-5 mr-2" />
                     )}
-                    Criar Acesso e Enviar Email
+                    {form.createInApi ? 'Criar Acesso e Enviar Email' : 'Salvar e Enviar Email'}
                   </Button>
                 </CardContent>
               </Card>
