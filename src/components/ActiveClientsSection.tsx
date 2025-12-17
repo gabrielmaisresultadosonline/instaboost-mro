@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 interface ActiveClient {
   username: string;
   profilePicture: string;
+  fallbackProfilePicture?: string;
   followers: number;
 }
 
@@ -28,9 +29,6 @@ const formatFollowers = (count: number): string => {
   if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
   return count.toLocaleString('pt-BR');
 };
-
-// Images are now served from our own storage (cached by backend)
-const getImageUrl = (url: string): string => url || '';
 
 const PAGE_SIZE = 96;
 
@@ -141,10 +139,21 @@ export default function ActiveClientsSection({
     return (
       <img
         src={client.profilePicture}
-        alt={`@${client.username}`}
+        alt={`Foto do perfil do Instagram @${client.username}`}
         className="w-full h-full object-cover"
         loading="lazy"
-        onError={() => handleImageError(client.username)}
+        onError={(e) => {
+          const img = e.currentTarget;
+          const triedFallback = img.dataset.fallbackTried === '1';
+
+          if (!triedFallback && client.fallbackProfilePicture) {
+            img.dataset.fallbackTried = '1';
+            img.src = client.fallbackProfilePicture;
+            return;
+          }
+
+          handleImageError(client.username);
+        }}
       />
     );
   };
