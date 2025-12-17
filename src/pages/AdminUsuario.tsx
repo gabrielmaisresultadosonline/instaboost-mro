@@ -29,7 +29,10 @@ import {
   XCircle,
   Copy,
   Settings,
-  Save
+  Save,
+  Send,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 
 interface CreatedAccess {
@@ -127,6 +130,20 @@ export default function AdminUsuario() {
     instagram?: { success: boolean; message: string };
     email?: { success: boolean; message: string };
   }>({});
+
+  // Mass email state
+  const [massEmailSubject, setMassEmailSubject] = useState('📢 Novidades do MRO!');
+  const [massEmailMessage, setMassEmailMessage] = useState('');
+  const [manualEmails, setManualEmails] = useState('');
+  const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
+  const [useRegisteredEmails, setUseRegisteredEmails] = useState(true);
+  const [massEmailSending, setMassEmailSending] = useState(false);
+  const [massEmailResults, setMassEmailResults] = useState<{
+    total: number;
+    sent: number;
+    failed: number;
+    results: Array<{ email: string; success: boolean }>;
+  } | null>(null);
 
   const [form, setForm] = useState({
     customerEmail: '',
@@ -439,6 +456,84 @@ export default function AdminUsuario() {
       a.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Get unique registered emails
+  const registeredEmails = [...new Set(accesses.map(a => a.customer_email))];
+
+  const toggleEmailSelection = (email: string) => {
+    const newSelected = new Set(selectedEmails);
+    if (newSelected.has(email)) {
+      newSelected.delete(email);
+    } else {
+      newSelected.add(email);
+    }
+    setSelectedEmails(newSelected);
+  };
+
+  const selectAllEmails = () => {
+    setSelectedEmails(new Set(registeredEmails));
+  };
+
+  const deselectAllEmails = () => {
+    setSelectedEmails(new Set());
+  };
+
+  const getEmailsToSend = (): string[] => {
+    const emails: string[] = [];
+    
+    if (useRegisteredEmails) {
+      emails.push(...Array.from(selectedEmails));
+    }
+    
+    if (manualEmails.trim()) {
+      const manual = manualEmails
+        .split('\n')
+        .map(e => e.trim())
+        .filter(e => e && e.includes('@'));
+      emails.push(...manual);
+    }
+    
+    return [...new Set(emails)]; // Remove duplicates
+  };
+
+  const handleMassEmail = async () => {
+    const emails = getEmailsToSend();
+    
+    if (emails.length === 0) {
+      toast.error('Selecione ou digite pelo menos um email!');
+      return;
+    }
+    
+    if (!massEmailSubject.trim() || !massEmailMessage.trim()) {
+      toast.error('Preencha o assunto e a mensagem!');
+      return;
+    }
+
+    if (!confirm(`Enviar email para ${emails.length} destinatário(s)?`)) return;
+
+    try {
+      setMassEmailSending(true);
+      setMassEmailResults(null);
+      
+      const { data, error } = await supabase.functions.invoke('manage-user-access', {
+        body: {
+          action: 'send_mass_email',
+          emails,
+          subject: massEmailSubject,
+          message: massEmailMessage,
+        },
+      });
+
+      if (error) throw error;
+
+      setMassEmailResults(data);
+      toast.success(`Enviados: ${data.sent}/${data.total}`);
+    } catch (error: any) {
+      toast.error('Erro: ' + error.message);
+    } finally {
+      setMassEmailSending(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -508,6 +603,10 @@ export default function AdminUsuario() {
             <TabsTrigger value="test" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
               <TestTube className="w-4 h-4 mr-2" />
               Testar
+            </TabsTrigger>
+            <TabsTrigger value="mass-email" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
+              <Send className="w-4 h-4 mr-2" />
+              Disparo
             </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
               <Settings className="w-4 h-4 mr-2" />
@@ -832,6 +931,172 @@ export default function AdminUsuario() {
                     <div className={`p-3 rounded-lg flex items-center gap-2 text-sm ${testResults.email.success ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
                       {testResults.email.success ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                       {testResults.email.message}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Mass Email Tab */}
+          <TabsContent value="mass-email">
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Email Selection */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-500" />
+                    Destinatários
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Selecione emails cadastrados ou digite manualmente
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Registered Emails */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-gray-300 flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={useRegisteredEmails}
+                          onChange={(e) => setUseRegisteredEmails(e.target.checked)}
+                          className="rounded"
+                        />
+                        Emails cadastrados ({registeredEmails.length})
+                      </Label>
+                      {useRegisteredEmails && (
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={selectAllEmails}>
+                            Todos
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={deselectAllEmails}>
+                            Nenhum
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {useRegisteredEmails && (
+                      <div className="max-h-48 overflow-y-auto bg-gray-900 rounded-lg p-2 space-y-1">
+                        {registeredEmails.length === 0 ? (
+                          <p className="text-gray-500 text-sm text-center py-2">Nenhum email cadastrado</p>
+                        ) : (
+                          registeredEmails.map((email) => (
+                            <div
+                              key={email}
+                              className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                                selectedEmails.has(email) ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-gray-800 hover:bg-gray-700'
+                              }`}
+                              onClick={() => toggleEmailSelection(email)}
+                            >
+                              {selectedEmails.has(email) ? (
+                                <CheckSquare className="w-4 h-4 text-yellow-500" />
+                              ) : (
+                                <Square className="w-4 h-4 text-gray-500" />
+                              )}
+                              <span className="text-sm text-gray-300 truncate">{email}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Manual Emails */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Emails manuais (um por linha)</Label>
+                    <Textarea
+                      value={manualEmails}
+                      onChange={(e) => setManualEmails(e.target.value)}
+                      placeholder="email1@exemplo.com&#10;email2@exemplo.com&#10;email3@exemplo.com"
+                      className="bg-gray-700 border-gray-600 text-white min-h-[120px] font-mono text-sm"
+                    />
+                  </div>
+
+                  <div className="bg-gray-900 p-3 rounded-lg">
+                    <p className="text-sm text-gray-400">
+                      Total a enviar: <span className="text-yellow-400 font-bold">{getEmailsToSend().length}</span> emails
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Message Composition */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-purple-500" />
+                    Mensagem
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Assunto do Email</Label>
+                    <Input
+                      value={massEmailSubject}
+                      onChange={(e) => setMassEmailSubject(e.target.value)}
+                      placeholder="Assunto do email..."
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Mensagem (suporta HTML)</Label>
+                    <Textarea
+                      value={massEmailMessage}
+                      onChange={(e) => setMassEmailMessage(e.target.value)}
+                      placeholder="Digite sua mensagem aqui...&#10;&#10;Pode usar HTML para formatação:&#10;<b>negrito</b>, <i>itálico</i>, <a href='url'>link</a>"
+                      className="bg-gray-700 border-gray-600 text-white min-h-[200px]"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={handleMassEmail}
+                    disabled={massEmailSending || getEmailsToSend().length === 0}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-6"
+                  >
+                    {massEmailSending ? (
+                      <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5 mr-2" />
+                    )}
+                    Enviar para {getEmailsToSend().length} emails
+                  </Button>
+
+                  {/* Results */}
+                  {massEmailResults && (
+                    <div className="bg-gray-900 p-4 rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Total:</span>
+                        <span className="text-white font-bold">{massEmailResults.total}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-green-400">Enviados:</span>
+                        <span className="text-green-400 font-bold">{massEmailResults.sent}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-red-400">Falhas:</span>
+                        <span className="text-red-400 font-bold">{massEmailResults.failed}</span>
+                      </div>
+                      
+                      {massEmailResults.results.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-700">
+                          <p className="text-xs text-gray-500 mb-2">Detalhes:</p>
+                          <div className="max-h-32 overflow-y-auto space-y-1">
+                            {massEmailResults.results.map((r, i) => (
+                              <div key={i} className="flex items-center gap-2 text-xs">
+                                {r.success ? (
+                                  <CheckCircle className="w-3 h-3 text-green-500" />
+                                ) : (
+                                  <XCircle className="w-3 h-3 text-red-500" />
+                                )}
+                                <span className={r.success ? 'text-gray-400' : 'text-red-400'}>{r.email}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>

@@ -508,6 +508,106 @@ serve(async (req) => {
         }
       }
 
+      case "send_mass_email": {
+        const { emails, subject, message } = data;
+        
+        if (!emails || !Array.isArray(emails) || emails.length === 0) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            message: 'Nenhum email informado' 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+        if (!smtpPassword) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            message: 'SMTP não configurado' 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const results: Array<{ email: string; success: boolean }> = [];
+        let sent = 0;
+        let failed = 0;
+
+        const client = new SMTPClient({
+          connection: {
+            hostname: "smtp.hostinger.com",
+            port: 465,
+            tls: true,
+            auth: {
+              username: "suporte@maisresultadosonline.com.br",
+              password: smtpPassword,
+            },
+          },
+        });
+
+        const htmlTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 30px; text-align: center; }
+    .header h1 { color: #000; margin: 0; font-size: 24px; }
+    .content { padding: 30px; background: #f9f9f9; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; background: #1a1a1a; }
+    .footer p { color: #888; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📢 MRO - Mais Resultados Online</h1>
+  </div>
+  <div class="content">
+    ${message}
+  </div>
+  <div class="footer">
+    <p>MRO - Mais Resultados Online</p>
+    <p>Gabriel Fernandes da Silva</p>
+    <p>CNPJ: 54.840.738/0001-96</p>
+  </div>
+</body>
+</html>
+        `;
+
+        for (const email of emails) {
+          try {
+            await client.send({
+              from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
+              to: email,
+              subject: subject || '📢 Novidades do MRO!',
+              content: message.replace(/<[^>]*>/g, ''), // Plain text version
+              html: htmlTemplate,
+            });
+            results.push({ email, success: true });
+            sent++;
+            logStep("Mass email sent", { to: email });
+          } catch (error: any) {
+            results.push({ email, success: false });
+            failed++;
+            logStep("Mass email failed", { to: email, error: error?.message });
+          }
+        }
+
+        await client.close();
+
+        return new Response(JSON.stringify({
+          success: true,
+          total: emails.length,
+          sent,
+          failed,
+          results,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       default:
         return new Response(JSON.stringify({ error: "Unknown action" }), {
           status: 400,
