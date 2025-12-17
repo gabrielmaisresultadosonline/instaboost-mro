@@ -31,29 +31,23 @@ const unwrapImageUrl = (url: string): string => {
   return url;
 };
 
-// Get profile image URL - check cache first, then fallback to DiceBear
-const getProfileImageUrl = async (
-  supabase: any,
-  username: string,
-  supabaseUrl: string
-): Promise<string> => {
+// Get profile image URL - use weserv proxy URL from admin data or DiceBear fallback
+const getProfileImageUrl = (username: string, originalUrl: string): string => {
   if (!username) return '';
 
-  const fileName = `${username.toLowerCase()}.jpg`;
-  const bucketName = 'profile-cache';
-
-  // Check if already cached in our storage
-  const { data: existingFile } = await supabase.storage
-    .from(bucketName)
-    .list('', { search: fileName });
-
-  if (existingFile && existingFile.length > 0) {
-    // Return cached URL from our storage
-    return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
+  // If we have a valid URL from admin data (weserv proxy or direct), use it
+  if (originalUrl && originalUrl.length > 10) {
+    // If it's already a weserv proxy URL, use it directly
+    if (originalUrl.includes('images.weserv.nl')) {
+      return originalUrl;
+    }
+    // If it's a direct URL, wrap in weserv proxy for CORS
+    if (originalUrl.startsWith('http')) {
+      return `https://images.weserv.nl/?url=${encodeURIComponent(originalUrl)}&w=150&h=150&fit=cover`;
+    }
   }
 
-  // Not cached - return DiceBear avatar as fallback
-  // (Instagram CDN URLs expire and return 403)
+  // Fallback to DiceBear avatar
   return `https://api.dicebear.com/7.x/initials/svg?seed=${username}&backgroundColor=10b981`;
 };
 
@@ -119,17 +113,15 @@ serve(async (req) => {
     const total = unique.length;
     const page = unique.slice(offset, offset + limit);
 
-    // Get images for this page (from cache or fallback)
-    const clientsWithImages = await Promise.all(
-      page.map(async (p) => {
-        const imageUrl = await getProfileImageUrl(supabase, p.username, supabaseUrl);
-        return {
-          username: p.username,
-          profilePicture: imageUrl,
-          followers: p.followers,
-        };
-      })
-    );
+    // Get images for this page (from admin data URLs or fallback)
+    const clientsWithImages = page.map((p) => {
+      const imageUrl = getProfileImageUrl(p.username, p.originalImageUrl);
+      return {
+        username: p.username,
+        profilePicture: imageUrl,
+        followers: p.followers,
+      };
+    });
 
     const hasMore = offset + limit < total;
 
