@@ -91,11 +91,43 @@ async function sendAccessEmail(
 </tr>
 </table>
 {EXPIRATION_SECTION}
-<p style="margin:20px 0 15px 0;color:#333;">Para acessar a área de membros:</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;border-radius:10px;margin:20px 0;">
+<tr>
+<td style="padding:20px;">
+<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📝 Passo a Passo:</h3>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
+<span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">1</span>
+<span style="color:#333;">Acesse nossa página oficial clicando no botão abaixo</span>
+</td>
+</tr>
+<tr>
+<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
+<span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">2</span>
+<span style="color:#333;">Clique no botão <strong>"Área de Membros"</strong></span>
+</td>
+</tr>
+<tr>
+<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
+<span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">3</span>
+<span style="color:#333;">Insira seu <strong>usuário</strong> e <strong>senha</strong> informados acima</span>
+</td>
+</tr>
+<tr>
+<td style="padding:10px 0;">
+<span style="display:inline-block;background:#25D366;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span>
+<span style="color:#333;font-weight:bold;">Pronto! Tudo certo, aproveite!</span>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td align="center" style="padding:10px 0;">
-<a href="${memberAreaUrl}" style="display:inline-block;background:#000;color:#fff;padding:16px 40px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">🚀 ACESSAR ÁREA DE MEMBROS</a>
+<a href="${memberAreaUrl}" style="display:inline-block;background:#000;color:#fff;padding:16px 40px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">🚀 ACESSAR PÁGINA OFICIAL</a>
 </td>
 </tr>
 </table>
