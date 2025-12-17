@@ -198,6 +198,15 @@ const Admin = () => {
     return session?.profiles.find(p => p.id === selectedProfile);
   };
 
+  // Some older cached records may have `posts` as an array of post objects.
+  // Normalize to a numeric count to avoid rendering objects in React.
+  const getPostsCount = (profile: any): number => {
+    const raw = profile?.postsCount ?? profile?.posts ?? profile?.postCount ?? 0;
+    if (Array.isArray(raw)) return raw.length;
+    const num = typeof raw === 'number' ? raw : Number(raw);
+    return Number.isFinite(num) ? num : 0;
+  };
+
   const calculateGrowth = (profileData: ProfileSession) => {
     if (profileData.growthHistory.length < 2) return 0;
     const first = profileData.growthHistory[0].followers;
@@ -422,7 +431,7 @@ const Admin = () => {
                             <div className="flex gap-4 mt-4 text-sm">
                               <span><strong>{profileData.profile.followers.toLocaleString()}</strong> seguidores</span>
                               <span><strong>{profileData.profile.following.toLocaleString()}</strong> seguindo</span>
-                              <span><strong>{profileData.profile.posts}</strong> posts</span>
+                              <span><strong>{getPostsCount(profileData.profile).toLocaleString('pt-BR')}</strong> posts</span>
                             </div>
                           </div>
                           <div className="text-right text-sm text-muted-foreground space-y-2">
@@ -649,7 +658,7 @@ const Admin = () => {
                           <div className="flex gap-4 mt-4 text-sm">
                             <span><strong>{selectedSyncedProfile.followers.toLocaleString()}</strong> seguidores</span>
                             <span><strong>{selectedSyncedProfile.following.toLocaleString()}</strong> seguindo</span>
-                            <span><strong>{selectedSyncedProfile.posts}</strong> posts</span>
+                            <span><strong>{getPostsCount(selectedSyncedProfile).toLocaleString('pt-BR')}</strong> posts</span>
                           </div>
                         </div>
                         <div className="text-right text-sm text-muted-foreground space-y-2">
@@ -797,7 +806,7 @@ const Admin = () => {
                               <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
                                 <span>{profile.followers.toLocaleString()} seguidores</span>
                                 <span>{profile.following.toLocaleString()} seguindo</span>
-                                <span>{profile.posts} posts</span>
+                                <span>{getPostsCount(profile).toLocaleString('pt-BR')} posts</span>
                                 {growth > 0 && (
                                   <span className="text-green-500 font-medium">+{growth.toLocaleString()}</span>
                                 )}
