@@ -29,10 +29,10 @@ const formatFollowers = (count: number): string => {
   return count.toLocaleString('pt-BR');
 };
 
-const getProxiedImageUrl = (url: string): string => {
+// Instagram CDN images work directly without proxy
+const getImageUrl = (url: string): string => {
   if (!url) return '';
-  if (url.includes('images.weserv.nl')) return url;
-  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=160&h=160&fit=cover`;
+  return url;
 };
 
 const PAGE_SIZE = 96;
@@ -143,7 +143,7 @@ export default function ActiveClientsSection({
 
     return (
       <img
-        src={getProxiedImageUrl(client.profilePicture)}
+        src={getImageUrl(client.profilePicture)}
         alt={`Foto do perfil do Instagram @${client.username}`}
         className="w-full h-full object-cover"
         loading="lazy"
