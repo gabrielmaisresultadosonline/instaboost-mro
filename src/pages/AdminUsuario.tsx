@@ -32,7 +32,12 @@ import {
   Save,
   Send,
   CheckSquare,
-  Square
+  Square,
+  Download,
+  Bell,
+  AlertTriangle,
+  Clock,
+  MailOpen
 } from 'lucide-react';
 
 interface CreatedAccess {
@@ -50,6 +55,12 @@ interface CreatedAccess {
   notes: string | null;
   created_at: string;
   expiration_date: string | null;
+  expiration_warning_sent: boolean;
+  expiration_warning_sent_at: string | null;
+  expired_notification_sent: boolean;
+  expired_notification_sent_at: string | null;
+  email_opened: boolean;
+  email_opened_at: string | null;
 }
 
 interface AdminSettings {
@@ -535,6 +546,79 @@ export default function AdminUsuario() {
     }
   };
 
+  const checkExpirations = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('check-expirations');
+
+      if (error) throw error;
+
+      toast.success(`Verificação concluída! Avisos: ${data.warningsSent}, Expirados: ${data.expiredSent}`);
+      loadAccesses(); // Refresh the list
+    } catch (error: any) {
+      toast.error('Erro: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const exportToCSV = () => {
+    const headers = [
+      'Email',
+      'Usuário',
+      'Senha',
+      'Serviço',
+      'Tipo Acesso',
+      'Data Criação',
+      'Data Expiração',
+      'Aviso Enviado',
+      'Expirou Notificado',
+      'Email Aberto',
+      'Notas'
+    ];
+
+    const rows = accesses.map(a => [
+      a.customer_email,
+      a.username,
+      a.password,
+      a.service_type,
+      a.access_type,
+      new Date(a.created_at).toLocaleDateString('pt-BR'),
+      a.expiration_date ? new Date(a.expiration_date).toLocaleDateString('pt-BR') : 'Vitalício',
+      a.expiration_warning_sent ? 'Sim' : 'Não',
+      a.expired_notification_sent ? 'Sim' : 'Não',
+      a.email_opened ? 'Sim' : 'Não',
+      a.notes || ''
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `acessos_mro_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    toast.success('CSV exportado!');
+  };
+
+  // Get expiring/expired stats
+  const expiringCount = accesses.filter(a => {
+    if (a.access_type === 'lifetime' || !a.expiration_date) return false;
+    const exp = new Date(a.expiration_date);
+    const now = new Date();
+    const diff = (exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    return diff > 0 && diff <= 7;
+  }).length;
+
+  const expiredCount = accesses.filter(a => {
+    if (a.access_type === 'lifetime' || !a.expiration_date) return false;
+    return new Date(a.expiration_date) < new Date();
+  }).length;
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -574,12 +658,20 @@ export default function AdminUsuario() {
     <div className="min-h-screen bg-gray-900 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white">Admin Usuários</h1>
             <p className="text-gray-400">Gerencie acessos WhatsApp e Instagram</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={checkExpirations} variant="outline" disabled={loading} className="border-orange-500 text-orange-500 hover:bg-orange-500/20">
+              <Bell className="w-4 h-4 mr-2" />
+              Verificar Expirações
+            </Button>
+            <Button onClick={exportToCSV} variant="outline" className="border-green-500 text-green-500 hover:bg-green-500/20">
+              <Download className="w-4 h-4 mr-2" />
+              Exportar CSV
+            </Button>
             <Button onClick={loadAccesses} variant="outline" disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Atualizar
@@ -590,6 +682,24 @@ export default function AdminUsuario() {
             </Button>
           </div>
         </div>
+
+        {/* Stats Bar */}
+        {(expiringCount > 0 || expiredCount > 0) && (
+          <div className="flex gap-4 mb-6 flex-wrap">
+            {expiringCount > 0 && (
+              <div className="bg-yellow-900/30 border border-yellow-500/50 rounded-lg px-4 py-2 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                <span className="text-yellow-400 text-sm font-medium">{expiringCount} expirando em 7 dias</span>
+              </div>
+            )}
+            {expiredCount > 0 && (
+              <div className="bg-red-900/30 border border-red-500/50 rounded-lg px-4 py-2 flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-red-500" />
+                <span className="text-red-400 text-sm font-medium">{expiredCount} expirados</span>
+              </div>
+            )}
+          </div>
+        )}
 
         <Tabs defaultValue="create" className="space-y-6">
           <TabsList className="bg-gray-800 border-gray-700 flex-wrap">
@@ -824,6 +934,25 @@ export default function AdminUsuario() {
                               </Badge>
                               {access.api_created && <Badge className="bg-blue-600 text-xs">API✓</Badge>}
                               {access.email_sent && <Badge className="bg-purple-600 text-xs">Email✓</Badge>}
+                              {access.email_opened && (
+                                <Badge className="bg-cyan-600 text-xs flex items-center gap-1">
+                                  <MailOpen className="w-3 h-3" /> Lido
+                                </Badge>
+                              )}
+                              {access.expiration_warning_sent && (
+                                <Badge className="bg-orange-600 text-xs flex items-center gap-1">
+                                  <Bell className="w-3 h-3" /> Avisado
+                                </Badge>
+                              )}
+                              {access.expired_notification_sent && (
+                                <Badge className="bg-red-600 text-xs flex items-center gap-1">
+                                  <AlertTriangle className="w-3 h-3" /> Expirou
+                                </Badge>
+                              )}
+                              {/* Check if expired */}
+                              {access.expiration_date && access.access_type !== 'lifetime' && new Date(access.expiration_date) < new Date() && (
+                                <Badge className="bg-red-900 text-red-300 text-xs">EXPIRADO</Badge>
+                              )}
                             </div>
                             <div className="text-white text-sm">{access.customer_email}</div>
                             <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
@@ -840,8 +969,14 @@ export default function AdminUsuario() {
                               </span>
                               <span>{new Date(access.created_at).toLocaleDateString('pt-BR')}</span>
                               {access.expiration_date && access.access_type !== 'lifetime' && (
-                                <span className="text-orange-400">
-                                  até {new Date(access.expiration_date).toLocaleDateString('pt-BR')}
+                                <span className={new Date(access.expiration_date) < new Date() ? 'text-red-400' : 'text-orange-400'}>
+                                  {new Date(access.expiration_date) < new Date() ? 'expirou' : 'até'} {new Date(access.expiration_date).toLocaleDateString('pt-BR')}
+                                </span>
+                              )}
+                              {access.email_opened_at && (
+                                <span className="text-cyan-400 flex items-center gap-1">
+                                  <MailOpen className="w-3 h-3" />
+                                  lido {new Date(access.email_opened_at).toLocaleDateString('pt-BR')}
                                 </span>
                               )}
                             </div>

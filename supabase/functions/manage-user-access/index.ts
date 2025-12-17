@@ -266,6 +266,9 @@ serve(async (req) => {
           expirationDate = expDate.toISOString();
         }
 
+        // Generate tracking ID
+        const trackingId = `track_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
         // Send email
         const emailSent = await sendAccessEmail(customerEmail, customerName, username, password, serviceType, accessType, expirationDate);
 
@@ -281,6 +284,7 @@ serve(async (req) => {
             access_type: accessType,
             days_access: daysAccess || 365,
             expiration_date: expirationDate,
+            tracking_id: trackingId,
             api_created: apiCreated,
             email_sent: emailSent,
             email_sent_at: emailSent ? new Date().toISOString() : null,

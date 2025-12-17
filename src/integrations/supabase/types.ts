@@ -52,13 +52,20 @@ export type Database = {
           customer_email: string
           customer_name: string | null
           days_access: number | null
+          email_opened: boolean | null
+          email_opened_at: string | null
           email_sent: boolean | null
           email_sent_at: string | null
           expiration_date: string | null
+          expiration_warning_sent: boolean | null
+          expiration_warning_sent_at: string | null
+          expired_notification_sent: boolean | null
+          expired_notification_sent_at: string | null
           id: string
           notes: string | null
           password: string
           service_type: string
+          tracking_id: string | null
           updated_at: string
           username: string
         }
@@ -69,13 +76,20 @@ export type Database = {
           customer_email: string
           customer_name?: string | null
           days_access?: number | null
+          email_opened?: boolean | null
+          email_opened_at?: string | null
           email_sent?: boolean | null
           email_sent_at?: string | null
           expiration_date?: string | null
+          expiration_warning_sent?: boolean | null
+          expiration_warning_sent_at?: string | null
+          expired_notification_sent?: boolean | null
+          expired_notification_sent_at?: string | null
           id?: string
           notes?: string | null
           password: string
           service_type: string
+          tracking_id?: string | null
           updated_at?: string
           username: string
         }
@@ -86,13 +100,20 @@ export type Database = {
           customer_email?: string
           customer_name?: string | null
           days_access?: number | null
+          email_opened?: boolean | null
+          email_opened_at?: string | null
           email_sent?: boolean | null
           email_sent_at?: string | null
           expiration_date?: string | null
+          expiration_warning_sent?: boolean | null
+          expiration_warning_sent_at?: string | null
+          expired_notification_sent?: boolean | null
+          expired_notification_sent_at?: string | null
           id?: string
           notes?: string | null
           password?: string
           service_type?: string
+          tracking_id?: string | null
           updated_at?: string
           username?: string
         }
