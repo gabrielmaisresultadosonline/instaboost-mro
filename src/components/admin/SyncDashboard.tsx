@@ -26,7 +26,8 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   RefreshCw, Play, Pause, Users, TrendingUp, Instagram, 
   CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight,
-  Loader2, AlertCircle, User, Square, Check, Ban, Trash2, Calendar
+  Loader2, AlertCircle, User, Square, Check, Ban, Trash2, Calendar,
+  Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,6 +58,11 @@ const SyncDashboard = () => {
     newFollowers: number;
     growth: number;
   } | null>(null);
+
+  // Image cache state
+  const [imageCacheStatus, setImageCacheStatus] = useState<{ total: number; cached: number; remaining: number } | null>(null);
+  const [isCachingImages, setIsCachingImages] = useState(false);
+  const [cacheProgress, setCacheProgress] = useState<{ cached: number; failed: number; processed: number; total: number } | null>(null);
 
   // Load data on mount and check for auto-sync
   useEffect(() => {
@@ -612,6 +618,76 @@ const SyncDashboard = () => {
     }
   };
 
+  // Fetch image cache status
+  const fetchImageCacheStatus = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('cache-profile-images', {
+        body: { action: 'status' }
+      });
+      if (!error && data?.success) {
+        setImageCacheStatus({ total: data.total, cached: data.cached, remaining: data.remaining });
+      }
+    } catch (e) {
+      console.error('Error fetching cache status:', e);
+    }
+  };
+
+  // Load cache status on mount
+  useEffect(() => {
+    fetchImageCacheStatus();
+  }, []);
+
+  // Start batch image caching
+  const startImageCaching = async () => {
+    setIsCachingImages(true);
+    setCacheProgress({ cached: 0, failed: 0, processed: 0, total: imageCacheStatus?.total || 0 });
+    
+    toast({ title: 'Cache de Imagens', description: 'Iniciando pré-cache em lote...' });
+    
+    let offset = 0;
+    const batchSize = 50;
+    let totalCached = 0;
+    let totalFailed = 0;
+    let hasMore = true;
+    
+    while (hasMore) {
+      try {
+        const { data, error } = await supabase.functions.invoke('cache-profile-images', {
+          body: { action: 'process-batch', batchSize, offset }
+        });
+        
+        if (error || !data?.success) {
+          console.error('Batch error:', error || data?.error);
+          break;
+        }
+        
+        totalCached += data.cached || 0;
+        totalFailed += data.failed || 0;
+        offset = data.nextOffset || offset + batchSize;
+        hasMore = data.hasMore;
+        
+        setCacheProgress({
+          cached: totalCached,
+          failed: totalFailed,
+          processed: offset,
+          total: data.total
+        });
+        
+      } catch (e) {
+        console.error('Cache batch error:', e);
+        break;
+      }
+    }
+    
+    setIsCachingImages(false);
+    await fetchImageCacheStatus();
+    
+    toast({ 
+      title: 'Cache Concluído!', 
+      description: `${totalCached} imagens cacheadas, ${totalFailed} falhas` 
+    });
+  };
+
   // Get top growing profiles for slider
   const topGrowing = getTopGrowingProfiles(10);
   
@@ -820,9 +896,89 @@ const SyncDashboard = () => {
             <div>
               <h3 className="font-semibold text-lg">Sincronizar por Usuário</h3>
               <p className="text-xs text-muted-foreground">Digite o ID do usuário MRO para sincronizar todas as contas</p>
+        </div>
+      </div>
+
+      {/* Image Cache Section */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <ImageIcon className="w-5 h-5 text-purple-500" />
+            <div>
+              <h3 className="font-semibold text-lg">Cache de Fotos de Perfil</h3>
+              <p className="text-xs text-muted-foreground">Pré-cachear todas as fotos no storage para exibição consistente</p>
             </div>
           </div>
           
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchImageCacheStatus}
+              disabled={isCachingImages}
+              className="cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Atualizar Status
+            </Button>
+            <Button
+              onClick={startImageCaching}
+              disabled={isCachingImages || (imageCacheStatus?.remaining === 0)}
+              className="cursor-pointer bg-purple-600 hover:bg-purple-700"
+            >
+              {isCachingImages ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <ImageIcon className="w-4 h-4 mr-2" />
+              )}
+              {isCachingImages ? 'Cacheando...' : 'Cachear Todas'}
+            </Button>
+          </div>
+        </div>
+        
+        {imageCacheStatus && (
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="p-3 bg-secondary/50 rounded-lg text-center">
+              <p className="text-2xl font-bold text-foreground">{imageCacheStatus.total}</p>
+              <p className="text-xs text-muted-foreground">Total de Perfis</p>
+            </div>
+            <div className="p-3 bg-green-500/20 rounded-lg text-center">
+              <p className="text-2xl font-bold text-green-500">{imageCacheStatus.cached}</p>
+              <p className="text-xs text-muted-foreground">Já Cacheadas</p>
+            </div>
+            <div className="p-3 bg-yellow-500/20 rounded-lg text-center">
+              <p className="text-2xl font-bold text-yellow-500">{imageCacheStatus.remaining}</p>
+              <p className="text-xs text-muted-foreground">Pendentes</p>
+            </div>
+          </div>
+        )}
+        
+        {isCachingImages && cacheProgress && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span>Progresso: {cacheProgress.processed} / {cacheProgress.total}</span>
+              <span className="text-green-500">✅ {cacheProgress.cached} cacheadas</span>
+              {cacheProgress.failed > 0 && (
+                <span className="text-red-500">❌ {cacheProgress.failed} falhas</span>
+              )}
+            </div>
+            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
+                style={{ width: `${(cacheProgress.processed / Math.max(1, cacheProgress.total)) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {imageCacheStatus?.remaining === 0 && !isCachingImages && (
+          <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            <span className="text-green-500 text-sm font-medium">Todas as imagens estão cacheadas no storage!</span>
+          </div>
+        )}
+      </div>
+
           <div className="flex gap-2">
             <input
               type="text"
