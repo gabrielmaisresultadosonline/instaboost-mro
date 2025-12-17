@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import logoMro from '@/assets/logo-mro.png';
 
 const ZapMRO = () => {
@@ -12,15 +13,50 @@ const ZapMRO = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [daysRemaining, setDaysRemaining] = useState<number>(365);
+  
+  // Email registration state
+  const [email, setEmail] = useState('');
+  const [isEmailLocked, setIsEmailLocked] = useState(false);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check if already authenticated
+  // Check if already authenticated and load user data
   useEffect(() => {
-    const zapAuth = localStorage.getItem('zapmro_authenticated');
-    if (zapAuth === 'true') {
-      setIsAuthenticated(true);
-    }
+    const checkAuth = async () => {
+      const zapAuth = localStorage.getItem('zapmro_authenticated');
+      const zapUsername = localStorage.getItem('zapmro_username');
+      const zapPassword = localStorage.getItem('zapmro_password');
+      
+      if (zapAuth === 'true' && zapUsername) {
+        setIsAuthenticated(true);
+        setUsername(zapUsername);
+        if (zapPassword) setPassword(zapPassword);
+        
+        // Load user data from cloud
+        try {
+          const { data } = await supabase.functions.invoke('zapmro-user-storage', {
+            body: { action: 'load', username: zapUsername }
+          });
+          
+          if (data?.success && data?.data) {
+            if (data.data.email) {
+              setEmail(data.data.email);
+              setIsEmailLocked(data.data.email_locked || false);
+            }
+            if (data.data.days_remaining) {
+              setDaysRemaining(data.data.days_remaining);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+      }
+    };
+    
+    checkAuth();
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -51,7 +87,31 @@ const ZapMRO = () => {
       if (data.authenticated) {
         localStorage.setItem('zapmro_authenticated', 'true');
         localStorage.setItem('zapmro_username', username);
+        localStorage.setItem('zapmro_password', password);
+        
+        const userDays = data.daysRemaining || 365;
+        setDaysRemaining(userDays);
         setIsAuthenticated(true);
+        
+        // Save/update user in database
+        try {
+          const { data: userData } = await supabase.functions.invoke('zapmro-user-storage', {
+            body: { 
+              action: 'save', 
+              username,
+              daysRemaining: userDays
+            }
+          });
+          
+          if (userData?.success && userData?.data) {
+            if (userData.data.email) {
+              setEmail(userData.data.email);
+              setIsEmailLocked(userData.data.email_locked || false);
+            }
+          }
+        } catch (error) {
+          console.error('Error saving user:', error);
+        }
         
         toast({
           title: 'Acesso VIP concedido! 👑',
@@ -76,12 +136,87 @@ const ZapMRO = () => {
     }
   };
 
+  const handleSaveEmail = async () => {
+    if (!email.trim()) {
+      toast({
+        title: 'Digite seu e-mail',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: 'E-mail inválido',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSavingEmail(true);
+
+    try {
+      // Save email to database
+      const { data: saveResult } = await supabase.functions.invoke('zapmro-user-storage', {
+        body: { 
+          action: 'save', 
+          username,
+          email,
+          daysRemaining
+        }
+      });
+
+      if (saveResult?.success) {
+        setIsEmailLocked(true);
+        
+        // Send welcome email
+        await supabase.functions.invoke('zapmro-user-storage', {
+          body: { 
+            action: 'send_welcome_email', 
+            username,
+            email,
+            password,
+            daysRemaining
+          }
+        });
+        
+        toast({
+          title: 'E-mail cadastrado! 📧',
+          description: 'Enviamos um e-mail de boas-vindas com seus dados de acesso'
+        });
+      } else {
+        toast({
+          title: 'Erro ao salvar',
+          description: 'Tente novamente',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error saving email:', error);
+      toast({
+        title: 'Erro ao salvar e-mail',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSavingEmail(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('zapmro_authenticated');
     localStorage.removeItem('zapmro_username');
+    localStorage.removeItem('zapmro_password');
     setIsAuthenticated(false);
     setUsername('');
     setPassword('');
+    setEmail('');
+    setIsEmailLocked(false);
+  };
+
+  const formatDays = (days: number) => {
+    if (days > 365) return 'Vitalício';
+    return `${days} dias`;
   };
 
   // Authenticated member area
@@ -109,9 +244,15 @@ const ZapMRO = () => {
             
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-800/50 border border-green-600/30">
+                <Clock className="w-4 h-4 text-green-400" />
+                <span className="text-sm text-green-300">
+                  {formatDays(daysRemaining)}
+                </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-800/50 border border-green-600/30">
                 <CheckCircle className="w-4 h-4 text-green-400" />
                 <span className="text-sm text-green-300">
-                  {localStorage.getItem('zapmro_username')}
+                  {username}
                 </span>
               </div>
               <Button
@@ -128,6 +269,60 @@ const ZapMRO = () => {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 py-8">
+          {/* Email Registration Section */}
+          {!isEmailLocked && (
+            <div className="bg-green-800/40 backdrop-blur-sm border border-green-600/30 rounded-2xl p-6 mb-8">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-white mb-2">Cadastre seu E-mail</h3>
+                  <p className="text-green-300/70 mb-4">
+                    Cadastre seu e-mail para receber seus dados de acesso e novidades
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-green-900/50 border-green-600/50 text-white placeholder:text-green-400/50 focus:border-green-400"
+                    />
+                    <Button
+                      onClick={handleSaveEmail}
+                      disabled={isSavingEmail}
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white whitespace-nowrap"
+                    >
+                      {isSavingEmail ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        'Cadastrar E-mail'
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-green-400/50 text-xs mt-2">
+                    Este e-mail será vinculado permanentemente à sua conta
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Email locked indicator */}
+          {isEmailLocked && email && (
+            <div className="bg-green-800/20 border border-green-600/20 rounded-xl p-4 mb-8 flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-400" />
+              <div>
+                <span className="text-green-300 text-sm">E-mail vinculado: </span>
+                <span className="text-white font-medium">{email}</span>
+              </div>
+            </div>
+          )}
+
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold mb-4">
               <MessageCircle className="w-4 h-4" />

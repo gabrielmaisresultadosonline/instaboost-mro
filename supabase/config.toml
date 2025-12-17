@@ -133,3 +133,6 @@ verify_jwt = false
 
 [functions.send-welcome-email]
 verify_jwt = false
+
+[functions.zapmro-user-storage]
+verify_jwt = false
