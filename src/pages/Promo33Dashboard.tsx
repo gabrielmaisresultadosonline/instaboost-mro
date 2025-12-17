@@ -873,7 +873,7 @@ export default function Promo33Dashboard() {
                             {profileAnalysis.positives.map((point, i) => (
                               <li key={i} className="text-gray-300 text-sm flex items-start gap-2">
                                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                {point}
+                                {typeof point === 'string' ? point : JSON.stringify(point)}
                               </li>
                             ))}
                           </ul>
@@ -889,7 +889,7 @@ export default function Promo33Dashboard() {
                             {profileAnalysis.negatives.map((point, i) => (
                               <li key={i} className="text-gray-300 text-sm flex items-start gap-2">
                                 <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                                {point}
+                                {typeof point === 'string' ? point : JSON.stringify(point)}
                               </li>
                             ))}
                           </ul>
