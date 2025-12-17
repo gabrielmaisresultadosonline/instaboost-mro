@@ -764,68 +764,66 @@ export default function AdminUsuario() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">Usuário *</Label>
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Usuário *</Label>
+                    <Input
+                      value={form.username}
+                      onChange={(e) => setForm({ ...form, username: e.target.value })}
+                      placeholder="usuario"
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Senha *</Label>
+                    <div className="flex gap-2">
                       <Input
-                        value={form.username}
-                        onChange={(e) => setForm({ ...form, username: e.target.value })}
-                        placeholder="usuario"
-                        className="bg-gray-700 border-gray-600 text-white"
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        placeholder="Senha"
+                        className="bg-gray-700 border-gray-600 text-white flex-1"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">Senha *</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={form.password}
-                          onChange={(e) => setForm({ ...form, password: e.target.value })}
-                          placeholder="Senha"
-                          className="bg-gray-700 border-gray-600 text-white"
-                        />
-                        <Button type="button" onClick={generatePassword} variant="outline" size="sm">
-                          Gerar
-                        </Button>
-                      </div>
+                      <Button type="button" onClick={generatePassword} variant="outline" size="sm">
+                        Gerar
+                      </Button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">Serviço</Label>
-                      <Select
-                        value={form.serviceType}
-                        onValueChange={(value: 'whatsapp' | 'instagram') =>
-                          setForm({ ...form, serviceType: value })
-                        }
-                      >
-                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="instagram">Instagram</SelectItem>
-                          <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">Tipo de Acesso</Label>
-                      <Select
-                        value={form.accessType}
-                        onValueChange={(value: 'annual' | 'lifetime' | 'monthly') =>
-                          setForm({ ...form, accessType: value })
-                        }
-                      >
-                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="monthly">Mensal (30d)</SelectItem>
-                          <SelectItem value="annual">Anual (365d)</SelectItem>
-                          <SelectItem value="lifetime">Vitalício</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Serviço</Label>
+                    <Select
+                      value={form.serviceType}
+                      onValueChange={(value: 'whatsapp' | 'instagram') =>
+                        setForm({ ...form, serviceType: value })
+                      }
+                    >
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="instagram">Instagram</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Tipo de Acesso</Label>
+                    <Select
+                      value={form.accessType}
+                      onValueChange={(value: 'annual' | 'lifetime' | 'monthly') =>
+                        setForm({ ...form, accessType: value })
+                      }
+                    >
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="monthly">Mensal (30d)</SelectItem>
+                        <SelectItem value="annual">Anual (365d)</SelectItem>
+                        <SelectItem value="lifetime">Vitalício</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
