@@ -317,8 +317,13 @@ export const saveProfileToDatabase = async (
 export const loginUser = async (
   username: string, 
   daysRemaining: number,
-  email?: string
+  email?: string,
+  password?: string
 ): Promise<UserSession> => {
+  // Store password temporarily for welcome email (only in sessionStorage for security)
+  if (password) {
+    sessionStorage.setItem('mro_temp_pwd', password);
+  }
   // CRITICAL: Preserve original username case for SquareCloud API compatibility
   // SquareCloud is case-sensitive (e.g., "123C" != "123c")
   const originalUsername = username;
@@ -478,6 +483,7 @@ export const logoutUser = async (): Promise<void> => {
 export const updateUserEmail = async (email: string): Promise<void> => {
   const session = getUserSession();
   if (session.user && !session.user.isEmailLocked) {
+    const isFirstTime = !session.user.email; // Check if this is first time setting email
     session.user.email = email;
     session.user.isEmailLocked = true; // Lock email after first set
     saveUserSession(session);
@@ -490,6 +496,27 @@ export const updateUserEmail = async (email: string): Promise<void> => {
       session.cloudData?.profileSessions || [],
       session.cloudData?.archivedProfiles || []
     );
+
+    // Send welcome email if this is the first time registering email
+    if (isFirstTime) {
+      const tempPassword = sessionStorage.getItem('mro_temp_pwd');
+      if (tempPassword) {
+        try {
+          console.log('[userStorage] 📧 Sending welcome email to', email);
+          await supabase.functions.invoke('send-welcome-email', {
+            body: {
+              email: email,
+              username: session.user.username,
+              password: tempPassword,
+              daysRemaining: session.user.daysRemaining
+            }
+          });
+          console.log('[userStorage] ✅ Welcome email sent successfully');
+        } catch (error) {
+          console.error('[userStorage] Error sending welcome email:', error);
+        }
+      }
+    }
   }
 };
 

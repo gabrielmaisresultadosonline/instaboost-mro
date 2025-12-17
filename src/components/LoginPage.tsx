@@ -49,7 +49,8 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
         // Login now loads profiles from database AND cloud
         let session;
         try {
-          session = await loginUser(username.trim(), result.daysRemaining || 365);
+          // Pass password to loginUser for welcome email functionality
+          session = await loginUser(username.trim(), result.daysRemaining || 365, undefined, password.trim());
         } catch (loginError) {
           console.error('[LoginPage] Error in loginUser:', loginError);
           // Continue with minimal session
