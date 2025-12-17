@@ -6,31 +6,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Extract original URL if wrapped in weserv proxy
-const unwrapImageUrl = (url: string): string => {
+// Get the best URL to fetch (prefer weserv if already wrapped, otherwise wrap it)
+const getBestFetchUrl = (url: string): string => {
   if (!url) return '';
-  try {
-    const u = new URL(url);
-    if (u.hostname === 'images.weserv.nl') {
-      const original = u.searchParams.get('url');
-      return original ? decodeURIComponent(original) : url;
-    }
-  } catch {
-    // ignore
+  
+  // If already a weserv URL, use it directly
+  if (url.includes('images.weserv.nl')) {
+    return url;
   }
-  return url;
+  
+  // If it's an Instagram CDN URL, wrap with weserv
+  if (url.includes('instagram') || url.includes('cdninstagram') || url.includes('fbcdn')) {
+    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=200&h=200&fit=cover&output=jpg&q=85`;
+  }
+  
+  // For other URLs, try direct fetch first
+  if (url.startsWith('http')) {
+    return url;
+  }
+  
+  return '';
 };
 
-// Build weserv proxy URL
-const toWeservUrl = (url: string): string => {
-  const original = unwrapImageUrl(url || '');
-  if (!original) return '';
-  if (original.includes('images.weserv.nl')) return original;
-  if (!original.startsWith('http')) return '';
-  return `https://images.weserv.nl/?url=${encodeURIComponent(original)}&w=200&h=200&fit=cover&output=jpg&q=85`;
-};
-
-// Download and cache a single profile image
+// Download and cache a single profile image with timeout
 const cacheProfileImage = async (
   supabase: any,
   supabaseUrl: string,
@@ -55,40 +53,74 @@ const cacheProfileImage = async (
     return { username, success: true, url: publicUrl };
   }
 
-  const fetchUrl = toWeservUrl(sourceUrl);
+  const fetchUrl = getBestFetchUrl(sourceUrl);
   if (!fetchUrl) {
+    console.log(`[cache] ${username}: Invalid URL - ${sourceUrl}`);
     return { username, success: false, error: 'Invalid source URL' };
   }
 
   try {
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
     const resp = await fetch(fetchUrl, {
+      signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
-        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Referer': 'https://www.instagram.com/',
       },
     });
 
+    clearTimeout(timeoutId);
+
     if (!resp.ok) {
-      return { username, success: false, error: `Fetch failed: ${resp.status}` };
+      console.log(`[cache] ${username}: HTTP ${resp.status} - ${fetchUrl.substring(0, 80)}...`);
+      return { username, success: false, error: `HTTP ${resp.status}` };
     }
 
-    const blob = await resp.blob();
     const contentType = resp.headers.get('content-type') || 'image/jpeg';
+    
+    // Verify it's actually an image
+    if (!contentType.includes('image')) {
+      console.log(`[cache] ${username}: Not an image - ${contentType}`);
+      return { username, success: false, error: 'Not an image' };
+    }
+
+    const arrayBuffer = await resp.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+
+    // Verify we got actual image data (at least 1KB)
+    if (uint8Array.length < 1024) {
+      console.log(`[cache] ${username}: Image too small - ${uint8Array.length} bytes`);
+      return { username, success: false, error: 'Image too small' };
+    }
 
     const { error: uploadError } = await supabase.storage
       .from('profile-cache')
-      .upload(objectPath, blob, {
-        contentType,
+      .upload(objectPath, uint8Array, {
+        contentType: 'image/jpeg',
         upsert: true,
       });
 
     if (uploadError) {
+      console.log(`[cache] ${username}: Upload error - ${uploadError.message}`);
       return { username, success: false, error: uploadError.message };
     }
 
+    console.log(`[cache] ${username}: ✓ Cached successfully`);
     return { username, success: true, url: publicUrl };
   } catch (e) {
-    return { username, success: false, error: String(e) };
+    const errorMsg = e instanceof Error ? e.message : String(e);
+    if (errorMsg.includes('abort')) {
+      console.log(`[cache] ${username}: Timeout`);
+      return { username, success: false, error: 'Timeout' };
+    }
+    console.log(`[cache] ${username}: Error - ${errorMsg}`);
+    return { username, success: false, error: errorMsg };
   }
 };
 
@@ -137,7 +169,7 @@ const processBatch = async (
 
   await Promise.all(workers);
 
-  return { cached, failed, skipped, errors: errors.slice(0, 20) }; // Limit errors to first 20
+  return { cached, failed, skipped, errors: errors.slice(0, 30) };
 };
 
 serve(async (req) => {
@@ -151,7 +183,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { action, batchSize = 100, offset = 0 } = body;
+    const { action, batchSize = 50, offset = 0 } = body;
 
     // Load admin sync data
     const filePath = 'admin/sync-data.json';
@@ -196,7 +228,6 @@ serve(async (req) => {
     const total = allProfiles.length;
 
     if (action === 'status') {
-      // Just return status without processing
       // Count cached images
       const { data: cachedFiles } = await supabase.storage
         .from('profile-cache')
@@ -216,12 +247,19 @@ serve(async (req) => {
     }
 
     if (action === 'process-batch') {
-      // Process a specific batch
       const batch = allProfiles.slice(offset, offset + batchSize);
       
       console.log(`[cache-profile-images] Processing batch: offset=${offset}, size=${batch.length}, total=${total}`);
+      
+      // Log first few URLs for debugging
+      if (offset === 0 && batch.length > 0) {
+        console.log(`[cache-profile-images] Sample URLs:`);
+        batch.slice(0, 3).forEach(p => {
+          console.log(`  ${p.username}: ${p.imageUrl.substring(0, 100)}...`);
+        });
+      }
 
-      const result = await processBatch(supabase, supabaseUrl, batch, 8);
+      const result = await processBatch(supabase, supabaseUrl, batch, 6);
 
       const hasMore = offset + batchSize < total;
 
@@ -240,10 +278,9 @@ serve(async (req) => {
     }
 
     if (action === 'process-all') {
-      // Start background processing of ALL profiles
       const processAllInBackground = async () => {
         let currentOffset = 0;
-        const batchSz = 50;
+        const batchSz = 30; // Smaller batches for better stability
         let totalCached = 0;
         let totalFailed = 0;
 
@@ -251,26 +288,24 @@ serve(async (req) => {
           const batch = allProfiles.slice(currentOffset, currentOffset + batchSz);
           console.log(`[cache-profile-images] Background: processing ${currentOffset}-${currentOffset + batch.length} of ${total}`);
           
-          const result = await processBatch(supabase, supabaseUrl, batch, 6);
+          const result = await processBatch(supabase, supabaseUrl, batch, 4);
           totalCached += result.cached;
           totalFailed += result.failed;
           
           currentOffset += batchSz;
           
-          // Small delay between batches to avoid rate limiting
-          await new Promise(r => setTimeout(r, 500));
+          // Delay between batches
+          await new Promise(r => setTimeout(r, 1000));
         }
 
         console.log(`[cache-profile-images] Background complete: cached=${totalCached}, failed=${totalFailed}`);
       };
 
-      // Use EdgeRuntime.waitUntil for background processing
       // @ts-ignore
       if (typeof EdgeRuntime !== 'undefined') {
         // @ts-ignore
         EdgeRuntime.waitUntil(processAllInBackground());
       } else {
-        // Fallback for non-Edge environments
         processAllInBackground();
       }
 
@@ -284,7 +319,6 @@ serve(async (req) => {
       );
     }
 
-    // Default: return info
     return new Response(
       JSON.stringify({
         success: true,
