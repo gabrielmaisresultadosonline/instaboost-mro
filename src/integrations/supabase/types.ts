@@ -356,6 +356,39 @@ export type Database = {
         }
         Relationships: []
       }
+      zapmro_users: {
+        Row: {
+          created_at: string
+          days_remaining: number | null
+          email: string | null
+          email_locked: boolean | null
+          id: string
+          last_access: string | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          days_remaining?: number | null
+          email?: string | null
+          email_locked?: boolean | null
+          id?: string
+          last_access?: string | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          days_remaining?: number | null
+          email?: string | null
+          email_locked?: boolean | null
+          id?: string
+          last_access?: string | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
