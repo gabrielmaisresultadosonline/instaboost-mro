@@ -54,6 +54,7 @@ export type Database = {
           days_access: number | null
           email_sent: boolean | null
           email_sent_at: string | null
+          expiration_date: string | null
           id: string
           notes: string | null
           password: string
@@ -70,6 +71,7 @@ export type Database = {
           days_access?: number | null
           email_sent?: boolean | null
           email_sent_at?: string | null
+          expiration_date?: string | null
           id?: string
           notes?: string | null
           password: string
@@ -86,6 +88,7 @@ export type Database = {
           days_access?: number | null
           email_sent?: boolean | null
           email_sent_at?: string | null
+          expiration_date?: string | null
           id?: string
           notes?: string | null
           password?: string

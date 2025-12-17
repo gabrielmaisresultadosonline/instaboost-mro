@@ -49,6 +49,7 @@ interface CreatedAccess {
   email_sent_at: string | null;
   notes: string | null;
   created_at: string;
+  expiration_date: string | null;
 }
 
 interface AdminSettings {
@@ -825,7 +826,7 @@ export default function AdminUsuario() {
                               {access.email_sent && <Badge className="bg-purple-600 text-xs">Email✓</Badge>}
                             </div>
                             <div className="text-white text-sm">{access.customer_email}</div>
-                            <div className="flex items-center gap-3 text-xs text-gray-400">
+                            <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
                               <span>
                                 <code className="text-yellow-400">{access.username}</code>
                               </span>
@@ -838,6 +839,11 @@ export default function AdminUsuario() {
                                 </button>
                               </span>
                               <span>{new Date(access.created_at).toLocaleDateString('pt-BR')}</span>
+                              {access.expiration_date && access.access_type !== 'lifetime' && (
+                                <span className="text-orange-400">
+                                  até {new Date(access.expiration_date).toLocaleDateString('pt-BR')}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="flex gap-1 shrink-0">
