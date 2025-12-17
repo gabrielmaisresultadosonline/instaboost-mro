@@ -60,12 +60,26 @@ serve(async (req) => {
 
     const rawProfiles: any[] = Array.isArray(adminData?.profiles) ? adminData.profiles : [];
 
-    // Map profiles using the SAME fields as admin panel (profilePicUrl directly)
+    // Map profiles - proxy all images through weserv.nl for consistent cross-browser loading
+    const proxyImage = (url: string): string => {
+      if (!url) return '';
+      // Already proxied
+      if (url.includes('images.weserv.nl')) return url;
+      // Proxy Instagram CDN and other URLs through weserv.nl for CORS/caching
+      try {
+        const encoded = encodeURIComponent(url);
+        return `https://images.weserv.nl/?url=${encoded}&w=200&h=200&fit=cover&output=webp`;
+      } catch {
+        return url;
+      }
+    };
+
     const mapped = rawProfiles
       .map((p) => {
         const username = String(p?.username ?? '').trim();
-        // Use profilePicUrl directly - same as admin panel shows
-        const pic = String(p?.profilePicUrl ?? '').trim();
+        const originalPic = String(p?.profilePicUrl ?? '').trim();
+        // Always proxy through weserv.nl for reliable cross-browser loading
+        const pic = proxyImage(originalPic);
 
         return {
           username,
