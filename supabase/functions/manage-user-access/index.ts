@@ -48,7 +48,6 @@ async function sendAccessEmail(
     const memberAreaUrl = 'https://maisresultadosonline.com.br';
 
     const whatsappGroupLink = 'https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi';
-    const logoUrl = 'https://maisresultadosonline.com.br/logo-mro-email.png';
 
     const htmlContent = `<!DOCTYPE html>
 <html>
@@ -60,8 +59,8 @@ async function sendAccessEmail(
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
 <tr>
 <td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
-<img src="${logoUrl}" alt="MRO" style="max-width:120px;height:auto;margin-bottom:10px;">
-<h1 style="color:#000;margin:10px 0 0 0;font-size:24px;">Acesso Liberado!</h1>
+<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
+<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Acesso Liberado!</h1>
 </td>
 </tr>
 <tr>
@@ -115,9 +114,15 @@ async function sendAccessEmail(
 </td>
 </tr>
 <tr>
-<td style="padding:10px 0;">
+<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#25D366;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span>
-<span style="color:#333;font-weight:bold;">Pronto! Tudo certo, aproveite!</span>
+<span style="color:#333;font-weight:bold;">Pronto! Tudo certo!</span>
+</td>
+</tr>
+<tr>
+<td style="padding:10px 0;">
+<span style="display:inline-block;background:#000;color:#FFD700;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">🎬</span>
+<span style="color:#333;font-weight:bold;">Agora acesse os vídeos e utilize à vontade!</span>
 </td>
 </tr>
 </table>
@@ -135,8 +140,7 @@ async function sendAccessEmail(
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:25px;">
 <tr>
 <td align="center">
-<a href="${whatsappGroupLink}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 30px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;">
-<img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;">GRUPO DE AVISOS</a>
+<a href="${whatsappGroupLink}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 30px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;">📱 GRUPO DE AVISOS WHATSAPP</a>
 </td>
 </tr>
 </table>
