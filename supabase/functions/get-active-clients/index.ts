@@ -60,28 +60,20 @@ serve(async (req) => {
 
     const rawProfiles: any[] = Array.isArray(adminData?.profiles) ? adminData.profiles : [];
 
-    // Check which images are already cached in Supabase Storage
-    const { data: cachedFiles } = await supabase.storage
-      .from('profile-cache')
-      .list('profiles', { limit: 2000 });
-    
-    const cachedUsernames = new Set(
-      (cachedFiles || []).map(f => f.name.replace('.jpg', '').toLowerCase())
-    );
-
-    // Build cached URL or fallback to weserv.nl proxy
+    // Always prefer the cached image in Storage (profile-cache/profiles/{username}.jpg).
+    // This avoids needing to list the entire bucket (which may be paginated/limited) and
+    // guarantees consistent loading after the admin pre-cache job is complete.
     const getImageUrl = (username: string, originalUrl: string): string => {
-      const lowerUsername = username.toLowerCase();
-      
-      // If cached in Supabase Storage, use that (most reliable)
-      if (cachedUsernames.has(lowerUsername)) {
-        return `${supabaseUrl}/storage/v1/object/public/profile-cache/profiles/${lowerUsername}.jpg`;
+      const lowerUsername = String(username || '').trim().toLowerCase();
+
+      if (lowerUsername) {
+        return `${supabaseUrl}/storage/v1/object/public/profile-cache/profiles/${encodeURIComponent(lowerUsername)}.jpg`;
       }
-      
-      // Fallback to weserv.nl proxy
+
+      // Fallback (should be rare): proxy original URL
       if (!originalUrl) return '';
       if (originalUrl.includes('images.weserv.nl')) return originalUrl;
-      
+
       try {
         const encoded = encodeURIComponent(originalUrl);
         return `https://images.weserv.nl/?url=${encoded}&w=200&h=200&fit=cover&output=webp`;
