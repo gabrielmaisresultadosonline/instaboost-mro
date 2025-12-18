@@ -500,6 +500,8 @@ const ManualScraper = () => {
     const num = typeof raw === 'number' ? raw : Number(raw);
     return Number.isFinite(num) ? num : 0;
   };
+
+  return (
     <div className="space-y-6">
       <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-6">
@@ -595,6 +597,7 @@ const ManualScraper = () => {
                   onChange={(e) => setProfileData(prev => ({ ...prev, followers: formatNumber(e.target.value) }))}
                   className="bg-secondary/50"
                 />
+                {profileData.followers > 0 && (
                   <span className="text-xs text-muted-foreground">
                     = {profileData.followers.toLocaleString()}
                   </span>
@@ -613,6 +616,7 @@ const ManualScraper = () => {
                   onChange={(e) => setProfileData(prev => ({ ...prev, following: formatNumber(e.target.value) }))}
                   className="bg-secondary/50"
                 />
+              </div>
 
               {/* Posts Count */}
               <div className="space-y-2">
@@ -626,6 +630,7 @@ const ManualScraper = () => {
                   onChange={(e) => setProfileData(prev => ({ ...prev, postsCount: formatNumber(e.target.value) }))}
                   className="bg-secondary/50"
                 />
+              </div>
 
               {/* Profile Picture */}
               <div className="space-y-2 md:col-span-2">
