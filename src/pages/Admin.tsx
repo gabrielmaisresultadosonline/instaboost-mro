@@ -28,10 +28,11 @@ import {
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket
+  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe
 } from 'lucide-react';
+import ManualScraper from '@/components/admin/ManualScraper';
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'tickets' | 'announcements' | 'pixel' | 'settings';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -187,6 +188,7 @@ const Admin = () => {
     { id: 'calls', label: 'Chamadas', icon: <Phone className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'sync', label: 'Sincronizar', icon: <CloudDownload className="w-4 h-4" /> },
+    { id: 'scraper', label: 'Scraper Manual', icon: <Globe className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
     { id: 'zapmro', label: 'ZAPMRO Ferramenta', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
@@ -877,6 +879,11 @@ const Admin = () => {
             }}
             platform="zapmro"
           />
+        )}
+
+        {/* Scraper Manual Tab */}
+        {activeTab === 'scraper' && (
+          <ManualScraper />
         )}
 
         {/* Announcements Tab */}
