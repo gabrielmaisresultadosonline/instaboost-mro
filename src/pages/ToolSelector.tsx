@@ -140,7 +140,7 @@ const ToolSelector = () => {
       </div>
 
       {/* Tool Cards - Sales Pages */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-6xl w-full z-10 px-2 md:px-4">
+      <div className="flex flex-wrap justify-center gap-4 md:gap-6 max-w-6xl w-full z-10 px-2 md:px-4">
         {tools.map((tool, index) => (
           <button
             key={tool.id}
@@ -148,7 +148,8 @@ const ToolSelector = () => {
             style={{ animationDelay: `${index * 100}ms` }}
             className={`
               relative group p-5 sm:p-6 md:p-8 rounded-2xl border-2 ${tool.borderColor}
-              bg-gray-800/50 backdrop-blur-sm w-full
+              bg-gray-800/50 backdrop-blur-sm 
+              w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-16px)] max-w-sm
               transition-all duration-500 ease-out animate-fade-in
               hover:scale-[1.02] md:hover:scale-105 hover:shadow-2xl hover:bg-gray-700/60
               hover:-translate-y-1 md:hover:-translate-y-2
