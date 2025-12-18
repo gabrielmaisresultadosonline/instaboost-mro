@@ -178,6 +178,78 @@ const ManualScraper = () => {
     }
   };
 
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  // Upload image to Supabase storage
+  const uploadImageToStorage = async (file: File, path: string): Promise<string | null> => {
+    try {
+      setIsUploadingImage(true);
+      
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${path}-${Date.now()}.${fileExt}`;
+      const filePath = `manual-scraper/${fileName}`;
+      
+      // Upload to profile-cache bucket (public)
+      const { data, error } = await supabase.storage
+        .from('profile-cache')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+      
+      if (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Erro no upload",
+          description: error.message,
+          variant: "destructive"
+        });
+        return null;
+      }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-cache')
+        .getPublicUrl(filePath);
+      
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload error:', error);
+      return null;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    toast({ title: "Enviando imagem..." });
+    const url = await uploadImageToStorage(file, `profile-${targetUsername}`);
+    
+    if (url) {
+      setProfileData(prev => ({ ...prev, profilePicture: url }));
+      toast({ title: "Foto de perfil enviada!", description: "Imagem salva com sucesso" });
+    }
+  };
+
+  const handlePostImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    toast({ title: `Enviando imagem do post ${index + 1}...` });
+    const url = await uploadImageToStorage(file, `post-${targetUsername}-${index}`);
+    
+    if (url) {
+      const newPosts = [...profileData.posts];
+      newPosts[index] = { ...newPosts[index], imageUrl: url };
+      setProfileData(prev => ({ ...prev, posts: newPosts }));
+      toast({ title: "Imagem do post enviada!" });
+    }
+  };
+
   // Extract username from URL or clean input
   const cleanUsername = (input: string): string => {
     let clean = input.trim();
@@ -521,17 +593,64 @@ const ManualScraper = () => {
               </div>
 
               {/* Profile Picture */}
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label className="flex items-center gap-2">
                   <ImageIcon className="w-4 h-4" />
-                  URL da Foto de Perfil
+                  Foto de Perfil
                 </Label>
-                <Input
-                  placeholder="Clique com botão direito na foto → Copiar endereço da imagem"
-                  value={profileData.profilePicture}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, profilePicture: e.target.value }))}
-                  className="bg-secondary/50"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Cole a URL da imagem aqui"
+                    value={profileData.profilePicture}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, profilePicture: e.target.value }))}
+                    className="bg-secondary/50 flex-1"
+                  />
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={isUploadingImage}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      disabled={isUploadingImage}
+                      className="whitespace-nowrap"
+                    >
+                      {isUploadingImage ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <ImageIcon className="w-4 h-4 mr-1" />
+                          Upload
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                {profileData.profilePicture && (
+                  <div className="flex items-center gap-3 p-2 bg-secondary/30 rounded">
+                    <img 
+                      src={profileData.profilePicture} 
+                      alt="Preview" 
+                      className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    <span className="text-xs text-green-500 truncate flex-1">{profileData.profilePicture.substring(0, 50)}...</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setProfileData(prev => ({ ...prev, profilePicture: '' }))}
+                      className="text-red-500 h-8"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* External URL */}
@@ -601,26 +720,87 @@ const ManualScraper = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {profileData.posts.map((post, index) => (
-                  <div key={index} className="p-3 bg-secondary/30 rounded-lg space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <ImageIcon className="w-4 h-4" />
-                      Post {index + 1}
+                  <div key={index} className="p-3 bg-secondary/30 rounded-lg space-y-2 border border-border/30">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4" />
+                        Post {index + 1}
+                      </span>
+                      {post.imageUrl && (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      )}
                     </div>
-                    <Input
-                      placeholder="URL da imagem do post"
-                      value={post.imageUrl}
-                      onChange={(e) => {
-                        const newPosts = [...profileData.posts];
-                        newPosts[index] = { ...newPosts[index], imageUrl: e.target.value };
-                        setProfileData(prev => ({ ...prev, posts: newPosts }));
-                      }}
-                      className="bg-secondary/50 text-xs"
-                    />
+                    
+                    {/* Image URL or Upload */}
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Cole URL da imagem"
+                        value={post.imageUrl}
+                        onChange={(e) => {
+                          const newPosts = [...profileData.posts];
+                          newPosts[index] = { ...newPosts[index], imageUrl: e.target.value };
+                          setProfileData(prev => ({ ...prev, posts: newPosts }));
+                        }}
+                        className="bg-secondary/50 text-xs"
+                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handlePostImageUpload(e, index)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          disabled={isUploadingImage}
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          disabled={isUploadingImage}
+                          className="w-full text-xs"
+                        >
+                          {isUploadingImage ? (
+                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                          ) : (
+                            <ImageIcon className="w-3 h-3 mr-1" />
+                          )}
+                          Upload Imagem
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Preview */}
+                    {post.imageUrl && (
+                      <div className="relative">
+                        <img 
+                          src={post.imageUrl} 
+                          alt={`Post ${index + 1}`}
+                          className="w-full h-24 object-cover rounded"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Erro';
+                          }}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newPosts = [...profileData.posts];
+                            newPosts[index] = { ...newPosts[index], imageUrl: '' };
+                            setProfileData(prev => ({ ...prev, posts: newPosts }));
+                          }}
+                          className="absolute top-1 right-1 h-6 w-6 p-0 bg-black/50 hover:bg-red-500"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Likes and Comments */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="text-xs">Likes</Label>
                         <Input
                           placeholder="0"
+                          value={post.likes > 0 ? post.likes.toString() : ''}
                           onChange={(e) => {
                             const newPosts = [...profileData.posts];
                             newPosts[index] = { ...newPosts[index], likes: formatNumber(e.target.value) };
@@ -633,6 +813,7 @@ const ManualScraper = () => {
                         <Label className="text-xs">Comentários</Label>
                         <Input
                           placeholder="0"
+                          value={post.comments > 0 ? post.comments.toString() : ''}
                           onChange={(e) => {
                             const newPosts = [...profileData.posts];
                             newPosts[index] = { ...newPosts[index], comments: formatNumber(e.target.value) };
@@ -642,16 +823,6 @@ const ManualScraper = () => {
                         />
                       </div>
                     </div>
-                    {post.imageUrl && (
-                      <img 
-                        src={post.imageUrl} 
-                        alt={`Post ${index + 1}`}
-                        className="w-full h-24 object-cover rounded"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    )}
                   </div>
                 ))}
               </div>
