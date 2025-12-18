@@ -65,7 +65,7 @@ const ToolSelector = () => {
     },
     {
       id: 'membros',
-      name: 'Área de Membros',
+      name: 'Crie sua Área de Membros',
       subtitle: 'SEM TAXA + RECEBIMENTO NA HORA',
       description: 'Crie a sua agora mesmo!',
       icon: CreditCard,
