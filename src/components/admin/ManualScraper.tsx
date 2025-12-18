@@ -252,6 +252,31 @@ const ManualScraper = () => {
     }
   };
 
+  // Handle paste from clipboard (Ctrl+V)
+  const handlePasteImage = async (e: React.ClipboardEvent<HTMLDivElement>, index: number) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        toast({ title: `Colando imagem do post ${index + 1}...` });
+        const url = await uploadImageToStorage(file, `post-${targetUsername}-${index}-paste`);
+        
+        if (url) {
+          const newPosts = [...profileData.posts];
+          newPosts[index] = { ...newPosts[index], imageUrl: url };
+          setProfileData(prev => ({ ...prev, posts: newPosts }));
+          toast({ title: "Imagem colada com sucesso!" });
+        }
+        break;
+      }
+    }
+  };
+
   // Extract username from URL or clean input
   const cleanUsername = (input: string): string => {
     let clean = input.trim();
@@ -723,7 +748,12 @@ const ManualScraper = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {profileData.posts.map((post, index) => (
-                  <div key={index} className="p-3 bg-secondary/30 rounded-lg space-y-2 border border-border/30">
+                  <div 
+                    key={index} 
+                    className="p-3 bg-secondary/30 rounded-lg space-y-2 border border-border/30 focus-within:ring-2 focus-within:ring-pink-500"
+                    onPaste={(e) => handlePasteImage(e, index)}
+                    tabIndex={0}
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium flex items-center gap-2">
                         <ImageIcon className="w-4 h-4" />
@@ -732,6 +762,18 @@ const ManualScraper = () => {
                       {(post.imageUrl || post.postUrl) && (
                         <CheckCircle className="w-4 h-4 text-green-500" />
                       )}
+                    </div>
+
+                    {/* Paste Zone */}
+                    <div 
+                      className="border-2 border-dashed border-pink-500/50 rounded-lg p-3 text-center cursor-pointer hover:bg-pink-500/10 transition-colors"
+                      onClick={() => {
+                        // Focus this element to enable paste
+                        (document.activeElement as HTMLElement)?.blur();
+                      }}
+                    >
+                      <p className="text-xs text-pink-400 font-medium">📋 Clique aqui e cole (Ctrl+V)</p>
+                      <p className="text-xs text-muted-foreground">Print do post</p>
                     </div>
                     
                     {/* Instagram Post URL */}
