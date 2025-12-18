@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Target, Users, TrendingUp, Zap, Heart, UserPlus, Eye, Play, ArrowRight, Shield, Headphones } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import logoMetaMro from "@/assets/logo-meta-mro.png";
+import publicoAlvoImg from "@/assets/publico-alvo.jpg";
 
 const MelhorarPublico = () => {
   const trackLead = async (planName: string) => {
@@ -74,6 +76,15 @@ const MelhorarPublico = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-yellow-500/10 via-transparent to-transparent" />
         
         <div className="max-w-6xl mx-auto relative z-10">
+          {/* Logo Meta + MRO */}
+          <div className="flex justify-center mb-6">
+            <img 
+              src={logoMetaMro} 
+              alt="Meta + MRO Inteligência" 
+              className="h-20 md:h-28 object-contain"
+            />
+          </div>
+
           {/* Title */}
           <div className="text-center mb-8 md:mb-12">
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4 leading-tight">
@@ -195,8 +206,49 @@ const MelhorarPublico = () => {
         </div>
       </section>
 
-      {/* Results Section */}
+      {/* Público Alvo Section */}
       <section className="py-16 px-4 bg-gray-900/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Image */}
+            <div className="order-2 md:order-1">
+              <img 
+                src={publicoAlvoImg} 
+                alt="Tá difícil acertar seu público-alvo? Resolva agora mesmo!" 
+                className="w-full max-w-md mx-auto rounded-2xl shadow-2xl shadow-yellow-500/20 border-2 border-yellow-500/30"
+              />
+            </div>
+
+            {/* Content */}
+            <div className="order-1 md:order-2 text-center md:text-left">
+              <h2 className="text-2xl md:text-4xl font-bold mb-6">
+                Agora com a <span className="text-yellow-400">MRO Inteligente</span> você vai{" "}
+                <span className="text-yellow-400">acertar o público de verdade!</span>
+              </h2>
+              <p className="text-lg text-gray-300 mb-6">
+                Chega de gastar dinheiro com anúncios que não convertem. 
+                Com o engajamento orgânico da MRO, você vai criar uma base sólida de público real e interessado no seu negócio.
+              </p>
+              <div className="space-y-3">
+                {[
+                  "Público real e engajado",
+                  "Leads qualificados e mais baratos",
+                  "Conexão direta com o algoritmo do Meta",
+                  "Menos gasto, mais resultado"
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 justify-center md:justify-start">
+                    <CheckCircle2 className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                    <span className="text-gray-200">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Results Section */}
+      <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-2xl md:text-4xl font-bold mb-8">
             O que a ferramenta <span className="text-yellow-400">traz para você</span>
