@@ -492,7 +492,14 @@ const ManualScraper = () => {
     return parseInt(clean) || 0;
   };
 
-  return (
+
+
+  const getTotalPostsCount = (profile: any): number => {
+    const raw = profile?.postsCount ?? profile?.posts ?? profile?.postCount ?? 0;
+    if (Array.isArray(raw)) return raw.length;
+    const num = typeof raw === 'number' ? raw : Number(raw);
+    return Number.isFinite(num) ? num : 0;
+  };
     <div className="space-y-6">
       <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-6">
@@ -584,10 +591,10 @@ const ManualScraper = () => {
                 </Label>
                 <Input
                   placeholder="Ex: 10.5K ou 1500"
+                  value={profileData.followers > 0 ? String(profileData.followers) : ''}
                   onChange={(e) => setProfileData(prev => ({ ...prev, followers: formatNumber(e.target.value) }))}
                   className="bg-secondary/50"
                 />
-                {profileData.followers > 0 && (
                   <span className="text-xs text-muted-foreground">
                     = {profileData.followers.toLocaleString()}
                   </span>
@@ -602,10 +609,10 @@ const ManualScraper = () => {
                 </Label>
                 <Input
                   placeholder="Ex: 500"
+                  value={profileData.following > 0 ? String(profileData.following) : ''}
                   onChange={(e) => setProfileData(prev => ({ ...prev, following: formatNumber(e.target.value) }))}
                   className="bg-secondary/50"
                 />
-              </div>
 
               {/* Posts Count */}
               <div className="space-y-2">
@@ -615,10 +622,10 @@ const ManualScraper = () => {
                 </Label>
                 <Input
                   placeholder="Número de posts"
+                  value={profileData.postsCount > 0 ? String(profileData.postsCount) : ''}
                   onChange={(e) => setProfileData(prev => ({ ...prev, postsCount: formatNumber(e.target.value) }))}
                   className="bg-secondary/50"
                 />
-              </div>
 
               {/* Profile Picture */}
               <div className="space-y-2 md:col-span-2">
@@ -1034,7 +1041,8 @@ const ManualScraper = () => {
                     </p>
                     <div className="flex gap-3 text-xs text-muted-foreground mt-1">
                       <span>{(profile.followers || 0).toLocaleString()} seg</span>
-                      <span>{(profile.recentPosts?.length || profile.posts?.length || 0)} posts</span>
+                      <span>{getTotalPostsCount(profile).toLocaleString('pt-BR')} posts</span>
+                      <span>{Math.min((profile.recentPosts?.length || profile.posts?.length || 0), 6)}/6 salvos</span>
                       {profile.scrapedAt && (
                         <span className="text-green-500">
                           {new Date(profile.scrapedAt).toLocaleDateString('pt-BR')}
