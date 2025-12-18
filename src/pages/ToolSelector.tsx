@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Brain, Target } from 'lucide-react';
+import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target } from 'lucide-react';
 import logoMro from '@/assets/logo-mro.png';
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 
@@ -74,18 +74,6 @@ const ToolSelector = () => {
       borderColor: 'border-blue-500/30',
       badge: 'NOVO',
       salesPath: 'https://acessar.click/'
-    },
-    {
-      id: 'ia-mro',
-      name: 'I.A MRO',
-      subtitle: 'INTELIGÊNCIA ARTIFICIAL',
-      description: 'IA exclusiva para seu Instagram crescer',
-      icon: Brain,
-      color: 'from-violet-500 to-purple-600',
-      hoverColor: 'hover:from-violet-600 hover:to-purple-700',
-      borderColor: 'border-violet-500/30',
-      badge: 'I.A',
-      salesPath: '/promo33'
     },
     {
       id: 'melhorar-publico',
