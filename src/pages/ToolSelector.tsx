@@ -109,49 +109,49 @@ const ToolSelector = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center py-8 px-4 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-60 md:w-80 h-60 md:h-80 bg-pink-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-60 md:w-80 h-60 md:h-80 bg-green-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 md:w-96 h-72 md:h-96 bg-amber-500/5 rounded-full blur-3xl" />
       </div>
 
       {/* Logo */}
-      <div className="mb-8 z-10">
+      <div className="mb-6 md:mb-8 z-10">
         <img 
           src={logoMro} 
           alt="MRO" 
-          className="h-20 md:h-24 object-contain drop-shadow-2xl"
+          className="h-16 sm:h-20 md:h-24 object-contain drop-shadow-2xl"
         />
       </div>
 
       {/* Title */}
-      <div className="text-center mb-12 z-10">
-        <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
+      <div className="text-center mb-8 md:mb-12 z-10 px-2">
+        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">
           Sua <span className="text-amber-400 animate-pulse">Solução Inteligente</span>
         </h1>
-        <p className="text-xl md:text-2xl text-gray-300 mb-2 font-medium">
+        <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-2 font-medium">
           Soluções que <span className="text-green-400">cabem no seu bolso</span>!
         </p>
-        <p className="text-gray-400 text-base md:text-lg max-w-xl mx-auto">
+        <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-xl mx-auto">
           Ajudamos empreendedores a crescer com tecnologia acessível e resultados reais
         </p>
       </div>
 
       {/* Tool Cards - Sales Pages */}
-      <div className="flex flex-wrap justify-center gap-6 max-w-6xl w-full z-10 px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-6xl w-full z-10 px-2 md:px-4">
         {tools.map((tool, index) => (
           <button
             key={tool.id}
             onClick={() => handleSalesClick(tool.salesPath, tool.name)}
             style={{ animationDelay: `${index * 100}ms` }}
             className={`
-              relative group p-6 md:p-8 rounded-2xl border-2 ${tool.borderColor}
-              bg-gray-800/50 backdrop-blur-sm w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] max-w-sm
+              relative group p-5 sm:p-6 md:p-8 rounded-2xl border-2 ${tool.borderColor}
+              bg-gray-800/50 backdrop-blur-sm w-full
               transition-all duration-500 ease-out animate-fade-in
-              hover:scale-105 hover:shadow-2xl hover:bg-gray-700/60
-              hover:-translate-y-2
+              hover:scale-[1.02] md:hover:scale-105 hover:shadow-2xl hover:bg-gray-700/60
+              hover:-translate-y-1 md:hover:-translate-y-2
             `}
           >
             {/* Gradient overlay on hover */}
@@ -162,7 +162,7 @@ const ToolSelector = () => {
 
             {/* Badge */}
             <div className={`
-              absolute -top-3 right-4 px-4 py-1 rounded-full text-xs font-bold
+              absolute -top-3 right-4 px-3 md:px-4 py-1 rounded-full text-[10px] md:text-xs font-bold
               bg-gradient-to-r ${tool.color} text-white shadow-lg
             `}>
               {tool.badge}
@@ -170,50 +170,50 @@ const ToolSelector = () => {
 
             {/* Icon */}
             <div className={`
-              w-16 h-16 rounded-xl bg-gradient-to-r ${tool.color}
-              flex items-center justify-center mb-4
+              w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-r ${tool.color}
+              flex items-center justify-center mb-3 md:mb-4
               group-hover:scale-110 transition-transform duration-300
               shadow-lg
             `}>
-              <tool.icon className="w-8 h-8 text-white" />
+              <tool.icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
             </div>
 
-            {/* Subtitle - NÃO GASTE COM ANÚNCIOS */}
-            <p className="text-amber-400 font-bold text-sm uppercase tracking-wide mb-2 text-left">
+            {/* Subtitle */}
+            <p className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wide mb-1 md:mb-2 text-left">
               {tool.subtitle}
             </p>
 
             {/* Content */}
-            <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-left">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1 md:mb-2 text-left">
               {tool.name}
             </h2>
-            <p className="text-gray-400 text-left text-sm md:text-base">
+            <p className="text-gray-400 text-left text-xs sm:text-sm md:text-base">
               {tool.description}
             </p>
 
             {/* Arrow indicator */}
-            <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-              <Sparkles className="w-6 h-6 text-amber-400" />
+            <div className="absolute bottom-4 md:bottom-6 right-4 md:right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-amber-400" />
             </div>
           </button>
         ))}
       </div>
 
-      {/* Área de Membros Button */}
+      {/* Área de Membros Cliente Button */}
       <button
         onClick={() => setShowMembersModal(true)}
-        className="mt-8 z-10 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-lg transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3"
+        className="mt-6 md:mt-8 z-10 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-base sm:text-lg transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-2 sm:gap-3"
       >
-        <Users className="w-6 h-6" />
-        Área de Membros
+        <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+        Área de Membros Cliente
       </button>
 
       {/* Footer with business info */}
-      <div className="mt-12 text-center z-10 space-y-1">
-        <p className="text-gray-400 font-semibold">Mais Resultados Online</p>
-        <p className="text-gray-500 text-sm">Gabriel Fernandes da Silva</p>
-        <p className="text-gray-500 text-sm">CNPJ: 54.840.738/0001-96</p>
-        <p className="text-gray-600 text-xs mt-2">© 2024. Todos os direitos reservados.</p>
+      <div className="mt-8 md:mt-12 text-center z-10 space-y-1 px-4">
+        <p className="text-gray-400 font-semibold text-sm md:text-base">Mais Resultados Online</p>
+        <p className="text-gray-500 text-xs md:text-sm">Gabriel Fernandes da Silva</p>
+        <p className="text-gray-500 text-xs md:text-sm">CNPJ: 54.840.738/0001-96</p>
+        <p className="text-gray-600 text-[10px] md:text-xs mt-2">© 2024. Todos os direitos reservados.</p>
       </div>
 
       {/* Modal for Members Area Selection */}
