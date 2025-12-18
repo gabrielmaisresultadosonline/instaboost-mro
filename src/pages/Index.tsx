@@ -57,12 +57,21 @@ const checkManuallyScrapedProfile = async (username: string): Promise<any | null
     const manualProfile = data.data.profiles.find(
       (p: any) => p.username?.toLowerCase() === normalizedUsername && p.manuallyScraped
     );
-    
-    if (manualProfile && (manualProfile.followers > 0 || manualProfile.recentPosts?.length > 0)) {
+
+    const hasUsefulManualData = !!manualProfile && (
+      (manualProfile.followers || 0) > 0 ||
+      (manualProfile.postsCount || 0) > 0 ||
+      (manualProfile.bio && manualProfile.bio.trim().length > 0) ||
+      (manualProfile.profilePicture && manualProfile.profilePicture.length > 10) ||
+      (manualProfile.recentPosts?.length || 0) > 0 ||
+      (manualProfile.posts?.length || 0) > 0
+    );
+
+    if (hasUsefulManualData) {
       console.log(`🔧 Encontrado perfil manualmente scrapeado para @${normalizedUsername}`);
       return manualProfile;
     }
-    
+
     return null;
   } catch (error) {
     console.error('Erro ao verificar perfil manualmente scrapeado:', error);
