@@ -354,7 +354,8 @@ const Index = () => {
                 avgComments: manualProfile.avgComments || 0,
                 recentPosts: (manualProfile.recentPosts || manualProfile.posts || []).map((p: any, idx: number) => ({
                   id: p.id || `manual-${idx}`,
-                  imageUrl: p.imageUrl || '',
+                  imageUrl: p.imageUrl || p.postUrl || '',
+                  postUrl: p.postUrl || '',
                   caption: p.caption || '',
                   likes: p.likes || 0,
                   comments: p.comments || 0,
