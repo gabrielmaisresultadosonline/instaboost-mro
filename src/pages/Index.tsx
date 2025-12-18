@@ -39,6 +39,36 @@ import {
   shouldFetchProfile,
   syncPersistentToSession
 } from '@/lib/persistentStorage';
+import { supabase } from '@/integrations/supabase/client';
+
+// Helper function to check for manually scraped profiles in admin storage
+const checkManuallyScrapedProfile = async (username: string): Promise<any | null> => {
+  try {
+    const normalizedUsername = username.toLowerCase().replace('@', '');
+    
+    const { data, error } = await supabase.functions.invoke('admin-data-storage', {
+      body: { action: 'load' }
+    });
+    
+    if (error || !data?.exists || !data?.data?.profiles) {
+      return null;
+    }
+    
+    const manualProfile = data.data.profiles.find(
+      (p: any) => p.username?.toLowerCase() === normalizedUsername && p.manuallyScraped
+    );
+    
+    if (manualProfile && (manualProfile.followers > 0 || manualProfile.recentPosts?.length > 0)) {
+      console.log(`🔧 Encontrado perfil manualmente scrapeado para @${normalizedUsername}`);
+      return manualProfile;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Erro ao verificar perfil manualmente scrapeado:', error);
+    return null;
+  }
+};
 
 const Index = () => {
   const [session, setSession] = useState<MROSession>(createEmptySession());
@@ -300,19 +330,83 @@ const Index = () => {
             addProfile(persistedData.profile, persistedData.analysis);
             cachedCount++;
           } else {
-            // Don't add profiles with zero data when API fails
-            console.warn(`❌ @${ig} não existe ou não tem dados reais - não adicionando`);
+            // CHECK FOR MANUALLY SCRAPED PROFILE BEFORE SHOWING RESTRICTION DIALOG
+            const manualProfile = await checkManuallyScrapedProfile(ig);
             
-            // Check if it's a restriction issue
-            if (profileResult.isRestricted) {
-              setAgeRestrictionProfile(ig);
-            } else if (profileResult.isPrivate) {
-              setPrivateProfile(ig);
+            if (manualProfile) {
+              console.log(`🔧 Usando dados do scraper manual para @${ig}`);
+              setLoadingMessage(`Usando dados manuais para @${ig}...`);
+              
+              // Convert manual profile to InstagramProfile format
+              const manualInstagramProfile: InstagramProfile = {
+                username: manualProfile.username,
+                fullName: manualProfile.fullName || manualProfile.username,
+                bio: manualProfile.bio || '',
+                profilePicUrl: manualProfile.profilePicture || `https://ui-avatars.com/api/?name=${manualProfile.username}&background=E1306C&color=fff`,
+                followers: manualProfile.followers || 0,
+                following: manualProfile.following || 0,
+                posts: manualProfile.postsCount || 0,
+                externalUrl: manualProfile.externalUrl || '',
+                isBusinessAccount: false,
+                category: '',
+                engagement: manualProfile.engagementRate || 0,
+                avgLikes: manualProfile.avgLikes || 0,
+                avgComments: manualProfile.avgComments || 0,
+                recentPosts: (manualProfile.recentPosts || manualProfile.posts || []).map((p: any, idx: number) => ({
+                  id: p.id || `manual-${idx}`,
+                  imageUrl: p.imageUrl || '',
+                  caption: p.caption || '',
+                  likes: p.likes || 0,
+                  comments: p.comments || 0,
+                  timestamp: p.timestamp || new Date().toISOString(),
+                  hasHumanFace: false
+                }))
+              };
+              
+              // Analyze with AI
+              const analysisResult = await analyzeProfile(manualInstagramProfile);
+              
+              if (analysisResult.success && analysisResult.analysis) {
+                addProfile(manualInstagramProfile, analysisResult.analysis);
+                await persistProfileData(loggedInUsername, ig, manualInstagramProfile, analysisResult.analysis);
+                loadedCount++;
+                
+                toast({
+                  title: `@${ig} carregado via scraper manual!`,
+                  description: 'Dados salvos pelo administrador'
+                });
+              } else {
+                // Use manual profile without analysis
+                const defaultAnalysis: ProfileAnalysis = {
+                  strengths: ['Perfil carregado via scraper manual'],
+                  weaknesses: ['Análise automática indisponível'],
+                  opportunities: ['Dados disponíveis para estratégias'],
+                  niche: 'Não identificado',
+                  audienceType: 'Não identificado',
+                  contentScore: 0,
+                  engagementScore: 0,
+                  profileScore: 0,
+                  recommendations: ['Gere estratégias para análise completa']
+                };
+                addProfile(manualInstagramProfile, defaultAnalysis);
+                await persistProfileData(loggedInUsername, ig, manualInstagramProfile, defaultAnalysis);
+                loadedCount++;
+              }
             } else {
-              // Generic restriction error
-              setAgeRestrictionProfile(ig);
+              // Don't add profiles with zero data when API fails
+              console.warn(`❌ @${ig} não existe ou não tem dados reais - não adicionando`);
+              
+              // Check if it's a restriction issue
+              if (profileResult.isRestricted) {
+                setAgeRestrictionProfile(ig);
+              } else if (profileResult.isPrivate) {
+                setPrivateProfile(ig);
+              } else {
+                // Generic restriction error
+                setAgeRestrictionProfile(ig);
+              }
+              setPendingSyncInstagrams(instagrams);
             }
-            setPendingSyncInstagrams(instagrams);
           }
         }
       } catch (error) {

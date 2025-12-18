@@ -19,6 +19,13 @@ import {
   Search
 } from 'lucide-react';
 
+interface ScrapedPost {
+  imageUrl: string;
+  likes: number;
+  comments: number;
+  caption?: string;
+}
+
 interface ScrapedProfileData {
   username: string;
   fullName: string;
@@ -29,6 +36,7 @@ interface ScrapedProfileData {
   profilePicture: string;
   externalUrl: string;
   isVerified: boolean;
+  posts: ScrapedPost[];
 }
 
 const ManualScraper = () => {
@@ -45,7 +53,8 @@ const ManualScraper = () => {
     postsCount: 0,
     profilePicture: '',
     externalUrl: '',
-    isVerified: false
+    isVerified: false,
+    posts: Array(6).fill({ imageUrl: '', likes: 0, comments: 0, caption: '' })
   });
 
   // Extract username from URL or clean input
@@ -120,6 +129,26 @@ const ManualScraper = () => {
     setIsSaving(true);
 
     try {
+      // Calculate engagement from posts
+      const validPosts = profileData.posts.filter(p => p.likes > 0 || p.comments > 0);
+      const totalLikes = validPosts.reduce((sum, p) => sum + p.likes, 0);
+      const totalComments = validPosts.reduce((sum, p) => sum + p.comments, 0);
+      const avgLikes = validPosts.length > 0 ? totalLikes / validPosts.length : 0;
+      const avgComments = validPosts.length > 0 ? totalComments / validPosts.length : 0;
+      const engagement = profileData.followers > 0 ? ((avgLikes + avgComments) / profileData.followers) * 100 : 0;
+
+      // Format posts for storage
+      const formattedPosts = profileData.posts
+        .filter(p => p.imageUrl || p.likes > 0)
+        .map((p, index) => ({
+          id: `manual-${targetUsername}-${index}`,
+          imageUrl: p.imageUrl || '',
+          likes: p.likes || 0,
+          comments: p.comments || 0,
+          caption: p.caption || '',
+          timestamp: new Date().toISOString()
+        }));
+
       // Prepare profile data for caching
       const cacheData = {
         username: targetUsername,
@@ -132,8 +161,11 @@ const ManualScraper = () => {
         externalUrl: profileData.externalUrl || '',
         isVerified: profileData.isVerified || false,
         isPrivate: false,
-        engagementRate: 0,
-        posts: [],
+        engagementRate: engagement,
+        avgLikes,
+        avgComments,
+        recentPosts: formattedPosts,
+        posts: formattedPosts,
         manuallyScraped: true,
         scrapedAt: new Date().toISOString()
       };
@@ -201,7 +233,8 @@ const ManualScraper = () => {
         postsCount: 0,
         profilePicture: '',
         externalUrl: '',
-        isVerified: false
+        isVerified: false,
+        posts: Array(6).fill({ imageUrl: '', likes: 0, comments: 0, caption: '' })
       });
 
     } catch (error) {
@@ -428,6 +461,74 @@ const ManualScraper = () => {
                     Não
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            {/* Posts Section */}
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center gap-2 text-primary font-medium">
+                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">📸</span>
+                Últimas 6 Publicações (opcional)
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Copie os dados das últimas 6 publicações. Clique com botão direito na imagem → "Copiar endereço da imagem"
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {profileData.posts.map((post, index) => (
+                  <div key={index} className="p-3 bg-secondary/30 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <ImageIcon className="w-4 h-4" />
+                      Post {index + 1}
+                    </div>
+                    <Input
+                      placeholder="URL da imagem do post"
+                      value={post.imageUrl}
+                      onChange={(e) => {
+                        const newPosts = [...profileData.posts];
+                        newPosts[index] = { ...newPosts[index], imageUrl: e.target.value };
+                        setProfileData(prev => ({ ...prev, posts: newPosts }));
+                      }}
+                      className="bg-secondary/50 text-xs"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Likes</Label>
+                        <Input
+                          placeholder="0"
+                          onChange={(e) => {
+                            const newPosts = [...profileData.posts];
+                            newPosts[index] = { ...newPosts[index], likes: formatNumber(e.target.value) };
+                            setProfileData(prev => ({ ...prev, posts: newPosts }));
+                          }}
+                          className="bg-secondary/50 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Comentários</Label>
+                        <Input
+                          placeholder="0"
+                          onChange={(e) => {
+                            const newPosts = [...profileData.posts];
+                            newPosts[index] = { ...newPosts[index], comments: formatNumber(e.target.value) };
+                            setProfileData(prev => ({ ...prev, posts: newPosts }));
+                          }}
+                          className="bg-secondary/50 text-xs"
+                        />
+                      </div>
+                    </div>
+                    {post.imageUrl && (
+                      <img 
+                        src={post.imageUrl} 
+                        alt={`Post ${index + 1}`}
+                        className="w-full h-24 object-cover rounded"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
