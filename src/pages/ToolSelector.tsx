@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Brain } from 'lucide-react';
+import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Brain, Target } from 'lucide-react';
 import logoMro from '@/assets/logo-mro.png';
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 
@@ -86,6 +86,18 @@ const ToolSelector = () => {
       borderColor: 'border-violet-500/30',
       badge: 'I.A',
       salesPath: '/promo33'
+    },
+    {
+      id: 'melhorar-publico',
+      name: 'Acertando o Público',
+      subtitle: 'META + MRO',
+      description: 'Acerte o público certo em seus anúncios',
+      icon: Target,
+      color: 'from-blue-500 to-indigo-600',
+      hoverColor: 'hover:from-blue-600 hover:to-indigo-700',
+      borderColor: 'border-blue-500/30',
+      badge: 'PÚBLICO',
+      salesPath: '/melhorarpublico'
     }
   ];
 
