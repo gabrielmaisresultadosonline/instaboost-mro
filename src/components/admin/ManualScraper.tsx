@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,11 @@ import {
   Image as ImageIcon,
   Loader2,
   CheckCircle,
-  Search
+  Search,
+  Edit,
+  Trash2,
+  RefreshCw,
+  Database
 } from 'lucide-react';
 
 interface ScrapedPost {
@@ -39,11 +43,32 @@ interface ScrapedProfileData {
   posts: ScrapedPost[];
 }
 
+interface CachedProfile {
+  username: string;
+  fullName?: string;
+  bio?: string;
+  followers?: number;
+  following?: number;
+  postsCount?: number;
+  profilePicture?: string;
+  externalUrl?: string;
+  isVerified?: boolean;
+  manuallyScraped?: boolean;
+  scrapedAt?: string;
+  recentPosts?: any[];
+  posts?: any[];
+  avgLikes?: number;
+  avgComments?: number;
+}
+
 const ManualScraper = () => {
   const { toast } = useToast();
   const [username, setUsername] = useState('');
   const [targetUsername, setTargetUsername] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [cachedProfiles, setCachedProfiles] = useState<CachedProfile[]>([]);
+  const [editingProfile, setEditingProfile] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<ScrapedProfileData>({
     username: '',
     fullName: '',
@@ -56,6 +81,102 @@ const ManualScraper = () => {
     isVerified: false,
     posts: Array(6).fill({ imageUrl: '', likes: 0, comments: 0, caption: '' })
   });
+
+  // Load cached profiles on mount
+  useEffect(() => {
+    loadCachedProfiles();
+  }, []);
+
+  const loadCachedProfiles = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-data-storage', {
+        body: { action: 'load' }
+      });
+
+      if (!error && data?.exists && data?.data?.profiles) {
+        const manualProfiles = data.data.profiles.filter((p: any) => p.manuallyScraped);
+        setCachedProfiles(manualProfiles);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar perfis:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditProfile = (profile: CachedProfile) => {
+    setEditingProfile(profile.username);
+    setTargetUsername(profile.username);
+    setUsername(profile.username);
+    
+    // Convert posts to ScrapedPost format
+    const posts = (profile.recentPosts || profile.posts || []).slice(0, 6);
+    const formattedPosts: ScrapedPost[] = Array(6).fill({ imageUrl: '', likes: 0, comments: 0, caption: '' }).map((_, idx) => {
+      const p = posts[idx];
+      return p ? {
+        imageUrl: p.imageUrl || '',
+        likes: p.likes || 0,
+        comments: p.comments || 0,
+        caption: p.caption || ''
+      } : { imageUrl: '', likes: 0, comments: 0, caption: '' };
+    });
+
+    setProfileData({
+      username: profile.username,
+      fullName: profile.fullName || '',
+      bio: profile.bio || '',
+      followers: profile.followers || 0,
+      following: profile.following || 0,
+      postsCount: profile.postsCount || 0,
+      profilePicture: profile.profilePicture || '',
+      externalUrl: profile.externalUrl || '',
+      isVerified: profile.isVerified || false,
+      posts: formattedPosts
+    });
+
+    toast({
+      title: "Editando perfil",
+      description: `@${profile.username} carregado para edição`
+    });
+  };
+
+  const handleDeleteProfile = async (profileUsername: string) => {
+    if (!confirm(`Tem certeza que deseja excluir @${profileUsername}?`)) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-data-storage', {
+        body: { action: 'load' }
+      });
+
+      if (error || !data?.exists || !data?.data) {
+        throw new Error('Erro ao carregar dados');
+      }
+
+      const syncData = data.data;
+      syncData.profiles = syncData.profiles.filter(
+        (p: any) => p.username?.toLowerCase() !== profileUsername.toLowerCase()
+      );
+
+      await supabase.functions.invoke('admin-data-storage', {
+        body: { action: 'save', data: syncData }
+      });
+
+      toast({
+        title: "Perfil excluído",
+        description: `@${profileUsername} foi removido do cache`
+      });
+
+      loadCachedProfiles();
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o perfil",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Extract username from URL or clean input
   const cleanUsername = (input: string): string => {
@@ -236,6 +357,10 @@ const ManualScraper = () => {
         isVerified: false,
         posts: Array(6).fill({ imageUrl: '', likes: 0, comments: 0, caption: '' })
       });
+      setEditingProfile(null);
+      
+      // Refresh the cached profiles list
+      loadCachedProfiles();
 
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
@@ -588,6 +713,123 @@ const ManualScraper = () => {
                 </>
               )}
             </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Cached Profiles List */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold flex items-center gap-2">
+            <Database className="w-5 h-5" />
+            Perfis Cacheados Manualmente ({cachedProfiles.length})
+          </h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadCachedProfiles}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : cachedProfiles.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Nenhum perfil cacheado manualmente ainda.
+          </p>
+        ) : (
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            {cachedProfiles.map((profile) => (
+              <div 
+                key={profile.username}
+                className={`p-3 rounded-lg border transition-colors ${
+                  editingProfile === profile.username 
+                    ? 'border-primary bg-primary/10' 
+                    : 'border-border/50 bg-secondary/30 hover:bg-secondary/50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {profile.profilePicture ? (
+                    <img 
+                      src={profile.profilePicture} 
+                      alt={profile.username}
+                      className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${profile.username}&background=E1306C&color=fff`;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                      {profile.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">@{profile.username}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {profile.fullName || 'Sem nome'}
+                    </p>
+                    <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                      <span>{(profile.followers || 0).toLocaleString()} seg</span>
+                      <span>{(profile.recentPosts?.length || profile.posts?.length || 0)} posts</span>
+                      {profile.scrapedAt && (
+                        <span className="text-green-500">
+                          {new Date(profile.scrapedAt).toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditProfile(profile)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteProfile(profile.username)}
+                      className="h-8 w-8 p-0 hover:bg-red-500/20 hover:border-red-500"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Show posts count indicator */}
+                {(profile.recentPosts?.length || 0) > 0 && (
+                  <div className="mt-2 flex gap-1">
+                    {(profile.recentPosts || []).slice(0, 6).map((_, idx) => (
+                      <div 
+                        key={idx}
+                        className="w-2 h-2 rounded-full bg-green-500"
+                        title={`Post ${idx + 1} salvo`}
+                      />
+                    ))}
+                    {Array(6 - (profile.recentPosts?.length || 0)).fill(0).map((_, idx) => (
+                      <div 
+                        key={`empty-${idx}`}
+                        className="w-2 h-2 rounded-full bg-muted"
+                        title={`Post ${(profile.recentPosts?.length || 0) + idx + 1} não salvo`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
