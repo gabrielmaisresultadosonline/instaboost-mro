@@ -25,6 +25,7 @@ import {
 
 interface ScrapedPost {
   imageUrl: string;
+  postUrl?: string; // Instagram post/reel URL
   likes: number;
   comments: number;
   caption?: string;
@@ -79,7 +80,7 @@ const ManualScraper = () => {
     profilePicture: '',
     externalUrl: '',
     isVerified: false,
-    posts: Array(6).fill({ imageUrl: '', likes: 0, comments: 0, caption: '' })
+    posts: Array(6).fill({ imageUrl: '', postUrl: '', likes: 0, comments: 0, caption: '' })
   });
 
   // Load cached profiles on mount
@@ -112,14 +113,15 @@ const ManualScraper = () => {
     
     // Convert posts to ScrapedPost format
     const posts = (profile.recentPosts || profile.posts || []).slice(0, 6);
-    const formattedPosts: ScrapedPost[] = Array(6).fill({ imageUrl: '', likes: 0, comments: 0, caption: '' }).map((_, idx) => {
+    const formattedPosts: ScrapedPost[] = Array(6).fill({ imageUrl: '', postUrl: '', likes: 0, comments: 0, caption: '' }).map((_, idx) => {
       const p = posts[idx];
       return p ? {
         imageUrl: p.imageUrl || '',
+        postUrl: p.postUrl || '',
         likes: p.likes || 0,
         comments: p.comments || 0,
         caption: p.caption || ''
-      } : { imageUrl: '', likes: 0, comments: 0, caption: '' };
+      } : { imageUrl: '', postUrl: '', likes: 0, comments: 0, caption: '' };
     });
 
     setProfileData({
@@ -332,10 +334,11 @@ const ManualScraper = () => {
 
       // Format posts for storage
       const formattedPosts = profileData.posts
-        .filter(p => p.imageUrl || p.likes > 0)
+        .filter(p => p.imageUrl || p.postUrl || p.likes > 0)
         .map((p, index) => ({
           id: `manual-${targetUsername}-${index}`,
           imageUrl: p.imageUrl || '',
+          postUrl: p.postUrl || '',
           likes: p.likes || 0,
           comments: p.comments || 0,
           caption: p.caption || '',
@@ -427,7 +430,7 @@ const ManualScraper = () => {
         profilePicture: '',
         externalUrl: '',
         isVerified: false,
-        posts: Array(6).fill({ imageUrl: '', likes: 0, comments: 0, caption: '' })
+        posts: Array(6).fill({ imageUrl: '', postUrl: '', likes: 0, comments: 0, caption: '' })
       });
       setEditingProfile(null);
       
@@ -726,50 +729,88 @@ const ManualScraper = () => {
                         <ImageIcon className="w-4 h-4" />
                         Post {index + 1}
                       </span>
-                      {post.imageUrl && (
+                      {(post.imageUrl || post.postUrl) && (
                         <CheckCircle className="w-4 h-4 text-green-500" />
                       )}
                     </div>
                     
-                    {/* Image URL or Upload */}
-                    <div className="space-y-2">
+                    {/* Instagram Post URL */}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-pink-400">Link do Post/Reel</Label>
                       <Input
-                        placeholder="Cole URL da imagem"
-                        value={post.imageUrl}
+                        placeholder="https://instagram.com/.../p/... ou /reel/..."
+                        value={post.postUrl || ''}
                         onChange={(e) => {
                           const newPosts = [...profileData.posts];
-                          newPosts[index] = { ...newPosts[index], imageUrl: e.target.value };
+                          newPosts[index] = { ...newPosts[index], postUrl: e.target.value };
                           setProfileData(prev => ({ ...prev, posts: newPosts }));
                         }}
                         className="bg-secondary/50 text-xs"
                       />
+                    </div>
+
+                    {/* Instagram Embed Preview */}
+                    {post.postUrl && post.postUrl.includes('instagram.com') && (
                       <div className="relative">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handlePostImageUpload(e, index)}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          disabled={isUploadingImage}
+                        <iframe
+                          src={`${post.postUrl}embed/`}
+                          className="w-full h-[200px] rounded border-0"
+                          scrolling="no"
+                          allowTransparency={true}
+                          allow="encrypted-media"
                         />
-                        <Button 
-                          type="button" 
-                          variant="outline" 
+                        <Button
+                          variant="ghost"
                           size="sm"
-                          disabled={isUploadingImage}
-                          className="w-full text-xs"
+                          onClick={() => window.open(post.postUrl, '_blank')}
+                          className="absolute top-1 right-1 h-6 w-6 p-0 bg-black/50 hover:bg-pink-500"
                         >
-                          {isUploadingImage ? (
-                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                          ) : (
-                            <ImageIcon className="w-3 h-3 mr-1" />
-                          )}
-                          Upload Imagem
+                          <ExternalLink className="w-3 h-3" />
                         </Button>
+                      </div>
+                    )}
+                    
+                    {/* Image URL or Upload (alternative) */}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Ou URL da imagem (opcional)</Label>
+                      <div className="flex gap-1">
+                        <Input
+                          placeholder="URL da imagem"
+                          value={post.imageUrl}
+                          onChange={(e) => {
+                            const newPosts = [...profileData.posts];
+                            newPosts[index] = { ...newPosts[index], imageUrl: e.target.value };
+                            setProfileData(prev => ({ ...prev, posts: newPosts }));
+                          }}
+                          className="bg-secondary/50 text-xs flex-1"
+                        />
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handlePostImageUpload(e, index)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            disabled={isUploadingImage}
+                          />
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            disabled={isUploadingImage}
+                            className="h-9 px-2"
+                          >
+                            {isUploadingImage ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <ImageIcon className="w-3 h-3" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Preview */}
-                    {post.imageUrl && (
+                    {/* Image Preview (if no embed) */}
+                    {post.imageUrl && !post.postUrl && (
                       <div className="relative">
                         <img 
                           src={post.imageUrl} 
