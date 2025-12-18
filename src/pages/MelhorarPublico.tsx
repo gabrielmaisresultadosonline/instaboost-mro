@@ -20,22 +20,24 @@ const MelhorarPublico = () => {
   };
 
   const annualFeatures = [
-    "Acesso completo por 12 meses",
-    "Engajamento automático 24/7",
-    "200+ visitas diárias",
-    "Suporte via AnyDesk",
-    "Público mais acertivo",
-    "Leads mais baratos"
+    "Ferramenta completa para Instagram",
+    "Acesso a 4 contas simultâneas fixas",
+    "5 testes todo mês para testar em seus clientes/outras contas",
+    "Área de membros por 1 ano",
+    "Vídeos estratégicos passo a passo",
+    "Grupo VIP no WhatsApp",
+    "Suporte prioritário"
   ];
 
   const lifetimeFeatures = [
-    "Acesso vitalício completo",
-    "Engajamento automático 24/7",
-    "200+ visitas diárias",
-    "Suporte prioritário AnyDesk",
-    "Público super acertivo",
-    "Leads muito mais baratos",
-    "Atualizações para sempre"
+    "Ferramenta completa para Instagram",
+    "Acesso a 6 contas simultâneas fixas",
+    "5 testes todo mês para testar em seus clientes/outras contas",
+    "Área de membros VITALÍCIA",
+    "Vídeos estratégicos passo a passo",
+    "Grupo VIP no WhatsApp",
+    "Suporte prioritário",
+    "Atualizações gratuitas para sempre"
   ];
 
   const toolFeatures = [
