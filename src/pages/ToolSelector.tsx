@@ -40,6 +40,18 @@ const ToolSelector = () => {
       salesPath: '/instagram-nova'
     },
     {
+      id: 'melhorar-publico',
+      name: 'Acertando o Público',
+      subtitle: 'META + MRO',
+      description: 'Acerte o público certo em seus anúncios',
+      icon: Target,
+      color: 'from-blue-500 to-indigo-600',
+      hoverColor: 'hover:from-blue-600 hover:to-indigo-700',
+      borderColor: 'border-blue-500/30',
+      badge: 'PÚBLICO',
+      salesPath: '/melhorarpublico'
+    },
+    {
       id: 'whatsapp',
       name: 'Ferramenta para WhatsApp',
       subtitle: 'AUTOMAÇÃO INTELIGENTE',
@@ -74,18 +86,6 @@ const ToolSelector = () => {
       borderColor: 'border-blue-500/30',
       badge: 'NOVO',
       salesPath: 'https://acessar.click/'
-    },
-    {
-      id: 'melhorar-publico',
-      name: 'Acertando o Público',
-      subtitle: 'META + MRO',
-      description: 'Acerte o público certo em seus anúncios',
-      icon: Target,
-      color: 'from-blue-500 to-indigo-600',
-      hoverColor: 'hover:from-blue-600 hover:to-indigo-700',
-      borderColor: 'border-blue-500/30',
-      badge: 'PÚBLICO',
-      salesPath: '/melhorarpublico'
     }
   ];
 
