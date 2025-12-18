@@ -1,23 +1,15 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Target, Users, TrendingUp, Zap, Heart, UserPlus, Eye, Play, ArrowRight, Shield, Headphones } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import logoMetaMro from "@/assets/logo-meta-mro.png";
 import publicoAlvoImg from "@/assets/publico-alvo.jpg";
+import { trackPageView, trackInitiateCheckout } from "@/lib/facebookTracking";
 
 const MelhorarPublico = () => {
-  const trackLead = async (planName: string) => {
-    try {
-      await supabase.functions.invoke('meta-conversions', {
-        body: {
-          event_name: 'Lead',
-          event_source_url: window.location.href,
-          custom_data: { content_name: planName }
-        }
-      });
-    } catch (error) {
-      console.error('Error tracking lead:', error);
-    }
-  };
+  // Track PageView on page load
+  useEffect(() => {
+    trackPageView('MelhorarPublico');
+  }, []);
 
   const annualFeatures = [
     "Ferramenta completa para Instagram",
@@ -323,7 +315,7 @@ const MelhorarPublico = () => {
                 size="lg"
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl hover:scale-105 transition-transform"
                 onClick={() => {
-                  trackLead('MelhorarPublico - Plano Anual');
+                  trackInitiateCheckout('MelhorarPublico - Plano Anual', 300);
                   window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+ANUAL","price":30000,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigado', '_blank');
                 }}
               >
@@ -364,7 +356,7 @@ const MelhorarPublico = () => {
                 size="lg"
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold py-4 rounded-xl hover:scale-105 transition-transform"
                 onClick={() => {
-                  trackLead('MelhorarPublico - Plano Vitalício');
+                  trackInitiateCheckout('MelhorarPublico - Plano Vitalício', 797);
                   window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+VITALICIO","price":79700,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigado', '_blank');
                 }}
               >
