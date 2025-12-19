@@ -319,14 +319,16 @@ export const Dashboard = ({
               }}
             />
             
-            {/* Profile Screenshot Upload */}
+            {/* Profile Screenshot Upload - key força remount quando perfil muda */}
             <ProfileScreenshotUpload
+              key={`screenshot-${activeProfile.id}-${activeProfile.profile.username}`}
               username={activeProfile.profile.username}
               squarecloudUsername={getLoggedInUsername()}
               existingScreenshotUrl={activeProfile.screenshotUrl}
               uploadCount={activeProfile.screenshotUploadCount || 0}
               onScreenshotUploaded={(url) => {
-                // Update profile with screenshot URL and history
+                // CRITICAL: Update ONLY the active profile's screenshot
+                console.log(`📸 Saving screenshot for @${activeProfile.profile.username} (ID: ${activeProfile.id})`);
                 const session = getSession();
                 const profileIndex = session.profiles.findIndex(p => p.id === activeProfile.id);
                 if (profileIndex !== -1) {
@@ -339,10 +341,12 @@ export const Dashboard = ({
                     uploadedAt: new Date().toISOString()
                   });
                   
-                  // Update screenshot data
+                  // Update screenshot data ONLY for this specific profile
                   session.profiles[profileIndex].screenshotUrl = url;
                   session.profiles[profileIndex].screenshotUploadCount = (profile.screenshotUploadCount || 0) + 1;
                   session.profiles[profileIndex].screenshotHistory = history;
+                  
+                  console.log(`📸 Screenshot saved for @${profile.profile.username}:`, url);
                   
                   onSessionUpdate(session);
                   syncSessionToPersistent(getLoggedInUsername());
