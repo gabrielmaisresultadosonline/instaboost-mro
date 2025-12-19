@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +9,6 @@ const corsHeaders = {
 // Bright Data API configuration
 const BRIGHTDATA_API_URL = 'https://api.brightdata.com/datasets/v3/scrape';
 const INSTAGRAM_PROFILES_DATASET_ID = 'gd_l1vikfch901nx3by4';
-const INSTAGRAM_POSTS_DATASET_ID = 'gd_lyclm20il4r5helnj'; // Posts dataset
 
 interface InstagramProfile {
   username: string;
@@ -33,7 +33,103 @@ interface InstagramPost {
   hasHumanFace: boolean;
 }
 
-// Proxy de imagem para HTTPS
+// Cache image to Supabase storage and return public URL
+const cacheImageToStorage = async (
+  supabase: any,
+  supabaseUrl: string,
+  imageUrl: string,
+  bucket: string,
+  fileName: string
+): Promise<string | null> => {
+  if (!imageUrl) return null;
+
+  try {
+    // First try with weserv proxy (better for Instagram CDN)
+    let fetchUrl = imageUrl;
+    if (imageUrl.includes('instagram') || imageUrl.includes('cdninstagram') || imageUrl.includes('fbcdn')) {
+      fetchUrl = `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&w=400&h=400&fit=cover&output=jpg&q=90`;
+    }
+
+    console.log(`[cache] Fetching image: ${fetchUrl.substring(0, 80)}...`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    let response;
+    try {
+      response = await fetch(fetchUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'image/*',
+          'Referer': 'https://www.instagram.com/',
+        },
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      console.log(`[cache] HTTP ${response.status} for ${fetchUrl.substring(0, 50)}`);
+      
+      // Try direct URL as fallback
+      if (fetchUrl !== imageUrl && imageUrl.startsWith('http')) {
+        console.log(`[cache] Trying direct URL...`);
+        const directResp = await fetch(imageUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'image/*',
+          },
+        });
+        if (directResp.ok) {
+          response = directResp;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    }
+
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    if (!contentType.includes('image')) {
+      console.log(`[cache] Not an image: ${contentType}`);
+      return null;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+
+    if (bytes.length < 1024) {
+      console.log(`[cache] Image too small: ${bytes.length} bytes`);
+      return null;
+    }
+
+    // Delete existing file first (upsert doesn't always work)
+    await supabase.storage.from(bucket).remove([fileName]);
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, bytes, {
+        contentType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.log(`[cache] Upload error: ${uploadError.message}`);
+      return null;
+    }
+
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${fileName}`;
+    console.log(`[cache] ✓ Cached successfully: ${fileName}`);
+    return publicUrl;
+  } catch (e) {
+    console.log(`[cache] Error: ${e instanceof Error ? e.message : String(e)}`);
+    return null;
+  }
+};
+
+// Fallback proxy for images (when cache fails)
 const proxyImage = (url: string | undefined | null): string => {
   if (!url) return '';
   return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&q=80`;
@@ -43,6 +139,10 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
     const { username, existingPosts, onlyPosts } = await req.json();
@@ -305,23 +405,34 @@ serve(async (req) => {
         }, { headers: corsHeaders });
       }
 
+      // Get the original profile image URL
+      const originalProfilePic = profileData.profile_image_link || profileData.profile_pic_url || '';
+
       // Check if profile is private - we got data but it's limited
       if (detectedIsPrivate || profileData.is_private === true) {
         console.log(`🔒 Perfil @${cleanUsername} é privado - salvando dados parciais disponíveis`);
         
-        // For private profiles, we can still get basic info but no posts
-        const originalProfilePic = profileData.profile_image_link;
-        const proxiedProfilePic = originalProfilePic ? proxyImage(originalProfilePic) : '';
-        const followersCount = profileData.followers || 0;
+        // Cache profile picture to storage for private profiles too
+        let finalProfilePicUrl = '';
+        if (originalProfilePic) {
+          const cachedUrl = await cacheImageToStorage(
+            supabase,
+            supabaseUrl,
+            originalProfilePic,
+            'profile-cache',
+            `profiles/${cleanUsername}.jpg`
+          );
+          finalProfilePicUrl = cachedUrl || proxyImage(originalProfilePic);
+        }
         
         const profile: InstagramProfile = {
           username: profileData.account || profileData.profile_name || cleanUsername,
           fullName: profileData.profile_name || profileData.full_name || '',
           bio: profileData.biography || profileData.bio || '',
-          followers: followersCount,
+          followers: profileData.followers || 0,
           following: profileData.following || 0,
           posts: profileData.posts_count || profileData.post_count || 0,
-          profilePicUrl: proxiedProfilePic,
+          profilePicUrl: finalProfilePicUrl,
           isBusinessAccount: profileData.is_business_account || profileData.is_professional_account || false,
           category: profileData.category || '',
           externalUrl: profileData.external_url || '',
@@ -343,13 +454,32 @@ serve(async (req) => {
       }
 
       // Process successful profile data
-      const originalProfilePic = profileData.profile_image_link;
-      
       if (!onlyPosts && !originalProfilePic) {
         console.log('⚠️ No profile picture - loading anyway');
       }
       
-      const proxiedProfilePic = originalProfilePic ? proxyImage(originalProfilePic) : '';
+      // Cache profile picture to Supabase Storage
+      let finalProfilePicUrl = '';
+      if (originalProfilePic) {
+        console.log(`📸 Caching profile picture for ${cleanUsername}...`);
+        const cachedUrl = await cacheImageToStorage(
+          supabase,
+          supabaseUrl,
+          originalProfilePic,
+          'profile-cache',
+          `profiles/${cleanUsername}.jpg`
+        );
+        
+        if (cachedUrl) {
+          finalProfilePicUrl = cachedUrl;
+          console.log(`✓ Profile picture cached: ${finalProfilePicUrl}`);
+        } else {
+          // Fallback to proxy if cache fails
+          finalProfilePicUrl = proxyImage(originalProfilePic);
+          console.log(`⚠ Using proxy fallback for profile picture`);
+        }
+      }
+      
       const followersCount = profileData.followers || 0;
       
       if (!onlyPosts && followersCount === 0) {
@@ -420,13 +550,13 @@ serve(async (req) => {
         followers: followersCount,
         following: profileData.following || 0,
         posts: postsCount,
-        profilePicUrl: proxiedProfilePic,
+        profilePicUrl: finalProfilePicUrl,
         isBusinessAccount: profileData.is_business_account || profileData.is_professional_account || false,
         category: profileData.category || '',
         externalUrl: profileData.external_url || '',
       };
 
-      console.log('✅ Profile found via Bright Data:', profile.username, profile.followers, 'posts:', recentPosts.length);
+      console.log('✅ Profile found via Bright Data:', profile.username, profile.followers, 'posts:', recentPosts.length, 'hasPic:', !!finalProfilePicUrl);
 
       return Response.json({
         success: true,
