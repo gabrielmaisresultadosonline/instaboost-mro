@@ -16,9 +16,9 @@ import { TutorialButton } from './TutorialButton';
 import { TutorialOverlay } from './TutorialOverlay';
 import { TutorialList } from './TutorialList';
 import { useTutorial, dashboardTutorial, strategyTutorial } from '@/hooks/useTutorial';
-import { addStrategy, resetSession, getSession, updateProfile, updateAnalysis } from '@/lib/storage';
+import { addStrategy, resetSession, getSession, updateProfile, updateAnalysis, setCloudSyncCallback } from '@/lib/storage';
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
-import { getCurrentUser } from '@/lib/userStorage';
+import { getCurrentUser, saveUserToCloud } from '@/lib/userStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   RotateCcw, 
@@ -59,6 +59,12 @@ export const Dashboard = ({
 }: DashboardProps) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
+
+  // CRITICAL: Ensure cloud sync callback is set on mount
+  useEffect(() => {
+    setCloudSyncCallback(saveUserToCloud);
+    console.log('📊 [Dashboard] Cloud sync callback configured');
+  }, []);
 
   // Tutorial system
   const tutorial = useTutorial();
