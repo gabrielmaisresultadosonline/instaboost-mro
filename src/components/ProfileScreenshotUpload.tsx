@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera, Upload, X, Check, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Camera, Upload, X, Check, Loader2, Image as ImageIcon, Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,11 +25,31 @@ export const ProfileScreenshotUpload = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(existingScreenshotUrl || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle paste event for Ctrl+V
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
 
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          e.preventDefault();
+          const file = items[i].getAsFile();
+          if (file) {
+            processFile(file);
+          }
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, []);
+
+  const processFile = (file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Por favor, selecione uma imagem');
@@ -50,6 +70,14 @@ export const ProfileScreenshotUpload = ({
       setPreviewUrl(event.target?.result as string);
     };
     reader.readAsDataURL(file);
+    
+    toast.success('Imagem colada! Clique em "Enviar e Analisar"');
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
   };
 
   const handleUpload = async () => {
@@ -174,14 +202,19 @@ export const ProfileScreenshotUpload = ({
           </div>
         ) : (
           <div 
+            ref={dropZoneRef}
             className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => fileInputRef.current?.click()}
           >
             <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-2">
-              Clique para selecionar ou arraste uma imagem
+              Clique para selecionar ou <span className="text-primary font-medium">Ctrl+V para colar</span>
             </p>
-            <p className="text-xs text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Clipboard className="w-3 h-3" />
+              <span>Cole uma imagem da área de transferência</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
               PNG, JPG ou WEBP até 10MB
             </p>
           </div>
