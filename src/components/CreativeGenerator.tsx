@@ -634,14 +634,18 @@ export const CreativeGenerator = ({
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <img 
-                    src={profile.profilePicUrl} 
-                    alt="Profile" 
-                    className="w-12 h-12 rounded-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-                    }}
-                  />
+                  {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
+                    <img 
+                      src={profile.profilePicUrl} 
+                      alt="Profile" 
+                      className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                      <span className="text-lg font-bold text-primary">{profile.username?.charAt(0).toUpperCase()}</span>
+                    </div>
+                  )}
                   <span className="text-xs text-center">Logo do Instagram</span>
                 </button>
 

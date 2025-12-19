@@ -10,7 +10,7 @@ export const generateMockProfile = (username: string): InstagramProfile => {
     followers: Math.floor(Math.random() * 15000) + 500,
     following: Math.floor(Math.random() * 1500) + 200,
     posts: Math.floor(Math.random() * 300) + 20,
-    profilePicUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`,
+    profilePicUrl: '', // Sem foto simulada - apenas dados reais
     isBusinessAccount: Math.random() > 0.3,
     category: ['Empresa local', 'Marca', 'Criador de conteúdo', 'Loja'][Math.floor(Math.random() * 4)],
     externalUrl: `https://${cleanUsername}.com.br`,
@@ -19,7 +19,7 @@ export const generateMockProfile = (username: string): InstagramProfile => {
     avgComments: Math.floor(Math.random() * 30) + 5,
     recentPosts: Array.from({ length: 9 }, (_, i) => ({
       id: `post_${i}`,
-      imageUrl: `https://picsum.photos/seed/${cleanUsername}${i}/400/400`,
+      imageUrl: '', // Sem imagem simulada - apenas dados reais
       caption: `Post de exemplo ${i + 1} - Conteúdo de qualidade para engajar seu público! 🔥`,
       likes: Math.floor(Math.random() * 500) + 50,
       comments: Math.floor(Math.random() * 50) + 5,

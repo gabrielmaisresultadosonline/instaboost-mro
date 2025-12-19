@@ -348,10 +348,13 @@ ABSOLUTE RULES:
       console.log('Image generation failed:', await imageResponse.text());
     }
 
-    // Se a geração de imagem falhar, usa um placeholder
+    // Se a geração de imagem falhar, retorna erro (sem usar placeholder simulado)
     if (!imageUrl) {
-      imageUrl = `https://picsum.photos/seed/${Date.now()}/1080/1080`;
-      console.log('Using placeholder image');
+      console.log('Image generation failed - no fallback available');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Falha ao gerar imagem. Tente novamente.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
     }
 
     // Calculate expiration (1 month from now)

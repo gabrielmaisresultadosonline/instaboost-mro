@@ -328,14 +328,18 @@ const SnapshotGenerator = ({
                   checked={selectedProfiles.includes(p.username)}
                   onCheckedChange={() => toggleProfileSelection(p.username)}
                 />
-                <img 
-                  src={p.profilePicUrl}
-                  alt={p.username}
-                  className="w-6 h-6 rounded-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${p.username}`;
-                  }}
-                />
+                {p.profilePicUrl && !p.profilePicUrl.includes('dicebear') ? (
+                  <img 
+                    src={p.profilePicUrl}
+                    alt={p.username}
+                    className="w-6 h-6 rounded-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-xs font-bold text-primary">{p.username?.charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
                 <span className="text-sm truncate">@{p.username}</span>
               </label>
             ))}
@@ -442,14 +446,18 @@ const SnapshotGenerator = ({
         className="p-6 rounded-lg aspect-[9/16] max-w-[200px] mx-auto flex flex-col items-center justify-center text-center"
         style={getBackgroundStyle()}
       >
-        <img 
-          src={profile.profilePicUrl}
-          alt={profile.username}
-          className="w-16 h-16 rounded-full object-cover border-2 border-white/30 mb-3"
-          onError={(e) => {
-            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-          }}
-        />
+        {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
+          <img 
+            src={profile.profilePicUrl}
+            alt={profile.username}
+            className="w-16 h-16 rounded-full object-cover border-2 border-white/30 mb-3"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30 mb-3">
+            <span className="text-xl font-bold text-white">{profile.username?.charAt(0).toUpperCase()}</span>
+          </div>
+        )}
         <p className="text-lg font-display font-bold text-white drop-shadow-lg">CLIENTE ATIVO</p>
         <p className="text-sm font-semibold text-white mt-1 drop-shadow">@{profile.username}</p>
         <p className="text-xs text-white/80 mt-0.5">

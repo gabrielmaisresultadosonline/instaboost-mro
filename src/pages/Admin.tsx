@@ -418,14 +418,18 @@ const Admin = () => {
                       {/* Profile Header */}
                       <div className="glass-card p-6">
                         <div className="flex items-start gap-6">
-                          <img 
-                            src={profileData.profile.profilePicUrl}
-                            alt={profileData.profile.username}
-                            className="w-24 h-24 rounded-full object-cover border-2 border-primary"
-                            onError={(e) => {
-                              e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profileData.profile.username}`;
-                            }}
-                          />
+                          {profileData.profile.profilePicUrl && !profileData.profile.profilePicUrl.includes('dicebear') ? (
+                            <img 
+                              src={profileData.profile.profilePicUrl}
+                              alt={profileData.profile.username}
+                              className="w-24 h-24 rounded-full object-cover border-2 border-primary"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary">
+                              <span className="text-2xl font-bold text-primary">{profileData.profile.username?.charAt(0).toUpperCase()}</span>
+                            </div>
+                          )}
                           <div className="flex-1">
                             <h3 className="text-2xl font-display font-bold">@{profileData.profile.username}</h3>
                             <p className="text-muted-foreground">{profileData.profile.fullName}</p>
@@ -626,16 +630,22 @@ const Admin = () => {
                     {/* Profile Header */}
                     <div className="glass-card p-6">
                       <div className="flex items-start gap-6">
-                        <img 
-                          src={selectedSyncedProfile.profilePicUrl}
-                          alt={selectedSyncedProfile.username}
-                          className={`w-24 h-24 rounded-full object-cover border-2 ${
+                        {selectedSyncedProfile.profilePicUrl && !selectedSyncedProfile.profilePicUrl.includes('dicebear') ? (
+                          <img 
+                            src={selectedSyncedProfile.profilePicUrl}
+                            alt={selectedSyncedProfile.username}
+                            className={`w-24 h-24 rounded-full object-cover border-2 ${
+                              selectedSyncedProfile.isConnectedToDashboard ? 'border-green-500' : 'border-yellow-500'
+                            }`}
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className={`w-24 h-24 rounded-full bg-muted/50 flex items-center justify-center border-2 ${
                             selectedSyncedProfile.isConnectedToDashboard ? 'border-green-500' : 'border-yellow-500'
-                          }`}
-                          onError={(e) => {
-                            e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${selectedSyncedProfile.username}`;
-                          }}
-                        />
+                          }`}>
+                            <span className="text-2xl font-bold text-muted-foreground">{selectedSyncedProfile.username?.charAt(0).toUpperCase()}</span>
+                          </div>
+                        )}
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <h3 className="text-2xl font-display font-bold">@{selectedSyncedProfile.username}</h3>
@@ -765,17 +775,24 @@ const Admin = () => {
                             className="flex items-center gap-4 flex-1 cursor-pointer"
                             onClick={() => setSelectedSyncedProfile(profile)}
                           >
-                            <img 
-                              src={profile.profilePicUrl}
-                              alt={profile.username}
-                              className={`w-16 h-16 rounded-full object-cover border-2 ${
-                                profile.isBlocked ? 'border-red-500 grayscale' :
+                            {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
+                              <img 
+                                src={profile.profilePicUrl}
+                                alt={profile.username}
+                                className={`w-16 h-16 rounded-full object-cover border-2 ${
+                                  profile.isBlocked ? 'border-red-500 grayscale' :
+                                  profile.isConnectedToDashboard ? 'border-green-500' : 'border-border'
+                                }`}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                            ) : (
+                              <div className={`w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center border-2 ${
+                                profile.isBlocked ? 'border-red-500' :
                                 profile.isConnectedToDashboard ? 'border-green-500' : 'border-border'
-                              }`}
-                              onError={(e) => {
-                                e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-                              }}
-                            />
+                              }`}>
+                                <span className="text-xl font-bold text-muted-foreground">{profile.username?.charAt(0).toUpperCase()}</span>
+                              </div>
+                            )}
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <p className="font-semibold">@{profile.username}</p>

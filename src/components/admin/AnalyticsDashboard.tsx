@@ -409,14 +409,18 @@ const AnalyticsDashboard = ({ profiles, onProfilesUpdate }: AnalyticsDashboardPr
 
               {/* Profile Photo */}
               <div className="flex flex-col items-center mb-3">
-                <img
-                  src={profile.profilePicUrl}
-                  alt={profile.username}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-border mb-2"
-                  onError={(e) => {
-                    e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-                  }}
-                />
+                {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
+                  <img
+                    src={profile.profilePicUrl}
+                    alt={profile.username}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-border mb-2"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center border-2 border-border mb-2">
+                    <span className="text-xl font-bold text-muted-foreground">{profile.username?.charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
                 <p className="font-medium text-sm">@{profile.username}</p>
                 <p className="text-xs text-muted-foreground truncate max-w-full">
                   {profile.fullName || 'Sem nome'}

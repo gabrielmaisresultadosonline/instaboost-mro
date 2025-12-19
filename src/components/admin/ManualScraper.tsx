@@ -928,14 +928,12 @@ const ManualScraper = () => {
               <div className="mt-6 p-4 bg-secondary/30 rounded-lg">
                 <h3 className="text-sm font-medium mb-3">Preview dos dados:</h3>
                 <div className="flex items-center gap-4">
-                  {profileData.profilePicture ? (
+                  {profileData.profilePicture && !profileData.profilePicture.includes('ui-avatars') ? (
                     <img 
                       src={profileData.profilePicture} 
                       alt={targetUsername}
                       className="w-16 h-16 rounded-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${targetUsername}&background=E1306C&color=fff`;
-                      }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
@@ -1029,9 +1027,7 @@ const ManualScraper = () => {
                       src={profile.profilePicture} 
                       alt={profile.username}
                       className="w-12 h-12 rounded-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${profile.username}&background=E1306C&color=fff`;
-                      }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold">
