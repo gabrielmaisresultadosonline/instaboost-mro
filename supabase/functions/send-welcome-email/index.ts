@@ -12,6 +12,9 @@ const logStep = (step: string, details?: any) => {
   console.log(`[SEND-WELCOME-EMAIL] ${step}${detailsStr}`);
 };
 
+// Default WhatsApp group link (fallback)
+const DEFAULT_WHATSAPP_GROUP = 'https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi';
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -38,11 +41,35 @@ serve(async (req) => {
       );
     }
 
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Try to get admin settings for WhatsApp group link
+    let whatsappGroupLink = DEFAULT_WHATSAPP_GROUP;
+    try {
+      const { data, error } = await supabase.storage
+        .from('user-data')
+        .download('admin/user-access-settings.json');
+
+      if (!error && data) {
+        const text = await data.text();
+        const settings = JSON.parse(text);
+        if (settings.whatsappGroupLink) {
+          whatsappGroupLink = settings.whatsappGroupLink;
+          logStep("Using admin WhatsApp group link", { link: whatsappGroupLink });
+        }
+      }
+    } catch (e) {
+      logStep("Could not load admin settings, using default WhatsApp link");
+    }
+
     // Format days remaining display
     let daysDisplay = '';
     let daysStyle = '';
     if (daysRemaining && daysRemaining > 365) {
-      daysDisplay = '♾️ Vitalício';
+      daysDisplay = '♾️ Acesso Vitalício';
       daysStyle = 'background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);color:#000;';
     } else if (daysRemaining && daysRemaining > 0) {
       daysDisplay = `${daysRemaining} dias de acesso`;
@@ -62,7 +89,6 @@ serve(async (req) => {
     });
 
     const memberAreaUrl = 'https://maisresultadosonline.com.br';
-    const whatsappGroupLink = 'https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi';
 
     const htmlContent = `<!DOCTYPE html>
 <html>
@@ -75,14 +101,58 @@ serve(async (req) => {
 <tr>
 <td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Bem-vindo à Nova Área de Membros!</h1>
+<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Reconhecemos seu Primeiro Acesso!</h1>
 </td>
 </tr>
 <tr>
 <td style="padding:30px;background:#ffffff;">
-<p style="margin:0 0 20px 0;font-size:16px;">Olá! Seja muito bem-vindo à nossa <strong>nova área de membros</strong>!</p>
-<p style="margin:0 0 20px 0;">Seu acesso ao <strong>MRO Instagram</strong> está liberado e pronto para uso!</p>
 
+<!-- Welcome Message -->
+<div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:20px;border-radius:10px;margin-bottom:25px;text-align:center;">
+<p style="margin:0;color:#fff;font-size:18px;font-weight:bold;">✨ Parabéns! Você está no caminho certo!</p>
+</div>
+
+<p style="margin:0 0 20px 0;font-size:16px;">Olá!</p>
+
+<p style="margin:0 0 15px 0;font-size:16px;">Já reconheci seu <strong>primeiro acesso</strong> à nossa ferramenta <strong>MRO</strong>! 🚀</p>
+
+<p style="margin:0 0 15px 0;font-size:16px;">A partir de agora, você vai:</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px 0;">
+<tr>
+<td style="padding:8px 0;">
+<span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">📈</span>
+<span style="color:#333;">Aumentar suas <strong>visualizações</strong></span>
+</td>
+</tr>
+<tr>
+<td style="padding:8px 0;">
+<span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">💬</span>
+<span style="color:#333;">Melhorar seu <strong>engajamento</strong></span>
+</td>
+</tr>
+<tr>
+<td style="padding:8px 0;">
+<span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">👥</span>
+<span style="color:#333;">Conquistar mais <strong>seguidores</strong></span>
+</td>
+</tr>
+<tr>
+<td style="padding:8px 0;">
+<span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">🎯</span>
+<span style="color:#333;">E <strong>muito mais!</strong></span>
+</td>
+</tr>
+</table>
+
+<div style="background:#fff3cd;border-left:4px solid #ffc107;padding:15px;margin:20px 0;border-radius:0 8px 8px 0;">
+<p style="margin:0;color:#856404;font-size:15px;">
+<strong>💛 A MRO não é só uma ferramenta, é uma família de apoio!</strong><br>
+Você receberá sempre novidades em primeira mão dentro da nossa área.
+</p>
+</div>
+
+<!-- Access Credentials -->
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border:2px solid #FFD700;border-radius:10px;margin:20px 0;">
 <tr>
 <td style="padding:20px;">
@@ -123,7 +193,7 @@ ${daysDisplay ? `
 <tr><td style="height:10px;"></td></tr>
 <tr>
 <td style="padding:12px;${daysStyle}border-radius:5px;text-align:center;">
-<span style="font-size:14px;font-weight:bold;">⏱️ Tempo de Acesso: ${daysDisplay}</span>
+<span style="font-size:14px;font-weight:bold;">⏱️ ${daysDisplay}</span>
 </td>
 </tr>
 ` : ''}
@@ -132,39 +202,42 @@ ${daysDisplay ? `
 </tr>
 </table>
 
+<!-- Important Notice -->
+<div style="background:#e8f5e9;border:1px solid #4caf50;padding:15px;border-radius:8px;margin:20px 0;">
+<p style="margin:0;color:#2e7d32;font-size:14px;">
+<strong>✅ Primeiro passo concluído!</strong><br>
+Seu cadastro e email já estão salvos. A partir de agora, não precisará fazer isso novamente — <strong>vamos manter contato com você por este email</strong> além do nosso WhatsApp de suporte!
+</p>
+</div>
+
+<!-- Steps -->
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;border-radius:10px;margin:20px 0;">
 <tr>
 <td style="padding:20px;">
-<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📝 Passo a Passo:</h3>
+<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📝 Próximos Passos:</h3>
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">1</span>
-<span style="color:#333;">Acesse nossa página oficial clicando no botão abaixo</span>
+<span style="color:#333;">Acesse nossa <strong>Área de Membros</strong></span>
 </td>
 </tr>
 <tr>
 <td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">2</span>
-<span style="color:#333;">Clique no botão <strong>"Área de Membros"</strong></span>
+<span style="color:#333;">Assista os <strong>vídeos tutoriais</strong></span>
 </td>
 </tr>
 <tr>
 <td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
 <span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">3</span>
-<span style="color:#333;">Insira seu <strong>usuário</strong> e <strong>senha</strong> informados acima</span>
-</td>
-</tr>
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
-<span style="display:inline-block;background:#25D366;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span>
-<span style="color:#333;font-weight:bold;">Pronto! Tudo certo!</span>
+<span style="color:#333;">Entre no <strong>Grupo do WhatsApp</strong> para suporte</span>
 </td>
 </tr>
 <tr>
 <td style="padding:10px 0;">
-<span style="display:inline-block;background:#000;color:#FFD700;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">🎬</span>
-<span style="color:#333;font-weight:bold;">Agora acesse os vídeos e utilize à vontade!</span>
+<span style="display:inline-block;background:#25D366;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span>
+<span style="color:#333;font-weight:bold;">Pronto! Utilize à vontade!</span>
 </td>
 </tr>
 </table>
@@ -172,6 +245,7 @@ ${daysDisplay ? `
 </tr>
 </table>
 
+<!-- CTA Buttons -->
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td style="text-align:center;padding:20px 0;">
@@ -183,7 +257,7 @@ ${daysDisplay ? `
 <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
 <tr>
 <td style="text-align:center;padding:15px;background:#25D366;border-radius:8px;">
-<a href="${whatsappGroupLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:14px;">📱 Entrar no Grupo do WhatsApp</a>
+<a href="${whatsappGroupLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:14px;">📱 Entrar no Grupo do WhatsApp (Suporte)</a>
 </td>
 </tr>
 </table>
@@ -192,6 +266,7 @@ ${daysDisplay ? `
 </tr>
 <tr>
 <td style="background:#1a1a1a;padding:20px;text-align:center;">
+<p style="color:#FFD700;margin:0 0 10px 0;font-weight:bold;">Bem-vindo à família MRO! 💛</p>
 <p style="color:#888;margin:0;font-size:12px;">© ${new Date().getFullYear()} MRO - Mais Resultados Online</p>
 <p style="color:#666;margin:10px 0 0 0;font-size:11px;">Este email foi enviado porque você cadastrou seu email em nossa plataforma.</p>
 </td>
@@ -203,17 +278,13 @@ ${daysDisplay ? `
     await client.send({
       from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
       to: email,
-      subject: "🎉 Bem-vindo à Nova Área de Membros MRO!",
+      subject: "🎉 Reconhecemos seu Primeiro Acesso à MRO!",
       html: htmlContent,
     });
 
     await client.close();
 
-    // Save to created_accesses for tracking
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
+    // Update user session with email
     await supabase.from('user_sessions').update({
       email: email,
       updated_at: new Date().toISOString()
