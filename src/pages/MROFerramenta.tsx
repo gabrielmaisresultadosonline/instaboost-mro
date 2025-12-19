@@ -350,9 +350,16 @@ const MROFerramenta = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-card border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 py-3 md:py-4">
+          {/* Mobile: Logo on top, buttons below */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4">
+            {/* Logo - centered on mobile */}
+            <div className="flex justify-center md:hidden">
+              <Logo size="sm" />
+            </div>
+            
+            {/* Buttons row */}
+            <div className="flex items-center justify-between md:justify-start gap-2 md:gap-4">
               <Button 
                 type="button" 
                 variant="ghost" 
@@ -363,8 +370,12 @@ const MROFerramenta = () => {
                 <ChevronLeft className="w-4 h-4 mr-1" />
                 Voltar
               </Button>
-              <Logo size="sm" />
-              <span className="text-sm font-medium text-primary">MRO Ferramenta</span>
+              
+              {/* Logo - hidden on mobile, shown on desktop */}
+              <div className="hidden md:flex items-center gap-2">
+                <Logo size="sm" />
+                <span className="text-sm font-medium text-primary">MRO Ferramenta</span>
+              </div>
             </div>
 
             {settings?.downloadLink && (
@@ -373,7 +384,7 @@ const MROFerramenta = () => {
                 variant="gradient" 
                 size="sm"
                 onClick={() => window.open(settings.downloadLink, '_blank')}
-                className="cursor-pointer"
+                className="cursor-pointer w-full md:w-auto"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download MRO
