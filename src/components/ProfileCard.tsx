@@ -1,46 +1,16 @@
-import { useState } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase } from 'lucide-react';
 
 interface ProfileCardProps {
   profile: InstagramProfile;
-  onResync?: () => Promise<void>;
+  screenshotUrl?: string | null;
 }
 
-export const ProfileCard = ({ profile, onResync }: ProfileCardProps) => {
-  const [isResyncing, setIsResyncing] = useState(false);
-
+export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
-  };
-
-  // Verifica se faltam informações (ou se não estão cacheadas no Supabase)
-  const isImageCached = (url: string | undefined | null): boolean => {
-    if (!url) return false;
-    // Imagem cacheada deve estar no Supabase storage
-    return url.includes('supabase.co/storage') || url.includes('profile-cache');
-  };
-
-  const hasMissingProfilePic = !isImageCached(profile.profilePicUrl);
-  const hasMissingPostImages = profile.recentPosts?.some(post => !isImageCached(post.imageUrl)) || false;
-  const needsResync = hasMissingProfilePic || hasMissingPostImages;
-
-  const handleResync = async () => {
-    if (!onResync) return;
-    
-    setIsResyncing(true);
-    try {
-      await onResync();
-      toast.success('Perfil resincronizado com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao resincronizar perfil');
-    } finally {
-      setIsResyncing(false);
-    }
   };
 
   return (
@@ -76,19 +46,6 @@ export const ProfileCard = ({ profile, onResync }: ProfileCardProps) => {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <h2 className="text-2xl font-display font-bold">@{profile.username}</h2>
-            {needsResync && onResync && (
-              <Button
-                onClick={handleResync}
-                disabled={isResyncing}
-                size="sm"
-                variant="outline"
-                className="h-7 px-2 text-xs border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10"
-                title="Resincronizar perfil para buscar imagens faltantes"
-              >
-                <RefreshCw className={`w-3 h-3 mr-1 ${isResyncing ? 'animate-spin' : ''}`} />
-                {isResyncing ? 'Sincronizando...' : 'Resync'}
-              </Button>
-            )}
             {profile.category && (
               <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-medium">
                 {profile.category}
@@ -119,22 +76,24 @@ export const ProfileCard = ({ profile, onResync }: ProfileCardProps) => {
         <StatItem icon={<UserPlus />} value={formatNumber(profile.following)} label="Seguindo" />
       </div>
 
-      {/* Engagement */}
-      <div className="mt-6 p-4 rounded-lg bg-secondary/50">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Taxa de Engajamento</p>
-            <p className="text-2xl font-display font-bold text-gradient">{profile.engagement.toFixed(2)}%</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Média por Post</p>
-            <p className="text-foreground">
-              <span className="font-semibold">{formatNumber(profile.avgLikes)}</span> likes • 
-              <span className="font-semibold ml-1">{formatNumber(profile.avgComments)}</span> comentários
-            </p>
+      {/* Engagement - only show if we have engagement data */}
+      {profile.engagement > 0 && (
+        <div className="mt-6 p-4 rounded-lg bg-secondary/50">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Taxa de Engajamento</p>
+              <p className="text-2xl font-display font-bold text-gradient">{profile.engagement.toFixed(2)}%</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Média por Post</p>
+              <p className="text-foreground">
+                <span className="font-semibold">{formatNumber(profile.avgLikes)}</span> likes • 
+                <span className="font-semibold ml-1">{formatNumber(profile.avgComments)}</span> comentários
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
