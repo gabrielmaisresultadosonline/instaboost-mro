@@ -5,6 +5,7 @@ import { Dashboard } from '@/components/Dashboard';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { AgeRestrictionDialog } from '@/components/AgeRestrictionDialog';
 import { PrivateProfileDialog } from '@/components/PrivateProfileDialog';
+import AnnouncementPopup from '@/components/AnnouncementPopup';
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import {
   getSession, 
@@ -91,6 +92,7 @@ const Index = () => {
   const [ageRestrictionProfile, setAgeRestrictionProfile] = useState<string | null>(null);
   const [privateProfile, setPrivateProfile] = useState<string | null>(null);
   const [pendingSyncInstagrams, setPendingSyncInstagrams] = useState<string[]>([]);
+  const [showAnnouncements, setShowAnnouncements] = useState(false);
   const { toast } = useToast();
 
   // Get current logged in username
@@ -128,6 +130,8 @@ const Index = () => {
           
           if (existingSession.profiles.length > 0) {
             setShowDashboard(true);
+            // Show announcements when user is already logged in and has profiles
+            setShowAnnouncements(true);
           }
         }
       } catch (error) {
@@ -633,6 +637,9 @@ const Index = () => {
     return (
       <>
         <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} progress={syncProgress} />
+        {showAnnouncements && (
+          <AnnouncementPopup onComplete={() => setShowAnnouncements(false)} />
+        )}
         <Dashboard 
           session={session} 
           onSessionUpdate={handleSessionUpdate}
