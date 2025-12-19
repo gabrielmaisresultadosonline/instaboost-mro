@@ -117,7 +117,7 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const { username } = await req.json();
+    const { username, forceRefresh = false } = await req.json();
 
     if (!username) {
       return new Response(
@@ -125,6 +125,8 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    console.log(`[sync] forceRefresh: ${forceRefresh}`);
 
     // Clean username
     const cleanUsername = username
