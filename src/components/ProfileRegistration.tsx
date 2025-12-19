@@ -49,6 +49,7 @@ import { TutorialButton } from '@/components/TutorialButton';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { TutorialList } from '@/components/TutorialList';
 import { useTutorial, profileRegistrationTutorial } from '@/hooks/useTutorial';
+import { AgeRestrictionScreenshotDialog } from '@/components/AgeRestrictionScreenshotDialog';
 
 interface ProfileRegistrationProps {
   onProfileRegistered: (profile: InstagramProfile, analysis: ProfileAnalysis) => void;
@@ -72,6 +73,10 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
   const [showPreRegisterDialog, setShowPreRegisterDialog] = useState(false);
   const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
   const [showSyncConfirmDialog, setShowSyncConfirmDialog] = useState(false);
+  const [showAgeRestrictionScreenshot, setShowAgeRestrictionScreenshot] = useState(false);
+  const [ageRestrictionIG, setAgeRestrictionIG] = useState<string>('');
+  const [retryCount, setRetryCount] = useState(0);
+  const [isAutoRetrying, setIsAutoRetrying] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -303,6 +308,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
 
     setShowPreRegisterDialog(false);
     setIsLoading(true);
+    setRetryCount(0);
+    setIsAutoRetrying(false);
 
     try {
       // STEP 2: REGISTER IN SQUARECLOUD FIRST
@@ -322,45 +329,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         return;
       }
 
-      // STEP 3: Now fetch Instagram data from Bright Data
-      setLoadingMessage(`Buscando dados de @${pendingRegisterIG}...`);
-      
-      const profileResult = await fetchInstagramProfile(pendingRegisterIG);
-      
-      if (!profileResult.success || !profileResult.profile) {
-        toast({
-          title: 'Erro ao buscar perfil',
-          description: profileResult.error || 'Perfil não encontrado',
-          variant: 'destructive'
-        });
-        setIsLoading(false);
-        setLoadingMessage('');
-        setPendingRegisterIG('');
-        return;
-      }
-
-      // STEP 4: Analyze profile with AI
-      setLoadingMessage('Analisando perfil com I.A...');
-      
-      const analysisResult = await analyzeProfile(profileResult.profile);
-      
-      if (!analysisResult.success || !analysisResult.analysis) {
-        toast({
-          title: 'Erro na análise',
-          description: 'Não foi possível analisar o perfil',
-          variant: 'destructive'
-        });
-        setIsLoading(false);
-        setLoadingMessage('');
-        setPendingRegisterIG('');
-        return;
-      }
-
-      // Store pending data and show final confirmation
-      setPendingProfile(profileResult.profile);
-      setPendingAnalysis(analysisResult.analysis);
-      setShowConfirmDialog(true);
-      setPendingRegisterIG('');
+      // STEP 3: Now fetch Instagram data with AUTO-RETRY
+      await fetchProfileWithAutoRetry(pendingRegisterIG);
 
     } catch (error) {
       toast({
@@ -369,6 +339,176 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         variant: 'destructive'
       });
       setPendingRegisterIG('');
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
+  // Auto-retry fetch until success or age restriction detected
+  const fetchProfileWithAutoRetry = async (igUsername: string, currentRetry = 0) => {
+    const MAX_RETRIES = 10;
+    const RETRY_DELAY = 5000; // 5 seconds between retries
+    
+    setRetryCount(currentRetry);
+    setLoadingMessage(`Buscando dados de @${igUsername}...${currentRetry > 0 ? ` (tentativa ${currentRetry + 1})` : ''}`);
+    
+    try {
+      const profileResult = await fetchInstagramProfile(igUsername);
+      
+      // SUCCESS - got profile data
+      if (profileResult.success && profileResult.profile) {
+        setIsAutoRetrying(false);
+        
+        // STEP 4: Analyze profile with AI
+        setLoadingMessage('Analisando perfil com I.A...');
+        
+        const analysisResult = await analyzeProfile(profileResult.profile);
+        
+        if (!analysisResult.success || !analysisResult.analysis) {
+          toast({
+            title: 'Erro na análise',
+            description: 'Não foi possível analisar o perfil',
+            variant: 'destructive'
+          });
+          setIsLoading(false);
+          setLoadingMessage('');
+          setPendingRegisterIG('');
+          return;
+        }
+
+        // Store pending data and show final confirmation
+        setPendingProfile(profileResult.profile);
+        setPendingAnalysis(analysisResult.analysis);
+        setShowConfirmDialog(true);
+        setPendingRegisterIG('');
+        setIsLoading(false);
+        setLoadingMessage('');
+        return;
+      }
+      
+      // AGE RESTRICTION - open screenshot upload dialog
+      if (profileResult.isRestricted) {
+        console.log(`🔞 Perfil @${igUsername} tem restrição de idade - abrindo upload de print`);
+        setIsLoading(false);
+        setLoadingMessage('');
+        setIsAutoRetrying(false);
+        setAgeRestrictionIG(igUsername);
+        setShowAgeRestrictionScreenshot(true);
+        return;
+      }
+      
+      // TEMPORARY ERROR - auto-retry
+      if (profileResult.canRetry && currentRetry < MAX_RETRIES) {
+        console.log(`🔄 Tentativa ${currentRetry + 1} falhou para @${igUsername}, tentando novamente em ${RETRY_DELAY/1000}s...`);
+        setIsAutoRetrying(true);
+        setLoadingMessage(`Buscando dados de @${igUsername}... (tentativa ${currentRetry + 1}/${MAX_RETRIES})`);
+        
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return fetchProfileWithAutoRetry(igUsername, currentRetry + 1);
+      }
+      
+      // MAX RETRIES REACHED - offer screenshot option
+      if (currentRetry >= MAX_RETRIES) {
+        console.log(`❌ Máximo de tentativas atingido para @${igUsername} - oferecendo upload de print`);
+        setIsLoading(false);
+        setLoadingMessage('');
+        setIsAutoRetrying(false);
+        setAgeRestrictionIG(igUsername);
+        setShowAgeRestrictionScreenshot(true);
+        return;
+      }
+      
+      // OTHER ERROR - show toast
+      toast({
+        title: 'Erro ao buscar perfil',
+        description: profileResult.error || 'Perfil não encontrado',
+        variant: 'destructive'
+      });
+      setIsLoading(false);
+      setLoadingMessage('');
+      setPendingRegisterIG('');
+      
+    } catch (error) {
+      console.error('Error in fetchProfileWithAutoRetry:', error);
+      
+      // Network error - retry
+      if (currentRetry < MAX_RETRIES) {
+        setIsAutoRetrying(true);
+        setLoadingMessage(`Reconectando... (tentativa ${currentRetry + 1}/${MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return fetchProfileWithAutoRetry(igUsername, currentRetry + 1);
+      }
+      
+      // Max retries - offer screenshot
+      setIsLoading(false);
+      setLoadingMessage('');
+      setIsAutoRetrying(false);
+      setAgeRestrictionIG(igUsername);
+      setShowAgeRestrictionScreenshot(true);
+    }
+  };
+
+  // Handle data extracted from screenshot (for age-restricted profiles)
+  const handleScreenshotDataExtracted = async (data: {
+    followers: number;
+    following: number;
+    posts: number;
+    bio?: string;
+    fullName?: string;
+    screenshotUrl: string;
+    analysis: any;
+  }) => {
+    if (!ageRestrictionIG || !user) return;
+    
+    setShowAgeRestrictionScreenshot(false);
+    setIsLoading(true);
+    setLoadingMessage('Finalizando cadastro...');
+
+    try {
+      // Create profile from screenshot data
+      const screenshotProfile: InstagramProfile = {
+        username: ageRestrictionIG,
+        fullName: data.fullName || ageRestrictionIG,
+        bio: data.bio || '',
+        followers: data.followers,
+        following: data.following,
+        posts: data.posts,
+        profilePicUrl: '', // Will show fallback avatar with sync button
+        isBusinessAccount: false,
+        category: '',
+        externalUrl: '',
+        recentPosts: [],
+        engagement: 0,
+        avgLikes: 0,
+        avgComments: 0,
+      };
+      
+      // Use analysis from screenshot
+      const screenshotAnalysis: ProfileAnalysis = data.analysis || {
+        strengths: ['✅ Perfil cadastrado via print'],
+        weaknesses: ['⚠️ Dados parciais - sincronize quando possível'],
+        opportunities: ['🎯 Aplicar estratégia MRO para crescimento'],
+        niche: 'A identificar',
+        audienceType: 'Público local',
+        contentScore: 50,
+        engagementScore: 50,
+        profileScore: 50,
+        recommendations: ['Sincronize o perfil novamente quando a restrição for removida']
+      };
+
+      // Store pending data and show final confirmation
+      setPendingProfile(screenshotProfile);
+      setPendingAnalysis(screenshotAnalysis);
+      setShowConfirmDialog(true);
+      setAgeRestrictionIG('');
+      
+    } catch (error) {
+      console.error('Error processing screenshot data:', error);
+      toast({
+        title: 'Erro ao processar dados',
+        description: 'Tente novamente',
+        variant: 'destructive'
+      });
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -1059,6 +1199,18 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
         onClose={() => tutorial.setShowList(false)}
         onStartInteractive={() => tutorial.startTutorial(profileRegistrationTutorial)}
         title="Como Cadastrar Perfis"
+      />
+
+      {/* Age Restriction Screenshot Dialog */}
+      <AgeRestrictionScreenshotDialog
+        isOpen={showAgeRestrictionScreenshot}
+        onClose={() => {
+          setShowAgeRestrictionScreenshot(false);
+          setAgeRestrictionIG('');
+        }}
+        username={ageRestrictionIG}
+        squarecloudUsername={user?.username || ''}
+        onDataExtracted={handleScreenshotDataExtracted}
       />
     </div>
   );
