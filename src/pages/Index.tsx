@@ -247,8 +247,11 @@ const Index = () => {
       const hasRealCachedData = persistedData && (
         persistedData.profile.followers > 0 || 
         persistedData.profile.posts > 0 || 
+        (persistedData.profile.recentPosts && persistedData.profile.recentPosts.length > 0) ||
+        (persistedData.profile.bio && persistedData.profile.bio.trim().length > 0) ||
         (persistedData.profile.profilePicUrl && 
          !persistedData.profile.profilePicUrl.includes('dicebear') &&
+         !persistedData.profile.profilePicUrl.includes('ui-avatars.com') &&
          persistedData.profile.profilePicUrl.length > 50)
       );
       
@@ -327,11 +330,15 @@ const Index = () => {
           // API failed - check error type
           console.warn(`⚠️ API retornou erro para @${ig}: ${profileResult.error}`);
           
-          // Only use cached data if it has REAL data (followers > 0 OR posts > 0 OR profile picture)
+          // Only use cached data if it has REAL data (followers > 0 OR posts > 0 OR recentPosts OR bio)
           const hasRealCachedData = persistedData && (
             persistedData.profile.followers > 0 || 
             persistedData.profile.posts > 0 || 
-            (persistedData.profile.profilePicUrl && persistedData.profile.profilePicUrl.length > 10)
+            (persistedData.profile.recentPosts && persistedData.profile.recentPosts.length > 0) ||
+            (persistedData.profile.bio && persistedData.profile.bio.trim().length > 0) ||
+            (persistedData.profile.profilePicUrl && 
+             !persistedData.profile.profilePicUrl.includes('ui-avatars.com') &&
+             persistedData.profile.profilePicUrl.length > 50)
           );
           
           if (hasRealCachedData) {
