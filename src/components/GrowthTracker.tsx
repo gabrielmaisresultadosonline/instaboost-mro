@@ -4,7 +4,7 @@ import { fetchInstagramProfile } from '@/lib/api';
 import { addGrowthSnapshot, addGrowthInsight } from '@/lib/storage';
 import { syncSessionToPersistent, markProfileFetched } from '@/lib/persistentStorage';
 import { getCurrentUser } from '@/lib/userStorage';
-import { TrendingUp, TrendingDown, Users, Heart, MessageCircle, Calendar, RefreshCw, Award } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Heart, MessageCircle, Calendar, RefreshCw, Award, Cloud, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { GrowthPDFExport } from './GrowthPDFExport';
@@ -143,10 +143,14 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
         <div>
           <h3 className="text-xl font-display font-bold flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
-            Crescimento da Conta
+            Crescimento de @{profileSession.profile.username}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground flex items-center gap-2">
             Monitorando desde {startDate.toLocaleDateString('pt-BR')} • Semana {weeksSinceStart + 1}/52
+            <span className="flex items-center gap-1 text-mro-green">
+              <Cloud className="w-3 h-3" />
+              <CheckCircle2 className="w-3 h-3" />
+            </span>
           </p>
         </div>
         
@@ -237,8 +241,12 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
       )}
 
       {/* Info about monitoring */}
-      <div className="text-xs text-muted-foreground text-center p-3 rounded-lg bg-secondary/20">
-        💡 O monitoramento ocorre semanalmente por 1 ano. Atualize manualmente ou aguarde a próxima semana.
+      <div className="text-xs text-muted-foreground text-center p-3 rounded-lg bg-secondary/20 space-y-1">
+        <p>💡 O monitoramento ocorre semanalmente por 1 ano. Atualize manualmente ou aguarde a próxima semana.</p>
+        <p className="flex items-center justify-center gap-1 text-mro-green">
+          <Cloud className="w-3 h-3" />
+          Dados salvos na nuvem - acesse de qualquer dispositivo
+        </p>
       </div>
     </div>
   );

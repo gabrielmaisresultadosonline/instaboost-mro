@@ -459,6 +459,7 @@ export const Dashboard = ({
           <div className="max-w-3xl mx-auto">
             {hasScreenshot ? (
               <GrowthTracker 
+                key={`growth-${activeProfile.id}-${activeProfile.profile.username}`}
                 profileSession={activeProfile}
                 onUpdate={refreshSession}
               />
