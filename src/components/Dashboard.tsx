@@ -81,9 +81,9 @@ export const Dashboard = ({
   const tabs = [
     { id: 'profile', label: 'Perfil', icon: <User className="w-4 h-4" />, locked: false },
     { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" />, locked: !hasScreenshot },
-    { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" />, locked: false },
-    { id: 'legendas', label: 'Gerar Legendas', icon: <Type className="w-4 h-4" />, locked: false },
-    { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-4 h-4" />, locked: false },
+    { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" />, locked: !hasScreenshot },
+    { id: 'legendas', label: 'Gerar Legendas', icon: <Type className="w-4 h-4" />, locked: !hasScreenshot },
+    { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-4 h-4" />, locked: !hasScreenshot },
   ];
 
   const handleStrategyGenerated = (strategy: Strategy) => {
@@ -298,23 +298,42 @@ export const Dashboard = ({
 
         {activeTab === 'strategies' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            <StrategyGenerator 
-              profile={activeProfile.profile}
-              analysis={activeProfile.analysis}
-              onStrategyGenerated={handleStrategyGenerated}
-              existingStrategies={activeProfile.strategies}
-              profileId={activeProfile.id}
-            />
-            
-            {activeProfile.strategies.length > 0 && (
-              <div className="space-y-6">
-                <h3 className="text-xl font-display font-bold">Estratégias Geradas</h3>
-                {activeProfile.strategies.map((strategy) => (
-                  <StrategyDisplay 
-                    key={strategy.id}
-                    strategy={strategy}
-                  />
-                ))}
+            {hasScreenshot ? (
+              <>
+                <StrategyGenerator 
+                  profile={activeProfile.profile}
+                  analysis={activeProfile.analysis}
+                  onStrategyGenerated={handleStrategyGenerated}
+                  existingStrategies={activeProfile.strategies}
+                  profileId={activeProfile.id}
+                />
+                
+                {activeProfile.strategies.length > 0 && (
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-display font-bold">Estratégias Geradas</h3>
+                    {activeProfile.strategies.map((strategy) => (
+                      <StrategyDisplay 
+                        key={strategy.id}
+                        strategy={strategy}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="glass-card glow-border p-8 text-center">
+                <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-display font-bold mb-2">Estratégias Bloqueadas</h3>
+                <p className="text-muted-foreground mb-4">
+                  Para gerar estratégias personalizadas, você precisa enviar um print do perfil primeiro.
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('profile')}
+                  className="gap-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  Ir para Envio de Print
+                </Button>
               </div>
             )}
           </div>
@@ -322,19 +341,53 @@ export const Dashboard = ({
 
         {activeTab === 'legendas' && (
           <div className="max-w-3xl mx-auto">
-            <CaptionGenerator 
-              profileUsername={activeProfile.profile.username}
-              niche={activeProfile.analysis?.niche}
-            />
+            {hasScreenshot ? (
+              <CaptionGenerator 
+                profileUsername={activeProfile.profile.username}
+                niche={activeProfile.analysis?.niche}
+              />
+            ) : (
+              <div className="glass-card glow-border p-8 text-center">
+                <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-display font-bold mb-2">Legendas Bloqueadas</h3>
+                <p className="text-muted-foreground mb-4">
+                  Para gerar legendas personalizadas, você precisa enviar um print do perfil primeiro.
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('profile')}
+                  className="gap-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  Ir para Envio de Print
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'growth' && (
           <div className="max-w-3xl mx-auto">
-            <GrowthTracker 
-              profileSession={activeProfile}
-              onUpdate={refreshSession}
-            />
+            {hasScreenshot ? (
+              <GrowthTracker 
+                profileSession={activeProfile}
+                onUpdate={refreshSession}
+              />
+            ) : (
+              <div className="glass-card glow-border p-8 text-center">
+                <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-display font-bold mb-2">Crescimento Bloqueado</h3>
+                <p className="text-muted-foreground mb-4">
+                  Para acompanhar o crescimento do perfil, você precisa enviar um print do perfil primeiro.
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('profile')}
+                  className="gap-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  Ir para Envio de Print
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </main>
