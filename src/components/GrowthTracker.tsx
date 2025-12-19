@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ProfileSession, GrowthSnapshot, GrowthInsight } from '@/types/instagram';
 import { fetchInstagramProfile } from '@/lib/api';
-import { addGrowthSnapshot, addGrowthInsight } from '@/lib/storage';
+import { addGrowthSnapshot, addGrowthInsight, getSession, setCloudSyncCallback } from '@/lib/storage';
 import { syncSessionToPersistent, markProfileFetched } from '@/lib/persistentStorage';
-import { getCurrentUser } from '@/lib/userStorage';
+import { getCurrentUser, saveUserToCloud } from '@/lib/userStorage';
 import { TrendingUp, TrendingDown, Users, Heart, MessageCircle, Calendar, RefreshCw, Award, Cloud, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,13 @@ interface GrowthTrackerProps {
 export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
+
+  // CRITICAL: Ensure cloud sync callback is set on mount
+  // This guarantees growth data is saved to cloud even if user navigated directly
+  useEffect(() => {
+    setCloudSyncCallback(saveUserToCloud);
+    console.log('📊 [GrowthTracker] Cloud sync callback configured');
+  }, []);
 
   const initialSnapshot = profileSession.initialSnapshot;
   const latestSnapshot = profileSession.growthHistory[profileSession.growthHistory.length - 1] || initialSnapshot;
@@ -49,6 +56,7 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
       const result = await fetchInstagramProfile(profileSession.profile.username, existingPosts);
       
       if (result.success && result.profile) {
+        // Add growth snapshot
         addGrowthSnapshot(profileSession.id, result.profile);
         
         // Generate insight
@@ -68,10 +76,36 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
         
         addGrowthInsight(profileSession.id, newInsight);
         
-        // PERSIST DATA PERMANENTLY
-        markProfileFetched(profileSession.profile.username);
+        // CRITICAL: Force sync to cloud IMMEDIATELY after growth update
         const loggedInUsername = getCurrentUser()?.username || 'anonymous';
-        syncSessionToPersistent(loggedInUsername);
+        const userEmail = getCurrentUser()?.email;
+        const daysRemaining = getCurrentUser()?.daysRemaining || 365;
+        
+        // Mark as fetched in persistent storage
+        markProfileFetched(profileSession.profile.username);
+        await syncSessionToPersistent(loggedInUsername);
+        
+        // Get updated session and force cloud save
+        const updatedSession = getSession();
+        console.log(`📊 [GrowthTracker] Forcing cloud sync after growth update:`, {
+          profiles: updatedSession.profiles.length,
+          growthHistory: updatedSession.profiles.map(p => ({
+            username: p.profile.username,
+            historyCount: p.growthHistory.length,
+            insightsCount: p.growthInsights.length
+          }))
+        });
+        
+        // Force immediate cloud sync
+        await saveUserToCloud(
+          loggedInUsername,
+          userEmail,
+          daysRemaining,
+          updatedSession.profiles,
+          []
+        );
+        
+        console.log(`✅ [GrowthTracker] Growth data synced to cloud successfully`);
         
         toast({
           title: "Dados atualizados! 📊",
@@ -87,6 +121,7 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
         });
       }
     } catch (error) {
+      console.error('[GrowthTracker] Error refreshing growth:', error);
       toast({
         title: "Erro",
         description: "Não foi possível buscar dados atualizados",

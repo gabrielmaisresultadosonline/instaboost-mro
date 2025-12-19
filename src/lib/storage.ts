@@ -161,18 +161,20 @@ const syncToCloud = async (session: MROSession) => {
     const archived = getArchivedProfiles();
     const totalStrategies = session.profiles.reduce((sum, p) => sum + p.strategies.length, 0);
     const totalCreatives = session.profiles.reduce((sum, p) => sum + p.creatives.length, 0);
+    const totalGrowthHistory = session.profiles.reduce((sum, p) => sum + (p.growthHistory?.length || 0), 0);
+    const totalGrowthInsights = session.profiles.reduce((sum, p) => sum + (p.growthInsights?.length || 0), 0);
     
-    // Log detailed creative info
+    // Log detailed info including growth data
     session.profiles.forEach(p => {
-      if (p.creatives.length > 0) {
-        console.log(`☁️ Profile @${p.profile.username}: ${p.creatives.length} creatives, ${p.creativesRemaining} credits`);
-        p.creatives.forEach(c => {
-          console.log(`   - ${c.id}: ${c.imageUrl?.substring(0, 50)}...`);
-        });
-      }
+      console.log(`☁️ Profile @${p.profile.username}:`, {
+        creatives: p.creatives.length,
+        creditsRemaining: p.creativesRemaining,
+        growthHistory: p.growthHistory?.length || 0,
+        growthInsights: p.growthInsights?.length || 0
+      });
     });
     
-    console.log(`☁️ Syncing to cloud: ${session.profiles.length} profiles, ${totalStrategies} strategies, ${totalCreatives} creatives`);
+    console.log(`☁️ Syncing to cloud: ${session.profiles.length} profiles, ${totalStrategies} strategies, ${totalCreatives} creatives, ${totalGrowthHistory} snapshots, ${totalGrowthInsights} insights`);
     
     const success = await cloudSyncCallback(
       userData.username,
@@ -242,13 +244,15 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
     }
   }
   
-  // Log detailed info about each cloud profile
+  // Log detailed info about each cloud profile - INCLUDING growth data
   profileSessions.forEach(p => {
     console.log(`☁️ [${loggedUsername}] Cloud profile @${p.profile.username}:`, {
       id: p.id,
-      strategies: p.strategies.length,
-      creatives: p.creatives.length,
+      strategies: p.strategies?.length || 0,
+      creatives: p.creatives?.length || 0,
       creativesRemaining: p.creativesRemaining,
+      growthHistory: p.growthHistory?.length || 0,
+      growthInsights: p.growthInsights?.length || 0,
     });
   });
   
@@ -283,19 +287,31 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
   console.log(`☁️ [${loggedUsername}] Deduplicated: ${profileSessions.length} -> ${deduplicatedProfiles.length} profiles`);
   
   // CRITICAL: Cloud data is the ONLY source of truth - NO MERGING with local data!
-  const normalizedProfiles: ProfileSession[] = deduplicatedProfiles.map(cloudProfile => ({
-    ...cloudProfile,
-    strategies: cloudProfile.strategies || [],
-    creatives: cloudProfile.creatives || [],
-    creativesRemaining: cloudProfile.creativesRemaining ?? 6,
-    strategyGenerationDates: cloudProfile.strategyGenerationDates || {},
-    lastStrategyGeneratedAt: cloudProfile.lastStrategyGeneratedAt,
-    growthHistory: cloudProfile.growthHistory || [],
-    growthInsights: cloudProfile.growthInsights || [],
-    screenshotUrl: cloudProfile.screenshotUrl,
-    screenshotUploadCount: cloudProfile.screenshotUploadCount || 0,
-    screenshotHistory: cloudProfile.screenshotHistory || [],
-  }));
+  const normalizedProfiles: ProfileSession[] = deduplicatedProfiles.map(cloudProfile => {
+    // Ensure initialSnapshot exists - use first growth history entry or create from profile
+    let initialSnapshot = cloudProfile.initialSnapshot;
+    if (!initialSnapshot && cloudProfile.growthHistory && cloudProfile.growthHistory.length > 0) {
+      initialSnapshot = cloudProfile.growthHistory[0];
+    }
+    if (!initialSnapshot && cloudProfile.profile) {
+      initialSnapshot = createSnapshot(cloudProfile.profile);
+    }
+    
+    return {
+      ...cloudProfile,
+      strategies: cloudProfile.strategies || [],
+      creatives: cloudProfile.creatives || [],
+      creativesRemaining: cloudProfile.creativesRemaining ?? 6,
+      strategyGenerationDates: cloudProfile.strategyGenerationDates || {},
+      lastStrategyGeneratedAt: cloudProfile.lastStrategyGeneratedAt,
+      initialSnapshot: initialSnapshot!,
+      growthHistory: cloudProfile.growthHistory || [],
+      growthInsights: cloudProfile.growthInsights || [],
+      screenshotUrl: cloudProfile.screenshotUrl,
+      screenshotUploadCount: cloudProfile.screenshotUploadCount || 0,
+      screenshotHistory: cloudProfile.screenshotHistory || [],
+    };
+  });
   
   // Create fresh session with ONLY cloud profiles for THIS user
   const session: MROSession = {
@@ -304,13 +320,15 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
     lastUpdated: new Date().toISOString(),
   };
   
-  // Log final state
+  // Log final state with growth data
   console.log(`☁️ [${loggedUsername}] ✅ Final initialized state:`, {
     totalProfiles: session.profiles.length,
     activeProfileId: session.activeProfileId,
     profileUsernames: session.profiles.map(p => p.profile.username),
     totalCreatives: session.profiles.reduce((sum, p) => sum + p.creatives.length, 0),
-    totalStrategies: session.profiles.reduce((sum, p) => sum + p.strategies.length, 0)
+    totalStrategies: session.profiles.reduce((sum, p) => sum + p.strategies.length, 0),
+    totalGrowthHistory: session.profiles.reduce((sum, p) => sum + p.growthHistory.length, 0),
+    totalGrowthInsights: session.profiles.reduce((sum, p) => sum + p.growthInsights.length, 0)
   });
   
   // Save locally but don't trigger cloud sync (would be circular)
@@ -723,7 +741,15 @@ export const addGrowthSnapshot = (profileId: string, profile: InstagramProfile):
     profileSession.growthHistory.push(snapshot);
     profileSession.profile = profile;
     profileSession.lastUpdated = new Date().toISOString();
+    
+    console.log(`📈 [storage] Added growth snapshot for @${profileSession.profile.username}:`, {
+      totalSnapshots: profileSession.growthHistory.length,
+      latestFollowers: snapshot.followers
+    });
+    
     saveSession(session);
+  } else {
+    console.warn(`⚠️ [storage] Profile not found for growth snapshot: ${profileId}`);
   }
 };
 
@@ -733,7 +759,16 @@ export const addGrowthInsight = (profileId: string, insight: GrowthInsight): voi
   if (profileSession) {
     profileSession.growthInsights.push(insight);
     profileSession.lastUpdated = new Date().toISOString();
+    
+    console.log(`💡 [storage] Added growth insight for @${profileSession.profile.username}:`, {
+      weekNumber: insight.weekNumber,
+      totalInsights: profileSession.growthInsights.length,
+      followersGain: insight.followersGain
+    });
+    
     saveSession(session);
+  } else {
+    console.warn(`⚠️ [storage] Profile not found for growth insight: ${profileId}`);
   }
 };
 
