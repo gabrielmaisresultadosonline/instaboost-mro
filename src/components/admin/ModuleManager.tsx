@@ -89,8 +89,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     localStorage.setItem(storageKey, JSON.stringify(data));
   };
   
-  // Start with empty data until cloud loads - prevents cross-platform contamination
-  const [adminData, setAdminData] = useState<AdminData>(getEmptyData());
+  // Start with local data (platform-specific) and then reconcile with cloud
+  const [adminData, setAdminData] = useState<AdminData>(() => getLocalData());
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState<{ moduleId: string; content: ModuleContent; sectionId?: string } | null>(null);
@@ -120,49 +120,91 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   // Load modules from cloud on mount
   useEffect(() => {
     const loadFromCloud = async () => {
+      // Sempre mostra imediatamente o que existe no navegador (evita “sumir”)
+      const local = getLocalData();
+      setAdminData(local);
+      setWelcomeVideo(
+        local.settings?.welcomeVideo || {
+          enabled: false,
+          title: '',
+          showTitle: true,
+          youtubeUrl: '',
+          coverUrl: '',
+        }
+      );
+      if (local.settings?.downloadLink) {
+        onDownloadLinkChange(local.settings.downloadLink);
+      }
+
       try {
         console.log(`[ModuleManager] Loading ${platform} modules from cloud...`);
         const cloudData = await loadModulesFromCloud(platform);
-        
-        if (cloudData && cloudData.modules && cloudData.modules.length > 0) {
+
+        // Se a nuvem tiver módulos, ela manda
+        if (cloudData && (cloudData.modules?.length || 0) > 0) {
           console.log(`[ModuleManager] Loaded ${cloudData.modules.length} ${platform} modules from cloud`);
-          
-          // Update local storage with cloud data
+
           const currentData = getLocalData();
           currentData.modules = cloudData.modules;
           if (cloudData.settings && currentData.settings) {
             currentData.settings.downloadLink = cloudData.settings.downloadLink || currentData.settings.downloadLink;
             currentData.settings.welcomeVideo = cloudData.settings.welcomeVideo || currentData.settings.welcomeVideo;
-            
-            // Update parent component with loaded download link
+
             if (cloudData.settings.downloadLink) {
               onDownloadLinkChange(cloudData.settings.downloadLink);
             }
           }
+
           saveLocalData(currentData);
           setAdminData(currentData);
-          setWelcomeVideo(currentData.settings?.welcomeVideo || {
-            enabled: false,
-            title: '',
-            showTitle: true,
-            youtubeUrl: '',
-            coverUrl: ''
-          });
-          
+          setWelcomeVideo(
+            currentData.settings?.welcomeVideo || {
+              enabled: false,
+              title: '',
+              showTitle: true,
+              youtubeUrl: '',
+              coverUrl: '',
+            }
+          );
+
           toast({
-            title: "Módulos carregados",
+            title: 'Módulos carregados',
             description: `${cloudData.modules.length} módulos carregados da nuvem`,
           });
-        } else {
-          console.log(`[ModuleManager] No ${platform} cloud data found, using local`);
+          return;
         }
+
+        // Nuvem sem módulos: mantém módulos locais, mas puxa settings se existirem
+        if (cloudData?.settings) {
+          const currentData = getLocalData();
+          if (currentData.settings) {
+            currentData.settings.downloadLink = cloudData.settings.downloadLink || currentData.settings.downloadLink;
+            currentData.settings.welcomeVideo = cloudData.settings.welcomeVideo || currentData.settings.welcomeVideo;
+          }
+          saveLocalData(currentData);
+          setAdminData(currentData);
+          setWelcomeVideo(
+            currentData.settings?.welcomeVideo || {
+              enabled: false,
+              title: '',
+              showTitle: true,
+              youtubeUrl: '',
+              coverUrl: '',
+            }
+          );
+          if (cloudData.settings.downloadLink) {
+            onDownloadLinkChange(cloudData.settings.downloadLink);
+          }
+        }
+
+        console.log(`[ModuleManager] No ${platform} cloud modules, keeping local`);
       } catch (error) {
         console.error(`[ModuleManager] Error loading ${platform} from cloud:`, error);
       } finally {
         setIsLoadingCloud(false);
       }
     };
-    
+
     loadFromCloud();
   }, [platform]);
   
@@ -246,17 +288,22 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const handlePublishToCloud = async () => {
     setIsPublishing(true);
     try {
-      // Garante que o que está na tela é o que vai para a nuvem
-      const current = getLocalData();
+      // Evita sobrescrever com vazio: se a tela estiver vazia, mantém o que já existe no navegador
+      const localBefore = getLocalData();
+      const modulesToPublish =
+        (adminData.modules && adminData.modules.length > 0)
+          ? adminData.modules
+          : (localBefore.modules || []);
+
+      const current = { ...localBefore, modules: modulesToPublish };
       if (current.settings) {
         current.settings.downloadLink = downloadLink;
         current.settings.welcomeVideo = welcomeVideo;
       }
-      current.modules = adminData.modules || [];
       saveLocalData(current);
 
       const success = await saveModulesToCloud(platform, {
-        modules: current.modules,
+        modules: modulesToPublish,
         settings: {
           downloadLink,
           welcomeVideo,
