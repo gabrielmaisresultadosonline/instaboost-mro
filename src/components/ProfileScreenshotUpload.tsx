@@ -24,12 +24,25 @@ export const ProfileScreenshotUpload = ({
 }: ProfileScreenshotUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(existingScreenshotUrl || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const isLocked = uploadCount >= 2;
+
+  // CRITICAL: Reset preview quando o perfil muda (username muda)
+  // Cada perfil tem seu próprio screenshot isolado
+  useEffect(() => {
+    console.log(`📸 ProfileScreenshotUpload: Perfil mudou para @${username}`);
+    console.log(`📸 existingScreenshotUrl para @${username}:`, existingScreenshotUrl);
+    setPreviewUrl(existingScreenshotUrl || null);
+    setSelectedFile(null);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [username, existingScreenshotUrl]);
 
   // Handle paste event for Ctrl+V
   useEffect(() => {
