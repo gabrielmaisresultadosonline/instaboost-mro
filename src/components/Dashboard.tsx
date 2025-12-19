@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
@@ -108,18 +108,20 @@ export const Dashboard = ({
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-card border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+          {/* Desktop/Tablet Header */}
+          <div className="hidden sm:flex items-center justify-between">
+            <div className="flex items-center gap-2 md:gap-4">
               <Logo size="sm" />
               {/* Botão Ferramenta MRO */}
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow text-xs md:text-sm px-2 md:px-4"
                 data-tutorial="mro-button"
               >
-                <Wrench className="w-4 h-4 mr-2" />
-                Ferramenta MRO
+                <Wrench className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden md:inline">Ferramenta MRO</span>
+                <span className="md:hidden">MRO</span>
               </Button>
               <div className="hidden md:block" data-tutorial="profile-selector">
                 <ProfileSelector
@@ -134,7 +136,7 @@ export const Dashboard = ({
             </div>
 
             {/* Tabs - Desktop */}
-            <nav className="hidden md:flex items-center gap-2">
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -148,7 +150,7 @@ export const Dashboard = ({
                     setActiveTab(tab.id as Tab);
                   }}
                   data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                  className={`flex items-center gap-1 xl:gap-2 px-2 xl:px-4 py-2 rounded-lg transition-all duration-300 text-xs xl:text-sm ${
                     tab.locked
                       ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
                       : activeTab === tab.id
@@ -156,10 +158,10 @@ export const Dashboard = ({
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >
-                  {tab.locked ? <Lock className="w-4 h-4" /> : tab.icon}
-                  {tab.label}
+                  {tab.locked ? <Lock className="w-3 h-3 xl:w-4 xl:h-4" /> : tab.icon}
+                  <span className="hidden xl:inline">{tab.label}</span>
                   {tab.id === 'strategies' && activeProfile.strategies.length > 0 && (
-                    <span className="ml-1 w-5 h-5 rounded-full bg-primary-foreground/20 text-xs flex items-center justify-center">
+                    <span className="ml-1 w-4 h-4 xl:w-5 xl:h-5 rounded-full bg-primary-foreground/20 text-xs flex items-center justify-center">
                       {activeProfile.strategies.length}
                     </span>
                   )}
@@ -167,7 +169,7 @@ export const Dashboard = ({
               ))}
             </nav>
 
-            <div className="flex items-center gap-2" data-tutorial="user-menu">
+            <div className="flex items-center gap-1 md:gap-2" data-tutorial="user-menu">
               {/* Tutorial Button */}
               <TutorialButton
                 onStartInteractive={() => {
@@ -191,8 +193,75 @@ export const Dashboard = ({
             </div>
           </div>
 
-          {/* Mobile Profile Selector */}
-          <div className="md:hidden mt-3">
+          {/* Mobile Header - Compacto */}
+          <div className="sm:hidden">
+            {/* Linha 1: Logo + Botão MRO + User */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Logo size="sm" />
+                <Button
+                  onClick={() => navigate('/mro-ferramenta')}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-2 py-1 h-8"
+                  data-tutorial="mro-button"
+                >
+                  <Wrench className="w-3 h-3 mr-1" />
+                  MRO
+                </Button>
+              </div>
+              <div className="flex items-center gap-1">
+                <TutorialButton
+                  onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
+                  onShowList={() => tutorial.startListView(dashboardTutorial)}
+                  variant="outline"
+                  size="sm"
+                />
+                {onLogout && <UserHeader onLogout={onLogout} />}
+              </div>
+            </div>
+
+            {/* Linha 2: Profile Selector */}
+            <div className="mb-2" data-tutorial="profile-selector">
+              <ProfileSelector
+                profiles={session.profiles}
+                activeProfileId={session.activeProfileId}
+                onSelectProfile={onSelectProfile}
+                onAddProfile={onNavigateToRegister}
+                onRemoveProfile={onRemoveProfile}
+                isLoading={isLoading}
+              />
+            </div>
+
+            {/* Linha 3: Tabs horizontais scrolláveis */}
+            <nav className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide -mx-2 px-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (tab.locked) {
+                      import('sonner').then(({ toast }) => {
+                        toast.error('Envie um print do perfil primeiro');
+                      });
+                      return;
+                    }
+                    setActiveTab(tab.id as Tab);
+                  }}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all duration-300 whitespace-nowrap text-xs flex-shrink-0 ${
+                    tab.locked
+                      ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                      : activeTab === tab.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  {tab.locked ? <Lock className="w-3 h-3" /> : React.cloneElement(tab.icon as React.ReactElement, { className: 'w-3 h-3' })}
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Tablet Profile Selector (md screens) */}
+          <div className="hidden sm:block md:hidden mt-2">
             <ProfileSelector
               profiles={session.profiles}
               activeProfileId={session.activeProfileId}
@@ -203,8 +272,8 @@ export const Dashboard = ({
             />
           </div>
 
-          {/* Tabs - Mobile */}
-          <nav className="flex md:hidden items-center gap-2 mt-4 overflow-x-auto pb-2">
+          {/* Tablet Tabs (when hidden on lg+) */}
+          <nav className="hidden sm:flex lg:hidden items-center gap-1 mt-3 overflow-x-auto pb-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -217,7 +286,7 @@ export const Dashboard = ({
                   }
                   setActiveTab(tab.id as Tab);
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap ${
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all duration-300 whitespace-nowrap text-xs ${
                   tab.locked
                     ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
                     : activeTab === tab.id
@@ -225,7 +294,7 @@ export const Dashboard = ({
                       : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
-                {tab.locked ? <Lock className="w-4 h-4" /> : tab.icon}
+                {tab.locked ? <Lock className="w-3 h-3" /> : React.cloneElement(tab.icon as React.ReactElement, { className: 'w-3 h-3' })}
                 {tab.label}
               </button>
             ))}

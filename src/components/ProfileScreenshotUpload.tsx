@@ -168,28 +168,28 @@ export const ProfileScreenshotUpload = ({
   if (isLocked && previewUrl) {
     return (
       <Card className="glass-card glow-border">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Check className="w-5 h-5 text-green-500" />
+        <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
             Print Salvo Definitivamente
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs sm:text-sm">
             Você já enviou o print do perfil 2 vezes. Não é possível alterar novamente.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4 px-4 py-3 sm:px-6 sm:py-4">
           <div className="relative rounded-lg overflow-hidden border border-border">
             <img 
               src={previewUrl} 
               alt="Print do perfil" 
-              className="w-full max-h-[400px] object-contain bg-muted"
+              className="w-full max-h-[300px] sm:max-h-[400px] object-contain bg-muted"
             />
             <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-green-500/90 text-white px-2 py-1 rounded text-xs">
               <Check className="w-3 h-3" />
               Salvo definitivamente
             </div>
           </div>
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-sm">
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 sm:p-3 text-xs sm:text-sm">
             <p className="text-yellow-600 dark:text-yellow-400">
               ⚠️ O limite de 2 envios foi atingido. O print atual não pode mais ser alterado.
             </p>
@@ -201,9 +201,9 @@ export const ProfileScreenshotUpload = ({
 
   return (
     <Card className="glass-card glow-border">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Camera className="w-5 h-5 text-primary" />
+      <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Print do Perfil
           {uploadCount > 0 && (
             <span className="text-xs font-normal text-muted-foreground">
@@ -211,7 +211,7 @@ export const ProfileScreenshotUpload = ({
             </span>
           )}
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           {hasExistingScreenshot 
             ? uploadCount === 1
               ? 'Print atual do seu perfil. Você pode trocar mais 1 vez.'
@@ -220,20 +220,20 @@ export const ProfileScreenshotUpload = ({
           }
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 px-4 py-3 sm:px-6 sm:py-4">
         {/* Preview Area */}
         {previewUrl ? (
           <div className="relative rounded-lg overflow-hidden border border-border">
             <img 
               src={previewUrl} 
               alt="Print do perfil" 
-              className="w-full max-h-[400px] object-contain bg-muted"
+              className="w-full max-h-[300px] sm:max-h-[400px] object-contain bg-muted"
             />
             {!isUploading && !isAnalyzing && (
               <Button
                 variant="destructive"
                 size="icon"
-                className="absolute top-2 right-2"
+                className="absolute top-2 right-2 w-8 h-8"
                 onClick={handleRemove}
               >
                 <X className="w-4 h-4" />
@@ -247,18 +247,31 @@ export const ProfileScreenshotUpload = ({
             )}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
+            {/* Mobile: Botão direto de upload */}
+            <div className="sm:hidden">
+              <Button
+                variant="outline"
+                className="w-full h-24 flex flex-col items-center justify-center gap-2 border-2 border-dashed"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-8 h-8 text-muted-foreground" />
+                <span className="text-sm">Toque para selecionar imagem</span>
+              </Button>
+            </div>
+            
+            {/* Desktop: Área de paste */}
             <div 
               ref={dropZoneRef}
               tabIndex={0}
-              className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              className="hidden sm:block border-2 border-dashed border-border rounded-lg p-6 sm:p-8 text-center cursor-pointer hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
               onClick={(e) => {
                 e.currentTarget.focus();
                 toast.info('Área selecionada! Use Ctrl+V para colar a imagem');
               }}
             >
-              <Clipboard className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-2">
+              <Clipboard className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-muted-foreground mb-3 sm:mb-4" />
+              <p className="text-muted-foreground mb-2 text-sm sm:text-base">
                 Clique aqui e use <span className="text-primary font-medium">Ctrl+V</span> para colar
               </p>
               <p className="text-xs text-muted-foreground">
@@ -266,7 +279,7 @@ export const ProfileScreenshotUpload = ({
               </p>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2">
               <div className="flex-1 h-px bg-border"></div>
               <span className="text-xs text-muted-foreground">ou</span>
               <div className="flex-1 h-px bg-border"></div>
@@ -274,7 +287,7 @@ export const ProfileScreenshotUpload = ({
             
             <Button
               variant="outline"
-              className="w-full"
+              className="hidden sm:flex w-full"
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="w-4 h-4 mr-2" />
@@ -296,13 +309,14 @@ export const ProfileScreenshotUpload = ({
         />
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
 
           {previewUrl && !hasNewSelection && (
             <Button 
               onClick={() => fileInputRef.current?.click()}
               className="flex-1"
               variant="outline"
+              size="default"
             >
               <Upload className="w-4 h-4 mr-2" />
               Trocar Imagem
@@ -314,6 +328,7 @@ export const ProfileScreenshotUpload = ({
               onClick={handleUpload}
               disabled={isUploading || isAnalyzing}
               className="flex-1 bg-primary"
+              size="default"
             >
               {isUploading ? (
                 <>
@@ -336,9 +351,9 @@ export const ProfileScreenshotUpload = ({
         </div>
 
         {/* Instructions */}
-        <div className="bg-secondary/50 rounded-lg p-3 text-sm text-muted-foreground">
+        <div className="bg-secondary/50 rounded-lg p-2 sm:p-3 text-xs sm:text-sm text-muted-foreground">
           <p className="font-medium text-foreground mb-1">📸 Como tirar um bom print:</p>
-          <ul className="list-disc list-inside space-y-1">
+          <ul className="list-disc list-inside space-y-0.5 sm:space-y-1">
             <li>Abra seu perfil no Instagram</li>
             <li>Certifique-se que mostra seguidores, seguindo e posts</li>
             <li>Tire um print da tela inteira do perfil</li>
