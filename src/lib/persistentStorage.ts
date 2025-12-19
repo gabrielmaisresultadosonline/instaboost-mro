@@ -28,6 +28,9 @@ export interface PersistentProfileData {
   lastUpdated: string;
   lastStrategyGeneratedAt?: string; // Legacy - When the last strategy was generated
   strategyGenerationDates?: Record<string, string>; // Per-type strategy generation dates (30-day cooldown)
+  screenshotUrl?: string; // URL do print do perfil enviado pelo cliente
+  screenshotUploadCount?: number; // Número de vezes que o print foi enviado (máx 2)
+  screenshotHistory?: { url: string; uploadedAt: string }[]; // Histórico de prints para admin
 }
 
 export interface UserServerData {
@@ -226,6 +229,44 @@ export const saveUserDataToServer = async (data: UserServerData): Promise<boolea
   }
 };
 
+// Fetch screenshots from squarecloud_user_profiles table
+export const fetchProfileScreenshotsFromCloud = async (
+  squarecloudUsername: string,
+  instagramUsernames: string[]
+): Promise<Record<string, { screenshotUrl: string | null }>> => {
+  const results: Record<string, { screenshotUrl: string | null }> = {};
+  
+  if (instagramUsernames.length === 0) return results;
+  
+  try {
+    console.log(`🔍 Buscando screenshots da nuvem para ${instagramUsernames.length} perfis...`);
+    
+    const { data, error } = await supabase
+      .from('squarecloud_user_profiles')
+      .select('instagram_username, profile_screenshot_url')
+      .eq('squarecloud_username', squarecloudUsername.toLowerCase())
+      .in('instagram_username', instagramUsernames.map(u => u.toLowerCase()));
+    
+    if (error) {
+      console.error('Erro ao buscar screenshots:', error);
+      return results;
+    }
+    
+    if (data) {
+      data.forEach(row => {
+        results[row.instagram_username.toLowerCase()] = {
+          screenshotUrl: row.profile_screenshot_url
+        };
+      });
+      console.log(`✅ Screenshots encontrados: ${Object.keys(results).length}`);
+    }
+  } catch (err) {
+    console.error('Erro ao buscar screenshots da nuvem:', err);
+  }
+  
+  return results;
+};
+
 // Initialize user data on login and register auto-sync callback
 export const initializeUserData = async (username: string): Promise<void> => {
   const normalizedUsername = username.toLowerCase();
@@ -240,6 +281,24 @@ export const initializeUserData = async (username: string): Promise<void> => {
   if (serverData) {
     localCache = serverData;
     cachedUsername = serverData.username?.toLowerCase() || normalizedUsername;
+    
+    // Fetch and update screenshots from squarecloud_user_profiles table
+    const instagramUsernames = Object.keys(serverData.profiles);
+    if (instagramUsernames.length > 0) {
+      const screenshots = await fetchProfileScreenshotsFromCloud(normalizedUsername, instagramUsernames);
+      
+      // Update profiles with screenshots from cloud
+      Object.entries(screenshots).forEach(([igUsername, data]) => {
+        if (serverData.profiles[igUsername] && data.screenshotUrl) {
+          serverData.profiles[igUsername].screenshotUrl = data.screenshotUrl;
+          console.log(`📸 Screenshot carregado da nuvem para @${igUsername}`);
+        }
+      });
+      
+      // Update cache with screenshot data
+      localCache = serverData;
+      saveLocalCache(serverData);
+    }
   }
   
   // Register the auto-sync callback so every saveSession() syncs to server
@@ -430,7 +489,11 @@ export const syncPersistentToSession = (): void => {
         startedAt: persistedData.syncedAt,
         lastUpdated: persistedData.lastUpdated,
         lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt,
-        strategyGenerationDates: persistedData.strategyGenerationDates || {}
+        strategyGenerationDates: persistedData.strategyGenerationDates || {},
+        // CRITICAL: Restore screenshot data from cloud
+        screenshotUrl: persistedData.screenshotUrl,
+        screenshotUploadCount: persistedData.screenshotUploadCount,
+        screenshotHistory: persistedData.screenshotHistory
       };
       
       session.profiles.push(profileSession);
@@ -472,6 +535,16 @@ export const syncPersistentToSession = (): void => {
           }
         });
       }
+      // CRITICAL: Restore screenshot data from cloud (cloud takes precedence)
+      if (persistedData.screenshotUrl && !existingInSession.screenshotUrl) {
+        existingInSession.screenshotUrl = persistedData.screenshotUrl;
+      }
+      if (persistedData.screenshotUploadCount !== undefined) {
+        existingInSession.screenshotUploadCount = persistedData.screenshotUploadCount;
+      }
+      if (persistedData.screenshotHistory && persistedData.screenshotHistory.length > 0) {
+        existingInSession.screenshotHistory = persistedData.screenshotHistory;
+      }
     }
   });
   
@@ -509,7 +582,11 @@ export const syncSessionToPersistent = async (loggedInUsername: string): Promise
       syncedAt: profileSession.startedAt,
       lastUpdated: profileSession.lastUpdated,
       lastStrategyGeneratedAt: profileSession.lastStrategyGeneratedAt,
-      strategyGenerationDates: (profileSession.strategyGenerationDates as Record<string, string>) || {}
+      strategyGenerationDates: (profileSession.strategyGenerationDates as Record<string, string>) || {},
+      // CRITICAL: Save screenshot data to cloud
+      screenshotUrl: profileSession.screenshotUrl,
+      screenshotUploadCount: profileSession.screenshotUploadCount,
+      screenshotHistory: profileSession.screenshotHistory
     };
   });
   
@@ -568,7 +645,11 @@ export const loadPersistedDataOnLogin = async (loggedInUsername: string, registe
           startedAt: persistedData.syncedAt,
           lastUpdated: persistedData.lastUpdated,
           lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt,
-          strategyGenerationDates: persistedData.strategyGenerationDates || {}
+          strategyGenerationDates: persistedData.strategyGenerationDates || {},
+          // CRITICAL: Restore screenshot data from cloud
+          screenshotUrl: persistedData.screenshotUrl,
+          screenshotUploadCount: persistedData.screenshotUploadCount,
+          screenshotHistory: persistedData.screenshotHistory
         };
         
         session.profiles.push(profileSession);
@@ -576,7 +657,8 @@ export const loadPersistedDataOnLogin = async (loggedInUsername: string, registe
           strategies: profileSession.strategies.length,
           creatives: profileSession.creatives.length,
           creditsRemaining: profileSession.creativesRemaining,
-          strategyDates: profileSession.strategyGenerationDates
+          strategyDates: profileSession.strategyGenerationDates,
+          screenshotUrl: profileSession.screenshotUrl
         });
       }
     }
