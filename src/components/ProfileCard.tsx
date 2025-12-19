@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { InstagramProfile } from '@/types/instagram';
 import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,12 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
   const [photoError, setPhotoError] = useState(false);
   const [localProfilePicUrl, setLocalProfilePicUrl] = useState(profile.profilePicUrl);
   const { toast } = useToast();
+
+  // Reset photo state when profile changes
+  useEffect(() => {
+    setLocalProfilePicUrl(profile.profilePicUrl);
+    setPhotoError(false);
+  }, [profile.username, profile.profilePicUrl]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
