@@ -218,13 +218,14 @@ export const Dashboard = ({
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {activeProfile.profile.recentPosts.slice(0, 6).map((post, index) => (
                   <div key={post.id} className="aspect-square rounded-lg overflow-hidden relative group bg-muted">
-                    {post.imageUrl && !post.imageUrl.includes('picsum.photos') ? (
+                    {post.imageUrl ? (
                       <img 
                         src={post.imageUrl} 
                         alt="Post"
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
                         }}
                       />
                     ) : (
