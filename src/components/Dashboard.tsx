@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
+import { ProfileScreenshotUpload } from './ProfileScreenshotUpload';
 import { AnalysisCard } from './AnalysisCard';
 import { StrategyGenerator } from './StrategyGenerator';
 import { StrategyDisplay } from './StrategyDisplay';
@@ -11,11 +12,11 @@ import { ProfileSelector } from './ProfileSelector';
 import { UserHeader } from './UserHeader';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
-import { TutorialButton } from '@/components/TutorialButton';
-import { TutorialOverlay } from '@/components/TutorialOverlay';
-import { TutorialList } from '@/components/TutorialList';
+import { TutorialButton } from './TutorialButton';
+import { TutorialOverlay } from './TutorialOverlay';
+import { TutorialList } from './TutorialList';
 import { useTutorial, dashboardTutorial, strategyTutorial } from '@/hooks/useTutorial';
-import { addStrategy, resetSession, getSession, updateProfile } from '@/lib/storage';
+import { addStrategy, resetSession, getSession, updateProfile, updateAnalysis } from '@/lib/storage';
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
 import { getCurrentUser } from '@/lib/userStorage';
 import { supabase } from '@/integrations/supabase/client';
@@ -91,37 +92,6 @@ export const Dashboard = ({
     if (confirm('Tem certeza que deseja resetar todas as informações? Esta ação não pode ser desfeita.')) {
       resetSession();
       onReset();
-    }
-  };
-
-  // Função para resincronizar o perfil ativo
-  const handleResyncProfile = async () => {
-    if (!activeProfile) return;
-    
-    const username = activeProfile.profile.username;
-    const loggedInUsername = getLoggedInUsername();
-    
-    // Chama a edge function para sincronizar novamente
-    const { data, error } = await supabase.functions.invoke('sync-instagram-profile', {
-      body: { 
-        username,
-        squarecloud_username: loggedInUsername,
-        forceRefresh: true // Força buscar dados novos
-      }
-    });
-
-    if (error) throw error;
-    
-    if (data?.profile) {
-      // Atualiza o perfil no storage local (updateProfile só aceita o profile)
-      updateProfile(data.profile);
-      
-      // Atualiza a sessão
-      const updatedSession = getSession();
-      onSessionUpdate(updatedSession);
-      
-      // Sincroniza com o servidor
-      await syncSessionToPersistent(loggedInUsername);
     }
   };
 
@@ -242,42 +212,32 @@ export const Dashboard = ({
       <main className="container mx-auto px-4 py-8">
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            <ProfileCard profile={activeProfile.profile} onResync={handleResyncProfile} />
+            <ProfileCard profile={activeProfile.profile} />
             
-            {/* Recent Posts Grid */}
-            <div className="glass-card p-6">
-              <h3 className="text-lg font-display font-semibold mb-4">Posts Recentes</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {activeProfile.profile.recentPosts.slice(0, 6).map((post, index) => (
-                  <div key={post.id} className="aspect-square rounded-lg overflow-hidden relative group bg-muted">
-                    {post.imageUrl ? (
-                      <img 
-                        src={post.imageUrl} 
-                        alt="Post"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        <span className="text-xs">Imagem indisponível</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="text-center text-sm">
-                        <p>❤️ {post.likes}</p>
-                        <p>💬 {post.comments}</p>
-                      </div>
-                    </div>
-                    {!post.hasHumanFace && (
-                      <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-destructive" title="Sem rosto humano detectado" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Profile Screenshot Upload */}
+            <ProfileScreenshotUpload
+              username={activeProfile.profile.username}
+              squarecloudUsername={getLoggedInUsername()}
+              existingScreenshotUrl={activeProfile.screenshotUrl}
+              onScreenshotUploaded={(url) => {
+                // Update profile with screenshot URL
+                const updatedProfile = { ...activeProfile.profile };
+                const session = getSession();
+                const profileIndex = session.profiles.findIndex(p => p.id === activeProfile.id);
+                if (profileIndex !== -1) {
+                  session.profiles[profileIndex].screenshotUrl = url;
+                  onSessionUpdate(session);
+                  syncSessionToPersistent(getLoggedInUsername());
+                }
+              }}
+              onAnalysisComplete={(analysis) => {
+                // Update analysis with new data from screenshot
+                if (analysis) {
+                  updateAnalysis(analysis);
+                  refreshSession();
+                }
+              }}
+            />
           </div>
         )}
 

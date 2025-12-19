@@ -181,6 +181,7 @@ export interface ProfileSession {
   lastUpdated: string;
   lastStrategyGeneratedAt?: string; // Legacy - kept for backward compatibility
   strategyGenerationDates?: StrategyGenerationDates; // Per-type generation dates
+  screenshotUrl?: string; // URL do print do perfil enviado pelo cliente
 }
 
 export interface MROSession {

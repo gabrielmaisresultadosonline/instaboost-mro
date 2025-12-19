@@ -224,6 +224,7 @@ export type Database = {
           id: string
           instagram_username: string
           profile_data: Json
+          profile_screenshot_url: string | null
           squarecloud_username: string
           synced_at: string | null
           updated_at: string | null
@@ -233,6 +234,7 @@ export type Database = {
           id?: string
           instagram_username: string
           profile_data?: Json
+          profile_screenshot_url?: string | null
           squarecloud_username: string
           synced_at?: string | null
           updated_at?: string | null
@@ -242,6 +244,7 @@ export type Database = {
           id?: string
           instagram_username?: string
           profile_data?: Json
+          profile_screenshot_url?: string | null
           squarecloud_username?: string
           synced_at?: string | null
           updated_at?: string | null
