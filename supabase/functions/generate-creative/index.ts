@@ -61,11 +61,20 @@ serve(async (req) => {
       variationSeed 
     }: CreativeRequest = await req.json();
     
+    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+
+    // DeepSeek é obrigatório para texto, Lovable AI é necessário apenas para geração de imagem
+    if (!DEEPSEEK_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'DEEPSEEK_API_KEY não configurada' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!LOVABLE_API_KEY) {
       return new Response(
-        JSON.stringify({ error: 'API key não configurada' }),
+        JSON.stringify({ error: 'API de geração de imagem não configurada. Configure LOVABLE_API_KEY para gerar imagens.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -101,14 +110,15 @@ serve(async (req) => {
     let ctaText = '';
 
     if (includeText) {
-      const textResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      // Usa DeepSeek para gerar texto
+      const textResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: 'deepseek-chat',
           messages: [
             {
               role: 'system',
@@ -162,6 +172,8 @@ Retorne JSON:
 }`
             }
           ],
+          temperature: 0.8,
+          max_tokens: 500,
         }),
       });
 
@@ -176,13 +188,18 @@ Retorne JSON:
               // Strip any HTML tags that might have been included
               headline = (parsed.headline || 'Transforme seu negócio hoje!').replace(/<[^>]*>/g, '').trim();
               ctaText = (parsed.cta || 'Saiba mais agora').replace(/<[^>]*>/g, '').trim();
+              console.log('✅ DeepSeek text generation successful');
             }
           } catch (e) {
-            console.log('Error parsing text response:', e);
+            console.log('Error parsing DeepSeek text response:', e);
             headline = 'Transforme seu negócio hoje!';
             ctaText = 'Saiba mais agora';
           }
         }
+      } else {
+        console.error('❌ DeepSeek text generation failed:', await textResponse.text());
+        headline = 'Transforme seu negócio hoje!';
+        ctaText = 'Saiba mais agora';
       }
     } else {
       console.log('Skipping text generation - includeText is false');

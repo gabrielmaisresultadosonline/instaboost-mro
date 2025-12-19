@@ -28,7 +28,6 @@ serve(async (req) => {
   try {
     const { profile, analysis, type }: StrategyRequest = await req.json();
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     console.log('Gerando estratégia:', type, 'para:', profile.username);
 
@@ -205,9 +204,13 @@ RETORNE JSON VÁLIDO no formato:
 
     let strategyResult = null;
 
-    // Tenta com DeepSeek primeiro
-    if (DEEPSEEK_API_KEY) {
+    // Usa SOMENTE DeepSeek
+    if (!DEEPSEEK_API_KEY) {
+      console.error('DEEPSEEK_API_KEY não configurada');
+      strategyResult = generateFallbackStrategy(type, profile, analysis);
+    } else {
       try {
+        console.log('Gerando estratégia com DeepSeek...');
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -232,46 +235,15 @@ RETORNE JSON VÁLIDO no formato:
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               strategyResult = JSON.parse(jsonMatch[0]);
-              console.log('DeepSeek strategy successful');
+              console.log('✅ DeepSeek strategy generated successfully');
             }
           }
+        } else {
+          const errorText = await response.text();
+          console.error('❌ DeepSeek error:', response.status, errorText);
         }
       } catch (e) {
-        console.error('DeepSeek error:', e);
-      }
-    }
-
-    // Fallback para Lovable AI
-    if (!strategyResult && LOVABLE_API_KEY) {
-      try {
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: strategyPrompts[type] }
-            ],
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const content = data.choices?.[0]?.message?.content;
-          if (content) {
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              strategyResult = JSON.parse(jsonMatch[0]);
-              console.log('Lovable AI strategy successful');
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Lovable AI error:', e);
+        console.error('❌ DeepSeek error:', e);
       }
     }
 
