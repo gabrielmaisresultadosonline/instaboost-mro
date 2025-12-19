@@ -193,21 +193,23 @@ export const Dashboard = ({
             </div>
           </div>
 
-          {/* Mobile Header - Compacto */}
+          {/* Mobile Header - Layout Vertical */}
           <div className="sm:hidden">
-            {/* Linha 1: Logo + Botão MRO + User */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Logo size="sm" />
-                <Button
-                  onClick={() => navigate('/mro-ferramenta')}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-2 py-1 h-8"
-                  data-tutorial="mro-button"
-                >
-                  <Wrench className="w-3 h-3 mr-1" />
-                  MRO
-                </Button>
-              </div>
+            {/* Linha 1: Logo centralizada */}
+            <div className="flex justify-center mb-3">
+              <Logo size="sm" />
+            </div>
+
+            {/* Linha 2: Botão MRO + User */}
+            <div className="flex items-center justify-between mb-3">
+              <Button
+                onClick={() => navigate('/mro-ferramenta')}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1.5 h-8"
+                data-tutorial="mro-button"
+              >
+                <Wrench className="w-3 h-3 mr-1" />
+                Ferramenta MRO
+              </Button>
               <div className="flex items-center gap-1">
                 <TutorialButton
                   onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
@@ -219,8 +221,8 @@ export const Dashboard = ({
               </div>
             </div>
 
-            {/* Linha 2: Profile Selector */}
-            <div className="mb-2" data-tutorial="profile-selector">
+            {/* Linha 3: Profile Selector */}
+            <div className="mb-3" data-tutorial="profile-selector">
               <ProfileSelector
                 profiles={session.profiles}
                 activeProfileId={session.activeProfileId}
@@ -231,33 +233,35 @@ export const Dashboard = ({
               />
             </div>
 
-            {/* Linha 3: Tabs horizontais scrolláveis */}
-            <nav className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide -mx-2 px-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    if (tab.locked) {
-                      import('sonner').then(({ toast }) => {
-                        toast.error('Envie um print do perfil primeiro');
-                      });
-                      return;
-                    }
-                    setActiveTab(tab.id as Tab);
-                  }}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all duration-300 whitespace-nowrap text-xs flex-shrink-0 ${
-                    tab.locked
-                      ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
-                      : activeTab === tab.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  {tab.locked ? <Lock className="w-3 h-3" /> : React.cloneElement(tab.icon as React.ReactElement, { className: 'w-3 h-3' })}
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
+            {/* Linha 4: Tabs horizontais scrolláveis - scroll suave */}
+            <div className="relative -mx-2">
+              <nav className="flex items-center gap-2 overflow-x-auto pb-2 px-2 snap-x snap-mandatory scrollbar-hide">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      if (tab.locked) {
+                        import('sonner').then(({ toast }) => {
+                          toast.error('Envie um print do perfil primeiro');
+                        });
+                        return;
+                      }
+                      setActiveTab(tab.id as Tab);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-300 whitespace-nowrap text-xs flex-shrink-0 snap-start ${
+                      tab.locked
+                        ? 'text-muted-foreground/50 cursor-not-allowed opacity-60 bg-secondary/30'
+                        : activeTab === tab.id
+                          ? 'bg-primary text-primary-foreground shadow-md'
+                          : 'text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary'
+                    }`}
+                  >
+                    {tab.locked ? <Lock className="w-3.5 h-3.5" /> : React.cloneElement(tab.icon as React.ReactElement, { className: 'w-3.5 h-3.5' })}
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
           </div>
 
           {/* Tablet Profile Selector (md screens) */}
