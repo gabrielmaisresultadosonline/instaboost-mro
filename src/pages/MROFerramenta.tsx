@@ -33,33 +33,31 @@ const MROFerramenta = () => {
       setIsLoading(true);
       console.log('[MROFerramenta] Starting to load modules...');
       try {
-        // Try loading from cloud first
-        const cloudData = await loadModulesFromCloud();
+        // Sempre prioriza nuvem (fonte da verdade)
+        const cloudData = await loadModulesFromCloud('mro');
         console.log('[MROFerramenta] Cloud response:', cloudData);
-        
-        if (cloudData && cloudData.modules && cloudData.modules.length > 0) {
-          console.log('[MROFerramenta] Loaded from cloud:', cloudData.modules.length, 'modules');
-          setModules(cloudData.modules);
+
+        if (cloudData) {
+          setModules(cloudData.modules || []);
           setSettings(cloudData.settings || null);
-        } else {
-          // Fallback to localStorage (for admin preview)
-          console.log('[MROFerramenta] Cloud data empty or null, checking localStorage...');
-          const localData = getAdminData();
-          console.log('[MROFerramenta] Fallback to localStorage:', localData.modules.length, 'modules');
-          setModules(localData.modules);
-          setSettings({
-            downloadLink: localData.settings.downloadLink,
-            welcomeVideo: localData.settings.welcomeVideo
-          });
+          return;
         }
-      } catch (error) {
-        console.error('[MROFerramenta] Error loading modules:', error);
-        // Fallback to localStorage
+
+        // Fallback apenas se houve erro/indisponibilidade da nuvem
+        console.log('[MROFerramenta] Cloud unavailable, checking localStorage fallback...');
         const localData = getAdminData();
         setModules(localData.modules);
         setSettings({
           downloadLink: localData.settings.downloadLink,
-          welcomeVideo: localData.settings.welcomeVideo
+          welcomeVideo: localData.settings.welcomeVideo,
+        });
+      } catch (error) {
+        console.error('[MROFerramenta] Error loading modules:', error);
+        const localData = getAdminData();
+        setModules(localData.modules);
+        setSettings({
+          downloadLink: localData.settings.downloadLink,
+          welcomeVideo: localData.settings.welcomeVideo,
         });
       } finally {
         setIsLoading(false);

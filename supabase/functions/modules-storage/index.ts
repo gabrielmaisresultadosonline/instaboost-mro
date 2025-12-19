@@ -69,18 +69,22 @@ serve(async (req) => {
         .download(filePath);
 
       if (downloadError) {
+        const msg = `${(downloadError as any)?.message ?? ''}`.toLowerCase();
+        const errStr = `${(downloadError as any)?.error ?? ''}`.toLowerCase();
+        const status = (downloadError as any)?.statusCode ?? (downloadError as any)?.status;
+
         // File doesn't exist yet - return empty data
-        if (downloadError.message.includes('not found') || downloadError.message.includes('Object not found')) {
+        if (status === 404 || msg.includes('not found') || msg.includes('object not found') || errStr.includes('not found')) {
           console.log(`[modules-storage] No modules data found`);
           return new Response(
             JSON.stringify({ success: true, data: null, exists: false }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        
+
         console.error('[modules-storage] Download error:', downloadError);
         return new Response(
-          JSON.stringify({ success: false, error: downloadError.message }),
+          JSON.stringify({ success: false, error: (downloadError as any)?.message ?? String(downloadError) }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
