@@ -105,6 +105,28 @@ RETORNE APENAS JSON VÁLIDO no seguinte formato:
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ AI API error:', errorText);
+      
+      // Handle specific error codes
+      if (response.status === 402) {
+        console.error('❌ Payment required - Not enough credits');
+        return Response.json({
+          success: false,
+          error: 'credits_exhausted',
+          message: 'Créditos de IA esgotados. A análise será feita com base nos dados disponíveis.',
+          analysis: generateFallbackAnalysis()
+        }, { status: 200, headers: corsHeaders }); // Return 200 so the app can handle it gracefully
+      }
+      
+      if (response.status === 429) {
+        console.error('❌ Rate limit exceeded');
+        return Response.json({
+          success: false,
+          error: 'rate_limited',
+          message: 'Muitas requisições. Aguarde alguns segundos e tente novamente.',
+          analysis: generateFallbackAnalysis()
+        }, { status: 200, headers: corsHeaders });
+      }
+      
       throw new Error(`AI API error: ${response.status}`);
     }
 
