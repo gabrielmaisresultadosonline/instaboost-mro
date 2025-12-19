@@ -251,16 +251,6 @@ export const ProfileScreenshotUpload = ({
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          {!previewUrl && (
-            <Button 
-              onClick={() => fileInputRef.current?.click()}
-              className="flex-1"
-              variant="outline"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Selecionar Imagem
-            </Button>
-          )}
 
           {previewUrl && !hasNewSelection && (
             <Button 
