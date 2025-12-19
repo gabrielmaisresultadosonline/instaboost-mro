@@ -1,13 +1,58 @@
 // PERSISTENT STORAGE - Dados salvos no SERVIDOR por usuário
 // Cada usuário tem seus dados em JSON no servidor
 // Só busca novos dados após 30 dias para economizar requisições
+// IMPORTANTE: Histórico de crescimento SEMPRE sincronizado via nuvem
 
-import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis, GrowthSnapshot } from '@/types/instagram';
+import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis, GrowthSnapshot, GrowthInsight } from '@/types/instagram';
 import { getSession, saveSession as baseSaveSession, createSnapshot, setServerSyncCallback } from '@/lib/storage';
 import { supabase } from '@/integrations/supabase/client';
 
 // 30 days in milliseconds
 const REFRESH_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
+
+// Merge growth histories by date - combines local and cloud data, removing duplicates
+const mergeGrowthHistories = (local: GrowthSnapshot[], cloud: GrowthSnapshot[]): GrowthSnapshot[] => {
+  const merged = new Map<string, GrowthSnapshot>();
+  
+  // Add all cloud entries first (cloud has priority)
+  cloud.forEach(snapshot => {
+    const dateKey = new Date(snapshot.date).toISOString().split('T')[0]; // Use date only as key
+    merged.set(dateKey, snapshot);
+  });
+  
+  // Add local entries that don't exist in cloud
+  local.forEach(snapshot => {
+    const dateKey = new Date(snapshot.date).toISOString().split('T')[0];
+    if (!merged.has(dateKey)) {
+      merged.set(dateKey, snapshot);
+    }
+  });
+  
+  // Sort by date ascending
+  return Array.from(merged.values()).sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+};
+
+// Merge growth insights by week number - combines local and cloud data
+const mergeGrowthInsights = (local: GrowthInsight[], cloud: GrowthInsight[]): GrowthInsight[] => {
+  const merged = new Map<number, GrowthInsight>();
+  
+  // Add all cloud entries first (cloud has priority)
+  cloud.forEach(insight => {
+    merged.set(insight.weekNumber, insight);
+  });
+  
+  // Add local entries that don't exist in cloud
+  local.forEach(insight => {
+    if (!merged.has(insight.weekNumber)) {
+      merged.set(insight.weekNumber, insight);
+    }
+  });
+  
+  // Sort by week number ascending
+  return Array.from(merged.values()).sort((a, b) => a.weekNumber - b.weekNumber);
+};
 
 // Local cache key (backup while server syncs)
 const LOCAL_CACHE_KEY = 'mro_server_cache';
@@ -414,8 +459,14 @@ export const persistProfileData = async (
     strategies: existingData?.strategies || existing?.strategies || [],
     creatives: existingData?.creatives || existing?.creatives || [],
     creativesRemaining: existingData?.creativesRemaining ?? existing?.creativesRemaining ?? 6,
-    growthHistory: existingData?.growthHistory || existing?.growthHistory || [createSnapshot(profile)],
-    growthInsights: existingData?.growthInsights || existing?.growthInsights || [],
+    growthHistory: mergeGrowthHistories(
+      existingData?.growthHistory || [], 
+      existing?.growthHistory || [createSnapshot(profile)]
+    ),
+    growthInsights: mergeGrowthInsights(
+      existingData?.growthInsights || [], 
+      existing?.growthInsights || []
+    ),
     lastFetchDate: now,
     syncedAt: existing?.syncedAt || now,
     lastUpdated: now,
@@ -514,12 +565,23 @@ export const syncPersistentToSession = (): void => {
         existingInSession.creativesRemaining,
         persistedData.creativesRemaining
       );
-      existingInSession.growthHistory = existingInSession.growthHistory.length >= persistedData.growthHistory.length
-        ? existingInSession.growthHistory
-        : persistedData.growthHistory;
-      existingInSession.growthInsights = existingInSession.growthInsights.length >= persistedData.growthInsights.length
-        ? existingInSession.growthInsights
-        : persistedData.growthInsights;
+      // CRITICAL: Merge growth data from cloud and local - never lose history
+      existingInSession.growthHistory = mergeGrowthHistories(
+        existingInSession.growthHistory || [],
+        persistedData.growthHistory || []
+      );
+      existingInSession.growthInsights = mergeGrowthInsights(
+        existingInSession.growthInsights || [],
+        persistedData.growthInsights || []
+      );
+      // Update initial snapshot if cloud has earlier data
+      if (existingInSession.growthHistory.length > 0) {
+        const cloudFirstSnapshot = persistedData.growthHistory[0];
+        const localFirstSnapshot = existingInSession.initialSnapshot;
+        if (cloudFirstSnapshot && (!localFirstSnapshot || new Date(cloudFirstSnapshot.date) < new Date(localFirstSnapshot.date))) {
+          existingInSession.initialSnapshot = cloudFirstSnapshot;
+        }
+      }
       // CRITICAL: Restore strategy generation dates (prevents regeneration abuse)
       if (persistedData.lastStrategyGeneratedAt) {
         existingInSession.lastStrategyGeneratedAt = persistedData.lastStrategyGeneratedAt;
@@ -627,11 +689,12 @@ export const loadPersistedDataOnLogin = async (loggedInUsername: string, registe
     
     if (persistedData) {
       // Check if already in session
-      const existsInSession = session.profiles.some(
+      const existingIndex = session.profiles.findIndex(
         p => p.profile.username.toLowerCase() === normalizedUsername
       );
       
-      if (!existsInSession) {
+      if (existingIndex === -1) {
+        // Create new profile session from cloud data
         const profileSession: ProfileSession = {
           id: `profile_${Date.now()}_${normalizedUsername}`,
           profile: persistedData.profile,
@@ -640,13 +703,12 @@ export const loadPersistedDataOnLogin = async (loggedInUsername: string, registe
           creatives: persistedData.creatives,
           creativesRemaining: persistedData.creativesRemaining,
           initialSnapshot: persistedData.growthHistory[0] || createSnapshot(persistedData.profile),
-          growthHistory: persistedData.growthHistory,
-          growthInsights: persistedData.growthInsights,
+          growthHistory: persistedData.growthHistory || [],
+          growthInsights: persistedData.growthInsights || [],
           startedAt: persistedData.syncedAt,
           lastUpdated: persistedData.lastUpdated,
           lastStrategyGeneratedAt: persistedData.lastStrategyGeneratedAt,
           strategyGenerationDates: persistedData.strategyGenerationDates || {},
-          // CRITICAL: Restore screenshot data from cloud
           screenshotUrl: persistedData.screenshotUrl,
           screenshotUploadCount: persistedData.screenshotUploadCount,
           screenshotHistory: persistedData.screenshotHistory
@@ -656,9 +718,40 @@ export const loadPersistedDataOnLogin = async (loggedInUsername: string, registe
         console.log(`✅ Perfil @${normalizedUsername} restaurado do servidor:`, {
           strategies: profileSession.strategies.length,
           creatives: profileSession.creatives.length,
-          creditsRemaining: profileSession.creativesRemaining,
-          strategyDates: profileSession.strategyGenerationDates,
+          growthHistory: profileSession.growthHistory.length,
+          growthInsights: profileSession.growthInsights.length,
           screenshotUrl: profileSession.screenshotUrl
+        });
+      } else {
+        // MERGE existing session with cloud data - cloud takes priority for growth data
+        const existingSession = session.profiles[existingIndex];
+        
+        existingSession.growthHistory = mergeGrowthHistories(
+          existingSession.growthHistory || [],
+          persistedData.growthHistory || []
+        );
+        existingSession.growthInsights = mergeGrowthInsights(
+          existingSession.growthInsights || [],
+          persistedData.growthInsights || []
+        );
+        
+        // Update initial snapshot if cloud has earlier data
+        if (persistedData.growthHistory.length > 0) {
+          const cloudFirstSnapshot = persistedData.growthHistory[0];
+          if (cloudFirstSnapshot && (!existingSession.initialSnapshot || 
+              new Date(cloudFirstSnapshot.date) < new Date(existingSession.initialSnapshot.date))) {
+            existingSession.initialSnapshot = cloudFirstSnapshot;
+          }
+        }
+        
+        // Restore screenshot if missing locally
+        if (persistedData.screenshotUrl && !existingSession.screenshotUrl) {
+          existingSession.screenshotUrl = persistedData.screenshotUrl;
+        }
+        
+        console.log(`🔄 Perfil @${normalizedUsername} mesclado com nuvem:`, {
+          growthHistory: existingSession.growthHistory.length,
+          growthInsights: existingSession.growthInsights.length
         });
       }
     }
