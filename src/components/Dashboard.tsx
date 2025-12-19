@@ -28,6 +28,8 @@ import {
   Type,
   TrendingUp,
   Wrench,
+  Lock,
+  Camera,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -73,12 +75,15 @@ export const Dashboard = ({
     syncSessionToPersistent(getLoggedInUsername());
   };
 
+  // Check if screenshot exists for analysis tab
+  const hasScreenshot = !!activeProfile?.screenshotUrl;
+
   const tabs = [
-    { id: 'profile', label: 'Perfil', icon: <User className="w-4 h-4" /> },
-    { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" /> },
-    { id: 'legendas', label: 'Gerar Legendas', icon: <Type className="w-4 h-4" /> },
-    { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'profile', label: 'Perfil', icon: <User className="w-4 h-4" />, locked: false },
+    { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" />, locked: !hasScreenshot },
+    { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" />, locked: false },
+    { id: 'legendas', label: 'Gerar Legendas', icon: <Type className="w-4 h-4" />, locked: false },
+    { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-4 h-4" />, locked: false },
   ];
 
   const handleStrategyGenerated = (strategy: Strategy) => {
@@ -133,15 +138,25 @@ export const Dashboard = ({
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as Tab)}
+                  onClick={() => {
+                    if (tab.locked) {
+                      import('sonner').then(({ toast }) => {
+                        toast.error('Envie um print do perfil primeiro na aba "Perfil"');
+                      });
+                      return;
+                    }
+                    setActiveTab(tab.id as Tab);
+                  }}
                   data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    tab.locked
+                      ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                      : activeTab === tab.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >
-                  {tab.icon}
+                  {tab.locked ? <Lock className="w-4 h-4" /> : tab.icon}
                   {tab.label}
                   {tab.id === 'strategies' && activeProfile.strategies.length > 0 && (
                     <span className="ml-1 w-5 h-5 rounded-full bg-primary-foreground/20 text-xs flex items-center justify-center">
@@ -193,14 +208,24 @@ export const Dashboard = ({
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as Tab)}
+                onClick={() => {
+                  if (tab.locked) {
+                    import('sonner').then(({ toast }) => {
+                      toast.error('Envie um print do perfil primeiro');
+                    });
+                    return;
+                  }
+                  setActiveTab(tab.id as Tab);
+                }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  tab.locked
+                    ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                    : activeTab === tab.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
-                {tab.icon}
+                {tab.locked ? <Lock className="w-4 h-4" /> : tab.icon}
                 {tab.label}
               </button>
             ))}
@@ -250,7 +275,24 @@ export const Dashboard = ({
 
         {activeTab === 'analysis' && (
           <div className="max-w-3xl mx-auto">
-            <AnalysisCard analysis={activeProfile.analysis} />
+            {hasScreenshot ? (
+              <AnalysisCard analysis={activeProfile.analysis} />
+            ) : (
+              <div className="glass-card glow-border p-8 text-center">
+                <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-display font-bold mb-2">Análise Bloqueada</h3>
+                <p className="text-muted-foreground mb-4">
+                  Para acessar a análise completa do perfil, você precisa enviar um print do perfil primeiro.
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('profile')}
+                  className="gap-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  Ir para Envio de Print
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
