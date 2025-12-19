@@ -36,12 +36,12 @@ export const VideoTutorialButton = ({
   return (
     <>
       <Button
-        variant="outline"
+        variant="default"
         size={size}
         onClick={() => setIsOpen(true)}
         className={`
-          flex items-center gap-2 border-primary/50 text-primary hover:bg-primary/10
-          ${variant === 'pulse' ? 'animate-pulse-slow shadow-lg shadow-primary/30' : ''}
+          flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold border-0
+          ${variant === 'pulse' ? 'animate-pulse-slow shadow-lg shadow-red-500/30' : ''}
           ${className}
         `}
       >
