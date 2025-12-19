@@ -135,12 +135,16 @@ const MROFerramenta = () => {
     const checkScroll = () => {
       const container = scrollContainerRef.current;
       if (container) {
-        setCanScrollLeft(container.scrollLeft > 0);
+        setCanScrollLeft(container.scrollLeft > 10);
         setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 10);
       }
     };
 
     useEffect(() => {
+      // Scroll to start on mount to ensure first video is visible
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollLeft = 0;
+      }
       checkScroll();
       window.addEventListener('resize', checkScroll);
       return () => window.removeEventListener('resize', checkScroll);
@@ -182,15 +186,18 @@ const MROFerramenta = () => {
         <div 
           ref={scrollContainerRef}
           onScroll={checkScroll}
-          className={`flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-2 snap-x snap-mandatory touch-pan-x ${
-            videoContents.length <= 6 ? 'justify-center' : 'justify-start'
-          }`}
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-1 snap-x snap-mandatory touch-pan-x cursor-grab active:cursor-grabbing"
+          style={{ 
+            scrollbarWidth: 'none', 
+            msOverflowStyle: 'none', 
+            WebkitOverflowScrolling: 'touch',
+            scrollSnapType: 'x mandatory'
+          }}
         >
           {videoContents.map((content, idx) => (
             <div 
               key={content.id}
-              className="content-card group cursor-pointer flex-shrink-0 snap-start w-32 sm:w-36 md:w-44 lg:w-48"
+              className="content-card group cursor-pointer flex-shrink-0 snap-start w-28 sm:w-32 md:w-44 lg:w-48"
               onClick={() => onContentClick(content)}
             >
               {content.type === 'video' ? (
