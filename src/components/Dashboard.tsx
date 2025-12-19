@@ -212,7 +212,14 @@ export const Dashboard = ({
       <main className="container mx-auto px-4 py-8">
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            <ProfileCard profile={activeProfile.profile} />
+            <ProfileCard 
+              profile={activeProfile.profile} 
+              onProfileUpdate={(updatedProfile) => {
+                // Update profile in session
+                updateProfile(updatedProfile);
+                refreshSession();
+              }}
+            />
             
             {/* Profile Screenshot Upload */}
             <ProfileScreenshotUpload
