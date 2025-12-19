@@ -79,14 +79,18 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
     }
   };
 
-  const showResyncButton = photoError || !localProfilePicUrl;
+  // Show sync overlay when showing fallback avatar (no real photo)
+  const showingFallbackAvatar = photoError || !localProfilePicUrl;
 
   return (
     <div className="glass-card glow-border p-6 animate-slide-up">
       <div className="flex items-start gap-6">
         {/* Profile Picture */}
         <div className="relative">
-          <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary/30 bg-primary/20 flex items-center justify-center">
+          <div 
+            className={`w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary/30 bg-primary/20 flex items-center justify-center ${showingFallbackAvatar ? 'cursor-pointer' : ''}`}
+            onClick={showingFallbackAvatar ? handleResyncPhoto : undefined}
+          >
             {localProfilePicUrl && !photoError ? (
               <img 
                 src={localProfilePicUrl} 
@@ -96,29 +100,37 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
                   setPhotoError(true);
                 }}
               />
-            ) : null}
-            <span className={`text-2xl font-bold text-primary ${localProfilePicUrl && !photoError ? 'hidden' : ''}`}>
-              {profile.username?.charAt(0).toUpperCase()}
-            </span>
+            ) : (
+              <>
+                {/* Fallback avatar with initials */}
+                <span className="text-2xl font-bold text-primary">
+                  {profile.username?.substring(0, 2).toUpperCase()}
+                </span>
+                
+                {/* Sync overlay on fallback avatar */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 hover:opacity-100 transition-opacity">
+                  <RefreshCw className={`w-6 h-6 text-white ${isResyncingPhoto ? 'animate-spin' : ''}`} />
+                </div>
+              </>
+            )}
           </div>
-          {profile.isBusinessAccount && (
+          
+          {/* Sync indicator badge when showing fallback */}
+          {showingFallbackAvatar && (
+            <button
+              onClick={handleResyncPhoto}
+              disabled={isResyncingPhoto}
+              className="absolute -bottom-1 -right-1 w-8 h-8 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
+              title="Clique para buscar foto real"
+            >
+              <RefreshCw className={`w-4 h-4 text-white ${isResyncingPhoto ? 'animate-spin' : ''}`} />
+            </button>
+          )}
+          
+          {profile.isBusinessAccount && !showingFallbackAvatar && (
             <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <Briefcase className="w-4 h-4 text-primary-foreground" />
             </div>
-          )}
-          
-          {/* Resync photo button */}
-          {showResyncButton && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleResyncPhoto}
-              disabled={isResyncingPhoto}
-              className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-7 px-2 text-xs bg-background border-primary/50 hover:bg-primary/20"
-            >
-              <RefreshCw className={`w-3 h-3 mr-1 ${isResyncingPhoto ? 'animate-spin' : ''}`} />
-              {isResyncingPhoto ? 'Sync...' : 'Foto'}
-            </Button>
           )}
         </div>
 
