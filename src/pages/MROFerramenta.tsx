@@ -139,7 +139,6 @@ const MROFerramenta = () => {
     };
 
     useEffect(() => {
-      // Scroll to start on mount to ensure first video is visible
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollLeft = 0;
       }
@@ -151,8 +150,8 @@ const MROFerramenta = () => {
     const scroll = (direction: 'left' | 'right') => {
       const container = scrollContainerRef.current;
       if (container) {
-        const cardWidth = container.querySelector('.content-card')?.clientWidth || 200;
-        const scrollAmount = cardWidth + 16;
+        const cardWidth = container.querySelector('.content-card')?.clientWidth || 140;
+        const scrollAmount = cardWidth + 12;
         container.scrollBy({
           left: direction === 'left' ? -scrollAmount : scrollAmount,
           behavior: 'smooth'
@@ -162,29 +161,29 @@ const MROFerramenta = () => {
     };
 
     const renderVideoCarousel = () => (
-      <div className="relative">
+      <div className="relative px-6 md:px-8">
         {canScrollLeft && (
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors -ml-3"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
           >
-            <ChevronLeft className="w-6 h-6 text-primary-foreground" />
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
           </button>
         )}
 
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors -mr-3"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
           >
-            <ChevronRight className="w-6 h-6 text-primary-foreground" />
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
           </button>
         )}
 
         <div 
           ref={scrollContainerRef}
           onScroll={checkScroll}
-          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2 px-1 snap-x snap-mandatory touch-pan-x cursor-grab active:cursor-grabbing md:justify-center md:flex-wrap"
+          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory touch-pan-x justify-start"
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none', 
@@ -195,48 +194,51 @@ const MROFerramenta = () => {
           {videoContents.map((content, idx) => (
             <div 
               key={content.id}
-              className="content-card group cursor-pointer flex-shrink-0 snap-start w-28 sm:w-32 md:w-44 lg:w-48"
+              className="content-card group cursor-pointer flex-shrink-0 snap-start w-[120px] sm:w-[140px] md:w-[160px] lg:w-[180px]"
               onClick={() => onContentClick(content)}
             >
               {content.type === 'video' ? (
-                <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-black border-2 border-transparent group-hover:border-primary transition-all duration-300 flex items-center justify-center">
+                <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-black border-2 border-border/50 group-hover:border-primary transition-all duration-300 shadow-lg">
                   <img 
                     src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
                     alt={content.title}
-                    className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                       e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
                     }}
                   />
                   
-                  <div className="absolute top-2 left-2 w-8 h-6 bg-red-600 rounded flex items-center justify-center">
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
+                  {/* YouTube badge */}
+                  <div className="absolute top-2 left-2 w-7 h-5 bg-red-600 rounded flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="currentColor">
                       <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                     </svg>
                   </div>
                   
+                  {/* Number badge */}
                   {(content as ModuleVideo).showNumber && (
-                    <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                    <div className="absolute top-2 right-2 w-6 h-6 md:w-7 md:h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs md:text-sm font-bold shadow-lg">
                       {idx + 1}
                     </div>
                   )}
 
+                  {/* Hover play overlay */}
                   <div className="absolute inset-0 bg-background/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
-                      <Play className="w-5 h-5 text-primary-foreground ml-0.5" />
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                      <Play className="w-4 h-4 md:w-5 md:h-5 text-primary-foreground ml-0.5" />
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center border-2 border-transparent group-hover:border-primary transition-all duration-300">
-                  <Type className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
-                  <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-gradient-to-br from-secondary to-muted flex items-center justify-center border-2 border-border/50 group-hover:border-primary transition-all duration-300 shadow-lg">
+                  <Type className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <div className="absolute top-2 right-2 w-6 h-6 md:w-7 md:h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs md:text-sm font-bold shadow-lg">
                     {idx + 1}
                   </div>
                 </div>
               )}
               {((content as any).showTitle !== false) && (
-                <h3 className="font-medium mt-2 text-sm group-hover:text-primary transition-colors line-clamp-2">{content.title}</h3>
+                <p className="font-medium mt-2 text-xs md:text-sm text-center group-hover:text-primary transition-colors line-clamp-2 px-1">{content.title}</p>
               )}
             </div>
           ))}
@@ -245,15 +247,16 @@ const MROFerramenta = () => {
     );
 
     const renderButtons = () => (
-      <div className="flex flex-wrap gap-3 pt-2 justify-center">
+      <div className="flex flex-wrap gap-2 md:gap-3 justify-center pt-4 px-4">
         {buttonContents.map((content) => (
           <Button
             key={content.id}
             onClick={() => window.open((content as ModuleButton).url, '_blank', 'noopener,noreferrer')}
             variant="outline"
-            className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 border-primary/30 text-foreground"
+            size="sm"
+            className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 border-primary/30 text-foreground text-xs md:text-sm"
           >
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
             {content.title}
           </Button>
         ))}
@@ -265,21 +268,21 @@ const MROFerramenta = () => {
       if (videoContents.length === 0 && buttonContents.length === 0) return null;
       
       return (
-        <div className="mt-6 rounded-2xl border-2 border-border/50 bg-card/50 p-4 md:p-6">
+        <div className="mt-6 rounded-2xl border border-border/30 bg-card/30 p-4 md:p-6">
           {/* Section Header */}
           {section.showTitle !== false && (
             <div className="text-center mb-4">
-              <div className="flex items-center justify-center gap-3">
-                <h3 className="text-lg md:text-xl font-bold">{section.title}</h3>
+              <div className="flex items-center justify-center gap-2 md:gap-3">
+                <h3 className="text-base md:text-lg font-bold">{section.title}</h3>
                 {section.isBonus && (
-                  <span className="px-3 py-1 bg-secondary rounded-full text-xs font-semibold flex items-center gap-1">
+                  <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-400 text-black rounded-full text-xs font-semibold flex items-center gap-1">
                     <Gift className="w-3 h-3" />
                     BÔNUS
                   </span>
                 )}
               </div>
               {section.description && (
-                <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
+                <p className="text-xs md:text-sm text-muted-foreground mt-1">{section.description}</p>
               )}
             </div>
           )}
@@ -287,12 +290,8 @@ const MROFerramenta = () => {
           {/* Videos Carousel inside section */}
           {videoContents.length > 0 && renderVideoCarousel()}
 
-          {/* Buttons inside section */}
-          {buttonContents.length > 0 && (
-            <div className="pt-4">
-              {renderButtons()}
-            </div>
-          )}
+          {/* Buttons inside section - centered below carousel */}
+          {buttonContents.length > 0 && renderButtons()}
         </div>
       );
     }
@@ -301,11 +300,11 @@ const MROFerramenta = () => {
     if (videoContents.length === 0 && buttonContents.length === 0) return null;
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         {/* Video/Text Carousel */}
         {videoContents.length > 0 && renderVideoCarousel()}
 
-        {/* Buttons Section */}
+        {/* Buttons Section - centered below carousel */}
         {buttonContents.length > 0 && renderButtons()}
       </div>
     );
