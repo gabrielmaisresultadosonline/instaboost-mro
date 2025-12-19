@@ -251,13 +251,26 @@ export const Dashboard = ({
               username={activeProfile.profile.username}
               squarecloudUsername={getLoggedInUsername()}
               existingScreenshotUrl={activeProfile.screenshotUrl}
+              uploadCount={activeProfile.screenshotUploadCount || 0}
               onScreenshotUploaded={(url) => {
-                // Update profile with screenshot URL
-                const updatedProfile = { ...activeProfile.profile };
+                // Update profile with screenshot URL and history
                 const session = getSession();
                 const profileIndex = session.profiles.findIndex(p => p.id === activeProfile.id);
                 if (profileIndex !== -1) {
+                  const profile = session.profiles[profileIndex];
+                  
+                  // Add to history for admin
+                  const history = profile.screenshotHistory || [];
+                  history.push({
+                    url,
+                    uploadedAt: new Date().toISOString()
+                  });
+                  
+                  // Update screenshot data
                   session.profiles[profileIndex].screenshotUrl = url;
+                  session.profiles[profileIndex].screenshotUploadCount = (profile.screenshotUploadCount || 0) + 1;
+                  session.profiles[profileIndex].screenshotHistory = history;
+                  
                   onSessionUpdate(session);
                   syncSessionToPersistent(getLoggedInUsername());
                 }

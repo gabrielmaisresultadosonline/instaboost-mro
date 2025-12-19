@@ -292,6 +292,9 @@ export const initializeFromCloud = (profileSessions: ProfileSession[], archivedP
     lastStrategyGeneratedAt: cloudProfile.lastStrategyGeneratedAt,
     growthHistory: cloudProfile.growthHistory || [],
     growthInsights: cloudProfile.growthInsights || [],
+    screenshotUrl: cloudProfile.screenshotUrl,
+    screenshotUploadCount: cloudProfile.screenshotUploadCount || 0,
+    screenshotHistory: cloudProfile.screenshotHistory || [],
   }));
   
   // Create fresh session with ONLY cloud profiles for THIS user

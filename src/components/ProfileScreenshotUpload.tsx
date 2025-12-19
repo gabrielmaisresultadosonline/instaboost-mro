@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera, Upload, X, Check, Loader2, Image as ImageIcon, Clipboard } from 'lucide-react';
+import { Camera, Upload, X, Check, Loader2, Image as ImageIcon, Clipboard, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -9,6 +9,7 @@ interface ProfileScreenshotUploadProps {
   username: string;
   squarecloudUsername: string;
   existingScreenshotUrl?: string | null;
+  uploadCount?: number;
   onScreenshotUploaded: (url: string) => void;
   onAnalysisComplete?: (analysis: any) => void;
 }
@@ -17,6 +18,7 @@ export const ProfileScreenshotUpload = ({
   username,
   squarecloudUsername,
   existingScreenshotUrl,
+  uploadCount = 0,
   onScreenshotUploaded,
   onAnalysisComplete
 }: ProfileScreenshotUploadProps) => {
@@ -26,6 +28,8 @@ export const ProfileScreenshotUpload = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
+
+  const isLocked = uploadCount >= 2;
 
   // Handle paste event for Ctrl+V
   useEffect(() => {
@@ -160,16 +164,58 @@ export const ProfileScreenshotUpload = ({
   const hasNewSelection = !!selectedFile;
   const showUploadButton = hasNewSelection && previewUrl !== existingScreenshotUrl;
 
+  // Locked state - show only if has 2+ uploads
+  if (isLocked && previewUrl) {
+    return (
+      <Card className="glass-card glow-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="w-5 h-5 text-yellow-500" />
+            Print do Perfil - Bloqueado
+          </CardTitle>
+          <CardDescription>
+            Você já enviou o print do perfil 2 vezes. Não é possível alterar novamente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="relative rounded-lg overflow-hidden border border-border">
+            <img 
+              src={previewUrl} 
+              alt="Print do perfil" 
+              className="w-full max-h-[400px] object-contain bg-muted"
+            />
+            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-green-500/90 text-white px-2 py-1 rounded text-xs">
+              <Check className="w-3 h-3" />
+              Salvo definitivamente
+            </div>
+          </div>
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-sm">
+            <p className="text-yellow-600 dark:text-yellow-400">
+              ⚠️ O limite de 2 envios foi atingido. O print atual não pode mais ser alterado.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="glass-card glow-border">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Camera className="w-5 h-5 text-primary" />
           Print do Perfil
+          {uploadCount > 0 && (
+            <span className="text-xs font-normal text-muted-foreground">
+              ({uploadCount}/2 envios)
+            </span>
+          )}
         </CardTitle>
         <CardDescription>
           {hasExistingScreenshot 
-            ? 'Print atual do seu perfil. Você pode atualizar a qualquer momento.'
+            ? uploadCount === 1
+              ? 'Print atual do seu perfil. Você pode trocar mais 1 vez.'
+              : 'Print atual do seu perfil. Você pode atualizar a qualquer momento.'
             : 'Suba um print do seu perfil do Instagram para análise completa.'
           }
         </CardDescription>
