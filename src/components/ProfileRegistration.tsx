@@ -50,6 +50,7 @@ import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { TutorialList } from '@/components/TutorialList';
 import { useTutorial, profileRegistrationTutorial } from '@/hooks/useTutorial';
 import { AgeRestrictionScreenshotDialog } from '@/components/AgeRestrictionScreenshotDialog';
+import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 
 interface ProfileRegistrationProps {
   onProfileRegistered: (profile: InstagramProfile, analysis: ProfileAnalysis) => void;
@@ -731,6 +732,13 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
                 </CardDescription>
               </div>
               <div className="flex items-center gap-3">
+                {/* Video Tutorial Button */}
+                <VideoTutorialButton
+                  youtubeUrl="https://youtu.be/zsLE_Kc11fM"
+                  title="Tutorial"
+                  variant="default"
+                  size="sm"
+                />
                 {/* Tutorial Button */}
                 <TutorialButton
                   onStartInteractive={() => tutorial.startTutorial(profileRegistrationTutorial)}

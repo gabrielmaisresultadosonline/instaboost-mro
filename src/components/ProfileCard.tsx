@@ -4,6 +4,7 @@ import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw } from 'lu
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 
 interface ProfileCardProps {
   profile: InstagramProfile;
@@ -83,7 +84,17 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
   const showingFallbackAvatar = photoError || !localProfilePicUrl;
 
   return (
-    <div className="glass-card glow-border p-6 animate-slide-up">
+    <div className="glass-card glow-border p-6 animate-slide-up relative">
+      {/* Video Tutorial Button - Pulsing */}
+      <div className="absolute top-4 right-4 z-10">
+        <VideoTutorialButton
+          youtubeUrl="https://youtu.be/mIQ78Skz1BU"
+          title="Tutorial"
+          variant="pulse"
+          size="sm"
+        />
+      </div>
+
       <div className="flex items-start gap-6">
         {/* Profile Picture */}
         <div className="relative">
