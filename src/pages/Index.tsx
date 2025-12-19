@@ -633,14 +633,19 @@ const Index = () => {
   }
 
   // Show dashboard
+  // Get active profile to check if screenshot exists
+  const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
+  const hasScreenshot = !!activeProfile?.screenshotUrl;
+
   if (showDashboard && session.profiles.length > 0) {
     return (
       <>
         <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} progress={syncProgress} />
-        {showAnnouncements && (
+        {/* Avisos só aparecem APÓS o upload do print do perfil */}
+        {showAnnouncements && hasScreenshot && (
           <AnnouncementPopup onComplete={() => setShowAnnouncements(false)} />
         )}
-        <Dashboard 
+        <Dashboard
           session={session} 
           onSessionUpdate={handleSessionUpdate}
           onReset={handleReset}
