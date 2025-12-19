@@ -19,14 +19,15 @@ serve(async (req) => {
     // Create service client for storage operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, data, platform } = await req.json();
+    const { action, data, platform, isBackup } = await req.json();
     
     // Modules data is stored as separate files per platform
     // MRO uses the original path for backward compatibility
-    const filePath = platform === 'zapmro' ? 'admin/zapmro-modules-data.json' : 'admin/modules-data.json';
+    const baseName = platform === 'zapmro' ? 'zapmro-modules-data' : 'modules-data';
+    const filePath = isBackup ? `admin/${baseName}-backup.json` : `admin/${baseName}.json`;
     const callSettingsPath = 'admin/call-settings.json';
     
-    console.log(`[modules-storage] Action: ${action}, Platform: ${platform || 'mro'}, Path: ${filePath}`);
+    console.log(`[modules-storage] Action: ${action}, Platform: ${platform || 'mro'}, Path: ${filePath}, Backup: ${isBackup || false}`);
 
     if (action === 'save') {
       // Save modules data as JSON file
