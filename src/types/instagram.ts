@@ -182,6 +182,8 @@ export interface ProfileSession {
   lastStrategyGeneratedAt?: string; // Legacy - kept for backward compatibility
   strategyGenerationDates?: StrategyGenerationDates; // Per-type generation dates
   screenshotUrl?: string; // URL do print do perfil enviado pelo cliente
+  screenshotUploadCount?: number; // Número de vezes que o print foi enviado (máx 2)
+  screenshotHistory?: { url: string; uploadedAt: string }[]; // Histórico de prints para admin
 }
 
 export interface MROSession {
