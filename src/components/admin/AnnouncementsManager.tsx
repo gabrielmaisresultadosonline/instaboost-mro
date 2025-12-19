@@ -125,18 +125,15 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadImageFile = async (file: File): Promise<string | null> => {
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Arquivo inválido', description: 'Selecione uma imagem', variant: 'destructive' });
-      return;
+      return null;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: 'Arquivo muito grande', description: 'Máximo 5MB', variant: 'destructive' });
-      return;
+      return null;
     }
 
     setIsUploading(true);
@@ -156,15 +153,46 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         .from('assets')
         .getPublicUrl(fileName);
 
-      setFormData({ ...formData, thumbnailUrl: urlData.publicUrl });
       toast({ title: 'Imagem enviada!', description: 'Thumbnail atualizada com sucesso' });
+      return urlData.publicUrl;
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
       toast({ title: 'Erro no upload', description: 'Não foi possível enviar a imagem', variant: 'destructive' });
+      return null;
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadImageFile(file);
+    if (url) {
+      setFormData({ ...formData, thumbnailUrl: url });
+    }
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        e.preventDefault();
+        const file = items[i].getAsFile();
+        if (file) {
+          const url = await uploadImageFile(file);
+          if (url) {
+            setFormData({ ...formData, thumbnailUrl: url });
+          }
+        }
+        break;
       }
     }
   };
@@ -383,7 +411,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                   placeholder="https://exemplo.com/imagem.jpg"
                 />
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -391,27 +419,40 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
+                  
+                  {/* Área de Ctrl+V para colar imagem */}
+                  <div
+                    onPaste={handlePaste}
+                    tabIndex={0}
+                    className={`
+                      w-full min-h-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 p-4 cursor-pointer transition-colors
+                      ${isUploading 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border hover:border-primary/50 hover:bg-secondary/50'
+                      }
+                    `}
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="w-full gap-2"
                   >
                     {isUploading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                        Enviando...
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        <span className="text-sm text-muted-foreground">Enviando imagem...</span>
                       </>
                     ) : (
                       <>
-                        <ImageIcon className="w-4 h-4" />
-                        Selecionar Imagem (max 5MB)
+                        <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground text-center">
+                          Clique para selecionar ou use <span className="font-bold text-primary">Ctrl+V</span> para colar
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          JPG, PNG, WEBP • Máximo 5MB
+                        </span>
                       </>
                     )}
-                  </Button>
+                  </div>
+                  
                   <p className="text-xs text-muted-foreground">
-                    Formatos: JPG, PNG, WEBP • Tamanhos: 1920x1080, 1080x1920, 1080x1080, 1080x1350
+                    Tamanhos recomendados: 1920x1080, 1080x1920, 1080x1080, 1080x1350
                   </p>
                 </div>
               )}
