@@ -284,23 +284,38 @@ export const saveAdminData = (data: AdminData): void => {
 export type ModulePlatform = 'mro' | 'zapmro';
 
 // Save modules to cloud storage
-export const saveModulesToCloud = async (platform: ModulePlatform = 'mro'): Promise<boolean> => {
+export const saveModulesToCloud = async (
+  platform: ModulePlatform = 'mro',
+  overrideData?: {
+    modules: TutorialModule[];
+    settings: Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'>;
+  }
+): Promise<boolean> => {
   try {
     const data = getAdminData();
     const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : 'mro_admin_data';
     const localData = localStorage.getItem(storageKey);
     const parsedData = localData ? JSON.parse(localData) : data;
-    
+
     const modulesData = {
-      modules: parsedData.modules || [],
+      modules: overrideData?.modules ?? parsedData.modules ?? [],
       settings: {
-        downloadLink: parsedData.settings?.downloadLink || '',
-        welcomeVideo: parsedData.settings?.welcomeVideo || {}
-      }
+        downloadLink: overrideData?.settings?.downloadLink ?? parsedData.settings?.downloadLink ?? '',
+        welcomeVideo:
+          overrideData?.settings?.welcomeVideo ??
+          parsedData.settings?.welcomeVideo ??
+          {
+            enabled: false,
+            title: '',
+            showTitle: true,
+            youtubeUrl: '',
+            coverUrl: '',
+          },
+      },
     };
 
     const response = await supabase.functions.invoke('modules-storage', {
-      body: { action: 'save', data: modulesData, platform }
+      body: { action: 'save', data: modulesData, platform },
     });
 
     if (response.error) {
@@ -308,7 +323,15 @@ export const saveModulesToCloud = async (platform: ModulePlatform = 'mro'): Prom
       return false;
     }
 
-    console.log(`[adminConfig] ${platform} modules saved to cloud successfully`);
+    const ok = response.data?.success === true;
+    if (!ok) {
+      console.error(`[adminConfig] Cloud save returned success=false (${platform})`, response.data);
+      return false;
+    }
+
+    console.log(`[adminConfig] ${platform} modules saved to cloud successfully`, {
+      modules: modulesData.modules?.length || 0,
+    });
     return true;
   } catch (error) {
     console.error(`[adminConfig] Error saving ${platform} modules to cloud:`, error);
@@ -317,12 +340,17 @@ export const saveModulesToCloud = async (platform: ModulePlatform = 'mro'): Prom
 };
 
 // Load modules from cloud storage (for public users)
-export const loadModulesFromCloud = async (platform: ModulePlatform = 'mro'): Promise<{ modules: TutorialModule[], settings: Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'> } | null> => {
+export const loadModulesFromCloud = async (
+  platform: ModulePlatform = 'mro'
+): Promise<{
+  modules: TutorialModule[];
+  settings: Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'>;
+} | null> => {
   try {
     console.log(`[adminConfig] Loading ${platform} modules from cloud...`);
-    
+
     const response = await supabase.functions.invoke('modules-storage', {
-      body: { action: 'load', platform }
+      body: { action: 'load', platform },
     });
 
     console.log('[adminConfig] Raw response:', response);
@@ -335,8 +363,28 @@ export const loadModulesFromCloud = async (platform: ModulePlatform = 'mro'): Pr
     const responseData = response.data;
     console.log('[adminConfig] Response data:', responseData);
 
-    if (responseData?.success && responseData?.data) {
-      console.log(`[adminConfig] ${platform} modules loaded from cloud:`, responseData.data.modules?.length || 0);
+    // Quando o arquivo não existe ainda, devolve “vazio” ao invés de null
+    if (responseData?.success === true && !responseData?.data) {
+      return {
+        modules: [],
+        settings: {
+          downloadLink: '',
+          welcomeVideo: {
+            enabled: false,
+            title: '',
+            showTitle: true,
+            youtubeUrl: '',
+            coverUrl: '',
+          },
+        },
+      };
+    }
+
+    if (responseData?.success === true && responseData?.data) {
+      console.log(
+        `[adminConfig] ${platform} modules loaded from cloud:`,
+        responseData.data.modules?.length || 0
+      );
       return responseData.data;
     }
 

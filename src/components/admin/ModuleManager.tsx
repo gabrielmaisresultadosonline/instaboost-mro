@@ -246,25 +246,41 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const handlePublishToCloud = async () => {
     setIsPublishing(true);
     try {
-      const success = await saveModulesToCloud(platform);
+      // Garante que o que está na tela é o que vai para a nuvem
+      const current = getLocalData();
+      if (current.settings) {
+        current.settings.downloadLink = downloadLink;
+        current.settings.welcomeVideo = welcomeVideo;
+      }
+      current.modules = adminData.modules || [];
+      saveLocalData(current);
+
+      const success = await saveModulesToCloud(platform, {
+        modules: current.modules,
+        settings: {
+          downloadLink,
+          welcomeVideo,
+        },
+      });
+
       if (success) {
-        toast({ 
-          title: "Publicado!", 
-          description: `Módulos ${platform.toUpperCase()} publicados para todos os usuários` 
+        toast({
+          title: "Publicado!",
+          description: `Módulos ${platform.toUpperCase()} publicados para todos os usuários`,
         });
       } else {
-        toast({ 
-          title: "Erro", 
-          description: "Não foi possível publicar os módulos", 
-          variant: "destructive" 
+        toast({
+          title: "Erro",
+          description: "Não foi possível publicar os módulos",
+          variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Error publishing modules:', error);
-      toast({ 
-        title: "Erro", 
-        description: "Erro ao publicar módulos", 
-        variant: "destructive" 
+      toast({
+        title: "Erro",
+        description: "Erro ao publicar módulos",
+        variant: "destructive",
       });
     } finally {
       setIsPublishing(false);
