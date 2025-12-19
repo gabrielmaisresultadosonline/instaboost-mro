@@ -35,62 +35,62 @@ export const ProfileSelector = ({
   const activeProfile = profiles.find(p => p.id === activeProfileId);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2" disabled={isLoading}>
+          <Button variant="outline" className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0 px-2 sm:px-4" disabled={isLoading}>
             {activeProfile ? (
               <>
                 <img
                   src={activeProfile.profile.profilePicUrl}
                   alt={activeProfile.profile.username}
-                  className="w-5 h-5 rounded-full object-cover"
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-full object-cover flex-shrink-0"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                   }}
                 />
-                <span className="max-w-[120px] truncate">@{activeProfile.profile.username}</span>
+                <span className="truncate text-xs sm:text-sm">@{activeProfile.profile.username}</span>
               </>
             ) : (
               <>
-                <User className="w-4 h-4" />
-                <span>Selecionar Perfil</span>
+                <User className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm">Selecionar Perfil</span>
               </>
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuContent align="start" className="w-[280px] sm:w-64">
           <div className="max-h-[50vh] overflow-y-auto">
             {profiles.map((profile) => (
               <DropdownMenuItem
                 key={profile.id}
-                className="flex items-center justify-between cursor-pointer"
+                className="flex items-center justify-between cursor-pointer py-2"
                 onClick={() => onSelectProfile(profile.id)}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   {profile.profile.profilePicUrl && !profile.profile.profilePicUrl.includes('ui-avatars') && !profile.profile.profilePicUrl.includes('dicebear') ? (
                     <img
                       src={profile.profile.profilePicUrl}
                       alt={profile.profile.username}
-                      className="w-6 h-6 rounded-full object-cover"
+                      className="w-6 h-6 rounded-full object-cover flex-shrink-0"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                       <span className="text-xs font-bold text-primary">{profile.profile.username?.charAt(0).toUpperCase()}</span>
                     </div>
                   )}
-                  <div>
-                    <p className="font-medium text-sm">@{profile.profile.username}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-xs sm:text-sm truncate">@{profile.profile.username}</p>
                     <p className="text-xs text-muted-foreground">
                       {profile.profile.followers.toLocaleString()} seguidores
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   {profile.id === activeProfileId && (
                     <Check className="w-4 h-4 text-primary" />
                   )}
@@ -132,8 +132,8 @@ export const ProfileSelector = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button className="p-1.5 rounded-full hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-foreground">
-              <Info className="w-4 h-4" />
+            <button className="p-1 sm:p-1.5 rounded-full hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-foreground flex-shrink-0">
+              <Info className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </TooltipTrigger>
           <TooltipContent>
