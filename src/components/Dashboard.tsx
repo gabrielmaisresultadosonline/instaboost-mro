@@ -15,9 +15,10 @@ import { TutorialButton } from '@/components/TutorialButton';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { TutorialList } from '@/components/TutorialList';
 import { useTutorial, dashboardTutorial, strategyTutorial } from '@/hooks/useTutorial';
-import { addStrategy, resetSession, getSession } from '@/lib/storage';
+import { addStrategy, resetSession, getSession, updateProfile } from '@/lib/storage';
 import { syncSessionToPersistent } from '@/lib/persistentStorage';
 import { getCurrentUser } from '@/lib/userStorage';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   RotateCcw, 
   User, 
@@ -90,6 +91,37 @@ export const Dashboard = ({
     if (confirm('Tem certeza que deseja resetar todas as informações? Esta ação não pode ser desfeita.')) {
       resetSession();
       onReset();
+    }
+  };
+
+  // Função para resincronizar o perfil ativo
+  const handleResyncProfile = async () => {
+    if (!activeProfile) return;
+    
+    const username = activeProfile.profile.username;
+    const loggedInUsername = getLoggedInUsername();
+    
+    // Chama a edge function para sincronizar novamente
+    const { data, error } = await supabase.functions.invoke('sync-instagram-profile', {
+      body: { 
+        username,
+        squarecloud_username: loggedInUsername,
+        forceRefresh: true // Força buscar dados novos
+      }
+    });
+
+    if (error) throw error;
+    
+    if (data?.profile) {
+      // Atualiza o perfil no storage local (updateProfile só aceita o profile)
+      updateProfile(data.profile);
+      
+      // Atualiza a sessão
+      const updatedSession = getSession();
+      onSessionUpdate(updatedSession);
+      
+      // Sincroniza com o servidor
+      await syncSessionToPersistent(loggedInUsername);
     }
   };
 
@@ -210,7 +242,7 @@ export const Dashboard = ({
       <main className="container mx-auto px-4 py-8">
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            <ProfileCard profile={activeProfile.profile} />
+            <ProfileCard profile={activeProfile.profile} onResync={handleResyncProfile} />
             
             {/* Recent Posts Grid */}
             <div className="glass-card p-6">

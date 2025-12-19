@@ -1,15 +1,40 @@
+import { useState } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase } from 'lucide-react';
+import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface ProfileCardProps {
   profile: InstagramProfile;
+  onResync?: () => Promise<void>;
 }
 
-export const ProfileCard = ({ profile }: ProfileCardProps) => {
+export const ProfileCard = ({ profile, onResync }: ProfileCardProps) => {
+  const [isResyncing, setIsResyncing] = useState(false);
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
+  };
+
+  // Verifica se faltam informações
+  const hasMissingProfilePic = !profile.profilePicUrl;
+  const hasMissingPostImages = profile.recentPosts?.some(post => !post.imageUrl) || false;
+  const needsResync = hasMissingProfilePic || hasMissingPostImages;
+
+  const handleResync = async () => {
+    if (!onResync) return;
+    
+    setIsResyncing(true);
+    try {
+      await onResync();
+      toast.success('Perfil resincronizado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao resincronizar perfil');
+    } finally {
+      setIsResyncing(false);
+    }
   };
 
   return (
@@ -45,6 +70,19 @@ export const ProfileCard = ({ profile }: ProfileCardProps) => {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <h2 className="text-2xl font-display font-bold">@{profile.username}</h2>
+            {needsResync && onResync && (
+              <Button
+                onClick={handleResync}
+                disabled={isResyncing}
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 text-xs border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10"
+                title="Resincronizar perfil para buscar imagens faltantes"
+              >
+                <RefreshCw className={`w-3 h-3 mr-1 ${isResyncing ? 'animate-spin' : ''}`} />
+                {isResyncing ? 'Sincronizando...' : 'Resync'}
+              </Button>
+            )}
             {profile.category && (
               <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-medium">
                 {profile.category}
