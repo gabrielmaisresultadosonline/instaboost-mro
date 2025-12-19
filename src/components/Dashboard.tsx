@@ -217,16 +217,21 @@ export const Dashboard = ({
               <h3 className="text-lg font-display font-semibold mb-4">Posts Recentes</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {activeProfile.profile.recentPosts.slice(0, 6).map((post, index) => (
-                  <div key={post.id} className="aspect-square rounded-lg overflow-hidden relative group">
-                    <img 
-                      src={post.imageUrl} 
-                      alt="Post"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = `https://picsum.photos/seed/${activeProfile.profile?.username}${index}/400/400`;
-                      }}
-                    />
+                  <div key={post.id} className="aspect-square rounded-lg overflow-hidden relative group bg-muted">
+                    {post.imageUrl && !post.imageUrl.includes('picsum.photos') ? (
+                      <img 
+                        src={post.imageUrl} 
+                        alt="Post"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                        <span className="text-xs">Imagem indisponível</span>
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="text-center text-sm">
                         <p>❤️ {post.likes}</p>

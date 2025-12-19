@@ -199,8 +199,8 @@ serve(async (req) => {
         following: profileData.following || 0,
         postsCount: postsCount,
         posts: posts, // Array of first 6 posts
-        profilePicture: proxiedProfilePic || `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`,
-        profilePicUrl: proxiedProfilePic || `https://api.dicebear.com/7.x/initials/svg?seed=${cleanUsername}&backgroundColor=10b981`,
+        profilePicture: proxiedProfilePic || null,
+        profilePicUrl: proxiedProfilePic || null,
         fullName: profileData.profile_name || profileData.full_name || cleanUsername,
         bio: profileData.biography || profileData.bio || "",
         externalUrl: profileData.external_url ? [profileData.external_url] : []

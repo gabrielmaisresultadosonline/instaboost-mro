@@ -1146,14 +1146,18 @@ const SyncDashboard = () => {
                     className="min-w-full p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl"
                   >
                     <div className="flex items-center gap-6">
-                      <img 
-                        src={profile.profilePicUrl}
-                        alt={profile.username}
-                        className="w-20 h-20 rounded-full object-cover border-4 border-green-500"
-                        onError={(e) => {
-                          e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-                        }}
-                      />
+                      {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
+                        <img 
+                          src={profile.profilePicUrl}
+                          alt={profile.username}
+                          className="w-20 h-20 rounded-full object-cover border-4 border-green-500"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center border-4 border-green-500">
+                          <span className="text-2xl font-bold text-green-500">{profile.username?.charAt(0).toUpperCase()}</span>
+                        </div>
+                      )}
                       <div className="flex-1">
                         <p className="text-xl font-bold">@{profile.username}</p>
                         <p className="text-muted-foreground">{profile.fullName}</p>
@@ -1227,14 +1231,18 @@ const SyncDashboard = () => {
                   key={profile.username}
                   className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg"
                 >
-                  <img 
-                    src={profile.profilePicUrl}
-                    alt={profile.username}
-                    className="w-12 h-12 rounded-full object-cover border border-yellow-500/50"
-                    onError={(e) => {
-                      e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-                    }}
-                  />
+                  {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
+                    <img 
+                      src={profile.profilePicUrl}
+                      alt={profile.username}
+                      className="w-12 h-12 rounded-full object-cover border border-yellow-500/50"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center border border-yellow-500/50">
+                      <span className="text-lg font-bold text-yellow-500">{profile.username?.charAt(0).toUpperCase()}</span>
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">@{profile.username}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -1275,14 +1283,18 @@ const SyncDashboard = () => {
                     key={profile.username}
                     className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg border border-green-500/20"
                   >
-                    <img 
-                      src={profile.profilePicUrl}
-                      alt={profile.username}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
-                      onError={(e) => {
-                        e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-                      }}
-                    />
+                    {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
+                      <img 
+                        src={profile.profilePicUrl}
+                        alt={profile.username}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center border-2 border-green-500">
+                        <span className="text-lg font-bold text-green-500">{profile.username?.charAt(0).toUpperCase()}</span>
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">@{profile.username}</p>
                       <p className="text-xs text-muted-foreground">
@@ -1325,16 +1337,22 @@ const SyncDashboard = () => {
                     : 'bg-secondary/30 border border-border'
                 }`}
               >
-                <img 
-                  src={profile.profilePicUrl}
-                  alt={profile.username}
-                  className={`w-16 h-16 rounded-full object-cover mx-auto mb-2 border-2 ${
+                {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
+                  <img 
+                    src={profile.profilePicUrl}
+                    alt={profile.username}
+                    className={`w-16 h-16 rounded-full object-cover mx-auto mb-2 border-2 ${
+                      profile.isConnectedToDashboard ? 'border-green-500' : 'border-muted'
+                    }`}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className={`w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-2 border-2 ${
                     profile.isConnectedToDashboard ? 'border-green-500' : 'border-muted'
-                  }`}
-                  onError={(e) => {
-                    e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}`;
-                  }}
-                />
+                  }`}>
+                    <span className="text-xl font-bold text-muted-foreground">{profile.username?.charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
                 <p className="font-medium text-sm truncate">@{profile.username}</p>
                 <p className="text-xs text-muted-foreground">
                   {profile.followers.toLocaleString()} seg.

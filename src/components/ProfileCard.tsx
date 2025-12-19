@@ -17,16 +17,19 @@ export const ProfileCard = ({ profile }: ProfileCardProps) => {
       <div className="flex items-start gap-6">
         {/* Profile Picture */}
         <div className="relative">
-          <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary/30">
-            <img 
-              src={profile.profilePicUrl} 
-              alt={profile.fullName}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.username}&backgroundColor=10b981`;
-              }}
-            />
+          <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary/30 bg-primary/20 flex items-center justify-center">
+            {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') && !profile.profilePicUrl.includes('ui-avatars') ? (
+              <img 
+                src={profile.profilePicUrl} 
+                alt={profile.fullName}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            ) : (
+              <span className="text-2xl font-bold text-primary">{profile.username?.charAt(0).toUpperCase()}</span>
+            )}
           </div>
           {profile.isBusinessAccount && (
             <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center">

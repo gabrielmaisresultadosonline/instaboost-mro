@@ -69,15 +69,20 @@ export const ProfileSelector = ({
                 onClick={() => onSelectProfile(profile.id)}
               >
                 <div className="flex items-center gap-2">
-                  <img
-                    src={profile.profile.profilePicUrl}
-                    alt={profile.profile.username}
-                    className="w-6 h-6 rounded-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = `https://ui-avatars.com/api/?name=${profile.profile.username}`;
-                    }}
-                  />
+                  {profile.profile.profilePicUrl && !profile.profile.profilePicUrl.includes('ui-avatars') && !profile.profile.profilePicUrl.includes('dicebear') ? (
+                    <img
+                      src={profile.profile.profilePicUrl}
+                      alt={profile.profile.username}
+                      className="w-6 h-6 rounded-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                      <span className="text-xs font-bold text-primary">{profile.profile.username?.charAt(0).toUpperCase()}</span>
+                    </div>
+                  )}
                   <div>
                     <p className="font-medium text-sm">@{profile.profile.username}</p>
                     <p className="text-xs text-muted-foreground">

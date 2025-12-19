@@ -685,11 +685,19 @@ export default function Promo33Dashboard() {
 
                   {/* Profile Info */}
                   <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                    <img 
-                      src={user.instagram_data.profilePicture || user.instagram_data.profilePicUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user.instagram_username}&backgroundColor=ec4899`} 
-                      alt={user.instagram_username}
-                      className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-pink-500 shadow-lg shadow-pink-500/20 flex-shrink-0"
-                    />
+                    {(user.instagram_data.profilePicture || user.instagram_data.profilePicUrl) && 
+                     !(user.instagram_data.profilePicture || user.instagram_data.profilePicUrl || '').includes('dicebear') ? (
+                      <img 
+                        src={user.instagram_data.profilePicture || user.instagram_data.profilePicUrl} 
+                        alt={user.instagram_username}
+                        className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-pink-500 shadow-lg shadow-pink-500/20 flex-shrink-0"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-pink-500/20 flex items-center justify-center border-4 border-pink-500 shadow-lg shadow-pink-500/20 flex-shrink-0">
+                        <span className="text-2xl font-bold text-pink-500">{user.instagram_username?.charAt(0).toUpperCase()}</span>
+                      </div>
+                    )}
                     <div className="flex-1 text-center sm:text-left">
                       <h3 className="text-lg md:text-xl font-bold text-white flex items-center justify-center sm:justify-start gap-2">
                         @{user.instagram_username}
@@ -757,14 +765,19 @@ export default function Promo33Dashboard() {
                       <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                         {user.instagram_data.posts.slice(0, 6).map((post: any, index: number) => (
                           <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-800">
-                            <img 
-                              src={post.thumbnail || post.displayUrl || post.imageUrl} 
-                              alt={`Post ${index + 1}`}
-                              className="w-full h-full object-cover hover:scale-110 transition-transform"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/shapes/svg?seed=post${index}`;
-                              }}
-                            />
+                            {(post.thumbnail || post.displayUrl || post.imageUrl) && 
+                             !(post.thumbnail || post.displayUrl || post.imageUrl || '').includes('dicebear') ? (
+                              <img 
+                                src={post.thumbnail || post.displayUrl || post.imageUrl} 
+                                alt={`Post ${index + 1}`}
+                                className="w-full h-full object-cover hover:scale-110 transition-transform"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                                <span className="text-gray-500 text-xs">Sem imagem</span>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

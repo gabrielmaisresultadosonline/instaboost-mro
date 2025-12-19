@@ -28,8 +28,7 @@ const getBestFetchUrl = (url: string): string => {
   return '';
 };
 
-const dicebearFallback = (username: string) =>
-  `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(username)}&size=200&backgroundColor=10b981`;
+// REMOVED: No longer using dicebear fallback - only real images allowed
 
 const fetchWithTimeout = async (url: string, timeoutMs: number) => {
   const controller = new AbortController();
@@ -143,17 +142,9 @@ const cacheProfileImage = async (
     }
   }
 
-  // 2) Fallback avatar (cached into our bucket)
-  try {
-    await tryUploadFrom(dicebearFallback(username));
-    console.log(`[cache] ${username}: ✓ Cached fallback avatar`);
-    return { username, success: true, url: publicUrl };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.log(`[cache] ${username}: Fallback error - ${msg}`);
-    // As a last resort, return a direct dicebear URL so the UI isn't broken.
-    return { username, success: true, url: dicebearFallback(username) };
-  }
+  // No fallback - return failure if we couldn't cache the real image
+  console.log(`[cache] ${username}: ✗ Failed to cache - no real image available`);
+  return { username, success: false, url: '' };
 };
 
 // Process profiles in batches with concurrency control
