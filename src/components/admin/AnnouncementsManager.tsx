@@ -44,8 +44,9 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [thumbnailMode, setThumbnailMode] = useState<'url' | 'file'>('url');
+  const [thumbnailMode, setThumbnailMode] = useState<'url' | 'file' | 'paste'>('url');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pasteAreaRef = useRef<HTMLDivElement>(null);
   
   // Form state
   const [formData, setFormData] = useState<Partial<Announcement>>({
@@ -381,7 +382,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             <div className="space-y-3">
               <Label>Thumbnail (opcional)</Label>
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   type="button"
                   variant={thumbnailMode === 'url' ? 'default' : 'outline'}
@@ -402,16 +403,31 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                   <Upload className="w-4 h-4" />
                   Upload Arquivo
                 </Button>
+                <Button
+                  type="button"
+                  variant={thumbnailMode === 'paste' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setThumbnailMode('paste');
+                    setTimeout(() => pasteAreaRef.current?.focus(), 100);
+                  }}
+                  className="gap-2"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Colar Imagem
+                </Button>
               </div>
 
-              {thumbnailMode === 'url' ? (
+              {thumbnailMode === 'url' && (
                 <Input
                   value={formData.thumbnailUrl || ''}
                   onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
                   placeholder="https://exemplo.com/imagem.jpg"
                 />
-              ) : (
-                <div className="space-y-3">
+              )}
+
+              {thumbnailMode === 'file' && (
+                <div className="space-y-2">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -419,38 +435,62 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  
-                  {/* Área de Ctrl+V para colar imagem */}
-                  <div
-                    onPaste={handlePaste}
-                    tabIndex={0}
-                    className={`
-                      w-full min-h-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 p-4 cursor-pointer transition-colors
-                      ${isUploading 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-border hover:border-primary/50 hover:bg-secondary/50'
-                      }
-                    `}
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full gap-2"
                   >
                     {isUploading ? (
                       <>
-                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        Selecionar Imagem do Computador
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG, WEBP • Máximo 5MB
+                  </p>
+                </div>
+              )}
+
+              {thumbnailMode === 'paste' && (
+                <div className="space-y-2">
+                  <div
+                    ref={pasteAreaRef}
+                    onPaste={handlePaste}
+                    tabIndex={0}
+                    className={`
+                      w-full min-h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transition-colors focus:outline-none
+                      ${isUploading 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-primary/50 bg-primary/5 hover:bg-primary/10 focus:border-primary focus:bg-primary/10'
+                      }
+                    `}
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                         <span className="text-sm text-muted-foreground">Enviando imagem...</span>
                       </>
                     ) : (
                       <>
-                        <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground text-center">
-                          Clique para selecionar ou use <span className="font-bold text-primary">Ctrl+V</span> para colar
+                        <ImageIcon className="w-10 h-10 text-primary" />
+                        <span className="text-sm text-foreground font-medium">
+                          Clique aqui e use <span className="font-bold text-primary">Ctrl+V</span> para colar
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          JPG, PNG, WEBP • Máximo 5MB
+                          Cole uma imagem da área de transferência
                         </span>
                       </>
                     )}
                   </div>
-                  
                   <p className="text-xs text-muted-foreground">
                     Tamanhos recomendados: 1920x1080, 1080x1920, 1080x1080, 1080x1350
                   </p>
