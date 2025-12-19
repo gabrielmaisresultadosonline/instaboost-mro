@@ -170,8 +170,8 @@ export const ProfileScreenshotUpload = ({
       <Card className="glass-card glow-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Lock className="w-5 h-5 text-yellow-500" />
-            Print do Perfil - Bloqueado
+            <Check className="w-5 h-5 text-green-500" />
+            Print Salvo Definitivamente
           </CardTitle>
           <CardDescription>
             Você já enviou o print do perfil 2 vezes. Não é possível alterar novamente.
