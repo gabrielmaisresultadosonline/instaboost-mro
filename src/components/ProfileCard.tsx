@@ -1,17 +1,74 @@
+import { useState } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase } from 'lucide-react';
+import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileCardProps {
   profile: InstagramProfile;
   screenshotUrl?: string | null;
+  onProfileUpdate?: (updatedProfile: InstagramProfile) => void;
 }
 
-export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
+export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: ProfileCardProps) => {
+  const [isResyncingPhoto, setIsResyncingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
+  const [localProfilePicUrl, setLocalProfilePicUrl] = useState(profile.profilePicUrl);
+  const { toast } = useToast();
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
   };
+
+  const handleResyncPhoto = async () => {
+    setIsResyncingPhoto(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-instagram-profile', {
+        body: { username: profile.username, forceRefresh: true }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.success && data?.profile?.profilePicUrl) {
+        setLocalProfilePicUrl(data.profile.profilePicUrl);
+        setPhotoError(false);
+        toast({
+          title: 'Foto atualizada!',
+          description: 'A foto do perfil foi sincronizada com sucesso.'
+        });
+        
+        // Update parent if callback provided
+        if (onProfileUpdate) {
+          onProfileUpdate({
+            ...profile,
+            profilePicUrl: data.profile.profilePicUrl
+          });
+        }
+      } else {
+        toast({
+          title: 'Erro ao sincronizar',
+          description: data?.error || 'Não foi possível buscar a foto do perfil.',
+          variant: 'destructive'
+        });
+      }
+    } catch (err) {
+      console.error('Error resyncing photo:', err);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao sincronizar foto. Tente novamente.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsResyncingPhoto(false);
+    }
+  };
+
+  const showResyncButton = photoError || !localProfilePicUrl;
 
   return (
     <div className="glass-card glow-border p-6 animate-slide-up">
@@ -19,19 +76,17 @@ export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
         {/* Profile Picture */}
         <div className="relative">
           <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary/30 bg-primary/20 flex items-center justify-center">
-            {profile.profilePicUrl ? (
+            {localProfilePicUrl && !photoError ? (
               <img 
-                src={profile.profilePicUrl} 
+                src={localProfilePicUrl} 
                 alt={profile.fullName}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.parentElement?.classList.add('show-initial');
+                onError={() => {
+                  setPhotoError(true);
                 }}
               />
             ) : null}
-            <span className={`text-2xl font-bold text-primary ${profile.profilePicUrl ? 'hidden' : ''}`}>
+            <span className={`text-2xl font-bold text-primary ${localProfilePicUrl && !photoError ? 'hidden' : ''}`}>
               {profile.username?.charAt(0).toUpperCase()}
             </span>
           </div>
@@ -39,6 +94,20 @@ export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
             <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <Briefcase className="w-4 h-4 text-primary-foreground" />
             </div>
+          )}
+          
+          {/* Resync photo button */}
+          {showResyncButton && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleResyncPhoto}
+              disabled={isResyncingPhoto}
+              className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-7 px-2 text-xs bg-background border-primary/50 hover:bg-primary/20"
+            >
+              <RefreshCw className={`w-3 h-3 mr-1 ${isResyncingPhoto ? 'animate-spin' : ''}`} />
+              {isResyncingPhoto ? 'Sync...' : 'Foto'}
+            </Button>
           )}
         </div>
 
