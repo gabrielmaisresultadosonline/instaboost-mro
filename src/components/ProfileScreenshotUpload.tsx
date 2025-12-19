@@ -201,20 +201,41 @@ export const ProfileScreenshotUpload = ({
             )}
           </div>
         ) : (
-          <div 
-            ref={dropZoneRef}
-            className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-2">
-              Clique para selecionar ou <span className="text-primary font-medium">Ctrl+V para colar</span>
-            </p>
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Clipboard className="w-3 h-3" />
-              <span>Cole uma imagem da área de transferência</span>
+          <div className="space-y-4">
+            <div 
+              ref={dropZoneRef}
+              tabIndex={0}
+              className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              onClick={(e) => {
+                e.currentTarget.focus();
+                toast.info('Área selecionada! Use Ctrl+V para colar a imagem');
+              }}
+            >
+              <Clipboard className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground mb-2">
+                Clique aqui e use <span className="text-primary font-medium">Ctrl+V</span> para colar
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Cole uma imagem da área de transferência
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
+            
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-px bg-border"></div>
+              <span className="text-xs text-muted-foreground">ou</span>
+              <div className="flex-1 h-px bg-border"></div>
+            </div>
+            
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Selecionar Imagem do Computador
+            </Button>
+            
+            <p className="text-xs text-muted-foreground text-center">
               PNG, JPG ou WEBP até 10MB
             </p>
           </div>
