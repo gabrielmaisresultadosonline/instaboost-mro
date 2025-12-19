@@ -18,9 +18,15 @@ export const ProfileCard = ({ profile, onResync }: ProfileCardProps) => {
     return num.toString();
   };
 
-  // Verifica se faltam informações
-  const hasMissingProfilePic = !profile.profilePicUrl;
-  const hasMissingPostImages = profile.recentPosts?.some(post => !post.imageUrl) || false;
+  // Verifica se faltam informações (ou se não estão cacheadas no Supabase)
+  const isImageCached = (url: string | undefined | null): boolean => {
+    if (!url) return false;
+    // Imagem cacheada deve estar no Supabase storage
+    return url.includes('supabase.co/storage') || url.includes('profile-cache');
+  };
+
+  const hasMissingProfilePic = !isImageCached(profile.profilePicUrl);
+  const hasMissingPostImages = profile.recentPosts?.some(post => !isImageCached(post.imageUrl)) || false;
   const needsResync = hasMissingProfilePic || hasMissingPostImages;
 
   const handleResync = async () => {
