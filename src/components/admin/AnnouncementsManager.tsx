@@ -171,7 +171,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
     const url = await uploadImageFile(file);
     if (url) {
-      setFormData({ ...formData, thumbnailUrl: url });
+      setFormData(prev => ({ ...prev, thumbnailUrl: url }));
     }
     
     if (fileInputRef.current) {
@@ -190,7 +190,8 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         if (file) {
           const url = await uploadImageFile(file);
           if (url) {
-            setFormData({ ...formData, thumbnailUrl: url });
+            // Use callback form to ensure we get the latest state
+            setFormData(prev => ({ ...prev, thumbnailUrl: url }));
           }
         }
         break;
