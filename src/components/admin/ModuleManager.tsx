@@ -17,7 +17,7 @@ import CoverUploader from './CoverUploader';
 import { 
   Plus, Trash2, Save, Check, X, Play, Video, Type, 
   ChevronDown, ChevronUp, Image as ImageIcon,
-  Edit2, Upload, Loader2, Link2, ExternalLink, LayoutList
+  Edit2, Upload, Loader2, Link2, ExternalLink, LayoutList, Database, Download
 } from 'lucide-react';
 
 interface ModuleManagerProps {
@@ -97,6 +97,8 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
   const [showAddContent, setShowAddContent] = useState<{ moduleId: string; type: 'video' | 'text' | 'button' | 'section'; sectionId?: string } | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isRestoringBackup, setIsRestoringBackup] = useState(false);
   const [isLoadingCloud, setIsLoadingCloud] = useState(true);
 
   // New section content forms
@@ -331,6 +333,122 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
       });
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+  // Backup modules to cloud (saves to both main and backup files)
+  const handleBackupToCloud = async () => {
+    setIsBackingUp(true);
+    try {
+      const localBefore = getLocalData();
+      const modulesToBackup =
+        (adminData.modules && adminData.modules.length > 0)
+          ? adminData.modules
+          : (localBefore.modules || []);
+
+      if (modulesToBackup.length === 0) {
+        toast({
+          title: "Erro",
+          description: "Não há módulos para fazer backup",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const backupData = {
+        modules: modulesToBackup,
+        settings: {
+          downloadLink,
+          welcomeVideo,
+        },
+      };
+
+      // Save to main file
+      const mainResponse = await supabase.functions.invoke('modules-storage', {
+        body: { action: 'save', data: backupData, platform, isBackup: false },
+      });
+
+      // Save to backup file
+      const backupResponse = await supabase.functions.invoke('modules-storage', {
+        body: { action: 'save', data: backupData, platform, isBackup: true },
+      });
+
+      if (mainResponse.data?.success && backupResponse.data?.success) {
+        toast({
+          title: "Backup Completo! ✅",
+          description: `${modulesToBackup.length} módulos salvos na nuvem principal E no backup`,
+        });
+      } else {
+        toast({
+          title: "Backup Parcial",
+          description: "Houve um problema com um dos salvamentos. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error backing up modules:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao fazer backup dos módulos",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
+
+  // Restore from backup
+  const handleRestoreFromBackup = async () => {
+    if (!confirm('Tem certeza que deseja restaurar do backup? Isso substituirá os dados atuais.')) {
+      return;
+    }
+
+    setIsRestoringBackup(true);
+    try {
+      const response = await supabase.functions.invoke('modules-storage', {
+        body: { action: 'load', platform, isBackup: true },
+      });
+
+      if (response.data?.success && response.data?.data?.modules?.length > 0) {
+        const backupData = response.data.data;
+        
+        // Save to local storage
+        const current = getLocalData();
+        current.modules = backupData.modules;
+        if (current.settings && backupData.settings) {
+          current.settings.downloadLink = backupData.settings.downloadLink || current.settings.downloadLink;
+          current.settings.welcomeVideo = backupData.settings.welcomeVideo || current.settings.welcomeVideo;
+        }
+        saveLocalData(current);
+        setAdminData(current);
+        
+        if (backupData.settings?.welcomeVideo) {
+          setWelcomeVideo(backupData.settings.welcomeVideo);
+        }
+        if (backupData.settings?.downloadLink) {
+          onDownloadLinkChange(backupData.settings.downloadLink);
+        }
+
+        toast({
+          title: "Restaurado! ✅",
+          description: `${backupData.modules.length} módulos restaurados do backup`,
+        });
+      } else {
+        toast({
+          title: "Backup Vazio",
+          description: "Não há dados no backup para restaurar",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error restoring from backup:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao restaurar do backup",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRestoringBackup(false);
     }
   };
 
@@ -656,23 +774,65 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
             </div>
           )}
         </div>
-        <Button 
-          onClick={handlePublishToCloud}
-          disabled={isPublishing}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          {isPublishing ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Publicando...
-            </>
-          ) : (
-            <>
-              <Upload className="w-4 h-4 mr-2" />
-              Publicar para Usuários
-            </>
-          )}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {/* Restore from Backup */}
+          <Button 
+            onClick={handleRestoreFromBackup}
+            disabled={isRestoringBackup}
+            variant="outline"
+            className="border-orange-500 text-orange-500 hover:bg-orange-500/10"
+          >
+            {isRestoringBackup ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Restaurando...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Restaurar Backup
+              </>
+            )}
+          </Button>
+
+          {/* Backup Button */}
+          <Button 
+            onClick={handleBackupToCloud}
+            disabled={isBackingUp || adminData.modules.length === 0}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isBackingUp ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Salvando Backup...
+              </>
+            ) : (
+              <>
+                <Database className="w-4 h-4 mr-2" />
+                Backup
+              </>
+            )}
+          </Button>
+
+          {/* Publish Button */}
+          <Button 
+            onClick={handlePublishToCloud}
+            disabled={isPublishing}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            {isPublishing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Publicando...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                Publicar para Usuários
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Download Link */}
