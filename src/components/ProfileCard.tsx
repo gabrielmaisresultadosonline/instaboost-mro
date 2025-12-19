@@ -26,8 +26,9 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
   const handleResyncPhoto = async () => {
     setIsResyncingPhoto(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-instagram-profile', {
-        body: { username: profile.username, forceRefresh: true }
+      // Use fetch-instagram instead of sync - it has more fallbacks
+      const { data, error } = await supabase.functions.invoke('fetch-instagram', {
+        body: { username: profile.username }
       });
 
       if (error) {
@@ -46,7 +47,11 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
         if (onProfileUpdate) {
           onProfileUpdate({
             ...profile,
-            profilePicUrl: data.profile.profilePicUrl
+            profilePicUrl: data.profile.profilePicUrl,
+            followers: data.profile.followers || profile.followers,
+            following: data.profile.following || profile.following,
+            posts: data.profile.posts || profile.posts,
+            bio: data.profile.bio || profile.bio,
           });
         }
       } else {
