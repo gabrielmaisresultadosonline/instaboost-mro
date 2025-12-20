@@ -329,14 +329,11 @@ const ZapMRO = () => {
 
     if (videoContents.length === 0 && buttonContents.length === 0) return null;
 
-    // Check if items can fit centered (few items)
-    const shouldCenter = videoContents.length <= 4;
-
     return (
       <div className="space-y-4 w-full">
         {/* Video/Text Carousel */}
         {videoContents.length > 0 && (
-          <div className="relative w-full">
+          <div className="relative w-full flex justify-center">
             {/* Navigation Arrows */}
             {canScrollLeft && (
               <button
@@ -356,12 +353,12 @@ const ZapMRO = () => {
               </button>
             )}
 
-            {/* Carousel Container */}
-            <div className="px-10 sm:px-12 md:px-14">
+            {/* Carousel Container - Always Centered */}
+            <div className="px-10 sm:px-12 md:px-14 w-full max-w-fit">
               <div 
                 ref={scrollContainerRef}
                 onScroll={checkScroll}
-                className={`flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory ${shouldCenter ? 'justify-center' : 'justify-start'}`}
+                className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory justify-center"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {videoContents.map((content, idx) => (
