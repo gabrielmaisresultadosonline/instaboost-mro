@@ -557,7 +557,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     toast({ title: "Vídeo adicionado!" });
   };
 
-  // Handle video file upload
+  // Handle video file upload - Direct upload to Supabase Storage
   const handleVideoFileUpload = async (file: File) => {
     if (!file) return;
     
@@ -569,8 +569,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     }
     
     // Validate file type
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
-    if (!allowedTypes.includes(file.type)) {
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'application/octet-stream'];
+    const allowedExts = ['mp4', 'webm', 'mov', 'avi'];
+    const fileExt = file.name.toLowerCase().split('.').pop() || '';
+    
+    if (!allowedTypes.includes(file.type) && !allowedExts.includes(fileExt)) {
       toast({ title: "Erro", description: "Tipo de arquivo inválido. Use MP4, WebM, MOV ou AVI.", variant: "destructive" });
       return;
     }
@@ -579,30 +582,45 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     setVideoUploadProgress(10);
     
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'module-videos');
-      formData.append('filename', `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`);
+      // Generate unique filename
+      const filename = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const filePath = `module-videos/${filename}`;
       
-      setVideoUploadProgress(30);
+      console.log(`[Upload] Starting direct upload: ${filePath}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+      setVideoUploadProgress(20);
       
-      const response = await supabase.functions.invoke('upload-video', {
-        body: formData,
-      });
+      // Direct upload to Supabase Storage from frontend
+      const { data, error } = await supabase.storage
+        .from('assets')
+        .upload(filePath, file, {
+          contentType: file.type || 'video/mp4',
+          upsert: true,
+          duplex: 'half', // Required for streaming uploads
+        });
       
-      setVideoUploadProgress(90);
+      setVideoUploadProgress(80);
       
-      if (response.data?.success && response.data?.url) {
-        setNewVideo(prev => ({ 
-          ...prev, 
-          videoFileUrl: response.data.url,
-          isFileVideo: true,
-          youtubeUrl: '' // Clear YouTube URL when uploading file
-        }));
-        toast({ title: "Upload concluído!", description: `Vídeo enviado (${(file.size / 1024 / 1024).toFixed(1)}MB)` });
-      } else {
-        throw new Error(response.data?.error || 'Upload failed');
+      if (error) {
+        console.error('[Upload] Storage error:', error);
+        throw new Error(error.message);
       }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(filePath);
+      
+      console.log(`[Upload] Success: ${publicUrl}`);
+      setVideoUploadProgress(100);
+      
+      setNewVideo(prev => ({ 
+        ...prev, 
+        videoFileUrl: publicUrl,
+        isFileVideo: true,
+        youtubeUrl: '' // Clear YouTube URL when uploading file
+      }));
+      toast({ title: "Upload concluído!", description: `Vídeo enviado (${(file.size / 1024 / 1024).toFixed(1)}MB)` });
+      
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       console.error('Video upload error:', error);
@@ -731,7 +749,7 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     toast({ title: "Vídeo adicionado à seção!" });
   };
 
-  // Handle section video file upload
+  // Handle section video file upload - Direct upload to Supabase Storage
   const handleSectionVideoFileUpload = async (file: File) => {
     if (!file) return;
     
@@ -741,8 +759,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
       return;
     }
     
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
-    if (!allowedTypes.includes(file.type)) {
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'application/octet-stream'];
+    const allowedExts = ['mp4', 'webm', 'mov', 'avi'];
+    const fileExt = file.name.toLowerCase().split('.').pop() || '';
+    
+    if (!allowedTypes.includes(file.type) && !allowedExts.includes(fileExt)) {
       toast({ title: "Erro", description: "Tipo de arquivo inválido. Use MP4, WebM, MOV ou AVI.", variant: "destructive" });
       return;
     }
@@ -751,30 +772,45 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     setSectionVideoUploadProgress(10);
     
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'module-videos');
-      formData.append('filename', `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`);
+      // Generate unique filename
+      const filename = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const filePath = `module-videos/${filename}`;
       
-      setSectionVideoUploadProgress(30);
+      console.log(`[Upload Section] Starting direct upload: ${filePath}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+      setSectionVideoUploadProgress(20);
       
-      const response = await supabase.functions.invoke('upload-video', {
-        body: formData,
-      });
+      // Direct upload to Supabase Storage from frontend
+      const { data, error } = await supabase.storage
+        .from('assets')
+        .upload(filePath, file, {
+          contentType: file.type || 'video/mp4',
+          upsert: true,
+          duplex: 'half', // Required for streaming uploads
+        });
       
-      setSectionVideoUploadProgress(90);
+      setSectionVideoUploadProgress(80);
       
-      if (response.data?.success && response.data?.url) {
-        setNewSectionVideo(prev => ({ 
-          ...prev, 
-          videoFileUrl: response.data.url,
-          isFileVideo: true,
-          youtubeUrl: ''
-        }));
-        toast({ title: "Upload concluído!", description: `Vídeo enviado (${(file.size / 1024 / 1024).toFixed(1)}MB)` });
-      } else {
-        throw new Error(response.data?.error || 'Upload failed');
+      if (error) {
+        console.error('[Upload Section] Storage error:', error);
+        throw new Error(error.message);
       }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(filePath);
+      
+      console.log(`[Upload Section] Success: ${publicUrl}`);
+      setSectionVideoUploadProgress(100);
+      
+      setNewSectionVideo(prev => ({ 
+        ...prev, 
+        videoFileUrl: publicUrl,
+        isFileVideo: true,
+        youtubeUrl: ''
+      }));
+      toast({ title: "Upload concluído!", description: `Vídeo enviado (${(file.size / 1024 / 1024).toFixed(1)}MB)` });
+      
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       console.error('Section video upload error:', error);
