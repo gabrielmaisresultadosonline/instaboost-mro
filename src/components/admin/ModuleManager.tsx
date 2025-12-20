@@ -106,10 +106,14 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     title: '',
     description: '',
     youtubeUrl: '',
+    videoFileUrl: '',
+    isFileVideo: false,
     thumbnailUrl: '',
     showNumber: true,
     showTitle: true
   });
+  const [isUploadingSectionVideo, setIsUploadingSectionVideo] = useState(false);
+  const [sectionVideoUploadProgress, setSectionVideoUploadProgress] = useState(0);
 
   const [newSectionButton, setNewSectionButton] = useState({
     title: '',
@@ -238,10 +242,14 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     title: '',
     description: '',
     youtubeUrl: '',
+    videoFileUrl: '',
+    isFileVideo: false,
     thumbnailUrl: '',
     showNumber: true,
     showTitle: true
   });
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
 
   const [newText, setNewText] = useState({
     title: '',
@@ -516,8 +524,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
 
   // Content handlers - use local storage with correct key
   const handleAddVideo = (moduleId: string) => {
-    if (!newVideo.title || !newVideo.youtubeUrl) {
-      toast({ title: "Erro", description: "Preencha título e URL do YouTube", variant: "destructive" });
+    const hasYoutube = newVideo.youtubeUrl.trim();
+    const hasFile = newVideo.videoFileUrl.trim();
+    
+    if (!newVideo.title || (!hasYoutube && !hasFile)) {
+      toast({ title: "Erro", description: "Preencha título e URL do YouTube OU envie um arquivo MP4", variant: "destructive" });
       return;
     }
     const data = getLocalData();
@@ -528,8 +539,10 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
         type: 'video',
         title: newVideo.title,
         description: newVideo.description,
-        youtubeUrl: newVideo.youtubeUrl,
-        thumbnailUrl: newVideo.thumbnailUrl || getYoutubeThumbnail(newVideo.youtubeUrl),
+        youtubeUrl: hasFile ? '' : newVideo.youtubeUrl,
+        videoFileUrl: hasFile ? newVideo.videoFileUrl : undefined,
+        isFileVideo: hasFile ? true : false,
+        thumbnailUrl: newVideo.thumbnailUrl || (hasFile ? '' : getYoutubeThumbnail(newVideo.youtubeUrl)),
         showNumber: newVideo.showNumber,
         showTitle: newVideo.showTitle,
         order: module.contents.length + 1,
@@ -538,10 +551,66 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
       module.contents.push(newVid);
       saveLocalData(data);
     }
-    setNewVideo({ title: '', description: '', youtubeUrl: '', thumbnailUrl: '', showNumber: true, showTitle: true });
+    setNewVideo({ title: '', description: '', youtubeUrl: '', videoFileUrl: '', isFileVideo: false, thumbnailUrl: '', showNumber: true, showTitle: true });
     setShowAddContent(null);
     refreshData();
     toast({ title: "Vídeo adicionado!" });
+  };
+
+  // Handle video file upload
+  const handleVideoFileUpload = async (file: File) => {
+    if (!file) return;
+    
+    // Validate file size (100MB max)
+    const maxSize = 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({ title: "Erro", description: "Arquivo muito grande. Máximo 100MB.", variant: "destructive" });
+      return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Erro", description: "Tipo de arquivo inválido. Use MP4, WebM, MOV ou AVI.", variant: "destructive" });
+      return;
+    }
+    
+    setIsUploadingVideo(true);
+    setVideoUploadProgress(10);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'module-videos');
+      formData.append('filename', `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`);
+      
+      setVideoUploadProgress(30);
+      
+      const response = await supabase.functions.invoke('upload-video', {
+        body: formData,
+      });
+      
+      setVideoUploadProgress(90);
+      
+      if (response.data?.success && response.data?.url) {
+        setNewVideo(prev => ({ 
+          ...prev, 
+          videoFileUrl: response.data.url,
+          isFileVideo: true,
+          youtubeUrl: '' // Clear YouTube URL when uploading file
+        }));
+        toast({ title: "Upload concluído!", description: `Vídeo enviado (${(file.size / 1024 / 1024).toFixed(1)}MB)` });
+      } else {
+        throw new Error(response.data?.error || 'Upload failed');
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('Video upload error:', error);
+      toast({ title: "Erro no upload", description: errorMessage, variant: "destructive" });
+    } finally {
+      setIsUploadingVideo(false);
+      setVideoUploadProgress(0);
+    }
   };
 
   const handleAddText = (moduleId: string) => {
@@ -628,8 +697,11 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
 
   // Section content handlers
   const handleAddVideoToSection = (moduleId: string, sectionId: string) => {
-    if (!newSectionVideo.title || !newSectionVideo.youtubeUrl) {
-      toast({ title: "Erro", description: "Preencha título e URL do YouTube", variant: "destructive" });
+    const hasYoutube = newSectionVideo.youtubeUrl.trim();
+    const hasFile = newSectionVideo.videoFileUrl.trim();
+    
+    if (!newSectionVideo.title || (!hasYoutube && !hasFile)) {
+      toast({ title: "Erro", description: "Preencha título e URL do YouTube OU envie um arquivo MP4", variant: "destructive" });
       return;
     }
     const data = getLocalData();
@@ -641,8 +713,10 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
         type: 'video',
         title: newSectionVideo.title,
         description: newSectionVideo.description,
-        youtubeUrl: newSectionVideo.youtubeUrl,
-        thumbnailUrl: newSectionVideo.thumbnailUrl || getYoutubeThumbnail(newSectionVideo.youtubeUrl),
+        youtubeUrl: hasFile ? '' : newSectionVideo.youtubeUrl,
+        videoFileUrl: hasFile ? newSectionVideo.videoFileUrl : undefined,
+        isFileVideo: hasFile ? true : false,
+        thumbnailUrl: newSectionVideo.thumbnailUrl || (hasFile ? '' : getYoutubeThumbnail(newSectionVideo.youtubeUrl)),
         showNumber: newSectionVideo.showNumber,
         showTitle: newSectionVideo.showTitle,
         order: section.contents.length + 1,
@@ -651,10 +725,64 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
       section.contents.push(newVid);
       saveLocalData(data);
     }
-    setNewSectionVideo({ title: '', description: '', youtubeUrl: '', thumbnailUrl: '', showNumber: true, showTitle: true });
+    setNewSectionVideo({ title: '', description: '', youtubeUrl: '', videoFileUrl: '', isFileVideo: false, thumbnailUrl: '', showNumber: true, showTitle: true });
     setShowAddContent(null);
     refreshData();
     toast({ title: "Vídeo adicionado à seção!" });
+  };
+
+  // Handle section video file upload
+  const handleSectionVideoFileUpload = async (file: File) => {
+    if (!file) return;
+    
+    const maxSize = 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({ title: "Erro", description: "Arquivo muito grande. Máximo 100MB.", variant: "destructive" });
+      return;
+    }
+    
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Erro", description: "Tipo de arquivo inválido. Use MP4, WebM, MOV ou AVI.", variant: "destructive" });
+      return;
+    }
+    
+    setIsUploadingSectionVideo(true);
+    setSectionVideoUploadProgress(10);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'module-videos');
+      formData.append('filename', `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`);
+      
+      setSectionVideoUploadProgress(30);
+      
+      const response = await supabase.functions.invoke('upload-video', {
+        body: formData,
+      });
+      
+      setSectionVideoUploadProgress(90);
+      
+      if (response.data?.success && response.data?.url) {
+        setNewSectionVideo(prev => ({ 
+          ...prev, 
+          videoFileUrl: response.data.url,
+          isFileVideo: true,
+          youtubeUrl: ''
+        }));
+        toast({ title: "Upload concluído!", description: `Vídeo enviado (${(file.size / 1024 / 1024).toFixed(1)}MB)` });
+      } else {
+        throw new Error(response.data?.error || 'Upload failed');
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('Section video upload error:', error);
+      toast({ title: "Erro no upload", description: errorMessage, variant: "destructive" });
+    } finally {
+      setIsUploadingSectionVideo(false);
+      setSectionVideoUploadProgress(0);
+    }
   };
 
   const handleAddButtonToSection = (moduleId: string, sectionId: string) => {
@@ -1250,12 +1378,89 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                             onChange={(e) => setNewVideo(prev => ({ ...prev, title: e.target.value }))}
                             className="bg-secondary/50"
                           />
-                          <Input
-                            placeholder="URL do YouTube"
-                            value={newVideo.youtubeUrl}
-                            onChange={(e) => setNewVideo(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-                            className="bg-secondary/50"
-                          />
+                          
+                          {/* Video Source Toggle */}
+                          <div className="flex gap-2 mb-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={!newVideo.isFileVideo ? 'default' : 'outline'}
+                              onClick={() => setNewVideo(prev => ({ ...prev, isFileVideo: false, videoFileUrl: '' }))}
+                              className="cursor-pointer"
+                            >
+                              <Link2 className="w-4 h-4 mr-1" />
+                              Link YouTube
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={newVideo.isFileVideo ? 'default' : 'outline'}
+                              onClick={() => setNewVideo(prev => ({ ...prev, isFileVideo: true, youtubeUrl: '' }))}
+                              className="cursor-pointer"
+                            >
+                              <Upload className="w-4 h-4 mr-1" />
+                              Arquivo MP4
+                            </Button>
+                          </div>
+                          
+                          {/* YouTube URL Input */}
+                          {!newVideo.isFileVideo && (
+                            <Input
+                              placeholder="URL do YouTube"
+                              value={newVideo.youtubeUrl}
+                              onChange={(e) => setNewVideo(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                              className="bg-secondary/50"
+                            />
+                          )}
+                          
+                          {/* File Upload */}
+                          {newVideo.isFileVideo && (
+                            <div className="space-y-2">
+                              {newVideo.videoFileUrl ? (
+                                <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                                  <Check className="w-5 h-5 text-green-500" />
+                                  <span className="text-sm text-green-400 flex-1 truncate">Vídeo enviado com sucesso!</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setNewVideo(prev => ({ ...prev, videoFileUrl: '' }))}
+                                    className="cursor-pointer text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted rounded-lg cursor-pointer hover:bg-secondary/20 transition-colors">
+                                    {isUploadingVideo ? (
+                                      <div className="flex flex-col items-center gap-2">
+                                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                        <span className="text-sm text-muted-foreground">Enviando... {videoUploadProgress}%</span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex flex-col items-center gap-1">
+                                        <Upload className="w-6 h-6 text-muted-foreground" />
+                                        <span className="text-sm text-muted-foreground">Clique para enviar MP4</span>
+                                        <span className="text-xs text-muted-foreground">Máximo 100MB</span>
+                                      </div>
+                                    )}
+                                    <input
+                                      type="file"
+                                      accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
+                                      className="hidden"
+                                      disabled={isUploadingVideo}
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleVideoFileUpload(file);
+                                      }}
+                                    />
+                                  </label>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
                           <Textarea
                             placeholder="Descrição (opcional)"
                             value={newVideo.description}
@@ -1280,12 +1485,20 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                             id={`video_new_${Date.now()}`}
                           />
                           <p className="text-xs text-muted-foreground mt-2">
-                            Se não enviar capa, será usada a thumbnail do YouTube
+                            {newVideo.isFileVideo 
+                              ? 'Capa obrigatória para vídeos MP4'
+                              : 'Se não enviar capa, será usada a thumbnail do YouTube'
+                            }
                           </p>
                         </div>
                       </div>
                       <div className="flex gap-2 mt-4">
-                        <Button type="button" onClick={() => handleAddVideo(module.id)} className="cursor-pointer">
+                        <Button 
+                          type="button" 
+                          onClick={() => handleAddVideo(module.id)} 
+                          className="cursor-pointer"
+                          disabled={isUploadingVideo}
+                        >
                           <Check className="w-4 h-4 mr-1" />
                           Adicionar
                         </Button>

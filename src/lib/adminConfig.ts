@@ -83,7 +83,9 @@ export interface ModuleVideo {
   type: 'video';
   title: string;
   description: string;
-  youtubeUrl: string;
+  youtubeUrl: string; // YouTube URL or empty if using videoFileUrl
+  videoFileUrl?: string; // MP4 file URL from storage
+  isFileVideo?: boolean; // true if video is from uploaded file
   thumbnailUrl: string;
   showNumber: boolean;
   showTitle: boolean;
