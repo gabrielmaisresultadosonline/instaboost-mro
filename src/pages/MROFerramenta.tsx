@@ -208,12 +208,19 @@ const MROFerramenta = () => {
                     }}
                   />
                   
-                  {/* YouTube badge */}
-                  <div className="absolute top-2 left-2 w-7 h-5 bg-red-600 rounded flex items-center justify-center">
-                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="currentColor">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                  </div>
+                  {/* Video source badge - YouTube or MP4 */}
+                  {(content as ModuleVideo).isFileVideo ? (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-emerald-600 rounded text-xs font-semibold text-white flex items-center gap-1">
+                      <Play className="w-3 h-3" />
+                      MP4
+                    </div>
+                  ) : (
+                    <div className="absolute top-2 left-2 w-7 h-5 bg-red-600 rounded flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="currentColor">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                      </svg>
+                    </div>
+                  )}
                   
                   {/* Number badge */}
                   {(content as ModuleVideo).showNumber && (
@@ -615,13 +622,23 @@ const MROFerramenta = () => {
             {selectedContent.type === 'video' ? (
               <>
                 <div className="aspect-video rounded-lg overflow-hidden bg-black">
-                  <iframe
-                    src={getYoutubeEmbedUrl((selectedContent as ModuleVideo).youtubeUrl)}
-                    title={selectedContent.title}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                  {(selectedContent as ModuleVideo).isFileVideo && (selectedContent as ModuleVideo).videoFileUrl ? (
+                    <video
+                      src={(selectedContent as ModuleVideo).videoFileUrl}
+                      title={selectedContent.title}
+                      className="w-full h-full"
+                      controls
+                      autoPlay
+                    />
+                  ) : (
+                    <iframe
+                      src={getYoutubeEmbedUrl((selectedContent as ModuleVideo).youtubeUrl)}
+                      title={selectedContent.title}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  )}
                 </div>
                 {(selectedContent as ModuleVideo).description && (
                   <p className="text-muted-foreground mt-4">{(selectedContent as ModuleVideo).description}</p>
