@@ -306,15 +306,19 @@ const ZapMRO = () => {
     };
 
     useEffect(() => {
+      // Reset scroll to start on mount
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollLeft = 0;
+      }
       checkScroll();
       window.addEventListener('resize', checkScroll);
       return () => window.removeEventListener('resize', checkScroll);
-    }, []);
+    }, [videoContents.length]);
 
     const scroll = (direction: 'left' | 'right') => {
       const container = scrollContainerRef.current;
       if (container) {
-        const scrollAmount = 160;
+        const scrollAmount = 180;
         container.scrollBy({
           left: direction === 'left' ? -scrollAmount : scrollAmount,
           behavior: 'smooth'
@@ -325,15 +329,19 @@ const ZapMRO = () => {
 
     if (videoContents.length === 0 && buttonContents.length === 0) return null;
 
+    // Check if items can fit centered (few items)
+    const shouldCenter = videoContents.length <= 4;
+
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 w-full">
         {/* Video/Text Carousel */}
         {videoContents.length > 0 && (
-          <div className="relative px-6 md:px-8">
+          <div className="relative w-full">
+            {/* Navigation Arrows */}
             {canScrollLeft && (
               <button
                 onClick={() => scroll('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-400 transition-colors"
+                className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-400 transition-colors"
               >
                 <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </button>
@@ -342,89 +350,95 @@ const ZapMRO = () => {
             {canScrollRight && (
               <button
                 onClick={() => scroll('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-400 transition-colors"
+                className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-400 transition-colors"
               >
                 <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </button>
             )}
 
-            <div 
-              ref={scrollContainerRef}
-              onScroll={checkScroll}
-              className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory justify-start"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {videoContents.map((content, idx) => (
-                <div 
-                  key={content.id}
-                  className="group cursor-pointer flex-shrink-0 snap-start w-[120px] sm:w-[140px] md:w-[160px]"
-                  onClick={() => onContentClick(content)}
-                >
-                  {content.type === 'video' ? (
-                    <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-green-900 border-2 border-green-600/30 group-hover:border-green-400 transition-all duration-300 shadow-lg">
-                      <img 
-                        src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
-                        alt={content.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
-                        }}
-                      />
-                      
-                      {/* Video source badge */}
-                      {(content as ModuleVideo).isFileVideo ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-emerald-600 rounded text-xs font-semibold text-white flex items-center gap-1">
-                          <Play className="w-3 h-3" />
-                          MP4
-                        </div>
-                      ) : (
-                        <div className="absolute top-2 left-2 w-7 h-5 bg-red-600 rounded flex items-center justify-center">
-                          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="currentColor">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                          </svg>
-                        </div>
-                      )}
-                      
-                      {/* Number badge */}
-                      {(content as ModuleVideo).showNumber && (
-                        <div className="absolute top-2 right-2 w-6 h-6 md:w-7 md:h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs md:text-sm font-bold shadow-lg">
-                          {idx + 1}
-                        </div>
-                      )}
+            {/* Carousel Container */}
+            <div className="px-10 sm:px-12 md:px-14">
+              <div 
+                ref={scrollContainerRef}
+                onScroll={checkScroll}
+                className={`flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory ${shouldCenter ? 'justify-center' : 'justify-start'}`}
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {videoContents.map((content, idx) => (
+                  <div 
+                    key={content.id}
+                    className="group cursor-pointer flex-shrink-0 snap-start w-[100px] xs:w-[110px] sm:w-[130px] md:w-[150px] lg:w-[160px]"
+                    onClick={() => onContentClick(content)}
+                  >
+                    {content.type === 'video' ? (
+                      <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-green-900 border-2 border-green-600/30 group-hover:border-green-400 transition-all duration-300 shadow-lg">
+                        <img 
+                          src={(content as ModuleVideo).videoFileUrl ? 
+                            ((content as ModuleVideo).thumbnailUrl || 'https://via.placeholder.com/1080x1920?text=MP4') :
+                            ((content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl))
+                          }
+                          alt={content.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
+                          }}
+                        />
+                        
+                        {/* Video source badge */}
+                        {(content as ModuleVideo).isFileVideo ? (
+                          <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 px-1.5 py-0.5 bg-emerald-600 rounded text-[10px] sm:text-xs font-semibold text-white flex items-center gap-0.5 sm:gap-1">
+                            <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                            MP4
+                          </div>
+                        ) : (
+                          <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 w-6 h-4 sm:w-7 sm:h-5 bg-red-600 rounded flex items-center justify-center">
+                            <svg viewBox="0 0 24 24" className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="currentColor">
+                              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                          </div>
+                        )}
+                        
+                        {/* Number badge */}
+                        {(content as ModuleVideo).showNumber && (
+                          <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] sm:text-xs md:text-sm font-bold shadow-lg">
+                            {idx + 1}
+                          </div>
+                        )}
 
-                      {/* Hover play overlay */}
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
-                          <Play className="w-4 h-4 md:w-5 md:h-5 text-white ml-0.5" />
+                        {/* Hover play overlay */}
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
+                            <Play className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white ml-0.5" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-gradient-to-br from-green-800 to-green-900 flex items-center justify-center border-2 border-green-600/30 group-hover:border-green-400 transition-all duration-300 shadow-lg">
-                      <Type className="w-6 h-6 md:w-8 md:h-8 text-green-400 group-hover:text-green-300 transition-colors" />
-                    </div>
-                  )}
-                  {((content as any).showTitle !== false) && (
-                    <p className="font-medium mt-2 text-xs md:text-sm text-center text-white group-hover:text-green-300 transition-colors line-clamp-2 px-1">{content.title}</p>
-                  )}
-                </div>
-              ))}
+                    ) : (
+                      <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-gradient-to-br from-green-800 to-green-900 flex items-center justify-center border-2 border-green-600/30 group-hover:border-green-400 transition-all duration-300 shadow-lg">
+                        <Type className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-green-400 group-hover:text-green-300 transition-colors" />
+                      </div>
+                    )}
+                    {((content as any).showTitle !== false) && (
+                      <p className="font-medium mt-1.5 sm:mt-2 text-[10px] xs:text-xs sm:text-sm text-center text-white group-hover:text-green-300 transition-colors line-clamp-2 px-0.5 sm:px-1">{content.title}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Buttons */}
+        {/* Buttons - Centered */}
         {buttonContents.length > 0 && (
-          <div className="flex flex-wrap gap-2 md:gap-3 justify-center pt-4 px-4">
+          <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4 justify-center items-center pt-4 px-4 w-full">
             {buttonContents.map((content) => (
               <Button
                 key={content.id}
                 onClick={() => window.open((content as ModuleButton).url, '_blank', 'noopener,noreferrer')}
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-white text-xs md:text-sm"
+                className="flex items-center gap-1.5 sm:gap-2 bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-white text-[10px] xs:text-xs sm:text-sm px-2 sm:px-3 md:px-4 py-1.5 sm:py-2"
               >
-                <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
+                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
                 {content.title}
               </Button>
             ))}
