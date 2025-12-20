@@ -32,11 +32,12 @@ interface ViewedAnnouncement {
 
 interface AnnouncementPopupProps {
   onComplete?: () => void;
+  targetArea?: 'instagram' | 'zapmro';
 }
 
 const STORAGE_KEY = 'mro_viewed_announcements';
 
-const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
+const AnnouncementPopup = ({ onComplete, targetArea }: AnnouncementPopupProps) => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -121,7 +122,7 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
   const loadAnnouncements = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log('📢 Carregando avisos do servidor...');
+      console.log('📢 Carregando avisos do servidor...', targetArea ? `(área: ${targetArea})` : '(todas as áreas)');
       const { data, error } = await supabase.storage
         .from('user-data')
         .download('admin/announcements.json');
@@ -135,8 +136,18 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
 
       const text = await data.text();
       const parsed = JSON.parse(text);
+      
+      // Filter by target area if specified
       const activeAnnouncements = (parsed.announcements || [])
-        .filter((a: Announcement) => a.isActive)
+        .filter((a: Announcement & { targetArea?: string }) => a.isActive)
+        .filter((a: Announcement & { targetArea?: string }) => {
+          // If no targetArea specified on component, show all
+          if (!targetArea) return true;
+          // If announcement has no targetArea or is 'all', show it
+          if (!a.targetArea || a.targetArea === 'all') return true;
+          // Otherwise, match the specific area
+          return a.targetArea === targetArea;
+        })
         .filter((a: Announcement) => shouldShowAnnouncement(a));
 
       console.log(`📢 ${activeAnnouncements.length} avisos ativos para exibir`);
@@ -156,7 +167,7 @@ const AnnouncementPopup = ({ onComplete }: AnnouncementPopupProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [onComplete]);
+  }, [onComplete, targetArea]);
 
   useEffect(() => {
     if (!hasTriggered.current) {

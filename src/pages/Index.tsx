@@ -643,7 +643,7 @@ const Index = () => {
         <LoadingOverlay isVisible={isLoading} message={loadingMessage} subMessage={loadingSubMessage} progress={syncProgress} />
         {/* Avisos só aparecem APÓS o upload do print do perfil */}
         {showAnnouncements && hasScreenshot && (
-          <AnnouncementPopup onComplete={() => setShowAnnouncements(false)} />
+          <AnnouncementPopup targetArea="instagram" onComplete={() => setShowAnnouncements(false)} />
         )}
         <Dashboard
           session={session} 
