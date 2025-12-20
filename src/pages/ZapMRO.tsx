@@ -1,11 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2, MessageCircle, CheckCircle, Mail, Clock, Play, X, ChevronLeft, ChevronRight, Type, ExternalLink, Gift, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import logoMro from '@/assets/logo-mro.png';
+import { TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail, loadModulesFromCloud, AdminSettings } from '@/lib/adminConfig';
+import AnnouncementPopup from '@/components/AnnouncementPopup';
+
+// Color mapping for modules (same as MROFerramenta)
+const moduleColorClasses: Record<ModuleColor, { border: string; bg: string; accent: string }> = {
+  default: { border: 'border-green-600/30', bg: 'bg-green-800/30', accent: 'bg-green-500' },
+  green: { border: 'border-emerald-500/50', bg: 'bg-emerald-900/30', accent: 'bg-emerald-500' },
+  blue: { border: 'border-blue-500/50', bg: 'bg-blue-900/30', accent: 'bg-blue-500' },
+  purple: { border: 'border-purple-500/50', bg: 'bg-purple-900/30', accent: 'bg-purple-500' },
+  orange: { border: 'border-orange-500/50', bg: 'bg-orange-900/30', accent: 'bg-orange-500' },
+  pink: { border: 'border-pink-500/50', bg: 'bg-pink-900/30', accent: 'bg-pink-500' },
+  red: { border: 'border-red-500/50', bg: 'bg-red-900/30', accent: 'bg-red-500' },
+  cyan: { border: 'border-cyan-500/50', bg: 'bg-cyan-900/30', accent: 'bg-cyan-500' },
+};
 
 const ZapMRO = () => {
   const [username, setUsername] = useState('');
@@ -19,6 +33,14 @@ const ZapMRO = () => {
   const [email, setEmail] = useState('');
   const [isEmailLocked, setIsEmailLocked] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
+  
+  // Modules state
+  const [modules, setModules] = useState<TutorialModule[]>([]);
+  const [settings, setSettings] = useState<Pick<AdminSettings, 'downloadLink' | 'welcomeVideo'> | null>(null);
+  const [isLoadingModules, setIsLoadingModules] = useState(true);
+  const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [showAnnouncements, setShowAnnouncements] = useState(true);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -58,6 +80,31 @@ const ZapMRO = () => {
     
     checkAuth();
   }, []);
+
+  // Load ZAPMRO modules from cloud
+  useEffect(() => {
+    const loadZapmroModules = async () => {
+      if (!isAuthenticated) return;
+      
+      setIsLoadingModules(true);
+      try {
+        console.log('[ZapMRO] Loading ZAPMRO modules from cloud...');
+        const cloudData = await loadModulesFromCloud('zapmro');
+        
+        if (cloudData) {
+          setModules(cloudData.modules || []);
+          setSettings(cloudData.settings || null);
+          console.log(`[ZapMRO] Loaded ${cloudData.modules?.length || 0} modules`);
+        }
+      } catch (error) {
+        console.error('[ZapMRO] Error loading modules:', error);
+      } finally {
+        setIsLoadingModules(false);
+      }
+    };
+    
+    loadZapmroModules();
+  }, [isAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,6 +266,174 @@ const ZapMRO = () => {
     return `${days} dias`;
   };
 
+  // Helper functions
+  const getYoutubeEmbedUrl = (url: string): string => {
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+    if (match) {
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
+    }
+    return url;
+  };
+
+  const separateContents = (contents: ModuleContent[]) => {
+    const sorted = [...contents].sort((a, b) => a.order - b.order);
+    const regularContents = sorted.filter(c => c.type !== 'section');
+    const sections = sorted.filter(c => c.type === 'section') as ModuleSection[];
+    return { regularContents, sections };
+  };
+
+  // Content Section Component for ZAPMRO
+  const ZapmroContentSection = ({ 
+    contents,
+    onContentClick
+  }: { 
+    contents: ModuleContent[];
+    onContentClick: (content: ModuleContent) => void;
+  }) => {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const videoContents = contents.filter(c => c.type === 'video' || c.type === 'text');
+    const buttonContents = contents.filter(c => c.type === 'button');
+
+    const checkScroll = () => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        setCanScrollLeft(container.scrollLeft > 10);
+        setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 10);
+      }
+    };
+
+    useEffect(() => {
+      checkScroll();
+      window.addEventListener('resize', checkScroll);
+      return () => window.removeEventListener('resize', checkScroll);
+    }, []);
+
+    const scroll = (direction: 'left' | 'right') => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        const scrollAmount = 160;
+        container.scrollBy({
+          left: direction === 'left' ? -scrollAmount : scrollAmount,
+          behavior: 'smooth'
+        });
+        setTimeout(checkScroll, 300);
+      }
+    };
+
+    if (videoContents.length === 0 && buttonContents.length === 0) return null;
+
+    return (
+      <div className="space-y-4">
+        {/* Video/Text Carousel */}
+        {videoContents.length > 0 && (
+          <div className="relative px-6 md:px-8">
+            {canScrollLeft && (
+              <button
+                onClick={() => scroll('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-400 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </button>
+            )}
+
+            {canScrollRight && (
+              <button
+                onClick={() => scroll('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-400 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </button>
+            )}
+
+            <div 
+              ref={scrollContainerRef}
+              onScroll={checkScroll}
+              className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory justify-start"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {videoContents.map((content, idx) => (
+                <div 
+                  key={content.id}
+                  className="group cursor-pointer flex-shrink-0 snap-start w-[120px] sm:w-[140px] md:w-[160px]"
+                  onClick={() => onContentClick(content)}
+                >
+                  {content.type === 'video' ? (
+                    <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-green-900 border-2 border-green-600/30 group-hover:border-green-400 transition-all duration-300 shadow-lg">
+                      <img 
+                        src={(content as ModuleVideo).thumbnailUrl || getYoutubeThumbnail((content as ModuleVideo).youtubeUrl)}
+                        alt={content.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://via.placeholder.com/1080x1920?text=Video';
+                        }}
+                      />
+                      
+                      {/* Video source badge */}
+                      {(content as ModuleVideo).isFileVideo ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-emerald-600 rounded text-xs font-semibold text-white flex items-center gap-1">
+                          <Play className="w-3 h-3" />
+                          MP4
+                        </div>
+                      ) : (
+                        <div className="absolute top-2 left-2 w-7 h-5 bg-red-600 rounded flex items-center justify-center">
+                          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                          </svg>
+                        </div>
+                      )}
+                      
+                      {/* Number badge */}
+                      {(content as ModuleVideo).showNumber && (
+                        <div className="absolute top-2 right-2 w-6 h-6 md:w-7 md:h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs md:text-sm font-bold shadow-lg">
+                          {idx + 1}
+                        </div>
+                      )}
+
+                      {/* Hover play overlay */}
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
+                          <Play className="w-4 h-4 md:w-5 md:h-5 text-white ml-0.5" />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-gradient-to-br from-green-800 to-green-900 flex items-center justify-center border-2 border-green-600/30 group-hover:border-green-400 transition-all duration-300 shadow-lg">
+                      <Type className="w-6 h-6 md:w-8 md:h-8 text-green-400 group-hover:text-green-300 transition-colors" />
+                    </div>
+                  )}
+                  {((content as any).showTitle !== false) && (
+                    <p className="font-medium mt-2 text-xs md:text-sm text-center text-white group-hover:text-green-300 transition-colors line-clamp-2 px-1">{content.title}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Buttons */}
+        {buttonContents.length > 0 && (
+          <div className="flex flex-wrap gap-2 md:gap-3 justify-center pt-4 px-4">
+            {buttonContents.map((content) => (
+              <Button
+                key={content.id}
+                onClick={() => window.open((content as ModuleButton).url, '_blank', 'noopener,noreferrer')}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-white text-xs md:text-sm"
+              >
+                <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
+                {content.title}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Authenticated member area
   if (isAuthenticated) {
     return (
@@ -336,10 +551,30 @@ const ZapMRO = () => {
             </p>
           </div>
 
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Placeholder cards - will be customized by admin */}
-            <div className="bg-green-800/30 backdrop-blur-sm border border-green-600/30 rounded-2xl p-6 hover:bg-green-800/50 transition-all">
+          {/* Download Link */}
+          {settings?.downloadLink && (
+            <div className="flex justify-center mb-8">
+              <Button 
+                onClick={() => window.open(settings.downloadLink, '_blank')}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Download ZAPMRO
+              </Button>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoadingModules && (
+            <div className="bg-green-800/30 backdrop-blur-sm border border-green-600/30 rounded-2xl p-12 text-center">
+              <Loader2 className="w-12 h-12 mx-auto text-green-400 mb-4 animate-spin" />
+              <p className="text-green-300">Carregando módulos...</p>
+            </div>
+          )}
+
+          {/* Modules Content */}
+          {!isLoadingModules && modules.length === 0 && (
+            <div className="bg-green-800/30 backdrop-blur-sm border border-green-600/30 rounded-2xl p-6">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center mb-4">
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>
@@ -348,8 +583,201 @@ const ZapMRO = () => {
                 A área de membros ZAPMRO está sendo configurada pelo administrador.
               </p>
             </div>
-          </div>
+          )}
+
+          {/* Modules List */}
+          {!isLoadingModules && modules.length > 0 && (
+            <div className="space-y-8">
+              {modules.sort((a, b) => a.order - b.order).map((module) => {
+                const colorTheme = moduleColorClasses[module.color || 'default'];
+                const isCollapsed = module.collapsedByDefault && !expandedModules.has(module.id);
+                
+                const toggleExpand = () => {
+                  setExpandedModules(prev => {
+                    const next = new Set(prev);
+                    if (next.has(module.id)) {
+                      next.delete(module.id);
+                    } else {
+                      next.add(module.id);
+                    }
+                    return next;
+                  });
+                };
+
+                const { regularContents, sections } = separateContents(module.contents);
+
+                return (
+                  <div 
+                    key={module.id}
+                    className={`backdrop-blur-sm rounded-xl border-2 p-6 ${colorTheme.border} ${colorTheme.bg}`}
+                  >
+                    {/* Module Header */}
+                    <div 
+                      className={`flex flex-col items-center gap-3 ${isCollapsed ? '' : 'mb-6'} text-center ${module.collapsedByDefault ? 'cursor-pointer' : ''}`}
+                      onClick={module.collapsedByDefault ? toggleExpand : undefined}
+                    >
+                      {module.collapsedByDefault && module.coverUrl && (
+                        <div className="relative w-full max-w-xs mx-auto mb-2">
+                          <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-green-900/50 group">
+                            <img 
+                              src={module.coverUrl} 
+                              alt={module.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center shadow-xl">
+                                <Play className="w-8 h-8 text-white" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 flex-wrap justify-center">
+                        {module.showNumber && (
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${colorTheme.accent}`}>
+                            {module.order}
+                          </span>
+                        )}
+                        <h3 className="text-xl font-bold text-white">{module.title}</h3>
+                        {module.isBonus && (
+                          <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-400 text-black rounded-full text-xs font-semibold flex items-center gap-1">
+                            <Gift className="w-3 h-3" />
+                            BÔNUS
+                          </span>
+                        )}
+                      </div>
+                      {module.description && (
+                        <p className="text-green-300/70 text-sm max-w-xl">{module.description}</p>
+                      )}
+                    </div>
+
+                    {/* Module Contents */}
+                    {!isCollapsed && (
+                      <div className="space-y-4">
+                        {/* Regular Contents */}
+                        {regularContents.length > 0 && (
+                          <ZapmroContentSection 
+                            contents={regularContents}
+                            onContentClick={(content) => {
+                              if (content.type === 'button') {
+                                window.open((content as ModuleButton).url, '_blank', 'noopener,noreferrer');
+                              } else {
+                                setSelectedContent(content);
+                              }
+                            }}
+                          />
+                        )}
+
+                        {/* Sections */}
+                        {sections.map((section) => (
+                          <div key={section.id} className="mt-6 rounded-2xl border border-green-600/20 bg-green-900/30 p-4 md:p-6">
+                            {section.showTitle !== false && (
+                              <div className="text-center mb-4">
+                                <div className="flex items-center justify-center gap-2 md:gap-3">
+                                  <h3 className="text-base md:text-lg font-bold text-white">{section.title}</h3>
+                                  {section.isBonus && (
+                                    <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500 to-yellow-400 text-black rounded-full text-xs font-semibold flex items-center gap-1">
+                                      <Gift className="w-3 h-3" />
+                                      BÔNUS
+                                    </span>
+                                  )}
+                                </div>
+                                {section.description && (
+                                  <p className="text-xs md:text-sm text-green-300/60 mt-1">{section.description}</p>
+                                )}
+                              </div>
+                            )}
+                            <ZapmroContentSection 
+                              contents={section.contents || []}
+                              onContentClick={(content) => {
+                                if (content.type === 'button') {
+                                  window.open((content as ModuleButton).url, '_blank', 'noopener,noreferrer');
+                                } else {
+                                  setSelectedContent(content);
+                                }
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </main>
+
+        {/* Announcement Popup */}
+        {showAnnouncements && (
+          <AnnouncementPopup 
+            targetArea="zapmro"
+            onComplete={() => setShowAnnouncements(false)} 
+          />
+        )}
+
+        {/* Content Lightbox */}
+        {selectedContent && (
+          <div 
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setSelectedContent(null)}
+          >
+            <div 
+              className="w-full max-w-5xl my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">{selectedContent.title}</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedContent(null)}
+                  className="text-white hover:bg-white/10"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {selectedContent.type === 'video' ? (
+                <>
+                  <div className="aspect-video rounded-lg overflow-hidden bg-black">
+                    {(selectedContent as ModuleVideo).isFileVideo && (selectedContent as ModuleVideo).videoFileUrl ? (
+                      <video
+                        src={(selectedContent as ModuleVideo).videoFileUrl}
+                        title={selectedContent.title}
+                        className="w-full h-full"
+                        controls
+                        autoPlay
+                      />
+                    ) : (
+                      <iframe
+                        src={getYoutubeEmbedUrl((selectedContent as ModuleVideo).youtubeUrl)}
+                        title={selectedContent.title}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    )}
+                  </div>
+                  {(selectedContent as ModuleVideo).description && (
+                    <p className="text-green-300/70 mt-4">{(selectedContent as ModuleVideo).description}</p>
+                  )}
+                </>
+              ) : (
+                <div className="bg-green-900/50 p-6 rounded-lg">
+                  <div className="prose prose-invert max-w-none">
+                    {(selectedContent as ModuleText).content.split('\n').map((paragraph, idx) => (
+                      <p key={idx} className="mb-4 last:mb-0 text-white">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

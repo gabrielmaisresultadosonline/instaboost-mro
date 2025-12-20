@@ -666,6 +666,20 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                   <span className="text-xs bg-secondary px-2 py-0.5 rounded">
                     {announcement.maxViews === 99 ? 'Sempre' : `${announcement.maxViews}x`}
                   </span>
+                  {/* Target area badge */}
+                  <span className={`text-xs px-2 py-0.5 rounded ${
+                    announcement.targetArea === 'instagram' 
+                      ? 'bg-pink-500/20 text-pink-400' 
+                      : announcement.targetArea === 'zapmro'
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'bg-purple-500/20 text-purple-400'
+                  }`}>
+                    {announcement.targetArea === 'instagram' 
+                      ? '📸 Instagram' 
+                      : announcement.targetArea === 'zapmro'
+                      ? '💬 ZAPMRO'
+                      : '🌐 Todas'}
+                  </span>
                   {/* View count badge */}
                   <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded flex items-center gap-1">
                     <Users className="w-3 h-3" />

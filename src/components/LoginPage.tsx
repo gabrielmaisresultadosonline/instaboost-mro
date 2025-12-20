@@ -127,7 +127,7 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
       {/* Announcement Popup after successful login */}
       {showAnnouncements && (
-        <AnnouncementPopup onComplete={handleAnnouncementsComplete} />
+        <AnnouncementPopup targetArea="instagram" onComplete={handleAnnouncementsComplete} />
       )}
       
       <Card className="w-full max-w-md glass-card border-primary/20">
