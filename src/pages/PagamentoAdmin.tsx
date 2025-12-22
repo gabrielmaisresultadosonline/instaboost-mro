@@ -20,7 +20,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const WEBHOOK_URL = "https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/infinitepay-webhook";
+const WEBHOOK_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/infinitepay-webhook`;
 interface PaymentOrder {
   id: string;
   email: string;
