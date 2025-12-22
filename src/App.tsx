@@ -24,6 +24,9 @@ import Promo33Admin from "./pages/Promo33Admin";
 import GestaoMensal from "./pages/GestaoMensal";
 import AdminUsuario from "./pages/AdminUsuario";
 import MelhorarPublico from "./pages/MelhorarPublico";
+import Pagamento from "./pages/Pagamento";
+import PagamentoObrigado from "./pages/PagamentoObrigado";
+import PagamentoAdmin from "./pages/PagamentoAdmin";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +58,9 @@ const App = () => (
           <Route path="/gestaomensal" element={<GestaoMensal />} />
           <Route path="/adminusuario" element={<AdminUsuario />} />
           <Route path="/melhorarpublico" element={<MelhorarPublico />} />
+          <Route path="/pagamento" element={<Pagamento />} />
+          <Route path="/pagamentoobrigado" element={<PagamentoObrigado />} />
+          <Route path="/pagamentoadmin" element={<PagamentoAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

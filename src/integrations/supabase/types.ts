@@ -167,6 +167,48 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          infinitepay_link: string | null
+          nsu_order: string
+          paid_at: string | null
+          status: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          infinitepay_link?: string | null
+          nsu_order: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          infinitepay_link?: string | null
+          nsu_order?: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       promo33_users: {
         Row: {
           created_at: string

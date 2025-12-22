@@ -145,3 +145,6 @@ verify_jwt = false
 
 [functions.upload-video]
 verify_jwt = false
+
+[functions.verify-infinitepay-payments]
+verify_jwt = false
