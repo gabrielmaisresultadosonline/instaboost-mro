@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackLead } from "@/lib/facebookTracking";
+import { toast } from "sonner";
 import { 
   Sparkles, 
   CheckCircle2, 
@@ -22,12 +24,15 @@ import {
   Star,
   Target,
   Lightbulb,
-  
   Brain,
   RefreshCw,
   Gift,
   Monitor,
-  Laptop
+  Laptop,
+  Mail,
+  User,
+  CreditCard,
+  Loader2
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
@@ -37,6 +42,12 @@ interface SalesSettings {
   whatsappMessage: string;
   ctaButtonText: string;
 }
+
+// Valores para teste (alterar para 397.00 e 797.00 em produção)
+const PLANS = {
+  annual: { name: "Anual", price: 1.00, days: 365, description: "Acesso por 1 ano" },
+  lifetime: { name: "Vitalício", price: 2.00, days: 999999, description: "Acesso para sempre" },
+};
 
 const VendasCompleta = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -49,6 +60,95 @@ const VendasCompleta = () => {
     whatsappMessage: 'Gostaria de saber sobre a promoção.',
     ctaButtonText: 'Gostaria de aproveitar a promoção'
   });
+  
+  // Modal de cadastro
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Validar username: apenas letras minúsculas, sem espaços, sem números
+  const validateUsername = (value: string) => {
+    const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
+    setUsername(cleaned);
+    
+    if (value !== cleaned) {
+      setUsernameError("Apenas letras minúsculas, sem espaços ou números");
+    } else if (cleaned.length < 4) {
+      setUsernameError("Mínimo de 4 caracteres");
+    } else if (cleaned.length > 20) {
+      setUsernameError("Máximo de 20 caracteres");
+    } else {
+      setUsernameError("");
+    }
+  };
+
+  // Criar checkout e abrir pagamento
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast.error("Por favor, insira um email válido");
+      return;
+    }
+
+    if (!username || username.length < 4) {
+      toast.error("Nome de usuário deve ter no mínimo 4 caracteres");
+      return;
+    }
+
+    if (usernameError) {
+      toast.error(usernameError);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const plan = PLANS[selectedPlan];
+      
+      // Chamar edge function para criar checkout MRO
+      const { data, error } = await supabase.functions.invoke("create-mro-checkout", {
+        body: { 
+          email: email.toLowerCase().trim(),
+          username: username.toLowerCase().trim(),
+          planType: selectedPlan,
+          amount: plan.price
+        }
+      });
+
+      if (error) {
+        console.error("Error creating checkout:", error);
+        toast.error("Erro ao criar link de pagamento. Tente novamente.");
+        return;
+      }
+
+      if (!data.success) {
+        toast.error(data.error || "Erro ao criar pagamento");
+        return;
+      }
+
+      // Abrir link de pagamento diretamente
+      window.open(data.payment_link, "_blank");
+      
+      // Fechar modal
+      setShowCheckoutModal(false);
+      
+      toast.success("Checkout criado! Complete o pagamento na nova aba.");
+      
+      // Resetar form
+      setEmail("");
+      setUsername("");
+
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao processar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Track PageView on mount
   useEffect(() => {
@@ -542,7 +642,8 @@ const VendasCompleta = () => {
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl hover:scale-105 transition-transform"
                 onClick={() => {
                   trackLead('Instagram MRO - Plano Anual');
-                  window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+ANUAL","price":30000,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigado', '_blank');
+                  setSelectedPlan("annual");
+                  setShowCheckoutModal(true);
                 }}
               >
                 GARANTIR PLANO ANUAL
@@ -583,7 +684,8 @@ const VendasCompleta = () => {
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold py-4 rounded-xl hover:scale-105 transition-transform"
                 onClick={() => {
                   trackLead('Instagram MRO - Plano Vitalício');
-                  window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+VITALICIO","price":79700,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigado', '_blank');
+                  setSelectedPlan("lifetime");
+                  setShowCheckoutModal(true);
                 }}
               >
                 GARANTIR PLANO VITALÍCIO
@@ -834,6 +936,123 @@ const VendasCompleta = () => {
               allow="autoplay; encrypted-media"
               allowFullScreen
             />
+          </div>
+        </div>
+      )}
+
+      {/* Checkout Modal */}
+      {showCheckoutModal && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowCheckoutModal(false)}
+        >
+          <div 
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <button 
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              onClick={() => setShowCheckoutModal(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
+                selectedPlan === "annual" 
+                  ? "bg-blue-500/20" 
+                  : "bg-gradient-to-br from-amber-500/20 to-orange-500/20"
+              }`}>
+                <Sparkles className={`w-7 h-7 ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`} />
+              </div>
+              <h3 className="text-xl font-bold text-white">
+                Plano {PLANS[selectedPlan].name}
+              </h3>
+              <p className="text-2xl font-bold mt-2">
+                <span className={selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}>
+                  R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}
+                </span>
+              </p>
+            </div>
+
+            <form onSubmit={handleCheckout} className="space-y-4">
+              <div>
+                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2">
+                  <Mail className="w-4 h-4" />
+                  Seu Email
+                </label>
+                <Input
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2">
+                  <User className="w-4 h-4" />
+                  Nome de Usuário (será sua senha também)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="seuusuario"
+                  value={username}
+                  onChange={(e) => validateUsername(e.target.value)}
+                  className={`bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500 ${
+                    usernameError ? "border-red-500" : ""
+                  }`}
+                  required
+                />
+                {usernameError && (
+                  <p className="text-xs text-red-400 mt-1">{usernameError}</p>
+                )}
+                <p className="text-xs text-zinc-500 mt-1">
+                  Apenas letras minúsculas, sem espaços ou números
+                </p>
+              </div>
+
+              <div className="bg-zinc-800/30 rounded-lg p-3 space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Usuário/Senha</span>
+                  <span className="text-white font-mono">{username || "---"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Total</span>
+                  <span className={`font-bold ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`}>
+                    R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className={`w-full font-bold py-5 ${
+                  selectedPlan === "annual"
+                    ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                    : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black"
+                }`}
+                disabled={loading || !!usernameError || !username || !email}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Gerando...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 h-5 w-5" />
+                    Ir para Pagamento
+                  </>
+                )}
+              </Button>
+
+              <p className="text-xs text-zinc-500 text-center">
+                Após o pagamento, seu acesso será liberado automaticamente
+              </p>
+            </form>
           </div>
         </div>
       )}

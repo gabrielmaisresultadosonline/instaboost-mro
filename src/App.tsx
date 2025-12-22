@@ -14,6 +14,7 @@ import MROPagamento from "./pages/MROPagamento";
 import MROObrigado from "./pages/MROObrigado";
 import Vendas from "./pages/Vendas";
 import VendasCompleta from "./pages/VendasCompleta";
+import InstagramNovaAdmin from "./pages/InstagramNovaAdmin";
 import Membro from "./pages/Membro";
 import Ligacao from "./pages/Ligacao";
 import Obrigado from "./pages/Obrigado";
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/mroobrigado" element={<MROObrigado />} />
           <Route path="/vendas" element={<Vendas />} />
           <Route path="/instagram-nova" element={<VendasCompleta />} />
+          <Route path="/instagram-nova-admin" element={<InstagramNovaAdmin />} />
           <Route path="/mrointeligente" element={<VendasCompleta />} />
           <Route path="/membro" element={<Membro />} />
           <Route path="/ligacao" element={<Ligacao />} />
