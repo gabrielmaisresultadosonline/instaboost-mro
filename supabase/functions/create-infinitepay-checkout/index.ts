@@ -65,19 +65,23 @@ serve(async (req) => {
     });
 
     // Criar link via API do InfiniPay
+    // Obs: algumas versões da doc usam "itens"; por compatibilidade enviamos ambos (items/itens).
+    const lineItems = [{
+      description: `MRO_${cleanEmail}`,
+      quantity: 1,
+      price: priceInCents,
+    }];
+
     const infinitepayPayload = {
       handle: INFINITEPAY_HANDLE,
-      items: [{
-        description: `MRO_${cleanEmail}`,
-        quantity: 1,
-        price: priceInCents
-      }],
+      items: lineItems,
+      itens: lineItems,
       order_nsu: orderNsu,
       redirect_url: REDIRECT_URL,
       webhook_url: webhookUrl,
       customer: {
-        email: cleanEmail
-      }
+        email: cleanEmail,
+      },
     };
 
     log("Calling InfiniPay API", infinitepayPayload);
