@@ -10,6 +10,8 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import MROFerramenta from "./pages/MROFerramenta";
+import MROPagamento from "./pages/MROPagamento";
+import MROObrigado from "./pages/MROObrigado";
 import Vendas from "./pages/Vendas";
 import VendasCompleta from "./pages/VendasCompleta";
 import Membro from "./pages/Membro";
@@ -44,6 +46,8 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/mro-ferramenta" element={<MROFerramenta />} />
+          <Route path="/mropagamento" element={<MROPagamento />} />
+          <Route path="/mroobrigado" element={<MROObrigado />} />
           <Route path="/vendas" element={<Vendas />} />
           <Route path="/instagram-nova" element={<VendasCompleta />} />
           <Route path="/mrointeligente" element={<VendasCompleta />} />

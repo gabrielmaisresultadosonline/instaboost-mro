@@ -157,3 +157,12 @@ verify_jwt = false
 
 [functions.check-infinitepay-payment]
 verify_jwt = false
+
+[functions.create-mro-checkout]
+verify_jwt = false
+
+[functions.mro-payment-webhook]
+verify_jwt = false
+
+[functions.check-mro-payment]
+verify_jwt = false

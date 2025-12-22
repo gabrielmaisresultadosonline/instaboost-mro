@@ -1,0 +1,176 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const INFINITEPAY_HANDLE = "paguemro";
+
+const log = (step: string, details?: unknown) => {
+  const timestamp = new Date().toISOString();
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
+  console.log(`[${timestamp}] [CREATE-MRO-CHECKOUT] ${step}${detailsStr}`);
+};
+
+const generateNSU = () => {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8);
+  return `MROIG${timestamp}${random}`.toUpperCase();
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    log("Creating MRO checkout link");
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error("Missing Supabase configuration");
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false },
+    });
+
+    const body = await req.json();
+    const { email, username, planType, amount } = body;
+
+    if (!email || !email.includes("@")) {
+      return new Response(
+        JSON.stringify({ error: "Email inválido" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    if (!username || username.length < 4) {
+      return new Response(
+        JSON.stringify({ error: "Nome de usuário inválido" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanUsername = username.toLowerCase().trim();
+    const orderNsu = generateNSU();
+    const priceInCents = Math.round((amount || 397) * 100);
+    const planLabel = planType === "lifetime" ? "VITALICIO" : "ANUAL";
+
+    // Webhook URL para receber notificação de pagamento
+    const webhookUrl = `${supabaseUrl}/functions/v1/mro-payment-webhook`;
+    const redirectUrl = `${supabaseUrl.replace('supabase.co', 'lovable.app').replace('/functions/v1', '')}/mroobrigado?nsu=${orderNsu}`;
+
+    log("Preparing InfiniPay request", { 
+      email: cleanEmail, 
+      username: cleanUsername,
+      planType,
+      orderNsu, 
+      priceInCents,
+      webhookUrl 
+    });
+
+    // Descrição do produto inclui email e username para identificação
+    // Formato: MROIG_PLANO_username_email
+    const productDescription = `MROIG_${planLabel}_${cleanUsername}_${cleanEmail}`;
+
+    const lineItems = [{
+      description: productDescription,
+      quantity: 1,
+      price: priceInCents,
+    }];
+
+    const infinitepayPayload = {
+      handle: INFINITEPAY_HANDLE,
+      items: lineItems,
+      itens: lineItems,
+      order_nsu: orderNsu,
+      redirect_url: redirectUrl,
+      webhook_url: webhookUrl,
+      customer: {
+        email: cleanEmail,
+      },
+    };
+
+    log("Calling InfiniPay API", infinitepayPayload);
+
+    const infinitepayResponse = await fetch(
+      "https://api.infinitepay.io/invoices/public/checkout/links",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(infinitepayPayload),
+      }
+    );
+
+    const infinitepayData = await infinitepayResponse.json();
+    log("InfiniPay response", { status: infinitepayResponse.status, data: infinitepayData });
+
+    let paymentLink: string;
+
+    if (!infinitepayResponse.ok) {
+      log("InfiniPay API error, using fallback", infinitepayData);
+      
+      // Fallback: criar link manualmente
+      const fallbackItems = JSON.stringify([{
+        name: productDescription,
+        price: priceInCents,
+        quantity: 1
+      }]);
+      
+      paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${encodeURIComponent(fallbackItems)}&redirect_url=${encodeURIComponent(redirectUrl)}`;
+    } else {
+      paymentLink = infinitepayData.checkout_url || infinitepayData.link || infinitepayData.url;
+    }
+
+    // Salvar pedido no banco
+    const { data: orderData, error: insertError } = await supabase
+      .from("mro_orders")
+      .insert({
+        email: cleanEmail,
+        username: cleanUsername,
+        plan_type: planType,
+        amount: amount || 397,
+        status: "pending",
+        nsu_order: orderNsu,
+        infinitepay_link: paymentLink,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      log("Error saving order", insertError);
+      throw insertError;
+    }
+
+    log("Order created successfully", { orderId: orderData.id, paymentLink });
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        order_id: orderData.id,
+        nsu_order: orderNsu,
+        payment_link: paymentLink,
+        email: cleanEmail,
+        username: cleanUsername,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    );
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log("ERROR", { message: errorMessage });
+
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
+  }
+});
