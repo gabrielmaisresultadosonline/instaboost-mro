@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CreditCard, Mail, CheckCircle } from "lucide-react";
 
 const INFINITEPAY_TAG = "paguemro";
-const AMOUNT = 97.00;
+const AMOUNT = 1.00;
 
 export default function Pagamento() {
   const [email, setEmail] = useState("");
