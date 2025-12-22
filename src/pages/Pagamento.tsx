@@ -7,9 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CreditCard, Mail, CheckCircle } from "lucide-react";
 
-const INFINITEPAY_TAG = "paguemro";
-const AMOUNT = 1.00; // Centavos para InfiniPay (100 = R$1,00)
-const REDIRECT_URL = "https://maisresultadosonline.com.br/pagamentoobrigado";
+const AMOUNT = 1.00; // R$ para teste (alterar para 97.00 em produção)
 
 export default function Pagamento() {
   const [email, setEmail] = useState("");
@@ -18,12 +16,6 @@ export default function Pagamento() {
   const [nsuOrder, setNsuOrder] = useState("");
   const [paymentLink, setPaymentLink] = useState("");
   const navigate = useNavigate();
-
-  const generateNSU = () => {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substring(2, 8);
-    return `MRO${timestamp}${random}`.toUpperCase();
-  };
 
   const handleCreatePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,45 +28,34 @@ export default function Pagamento() {
     setLoading(true);
 
     try {
-      const cleanEmail = email.toLowerCase().trim();
-      const nsu = generateNSU();
-      
-      // Nome do produto com email para fácil verificação
-      const productName = `MRO_${cleanEmail}`;
-      const priceInCents = Math.round(AMOUNT * 100);
-      
-      // Create InfiniPay Checkout URL com items JSON
-      const items = JSON.stringify([{
-        name: productName,
-        price: priceInCents,
-        quantity: 1
-      }]);
-      
-      const infinitepayLink = `https://checkout.infinitepay.io/${INFINITEPAY_TAG}?items=${encodeURIComponent(items)}&redirect_url=${encodeURIComponent(REDIRECT_URL)}`;
-
-      // Save order to database
-      const { data, error } = await supabase
-        .from("payment_orders")
-        .insert({
-          email: cleanEmail,
-          nsu_order: nsu,
-          amount: AMOUNT,
-          status: "pending",
-          infinitepay_link: infinitepayLink,
-        })
-        .select()
-        .single();
+      // Chamar edge function para criar checkout via API do InfiniPay
+      const { data, error } = await supabase.functions.invoke("create-infinitepay-checkout", {
+        body: { 
+          email: email.toLowerCase().trim(),
+          amount: AMOUNT
+        }
+      });
 
       if (error) {
-        console.error("Error creating payment order:", error);
-        toast.error("Erro ao criar pedido. Tente novamente.");
+        console.error("Error creating checkout:", error);
+        toast.error("Erro ao criar link de pagamento. Tente novamente.");
         return;
       }
 
-      setNsuOrder(nsu);
-      setPaymentLink(infinitepayLink);
+      if (!data.success) {
+        toast.error(data.error || "Erro ao criar pagamento");
+        return;
+      }
+
+      setNsuOrder(data.nsu_order);
+      setPaymentLink(data.payment_link);
       setPaymentCreated(true);
-      toast.success("Pedido criado! Clique no botão para pagar.");
+      
+      if (data.fallback) {
+        toast.success("Link de pagamento gerado! Clique para pagar.");
+      } else {
+        toast.success("Checkout criado com sucesso! Clique para pagar.");
+      }
 
     } catch (error) {
       console.error("Error:", error);
@@ -214,7 +195,7 @@ export default function Pagamento() {
               </Button>
 
               <p className="text-xs text-zinc-500 text-center">
-                O pagamento será verificado automaticamente a cada minuto.
+                O pagamento será verificado automaticamente via webhook.
                 <br />
                 Válido por 30 minutos.
               </p>
