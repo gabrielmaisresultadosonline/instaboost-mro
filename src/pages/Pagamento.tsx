@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CreditCard, Mail, CheckCircle } from "lucide-react";
 
 const INFINITEPAY_TAG = "paguemro";
-const AMOUNT = 1.00;
+const AMOUNT = 1.00; // Centavos para InfiniPay (100 = R$1,00)
+const REDIRECT_URL = "https://maisresultadosonline.com.br/pagamentoobrigado";
 
 export default function Pagamento() {
   const [email, setEmail] = useState("");
@@ -35,16 +36,27 @@ export default function Pagamento() {
     setLoading(true);
 
     try {
+      const cleanEmail = email.toLowerCase().trim();
       const nsu = generateNSU();
       
-      // Create InfiniPay Link Integrado URL
-      const infinitepayLink = `https://infinitepay.io/$${INFINITEPAY_TAG}/${AMOUNT.toFixed(2)}?nsu=${nsu}`;
+      // Nome do produto com email para fácil verificação
+      const productName = `MRO_${cleanEmail}`;
+      const priceInCents = Math.round(AMOUNT * 100);
+      
+      // Create InfiniPay Checkout URL com items JSON
+      const items = JSON.stringify([{
+        name: productName,
+        price: priceInCents,
+        quantity: 1
+      }]);
+      
+      const infinitepayLink = `https://checkout.infinitepay.io/${INFINITEPAY_TAG}?items=${encodeURIComponent(items)}&redirect_url=${encodeURIComponent(REDIRECT_URL)}`;
 
       // Save order to database
       const { data, error } = await supabase
         .from("payment_orders")
         .insert({
-          email: email.toLowerCase().trim(),
+          email: cleanEmail,
           nsu_order: nsu,
           amount: AMOUNT,
           status: "pending",
