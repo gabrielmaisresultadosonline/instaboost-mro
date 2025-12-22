@@ -151,3 +151,6 @@ verify_jwt = false
 
 [functions.infinitepay-webhook]
 verify_jwt = false
+
+[functions.create-infinitepay-checkout]
+verify_jwt = false

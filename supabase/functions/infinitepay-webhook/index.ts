@@ -31,104 +31,119 @@ serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    // Parse the webhook payload
+    // Parse the webhook payload from InfiniPay
+    // Formato esperado:
+    // {
+    //   "invoice_slug": "abc123",
+    //   "amount": 1000,
+    //   "paid_amount": 1010,
+    //   "installments": 1,
+    //   "capture_method": "credit_card",
+    //   "transaction_nsu": "UUID",
+    //   "order_nsu": "UUID-do-pedido",
+    //   "receipt_url": "https://comprovante.com/123",
+    //   "items": [...]
+    // }
+    
     const body = await req.json();
     log("Webhook payload", body);
 
-    // InfiniPay webhook structure may vary - handle different formats
-    // The product name format is: MRO_email@cliente.com
-    
-    let email: string | null = null;
-    let productName: string | null = null;
-    let status: string | null = null;
-    let transactionId: string | null = null;
+    const {
+      order_nsu,
+      transaction_nsu,
+      invoice_slug,
+      amount,
+      paid_amount,
+      capture_method,
+      receipt_url,
+      items
+    } = body;
 
-    // Try to extract from items array (checkout format)
-    if (body.items && Array.isArray(body.items)) {
-      for (const item of body.items) {
-        if (item.name && item.name.startsWith("MRO_")) {
-          productName = item.name;
-          email = item.name.replace("MRO_", "").toLowerCase();
+    // Extrair email do nome do produto (MRO_email@cliente.com)
+    let email: string | null = null;
+    
+    if (items && Array.isArray(items)) {
+      for (const item of items) {
+        const itemName = item.description || item.name;
+        if (itemName && itemName.startsWith("MRO_")) {
+          email = itemName.replace("MRO_", "").toLowerCase();
           break;
         }
       }
     }
 
-    // Try to extract from direct fields
-    if (body.product_name && body.product_name.startsWith("MRO_")) {
-      productName = body.product_name;
-      email = body.product_name.replace("MRO_", "").toLowerCase();
+    log("Parsed webhook data", { 
+      order_nsu, 
+      transaction_nsu, 
+      email, 
+      amount, 
+      paid_amount,
+      capture_method 
+    });
+
+    // Tentar encontrar o pedido pelo order_nsu primeiro (mais confiável)
+    let order = null;
+    let fetchError = null;
+
+    if (order_nsu) {
+      const result = await supabase
+        .from("payment_orders")
+        .select("*")
+        .eq("nsu_order", order_nsu)
+        .eq("status", "pending")
+        .maybeSingle();
+      
+      order = result.data;
+      fetchError = result.error;
+      
+      if (order) {
+        log("Found order by NSU", { orderId: order.id, nsu: order_nsu });
+      }
     }
 
-    // Try to extract from description
-    if (body.description && body.description.startsWith("MRO_")) {
-      productName = body.description;
-      email = body.description.replace("MRO_", "").toLowerCase();
+    // Se não encontrou pelo NSU, tentar pelo email
+    if (!order && email) {
+      const result = await supabase
+        .from("payment_orders")
+        .select("*")
+        .eq("email", email)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      order = result.data;
+      fetchError = result.error;
+      
+      if (order) {
+        log("Found order by email", { orderId: order.id, email });
+      }
     }
 
-    // Get status
-    status = body.status || body.payment_status || body.transaction_status;
-    transactionId = body.transaction_id || body.id || body.nsu;
-
-    log("Parsed webhook data", { email, productName, status, transactionId });
-
-    if (!email) {
-      log("Could not extract email from webhook payload");
+    if (fetchError) {
+      log("Error fetching order", fetchError);
+      // Retornar 200 para o InfiniPay não ficar reenviando
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Could not identify payment - no MRO_ product found" 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        JSON.stringify({ success: false, error: "Database error" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
-    // Check if payment is confirmed/approved
-    const paidStatuses = ["paid", "approved", "confirmed", "success", "completed", "PAID", "APPROVED"];
-    const isPaid = status && paidStatuses.includes(status.toLowerCase?.() || status);
-
-    if (!isPaid && status) {
-      log("Payment not confirmed yet", { status });
+    if (!order) {
+      log("No pending order found", { order_nsu, email });
+      // Retornar 200 para o InfiniPay não ficar reenviando
       return new Response(
         JSON.stringify({ 
-          success: true, 
-          message: `Payment status received: ${status}`,
+          success: false, 
+          error: "No pending order found",
+          order_nsu,
           email 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
-    // Find pending order by email
-    const { data: order, error: fetchError } = await supabase
-      .from("payment_orders")
-      .select("*")
-      .eq("email", email)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (fetchError) {
-      log("Error fetching order", fetchError);
-      throw fetchError;
-    }
-
-    if (!order) {
-      log("No pending order found for email", { email });
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "No pending order found for this email",
-          email 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
-      );
-    }
-
-    log("Found pending order", { orderId: order.id, email: order.email });
-
-    // Mark order as paid
+    // Marcar pedido como pago
     const { error: updateError } = await supabase
       .from("payment_orders")
       .update({
@@ -140,18 +155,29 @@ serve(async (req) => {
 
     if (updateError) {
       log("Error updating order", updateError);
-      throw updateError;
+      return new Response(
+        JSON.stringify({ success: false, error: "Failed to update order" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
     }
 
-    log("Order marked as paid", { orderId: order.id, email: order.email });
+    log("Order marked as PAID", { 
+      orderId: order.id, 
+      email: order.email,
+      order_nsu,
+      transaction_nsu,
+      capture_method,
+      amount,
+      paid_amount
+    });
 
+    // Retornar 200 OK conforme documentação do InfiniPay
     return new Response(
       JSON.stringify({
         success: true,
         message: "Payment confirmed successfully",
         order_id: order.id,
         email: order.email,
-        transaction_id: transactionId,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
@@ -160,9 +186,10 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     log("ERROR", { message: errorMessage });
 
+    // Retornar 400 para o InfiniPay tentar novamente
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
     );
   }
 });
