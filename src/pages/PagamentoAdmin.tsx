@@ -12,11 +12,15 @@ import {
   Mail,
   CreditCard,
   Timer,
-  Loader2
+  Loader2,
+  Copy,
+  Link,
+  Package
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+const WEBHOOK_URL = "https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/infinitepay-webhook";
 interface PaymentOrder {
   id: string;
   email: string;
@@ -153,6 +157,13 @@ export default function PagamentoAdmin() {
     expired: orders.filter(o => o.status === "expired").length,
   };
 
+  const copyWebhookUrl = () => {
+    navigator.clipboard.writeText(WEBHOOK_URL);
+    toast.success("URL do webhook copiada!");
+  };
+
+  const getProductName = (email: string) => `MRO_${email}`;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-4 md:p-6">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -183,6 +194,33 @@ export default function PagamentoAdmin() {
             </Button>
           </div>
         </div>
+
+        {/* Webhook URL Info */}
+        <Card className="bg-zinc-800/50 border-zinc-700 border-l-4 border-l-blue-500">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <Link className="w-5 h-5 text-blue-400 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-white">Webhook para InfiniPay</p>
+                  <p className="text-xs text-zinc-400 mt-1 break-all font-mono">{WEBHOOK_URL}</p>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Configure esta URL no painel InfiniPay para receber notificações automáticas de pagamento
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={copyWebhookUrl}
+                className="shrink-0"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copiar URL
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -266,6 +304,12 @@ export default function PagamentoAdmin() {
                       <div className="flex items-center gap-2 text-zinc-300">
                         <Mail className="w-4 h-4" />
                         <span className="text-sm">{order.email}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-blue-400">
+                        <Package className="w-3 h-3" />
+                        <span className="font-mono">{getProductName(order.email)}</span>
+                        <span className="text-zinc-500">(nome do produto no InfiniPay)</span>
                       </div>
                       
                       <div className="flex items-center gap-4 text-xs text-zinc-500">
