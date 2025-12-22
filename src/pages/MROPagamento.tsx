@@ -219,7 +219,7 @@ export default function MROPagamento() {
               <div className="space-y-2">
                 <label className="text-sm text-zinc-300 flex items-center gap-2">
                   <User className="w-4 h-4" />
-                  Nome de Usuário (será sua senha também)
+                  Nome de Usuário
                 </label>
                 <Input
                   type="text"
@@ -246,11 +246,7 @@ export default function MROPagamento() {
                   <span className="text-white font-medium">{plan.name}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-400">Usuário</span>
-                  <span className="text-white font-mono">{username || "---"}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-400">Senha</span>
+                  <span className="text-zinc-400">Usuário/Senha</span>
                   <span className="text-white font-mono">{username || "---"}</span>
                 </div>
                 <div className="border-t border-zinc-600 pt-2 mt-2">
