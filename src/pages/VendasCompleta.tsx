@@ -32,7 +32,8 @@ import {
   Mail,
   User,
   CreditCard,
-  Loader2
+  Loader2,
+  Phone
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
@@ -66,6 +67,7 @@ const VendasCompleta = () => {
   const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -94,6 +96,11 @@ const VendasCompleta = () => {
       return;
     }
 
+    if (!phone || phone.replace(/\D/g, "").length < 10) {
+      toast.error("Por favor, insira um celular válido com DDD");
+      return;
+    }
+
     if (!username || username.length < 4) {
       toast.error("Nome de usuário deve ter no mínimo 4 caracteres");
       return;
@@ -109,29 +116,37 @@ const VendasCompleta = () => {
     try {
       const plan = PLANS[selectedPlan];
       
-      // Chamar edge function para criar checkout MRO
-      const { data, error } = await supabase.functions.invoke("create-mro-checkout", {
+      // Primeiro verificar se usuário já existe
+      const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
+          phone: phone.replace(/\D/g, "").trim(),
           planType: selectedPlan,
-          amount: plan.price
+          amount: plan.price,
+          checkUserExists: true
         }
       });
 
-      if (error) {
-        console.error("Error creating checkout:", error);
+      if (checkError) {
+        console.error("Error creating checkout:", checkError);
         toast.error("Erro ao criar link de pagamento. Tente novamente.");
         return;
       }
 
-      if (!data.success) {
-        toast.error(data.error || "Erro ao criar pagamento");
+      if (checkData.userExists) {
+        toast.error("Este nome de usuário já está em uso. Escolha outro.");
+        setUsernameError("Usuário já existe, escolha outro");
+        return;
+      }
+
+      if (!checkData.success) {
+        toast.error(checkData.error || "Erro ao criar pagamento");
         return;
       }
 
       // Abrir link de pagamento diretamente
-      window.open(data.payment_link, "_blank");
+      window.open(checkData.payment_link, "_blank");
       
       // Fechar modal
       setShowCheckoutModal(false);
@@ -141,6 +156,7 @@ const VendasCompleta = () => {
       // Resetar form
       setEmail("");
       setUsername("");
+      setPhone("");
 
     } catch (error) {
       console.error("Error:", error);
@@ -993,6 +1009,21 @@ const VendasCompleta = () => {
 
               <div>
                 <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2">
+                  <Phone className="w-4 h-4" />
+                  Celular com DDD
+                </label>
+                <Input
+                  type="tel"
+                  placeholder="(51) 99999-9999"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-zinc-300 flex items-center gap-2 mb-2">
                   <User className="w-4 h-4" />
                   Nome de Usuário (será sua senha também)
                 </label>
@@ -1034,7 +1065,7 @@ const VendasCompleta = () => {
                     ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                     : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black"
                 }`}
-                disabled={loading || !!usernameError || !username || !email}
+                disabled={loading || !!usernameError || !username || !email || !phone}
               >
                 {loading ? (
                   <>

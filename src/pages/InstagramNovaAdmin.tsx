@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,10 @@ import {
   Mail,
   User,
   Calendar,
-  DollarSign
+  DollarSign,
+  Copy,
+  Phone,
+  AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -25,10 +28,15 @@ import { ptBR } from "date-fns/locale";
 const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
 
+// Configurações do template de mensagem
+const MEMBER_LINK = "https://maisresultadosonline.com.br";
+const GROUP_LINK = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
+
 interface MROOrder {
   id: string;
   email: string;
   username: string;
+  phone: string | null;
   plan_type: string;
   amount: number;
   status: string;
@@ -38,6 +46,7 @@ interface MROOrder {
   email_sent: boolean | null;
   paid_at: string | null;
   completed_at: string | null;
+  expired_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -51,7 +60,11 @@ export default function InstagramNovaAdmin() {
   const [orders, setOrders] = useState<MROOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "paid" | "completed">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "paid" | "completed" | "expired">("all");
+  
+  const autoCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [autoCheckEnabled, setAutoCheckEnabled] = useState(true);
+  const [lastAutoCheck, setLastAutoCheck] = useState<Date | null>(null);
 
   // Check if already authenticated
   useEffect(() => {
@@ -61,6 +74,25 @@ export default function InstagramNovaAdmin() {
       loadOrders();
     }
   }, []);
+
+  // Verificação automática a cada 30 segundos
+  useEffect(() => {
+    if (isAuthenticated && autoCheckEnabled) {
+      // Verificar imediatamente ao carregar
+      checkPendingPayments();
+      
+      // Configurar intervalo de 30 segundos
+      autoCheckIntervalRef.current = setInterval(() => {
+        checkPendingPayments();
+      }, 30000);
+      
+      return () => {
+        if (autoCheckIntervalRef.current) {
+          clearInterval(autoCheckIntervalRef.current);
+        }
+      };
+    }
+  }, [isAuthenticated, autoCheckEnabled]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +115,9 @@ export default function InstagramNovaAdmin() {
     localStorage.removeItem("mro_admin_auth");
     setIsAuthenticated(false);
     setOrders([]);
+    if (autoCheckIntervalRef.current) {
+      clearInterval(autoCheckIntervalRef.current);
+    }
     toast.info("Logout realizado");
   };
 
@@ -100,12 +135,70 @@ export default function InstagramNovaAdmin() {
         return;
       }
 
-      setOrders(data || []);
+      // Processar pedidos expirados
+      const now = new Date();
+      const processedOrders = (data || []).map(order => {
+        // Se está pendente e passou de 30 minutos, marcar como expirado
+        if (order.status === "pending" && order.expired_at) {
+          const expiredAt = new Date(order.expired_at);
+          if (now > expiredAt) {
+            return { ...order, status: "expired" };
+          }
+        }
+        return order;
+      });
+
+      setOrders(processedOrders);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Verificar pagamentos pendentes automaticamente
+  const checkPendingPayments = async () => {
+    try {
+      const pendingOrders = orders.filter(o => o.status === "pending");
+      
+      if (pendingOrders.length === 0) {
+        setLastAutoCheck(new Date());
+        loadOrders(); // Recarregar para pegar novos pedidos
+        return;
+      }
+
+      console.log(`[AUTO-CHECK] Verificando ${pendingOrders.length} pedidos pendentes...`);
+      
+      for (const order of pendingOrders) {
+        // Verificar se expirou (mais de 30 minutos)
+        if (order.expired_at) {
+          const expiredAt = new Date(order.expired_at);
+          if (new Date() > expiredAt) {
+            console.log(`[AUTO-CHECK] Pedido ${order.nsu_order} expirado`);
+            continue;
+          }
+        }
+
+        // Verificar pagamento
+        try {
+          const { data } = await supabase.functions.invoke("check-mro-payment", {
+            body: { nsu_order: order.nsu_order }
+          });
+
+          if (data?.status === "completed" || data?.status === "paid") {
+            console.log(`[AUTO-CHECK] Pagamento confirmado para ${order.nsu_order}`);
+            toast.success(`Pagamento confirmado: ${order.username}`);
+          }
+        } catch (e) {
+          console.error(`[AUTO-CHECK] Erro ao verificar ${order.nsu_order}:`, e);
+        }
+      }
+
+      setLastAutoCheck(new Date());
+      loadOrders();
+    } catch (error) {
+      console.error("[AUTO-CHECK] Erro:", error);
     }
   };
 
@@ -138,6 +231,42 @@ export default function InstagramNovaAdmin() {
     }
   };
 
+  const generateCopyMessage = (order: MROOrder) => {
+    return `Obrigado por fazer parte do nosso sistema!✅
+
+🚀🔥 *Ferramenta para Instagram Vip acesso!*
+
+Preciso que assista os vídeos da área de membros com o link abaixo:
+
+( ${MEMBER_LINK} ) 
+
+1 - Acesse Área Membros
+
+2 - Acesse ferramenta para instagram
+
+Para acessar a ferramenta e área de membros, utilize os acessos:
+
+*usuário:* ${order.username}
+
+*senha:* ${order.username}
+
+⚠ Assista todos os vídeos, por favor!
+
+Participe também do nosso GRUPO DE AVISOS
+
+${GROUP_LINK}`;
+  };
+
+  const copyToClipboard = async (order: MROOrder) => {
+    const message = generateCopyMessage(order);
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success("Mensagem copiada para área de transferência!");
+    } catch (e) {
+      toast.error("Erro ao copiar");
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
@@ -146,6 +275,8 @@ export default function InstagramNovaAdmin() {
         return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><CheckCircle className="w-3 h-3 mr-1" /> Pago</Badge>;
       case "pending":
         return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><Clock className="w-3 h-3 mr-1" /> Pendente</Badge>;
+      case "expired":
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><AlertTriangle className="w-3 h-3 mr-1" /> Expirado</Badge>;
       default:
         return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30"><XCircle className="w-3 h-3 mr-1" /> {status}</Badge>;
     }
@@ -155,19 +286,22 @@ export default function InstagramNovaAdmin() {
     const matchesSearch = 
       order.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.nsu_order.toLowerCase().includes(searchTerm.toLowerCase());
+      order.nsu_order.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.phone && order.phone.includes(searchTerm));
     
     const matchesFilter = filterStatus === "all" || order.status === filterStatus;
     
     return matchesSearch && matchesFilter;
   });
 
+  // Stats corrigidos - incluindo "paid" e "completed" como pagos
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.status === "pending").length,
-    paid: orders.filter(o => o.status === "paid").length,
+    paid: orders.filter(o => o.status === "paid" || o.status === "completed").length,
     completed: orders.filter(o => o.status === "completed").length,
-    totalRevenue: orders.filter(o => o.status === "completed").reduce((sum, o) => sum + Number(o.amount), 0)
+    expired: orders.filter(o => o.status === "expired").length,
+    totalRevenue: orders.filter(o => o.status === "paid" || o.status === "completed").reduce((sum, o) => sum + Number(o.amount), 0)
   };
 
   if (!isAuthenticated) {
@@ -224,10 +358,24 @@ export default function InstagramNovaAdmin() {
           <div>
             <h1 className="text-2xl font-bold text-white">Admin MRO Instagram</h1>
             <p className="text-zinc-400 text-sm">Gerenciamento de pedidos /instagram-nova</p>
+            {lastAutoCheck && (
+              <p className="text-zinc-500 text-xs mt-1">
+                Última verificação: {format(lastAutoCheck, "HH:mm:ss", { locale: ptBR })}
+                {autoCheckEnabled && " (auto: 30s)"}
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
             <Button
-              onClick={loadOrders}
+              onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
+              variant="outline"
+              size="sm"
+              className={`border-zinc-600 ${autoCheckEnabled ? "text-green-400 border-green-500/50" : "text-zinc-400"}`}
+            >
+              {autoCheckEnabled ? "Auto ✓" : "Auto ✗"}
+            </Button>
+            <Button
+              onClick={() => { loadOrders(); checkPendingPayments(); }}
               variant="outline"
               className="border-zinc-600 text-zinc-300"
               disabled={loading}
@@ -247,7 +395,7 @@ export default function InstagramNovaAdmin() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           <Card className="bg-zinc-800/50 border-zinc-700">
             <CardContent className="p-4">
               <p className="text-zinc-400 text-sm">Total</p>
@@ -272,6 +420,12 @@ export default function InstagramNovaAdmin() {
               <p className="text-2xl font-bold text-green-400">{stats.completed}</p>
             </CardContent>
           </Card>
+          <Card className="bg-red-500/10 border-red-500/30">
+            <CardContent className="p-4">
+              <p className="text-red-400 text-sm">Expirados</p>
+              <p className="text-2xl font-bold text-red-400">{stats.expired}</p>
+            </CardContent>
+          </Card>
           <Card className="bg-amber-500/10 border-amber-500/30">
             <CardContent className="p-4">
               <p className="text-amber-400 text-sm">Receita</p>
@@ -285,14 +439,14 @@ export default function InstagramNovaAdmin() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <Input
-              placeholder="Buscar por email, usuário ou NSU..."
+              placeholder="Buscar por email, usuário, telefone ou NSU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-zinc-800/50 border-zinc-700 text-white"
             />
           </div>
-          <div className="flex gap-2">
-            {["all", "pending", "paid", "completed"].map((status) => (
+          <div className="flex gap-2 flex-wrap">
+            {["all", "pending", "paid", "completed", "expired"].map((status) => (
               <Button
                 key={status}
                 variant={filterStatus === status ? "default" : "outline"}
@@ -303,7 +457,7 @@ export default function InstagramNovaAdmin() {
                   : "border-zinc-600 text-zinc-300"
                 }
               >
-                {status === "all" ? "Todos" : status === "pending" ? "Pendentes" : status === "paid" ? "Pagos" : "Completos"}
+                {status === "all" ? "Todos" : status === "pending" ? "Pendentes" : status === "paid" ? "Pagos" : status === "completed" ? "Completos" : "Expirados"}
               </Button>
             ))}
           </div>
@@ -326,7 +480,7 @@ export default function InstagramNovaAdmin() {
               <Card key={order.id} className="bg-zinc-800/50 border-zinc-700">
                 <CardContent className="p-4">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div>
                         <div className="flex items-center gap-1 text-zinc-400 text-xs mb-1">
                           <Mail className="w-3 h-3" /> Email
@@ -338,6 +492,12 @@ export default function InstagramNovaAdmin() {
                           <User className="w-3 h-3" /> Usuário/Senha
                         </div>
                         <p className="text-white text-sm font-mono">{order.username}</p>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1 text-zinc-400 text-xs mb-1">
+                          <Phone className="w-3 h-3" /> Celular
+                        </div>
+                        <p className="text-white text-sm">{order.phone || "-"}</p>
                       </div>
                       <div>
                         <div className="flex items-center gap-1 text-zinc-400 text-xs mb-1">
@@ -357,7 +517,7 @@ export default function InstagramNovaAdmin() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {getStatusBadge(order.status)}
                       
                       {order.status === "pending" && (
@@ -368,6 +528,18 @@ export default function InstagramNovaAdmin() {
                           disabled={loading}
                         >
                           Verificar
+                        </Button>
+                      )}
+                      
+                      {(order.status === "completed" || order.status === "paid") && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(order)}
+                          className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                        >
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copiar Acesso
                         </Button>
                       )}
                       
@@ -385,13 +557,18 @@ export default function InstagramNovaAdmin() {
                     </div>
                   </div>
                   
-                  <div className="mt-3 pt-3 border-t border-zinc-700/50 flex items-center gap-4 text-xs text-zinc-500">
+                  <div className="mt-3 pt-3 border-t border-zinc-700/50 flex items-center gap-4 text-xs text-zinc-500 flex-wrap">
                     <span>NSU: {order.nsu_order}</span>
                     {order.paid_at && (
                       <span>Pago: {format(new Date(order.paid_at), "dd/MM HH:mm", { locale: ptBR })}</span>
                     )}
                     {order.completed_at && (
                       <span>Completo: {format(new Date(order.completed_at), "dd/MM HH:mm", { locale: ptBR })}</span>
+                    )}
+                    {order.status === "pending" && order.expired_at && (
+                      <span className="text-yellow-500">
+                        Expira: {format(new Date(order.expired_at), "dd/MM HH:mm", { locale: ptBR })}
+                      </span>
                     )}
                   </div>
                 </CardContent>
