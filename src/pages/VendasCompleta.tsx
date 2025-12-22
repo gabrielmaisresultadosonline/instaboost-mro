@@ -44,10 +44,10 @@ interface SalesSettings {
   ctaButtonText: string;
 }
 
-// Valores para teste (alterar para 397.00 e 797.00 em produção)
+// Valores de produção
 const PLANS = {
-  annual: { name: "Anual", price: 1.00, days: 365, description: "Acesso por 1 ano" },
-  lifetime: { name: "Vitalício", price: 2.00, days: 999999, description: "Acesso para sempre" },
+  annual: { name: "Anual", price: 300.00, days: 365, description: "Acesso por 1 ano" },
+  lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
 };
 
 const VendasCompleta = () => {
