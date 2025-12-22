@@ -127,10 +127,12 @@ export type Database = {
           created_at: string
           email: string
           email_sent: boolean | null
+          expired_at: string | null
           id: string
           infinitepay_link: string | null
           nsu_order: string
           paid_at: string | null
+          phone: string | null
           plan_type: string
           status: string
           updated_at: string
@@ -143,10 +145,12 @@ export type Database = {
           created_at?: string
           email: string
           email_sent?: boolean | null
+          expired_at?: string | null
           id?: string
           infinitepay_link?: string | null
           nsu_order: string
           paid_at?: string | null
+          phone?: string | null
           plan_type?: string
           status?: string
           updated_at?: string
@@ -159,10 +163,12 @@ export type Database = {
           created_at?: string
           email?: string
           email_sent?: boolean | null
+          expired_at?: string | null
           id?: string
           infinitepay_link?: string | null
           nsu_order?: string
           paid_at?: string | null
+          phone?: string | null
           plan_type?: string
           status?: string
           updated_at?: string
