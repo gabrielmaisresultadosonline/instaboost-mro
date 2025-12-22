@@ -148,3 +148,6 @@ verify_jwt = false
 
 [functions.verify-infinitepay-payments]
 verify_jwt = false
+
+[functions.infinitepay-webhook]
+verify_jwt = false
