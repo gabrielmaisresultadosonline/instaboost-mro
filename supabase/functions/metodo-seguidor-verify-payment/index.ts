@@ -100,6 +100,79 @@ async function sendAccessEmail(
   }
 }
 
+// Check InfiniPay webhook/transactions for payment with MTSEG_email format
+async function checkInfiniPayPayment(email: string): Promise<boolean> {
+  try {
+    // The product description is MTSEG_email
+    const searchKey = `MTSEG_${email}`;
+    log("Searching InfiniPay for payment", { searchKey });
+
+    // Try to find payment in InfiniPay transactions
+    // Note: InfiniPay doesn't have a public API for searching by description
+    // The webhook should be the primary method of payment confirmation
+    // This is a fallback check
+
+    // Try the payment check endpoint with the search key
+    const response = await fetch(
+      `https://api.infinitepay.io/invoices/public/search?q=${encodeURIComponent(searchKey)}`,
+      {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      log("InfiniPay search response", data);
+
+      if (data.items && data.items.length > 0) {
+        const paidItem = data.items.find((item: any) => 
+          item.paid === true || 
+          item.status === "paid" || 
+          item.status === "approved" ||
+          item.payment_status === "paid"
+        );
+        
+        if (paidItem) {
+          log("Found paid item", paidItem);
+          return true;
+        }
+      }
+    }
+
+    // Also try searching with lowercase
+    const response2 = await fetch(
+      `https://api.infinitepay.io/invoices/public/search?q=${encodeURIComponent(email)}`,
+      {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      }
+    );
+
+    if (response2.ok) {
+      const data = await response2.json();
+      log("InfiniPay email search response", data);
+
+      if (data.items && data.items.length > 0) {
+        const paidItem = data.items.find((item: any) => 
+          (item.paid === true || item.status === "paid") &&
+          item.description?.includes("MTSEG")
+        );
+        
+        if (paidItem) {
+          log("Found paid item by email", paidItem);
+          return true;
+        }
+      }
+    }
+
+    return false;
+  } catch (error) {
+    log("Error checking InfiniPay", error);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -118,13 +191,21 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { nsu_order, email } = body;
+    const { nsu_order, email, order_id } = body;
 
-    // Support both nsu_order and email-based lookup
+    log("Verifying payment", { nsu_order, email, order_id });
+
+    // Find order
     let order: any = null;
 
-    if (nsu_order) {
-      log("Verifying payment by NSU", { nsu_order });
+    if (order_id) {
+      const { data } = await supabase
+        .from("metodo_seguidor_orders")
+        .select("*")
+        .eq("id", order_id)
+        .maybeSingle();
+      order = data;
+    } else if (nsu_order) {
       const { data } = await supabase
         .from("metodo_seguidor_orders")
         .select("*")
@@ -132,7 +213,6 @@ serve(async (req) => {
         .maybeSingle();
       order = data;
     } else if (email) {
-      log("Verifying payment by email", { email });
       const { data } = await supabase
         .from("metodo_seguidor_orders")
         .select("*")
@@ -159,65 +239,74 @@ serve(async (req) => {
       );
     }
 
-    // Check if expired
-    if (order.expired_at && new Date(order.expired_at) < new Date()) {
-      if (order.status !== "expired") {
+    // Check if expired (15 minutes)
+    const createdAt = new Date(order.created_at);
+    const now = new Date();
+    const fifteenMinutesMs = 15 * 60 * 1000;
+    const isExpired = (now.getTime() - createdAt.getTime()) > fifteenMinutesMs;
+
+    if (isExpired && order.status === "pending") {
+      log("Order expired", { order_id: order.id, created_at: order.created_at });
+      
+      await supabase
+        .from("metodo_seguidor_orders")
+        .update({ 
+          status: "expired",
+          expired_at: now.toISOString()
+        })
+        .eq("id", order.id);
+
+      // Also update user status if exists
+      if (order.user_id) {
         await supabase
-          .from("metodo_seguidor_orders")
-          .update({ status: "expired" })
-          .eq("id", order.id);
+          .from("metodo_seguidor_users")
+          .update({ subscription_status: "expired" })
+          .eq("id", order.user_id);
       }
+
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          expired: true,
+          message: "Tempo para pagamento expirado (15 minutos)"
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (order.status === "expired") {
       return new Response(
         JSON.stringify({ success: false, expired: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Call InfiniPay to check payment status using mroseg_email format
-    const searchKey = `mroseg_${order.email}`;
-    log("Checking InfiniPay with key", { searchKey, nsu: order.nsu_order });
+    // Check InfiniPay for payment with MTSEG_email format
+    const isPaid = await checkInfiniPayPayment(order.email);
 
-    try {
-      // Try NSU-based check first
-      const checkResponse = await fetch(
-        `https://api.infinitepay.io/invoices/public/payment_check/${order.nsu_order}`,
-        { method: "GET" }
-      );
-
-      if (checkResponse.ok) {
-        const checkData = await checkResponse.json();
-        log("InfiniPay check response", checkData);
-
-        if (checkData.paid === true || checkData.status === "paid") {
-          return await processPayment(supabase, order);
-        }
-      }
-
-      // Also try searching by email pattern
-      const searchResponse = await fetch(
-        `https://api.infinitepay.io/invoices/public/search?q=${encodeURIComponent(searchKey)}`,
-        { method: "GET" }
-      );
-
-      if (searchResponse.ok) {
-        const searchData = await searchResponse.json();
-        log("InfiniPay search response", searchData);
-
-        if (searchData.items && searchData.items.length > 0) {
-          const paidItem = searchData.items.find((item: any) => 
-            item.paid === true || item.status === "paid"
-          );
-          if (paidItem) {
-            return await processPayment(supabase, order);
-          }
-        }
-      }
-    } catch (checkError) {
-      log("Error checking InfiniPay", checkError);
+    if (isPaid) {
+      log("Payment confirmed via InfiniPay check", { order_id: order.id });
+      return await processPayment(supabase, order);
     }
 
+    // Update last verification time
+    await supabase
+      .from("metodo_seguidor_orders")
+      .update({ updated_at: now.toISOString() })
+      .eq("id", order.id);
+
+    // Calculate time remaining
+    const timeElapsed = now.getTime() - createdAt.getTime();
+    const timeRemaining = Math.max(0, fifteenMinutesMs - timeElapsed);
+    const minutesRemaining = Math.ceil(timeRemaining / 60000);
+
     return new Response(
-      JSON.stringify({ success: true, paid: false }),
+      JSON.stringify({ 
+        success: true, 
+        paid: false,
+        time_remaining_minutes: minutesRemaining,
+        last_check: now.toISOString()
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
@@ -233,6 +322,8 @@ serve(async (req) => {
 });
 
 async function processPayment(supabase: any, order: any) {
+  log("Processing payment", { order_id: order.id });
+
   // Update order
   await supabase
     .from("metodo_seguidor_orders")

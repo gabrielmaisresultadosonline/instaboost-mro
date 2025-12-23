@@ -100,6 +100,27 @@ async function sendAccessEmail(
   }
 }
 
+// Extract email from product description (MTSEG_email format)
+function extractEmailFromDescription(description: string): string | null {
+  if (!description) return null;
+  
+  // Try MTSEG_email format
+  if (description.startsWith("MTSEG_")) {
+    const email = description.replace("MTSEG_", "");
+    if (email.includes("@")) {
+      return email.toLowerCase().trim();
+    }
+  }
+  
+  // Try to find email pattern
+  const emailMatch = description.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) {
+    return emailMatch[0].toLowerCase().trim();
+  }
+  
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -122,17 +143,42 @@ serve(async (req) => {
     const body = await req.json();
     log("Webhook body", body);
 
-    // Extract order NSU from webhook
+    // Extract payment info from webhook
     const orderNsu = body.order_nsu || body.nsu || body.metadata?.order_nsu;
     const paymentStatus = body.status || body.payment_status;
     const isPaid = paymentStatus === "paid" || paymentStatus === "approved" || body.paid === true;
 
-    if (!orderNsu) {
-      log("No order NSU found");
-      return new Response(JSON.stringify({ received: true }), { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      });
+    // Try to get email from items/description
+    let emailFromDescription: string | null = null;
+    
+    if (body.items && Array.isArray(body.items)) {
+      for (const item of body.items) {
+        const desc = item.description || item.name;
+        if (desc && desc.includes("MTSEG_")) {
+          emailFromDescription = extractEmailFromDescription(desc);
+          if (emailFromDescription) {
+            log("Found email in item description", { email: emailFromDescription });
+            break;
+          }
+        }
+      }
     }
+
+    // Also check body.description directly
+    if (!emailFromDescription && body.description) {
+      emailFromDescription = extractEmailFromDescription(body.description);
+    }
+
+    // Also check customer email
+    const customerEmail = body.customer?.email || body.email;
+
+    log("Payment info extracted", { 
+      orderNsu, 
+      paymentStatus, 
+      isPaid, 
+      emailFromDescription, 
+      customerEmail 
+    });
 
     if (!isPaid) {
       log("Payment not confirmed", { status: paymentStatus });
@@ -141,23 +187,54 @@ serve(async (req) => {
       });
     }
 
-    // Find order
-    const { data: order, error: orderError } = await supabase
-      .from("metodo_seguidor_orders")
-      .select("*")
-      .eq("nsu_order", orderNsu)
-      .maybeSingle();
+    // Find order by NSU or by email
+    let order: any = null;
 
-    if (orderError || !order) {
-      log("Order not found", { orderNsu, error: orderError });
-      return new Response(JSON.stringify({ error: "Order not found" }), { 
+    if (orderNsu) {
+      const { data } = await supabase
+        .from("metodo_seguidor_orders")
+        .select("*")
+        .eq("nsu_order", orderNsu)
+        .maybeSingle();
+      order = data;
+    }
+
+    // If not found by NSU, try by email from description
+    if (!order && emailFromDescription) {
+      const { data } = await supabase
+        .from("metodo_seguidor_orders")
+        .select("*")
+        .eq("email", emailFromDescription)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      order = data;
+    }
+
+    // If still not found, try by customer email
+    if (!order && customerEmail) {
+      const { data } = await supabase
+        .from("metodo_seguidor_orders")
+        .select("*")
+        .eq("email", customerEmail.toLowerCase().trim())
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      order = data;
+    }
+
+    if (!order) {
+      log("Order not found", { orderNsu, emailFromDescription, customerEmail });
+      return new Response(JSON.stringify({ error: "Order not found", received: true }), { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 404 
       });
     }
 
     if (order.status === "paid") {
-      log("Order already paid", { orderNsu });
+      log("Order already paid", { order_id: order.id });
       return new Response(JSON.stringify({ received: true, already_paid: true }), { 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
       });
@@ -200,25 +277,27 @@ serve(async (req) => {
 
         // Send email with credentials via SMTP
         // username is both login and password, instagram_username contains the link
-        const emailSent = await sendAccessEmail(
-          order.email, 
-          user.username, 
-          user.instagram_username
-        );
+        if (!user.email_sent) {
+          const emailSent = await sendAccessEmail(
+            order.email, 
+            user.username, 
+            user.instagram_username
+          );
 
-        if (emailSent) {
-          await supabase
-            .from("metodo_seguidor_users")
-            .update({
-              email_sent: true,
-              email_sent_at: new Date().toISOString()
-            })
-            .eq("id", user.id);
+          if (emailSent) {
+            await supabase
+              .from("metodo_seguidor_users")
+              .update({
+                email_sent: true,
+                email_sent_at: new Date().toISOString()
+              })
+              .eq("id", user.id);
+          }
         }
       }
     }
 
-    log("Payment processed successfully", { orderNsu });
+    log("Payment processed successfully", { order_id: order.id, orderNsu });
 
     return new Response(
       JSON.stringify({ success: true }),

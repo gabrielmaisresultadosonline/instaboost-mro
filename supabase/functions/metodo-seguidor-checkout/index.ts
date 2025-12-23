@@ -109,8 +109,8 @@ serve(async (req) => {
     const webhookUrl = `${supabaseUrl}/functions/v1/metodo-seguidor-webhook`;
     const redirectUrl = `${supabaseUrl.replace('supabase.co', 'lovable.app').replace('/functions/v1', '')}/metodoseguidormembro`;
 
-    // Product description
-    const productDescription = `MTSEG_${cleanUsername}_${cleanEmail}`;
+    // Product description - ONLY MTSEG_email (simpler format for webhook verification)
+    const productDescription = `MTSEG_${cleanEmail}`;
 
     const lineItems = [{
       description: productDescription,
@@ -157,8 +157,8 @@ serve(async (req) => {
       paymentLink = infinitepayData.checkout_url || infinitepayData.link || infinitepayData.url;
     }
 
-    // Create order
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    // Create order - expires in 15 minutes
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     const { data: orderData, error: orderError } = await supabase
       .from("metodo_seguidor_orders")
       .insert({
@@ -180,7 +180,7 @@ serve(async (req) => {
       throw orderError;
     }
 
-    log("Checkout created", { orderId: orderData.id, userId: userData.id });
+    log("Checkout created", { orderId: orderData.id, userId: userData.id, productDescription });
 
     return new Response(
       JSON.stringify({
@@ -189,7 +189,8 @@ serve(async (req) => {
         nsu_order: orderNsu,
         payment_link: paymentLink,
         email: cleanEmail,
-        username: cleanUsername
+        username: cleanUsername,
+        expires_at: expiresAt.toISOString()
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );

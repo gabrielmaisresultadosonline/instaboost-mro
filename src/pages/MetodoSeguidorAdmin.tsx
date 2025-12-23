@@ -605,20 +605,34 @@ const MetodoSeguidorAdmin = () => {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-800/50">
                       <tr>
-                        <th className="text-left p-3 text-gray-400">Email</th>
+                        <th className="text-left p-3 text-gray-400">Email/Produto</th>
                         <th className="text-left p-3 text-gray-400">Instagram</th>
                         <th className="text-left p-3 text-gray-400">Valor</th>
                         <th className="text-left p-3 text-gray-400">Status</th>
-                        <th className="text-left p-3 text-gray-400">Data</th>
+                        <th className="text-left p-3 text-gray-400">Verificação</th>
                         <th className="text-left p-3 text-gray-400">Ações</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
                       {filteredOrders.map(order => {
                         const user = users.find(u => u.id === order.user_id);
+                        const createdAt = new Date(order.created_at);
+                        const now = new Date();
+                        const fifteenMinutesMs = 15 * 60 * 1000;
+                        const timeElapsed = now.getTime() - createdAt.getTime();
+                        const timeRemaining = Math.max(0, fifteenMinutesMs - timeElapsed);
+                        const minutesRemaining = Math.ceil(timeRemaining / 60000);
+                        const isExpiringSoon = order.status === "pending" && minutesRemaining <= 5;
+                        const lastCheck = order.updated_at ? new Date(order.updated_at) : null;
+                        
                         return (
                           <tr key={order.id} className="hover:bg-gray-800/50">
-                            <td className="p-3 max-w-[200px] truncate">{order.email}</td>
+                            <td className="p-3">
+                              <div className="max-w-[200px]">
+                                <div className="truncate text-white">{order.email}</div>
+                                <div className="text-xs text-gray-500 truncate">MTSEG_{order.email}</div>
+                              </div>
+                            </td>
                             <td className="p-3">
                               {order.instagram_username ? (
                                 <a href={order.instagram_username.startsWith("http") ? order.instagram_username : `https://instagram.com/${order.instagram_username}`} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline truncate block max-w-[200px]">
@@ -628,11 +642,37 @@ const MetodoSeguidorAdmin = () => {
                             </td>
                             <td className="p-3">R$ {(order.amount || 0).toFixed(2)}</td>
                             <td className="p-3">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "paid" ? "bg-green-500/20 text-green-400" : order.status === "pending" ? "bg-yellow-500/20 text-yellow-400" : "bg-red-500/20 text-red-400"}`}>
-                                {order.status === "paid" ? "Pago" : order.status === "pending" ? "Pendente" : "Expirado"}
-                              </span>
+                              <div className="space-y-1">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "paid" ? "bg-green-500/20 text-green-400" : order.status === "pending" ? "bg-yellow-500/20 text-yellow-400" : "bg-red-500/20 text-red-400"}`}>
+                                  {order.status === "paid" ? "Pago" : order.status === "pending" ? "Pendente" : "Expirado"}
+                                </span>
+                                {order.status === "pending" && (
+                                  <div className={`text-xs ${isExpiringSoon ? "text-red-400" : "text-gray-500"}`}>
+                                    <Clock className="w-3 h-3 inline mr-1" />
+                                    {minutesRemaining > 0 ? `${minutesRemaining} min restantes` : "Expirando..."}
+                                  </div>
+                                )}
+                              </div>
                             </td>
-                            <td className="p-3 text-gray-400">{new Date(order.created_at).toLocaleDateString("pt-BR")}</td>
+                            <td className="p-3">
+                              <div className="text-xs">
+                                <div className="text-gray-400">
+                                  Criado: {createdAt.toLocaleDateString("pt-BR")} {createdAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                                </div>
+                                {lastCheck && order.status === "pending" && (
+                                  <div className="text-blue-400">
+                                    <RefreshCw className="w-3 h-3 inline mr-1" />
+                                    Última: {lastCheck.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                                  </div>
+                                )}
+                                {order.paid_at && (
+                                  <div className="text-green-400">
+                                    <CheckCircle2 className="w-3 h-3 inline mr-1" />
+                                    Pago: {new Date(order.paid_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
                             <td className="p-3">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
