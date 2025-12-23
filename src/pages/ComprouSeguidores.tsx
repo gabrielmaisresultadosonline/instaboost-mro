@@ -38,6 +38,7 @@ const ComprouSeguidores = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
+  const [instagramLink, setInstagramLink] = useState("");
   const [loading, setLoading] = useState(false);
   const pricingRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +60,12 @@ const ComprouSeguidores = () => {
     }
 
     if (!username || username.length < 3) {
-      toast.error("Nome de usuário deve ter no mínimo 3 caracteres");
+      toast.error("Usuário deve ter no mínimo 3 caracteres");
+      return;
+    }
+
+    if (!/^[a-z0-9]+$/.test(username)) {
+      toast.error("Usuário deve conter apenas letras minúsculas e números");
       return;
     }
 
@@ -69,8 +75,9 @@ const ComprouSeguidores = () => {
       const { data, error } = await supabase.functions.invoke("metodo-seguidor-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
-          instagramUsername: username.trim().replace("@", ""),
+          username: username.trim(),
           phone: phone.replace(/\D/g, "").trim(),
+          instagramLink: instagramLink.trim(),
           amount: PRICE
         }
       });
@@ -93,6 +100,7 @@ const ComprouSeguidores = () => {
       setEmail("");
       setUsername("");
       setPhone("");
+      setInstagramLink("");
 
     } catch (error) {
       console.error("Error:", error);
@@ -498,18 +506,19 @@ const ComprouSeguidores = () => {
 
             <form onSubmit={handleCheckout} className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">@ do Instagram</label>
+                <label className="block text-sm text-gray-400 mb-1">Usuário (será seu login e senha)</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                   <Input
                     type="text"
-                    placeholder="seu_usuario"
+                    placeholder="meuusuario"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value.replace("@", ""))}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
                     className="pl-10 bg-gray-800 border-gray-700 text-white"
                     required
                   />
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Somente letras minúsculas e números, sem caracteres especiais</p>
               </div>
 
               <div>
@@ -540,6 +549,20 @@ const ComprouSeguidores = () => {
                     required
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Link do perfil do Instagram (opcional)</label>
+                <div className="relative">
+                  <Input
+                    type="url"
+                    placeholder="https://instagram.com/seuperfil"
+                    value={instagramLink}
+                    onChange={(e) => setInstagramLink(e.target.value)}
+                    className="bg-gray-800 border-gray-700 text-white"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Cole o link do seu perfil do Instagram</p>
               </div>
 
               <div className="pt-4">
