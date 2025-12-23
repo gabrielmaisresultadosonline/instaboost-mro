@@ -143,6 +143,45 @@ export type Database = {
         }
         Relationships: []
       }
+      metodo_seguidor_banners: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          link_text: string | null
+          link_url: string | null
+          order_index: number | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          link_text?: string | null
+          link_url?: string | null
+          order_index?: number | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          link_text?: string | null
+          link_url?: string | null
+          order_index?: number | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metodo_seguidor_modules: {
         Row: {
           created_at: string
@@ -231,6 +270,65 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "metodo_seguidor_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metodo_seguidor_upsells: {
+        Row: {
+          button_text: string | null
+          button_url: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          module_id: string | null
+          order_index: number | null
+          original_price: string | null
+          price: string | null
+          show_after_days: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          button_text?: string | null
+          button_url: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id?: string | null
+          order_index?: number | null
+          original_price?: string | null
+          price?: string | null
+          show_after_days?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          button_text?: string | null
+          button_url?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id?: string | null
+          order_index?: number | null
+          original_price?: string | null
+          price?: string | null
+          show_after_days?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metodo_seguidor_upsells_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "metodo_seguidor_modules"
             referencedColumns: ["id"]
           },
         ]

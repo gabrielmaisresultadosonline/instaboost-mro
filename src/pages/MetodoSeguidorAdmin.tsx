@@ -15,25 +15,24 @@ import {
   Save,
   X,
   Loader2,
-  DollarSign,
+  RefreshCw,
+  Copy,
+  Upload,
+  ChevronDown,
+  ChevronUp,
+  Image,
+  Database,
+  Download,
   CheckCircle2,
   Clock,
   AlertTriangle,
-  RefreshCw,
-  Copy,
-  Eye,
-  Upload,
-  Link as LinkIcon,
-  ChevronDown,
-  ChevronUp,
-  GripVertical,
-  Image,
-  Database,
-  Download
+  Layers,
+  ShoppingBag,
+  Sparkles
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 
-type Tab = "users" | "modules" | "videos" | "backup";
+type Tab = "users" | "modules" | "videos" | "banners" | "upsells" | "backup";
 
 const MetodoSeguidorAdmin = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -68,6 +67,25 @@ const MetodoSeguidorAdmin = () => {
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [uploadingVideoThumb, setUploadingVideoThumb] = useState<string | null>(null);
   
+  // Banners state
+  const [banners, setBanners] = useState<any[]>([]);
+  const [loadingBanners, setLoadingBanners] = useState(false);
+  const [editingBanner, setEditingBanner] = useState<any>(null);
+  const [newBanner, setNewBanner] = useState({ title: "", description: "", image_url: "", link_url: "", link_text: "" });
+  const [showNewBanner, setShowNewBanner] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState<string | null>(null);
+  
+  // Upsells state
+  const [upsells, setUpsells] = useState<any[]>([]);
+  const [loadingUpsells, setLoadingUpsells] = useState(false);
+  const [editingUpsell, setEditingUpsell] = useState<any>(null);
+  const [newUpsell, setNewUpsell] = useState({ 
+    module_id: "", title: "", description: "", thumbnail_url: "", button_text: "Saiba Mais", 
+    button_url: "", price: "", original_price: "", show_after_days: 2 
+  });
+  const [showNewUpsell, setShowNewUpsell] = useState(false);
+  const [uploadingUpsellThumb, setUploadingUpsellThumb] = useState<string | null>(null);
+  
   // Backup state
   const [backupLoading, setBackupLoading] = useState(false);
   const [lastBackup, setLastBackup] = useState<string | null>(null);
@@ -75,65 +93,43 @@ const MetodoSeguidorAdmin = () => {
   // File input refs
   const coverInputRef = useRef<HTMLInputElement>(null);
   const newCoverInputRef = useRef<HTMLInputElement>(null);
-  const videoThumbInputRef = useRef<HTMLInputElement>(null);
-  const newVideoThumbInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const newBannerInputRef = useRef<HTMLInputElement>(null);
+  const upsellInputRef = useRef<HTMLInputElement>(null);
+  const newUpsellInputRef = useRef<HTMLInputElement>(null);
 
   // Auto verification interval
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
     if (isLoggedIn) {
-      interval = setInterval(() => {
-        verifyPendingOrders();
-      }, 30000);
+      interval = setInterval(() => verifyPendingOrders(), 30000);
     }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    return () => { if (interval) clearInterval(interval); };
   }, [isLoggedIn, orders]);
 
   const verifyPendingOrders = async () => {
     const pendingOrders = orders.filter(o => o.status === "pending");
-    
     for (const order of pendingOrders) {
       try {
-        await supabase.functions.invoke("metodo-seguidor-verify-payment", {
-          body: { nsu_order: order.nsu_order }
-        });
-      } catch (e) {
-        console.error("Error verifying order:", e);
-      }
+        await supabase.functions.invoke("metodo-seguidor-verify-payment", { body: { nsu_order: order.nsu_order } });
+      } catch (e) { console.error("Error verifying order:", e); }
     }
-    
-    if (pendingOrders.length > 0) {
-      loadUsers();
-    }
+    if (pendingOrders.length > 0) loadUsers();
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const { data, error } = await supabase.functions.invoke("metodo-seguidor-admin-auth", {
         body: { email: email.trim(), password: password.trim() }
       });
-
-      if (error || !data?.success) {
-        toast.error("Credenciais inválidas");
-        return;
-      }
-
+      if (error || !data?.success) { toast.error("Credenciais inválidas"); return; }
       setIsLoggedIn(true);
       localStorage.setItem("metodo_seguidor_admin", "true");
       toast.success("Login realizado!");
-      
-    } catch (error) {
-      toast.error("Erro ao fazer login");
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { toast.error("Erro ao fazer login"); }
+    finally { setLoading(false); }
   };
 
   const handleLogout = () => {
@@ -148,86 +144,74 @@ const MetodoSeguidorAdmin = () => {
 
   useEffect(() => {
     if (!isLoggedIn) return;
-    
     if (activeTab === "users") loadUsers();
     if (activeTab === "modules") loadModules();
     if (activeTab === "videos") { loadModules(); loadVideos(); }
+    if (activeTab === "banners") loadBanners();
+    if (activeTab === "upsells") { loadModules(); loadUpsells(); }
     if (activeTab === "backup") checkLastBackup();
   }, [activeTab, isLoggedIn]);
 
   const loadUsers = async () => {
     setLoadingUsers(true);
     try {
-      const { data: usersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
-        body: { action: "get-users" }
-      });
-      const { data: ordersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
-        body: { action: "get-orders" }
-      });
-      
+      const { data: usersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", { body: { action: "get-users" } });
+      const { data: ordersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", { body: { action: "get-orders" } });
       if (usersData?.users) setUsers(usersData.users);
       if (ordersData?.orders) setOrders(ordersData.orders);
-    } catch (error) {
-      console.error("Error loading users:", error);
-    } finally {
-      setLoadingUsers(false);
-    }
+    } catch (error) { console.error("Error loading users:", error); }
+    finally { setLoadingUsers(false); }
   };
 
   const loadModules = async () => {
     setLoadingModules(true);
     try {
-      const { data } = await supabase
-        .from("metodo_seguidor_modules")
-        .select("*")
-        .order("order_index");
+      const { data } = await supabase.from("metodo_seguidor_modules").select("*").order("order_index");
       if (data) setModules(data);
-    } catch (error) {
-      console.error("Error loading modules:", error);
-    } finally {
-      setLoadingModules(false);
-    }
+    } catch (error) { console.error("Error loading modules:", error); }
+    finally { setLoadingModules(false); }
   };
 
   const loadVideos = async () => {
     setLoadingVideos(true);
     try {
-      const { data } = await supabase
-        .from("metodo_seguidor_videos")
-        .select("*")
-        .order("order_index");
+      const { data } = await supabase.from("metodo_seguidor_videos").select("*").order("order_index");
       if (data) setVideos(data);
-    } catch (error) {
-      console.error("Error loading videos:", error);
-    } finally {
-      setLoadingVideos(false);
-    }
+    } catch (error) { console.error("Error loading videos:", error); }
+    finally { setLoadingVideos(false); }
   };
 
-  // Upload cover image
-  const uploadCover = async (file: File, type: "module" | "video", id?: string) => {
+  const loadBanners = async () => {
+    setLoadingBanners(true);
+    try {
+      const { data } = await supabase.from("metodo_seguidor_banners").select("*").order("order_index");
+      if (data) setBanners(data);
+    } catch (error) { console.error("Error loading banners:", error); }
+    finally { setLoadingBanners(false); }
+  };
+
+  const loadUpsells = async () => {
+    setLoadingUpsells(true);
+    try {
+      const { data } = await supabase.from("metodo_seguidor_upsells").select("*").order("order_index");
+      if (data) setUpsells(data);
+    } catch (error) { console.error("Error loading upsells:", error); }
+    finally { setLoadingUpsells(false); }
+  };
+
+  // Upload functions
+  const uploadFile = async (file: File, folder: string, id?: string) => {
     try {
       const ext = file.name.split(".").pop();
-      const fileName = `${type}-${id || "new"}-${Date.now()}.${ext}`;
-      const filePath = `covers/${fileName}`;
-
-      const { data, error } = await supabase.storage
-        .from("metodo-seguidor-content")
-        .upload(filePath, file, { 
-          cacheControl: "3600",
-          upsert: true 
-        });
-
+      const fileName = `${folder}-${id || "new"}-${Date.now()}.${ext}`;
+      const filePath = `${folder}/${fileName}`;
+      const { error } = await supabase.storage.from("metodo-seguidor-content").upload(filePath, file, { cacheControl: "3600", upsert: true });
       if (error) throw error;
-
-      const { data: publicData } = supabase.storage
-        .from("metodo-seguidor-content")
-        .getPublicUrl(filePath);
-
+      const { data: publicData } = supabase.storage.from("metodo-seguidor-content").getPublicUrl(filePath);
       return publicData.publicUrl;
     } catch (error) {
-      console.error("Error uploading cover:", error);
-      toast.error("Erro ao fazer upload da capa");
+      console.error("Error uploading:", error);
+      toast.error("Erro ao fazer upload");
       return null;
     }
   };
@@ -235,19 +219,12 @@ const MetodoSeguidorAdmin = () => {
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>, moduleId: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploadingCover(moduleId);
-    const url = await uploadCover(file, "module", moduleId);
-    
+    const url = await uploadFile(file, "covers", moduleId);
     if (url) {
-      if (editingModule?.id === moduleId) {
-        setEditingModule({ ...editingModule, thumbnail_url: url });
-      } else {
-        // Update directly in DB
-        await supabase
-          .from("metodo_seguidor_modules")
-          .update({ thumbnail_url: url })
-          .eq("id", moduleId);
+      if (editingModule?.id === moduleId) setEditingModule({ ...editingModule, thumbnail_url: url });
+      else {
+        await supabase.from("metodo_seguidor_modules").update({ thumbnail_url: url }).eq("id", moduleId);
         toast.success("Capa atualizada!");
         loadModules();
       }
@@ -258,233 +235,209 @@ const MetodoSeguidorAdmin = () => {
   const handleNewModuleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploadingCover("new");
-    const url = await uploadCover(file, "module");
-    if (url) {
-      setNewModule({ ...newModule, thumbnail_url: url });
-    }
+    const url = await uploadFile(file, "covers");
+    if (url) setNewModule({ ...newModule, thumbnail_url: url });
     setUploadingCover(null);
   };
 
-  const handleVideoThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>, videoId: string) => {
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>, bannerId?: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setUploadingVideoThumb(videoId);
-    const url = await uploadCover(file, "video", videoId);
-    
+    setUploadingBanner(bannerId || "new");
+    const url = await uploadFile(file, "banners", bannerId);
     if (url) {
-      if (editingVideo?.id === videoId) {
-        setEditingVideo({ ...editingVideo, thumbnail_url: url });
-      } else {
-        await supabase
-          .from("metodo_seguidor_videos")
-          .update({ thumbnail_url: url })
-          .eq("id", videoId);
-        toast.success("Thumbnail atualizada!");
-        loadVideos();
+      if (bannerId && editingBanner?.id === bannerId) setEditingBanner({ ...editingBanner, image_url: url });
+      else if (!bannerId) setNewBanner({ ...newBanner, image_url: url });
+      else {
+        await supabase.from("metodo_seguidor_banners").update({ image_url: url }).eq("id", bannerId);
+        toast.success("Banner atualizado!");
+        loadBanners();
       }
     }
-    setUploadingVideoThumb(null);
+    setUploadingBanner(null);
   };
 
-  const handleNewVideoThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpsellThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>, upsellId?: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setUploadingVideoThumb("new");
-    const url = await uploadCover(file, "video");
+    setUploadingUpsellThumb(upsellId || "new");
+    const url = await uploadFile(file, "upsells", upsellId);
     if (url) {
-      setNewVideo({ ...newVideo, thumbnail_url: url });
+      if (upsellId && editingUpsell?.id === upsellId) setEditingUpsell({ ...editingUpsell, thumbnail_url: url });
+      else if (!upsellId) setNewUpsell({ ...newUpsell, thumbnail_url: url });
     }
-    setUploadingVideoThumb(null);
+    setUploadingUpsellThumb(null);
   };
 
   // Backup functions
   const checkLastBackup = async () => {
     try {
-      const { data } = await supabase.storage
-        .from("metodo-seguidor-backup")
-        .list("", { limit: 1, sortBy: { column: "created_at", order: "desc" } });
-      
-      if (data && data.length > 0) {
-        setLastBackup(data[0].created_at);
-      }
-    } catch (error) {
-      console.error("Error checking backup:", error);
-    }
+      const { data } = await supabase.storage.from("metodo-seguidor-backup").list("", { limit: 1, sortBy: { column: "created_at", order: "desc" } });
+      if (data && data.length > 0) setLastBackup(data[0].created_at);
+    } catch (error) { console.error("Error checking backup:", error); }
   };
 
   const createBackup = async () => {
     setBackupLoading(true);
     try {
-      // Get all data
-      const { data: modulesData } = await supabase
-        .from("metodo_seguidor_modules")
-        .select("*")
-        .order("order_index");
-
-      const { data: videosData } = await supabase
-        .from("metodo_seguidor_videos")
-        .select("*")
-        .order("order_index");
-
-      const { data: usersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
-        body: { action: "get-users" }
-      });
-
-      const { data: ordersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
-        body: { action: "get-orders" }
-      });
+      const { data: modulesData } = await supabase.from("metodo_seguidor_modules").select("*").order("order_index");
+      const { data: videosData } = await supabase.from("metodo_seguidor_videos").select("*").order("order_index");
+      const { data: bannersData } = await supabase.from("metodo_seguidor_banners").select("*").order("order_index");
+      const { data: upsellsData } = await supabase.from("metodo_seguidor_upsells").select("*").order("order_index");
+      const { data: usersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", { body: { action: "get-users" } });
+      const { data: ordersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", { body: { action: "get-orders" } });
 
       const backupData = {
         timestamp: new Date().toISOString(),
         modules: modulesData || [],
         videos: videosData || [],
+        banners: bannersData || [],
+        upsells: upsellsData || [],
         users: usersData?.users || [],
         orders: ordersData?.orders || []
       };
 
       const fileName = `backup-${new Date().toISOString().split("T")[0]}-${Date.now()}.json`;
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
-
-      const { error } = await supabase.storage
-        .from("metodo-seguidor-backup")
-        .upload(fileName, blob, { 
-          cacheControl: "3600",
-          upsert: false 
-        });
-
+      const { error } = await supabase.storage.from("metodo-seguidor-backup").upload(fileName, blob, { cacheControl: "3600", upsert: false });
       if (error) throw error;
-
       toast.success("Backup criado com sucesso!");
       checkLastBackup();
-    } catch (error) {
-      console.error("Error creating backup:", error);
-      toast.error("Erro ao criar backup");
-    } finally {
-      setBackupLoading(false);
-    }
+    } catch (error) { console.error("Error creating backup:", error); toast.error("Erro ao criar backup"); }
+    finally { setBackupLoading(false); }
   };
 
+  // CRUD functions
   const createModule = async () => {
-    if (!newModule.title) {
-      toast.error("Título é obrigatório");
-      return;
-    }
-
+    if (!newModule.title) { toast.error("Título é obrigatório"); return; }
     try {
-      const { error } = await supabase.from("metodo_seguidor_modules").insert({
-        ...newModule,
-        order_index: modules.length
-      });
-
+      const { error } = await supabase.from("metodo_seguidor_modules").insert({ ...newModule, order_index: modules.length });
       if (error) throw error;
-
       toast.success("Módulo criado!");
       setNewModule({ title: "", description: "", thumbnail_url: "" });
       setShowNewModule(false);
       loadModules();
-    } catch (error) {
-      toast.error("Erro ao criar módulo");
-    }
+    } catch (error) { toast.error("Erro ao criar módulo"); }
   };
 
   const updateModule = async (module: any) => {
     try {
-      const { error } = await supabase
-        .from("metodo_seguidor_modules")
-        .update({
-          title: module.title,
-          description: module.description,
-          thumbnail_url: module.thumbnail_url
-        })
-        .eq("id", module.id);
-
+      const { error } = await supabase.from("metodo_seguidor_modules").update({ title: module.title, description: module.description, thumbnail_url: module.thumbnail_url }).eq("id", module.id);
       if (error) throw error;
-
       toast.success("Módulo atualizado!");
       setEditingModule(null);
       loadModules();
-    } catch (error) {
-      toast.error("Erro ao atualizar módulo");
-    }
+    } catch (error) { toast.error("Erro ao atualizar módulo"); }
   };
 
   const deleteModule = async (id: string) => {
     if (!confirm("Isso excluirá o módulo e todos os vídeos. Continuar?")) return;
-
     try {
       const { error } = await supabase.from("metodo_seguidor_modules").delete().eq("id", id);
       if (error) throw error;
       toast.success("Módulo excluído!");
       loadModules();
       loadVideos();
-    } catch (error) {
-      toast.error("Erro ao excluir módulo");
-    }
+    } catch (error) { toast.error("Erro ao excluir módulo"); }
   };
 
   const createVideo = async () => {
-    if (!newVideo.module_id || !newVideo.title || !newVideo.video_url) {
-      toast.error("Módulo, título e URL são obrigatórios");
-      return;
-    }
-
+    if (!newVideo.module_id || !newVideo.title || !newVideo.video_url) { toast.error("Módulo, título e URL são obrigatórios"); return; }
     try {
       const moduleVideos = videos.filter(v => v.module_id === newVideo.module_id);
-      const { error } = await supabase.from("metodo_seguidor_videos").insert({
-        ...newVideo,
-        order_index: moduleVideos.length
-      });
-
+      const { error } = await supabase.from("metodo_seguidor_videos").insert({ ...newVideo, order_index: moduleVideos.length });
       if (error) throw error;
-
       toast.success("Vídeo criado!");
       setNewVideo({ module_id: "", title: "", description: "", video_url: "", video_type: "youtube", thumbnail_url: "", duration: "" });
       setShowNewVideo(false);
       loadVideos();
-    } catch (error) {
-      toast.error("Erro ao criar vídeo");
-    }
+    } catch (error) { toast.error("Erro ao criar vídeo"); }
   };
 
   const updateVideo = async (video: any) => {
     try {
-      const { error } = await supabase
-        .from("metodo_seguidor_videos")
-        .update({
-          title: video.title,
-          description: video.description,
-          video_url: video.video_url,
-          video_type: video.video_type,
-          thumbnail_url: video.thumbnail_url,
-          duration: video.duration
-        })
-        .eq("id", video.id);
-
+      const { error } = await supabase.from("metodo_seguidor_videos").update({ title: video.title, description: video.description, video_url: video.video_url, video_type: video.video_type, thumbnail_url: video.thumbnail_url, duration: video.duration }).eq("id", video.id);
       if (error) throw error;
-
       toast.success("Vídeo atualizado!");
       setEditingVideo(null);
       loadVideos();
-    } catch (error) {
-      toast.error("Erro ao atualizar vídeo");
-    }
+    } catch (error) { toast.error("Erro ao atualizar vídeo"); }
   };
 
   const deleteVideo = async (id: string) => {
     if (!confirm("Excluir este vídeo?")) return;
-
     try {
       const { error } = await supabase.from("metodo_seguidor_videos").delete().eq("id", id);
       if (error) throw error;
       toast.success("Vídeo excluído!");
       loadVideos();
-    } catch (error) {
-      toast.error("Erro ao excluir vídeo");
-    }
+    } catch (error) { toast.error("Erro ao excluir vídeo"); }
+  };
+
+  const createBanner = async () => {
+    if (!newBanner.image_url) { toast.error("Imagem é obrigatória"); return; }
+    try {
+      const { error } = await supabase.from("metodo_seguidor_banners").insert({ ...newBanner, order_index: banners.length });
+      if (error) throw error;
+      toast.success("Banner criado!");
+      setNewBanner({ title: "", description: "", image_url: "", link_url: "", link_text: "" });
+      setShowNewBanner(false);
+      loadBanners();
+    } catch (error) { toast.error("Erro ao criar banner"); }
+  };
+
+  const updateBanner = async (banner: any) => {
+    try {
+      const { error } = await supabase.from("metodo_seguidor_banners").update({ title: banner.title, description: banner.description, image_url: banner.image_url, link_url: banner.link_url, link_text: banner.link_text, is_active: banner.is_active }).eq("id", banner.id);
+      if (error) throw error;
+      toast.success("Banner atualizado!");
+      setEditingBanner(null);
+      loadBanners();
+    } catch (error) { toast.error("Erro ao atualizar banner"); }
+  };
+
+  const deleteBanner = async (id: string) => {
+    if (!confirm("Excluir este banner?")) return;
+    try {
+      const { error } = await supabase.from("metodo_seguidor_banners").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Banner excluído!");
+      loadBanners();
+    } catch (error) { toast.error("Erro ao excluir banner"); }
+  };
+
+  const createUpsell = async () => {
+    if (!newUpsell.module_id || !newUpsell.title || !newUpsell.button_url) { toast.error("Módulo, título e URL são obrigatórios"); return; }
+    try {
+      const moduleUpsells = upsells.filter(u => u.module_id === newUpsell.module_id);
+      const { error } = await supabase.from("metodo_seguidor_upsells").insert({ ...newUpsell, order_index: moduleUpsells.length });
+      if (error) throw error;
+      toast.success("Upsell criado!");
+      setNewUpsell({ module_id: "", title: "", description: "", thumbnail_url: "", button_text: "Saiba Mais", button_url: "", price: "", original_price: "", show_after_days: 2 });
+      setShowNewUpsell(false);
+      loadUpsells();
+    } catch (error) { toast.error("Erro ao criar upsell"); }
+  };
+
+  const updateUpsell = async (upsell: any) => {
+    try {
+      const { error } = await supabase.from("metodo_seguidor_upsells").update({ title: upsell.title, description: upsell.description, thumbnail_url: upsell.thumbnail_url, button_text: upsell.button_text, button_url: upsell.button_url, price: upsell.price, original_price: upsell.original_price, show_after_days: upsell.show_after_days, is_active: upsell.is_active }).eq("id", upsell.id);
+      if (error) throw error;
+      toast.success("Upsell atualizado!");
+      setEditingUpsell(null);
+      loadUpsells();
+    } catch (error) { toast.error("Erro ao atualizar upsell"); }
+  };
+
+  const deleteUpsell = async (id: string) => {
+    if (!confirm("Excluir este upsell?")) return;
+    try {
+      const { error } = await supabase.from("metodo_seguidor_upsells").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Upsell excluído!");
+      loadUpsells();
+    } catch (error) { toast.error("Erro ao excluir upsell"); }
   };
 
   const copyCredentials = (user: any) => {
@@ -493,10 +446,7 @@ const MetodoSeguidorAdmin = () => {
     toast.success("Credenciais copiadas!");
   };
 
-  const filteredOrders = statusFilter === "all" 
-    ? orders 
-    : orders.filter(o => o.status === statusFilter);
-
+  const filteredOrders = statusFilter === "all" ? orders : orders.filter(o => o.status === statusFilter);
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.status === "pending").length,
@@ -514,24 +464,9 @@ const MetodoSeguidorAdmin = () => {
             <img src={logoMro} alt="MRO" className="h-16 mx-auto mb-6" />
             <h1 className="text-2xl font-bold text-white">Admin - Método Seguidor</h1>
           </div>
-
           <form onSubmit={handleLogin} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-white"
-              required
-            />
-            <Input
-              type="password"
-              placeholder="Senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-white"
-              required
-            />
+            <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-gray-800 border-gray-700 text-white" required />
+            <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-gray-800 border-gray-700 text-white" required />
             <Button type="submit" disabled={loading} className="w-full bg-amber-500 hover:bg-amber-600 text-black">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Entrar"}
             </Button>
@@ -548,7 +483,7 @@ const MetodoSeguidorAdmin = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img src={logoMro} alt="MRO" className="h-10" />
-            <span className="text-gray-400">Admin Método Seguidor</span>
+            <span className="text-gray-400 hidden md:block">Admin Método Seguidor</span>
           </div>
           <Button onClick={handleLogout} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
             <LogOut className="w-5 h-5 mr-2" />
@@ -564,19 +499,13 @@ const MetodoSeguidorAdmin = () => {
             { id: "users", label: "Usuários", icon: Users },
             { id: "modules", label: "Módulos", icon: BookOpen },
             { id: "videos", label: "Vídeos", icon: Video },
+            { id: "banners", label: "Banners", icon: Layers },
+            { id: "upsells", label: "Upsells", icon: ShoppingBag },
             { id: "backup", label: "Backup", icon: Database }
           ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as Tab)}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.id 
-                  ? "border-amber-500 text-amber-400" 
-                  : "border-transparent text-gray-400 hover:text-white"
-              }`}
-            >
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)} className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id ? "border-amber-500 text-amber-400" : "border-transparent text-gray-400 hover:text-white"}`}>
               <tab.icon className="w-5 h-5" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -586,7 +515,6 @@ const MetodoSeguidorAdmin = () => {
         {/* Users Tab */}
         {activeTab === "users" && (
           <div>
-            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <p className="text-gray-400 text-sm">Total</p>
@@ -610,22 +538,11 @@ const MetodoSeguidorAdmin = () => {
               </div>
             </div>
 
-            {/* Filters */}
             <div className="flex gap-2 mb-4">
-              <Button 
-                onClick={loadUsers} 
-                variant="outline" 
-                size="sm"
-                className="border-gray-700"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Atualizar
+              <Button onClick={loadUsers} variant="outline" size="sm" className="border-gray-700">
+                <RefreshCw className="w-4 h-4 mr-2" />Atualizar
               </Button>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-gray-800 border border-gray-700 rounded-lg px-3 text-sm"
-              >
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-gray-800 border border-gray-700 rounded-lg px-3 text-sm">
                 <option value="all">Todos</option>
                 <option value="pending">Pendentes</option>
                 <option value="paid">Pagos</option>
@@ -633,11 +550,8 @@ const MetodoSeguidorAdmin = () => {
               </select>
             </div>
 
-            {/* Orders Table */}
             {loadingUsers ? (
-              <div className="text-center py-10">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" />
-              </div>
+              <div className="text-center py-10"><Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" /></div>
             ) : (
               <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
@@ -646,7 +560,6 @@ const MetodoSeguidorAdmin = () => {
                       <tr>
                         <th className="text-left p-3 text-gray-400">Email</th>
                         <th className="text-left p-3 text-gray-400">Instagram</th>
-                        <th className="text-left p-3 text-gray-400">Telefone</th>
                         <th className="text-left p-3 text-gray-400">Valor</th>
                         <th className="text-left p-3 text-gray-400">Status</th>
                         <th className="text-left p-3 text-gray-400">Data</th>
@@ -660,43 +573,24 @@ const MetodoSeguidorAdmin = () => {
                           <tr key={order.id} className="hover:bg-gray-800/50">
                             <td className="p-3">{order.email}</td>
                             <td className="p-3 text-amber-400">@{order.instagram_username}</td>
-                            <td className="p-3 text-gray-400">{order.phone || "-"}</td>
                             <td className="p-3">R$ {(order.amount || 0).toFixed(2)}</td>
                             <td className="p-3">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                order.status === "paid" ? "bg-green-500/20 text-green-400" :
-                                order.status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
-                                "bg-red-500/20 text-red-400"
-                              }`}>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "paid" ? "bg-green-500/20 text-green-400" : order.status === "pending" ? "bg-yellow-500/20 text-yellow-400" : "bg-red-500/20 text-red-400"}`}>
                                 {order.status === "paid" ? "Pago" : order.status === "pending" ? "Pendente" : "Expirado"}
                               </span>
                             </td>
-                            <td className="p-3 text-gray-400">
-                              {new Date(order.created_at).toLocaleDateString("pt-BR")}
-                            </td>
+                            <td className="p-3 text-gray-400">{new Date(order.created_at).toLocaleDateString("pt-BR")}</td>
                             <td className="p-3">
                               {user && order.status === "paid" && (
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => copyCredentials(user)}
-                                  className="text-amber-400 hover:text-amber-300"
-                                >
-                                  <Copy className="w-4 h-4 mr-1" />
-                                  Copiar Acesso
+                                <Button size="sm" variant="ghost" onClick={() => copyCredentials(user)} className="text-amber-400 hover:text-amber-300">
+                                  <Copy className="w-4 h-4 mr-1" />Copiar
                                 </Button>
                               )}
                             </td>
                           </tr>
                         );
                       })}
-                      {filteredOrders.length === 0 && (
-                        <tr>
-                          <td colSpan={7} className="p-8 text-center text-gray-500">
-                            Nenhum pedido encontrado
-                          </td>
-                        </tr>
-                      )}
+                      {filteredOrders.length === 0 && (<tr><td colSpan={6} className="p-8 text-center text-gray-500">Nenhum pedido encontrado</td></tr>)}
                     </tbody>
                   </table>
                 </div>
@@ -711,164 +605,59 @@ const MetodoSeguidorAdmin = () => {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Módulos</h2>
               <Button onClick={() => setShowNewModule(true)} className="bg-amber-500 hover:bg-amber-600 text-black">
-                <Plus className="w-5 h-5 mr-2" />
-                Novo Módulo
+                <Plus className="w-5 h-5 mr-2" />Novo Módulo
               </Button>
             </div>
 
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
-              <p className="text-blue-400 text-sm">
-                <Image className="w-4 h-4 inline mr-2" />
-                Capas no formato 1080x1920 (vertical) estilo Netflix. Você pode fazer upload diretamente ou colar uma URL.
-              </p>
+              <p className="text-blue-400 text-sm"><Image className="w-4 h-4 inline mr-2" />Capas 1080x1920 (vertical) estilo Netflix</p>
             </div>
 
             {showNewModule && (
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
                 <h3 className="font-bold mb-4">Criar Módulo</h3>
                 <div className="space-y-3">
-                  <Input
-                    placeholder="Título do módulo"
-                    value={newModule.title}
-                    onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                  />
-                  <Textarea
-                    placeholder="Descrição (opcional)"
-                    value={newModule.description}
-                    onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                  />
-                  
-                  {/* Cover Upload */}
-                  <div className="space-y-2">
-                    <label className="text-sm text-gray-400">Capa (1080x1920)</label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="URL da capa ou faça upload"
-                        value={newModule.thumbnail_url}
-                        onChange={(e) => setNewModule({ ...newModule, thumbnail_url: e.target.value })}
-                        className="bg-gray-800 border-gray-700 flex-1"
-                      />
-                      <input
-                        ref={newCoverInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleNewModuleCoverUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => newCoverInputRef.current?.click()}
-                        disabled={uploadingCover === "new"}
-                        className="border-gray-700"
-                      >
-                        {uploadingCover === "new" ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Upload className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                    {newModule.thumbnail_url && (
-                      <div className="mt-2">
-                        <img 
-                          src={newModule.thumbnail_url} 
-                          alt="Preview" 
-                          className="h-32 w-auto object-cover rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
-
+                  <Input placeholder="Título do módulo" value={newModule.title} onChange={(e) => setNewModule({ ...newModule, title: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  <Textarea placeholder="Descrição (opcional)" value={newModule.description} onChange={(e) => setNewModule({ ...newModule, description: e.target.value })} className="bg-gray-800 border-gray-700" />
                   <div className="flex gap-2">
-                    <Button onClick={createModule} className="bg-green-600 hover:bg-green-700">
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar
+                    <Input placeholder="URL da capa ou upload" value={newModule.thumbnail_url} onChange={(e) => setNewModule({ ...newModule, thumbnail_url: e.target.value })} className="bg-gray-800 border-gray-700 flex-1" />
+                    <input ref={newCoverInputRef} type="file" accept="image/*" onChange={handleNewModuleCoverUpload} className="hidden" />
+                    <Button type="button" variant="outline" onClick={() => newCoverInputRef.current?.click()} disabled={uploadingCover === "new"} className="border-gray-700">
+                      {uploadingCover === "new" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     </Button>
-                    <Button onClick={() => setShowNewModule(false)} variant="ghost">
-                      <X className="w-4 h-4 mr-2" />
-                      Cancelar
-                    </Button>
+                  </div>
+                  {newModule.thumbnail_url && <img src={newModule.thumbnail_url} alt="Preview" className="h-32 w-auto object-cover rounded-lg" />}
+                  <div className="flex gap-2">
+                    <Button onClick={createModule} className="bg-green-600 hover:bg-green-700"><Save className="w-4 h-4 mr-2" />Salvar</Button>
+                    <Button onClick={() => setShowNewModule(false)} variant="ghost"><X className="w-4 h-4 mr-2" />Cancelar</Button>
                   </div>
                 </div>
               </div>
             )}
 
             {loadingModules ? (
-              <div className="text-center py-10">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" />
-              </div>
+              <div className="text-center py-10"><Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" /></div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {modules.map((module, index) => (
                   <div key={module.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-                    {/* Cover Preview */}
                     <div className="aspect-[9/16] max-h-64 bg-gray-800 relative group">
-                      {module.thumbnail_url ? (
-                        <img 
-                          src={module.thumbnail_url} 
-                          alt={module.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Image className="w-12 h-12 text-gray-600" />
-                        </div>
-                      )}
+                      {module.thumbnail_url ? <img src={module.thumbnail_url} alt={module.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Image className="w-12 h-12 text-gray-600" /></div>}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <input
-                          ref={coverInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleCoverUpload(e, module.id)}
-                          className="hidden"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={() => coverInputRef.current?.click()}
-                          disabled={uploadingCover === module.id}
-                          className="bg-amber-500 hover:bg-amber-600 text-black"
-                        >
-                          {uploadingCover === module.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          ) : (
-                            <Upload className="w-4 h-4 mr-2" />
-                          )}
-                          Upload Capa
+                        <input ref={coverInputRef} type="file" accept="image/*" onChange={(e) => handleCoverUpload(e, module.id)} className="hidden" />
+                        <Button size="sm" onClick={() => coverInputRef.current?.click()} disabled={uploadingCover === module.id} className="bg-amber-500 hover:bg-amber-600 text-black">
+                          {uploadingCover === module.id ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}Upload
                         </Button>
                       </div>
                     </div>
-
-                    {/* Module Info */}
                     <div className="p-4">
                       {editingModule?.id === module.id ? (
                         <div className="space-y-3">
-                          <Input
-                            value={editingModule.title}
-                            onChange={(e) => setEditingModule({ ...editingModule, title: e.target.value })}
-                            className="bg-gray-800 border-gray-700"
-                          />
-                          <Textarea
-                            value={editingModule.description || ""}
-                            onChange={(e) => setEditingModule({ ...editingModule, description: e.target.value })}
-                            className="bg-gray-800 border-gray-700"
-                          />
-                          <Input
-                            placeholder="URL da capa"
-                            value={editingModule.thumbnail_url || ""}
-                            onChange={(e) => setEditingModule({ ...editingModule, thumbnail_url: e.target.value })}
-                            className="bg-gray-800 border-gray-700"
-                          />
+                          <Input value={editingModule.title} onChange={(e) => setEditingModule({ ...editingModule, title: e.target.value })} className="bg-gray-800 border-gray-700" />
+                          <Textarea value={editingModule.description || ""} onChange={(e) => setEditingModule({ ...editingModule, description: e.target.value })} className="bg-gray-800 border-gray-700" />
                           <div className="flex gap-2">
-                            <Button size="sm" onClick={() => updateModule(editingModule)} className="bg-green-600 hover:bg-green-700">
-                              <Save className="w-4 h-4 mr-1" />
-                              Salvar
-                            </Button>
-                            <Button size="sm" onClick={() => setEditingModule(null)} variant="ghost">
-                              Cancelar
-                            </Button>
+                            <Button size="sm" onClick={() => updateModule(editingModule)} className="bg-green-600 hover:bg-green-700"><Save className="w-4 h-4 mr-1" />Salvar</Button>
+                            <Button size="sm" onClick={() => setEditingModule(null)} variant="ghost">Cancelar</Button>
                           </div>
                         </div>
                       ) : (
@@ -876,28 +665,18 @@ const MetodoSeguidorAdmin = () => {
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-amber-400 text-sm font-medium">Módulo {index + 1}</span>
                             <div className="flex gap-1">
-                              <Button size="sm" variant="ghost" onClick={() => setEditingModule(module)}>
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteModule(module.id)}>
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => setEditingModule(module)}><Edit className="w-4 h-4" /></Button>
+                              <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteModule(module.id)}><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </div>
                           <h3 className="font-bold text-lg">{module.title}</h3>
-                          {module.description && (
-                            <p className="text-sm text-gray-400 mt-1 line-clamp-2">{module.description}</p>
-                          )}
+                          {module.description && <p className="text-sm text-gray-400 mt-1 line-clamp-2">{module.description}</p>}
                         </>
                       )}
                     </div>
                   </div>
                 ))}
-                {modules.length === 0 && (
-                  <div className="col-span-full text-center py-10 text-gray-500">
-                    Nenhum módulo criado ainda
-                  </div>
-                )}
+                {modules.length === 0 && <div className="col-span-full text-center py-10 text-gray-500">Nenhum módulo criado ainda</div>}
               </div>
             )}
           </div>
@@ -908,20 +687,15 @@ const MetodoSeguidorAdmin = () => {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Vídeos</h2>
-              <Button 
-                onClick={() => setShowNewVideo(true)} 
-                className="bg-amber-500 hover:bg-amber-600 text-black"
-                disabled={modules.length === 0}
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Novo Vídeo
+              <Button onClick={() => setShowNewVideo(true)} className="bg-amber-500 hover:bg-amber-600 text-black" disabled={modules.length === 0}>
+                <Plus className="w-5 h-5 mr-2" />Novo Vídeo
               </Button>
             </div>
 
             {modules.length === 0 && (
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-6 text-center">
                 <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-                <p className="text-yellow-400">Crie um módulo primeiro antes de adicionar vídeos</p>
+                <p className="text-yellow-400">Crie um módulo primeiro</p>
               </div>
             )}
 
@@ -929,118 +703,39 @@ const MetodoSeguidorAdmin = () => {
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
                 <h3 className="font-bold mb-4">Adicionar Vídeo</h3>
                 <div className="space-y-3">
-                  <select
-                    value={newVideo.module_id}
-                    onChange={(e) => setNewVideo({ ...newVideo, module_id: e.target.value })}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2"
-                  >
+                  <select value={newVideo.module_id} onChange={(e) => setNewVideo({ ...newVideo, module_id: e.target.value })} className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2">
                     <option value="">Selecione o módulo</option>
-                    {modules.map(m => (
-                      <option key={m.id} value={m.id}>{m.title}</option>
-                    ))}
+                    {modules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
                   </select>
-                  <Input
-                    placeholder="Título do vídeo"
-                    value={newVideo.title}
-                    onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                  />
-                  <Textarea
-                    placeholder="Descrição (opcional)"
-                    value={newVideo.description}
-                    onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                  />
+                  <Input placeholder="Título" value={newVideo.title} onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  <Textarea placeholder="Descrição" value={newVideo.description} onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })} className="bg-gray-800 border-gray-700" />
                   <div className="grid grid-cols-2 gap-3">
-                    <select
-                      value={newVideo.video_type}
-                      onChange={(e) => setNewVideo({ ...newVideo, video_type: e.target.value })}
-                      className="bg-gray-800 border border-gray-700 rounded-lg p-2"
-                    >
+                    <select value={newVideo.video_type} onChange={(e) => setNewVideo({ ...newVideo, video_type: e.target.value })} className="bg-gray-800 border border-gray-700 rounded-lg p-2">
                       <option value="youtube">YouTube</option>
-                      <option value="upload">Upload direto</option>
+                      <option value="upload">Upload</option>
                     </select>
-                    <Input
-                      placeholder="Duração (ex: 10:30)"
-                      value={newVideo.duration}
-                      onChange={(e) => setNewVideo({ ...newVideo, duration: e.target.value })}
-                      className="bg-gray-800 border-gray-700"
-                    />
+                    <Input placeholder="Duração (10:30)" value={newVideo.duration} onChange={(e) => setNewVideo({ ...newVideo, duration: e.target.value })} className="bg-gray-800 border-gray-700" />
                   </div>
-                  <Input
-                    placeholder={newVideo.video_type === "youtube" ? "URL do YouTube" : "URL do vídeo"}
-                    value={newVideo.video_url}
-                    onChange={(e) => setNewVideo({ ...newVideo, video_url: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                  />
-                  
-                  {/* Thumbnail Upload */}
-                  <div className="space-y-2">
-                    <label className="text-sm text-gray-400">Thumbnail</label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="URL da thumbnail ou faça upload"
-                        value={newVideo.thumbnail_url}
-                        onChange={(e) => setNewVideo({ ...newVideo, thumbnail_url: e.target.value })}
-                        className="bg-gray-800 border-gray-700 flex-1"
-                      />
-                      <input
-                        ref={newVideoThumbInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleNewVideoThumbUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => newVideoThumbInputRef.current?.click()}
-                        disabled={uploadingVideoThumb === "new"}
-                        className="border-gray-700"
-                      >
-                        {uploadingVideoThumb === "new" ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Upload className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
+                  <Input placeholder="URL do vídeo" value={newVideo.video_url} onChange={(e) => setNewVideo({ ...newVideo, video_url: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  <Input placeholder="URL thumbnail" value={newVideo.thumbnail_url} onChange={(e) => setNewVideo({ ...newVideo, thumbnail_url: e.target.value })} className="bg-gray-800 border-gray-700" />
                   <div className="flex gap-2">
-                    <Button onClick={createVideo} className="bg-green-600 hover:bg-green-700">
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar
-                    </Button>
-                    <Button onClick={() => setShowNewVideo(false)} variant="ghost">
-                      <X className="w-4 h-4 mr-2" />
-                      Cancelar
-                    </Button>
+                    <Button onClick={createVideo} className="bg-green-600 hover:bg-green-700"><Save className="w-4 h-4 mr-2" />Salvar</Button>
+                    <Button onClick={() => setShowNewVideo(false)} variant="ghost"><X className="w-4 h-4 mr-2" />Cancelar</Button>
                   </div>
                 </div>
               </div>
             )}
 
             {loadingVideos ? (
-              <div className="text-center py-10">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" />
-              </div>
+              <div className="text-center py-10"><Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" /></div>
             ) : (
               <div className="space-y-4">
                 {modules.map(module => {
                   const moduleVideos = videos.filter(v => v.module_id === module.id);
                   const isExpanded = expandedModules.includes(module.id);
-                  
                   return (
                     <div key={module.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-                      <button
-                        onClick={() => setExpandedModules(prev => 
-                          prev.includes(module.id) 
-                            ? prev.filter(id => id !== module.id)
-                            : [...prev, module.id]
-                        )}
-                        className="w-full flex items-center justify-between p-4 hover:bg-gray-800/50"
-                      >
+                      <button onClick={() => setExpandedModules(prev => prev.includes(module.id) ? prev.filter(id => id !== module.id) : [...prev, module.id])} className="w-full flex items-center justify-between p-4 hover:bg-gray-800/50">
                         <div className="flex items-center gap-3">
                           <BookOpen className="w-5 h-5 text-amber-400" />
                           <span className="font-bold">{module.title}</span>
@@ -1048,67 +743,31 @@ const MetodoSeguidorAdmin = () => {
                         </div>
                         {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                       </button>
-                      
                       {isExpanded && (
                         <div className="border-t border-gray-800 p-4 space-y-3">
                           {moduleVideos.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">Nenhum vídeo neste módulo</p>
+                            <p className="text-gray-500 text-center py-4">Nenhum vídeo</p>
                           ) : (
                             moduleVideos.map((video, index) => (
                               <div key={video.id} className="bg-gray-800/50 rounded-lg p-3">
                                 {editingVideo?.id === video.id ? (
                                   <div className="space-y-3">
-                                    <Input
-                                      value={editingVideo.title}
-                                      onChange={(e) => setEditingVideo({ ...editingVideo, title: e.target.value })}
-                                      className="bg-gray-700 border-gray-600"
-                                    />
-                                    <Textarea
-                                      value={editingVideo.description || ""}
-                                      onChange={(e) => setEditingVideo({ ...editingVideo, description: e.target.value })}
-                                      className="bg-gray-700 border-gray-600"
-                                    />
-                                    <Input
-                                      placeholder="URL do vídeo"
-                                      value={editingVideo.video_url}
-                                      onChange={(e) => setEditingVideo({ ...editingVideo, video_url: e.target.value })}
-                                      className="bg-gray-700 border-gray-600"
-                                    />
+                                    <Input value={editingVideo.title} onChange={(e) => setEditingVideo({ ...editingVideo, title: e.target.value })} className="bg-gray-700 border-gray-600" />
+                                    <Input value={editingVideo.video_url} onChange={(e) => setEditingVideo({ ...editingVideo, video_url: e.target.value })} className="bg-gray-700 border-gray-600" />
                                     <div className="flex gap-2">
-                                      <Button size="sm" onClick={() => updateVideo(editingVideo)} className="bg-green-600 hover:bg-green-700">
-                                        <Save className="w-4 h-4 mr-1" />
-                                        Salvar
-                                      </Button>
-                                      <Button size="sm" variant="ghost" onClick={() => setEditingVideo(null)}>
-                                        Cancelar
-                                      </Button>
+                                      <Button size="sm" onClick={() => updateVideo(editingVideo)} className="bg-green-600 hover:bg-green-700"><Save className="w-4 h-4 mr-1" />Salvar</Button>
+                                      <Button size="sm" variant="ghost" onClick={() => setEditingVideo(null)}>Cancelar</Button>
                                     </div>
                                   </div>
                                 ) : (
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                       <span className="text-gray-500 text-sm">#{index + 1}</span>
-                                      {video.thumbnail_url && (
-                                        <img 
-                                          src={video.thumbnail_url} 
-                                          alt={video.title}
-                                          className="w-16 h-10 object-cover rounded"
-                                        />
-                                      )}
-                                      <div>
-                                        <p className="font-medium">{video.title}</p>
-                                        {video.duration && (
-                                          <span className="text-xs text-gray-500">{video.duration}</span>
-                                        )}
-                                      </div>
+                                      <p className="font-medium">{video.title}</p>
                                     </div>
                                     <div className="flex gap-2">
-                                      <Button size="sm" variant="ghost" onClick={() => setEditingVideo(video)}>
-                                        <Edit className="w-4 h-4" />
-                                      </Button>
-                                      <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteVideo(video.id)}>
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
+                                      <Button size="sm" variant="ghost" onClick={() => setEditingVideo(video)}><Edit className="w-4 h-4" /></Button>
+                                      <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteVideo(video.id)}><Trash2 className="w-4 h-4" /></Button>
                                     </div>
                                   </div>
                                 )}
@@ -1125,74 +784,211 @@ const MetodoSeguidorAdmin = () => {
           </div>
         )}
 
+        {/* Banners Tab */}
+        {activeTab === "banners" && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Banners Slide (1920x1080)</h2>
+              <Button onClick={() => setShowNewBanner(true)} className="bg-amber-500 hover:bg-amber-600 text-black">
+                <Plus className="w-5 h-5 mr-2" />Novo Banner
+              </Button>
+            </div>
+
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
+              <p className="text-blue-400 text-sm"><Image className="w-4 h-4 inline mr-2" />Banners 1920x1080 (horizontal) para carrossel automático na área de membros</p>
+            </div>
+
+            {showNewBanner && (
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
+                <h3 className="font-bold mb-4">Criar Banner</h3>
+                <div className="space-y-3">
+                  <Input placeholder="Título (opcional)" value={newBanner.title} onChange={(e) => setNewBanner({ ...newBanner, title: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  <Textarea placeholder="Descrição (opcional)" value={newBanner.description} onChange={(e) => setNewBanner({ ...newBanner, description: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  <div className="flex gap-2">
+                    <Input placeholder="URL da imagem ou upload" value={newBanner.image_url} onChange={(e) => setNewBanner({ ...newBanner, image_url: e.target.value })} className="bg-gray-800 border-gray-700 flex-1" />
+                    <input ref={newBannerInputRef} type="file" accept="image/*" onChange={(e) => handleBannerUpload(e)} className="hidden" />
+                    <Button type="button" variant="outline" onClick={() => newBannerInputRef.current?.click()} disabled={uploadingBanner === "new"} className="border-gray-700">
+                      {uploadingBanner === "new" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                  {newBanner.image_url && <img src={newBanner.image_url} alt="Preview" className="h-32 w-auto object-cover rounded-lg" />}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input placeholder="URL do link (opcional)" value={newBanner.link_url} onChange={(e) => setNewBanner({ ...newBanner, link_url: e.target.value })} className="bg-gray-800 border-gray-700" />
+                    <Input placeholder="Texto do botão (opcional)" value={newBanner.link_text} onChange={(e) => setNewBanner({ ...newBanner, link_text: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={createBanner} className="bg-green-600 hover:bg-green-700"><Save className="w-4 h-4 mr-2" />Salvar</Button>
+                    <Button onClick={() => setShowNewBanner(false)} variant="ghost"><X className="w-4 h-4 mr-2" />Cancelar</Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {loadingBanners ? (
+              <div className="text-center py-10"><Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" /></div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4">
+                {banners.map((banner, index) => (
+                  <div key={banner.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    <div className="aspect-video bg-gray-800 relative group">
+                      {banner.image_url ? <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Image className="w-12 h-12 text-gray-600" /></div>}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <input ref={bannerInputRef} type="file" accept="image/*" onChange={(e) => handleBannerUpload(e, banner.id)} className="hidden" />
+                        <Button size="sm" onClick={() => bannerInputRef.current?.click()} disabled={uploadingBanner === banner.id} className="bg-amber-500 hover:bg-amber-600 text-black">
+                          {uploadingBanner === banner.id ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}Trocar
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      {editingBanner?.id === banner.id ? (
+                        <div className="space-y-3">
+                          <Input value={editingBanner.title || ""} onChange={(e) => setEditingBanner({ ...editingBanner, title: e.target.value })} className="bg-gray-800 border-gray-700" placeholder="Título" />
+                          <Input value={editingBanner.link_url || ""} onChange={(e) => setEditingBanner({ ...editingBanner, link_url: e.target.value })} className="bg-gray-800 border-gray-700" placeholder="URL do link" />
+                          <Input value={editingBanner.link_text || ""} onChange={(e) => setEditingBanner({ ...editingBanner, link_text: e.target.value })} className="bg-gray-800 border-gray-700" placeholder="Texto do botão" />
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => updateBanner(editingBanner)} className="bg-green-600 hover:bg-green-700"><Save className="w-4 h-4 mr-1" />Salvar</Button>
+                            <Button size="sm" onClick={() => setEditingBanner(null)} variant="ghost">Cancelar</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-amber-400 text-sm font-medium">Banner {index + 1}</span>
+                            <div className="flex gap-1">
+                              <Button size="sm" variant="ghost" onClick={() => setEditingBanner(banner)}><Edit className="w-4 h-4" /></Button>
+                              <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteBanner(banner.id)}><Trash2 className="w-4 h-4" /></Button>
+                            </div>
+                          </div>
+                          {banner.title && <h3 className="font-bold">{banner.title}</h3>}
+                          {banner.link_url && <p className="text-sm text-gray-400 truncate">{banner.link_url}</p>}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {banners.length === 0 && <div className="col-span-full text-center py-10 text-gray-500">Nenhum banner criado ainda</div>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Upsells Tab */}
+        {activeTab === "upsells" && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Upsells / Order Bumps</h2>
+              <Button onClick={() => setShowNewUpsell(true)} className="bg-amber-500 hover:bg-amber-600 text-black" disabled={modules.length === 0}>
+                <Plus className="w-5 h-5 mr-2" />Novo Upsell
+              </Button>
+            </div>
+
+            <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 mb-6">
+              <p className="text-purple-400 text-sm"><Sparkles className="w-4 h-4 inline mr-2" />Upsells aparecem dentro dos módulos após X dias de uso. Configure produtos premium para aumentar suas vendas!</p>
+            </div>
+
+            {showNewUpsell && modules.length > 0 && (
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
+                <h3 className="font-bold mb-4">Criar Upsell</h3>
+                <div className="space-y-3">
+                  <select value={newUpsell.module_id} onChange={(e) => setNewUpsell({ ...newUpsell, module_id: e.target.value })} className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2">
+                    <option value="">Selecione o módulo</option>
+                    {modules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+                  </select>
+                  <Input placeholder="Título do upsell" value={newUpsell.title} onChange={(e) => setNewUpsell({ ...newUpsell, title: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  <Textarea placeholder="Descrição" value={newUpsell.description} onChange={(e) => setNewUpsell({ ...newUpsell, description: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  <div className="flex gap-2">
+                    <Input placeholder="URL thumbnail" value={newUpsell.thumbnail_url} onChange={(e) => setNewUpsell({ ...newUpsell, thumbnail_url: e.target.value })} className="bg-gray-800 border-gray-700 flex-1" />
+                    <input ref={newUpsellInputRef} type="file" accept="image/*" onChange={(e) => handleUpsellThumbUpload(e)} className="hidden" />
+                    <Button type="button" variant="outline" onClick={() => newUpsellInputRef.current?.click()} disabled={uploadingUpsellThumb === "new"} className="border-gray-700">
+                      {uploadingUpsellThumb === "new" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input placeholder="Texto do botão" value={newUpsell.button_text} onChange={(e) => setNewUpsell({ ...newUpsell, button_text: e.target.value })} className="bg-gray-800 border-gray-700" />
+                    <Input placeholder="URL do botão" value={newUpsell.button_url} onChange={(e) => setNewUpsell({ ...newUpsell, button_url: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input placeholder="Preço (R$49)" value={newUpsell.price} onChange={(e) => setNewUpsell({ ...newUpsell, price: e.target.value })} className="bg-gray-800 border-gray-700" />
+                    <Input placeholder="Preço original" value={newUpsell.original_price} onChange={(e) => setNewUpsell({ ...newUpsell, original_price: e.target.value })} className="bg-gray-800 border-gray-700" />
+                    <Input type="number" placeholder="Dias para aparecer" value={newUpsell.show_after_days} onChange={(e) => setNewUpsell({ ...newUpsell, show_after_days: parseInt(e.target.value) || 2 })} className="bg-gray-800 border-gray-700" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={createUpsell} className="bg-green-600 hover:bg-green-700"><Save className="w-4 h-4 mr-2" />Salvar</Button>
+                    <Button onClick={() => setShowNewUpsell(false)} variant="ghost"><X className="w-4 h-4 mr-2" />Cancelar</Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {loadingUpsells ? (
+              <div className="text-center py-10"><Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" /></div>
+            ) : (
+              <div className="space-y-4">
+                {modules.map(module => {
+                  const moduleUpsells = upsells.filter(u => u.module_id === module.id);
+                  if (moduleUpsells.length === 0) return null;
+                  return (
+                    <div key={module.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                      <h3 className="font-bold text-amber-400 mb-4">{module.title}</h3>
+                      <div className="space-y-3">
+                        {moduleUpsells.map(upsell => (
+                          <div key={upsell.id} className="bg-gray-800/50 rounded-lg p-4 flex items-center gap-4">
+                            {upsell.thumbnail_url && <img src={upsell.thumbnail_url} alt={upsell.title} className="w-20 h-20 object-cover rounded-lg" />}
+                            <div className="flex-1">
+                              <h4 className="font-bold">{upsell.title}</h4>
+                              <p className="text-sm text-gray-400">{upsell.description}</p>
+                              <div className="flex items-center gap-2 mt-2">
+                                {upsell.original_price && <span className="text-gray-500 line-through text-sm">{upsell.original_price}</span>}
+                                {upsell.price && <span className="text-green-400 font-bold">{upsell.price}</span>}
+                                <span className="text-xs text-purple-400 bg-purple-500/20 px-2 py-0.5 rounded">Após {upsell.show_after_days} dias</span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="ghost" onClick={() => setEditingUpsell(upsell)}><Edit className="w-4 h-4" /></Button>
+                              <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteUpsell(upsell.id)}><Trash2 className="w-4 h-4" /></Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {upsells.length === 0 && <div className="text-center py-10 text-gray-500">Nenhum upsell criado ainda</div>}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Backup Tab */}
         {activeTab === "backup" && (
           <div className="max-w-2xl mx-auto">
             <h2 className="text-xl font-bold mb-6">Backup da Área de Membros</h2>
-            
-            <div className="space-y-6">
-              {/* Main Backup */}
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center">
-                    <Database className="w-6 h-6 text-amber-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">Criar Backup</h3>
-                    <p className="text-gray-400 text-sm">Salva todos os módulos, vídeos e usuários em nuvem</p>
-                  </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center">
+                  <Database className="w-6 h-6 text-amber-400" />
                 </div>
-
-                {lastBackup && (
-                  <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-gray-400">
-                      <Clock className="w-4 h-4 inline mr-2" />
-                      Último backup: {new Date(lastBackup).toLocaleString("pt-BR")}
-                    </p>
-                  </div>
-                )}
-
-                <Button
-                  onClick={createBackup}
-                  disabled={backupLoading}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-black"
-                >
-                  {backupLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Criando backup...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-5 h-5 mr-2" />
-                      Criar Backup Agora
-                    </>
-                  )}
-                </Button>
+                <div>
+                  <h3 className="font-bold text-lg">Criar Backup</h3>
+                  <p className="text-gray-400 text-sm">Salva todos os dados em nuvem separada</p>
+                </div>
               </div>
-
-              {/* Info */}
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-                <h4 className="font-bold text-blue-400 mb-2">Como funciona:</h4>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span>Os dados são salvos em um local separado na nuvem</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span>Inclui módulos, vídeos, usuários e pedidos</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span>Backups são armazenados separadamente do conteúdo principal</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span>Recomendamos fazer backup regularmente</span>
-                  </li>
-                </ul>
-              </div>
+              {lastBackup && (
+                <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-gray-400"><Clock className="w-4 h-4 inline mr-2" />Último backup: {new Date(lastBackup).toLocaleString("pt-BR")}</p>
+                </div>
+              )}
+              <Button onClick={createBackup} disabled={backupLoading} className="w-full bg-amber-500 hover:bg-amber-600 text-black">
+                {backupLoading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Criando...</> : <><Download className="w-5 h-5 mr-2" />Criar Backup Agora</>}
+              </Button>
+            </div>
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mt-6">
+              <h4 className="font-bold text-blue-400 mb-2">Inclui:</h4>
+              <ul className="space-y-1 text-sm text-gray-300">
+                <li><CheckCircle2 className="w-4 h-4 text-green-400 inline mr-2" />Módulos e vídeos</li>
+                <li><CheckCircle2 className="w-4 h-4 text-green-400 inline mr-2" />Banners e upsells</li>
+                <li><CheckCircle2 className="w-4 h-4 text-green-400 inline mr-2" />Usuários e pedidos</li>
+              </ul>
             </div>
           </div>
         )}
