@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,11 +26,14 @@ import {
   Link as LinkIcon,
   ChevronDown,
   ChevronUp,
-  GripVertical
+  GripVertical,
+  Image,
+  Database,
+  Download
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 
-type Tab = "users" | "modules" | "videos";
+type Tab = "users" | "modules" | "videos" | "backup";
 
 const MetodoSeguidorAdmin = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -52,6 +55,7 @@ const MetodoSeguidorAdmin = () => {
   const [editingModule, setEditingModule] = useState<any>(null);
   const [newModule, setNewModule] = useState({ title: "", description: "", thumbnail_url: "" });
   const [showNewModule, setShowNewModule] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState<string | null>(null);
   
   // Videos state
   const [videos, setVideos] = useState<any[]>([]);
@@ -62,13 +66,23 @@ const MetodoSeguidorAdmin = () => {
   });
   const [showNewVideo, setShowNewVideo] = useState(false);
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
+  const [uploadingVideoThumb, setUploadingVideoThumb] = useState<string | null>(null);
+  
+  // Backup state
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
+  
+  // File input refs
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const newCoverInputRef = useRef<HTMLInputElement>(null);
+  const videoThumbInputRef = useRef<HTMLInputElement>(null);
+  const newVideoThumbInputRef = useRef<HTMLInputElement>(null);
 
   // Auto verification interval
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
     if (isLoggedIn) {
-      // Verify pending orders every 30 seconds
       interval = setInterval(() => {
         verifyPendingOrders();
       }, 30000);
@@ -127,19 +141,18 @@ const MetodoSeguidorAdmin = () => {
     setIsLoggedIn(false);
   };
 
-  // Check saved session
   useEffect(() => {
     const saved = localStorage.getItem("metodo_seguidor_admin");
     if (saved) setIsLoggedIn(true);
   }, []);
 
-  // Load data when tab changes
   useEffect(() => {
     if (!isLoggedIn) return;
     
     if (activeTab === "users") loadUsers();
     if (activeTab === "modules") loadModules();
     if (activeTab === "videos") { loadModules(); loadVideos(); }
+    if (activeTab === "backup") checkLastBackup();
   }, [activeTab, isLoggedIn]);
 
   const loadUsers = async () => {
@@ -188,6 +201,170 @@ const MetodoSeguidorAdmin = () => {
       console.error("Error loading videos:", error);
     } finally {
       setLoadingVideos(false);
+    }
+  };
+
+  // Upload cover image
+  const uploadCover = async (file: File, type: "module" | "video", id?: string) => {
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${type}-${id || "new"}-${Date.now()}.${ext}`;
+      const filePath = `covers/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from("metodo-seguidor-content")
+        .upload(filePath, file, { 
+          cacheControl: "3600",
+          upsert: true 
+        });
+
+      if (error) throw error;
+
+      const { data: publicData } = supabase.storage
+        .from("metodo-seguidor-content")
+        .getPublicUrl(filePath);
+
+      return publicData.publicUrl;
+    } catch (error) {
+      console.error("Error uploading cover:", error);
+      toast.error("Erro ao fazer upload da capa");
+      return null;
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>, moduleId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingCover(moduleId);
+    const url = await uploadCover(file, "module", moduleId);
+    
+    if (url) {
+      if (editingModule?.id === moduleId) {
+        setEditingModule({ ...editingModule, thumbnail_url: url });
+      } else {
+        // Update directly in DB
+        await supabase
+          .from("metodo_seguidor_modules")
+          .update({ thumbnail_url: url })
+          .eq("id", moduleId);
+        toast.success("Capa atualizada!");
+        loadModules();
+      }
+    }
+    setUploadingCover(null);
+  };
+
+  const handleNewModuleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingCover("new");
+    const url = await uploadCover(file, "module");
+    if (url) {
+      setNewModule({ ...newModule, thumbnail_url: url });
+    }
+    setUploadingCover(null);
+  };
+
+  const handleVideoThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>, videoId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingVideoThumb(videoId);
+    const url = await uploadCover(file, "video", videoId);
+    
+    if (url) {
+      if (editingVideo?.id === videoId) {
+        setEditingVideo({ ...editingVideo, thumbnail_url: url });
+      } else {
+        await supabase
+          .from("metodo_seguidor_videos")
+          .update({ thumbnail_url: url })
+          .eq("id", videoId);
+        toast.success("Thumbnail atualizada!");
+        loadVideos();
+      }
+    }
+    setUploadingVideoThumb(null);
+  };
+
+  const handleNewVideoThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingVideoThumb("new");
+    const url = await uploadCover(file, "video");
+    if (url) {
+      setNewVideo({ ...newVideo, thumbnail_url: url });
+    }
+    setUploadingVideoThumb(null);
+  };
+
+  // Backup functions
+  const checkLastBackup = async () => {
+    try {
+      const { data } = await supabase.storage
+        .from("metodo-seguidor-backup")
+        .list("", { limit: 1, sortBy: { column: "created_at", order: "desc" } });
+      
+      if (data && data.length > 0) {
+        setLastBackup(data[0].created_at);
+      }
+    } catch (error) {
+      console.error("Error checking backup:", error);
+    }
+  };
+
+  const createBackup = async () => {
+    setBackupLoading(true);
+    try {
+      // Get all data
+      const { data: modulesData } = await supabase
+        .from("metodo_seguidor_modules")
+        .select("*")
+        .order("order_index");
+
+      const { data: videosData } = await supabase
+        .from("metodo_seguidor_videos")
+        .select("*")
+        .order("order_index");
+
+      const { data: usersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
+        body: { action: "get-users" }
+      });
+
+      const { data: ordersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
+        body: { action: "get-orders" }
+      });
+
+      const backupData = {
+        timestamp: new Date().toISOString(),
+        modules: modulesData || [],
+        videos: videosData || [],
+        users: usersData?.users || [],
+        orders: ordersData?.orders || []
+      };
+
+      const fileName = `backup-${new Date().toISOString().split("T")[0]}-${Date.now()}.json`;
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+
+      const { error } = await supabase.storage
+        .from("metodo-seguidor-backup")
+        .upload(fileName, blob, { 
+          cacheControl: "3600",
+          upsert: false 
+        });
+
+      if (error) throw error;
+
+      toast.success("Backup criado com sucesso!");
+      checkLastBackup();
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      toast.error("Erro ao criar backup");
+    } finally {
+      setBackupLoading(false);
     }
   };
 
@@ -381,17 +558,18 @@ const MetodoSeguidorAdmin = () => {
       </header>
 
       {/* Tabs */}
-      <div className="border-b border-gray-800 bg-black/50">
+      <div className="border-b border-gray-800 bg-black/50 overflow-x-auto">
         <div className="max-w-7xl mx-auto px-4 flex gap-1">
           {[
             { id: "users", label: "Usuários", icon: Users },
             { id: "modules", label: "Módulos", icon: BookOpen },
-            { id: "videos", label: "Vídeos", icon: Video }
+            { id: "videos", label: "Vídeos", icon: Video },
+            { id: "backup", label: "Backup", icon: Database }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as Tab)}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.id 
                   ? "border-amber-500 text-amber-400" 
                   : "border-transparent text-gray-400 hover:text-white"
@@ -538,6 +716,13 @@ const MetodoSeguidorAdmin = () => {
               </Button>
             </div>
 
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
+              <p className="text-blue-400 text-sm">
+                <Image className="w-4 h-4 inline mr-2" />
+                Capas no formato 1080x1920 (vertical) estilo Netflix. Você pode fazer upload diretamente ou colar uma URL.
+              </p>
+            </div>
+
             {showNewModule && (
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
                 <h3 className="font-bold mb-4">Criar Módulo</h3>
@@ -554,12 +739,49 @@ const MetodoSeguidorAdmin = () => {
                     onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
                     className="bg-gray-800 border-gray-700"
                   />
-                  <Input
-                    placeholder="URL da thumbnail (opcional)"
-                    value={newModule.thumbnail_url}
-                    onChange={(e) => setNewModule({ ...newModule, thumbnail_url: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                  />
+                  
+                  {/* Cover Upload */}
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Capa (1080x1920)</label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="URL da capa ou faça upload"
+                        value={newModule.thumbnail_url}
+                        onChange={(e) => setNewModule({ ...newModule, thumbnail_url: e.target.value })}
+                        className="bg-gray-800 border-gray-700 flex-1"
+                      />
+                      <input
+                        ref={newCoverInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleNewModuleCoverUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => newCoverInputRef.current?.click()}
+                        disabled={uploadingCover === "new"}
+                        className="border-gray-700"
+                      >
+                        {uploadingCover === "new" ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                    {newModule.thumbnail_url && (
+                      <div className="mt-2">
+                        <img 
+                          src={newModule.thumbnail_url} 
+                          alt="Preview" 
+                          className="h-32 w-auto object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex gap-2">
                     <Button onClick={createModule} className="bg-green-600 hover:bg-green-700">
                       <Save className="w-4 h-4 mr-2" />
@@ -579,63 +801,100 @@ const MetodoSeguidorAdmin = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" />
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {modules.map((module, index) => (
-                  <div key={module.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                    {editingModule?.id === module.id ? (
-                      <div className="space-y-3">
-                        <Input
-                          value={editingModule.title}
-                          onChange={(e) => setEditingModule({ ...editingModule, title: e.target.value })}
-                          className="bg-gray-800 border-gray-700"
+                  <div key={module.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    {/* Cover Preview */}
+                    <div className="aspect-[9/16] max-h-64 bg-gray-800 relative group">
+                      {module.thumbnail_url ? (
+                        <img 
+                          src={module.thumbnail_url} 
+                          alt={module.title}
+                          className="w-full h-full object-cover"
                         />
-                        <Textarea
-                          value={editingModule.description || ""}
-                          onChange={(e) => setEditingModule({ ...editingModule, description: e.target.value })}
-                          className="bg-gray-800 border-gray-700"
-                        />
-                        <Input
-                          placeholder="URL da thumbnail"
-                          value={editingModule.thumbnail_url || ""}
-                          onChange={(e) => setEditingModule({ ...editingModule, thumbnail_url: e.target.value })}
-                          className="bg-gray-800 border-gray-700"
-                        />
-                        <div className="flex gap-2">
-                          <Button onClick={() => updateModule(editingModule)} className="bg-green-600 hover:bg-green-700">
-                            <Save className="w-4 h-4 mr-2" />
-                            Salvar
-                          </Button>
-                          <Button onClick={() => setEditingModule(null)} variant="ghost">
-                            <X className="w-4 h-4 mr-2" />
-                            Cancelar
-                          </Button>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Image className="w-12 h-12 text-gray-600" />
                         </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <input
+                          ref={coverInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleCoverUpload(e, module.id)}
+                          className="hidden"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => coverInputRef.current?.click()}
+                          disabled={uploadingCover === module.id}
+                          className="bg-amber-500 hover:bg-amber-600 text-black"
+                        >
+                          {uploadingCover === module.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          ) : (
+                            <Upload className="w-4 h-4 mr-2" />
+                          )}
+                          Upload Capa
+                        </Button>
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <span className="text-amber-400 font-bold">#{index + 1}</span>
-                          <div>
-                            <h3 className="font-bold">{module.title}</h3>
-                            {module.description && (
-                              <p className="text-sm text-gray-400">{module.description}</p>
-                            )}
+                    </div>
+
+                    {/* Module Info */}
+                    <div className="p-4">
+                      {editingModule?.id === module.id ? (
+                        <div className="space-y-3">
+                          <Input
+                            value={editingModule.title}
+                            onChange={(e) => setEditingModule({ ...editingModule, title: e.target.value })}
+                            className="bg-gray-800 border-gray-700"
+                          />
+                          <Textarea
+                            value={editingModule.description || ""}
+                            onChange={(e) => setEditingModule({ ...editingModule, description: e.target.value })}
+                            className="bg-gray-800 border-gray-700"
+                          />
+                          <Input
+                            placeholder="URL da capa"
+                            value={editingModule.thumbnail_url || ""}
+                            onChange={(e) => setEditingModule({ ...editingModule, thumbnail_url: e.target.value })}
+                            className="bg-gray-800 border-gray-700"
+                          />
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => updateModule(editingModule)} className="bg-green-600 hover:bg-green-700">
+                              <Save className="w-4 h-4 mr-1" />
+                              Salvar
+                            </Button>
+                            <Button size="sm" onClick={() => setEditingModule(null)} variant="ghost">
+                              Cancelar
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="ghost" onClick={() => setEditingModule(module)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteModule(module.id)}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-amber-400 text-sm font-medium">Módulo {index + 1}</span>
+                            <div className="flex gap-1">
+                              <Button size="sm" variant="ghost" onClick={() => setEditingModule(module)}>
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteModule(module.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <h3 className="font-bold text-lg">{module.title}</h3>
+                          {module.description && (
+                            <p className="text-sm text-gray-400 mt-1 line-clamp-2">{module.description}</p>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
                 {modules.length === 0 && (
-                  <div className="text-center py-10 text-gray-500">
+                  <div className="col-span-full text-center py-10 text-gray-500">
                     Nenhum módulo criado ainda
                   </div>
                 )}
@@ -714,12 +973,40 @@ const MetodoSeguidorAdmin = () => {
                     onChange={(e) => setNewVideo({ ...newVideo, video_url: e.target.value })}
                     className="bg-gray-800 border-gray-700"
                   />
-                  <Input
-                    placeholder="URL da thumbnail (opcional)"
-                    value={newVideo.thumbnail_url}
-                    onChange={(e) => setNewVideo({ ...newVideo, thumbnail_url: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                  />
+                  
+                  {/* Thumbnail Upload */}
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Thumbnail</label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="URL da thumbnail ou faça upload"
+                        value={newVideo.thumbnail_url}
+                        onChange={(e) => setNewVideo({ ...newVideo, thumbnail_url: e.target.value })}
+                        className="bg-gray-800 border-gray-700 flex-1"
+                      />
+                      <input
+                        ref={newVideoThumbInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleNewVideoThumbUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => newVideoThumbInputRef.current?.click()}
+                        disabled={uploadingVideoThumb === "new"}
+                        className="border-gray-700"
+                      >
+                        {uploadingVideoThumb === "new" ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2">
                     <Button onClick={createVideo} className="bg-green-600 hover:bg-green-700">
                       <Save className="w-4 h-4 mr-2" />
@@ -801,6 +1088,13 @@ const MetodoSeguidorAdmin = () => {
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                       <span className="text-gray-500 text-sm">#{index + 1}</span>
+                                      {video.thumbnail_url && (
+                                        <img 
+                                          src={video.thumbnail_url} 
+                                          alt={video.title}
+                                          className="w-16 h-10 object-cover rounded"
+                                        />
+                                      )}
                                       <div>
                                         <p className="font-medium">{video.title}</p>
                                         {video.duration && (
@@ -828,6 +1122,78 @@ const MetodoSeguidorAdmin = () => {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Backup Tab */}
+        {activeTab === "backup" && (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-xl font-bold mb-6">Backup da Área de Membros</h2>
+            
+            <div className="space-y-6">
+              {/* Main Backup */}
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <Database className="w-6 h-6 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Criar Backup</h3>
+                    <p className="text-gray-400 text-sm">Salva todos os módulos, vídeos e usuários em nuvem</p>
+                  </div>
+                </div>
+
+                {lastBackup && (
+                  <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-gray-400">
+                      <Clock className="w-4 h-4 inline mr-2" />
+                      Último backup: {new Date(lastBackup).toLocaleString("pt-BR")}
+                    </p>
+                  </div>
+                )}
+
+                <Button
+                  onClick={createBackup}
+                  disabled={backupLoading}
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-black"
+                >
+                  {backupLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Criando backup...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5 mr-2" />
+                      Criar Backup Agora
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Info */}
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                <h4 className="font-bold text-blue-400 mb-2">Como funciona:</h4>
+                <ul className="space-y-2 text-sm text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span>Os dados são salvos em um local separado na nuvem</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span>Inclui módulos, vídeos, usuários e pedidos</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span>Backups são armazenados separadamente do conteúdo principal</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span>Recomendamos fazer backup regularmente</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         )}
       </div>
