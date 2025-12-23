@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 
-const PRICE = 29.90;
+const PRICE = 33.00;
 const ORIGINAL_PRICE = 197.00;
 
 const ComprouSeguidores = () => {
@@ -181,14 +181,10 @@ const ComprouSeguidores = () => {
         
         <div className="relative max-w-5xl mx-auto text-center">
           {/* Price Badge - Hero */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600/30 to-green-500/20 border border-green-500/50 rounded-full px-6 py-3 mb-6">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600/30 to-green-500/20 border border-green-500/50 rounded-full px-6 py-3 mb-8">
             <Sparkles className="w-5 h-5 text-green-400" />
-            <span className="text-green-400 font-bold text-lg">Corrija seu alcance por apenas <span className="text-2xl">R$29,90</span> - Pagamento único!</span>
+            <span className="text-green-400 font-bold text-lg">Corrija agora por apenas <span className="text-2xl">R$33</span> - Pagamento único!</span>
           </div>
-
-          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-            Pague uma vez e corrija seu perfil de uma vez por todas.
-          </p>
 
           {/* Warning Badge */}
           <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-6 py-2 mb-8 animate-pulse">
