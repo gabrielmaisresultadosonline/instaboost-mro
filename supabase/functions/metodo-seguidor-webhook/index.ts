@@ -121,6 +121,54 @@ function extractEmailFromDescription(description: string): string | null {
   return null;
 }
 
+const INFINITEPAY_HANDLE = "paguemro";
+
+async function checkInfinitePayPaymentCheck(args: {
+  order_nsu?: string;
+  transaction_nsu?: string;
+  slug?: string;
+  handle?: string;
+}): Promise<boolean> {
+  try {
+    const handle = args.handle || INFINITEPAY_HANDLE;
+    const order_nsu = args.order_nsu;
+    const transaction_nsu = args.transaction_nsu;
+    const slug = args.slug;
+
+    if (!order_nsu || !transaction_nsu || !slug) {
+      log("Payment check skipped (missing params)", {
+        order_nsu: !!order_nsu,
+        transaction_nsu: !!transaction_nsu,
+        slug: !!slug,
+      });
+      return false;
+    }
+
+    log("Calling InfinitePay payment_check", { handle, order_nsu });
+
+    const response = await fetch(
+      "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ handle, order_nsu, transaction_nsu, slug }),
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+    log("InfinitePay payment_check response", { status: response.status, data });
+
+    if (!response.ok) return false;
+    return data?.paid === true;
+  } catch (error) {
+    log("Error checking InfinitePay payment_check", error);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -146,17 +194,19 @@ serve(async (req) => {
     // Extract payment info from webhook
     const orderNsu = body.order_nsu || body.orderNsu || body.nsu || body.metadata?.order_nsu;
     const paymentStatus = body.status || body.payment_status;
+    const invoiceSlug = body.invoice_slug || body.slug || body.invoiceSlug;
+    const transactionNsu = body.transaction_nsu || body.transactionNsu;
 
-    // InfinitePay envia webhook quando o pagamento é aprovado; alguns payloads não trazem "status"
-    const isPaid =
+    // Candidate: InfinitePay envia webhook quando o pagamento é aprovado; alguns payloads não trazem "status"
+    const paidCandidate =
       body.paid === true ||
       paymentStatus === "paid" ||
       paymentStatus === "approved" ||
-      (!!body.invoice_slug && !!body.transaction_nsu);
+      (!!invoiceSlug && !!transactionNsu);
 
     // Try to get email from items/description
     let emailFromDescription: string | null = null;
-    
+
     if (body.items && Array.isArray(body.items)) {
       for (const item of body.items) {
         const desc = item.description || item.name;
@@ -178,18 +228,34 @@ serve(async (req) => {
     // Also check customer email
     const customerEmail = body.customer?.email || body.email;
 
-    log("Payment info extracted", { 
-      orderNsu, 
-      paymentStatus, 
-      isPaid, 
-      emailFromDescription, 
-      customerEmail 
+    log("Payment info extracted", {
+      orderNsu,
+      paymentStatus,
+      invoiceSlug,
+      transactionNsu: !!transactionNsu,
+      paidCandidate,
+      emailFromDescription,
+      customerEmail,
     });
 
-    if (!isPaid) {
-      log("Payment not confirmed", { status: paymentStatus });
-      return new Response(JSON.stringify({ received: true }), { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    if (!paidCandidate) {
+      log("Payment not approved (candidate=false)", { status: paymentStatus });
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Confirmar oficialmente pela API pública (evita falsos positivos em endpoint público)
+    const paidConfirmed = await checkInfinitePayPaymentCheck({
+      order_nsu: orderNsu,
+      transaction_nsu: transactionNsu,
+      slug: invoiceSlug,
+    });
+
+    if (!paidConfirmed) {
+      log("Payment not confirmed by payment_check", { orderNsu, invoiceSlug, hasTransaction: !!transactionNsu });
+      return new Response(JSON.stringify({ received: true, confirmed: false }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -240,19 +306,18 @@ serve(async (req) => {
     }
 
     if (order.status === "paid") {
-      log("Order already paid", { order_id: order.id });
-      return new Response(JSON.stringify({ received: true, already_paid: true }), { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      });
+      log("Order already paid - ensuring user access/email", { order_id: order.id });
+      // continue to ensure user is active + email sent (idempotent)
     }
 
-    // Update order status
+    // Update order status (idempotent)
+    const nowIso = new Date().toISOString();
     const { error: updateOrderError } = await supabase
       .from("metodo_seguidor_orders")
       .update({
         status: "paid",
-        paid_at: new Date().toISOString(),
-        verified_at: new Date().toISOString()
+        paid_at: order.paid_at || nowIso,
+        verified_at: nowIso,
       })
       .eq("id", order.id);
 
