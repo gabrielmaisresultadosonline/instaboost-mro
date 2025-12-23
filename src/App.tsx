@@ -30,6 +30,9 @@ import MelhorarPublico from "./pages/MelhorarPublico";
 import Pagamento from "./pages/Pagamento";
 import PagamentoObrigado from "./pages/PagamentoObrigado";
 import PagamentoAdmin from "./pages/PagamentoAdmin";
+import ComprouSeguidores from "./pages/ComprouSeguidores";
+import MetodoSeguidorMembro from "./pages/MetodoSeguidorMembro";
+import MetodoSeguidorAdmin from "./pages/MetodoSeguidorAdmin";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +70,9 @@ const App = () => (
           <Route path="/pagamento" element={<Pagamento />} />
           <Route path="/pagamentoobrigado" element={<PagamentoObrigado />} />
           <Route path="/pagamentoadmin" element={<PagamentoAdmin />} />
+          <Route path="/comprouseguidores" element={<ComprouSeguidores />} />
+          <Route path="/metodoseguidormembro" element={<MetodoSeguidorMembro />} />
+          <Route path="/metodoseguidoradmin" element={<MetodoSeguidorAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

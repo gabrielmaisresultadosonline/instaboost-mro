@@ -119,6 +119,229 @@ export type Database = {
         }
         Relationships: []
       }
+      metodo_seguidor_admins: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          password: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          password: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          password?: string
+        }
+        Relationships: []
+      }
+      metodo_seguidor_modules: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          order_index: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      metodo_seguidor_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          instagram_username: string | null
+          nsu_order: string
+          paid_at: string | null
+          phone: string | null
+          status: string | null
+          updated_at: string
+          user_id: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          email: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          instagram_username?: string | null
+          nsu_order: string
+          paid_at?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          instagram_username?: string | null
+          nsu_order?: string
+          paid_at?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metodo_seguidor_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "metodo_seguidor_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metodo_seguidor_users: {
+        Row: {
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          email_sent_at: string | null
+          id: string
+          instagram_username: string | null
+          last_access: string | null
+          password: string
+          payment_id: string | null
+          phone: string | null
+          subscription_end: string | null
+          subscription_start: string | null
+          subscription_status: string | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          id?: string
+          instagram_username?: string | null
+          last_access?: string | null
+          password: string
+          payment_id?: string | null
+          phone?: string | null
+          subscription_end?: string | null
+          subscription_start?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          id?: string
+          instagram_username?: string | null
+          last_access?: string | null
+          password?: string
+          payment_id?: string | null
+          phone?: string | null
+          subscription_end?: string | null
+          subscription_start?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      metodo_seguidor_videos: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: string | null
+          id: string
+          is_active: boolean | null
+          module_id: string | null
+          order_index: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_type: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id?: string | null
+          order_index?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_type?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id?: string | null
+          order_index?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_type?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metodo_seguidor_videos_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "metodo_seguidor_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mro_orders: {
         Row: {
           amount: number
