@@ -100,75 +100,45 @@ async function sendAccessEmail(
   }
 }
 
-// Check InfiniPay webhook/transactions for payment with MTSEG_email format
-async function checkInfiniPayPayment(email: string): Promise<boolean> {
+const INFINITEPAY_HANDLE = "paguemro";
+
+// Confirma pagamento pela API oficial (payment_check) usando parâmetros do redirect/webhook
+async function checkInfinitePayPaymentCheck(args: {
+  order_nsu?: string;
+  transaction_nsu?: string;
+  slug?: string;
+  handle?: string;
+}): Promise<boolean> {
   try {
-    // The product description is MTSEG_email
-    const searchKey = `MTSEG_${email}`;
-    log("Searching InfiniPay for payment", { searchKey });
+    const handle = args.handle || INFINITEPAY_HANDLE;
+    const order_nsu = args.order_nsu;
+    const transaction_nsu = args.transaction_nsu;
+    const slug = args.slug;
 
-    // Try to find payment in InfiniPay transactions
-    // Note: InfiniPay doesn't have a public API for searching by description
-    // The webhook should be the primary method of payment confirmation
-    // This is a fallback check
+    if (!order_nsu || !transaction_nsu || !slug) {
+      log("Payment check skipped (missing params)", { order_nsu: !!order_nsu, transaction_nsu: !!transaction_nsu, slug: !!slug });
+      return false;
+    }
 
-    // Try the payment check endpoint with the search key
+    log("Calling InfinitePay payment_check", { handle, order_nsu });
+
     const response = await fetch(
-      `https://api.infinitepay.io/invoices/public/search?q=${encodeURIComponent(searchKey)}`,
+      "https://api.infinitepay.io/invoices/public/checkout/payment_check",
       {
-        method: "GET",
-        headers: { "Accept": "application/json" }
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ handle, order_nsu, transaction_nsu, slug }),
       }
     );
 
-    if (response.ok) {
-      const data = await response.json();
-      log("InfiniPay search response", data);
+    const data = await response.json().catch(() => ({}));
+    log("InfinitePay payment_check response", { status: response.status, data });
 
-      if (data.items && data.items.length > 0) {
-        const paidItem = data.items.find((item: any) => 
-          item.paid === true || 
-          item.status === "paid" || 
-          item.status === "approved" ||
-          item.payment_status === "paid"
-        );
-        
-        if (paidItem) {
-          log("Found paid item", paidItem);
-          return true;
-        }
-      }
-    }
+    if (!response.ok) return false;
 
-    // Also try searching with lowercase
-    const response2 = await fetch(
-      `https://api.infinitepay.io/invoices/public/search?q=${encodeURIComponent(email)}`,
-      {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      }
-    );
-
-    if (response2.ok) {
-      const data = await response2.json();
-      log("InfiniPay email search response", data);
-
-      if (data.items && data.items.length > 0) {
-        const paidItem = data.items.find((item: any) => 
-          (item.paid === true || item.status === "paid") &&
-          item.description?.includes("MTSEG")
-        );
-        
-        if (paidItem) {
-          log("Found paid item by email", paidItem);
-          return true;
-        }
-      }
-    }
-
-    return false;
+    return data?.paid === true;
   } catch (error) {
-    log("Error checking InfiniPay", error);
+    log("Error checking InfinitePay payment_check", error);
     return false;
   }
 }
@@ -191,9 +161,10 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { nsu_order, email, order_id } = body;
+    const { nsu_order, order_nsu, email, order_id, transaction_nsu, slug } = body;
+    const effectiveOrderNsu = order_nsu || nsu_order;
 
-    log("Verifying payment", { nsu_order, email, order_id });
+    log("Verifying payment", { nsu_order: effectiveOrderNsu, email, order_id });
 
     // Find order
     let order: any = null;
@@ -205,11 +176,11 @@ serve(async (req) => {
         .eq("id", order_id)
         .maybeSingle();
       order = data;
-    } else if (nsu_order) {
+    } else if (effectiveOrderNsu) {
       const { data } = await supabase
         .from("metodo_seguidor_orders")
         .select("*")
-        .eq("nsu_order", nsu_order)
+        .eq("nsu_order", effectiveOrderNsu)
         .maybeSingle();
       order = data;
     } else if (email) {
@@ -281,11 +252,15 @@ serve(async (req) => {
       );
     }
 
-    // Check InfiniPay for payment with MTSEG_email format
-    const isPaid = await checkInfiniPayPayment(order.email);
+    // Confirmação oficial: quando o cliente volta do checkout, vem order_nsu + slug + transaction_nsu
+    const paidByRedirectCheck = await checkInfinitePayPaymentCheck({
+      order_nsu: effectiveOrderNsu || order.nsu_order,
+      transaction_nsu,
+      slug,
+    });
 
-    if (isPaid) {
-      log("Payment confirmed via InfiniPay check", { order_id: order.id });
+    if (paidByRedirectCheck) {
+      log("Payment confirmed via InfinitePay payment_check", { order_id: order.id });
       return await processPayment(supabase, order);
     }
 

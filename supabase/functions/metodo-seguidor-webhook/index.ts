@@ -144,9 +144,15 @@ serve(async (req) => {
     log("Webhook body", body);
 
     // Extract payment info from webhook
-    const orderNsu = body.order_nsu || body.nsu || body.metadata?.order_nsu;
+    const orderNsu = body.order_nsu || body.orderNsu || body.nsu || body.metadata?.order_nsu;
     const paymentStatus = body.status || body.payment_status;
-    const isPaid = paymentStatus === "paid" || paymentStatus === "approved" || body.paid === true;
+
+    // InfinitePay envia webhook quando o pagamento é aprovado; alguns payloads não trazem "status"
+    const isPaid =
+      body.paid === true ||
+      paymentStatus === "paid" ||
+      paymentStatus === "approved" ||
+      (!!body.invoice_slug && !!body.transaction_nsu);
 
     // Try to get email from items/description
     let emailFromDescription: string | null = null;

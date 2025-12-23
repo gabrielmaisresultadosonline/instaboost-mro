@@ -40,6 +40,38 @@ const MetodoSeguidorMembro = () => {
   const [daysSinceStart, setDaysSinceStart] = useState(0);
 
   useEffect(() => {
+    // Se o cliente voltou do checkout, confirmar pagamento usando os parâmetros do redirect_url
+    const params = new URLSearchParams(window.location.search);
+    const order_nsu = params.get("order_nsu") || params.get("orderNsu") || undefined;
+    const slug = params.get("slug") || params.get("invoice_slug") || params.get("invoiceSlug") || undefined;
+    const transaction_nsu = params.get("transaction_nsu") || params.get("transactionNsu") || undefined;
+
+    if (!order_nsu || !slug || !transaction_nsu) return;
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("metodo-seguidor-verify-payment", {
+          body: { order_nsu, slug, transaction_nsu },
+        });
+
+        if (error) throw error;
+
+        if (data?.paid) {
+          toast.success("Pagamento confirmado! Seu acesso foi liberado.");
+        } else {
+          toast("Pagamento ainda processando. Se já pagou, aguarde alguns instantes e atualize a página.");
+        }
+      } catch (e) {
+        console.error("Payment confirmation error:", e);
+        toast.error("Não conseguimos confirmar o pagamento automaticamente. Tente atualizar em alguns instantes.");
+      } finally {
+        // Limpa parâmetros da URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     const checkSession = async () => {
       const savedSession = localStorage.getItem("metodo_seguidor_session");
       if (savedSession) {
