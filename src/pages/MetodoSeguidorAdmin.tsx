@@ -112,22 +112,27 @@ const MetodoSeguidorAdmin = () => {
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isLoggedIn) {
-      interval = setInterval(() => verifyPendingOrders(), 30000);
+      interval = setInterval(() => verifyPendingOrders(), 10000);
     }
-    return () => { if (interval) clearInterval(interval); };
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isLoggedIn, orders]);
 
   const verifyPendingOrders = async () => {
-    const pendingOrders = orders.filter(o => o.status === "pending");
-    for (const order of pendingOrders) {
+    const ordersToCheck = orders.filter(
+      (o) => o.status === "pending" || (o.status === "paid" && !o.verified_at)
+    );
+    for (const order of ordersToCheck) {
       try {
-        // Verify using both nsu_order and email (mroseg_email format)
-        await supabase.functions.invoke("metodo-seguidor-verify-payment", { 
-          body: { nsu_order: order.nsu_order, email: order.email } 
+        await supabase.functions.invoke("metodo-seguidor-verify-payment", {
+          body: { order_id: order.id, nsu_order: order.nsu_order, email: order.email },
         });
-      } catch (e) { console.error("Error verifying order:", e); }
+      } catch (e) {
+        console.error("Error verifying order:", e);
+      }
     }
-    if (pendingOrders.length > 0) loadUsers();
+    if (ordersToCheck.length > 0) loadUsers();
   };
 
   const handleActivateUser = async (userId: string) => {

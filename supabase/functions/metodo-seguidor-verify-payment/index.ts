@@ -203,11 +203,11 @@ serve(async (req) => {
     }
 
     // Check if already paid
+    // IMPORTANT: still ensure user access + email, because older flows could mark order as paid
+    // without processing user activation/email.
     if (order.status === "paid") {
-      return new Response(
-        JSON.stringify({ success: true, paid: true, already_processed: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      log("Order already marked as paid - ensuring access", { order_id: order.id });
+      return await processPayment(supabase, order);
     }
 
     // Check if expired (15 minutes)
@@ -299,13 +299,15 @@ serve(async (req) => {
 async function processPayment(supabase: any, order: any) {
   log("Processing payment", { order_id: order.id });
 
-  // Update order
+  const nowIso = new Date().toISOString();
+
+  // Update order (idempotent)
   await supabase
     .from("metodo_seguidor_orders")
     .update({
       status: "paid",
-      paid_at: new Date().toISOString(),
-      verified_at: new Date().toISOString()
+      paid_at: order.paid_at || nowIso,
+      verified_at: nowIso,
     })
     .eq("id", order.id);
 
@@ -322,7 +324,7 @@ async function processPayment(supabase: any, order: any) {
         .from("metodo_seguidor_users")
         .update({
           subscription_status: "active",
-          subscription_start: new Date().toISOString()
+          subscription_start: user.subscription_start || nowIso,
         })
         .eq("id", user.id);
 
@@ -335,7 +337,7 @@ async function processPayment(supabase: any, order: any) {
             .from("metodo_seguidor_users")
             .update({
               email_sent: true,
-              email_sent_at: new Date().toISOString()
+              email_sent_at: nowIso,
             })
             .eq("id", user.id);
         }
