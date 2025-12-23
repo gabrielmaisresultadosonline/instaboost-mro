@@ -70,7 +70,8 @@ const MetodoSeguidorAdmin = () => {
   const [loadingVideos, setLoadingVideos] = useState(false);
   const [editingVideo, setEditingVideo] = useState<any>(null);
   const [newVideo, setNewVideo] = useState({ 
-    module_id: "", title: "", description: "", video_url: "", video_type: "youtube", thumbnail_url: "", duration: "" 
+    module_id: "", title: "", description: "", video_url: "", video_type: "youtube", thumbnail_url: "", duration: "",
+    show_title: true, show_number: true, show_play_button: true
   });
   const [showNewVideo, setShowNewVideo] = useState(false);
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
@@ -395,7 +396,7 @@ const MetodoSeguidorAdmin = () => {
       const { error } = await supabase.from("metodo_seguidor_videos").insert({ ...newVideo, order_index: moduleVideos.length });
       if (error) throw error;
       toast.success("Vídeo criado!");
-      setNewVideo({ module_id: "", title: "", description: "", video_url: "", video_type: "youtube", thumbnail_url: "", duration: "" });
+      setNewVideo({ module_id: "", title: "", description: "", video_url: "", video_type: "youtube", thumbnail_url: "", duration: "", show_title: true, show_number: true, show_play_button: true });
       setShowNewVideo(false);
       loadVideos();
     } catch (error) { toast.error("Erro ao criar vídeo"); }
@@ -403,7 +404,7 @@ const MetodoSeguidorAdmin = () => {
 
   const updateVideo = async (video: any) => {
     try {
-      const { error } = await supabase.from("metodo_seguidor_videos").update({ title: video.title, description: video.description, video_url: video.video_url, video_type: video.video_type, thumbnail_url: video.thumbnail_url, duration: video.duration }).eq("id", video.id);
+      const { error } = await supabase.from("metodo_seguidor_videos").update({ title: video.title, description: video.description, video_url: video.video_url, video_type: video.video_type, thumbnail_url: video.thumbnail_url, duration: video.duration, show_title: video.show_title, show_number: video.show_number, show_play_button: video.show_play_button }).eq("id", video.id);
       if (error) throw error;
       toast.success("Vídeo atualizado!");
       setEditingVideo(null);
@@ -793,7 +794,53 @@ const MetodoSeguidorAdmin = () => {
                     <Input placeholder="Duração (10:30)" value={newVideo.duration} onChange={(e) => setNewVideo({ ...newVideo, duration: e.target.value })} className="bg-gray-800 border-gray-700" />
                   </div>
                   <Input placeholder="URL do vídeo" value={newVideo.video_url} onChange={(e) => setNewVideo({ ...newVideo, video_url: e.target.value })} className="bg-gray-800 border-gray-700" />
-                  <Input placeholder="URL thumbnail" value={newVideo.thumbnail_url} onChange={(e) => setNewVideo({ ...newVideo, thumbnail_url: e.target.value })} className="bg-gray-800 border-gray-700" />
+                  
+                  {/* Thumbnail Upload - Arquivo ou Link */}
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Capa do vídeo (1080x1920)</label>
+                    <div className="flex gap-2">
+                      <Input placeholder="URL da capa ou faça upload" value={newVideo.thumbnail_url} onChange={(e) => setNewVideo({ ...newVideo, thumbnail_url: e.target.value })} className="bg-gray-800 border-gray-700 flex-1" />
+                      <input type="file" accept="image/*" className="hidden" id="new-video-thumb" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setUploadingVideoThumb("new");
+                        try {
+                          const ext = file.name.split(".").pop();
+                          const fileName = `video-thumb-${Date.now()}.${ext}`;
+                          const { error } = await supabase.storage.from("metodo-seguidor-content").upload(`video-thumbnails/${fileName}`, file);
+                          if (error) throw error;
+                          const { data } = supabase.storage.from("metodo-seguidor-content").getPublicUrl(`video-thumbnails/${fileName}`);
+                          setNewVideo({ ...newVideo, thumbnail_url: data.publicUrl });
+                          toast.success("Capa enviada!");
+                        } catch (err) { toast.error("Erro ao enviar capa"); }
+                        setUploadingVideoThumb(null);
+                      }} />
+                      <Button type="button" variant="outline" onClick={() => document.getElementById("new-video-thumb")?.click()} disabled={uploadingVideoThumb === "new"} className="border-gray-700">
+                        {uploadingVideoThumb === "new" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                    {newVideo.thumbnail_url && <img src={newVideo.thumbnail_url} alt="Preview" className="h-32 w-auto object-cover rounded-lg" />}
+                  </div>
+
+                  {/* Display Options */}
+                  <div className="bg-gray-800/50 rounded-lg p-3 space-y-2">
+                    <p className="text-sm text-gray-400 font-medium">Opções de exibição na capa:</p>
+                    <div className="flex flex-wrap gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={newVideo.show_title} onChange={(e) => setNewVideo({ ...newVideo, show_title: e.target.checked })} className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-amber-500" />
+                        <span className="text-sm">Mostrar título</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={newVideo.show_number} onChange={(e) => setNewVideo({ ...newVideo, show_number: e.target.checked })} className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-amber-500" />
+                        <span className="text-sm">Mostrar numeração</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={newVideo.show_play_button} onChange={(e) => setNewVideo({ ...newVideo, show_play_button: e.target.checked })} className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-amber-500" />
+                        <span className="text-sm">Mostrar botão play</span>
+                      </label>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2">
                     <Button onClick={createVideo} className="bg-green-600 hover:bg-green-700"><Save className="w-4 h-4 mr-2" />Salvar</Button>
                     <Button onClick={() => setShowNewVideo(false)} variant="ghost"><X className="w-4 h-4 mr-2" />Cancelar</Button>
