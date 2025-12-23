@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 
-const PRICE = 49.00;
+const PRICE = 29.90;
 const ORIGINAL_PRICE = 197.00;
 
 const ComprouSeguidores = () => {
@@ -180,6 +180,16 @@ const ComprouSeguidores = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/20 via-transparent to-transparent" />
         
         <div className="relative max-w-5xl mx-auto text-center">
+          {/* Price Badge - Hero */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600/30 to-green-500/20 border border-green-500/50 rounded-full px-6 py-3 mb-6">
+            <Sparkles className="w-5 h-5 text-green-400" />
+            <span className="text-green-400 font-bold text-lg">Corrija seu alcance por apenas <span className="text-2xl">R$29,90</span> - Pagamento único!</span>
+          </div>
+
+          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+            Pague uma vez e corrija seu perfil de uma vez por todas.
+          </p>
+
           {/* Warning Badge */}
           <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-6 py-2 mb-8 animate-pulse">
             <AlertTriangle className="w-5 h-5 text-red-400" />
@@ -403,7 +413,7 @@ const ComprouSeguidores = () => {
                 <div className="flex items-center justify-center gap-4 mb-4">
                   <span className="text-3xl text-gray-500 line-through">R$ {ORIGINAL_PRICE.toFixed(2).replace(".", ",")}</span>
                   <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                    -75% OFF
+                    -85% OFF
                   </span>
                 </div>
 
