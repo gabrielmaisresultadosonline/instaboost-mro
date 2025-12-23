@@ -16,7 +16,7 @@ const log = (step: string, details?: unknown) => {
 async function sendAccessEmail(
   email: string,
   username: string,
-  password: string
+  instagramLink: string | null
 ): Promise<boolean> {
   try {
     const smtpPassword = Deno.env.get("SMTP_PASSWORD");
@@ -37,6 +37,12 @@ async function sendAccessEmail(
       },
     });
 
+    const instagramSection = instagramLink ? `
+      <p style="color: #9ca3af; margin: 8px 0;">
+        <strong style="color: #f59e0b;">Perfil do Instagram:</strong> <a href="${instagramLink}" style="color: #60a5fa;">${instagramLink}</a>
+      </p>
+    ` : '';
+
     await client.send({
       from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
       to: email,
@@ -54,7 +60,14 @@ async function sendAccessEmail(
               <strong style="color: #f59e0b;">Usuário:</strong> ${username}
             </p>
             <p style="color: #9ca3af; margin: 8px 0;">
-              <strong style="color: #f59e0b;">Senha:</strong> ${password}
+              <strong style="color: #f59e0b;">Senha:</strong> ${username}
+            </p>
+            ${instagramSection}
+          </div>
+
+          <div style="background-color: #064e3b; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+            <p style="color: #10b981; margin: 0; font-weight: bold;">
+              🔧 Agora vamos corrigir o perfil do seu Instagram com os métodos da MRO e deixar tudo profissional!
             </p>
           </div>
           
@@ -186,7 +199,12 @@ serve(async (req) => {
         }
 
         // Send email with credentials via SMTP
-        const emailSent = await sendAccessEmail(order.email, user.username, user.password);
+        // username is both login and password, instagram_username contains the link
+        const emailSent = await sendAccessEmail(
+          order.email, 
+          user.username, 
+          user.instagram_username
+        );
 
         if (emailSent) {
           await supabase

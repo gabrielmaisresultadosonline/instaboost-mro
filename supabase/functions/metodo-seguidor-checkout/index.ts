@@ -19,24 +19,6 @@ const generateNSU = () => {
   return `MTSEG${timestamp}${random}`.toUpperCase();
 };
 
-const generateUsername = () => {
-  const chars = "abcdefghijklmnopqrstuvwxyz";
-  let result = "";
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-};
-
-const generatePassword = () => {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-};
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -57,7 +39,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { email, instagramUsername, phone, amount } = body;
+    const { email, username, phone, instagramLink, amount } = body;
 
     if (!email || !email.includes("@")) {
       return new Response(
@@ -66,34 +48,53 @@ serve(async (req) => {
       );
     }
 
-    if (!instagramUsername) {
+    if (!username || username.length < 3) {
       return new Response(
-        JSON.stringify({ error: "Instagram obrigatório" }),
+        JSON.stringify({ error: "Usuário deve ter no mínimo 3 caracteres" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Validate username format (only lowercase letters and numbers)
+    if (!/^[a-z0-9]+$/.test(username)) {
+      return new Response(
+        JSON.stringify({ error: "Usuário deve conter apenas letras minúsculas e números" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const cleanInstagram = instagramUsername.toLowerCase().trim().replace("@", "");
+    const cleanUsername = username.toLowerCase().trim();
     const cleanPhone = phone ? phone.replace(/\D/g, "").trim() : "";
+    const cleanInstagramLink = instagramLink ? instagramLink.trim() : "";
     const orderNsu = generateNSU();
     const priceInCents = Math.round((amount || 49) * 100);
 
-    // Generate credentials for user
-    const username = generateUsername();
-    const password = generatePassword();
+    // Check if username already exists
+    const { data: existingUser } = await supabase
+      .from("metodo_seguidor_users")
+      .select("id")
+      .eq("username", cleanUsername)
+      .maybeSingle();
 
-    log("Creating user and order", { email: cleanEmail, instagram: cleanInstagram });
+    if (existingUser) {
+      return new Response(
+        JSON.stringify({ error: "Este usuário já está em uso. Escolha outro." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
 
-    // Create user first
+    log("Creating user and order", { email: cleanEmail, username: cleanUsername });
+
+    // Create user - username is both login AND password
     const { data: userData, error: userError } = await supabase
       .from("metodo_seguidor_users")
       .insert({
-        username,
-        password,
+        username: cleanUsername,
+        password: cleanUsername, // Same as username
         email: cleanEmail,
         phone: cleanPhone || null,
-        instagram_username: cleanInstagram,
+        instagram_username: cleanInstagramLink || null, // Store the link here
         subscription_status: "pending"
       })
       .select()
@@ -109,7 +110,7 @@ serve(async (req) => {
     const redirectUrl = `${supabaseUrl.replace('supabase.co', 'lovable.app').replace('/functions/v1', '')}/metodoseguidormembro`;
 
     // Product description
-    const productDescription = `MTSEG_${cleanInstagram}_${cleanEmail}`;
+    const productDescription = `MTSEG_${cleanUsername}_${cleanEmail}`;
 
     const lineItems = [{
       description: productDescription,
@@ -164,7 +165,7 @@ serve(async (req) => {
         nsu_order: orderNsu,
         email: cleanEmail,
         phone: cleanPhone || null,
-        instagram_username: cleanInstagram,
+        instagram_username: cleanInstagramLink || null,
         amount: amount || 49,
         status: "pending",
         infinitepay_link: paymentLink,
@@ -188,7 +189,7 @@ serve(async (req) => {
         nsu_order: orderNsu,
         payment_link: paymentLink,
         email: cleanEmail,
-        instagram: cleanInstagram
+        username: cleanUsername
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
