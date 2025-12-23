@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +12,81 @@ const log = (step: string, details?: unknown) => {
   console.log(`[${timestamp}] [METODO-SEGUIDOR-WEBHOOK] ${step}`, details ? JSON.stringify(details) : "");
 };
 
+// Send email via SMTP
+async function sendAccessEmail(
+  email: string,
+  username: string,
+  password: string
+): Promise<boolean> {
+  try {
+    const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+    if (!smtpPassword) {
+      log("SMTP password not configured");
+      return false;
+    }
+
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.hostinger.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: "suporte@maisresultadosonline.com.br",
+          password: smtpPassword,
+        },
+      },
+    });
+
+    await client.send({
+      from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
+      to: email,
+      subject: "🎉 Seu acesso ao Método de Correção MRO está pronto!",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0a0a0a; padding: 40px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #f59e0b; margin: 0;">🎉 Parabéns!</h1>
+            <p style="color: #9ca3af; margin-top: 10px;">Seu acesso foi liberado com sucesso</p>
+          </div>
+          
+          <div style="background-color: #1f2937; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+            <h2 style="color: #ffffff; margin-top: 0;">Seus dados de acesso:</h2>
+            <p style="color: #9ca3af; margin: 8px 0;">
+              <strong style="color: #f59e0b;">Usuário:</strong> ${username}
+            </p>
+            <p style="color: #9ca3af; margin: 8px 0;">
+              <strong style="color: #f59e0b;">Senha:</strong> ${password}
+            </p>
+          </div>
+          
+          <div style="text-align: center;">
+            <a href="https://maisresultadosonline.com.br/metodoseguidormembro" 
+               style="display: inline-block; background-color: #f59e0b; color: #000000; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+              Acessar Área de Membros
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; text-align: center; margin-top: 30px; font-size: 14px;">
+            Guarde este email com seus dados de acesso.
+          </p>
+          
+          <hr style="border-color: #333; margin: 30px 0;">
+          <p style="color: #6b7280; text-align: center; font-size: 12px;">
+            MRO - Mais Resultados Online<br>
+            Este é um email automático, não responda.
+          </p>
+        </div>
+      `,
+    });
+
+    await client.close();
+    log("Email sent successfully", { to: email });
+    return true;
+  } catch (error) {
+    log("Error sending email", error);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,7 +97,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error("Missing Supabase configuration");
@@ -111,61 +185,17 @@ serve(async (req) => {
           log("Error updating user", updateUserError);
         }
 
-        // Send email with credentials
-        if (resendApiKey) {
-          try {
-            const resend = new Resend(resendApiKey);
-            
-            await resend.emails.send({
-              from: "MRO <onboarding@resend.dev>",
-              to: [order.email],
-              subject: "🎉 Seu acesso ao Método de Correção MRO está pronto!",
-              html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0a0a0a; padding: 40px; border-radius: 16px;">
-                  <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="color: #f59e0b; margin: 0;">🎉 Parabéns!</h1>
-                    <p style="color: #9ca3af; margin-top: 10px;">Seu acesso foi liberado com sucesso</p>
-                  </div>
-                  
-                  <div style="background-color: #1f2937; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
-                    <h2 style="color: #ffffff; margin-top: 0;">Seus dados de acesso:</h2>
-                    <p style="color: #9ca3af; margin: 8px 0;">
-                      <strong style="color: #f59e0b;">Usuário:</strong> ${user.username}
-                    </p>
-                    <p style="color: #9ca3af; margin: 8px 0;">
-                      <strong style="color: #f59e0b;">Senha:</strong> ${user.password}
-                    </p>
-                  </div>
-                  
-                  <div style="text-align: center;">
-                    <a href="https://maisresultadosonline.com.br/metodoseguidormembro" 
-                       style="display: inline-block; background-color: #f59e0b; color: #000000; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-                      Acessar Área de Membros
-                    </a>
-                  </div>
-                  
-                  <p style="color: #6b7280; text-align: center; margin-top: 30px; font-size: 14px;">
-                    Guarde este email com seus dados de acesso.
-                  </p>
-                </div>
-              `,
-            });
+        // Send email with credentials via SMTP
+        const emailSent = await sendAccessEmail(order.email, user.username, user.password);
 
-            // Update email sent status
-            await supabase
-              .from("metodo_seguidor_users")
-              .update({
-                email_sent: true,
-                email_sent_at: new Date().toISOString()
-              })
-              .eq("id", user.id);
-
-            log("Email sent successfully", { email: order.email });
-          } catch (emailError) {
-            log("Error sending email", emailError);
-          }
-        } else {
-          log("RESEND_API_KEY not configured");
+        if (emailSent) {
+          await supabase
+            .from("metodo_seguidor_users")
+            .update({
+              email_sent: true,
+              email_sent_at: new Date().toISOString()
+            })
+            .eq("id", user.id);
         }
       }
     }
