@@ -16,7 +16,7 @@ const log = (step: string, details?: unknown) => {
 async function sendAccessEmail(
   email: string,
   username: string,
-  password: string
+  instagramLink: string | null
 ): Promise<boolean> {
   try {
     const smtpPassword = Deno.env.get("SMTP_PASSWORD");
@@ -37,6 +37,12 @@ async function sendAccessEmail(
       },
     });
 
+    const instagramSection = instagramLink ? `
+      <p style="color: #9ca3af; margin: 8px 0;">
+        <strong style="color: #f59e0b;">Perfil do Instagram:</strong> <a href="${instagramLink}" style="color: #60a5fa;">${instagramLink}</a>
+      </p>
+    ` : '';
+
     await client.send({
       from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
       to: email,
@@ -54,7 +60,14 @@ async function sendAccessEmail(
               <strong style="color: #f59e0b;">Usuário:</strong> ${username}
             </p>
             <p style="color: #9ca3af; margin: 8px 0;">
-              <strong style="color: #f59e0b;">Senha:</strong> ${password}
+              <strong style="color: #f59e0b;">Senha:</strong> ${username}
+            </p>
+            ${instagramSection}
+          </div>
+
+          <div style="background-color: #064e3b; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+            <p style="color: #10b981; margin: 0; font-weight: bold;">
+              🔧 Agora vamos corrigir o perfil do seu Instagram com os métodos da MRO e deixar tudo profissional!
             </p>
           </div>
           
@@ -105,27 +118,35 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { nsu_order } = body;
+    const { nsu_order, email } = body;
 
-    if (!nsu_order) {
-      return new Response(
-        JSON.stringify({ error: "NSU order required" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-      );
+    // Support both nsu_order and email-based lookup
+    let order: any = null;
+
+    if (nsu_order) {
+      log("Verifying payment by NSU", { nsu_order });
+      const { data } = await supabase
+        .from("metodo_seguidor_orders")
+        .select("*")
+        .eq("nsu_order", nsu_order)
+        .maybeSingle();
+      order = data;
+    } else if (email) {
+      log("Verifying payment by email", { email });
+      const { data } = await supabase
+        .from("metodo_seguidor_orders")
+        .select("*")
+        .eq("email", email.toLowerCase().trim())
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      order = data;
     }
 
-    log("Verifying payment", { nsu_order });
-
-    // Get order
-    const { data: order, error: orderError } = await supabase
-      .from("metodo_seguidor_orders")
-      .select("*")
-      .eq("nsu_order", nsu_order)
-      .maybeSingle();
-
-    if (orderError || !order) {
+    if (!order) {
       return new Response(
-        JSON.stringify({ error: "Order not found" }),
+        JSON.stringify({ error: "Order not found", success: false }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
       );
     }
@@ -152,10 +173,14 @@ serve(async (req) => {
       );
     }
 
-    // Call InfiniPay to check payment status
+    // Call InfiniPay to check payment status using mroseg_email format
+    const searchKey = `mroseg_${order.email}`;
+    log("Checking InfiniPay with key", { searchKey, nsu: order.nsu_order });
+
     try {
+      // Try NSU-based check first
       const checkResponse = await fetch(
-        `https://api.infinitepay.io/invoices/public/payment_check/${nsu_order}`,
+        `https://api.infinitepay.io/invoices/public/payment_check/${order.nsu_order}`,
         { method: "GET" }
       );
 
@@ -164,56 +189,27 @@ serve(async (req) => {
         log("InfiniPay check response", checkData);
 
         if (checkData.paid === true || checkData.status === "paid") {
-          // Update order
-          await supabase
-            .from("metodo_seguidor_orders")
-            .update({
-              status: "paid",
-              paid_at: new Date().toISOString(),
-              verified_at: new Date().toISOString()
-            })
-            .eq("id", order.id);
+          return await processPayment(supabase, order);
+        }
+      }
 
-          // Get and update user
-          if (order.user_id) {
-            const { data: user } = await supabase
-              .from("metodo_seguidor_users")
-              .select("*")
-              .eq("id", order.user_id)
-              .maybeSingle();
+      // Also try searching by email pattern
+      const searchResponse = await fetch(
+        `https://api.infinitepay.io/invoices/public/search?q=${encodeURIComponent(searchKey)}`,
+        { method: "GET" }
+      );
 
-            if (user) {
-              await supabase
-                .from("metodo_seguidor_users")
-                .update({
-                  subscription_status: "active",
-                  subscription_start: new Date().toISOString()
-                })
-                .eq("id", user.id);
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        log("InfiniPay search response", searchData);
 
-              // Send email if not already sent
-              if (!user.email_sent) {
-                const emailSent = await sendAccessEmail(order.email, user.username, user.password);
-
-                if (emailSent) {
-                  await supabase
-                    .from("metodo_seguidor_users")
-                    .update({
-                      email_sent: true,
-                      email_sent_at: new Date().toISOString()
-                    })
-                    .eq("id", user.id);
-                }
-              }
-            }
-          }
-
-          log("Payment verified successfully", { nsu_order });
-
-          return new Response(
-            JSON.stringify({ success: true, paid: true }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        if (searchData.items && searchData.items.length > 0) {
+          const paidItem = searchData.items.find((item: any) => 
+            item.paid === true || item.status === "paid"
           );
+          if (paidItem) {
+            return await processPayment(supabase, order);
+          }
         }
       }
     } catch (checkError) {
@@ -235,3 +231,56 @@ serve(async (req) => {
     );
   }
 });
+
+async function processPayment(supabase: any, order: any) {
+  // Update order
+  await supabase
+    .from("metodo_seguidor_orders")
+    .update({
+      status: "paid",
+      paid_at: new Date().toISOString(),
+      verified_at: new Date().toISOString()
+    })
+    .eq("id", order.id);
+
+  // Get and update user
+  if (order.user_id) {
+    const { data: user } = await supabase
+      .from("metodo_seguidor_users")
+      .select("*")
+      .eq("id", order.user_id)
+      .maybeSingle();
+
+    if (user) {
+      await supabase
+        .from("metodo_seguidor_users")
+        .update({
+          subscription_status: "active",
+          subscription_start: new Date().toISOString()
+        })
+        .eq("id", user.id);
+
+      // Send email if not already sent
+      if (!user.email_sent) {
+        const emailSent = await sendAccessEmail(order.email, user.username, user.instagram_username);
+
+        if (emailSent) {
+          await supabase
+            .from("metodo_seguidor_users")
+            .update({
+              email_sent: true,
+              email_sent_at: new Date().toISOString()
+            })
+            .eq("id", user.id);
+        }
+      }
+    }
+  }
+
+  log("Payment verified successfully", { order_id: order.id });
+
+  return new Response(
+    JSON.stringify({ success: true, paid: true }),
+    { headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" } }
+  );
+}

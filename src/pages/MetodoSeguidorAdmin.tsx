@@ -28,9 +28,18 @@ import {
   AlertTriangle,
   Layers,
   ShoppingBag,
-  Sparkles
+  Sparkles,
+  Mail,
+  UserCheck,
+  MoreVertical
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Tab = "users" | "modules" | "videos" | "banners" | "upsells" | "backup";
 
@@ -111,10 +120,47 @@ const MetodoSeguidorAdmin = () => {
     const pendingOrders = orders.filter(o => o.status === "pending");
     for (const order of pendingOrders) {
       try {
-        await supabase.functions.invoke("metodo-seguidor-verify-payment", { body: { nsu_order: order.nsu_order } });
+        // Verify using both nsu_order and email (mroseg_email format)
+        await supabase.functions.invoke("metodo-seguidor-verify-payment", { 
+          body: { nsu_order: order.nsu_order, email: order.email } 
+        });
       } catch (e) { console.error("Error verifying order:", e); }
     }
     if (pendingOrders.length > 0) loadUsers();
+  };
+
+  const handleActivateUser = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
+        body: { action: "activate-user", user_id: userId }
+      });
+      if (error || !data?.success) throw error || new Error("Failed");
+      toast.success("Usuário ativado e email enviado!");
+      loadUsers();
+    } catch (e) { toast.error("Erro ao ativar usuário"); }
+  };
+
+  const handleResendEmail = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
+        body: { action: "resend-email", user_id: userId }
+      });
+      if (error || !data?.success) throw error || new Error("Failed");
+      toast.success("Email reenviado com sucesso!");
+      loadUsers();
+    } catch (e) { toast.error("Erro ao reenviar email"); }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Tem certeza que deseja excluir este usuário e todos os pedidos relacionados?")) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
+        body: { action: "delete-user", user_id: userId }
+      });
+      if (error || !data?.success) throw error || new Error("Failed");
+      toast.success("Usuário excluído!");
+      loadUsers();
+    } catch (e) { toast.error("Erro ao excluir usuário"); }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -571,8 +617,14 @@ const MetodoSeguidorAdmin = () => {
                         const user = users.find(u => u.id === order.user_id);
                         return (
                           <tr key={order.id} className="hover:bg-gray-800/50">
-                            <td className="p-3">{order.email}</td>
-                            <td className="p-3 text-amber-400">@{order.instagram_username}</td>
+                            <td className="p-3 max-w-[200px] truncate">{order.email}</td>
+                            <td className="p-3">
+                              {order.instagram_username ? (
+                                <a href={order.instagram_username.startsWith("http") ? order.instagram_username : `https://instagram.com/${order.instagram_username}`} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline truncate block max-w-[200px]">
+                                  @{order.instagram_username.includes("instagram.com") ? order.instagram_username.split("/").pop() : order.instagram_username}
+                                </a>
+                              ) : <span className="text-gray-500">-</span>}
+                            </td>
                             <td className="p-3">R$ {(order.amount || 0).toFixed(2)}</td>
                             <td className="p-3">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "paid" ? "bg-green-500/20 text-green-400" : order.status === "pending" ? "bg-yellow-500/20 text-yellow-400" : "bg-red-500/20 text-red-400"}`}>
@@ -581,11 +633,35 @@ const MetodoSeguidorAdmin = () => {
                             </td>
                             <td className="p-3 text-gray-400">{new Date(order.created_at).toLocaleDateString("pt-BR")}</td>
                             <td className="p-3">
-                              {user && order.status === "paid" && (
-                                <Button size="sm" variant="ghost" onClick={() => copyCredentials(user)} className="text-amber-400 hover:text-amber-300">
-                                  <Copy className="w-4 h-4 mr-1" />Copiar
-                                </Button>
-                              )}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-gray-900 border-gray-700">
+                                  {user && order.status === "paid" && (
+                                    <DropdownMenuItem onClick={() => copyCredentials(user)} className="text-amber-400 cursor-pointer">
+                                      <Copy className="w-4 h-4 mr-2" />Copiar Acesso
+                                    </DropdownMenuItem>
+                                  )}
+                                  {user && order.status === "paid" && (
+                                    <DropdownMenuItem onClick={() => handleResendEmail(user.id)} className="text-blue-400 cursor-pointer">
+                                      <Mail className="w-4 h-4 mr-2" />Reenviar Email
+                                    </DropdownMenuItem>
+                                  )}
+                                  {user && order.status !== "paid" && (
+                                    <DropdownMenuItem onClick={() => handleActivateUser(user.id)} className="text-green-400 cursor-pointer">
+                                      <UserCheck className="w-4 h-4 mr-2" />Ativar Usuário
+                                    </DropdownMenuItem>
+                                  )}
+                                  {user && (
+                                    <DropdownMenuItem onClick={() => handleDeleteUser(user.id)} className="text-red-400 cursor-pointer">
+                                      <Trash2 className="w-4 h-4 mr-2" />Excluir Usuário
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </td>
                           </tr>
                         );
