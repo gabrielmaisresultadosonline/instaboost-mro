@@ -490,103 +490,103 @@ const ComprouSeguidores = () => {
 
       {/* Checkout Modal */}
       {showCheckoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md relative animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-gray-900 border border-gray-700 rounded-t-2xl sm:rounded-2xl p-4 sm:p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto relative animate-in slide-in-from-bottom sm:fade-in sm:zoom-in duration-300">
             <button 
               onClick={() => setShowCheckoutModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-white z-10"
             >
               <X className="w-6 h-6" />
             </button>
 
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">Complete seu cadastro</h3>
-              <p className="text-gray-400">Preencha seus dados para acessar o método</p>
+            <div className="text-center mb-4 sm:mb-6 pt-1">
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">Complete seu cadastro</h3>
+              <p className="text-sm sm:text-base text-gray-400">Preencha seus dados para acessar o método</p>
             </div>
 
-            <form onSubmit={handleCheckout} className="space-y-4">
+            <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Usuário (será seu login e senha)</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Usuário (será seu login e senha)</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
                   <Input
                     type="text"
                     placeholder="meuusuario"
                     value={username}
                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white"
+                    className="pl-9 sm:pl-10 bg-gray-800 border-gray-700 text-white text-sm sm:text-base h-10 sm:h-11"
                     required
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Somente letras minúsculas e números, sem caracteres especiais</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Somente letras minúsculas e números, sem caracteres especiais</p>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Email</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
                   <Input
                     type="email"
                     placeholder="seu@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white"
+                    className="pl-9 sm:pl-10 bg-gray-800 border-gray-700 text-white text-sm sm:text-base h-10 sm:h-11"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Celular com DDD</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Celular com DDD</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
                   <Input
                     type="tel"
                     placeholder="(51) 99999-9999"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white"
+                    className="pl-9 sm:pl-10 bg-gray-800 border-gray-700 text-white text-sm sm:text-base h-10 sm:h-11"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Link do perfil do Instagram (opcional)</label>
+                <label className="block text-xs sm:text-sm text-gray-400 mb-1">Link do perfil do Instagram (opcional)</label>
                 <div className="relative">
                   <Input
                     type="url"
                     placeholder="https://instagram.com/seuperfil"
                     value={instagramLink}
                     onChange={(e) => setInstagramLink(e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-gray-800 border-gray-700 text-white text-sm sm:text-base h-10 sm:h-11"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Cole o link do seu perfil do Instagram</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Cole o link do seu perfil do Instagram</p>
               </div>
 
-              <div className="pt-4">
-                <div className="bg-gray-800 rounded-lg p-4 mb-4">
+              <div className="pt-2 sm:pt-4">
+                <div className="bg-gray-800 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Total:</span>
-                    <span className="text-2xl font-bold text-amber-400">R$ {PRICE.toFixed(2).replace(".", ",")}</span>
+                    <span className="text-sm sm:text-base text-gray-400">Total:</span>
+                    <span className="text-xl sm:text-2xl font-bold text-amber-400">R$ {PRICE.toFixed(2).replace(".", ",")}</span>
                   </div>
                 </div>
 
                 <Button 
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-black font-bold py-6 text-lg"
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-black font-bold py-4 sm:py-6 text-base sm:text-lg"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
                       Processando...
                     </>
                   ) : (
                     <>
                       FINALIZAR COMPRA
-                      <ArrowRight className="ml-2 w-5 h-5" />
+                      <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                     </>
                   )}
                 </Button>
