@@ -396,6 +396,9 @@ export type Database = {
           is_active: boolean | null
           module_id: string | null
           order_index: number | null
+          show_number: boolean | null
+          show_play_button: boolean | null
+          show_title: boolean | null
           thumbnail_url: string | null
           title: string
           updated_at: string
@@ -410,6 +413,9 @@ export type Database = {
           is_active?: boolean | null
           module_id?: string | null
           order_index?: number | null
+          show_number?: boolean | null
+          show_play_button?: boolean | null
+          show_title?: boolean | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
@@ -424,6 +430,9 @@ export type Database = {
           is_active?: boolean | null
           module_id?: string | null
           order_index?: number | null
+          show_number?: boolean | null
+          show_play_button?: boolean | null
+          show_title?: boolean | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
