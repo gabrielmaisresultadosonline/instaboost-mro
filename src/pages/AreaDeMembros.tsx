@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { Instagram, MessageCircle, Home, Sparkles } from "lucide-react";
+import { Instagram, MessageCircle, Home } from "lucide-react";
 
 const AreaDeMembros = () => {
   return (
@@ -12,7 +12,7 @@ const AreaDeMembros = () => {
 
         {/* Title */}
         <h1 className="text-2xl font-bold text-foreground text-center">
-          Área de Membros
+          Área de Membros 2.0
         </h1>
 
         {/* Member Area Buttons */}
@@ -34,17 +34,6 @@ const AreaDeMembros = () => {
             >
               <MessageCircle className="h-6 w-6" />
               Ferramenta para WhatsApp
-            </Button>
-          </Link>
-
-          <Link to="/metodoseguidormembro" className="w-full">
-            <Button 
-              variant="gradient"
-              size="xl" 
-              className="w-full gap-3"
-            >
-              <Sparkles className="h-6 w-6" />
-              Área de Membros 2.0
             </Button>
           </Link>
         </div>
