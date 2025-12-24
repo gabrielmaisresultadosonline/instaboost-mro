@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { Instagram, MessageCircle, Home } from "lucide-react";
+import { Instagram, MessageCircle, Home, Sparkles } from "lucide-react";
 
 const AreaDeMembros = () => {
   return (
@@ -19,9 +19,8 @@ const AreaDeMembros = () => {
         <div className="w-full flex flex-col gap-4">
           <Link to="/instagram" className="w-full">
             <Button 
-              variant="gradient" 
               size="xl" 
-              className="w-full gap-3"
+              className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0"
             >
               <Instagram className="h-6 w-6" />
               Ferramenta para Instagram
@@ -30,12 +29,22 @@ const AreaDeMembros = () => {
 
           <Link to="/zapmro" className="w-full">
             <Button 
-              variant="glow" 
               size="xl" 
-              className="w-full gap-3 bg-green-600 hover:bg-green-700"
+              className="w-full gap-3 bg-green-600 hover:bg-green-700 text-white"
             >
               <MessageCircle className="h-6 w-6" />
               Ferramenta para WhatsApp
+            </Button>
+          </Link>
+
+          <Link to="/metodoseguidormembro" className="w-full">
+            <Button 
+              variant="gradient"
+              size="xl" 
+              className="w-full gap-3"
+            >
+              <Sparkles className="h-6 w-6" />
+              Área de Membros 2.0
             </Button>
           </Link>
         </div>
