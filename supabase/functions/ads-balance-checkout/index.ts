@@ -42,13 +42,14 @@ serve(async (req) => {
     const nsuOrder = generateNSU();
     const priceInCents = Math.round(amount * 100);
     
-    // Product name format: anun_EMAIL (same format for webhook recognition)
-    const productName = `anun_${email}`;
+    // Product name format: saldoanun_EMAIL (different from initial payment anun_EMAIL)
+    const productName = `saldoanun_${email}`;
     
     const webhookUrl = `${supabaseUrl}/functions/v1/ads-webhook`;
     
-    log('Creating InfiniPay balance checkout', { nsuOrder, productName, priceInCents });
+    log('Creating InfiniPay balance checkout with Link Integrado', { nsuOrder, productName, priceInCents });
 
+    // Use Link Integrado format (same as initial payment)
     const infinitePayPayload = {
       handle: INFINITEPAY_HANDLE,
       redirect_url: REDIRECT_URL,
