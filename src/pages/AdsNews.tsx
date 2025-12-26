@@ -251,12 +251,6 @@ const AdsNews = () => {
                 </div>
               ))}
             </div>
-            <div className="mt-8 pt-6 border-t border-blue-500">
-              <p className="text-sm text-blue-200 text-center">
-                * Este valor não inclui o investimento em tráfego pago (mínimo R$150). 
-                Após o cadastro, você poderá adicionar saldo para os anúncios.
-              </p>
-            </div>
           </div>
         </div>
       </section>
