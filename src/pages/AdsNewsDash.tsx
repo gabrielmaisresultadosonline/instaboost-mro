@@ -906,44 +906,69 @@ const AdsNewsDash = () => {
 
               {/* Campaign Active - Show sales page prominently */}
               {clientData.campaign_active && clientData.sales_page_url && (
-                <div className="mt-6 p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl text-white text-center shadow-lg">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <CheckCircle className="h-8 w-8" />
-                    <span className="font-bold text-2xl">🎉 Sua página está pronta!</span>
+                <div className="mt-8 p-8 bg-gradient-to-br from-emerald-600 via-green-500 to-teal-500 rounded-2xl text-white text-center shadow-2xl border-4 border-yellow-400">
+                  {/* Main highlight - Page Ready */}
+                  <div className="flex items-center justify-center gap-4 mb-6">
+                    <span className="text-4xl font-black uppercase tracking-wide drop-shadow-lg">
+                      🎉 SUA PÁGINA ESTÁ PRONTA!
+                    </span>
                   </div>
                   
-                  <div className="bg-white/20 rounded-lg p-4 mb-4">
+                  {/* Sales page link */}
+                  <div className="bg-white/25 rounded-xl p-5 mb-6 backdrop-blur-sm">
                     <p className="text-sm text-green-100 mb-2">Sua página de vendas:</p>
                     <a 
                       href={clientData.sales_page_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-white font-bold text-lg hover:underline flex items-center justify-center gap-2"
+                      className="text-white font-bold text-xl hover:underline flex items-center justify-center gap-2"
                     >
-                      <ExternalLink className="h-5 w-5" />
+                      <ExternalLink className="h-6 w-6" />
                       {clientData.sales_page_url}
                     </a>
                   </div>
 
+                  {/* Leads capture status with spinning loader */}
+                  <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl p-6 mb-6 text-gray-900">
+                    <div className="flex items-center justify-center gap-4 mb-3">
+                      <Loader2 className="h-10 w-10 animate-spin text-gray-900" />
+                      <div className="text-left">
+                        <p className="text-xl font-black uppercase">
+                          Estamos Captando Leads Para Você!
+                        </p>
+                        <p className="text-sm font-medium">
+                          Conforme os seus dados e suas configurações
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-lg font-bold mt-3">
+                      📱 Aguarde no seu WhatsApp!
+                    </p>
+                  </div>
+
+                  {/* Campaign dates */}
                   {clientData.campaign_end_date && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                      <div className="bg-white/10 rounded-lg p-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                      <div className="bg-white/15 rounded-xl p-4 backdrop-blur-sm">
                         <p className="text-sm text-green-100">Campanha ativa até:</p>
-                        <p className="font-bold text-xl">{new Date(clientData.campaign_end_date).toLocaleDateString('pt-BR')}</p>
+                        <p className="font-bold text-2xl">{new Date(clientData.campaign_end_date).toLocaleDateString('pt-BR')}</p>
                       </div>
                       {activeCampaign && (
-                        <div className="bg-white/10 rounded-lg p-3">
+                        <div className="bg-white/15 rounded-xl p-4 backdrop-blur-sm">
                           <p className="text-sm text-green-100">Saldo investido:</p>
-                          <p className="font-bold text-xl">R$ {activeCampaign.amount.toFixed(2)}</p>
+                          <p className="font-bold text-2xl">R$ {activeCampaign.amount.toFixed(2)}</p>
                         </div>
                       )}
                     </div>
                   )}
 
                   {/* Report info message */}
-                  <div className="mt-4 p-3 bg-white/10 rounded-lg border border-white/20">
-                    <p className="text-sm text-green-100 text-center">
-                      📊 <strong>Relatório do seu anúncio em 30 dias</strong> - acompanhe no seu email e aqui na sua área de membros
+                  <div className="p-4 bg-white/15 rounded-xl border-2 border-white/30 backdrop-blur-sm">
+                    <p className="text-lg text-white font-semibold">
+                      📊 <strong>Aguarde Relatório em 30 dias</strong>
+                    </p>
+                    <p className="text-sm text-green-100 mt-1">
+                      Acompanhe no seu email e aqui na sua área de membros
                     </p>
                   </div>
                 </div>
