@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import metaLogo from "@/assets/meta-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -18,23 +19,81 @@ import {
   Mail,
   User,
   Lock,
-  Loader2
+  Loader2,
+  LogIn
 } from "lucide-react";
 
 const AdsNews = () => {
+  const navigate = useNavigate();
   const [showRegister, setShowRegister] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     phone: ""
   });
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: ""
+  });
   const [paymentLink, setPaymentLink] = useState("");
   const [checkingPayment, setCheckingPayment] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoginData({ ...loginData, [e.target.name]: e.target.value });
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!loginData.email || !loginData.password) {
+      toast({
+        title: "Erro",
+        description: "Preencha email e senha",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoginLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('ads-auth', {
+        body: { 
+          action: 'login', 
+          email: loginData.email, 
+          password: loginData.password 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "Login realizado!",
+          description: "Redirecionando para o dashboard..."
+        });
+        navigate(`/anuncios/dash?email=${encodeURIComponent(loginData.email)}&password=${encodeURIComponent(loginData.password)}`);
+      } else {
+        throw new Error(data?.error || "Email ou senha incorretos");
+      }
+    } catch (error: unknown) {
+      console.error('Login error:', error);
+      toast({
+        title: "Erro no login",
+        description: error instanceof Error ? error.message : "Email ou senha incorretos",
+        variant: "destructive"
+      });
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,12 +190,20 @@ const AdsNews = () => {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-center">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <img 
             src="/ads-news-full.png" 
             alt="Ads News" 
-            className="h-12 md:h-16"
+            className="h-10 md:h-14"
           />
+          <Button 
+            variant="outline"
+            className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            onClick={() => setShowLogin(true)}
+          >
+            <LogIn className="mr-2 h-4 w-4" />
+            Entrar
+          </Button>
         </div>
       </header>
 
@@ -424,6 +491,88 @@ const AdsNews = () => {
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Login Modal */}
+      {showLogin && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md bg-white">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-800">Acessar Dashboard</h3>
+                <button 
+                  onClick={() => setShowLogin(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <Label htmlFor="login-email" className="flex items-center gap-2 text-gray-900">
+                    <Mail className="h-4 w-4" />
+                    Email
+                  </Label>
+                  <Input
+                    id="login-email"
+                    name="email"
+                    type="email"
+                    value={loginData.email}
+                    onChange={handleLoginInputChange}
+                    placeholder="seu@email.com"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="login-password" className="flex items-center gap-2 text-gray-900">
+                    <Lock className="h-4 w-4" />
+                    Senha
+                  </Label>
+                  <Input
+                    id="login-password"
+                    name="password"
+                    type="password"
+                    value={loginData.password}
+                    onChange={handleLoginInputChange}
+                    placeholder="Sua senha"
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={loginLoading}
+                >
+                  {loginLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Entrar
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-gray-500 text-center">
+                  Ainda não tem conta?{' '}
+                  <button 
+                    type="button"
+                    onClick={() => { setShowLogin(false); setShowRegister(true); }}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    Cadastre-se aqui
+                  </button>
+                </p>
+              </form>
             </CardContent>
           </Card>
         </div>
