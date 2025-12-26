@@ -106,13 +106,18 @@ const AdsNewsDash = () => {
   const [timeRemaining, setTimeRemaining] = useState(600);
   
   // Balance calculator
-  const [leadsQuantity, setLeadsQuantity] = useState(50);
+  const [leadsQuantity, setLeadsQuantity] = useState(53);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [balancePaymentLink, setBalancePaymentLink] = useState("");
 
   // Calculate cost based on leads (R$3.80 - R$4.70 per lead, using R$4 average)
+  // Minimum Meta daily spend: R$7/day = R$210 for 30 days
   const costPerLead = 4;
-  const calculatedAmount = Math.max(150, leadsQuantity * costPerLead);
+  const minDailySpend = 7; // Meta minimum
+  const minMonthlySpend = minDailySpend * 30; // R$210
+  const minLeads = Math.ceil(minMonthlySpend / costPerLead); // ~53 leads
+  const calculatedAmount = Math.max(minMonthlySpend, leadsQuantity * costPerLead);
+  const dailyBudgetCalculated = calculatedAmount / 30;
 
   useEffect(() => {
     // Check if coming from registration with pending payment
@@ -533,8 +538,8 @@ const AdsNewsDash = () => {
   
   const daysRemaining = campaignEndDate ? Math.ceil((campaignEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
   
-  // Daily budget calculation
-  const dailyBudget = calculatedAmount / 30;
+  // Daily budget calculation (use the pre-calculated value)
+  const dailyBudget = dailyBudgetCalculated;
 
   if (loading) {
     return (
@@ -1008,12 +1013,14 @@ const AdsNewsDash = () => {
                       </Label>
                       <Input
                         type="number"
-                        min={38}
+                        min={minLeads}
                         value={leadsQuantity}
-                        onChange={(e) => setLeadsQuantity(Math.max(38, parseInt(e.target.value) || 38))}
+                        onChange={(e) => setLeadsQuantity(Math.max(minLeads, parseInt(e.target.value) || minLeads))}
                         className="text-2xl font-bold text-center h-14 bg-white border-2 border-blue-400 focus:border-blue-600 text-blue-700"
                       />
-                      <p className="text-xs text-orange-600 mt-2 font-medium">Mínimo: 38 leads (R$150)</p>
+                      <p className="text-xs text-orange-600 mt-2 font-medium">
+                        Mínimo: {minLeads} leads (R${minMonthlySpend}) - Gasto mínimo Meta: R${minDailySpend}/dia
+                      </p>
                     </div>
 
                     {/* Calculation Summary */}
