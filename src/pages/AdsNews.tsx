@@ -182,7 +182,8 @@ const AdsNews = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-gray-800">
             O que você recebe
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          {/* Primeira linha - 3 cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -212,7 +213,10 @@ const AdsNews = () => {
                 <p className="text-gray-600">Feed, Marketplace e Messenger</p>
               </CardContent>
             </Card>
+          </div>
 
+          {/* Segunda linha - 2 cards centralizados */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
