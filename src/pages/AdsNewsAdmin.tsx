@@ -42,6 +42,10 @@ interface ClientData {
   logo_url: string;
   observations: string;
   sales_page_url: string;
+  competitor1_instagram: string;
+  competitor2_instagram: string;
+  media_urls: string[];
+  offer_description: string;
 }
 
 interface User {
@@ -825,13 +829,28 @@ const AdsNewsAdmin = () => {
                     </div>
 
                     {user.ads_client_data?.[0] && (
-                      <div className="bg-gray-900 rounded p-3 mb-3 text-sm">
+                      <div className="bg-gray-900 rounded p-3 mb-3 text-sm space-y-1">
                         <p><strong>Nicho:</strong> {user.ads_client_data[0].niche || 'Não informado'}</p>
                         <p><strong>Região:</strong> {user.ads_client_data[0].region || 'Não informada'}</p>
                         <p><strong>WhatsApp:</strong> {user.ads_client_data[0].whatsapp || 'Não informado'}</p>
                         <p><strong>Instagram:</strong> {user.ads_client_data[0].instagram || 'Não informado'}</p>
                         {user.ads_client_data[0].telegram_group && (
                           <p><strong>Telegram:</strong> {user.ads_client_data[0].telegram_group}</p>
+                        )}
+                        {user.ads_client_data[0].competitor1_instagram && (
+                          <p><strong>Concorrente 1:</strong> <a href={user.ads_client_data[0].competitor1_instagram} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Ver</a></p>
+                        )}
+                        {user.ads_client_data[0].competitor2_instagram && (
+                          <p><strong>Concorrente 2:</strong> <a href={user.ads_client_data[0].competitor2_instagram} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Ver</a></p>
+                        )}
+                        {user.ads_client_data[0].offer_description && (
+                          <div className="mt-2 p-2 bg-yellow-900/30 border border-yellow-700 rounded">
+                            <p className="text-xs text-yellow-400">Descrição da Oferta:</p>
+                            <p className="text-yellow-100 text-xs">{user.ads_client_data[0].offer_description.substring(0, 150)}{user.ads_client_data[0].offer_description.length > 150 ? '...' : ''}</p>
+                          </div>
+                        )}
+                        {user.ads_client_data[0].media_urls && user.ads_client_data[0].media_urls.length > 0 && (
+                          <p className="text-blue-400"><strong>Mídias:</strong> {user.ads_client_data[0].media_urls.length} arquivos</p>
                         )}
                         {user.ads_client_data[0].observations && (
                           <p className="mt-2"><strong>Obs:</strong> {user.ads_client_data[0].observations}</p>
@@ -1026,12 +1045,13 @@ const AdsNewsAdmin = () => {
 
       {/* View Client Data Dialog */}
       <Dialog open={viewDataDialogOpen} onOpenChange={setViewDataDialogOpen}>
-        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-lg">
+        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Dados do Cliente - {viewingOrder?.name}</DialogTitle>
           </DialogHeader>
           {viewingOrder?.clientData && (
-            <div className="space-y-3">
+            <div className="space-y-4">
+              {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-gray-400 text-xs">Nicho</Label>
@@ -1050,18 +1070,92 @@ const AdsNewsAdmin = () => {
                   <p className="text-white">{viewingOrder.clientData.instagram || '-'}</p>
                 </div>
               </div>
+              
               {viewingOrder.clientData.telegram_group && (
                 <div>
                   <Label className="text-gray-400 text-xs">Grupo Telegram</Label>
                   <p className="text-white break-all">{viewingOrder.clientData.telegram_group}</p>
                 </div>
               )}
+              
+              {/* Competitors */}
+              {(viewingOrder.clientData.competitor1_instagram || viewingOrder.clientData.competitor2_instagram) && (
+                <div className="border-t border-gray-700 pt-3">
+                  <Label className="text-gray-400 text-xs mb-2 block">Concorrentes</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {viewingOrder.clientData.competitor1_instagram && (
+                      <a 
+                        href={viewingOrder.clientData.competitor1_instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline text-sm break-all"
+                      >
+                        🔗 Concorrente 1
+                      </a>
+                    )}
+                    {viewingOrder.clientData.competitor2_instagram && (
+                      <a 
+                        href={viewingOrder.clientData.competitor2_instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline text-sm break-all"
+                      >
+                        🔗 Concorrente 2
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Offer Description */}
+              {viewingOrder.clientData.offer_description && (
+                <div className="border-t border-gray-700 pt-3">
+                  <Label className="text-gray-400 text-xs">Descrição da Oferta</Label>
+                  <div className="bg-yellow-900/30 border border-yellow-700 rounded p-3 mt-1">
+                    <p className="text-yellow-100 whitespace-pre-wrap">{viewingOrder.clientData.offer_description}</p>
+                  </div>
+                </div>
+              )}
+              
               {viewingOrder.clientData.observations && (
                 <div>
                   <Label className="text-gray-400 text-xs">Observações</Label>
-                  <p className="text-white">{viewingOrder.clientData.observations}</p>
+                  <p className="text-white whitespace-pre-wrap">{viewingOrder.clientData.observations}</p>
                 </div>
               )}
+              
+              {/* Media Files */}
+              {viewingOrder.clientData.media_urls && viewingOrder.clientData.media_urls.length > 0 && (
+                <div className="border-t border-gray-700 pt-3">
+                  <Label className="text-gray-400 text-xs mb-2 block">
+                    Mídias Enviadas ({viewingOrder.clientData.media_urls.length} arquivos)
+                  </Label>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    {viewingOrder.clientData.media_urls.map((url, idx) => (
+                      <a 
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        {url.match(/\.(mp4|mov|webm)$/i) ? (
+                          <div className="w-full h-16 bg-gray-700 rounded flex items-center justify-center">
+                            <Play className="h-6 w-6 text-white" />
+                          </div>
+                        ) : (
+                          <img 
+                            src={url} 
+                            alt={`Mídia ${idx + 1}`} 
+                            className="w-full h-16 object-cover rounded"
+                          />
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               {viewingOrder.clientData.logo_url && (
                 <div>
                   <Label className="text-gray-400 text-xs">Logo</Label>
@@ -1078,6 +1172,7 @@ const AdsNewsAdmin = () => {
                   </div>
                 </div>
               )}
+              
               {viewingOrder.clientData.sales_page_url && (
                 <div>
                   <Label className="text-gray-400 text-xs">Página de Vendas</Label>
