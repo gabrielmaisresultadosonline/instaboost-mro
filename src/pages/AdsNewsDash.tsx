@@ -99,7 +99,7 @@ const AdsNewsDash = () => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
-  const [isDataFormCollapsed, setIsDataFormCollapsed] = useState(false);
+  const [isDataFormCollapsed, setIsDataFormCollapsed] = useState(true);
   
   // Payment overlay state
   const [showPaymentOverlay, setShowPaymentOverlay] = useState(false);
