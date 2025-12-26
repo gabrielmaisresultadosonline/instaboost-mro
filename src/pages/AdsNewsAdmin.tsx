@@ -30,8 +30,10 @@ import {
   MessageCircle,
   MapPin,
   Briefcase,
-  Image
+  Image,
+  FileText
 } from "lucide-react";
+import AdsNewsDocumentation from "@/components/admin/AdsNewsDocumentation";
 
 interface ClientData {
   niche: string;
@@ -569,6 +571,10 @@ const AdsNewsAdmin = () => {
               <Users className="h-4 w-4 mr-2" />
               Usuários ({users.length})
             </TabsTrigger>
+            <TabsTrigger value="docs" className="data-[state=active]:bg-purple-600">
+              <FileText className="h-4 w-4 mr-2" />
+              Documentação
+            </TabsTrigger>
           </TabsList>
 
           {/* Orders Tab */}
@@ -1001,6 +1007,11 @@ const AdsNewsAdmin = () => {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* Documentation Tab */}
+          <TabsContent value="docs">
+            <AdsNewsDocumentation />
           </TabsContent>
         </Tabs>
       </main>
