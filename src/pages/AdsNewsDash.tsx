@@ -749,9 +749,11 @@ const AdsNewsDash = () => {
                   const campaignEndDate = new Date(paidBalanceOrder.paid_at);
                   campaignEndDate.setDate(campaignEndDate.getDate() + 30);
                   return (
-                    <p className="text-sm text-green-300">
-                      Saldo adicionado para campanhas até: {campaignEndDate.toLocaleDateString('pt-BR')} (30 dias)
-                    </p>
+                    <>
+                      <p className="text-sm text-green-300">
+                        Saldo adicionado: R$ {paidBalanceOrder.amount.toFixed(2)} para campanhas até: {campaignEndDate.toLocaleDateString('pt-BR')} (30 dias)
+                      </p>
+                    </>
                   );
                 }
                 return null;
