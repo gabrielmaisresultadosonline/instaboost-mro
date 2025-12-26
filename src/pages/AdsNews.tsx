@@ -39,8 +39,7 @@ const AdsNews = () => {
     email: "",
     password: ""
   });
-  const [paymentLink, setPaymentLink] = useState("");
-  const [checkingPayment, setCheckingPayment] = useState(false);
+  // Removed unused paymentLink and checkingPayment states - flow now redirects to dashboard
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -125,14 +124,20 @@ const AdsNews = () => {
       if (error) throw error;
 
       if (data.success && data.paymentLink) {
-        setPaymentLink(data.paymentLink);
         toast({
           title: "Cadastro realizado!",
-          description: "Clique no botão para realizar o pagamento"
+          description: "Redirecionando para o dashboard..."
         });
         
-        // Start checking for payment via InfiniPay API
-        startPaymentCheck(formData.email, data.nsuOrder);
+        // Redirect to dashboard with payment info - user will see payment overlay there
+        localStorage.setItem('ads_pending_payment', JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          paymentLink: data.paymentLink,
+          nsuOrder: data.nsuOrder
+        }));
+        
+        navigate(`/anuncios/dash?email=${encodeURIComponent(formData.email)}&password=${encodeURIComponent(formData.password)}&pending=true`);
       } else {
         throw new Error(data.error || "Erro ao criar checkout");
       }
@@ -148,74 +153,7 @@ const AdsNews = () => {
     }
   };
 
-  const [paymentExpired, setPaymentExpired] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(600); // 10 minutes in seconds
-
-  const startPaymentCheck = (email: string, orderNsu: string) => {
-    setCheckingPayment(true);
-    setPaymentExpired(false);
-    setTimeRemaining(600);
-    
-    const startTime = Date.now();
-    const maxDuration = 10 * 60 * 1000; // 10 minutes
-    
-    // Countdown timer
-    const countdownInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, Math.ceil((maxDuration - elapsed) / 1000));
-      setTimeRemaining(remaining);
-      
-      if (remaining <= 0) {
-        clearInterval(countdownInterval);
-      }
-    }, 1000);
-    
-    // Payment check every 4 seconds
-    const checkInterval = setInterval(async () => {
-      try {
-        const { data } = await supabase.functions.invoke('ads-check-payment', {
-          body: { order_nsu: orderNsu, email }
-        });
-
-        if (data?.paid) {
-          clearInterval(checkInterval);
-          clearInterval(countdownInterval);
-          setCheckingPayment(false);
-          toast({
-            title: "Pagamento confirmado!",
-            description: "Redirecionando para o dashboard..."
-          });
-          window.location.href = `/anuncios/dash?email=${encodeURIComponent(email)}&password=${encodeURIComponent(formData.password)}`;
-        } else if (data?.expired) {
-          clearInterval(checkInterval);
-          clearInterval(countdownInterval);
-          setCheckingPayment(false);
-          setPaymentExpired(true);
-          toast({
-            title: "Pedido expirado",
-            description: "O tempo para pagamento expirou. Por favor, tente novamente.",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error('Check payment error:', error);
-      }
-    }, 4000); // Check every 4 seconds
-
-    // Stop checking after 10 minutes
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      clearInterval(countdownInterval);
-      setCheckingPayment(false);
-      setPaymentExpired(true);
-    }, maxDuration);
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Payment check logic moved to AdsNewsDash - registration now redirects directly there
 
   const benefits = [
     "Leads no seu WhatsApp o dia todo",
@@ -413,158 +351,90 @@ const AdsNews = () => {
                 </button>
               </div>
 
-              {!paymentLink ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="name" className="flex items-center gap-2 text-gray-900">
-                      <User className="h-4 w-4" />
-                      Nome completo *
-                    </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Seu nome"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email" className="flex items-center gap-2 text-gray-900">
-                      <Mail className="h-4 w-4" />
-                      Email *
-                    </Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="seu@email.com"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="password" className="flex items-center gap-2 text-gray-900">
-                      <Lock className="h-4 w-4" />
-                      Senha *
-                    </Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Crie uma senha"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone" className="flex items-center gap-2 text-gray-900">
-                      <Phone className="h-4 w-4" />
-                      Telefone (opcional)
-                    </Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="(00) 00000-0000"
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-orange-500 hover:bg-orange-600"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      <>
-                        Continuar para Pagamento
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-
-                  <p className="text-xs text-gray-500 text-center">
-                    Valor para teste: R$1,00 (produção: R$397)
-                  </p>
-                </form>
-              ) : paymentExpired ? (
-                <div className="text-center space-y-6">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-3xl">⏰</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-lg mb-2 text-red-600">Tempo expirado!</h4>
-                    <p className="text-gray-600 text-sm">
-                      O tempo para pagamento expirou. Por favor, tente novamente.
-                    </p>
-                  </div>
-                  <Button
-                    className="w-full bg-orange-500 hover:bg-orange-600"
-                    onClick={() => {
-                      setPaymentLink("");
-                      setPaymentExpired(false);
-                      setShowRegister(false);
-                      setTimeout(() => setShowRegister(true), 100);
-                    }}
-                  >
-                    Tentar Novamente
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name" className="flex items-center gap-2 text-gray-900">
+                    <User className="h-4 w-4" />
+                    Nome completo *
+                  </Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Seu nome"
+                    required
+                  />
                 </div>
-              ) : (
-                <div className="text-center space-y-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-lg mb-2 text-gray-900">Cadastro realizado!</h4>
-                    <p className="text-gray-600 text-sm">
-                      Clique no botão abaixo para realizar o pagamento
-                    </p>
-                  </div>
 
-                  <Button
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={() => window.open(paymentLink, '_blank')}
-                  >
-                    Pagar Agora
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                <div>
+                  <Label htmlFor="email" className="flex items-center gap-2 text-gray-900">
+                    <Mail className="h-4 w-4" />
+                    Email *
+                  </Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="seu@email.com"
+                    required
+                  />
+                </div>
 
-                  {checkingPayment && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-center gap-2 text-sm text-blue-600">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Verificando pagamento...
-                      </div>
-                      <div className="text-lg font-bold text-orange-500">
-                        Tempo restante: {formatTime(timeRemaining)}
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-orange-500 h-2 rounded-full transition-all duration-1000"
-                          style={{ width: `${(timeRemaining / 600) * 100}%` }}
-                        />
-                      </div>
-                    </div>
+                <div>
+                  <Label htmlFor="password" className="flex items-center gap-2 text-gray-900">
+                    <Lock className="h-4 w-4" />
+                    Senha *
+                  </Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Crie uma senha"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="phone" className="flex items-center gap-2 text-gray-900">
+                    <Phone className="h-4 w-4" />
+                    Telefone (opcional)
+                  </Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-orange-500 hover:bg-orange-600"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      Continuar para Pagamento
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
                   )}
+                </Button>
 
-                  <p className="text-xs text-gray-400">
-                    Após o pagamento, você será redirecionado automaticamente
-                  </p>
-                </div>
-              )}
+                <p className="text-xs text-gray-500 text-center">
+                  Valor para teste: R$1,00 (produção: R$397)
+                </p>
+              </form>
             </CardContent>
           </Card>
         </div>

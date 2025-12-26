@@ -22,7 +22,9 @@ import {
   CreditCard,
   CheckCircle,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Lock,
+  ArrowRight
 } from "lucide-react";
 
 interface UserData {
@@ -56,6 +58,13 @@ interface BalanceOrder {
   created_at: string;
 }
 
+interface PendingPayment {
+  email: string;
+  password: string;
+  paymentLink: string;
+  nsuOrder: string;
+}
+
 const AdsNewsDash = () => {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -75,6 +84,12 @@ const AdsNewsDash = () => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [uploadingLogo, setUploadingLogo] = useState(false);
   
+  // Payment overlay state
+  const [showPaymentOverlay, setShowPaymentOverlay] = useState(false);
+  const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
+  const [checkingPayment, setCheckingPayment] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(600);
+  
   // Balance calculator
   const [leadsQuantity, setLeadsQuantity] = useState(50);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -85,11 +100,24 @@ const AdsNewsDash = () => {
   const calculatedAmount = Math.max(150, leadsQuantity * costPerLead);
 
   useEffect(() => {
-    // Check if coming from registration with auto-login params
+    // Check if coming from registration with pending payment
+    const isPending = searchParams.get('pending') === 'true';
     const email = searchParams.get('email');
     const password = searchParams.get('password');
     
-    if (email && password) {
+    // Check for pending payment data in localStorage
+    const storedPending = localStorage.getItem('ads_pending_payment');
+    
+    if (isPending && storedPending) {
+      const pendingData: PendingPayment = JSON.parse(storedPending);
+      setPendingPayment(pendingData);
+      setShowPaymentOverlay(true);
+      startPaymentCheck(pendingData.email, pendingData.nsuOrder, pendingData.password);
+      // Still load user data in background
+      if (email && password) {
+        loadUserData(email, password, true);
+      }
+    } else if (email && password) {
       handleLogin(email, password);
     } else {
       // Check if user is stored in localStorage
@@ -104,7 +132,65 @@ const AdsNewsDash = () => {
     }
   }, [searchParams]);
 
-  const loadUserData = async (email: string, password: string) => {
+  const startPaymentCheck = (email: string, orderNsu: string, password: string) => {
+    setCheckingPayment(true);
+    setTimeRemaining(600);
+    
+    const startTime = Date.now();
+    const maxDuration = 10 * 60 * 1000; // 10 minutes
+    
+    // Countdown timer
+    const countdownInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, Math.ceil((maxDuration - elapsed) / 1000));
+      setTimeRemaining(remaining);
+      
+      if (remaining <= 0) {
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
+    
+    // Payment check every 4 seconds
+    const checkInterval = setInterval(async () => {
+      try {
+        const { data } = await supabase.functions.invoke('ads-check-payment', {
+          body: { order_nsu: orderNsu, email }
+        });
+
+        if (data?.paid) {
+          clearInterval(checkInterval);
+          clearInterval(countdownInterval);
+          setCheckingPayment(false);
+          setShowPaymentOverlay(false);
+          localStorage.removeItem('ads_pending_payment');
+          localStorage.setItem('ads_user', JSON.stringify({ email, password }));
+          toast({
+            title: "Pagamento confirmado!",
+            description: "Acesso liberado! Preencha seus dados."
+          });
+          // Reload user data
+          loadUserData(email, password);
+        }
+      } catch (error) {
+        console.error('Check payment error:', error);
+      }
+    }, 4000);
+
+    // Stop checking after 10 minutes
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      clearInterval(countdownInterval);
+      setCheckingPayment(false);
+    }, maxDuration);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const loadUserData = async (email: string, password: string, skipOverlayCheck = false) => {
     try {
       const { data, error } = await supabase.functions.invoke('ads-auth', {
         body: { action: 'login', email, password }
@@ -127,6 +213,22 @@ const AdsNewsDash = () => {
           });
         }
         setBalanceOrders(data.balanceOrders || []);
+        
+        // Check if user is pending and needs to pay
+        if (!skipOverlayCheck && data.user.status === 'pending') {
+          // Check for stored pending payment
+          const storedPending = localStorage.getItem('ads_pending_payment');
+          if (storedPending) {
+            const pendingData: PendingPayment = JSON.parse(storedPending);
+            setPendingPayment(pendingData);
+            setShowPaymentOverlay(true);
+            startPaymentCheck(email, pendingData.nsuOrder, password);
+          }
+        } else {
+          // Clear any stored pending payment data if user is active
+          localStorage.removeItem('ads_pending_payment');
+        }
+        
         localStorage.setItem('ads_user', JSON.stringify({ email, password }));
         setShowLogin(false);
       } else {
@@ -341,7 +443,60 @@ const AdsNewsDash = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Payment Overlay - Blocking until payment confirmed */}
+      {showPaymentOverlay && pendingPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Blurred background */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          
+          {/* Payment card */}
+          <Card className="relative z-10 w-full max-w-md bg-white shadow-2xl">
+            <CardContent className="p-8 text-center space-y-6">
+              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+                <Lock className="h-10 w-10 text-orange-600" />
+              </div>
+              
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  Monte sua campanha!
+                </h3>
+                <p className="text-gray-600">
+                  Para liberar o acesso à sua dashboard e montar sua campanha com seus dados, faça o pagamento de:
+                </p>
+              </div>
+              
+              <div className="text-4xl font-bold text-orange-600">
+                R$ 397
+              </div>
+              
+              <Button
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white text-lg py-6"
+                onClick={() => window.open(pendingPayment.paymentLink, '_blank')}
+              >
+                Pagar Agora
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              
+              {checkingPayment && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-blue-600">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="font-medium">Verificando pagamento...</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Tempo restante: <span className="font-mono font-medium">{formatTime(timeRemaining)}</span>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Ao identificar o pagamento, sua dashboard será liberada automaticamente
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
