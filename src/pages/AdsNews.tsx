@@ -173,7 +173,7 @@ const AdsNews = () => {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageCircle className="h-8 w-8 text-green-600" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">WhatsApp</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">WhatsApp</h3>
                 <p className="text-gray-600">Anúncios diretos para o seu WhatsApp Business ou normal</p>
               </CardContent>
             </Card>
@@ -183,7 +183,7 @@ const AdsNews = () => {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Send className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">Telegram</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Telegram</h3>
                 <p className="text-gray-600">Envio para grupos de Telegram e canais</p>
               </CardContent>
             </Card>
@@ -193,7 +193,7 @@ const AdsNews = () => {
                 <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Instagram className="h-8 w-8 text-pink-600" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">Instagram</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Instagram</h3>
                 <p className="text-gray-600">Feed, Stories e Reels patrocinados</p>
               </CardContent>
             </Card>
@@ -203,7 +203,7 @@ const AdsNews = () => {
                 <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Facebook className="h-8 w-8 text-indigo-600" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">Facebook</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Facebook</h3>
                 <p className="text-gray-600">Feed, Marketplace e Messenger</p>
               </CardContent>
             </Card>
@@ -213,7 +213,7 @@ const AdsNews = () => {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Users className="h-8 w-8 text-purple-600" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">Criativos</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Criativos</h3>
                 <p className="text-gray-600">Criamos os anúncios e artes para você</p>
               </CardContent>
             </Card>
@@ -223,7 +223,7 @@ const AdsNews = () => {
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="h-8 w-8 text-orange-600" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">Sem Dor de Cabeça</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Sem Dor de Cabeça</h3>
                 <p className="text-gray-600">Apenas passe as informações e nós fazemos tudo</p>
               </CardContent>
             </Card>
