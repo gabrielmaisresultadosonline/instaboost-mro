@@ -736,11 +736,27 @@ const AdsNewsDash = () => {
                 : "Preencha seus dados abaixo para começarmos a criar seus anúncios"
               }
             </p>
-            {user?.subscription_end && (
-              <p className="text-sm text-blue-200 mt-2">
-                Assinatura válida até: {new Date(user.subscription_end).toLocaleDateString('pt-BR')}
-              </p>
-            )}
+            <div className="mt-3 space-y-1">
+              {user?.subscription_end && (
+                <p className="text-sm text-blue-200">
+                  Assinatura válida até: {new Date(user.subscription_end).toLocaleDateString('pt-BR')}
+                </p>
+              )}
+              {hasPaidBalance && (() => {
+                // Find the most recent paid balance order
+                const paidBalanceOrder = balanceOrders.find(o => o.status === 'paid' && o.paid_at);
+                if (paidBalanceOrder?.paid_at) {
+                  const campaignEndDate = new Date(paidBalanceOrder.paid_at);
+                  campaignEndDate.setDate(campaignEndDate.getDate() + 30);
+                  return (
+                    <p className="text-sm text-green-300">
+                      Saldo adicionado para campanhas até: {campaignEndDate.toLocaleDateString('pt-BR')} (30 dias)
+                    </p>
+                  );
+                }
+                return null;
+              })()}
+            </div>
           </CardContent>
         </Card>
 
