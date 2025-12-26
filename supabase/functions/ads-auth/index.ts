@@ -188,12 +188,13 @@ serve(async (req) => {
 
       const { data: existing } = await supabase
         .from('ads_client_data')
-        .select('id')
+        .select('id, edit_count')
         .eq('user_id', userId)
         .single();
 
       if (existing) {
-        // Update existing
+        // Update existing and increment edit_count
+        const newEditCount = (existing.edit_count || 0) + 1;
         const { error } = await supabase
           .from('ads_client_data')
           .update({
@@ -207,13 +208,14 @@ serve(async (req) => {
             competitor1_instagram: competitor1Instagram,
             competitor2_instagram: competitor2Instagram,
             media_urls: mediaUrls || [],
-            offer_description: offerDescription
+            offer_description: offerDescription,
+            edit_count: newEditCount
           })
           .eq('user_id', userId);
 
         if (error) throw error;
       } else {
-        // Insert new
+        // Insert new with edit_count = 1
         const { error } = await supabase
           .from('ads_client_data')
           .insert({
@@ -228,7 +230,8 @@ serve(async (req) => {
             competitor1_instagram: competitor1Instagram,
             competitor2_instagram: competitor2Instagram,
             media_urls: mediaUrls || [],
-            offer_description: offerDescription
+            offer_description: offerDescription,
+            edit_count: 1
           });
 
         if (error) throw error;
