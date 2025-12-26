@@ -406,7 +406,7 @@ const AdsNews = () => {
 
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={() => window.open(paymentLink, '_blank')}
+                    onClick={() => window.location.href = paymentLink}
                   >
                     Pagar Agora
                     <ArrowRight className="ml-2 h-4 w-4" />
