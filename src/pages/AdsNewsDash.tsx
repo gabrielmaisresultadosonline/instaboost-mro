@@ -1106,34 +1106,75 @@ const AdsNewsDash = () => {
         {balanceOrders.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Histórico de Saldo</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Histórico de Saldo para Anúncios
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {balanceOrders.map((order) => (
-                  <div 
-                    key={order.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">R$ {order.amount.toFixed(2)}</p>
-                      <p className="text-sm text-gray-500">{order.leads_quantity} leads</p>
+                {balanceOrders.map((order) => {
+                  const orderDate = new Date(order.created_at);
+                  const paidDate = order.paid_at ? new Date(order.paid_at) : null;
+                  const campaignEnd = paidDate ? new Date(paidDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
+                  const dailyBudget = order.amount / 30;
+                  
+                  return (
+                    <div 
+                      key={order.id}
+                      className={`p-4 rounded-lg border ${order.status === 'paid' ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            {order.status === 'paid' ? (
+                              <span className="flex items-center gap-1 text-green-700 font-semibold">
+                                <CheckCircle className="h-5 w-5" />
+                                Saldo Adicionado
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-yellow-700 font-semibold">
+                                <Clock className="h-5 w-5" />
+                                Aguardando Pagamento
+                              </span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
+                            <div>
+                              <p className="text-gray-500">Valor</p>
+                              <p className="font-bold text-gray-800">R$ {order.amount.toFixed(2)}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Leads estimados</p>
+                              <p className="font-bold text-gray-800">~{order.leads_quantity}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Gasto/dia</p>
+                              <p className="font-bold text-blue-600">R$ {dailyBudget.toFixed(2)}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Duração</p>
+                              <p className="font-bold text-gray-800">30 dias</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right text-xs text-gray-500">
+                          <p>Criado: {orderDate.toLocaleDateString('pt-BR')} às {orderDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+                          {paidDate && (
+                            <p className="text-green-600">
+                              Pago: {paidDate.toLocaleDateString('pt-BR')} às {paidDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          )}
+                          {campaignEnd && order.status === 'paid' && (
+                            <p className="text-blue-600">
+                              Campanha até: {campaignEnd.toLocaleDateString('pt-BR')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {order.status === 'paid' ? (
-                        <span className="flex items-center gap-1 text-green-600 text-sm">
-                          <CheckCircle className="h-4 w-4" />
-                          Pago
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-yellow-600 text-sm">
-                          <Clock className="h-4 w-4" />
-                          Pendente
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
