@@ -487,11 +487,14 @@ const AdsNewsDash = () => {
 
     setBalanceLoading(true);
     try {
+      // TESTING: Using R$2 for testing payment flow
+      const testAmount = 2;
+      
       const { data, error } = await supabase.functions.invoke('ads-balance-checkout', {
         body: {
           userId: user.id,
           email: user.email,
-          amount: calculatedAmount,
+          amount: testAmount, // Using R$2 for testing
           leadsQuantity
         }
       });
@@ -1060,7 +1063,7 @@ const AdsNewsDash = () => {
                         ) : (
                           <>
                             <CreditCard className="mr-2 h-5 w-5" />
-                            Adicionar Saldo - R$ {calculatedAmount.toFixed(2)}
+                            Adicionar Saldo - R$ 2.00 (TESTE)
                           </>
                         )}
                       </Button>
@@ -1071,7 +1074,7 @@ const AdsNewsDash = () => {
                           className="w-full bg-green-600 hover:bg-green-700 text-base py-6"
                         >
                           <ExternalLink className="mr-2 h-5 w-5" />
-                          Pagar Saldo - R$ {calculatedAmount.toFixed(2)}
+                          Pagar Saldo - R$ 2.00 (TESTE)
                         </Button>
                         <Button 
                           variant="outline"
