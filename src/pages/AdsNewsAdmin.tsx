@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { 
   Users, 
   CreditCard, 
@@ -22,8 +24,25 @@ import {
   RotateCcw,
   Mail,
   Phone,
-  Calendar
+  Calendar,
+  Play,
+  Instagram,
+  MessageCircle,
+  MapPin,
+  Briefcase,
+  Image
 } from "lucide-react";
+
+interface ClientData {
+  niche: string;
+  region: string;
+  instagram: string;
+  whatsapp: string;
+  telegram_group: string;
+  logo_url: string;
+  observations: string;
+  sales_page_url: string;
+}
 
 interface User {
   id: string;
@@ -34,16 +53,7 @@ interface User {
   subscription_start: string;
   subscription_end: string;
   created_at: string;
-  ads_client_data?: {
-    niche: string;
-    region: string;
-    instagram: string;
-    whatsapp: string;
-    telegram_group: string;
-    logo_url: string;
-    observations: string;
-    sales_page_url: string;
-  }[];
+  ads_client_data?: ClientData[];
   ads_orders?: {
     id: string;
     amount: number;
@@ -71,6 +81,12 @@ interface Order {
   expired_at: string | null;
   created_at: string;
   infinitepay_link: string;
+  user?: {
+    id: string;
+    status: string;
+    subscription_end: string;
+  };
+  clientData?: ClientData;
 }
 
 const AdsNewsAdmin = () => {
@@ -84,6 +100,20 @@ const AdsNewsAdmin = () => {
   const [savingUrl, setSavingUrl] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [lastVerification, setLastVerification] = useState<Date | null>(null);
+
+  // Activate ads dialog state
+  const [activateDialogOpen, setActivateDialogOpen] = useState(false);
+  const [activatingOrder, setActivatingOrder] = useState<Order | null>(null);
+  const [activateForm, setActivateForm] = useState({
+    subscriptionEnd: "",
+    salesPageUrl: "",
+    sendEmail: true
+  });
+  const [activating, setActivating] = useState(false);
+
+  // View client data dialog
+  const [viewDataDialogOpen, setViewDataDialogOpen] = useState(false);
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     const storedAdmin = localStorage.getItem('ads_admin');
@@ -231,6 +261,85 @@ const AdsNewsAdmin = () => {
     }
   };
 
+  const handleExpireUser = async (userId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('ads-auth', {
+        body: { action: 'expire-user', userId }
+      });
+
+      if (error) throw error;
+      
+      await loadAllData();
+      toast({ title: "Usuário marcado como expirado!" });
+    } catch (error) {
+      console.error('Expire user error:', error);
+    }
+  };
+
+  const handleResendEmail = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('ads-auth', {
+        body: { action: 'resend-access-email', userId }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast({ title: "Email reenviado com sucesso!" });
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      console.error('Resend email error:', error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao reenviar email",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleActivateAds = async () => {
+    if (!activatingOrder?.user?.id || !activateForm.subscriptionEnd) {
+      toast({
+        title: "Erro",
+        description: "Preencha a data de expiração",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setActivating(true);
+    try {
+      const { error } = await supabase.functions.invoke('ads-auth', {
+        body: {
+          action: 'activate-ads',
+          userId: activatingOrder.user.id,
+          subscriptionEnd: activateForm.subscriptionEnd,
+          salesPageUrl: activateForm.salesPageUrl,
+          sendEmail: activateForm.sendEmail
+        }
+      });
+
+      if (error) throw error;
+
+      await loadAllData();
+      setActivateDialogOpen(false);
+      setActivatingOrder(null);
+      setActivateForm({ subscriptionEnd: "", salesPageUrl: "", sendEmail: true });
+      toast({ title: "Anúncios ativados com sucesso!" });
+    } catch (error) {
+      console.error('Activate ads error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao ativar anúncios",
+        variant: "destructive"
+      });
+    } finally {
+      setActivating(false);
+    }
+  };
+
   const handleSaveSalesPage = async () => {
     if (!selectedUser || !salesPageUrl) return;
 
@@ -275,6 +384,24 @@ const AdsNewsAdmin = () => {
     }
   };
 
+  const openActivateDialog = (order: Order) => {
+    setActivatingOrder(order);
+    // Set default date to 30 days from now
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 30);
+    setActivateForm({
+      subscriptionEnd: defaultDate.toISOString().split('T')[0],
+      salesPageUrl: order.clientData?.sales_page_url || "",
+      sendEmail: true
+    });
+    setActivateDialogOpen(true);
+  };
+
+  const openViewDataDialog = (order: Order) => {
+    setViewingOrder(order);
+    setViewDataDialogOpen(true);
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
@@ -291,6 +418,11 @@ const AdsNewsAdmin = () => {
         return <Badge>{status}</Badge>;
     }
   };
+
+  // Separate orders by status
+  const pendingOrders = orders.filter(o => o.status === 'pending');
+  const paidOrders = orders.filter(o => o.status === 'paid');
+  const expiredOrders = orders.filter(o => o.status === 'expired');
 
   if (loading) {
     return (
@@ -388,76 +520,238 @@ const AdsNewsAdmin = () => {
           </TabsList>
 
           {/* Orders Tab */}
-          <TabsContent value="orders" className="space-y-4">
-            <div className="grid gap-4">
-              {orders.map((order) => (
-                <Card key={order.id} className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-lg">{order.name}</span>
-                          {getStatusBadge(order.status)}
+          <TabsContent value="orders" className="space-y-6">
+            {/* Pending Orders */}
+            {pendingOrders.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-yellow-400 mb-3 flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Pendentes ({pendingOrders.length})
+                </h3>
+                <div className="grid gap-4">
+                  {pendingOrders.map((order) => (
+                    <Card key={order.id} className="bg-gray-800 border-yellow-500/30">
+                      <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-lg">{order.name}</span>
+                              {getStatusBadge(order.status)}
+                            </div>
+                            <p className="text-gray-400 flex items-center gap-2">
+                              <Mail className="h-4 w-4" />
+                              {order.email}
+                            </p>
+                            <p className="text-gray-500 text-sm">
+                              <Calendar className="h-3 w-3 inline mr-1" />
+                              {new Date(order.created_at).toLocaleString('pt-BR')}
+                            </p>
+                          </div>
+                          
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-green-400">
+                              R$ {order.amount.toFixed(2)}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              <Button 
+                                size="sm" 
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => handleMarkAsPaid(order.id)}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Marcar Pago
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => handleMarkAsExpired(order.id)}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Expirar
+                              </Button>
+                            </div>
+                            {order.infinitepay_link && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="mt-2 border-gray-600"
+                                onClick={() => window.open(order.infinitepay_link, '_blank')}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                Ver Link
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-gray-400 flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          {order.email}
-                        </p>
-                        <p className="text-gray-500 text-sm">
-                          <Calendar className="h-3 w-3 inline mr-1" />
-                          {new Date(order.created_at).toLocaleString('pt-BR')}
-                        </p>
-                      </div>
-                      
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-green-400">
-                          R$ {order.amount.toFixed(2)}
-                        </p>
-                        {order.status === 'pending' && (
-                          <div className="flex gap-2 mt-2">
-                            <Button 
-                              size="sm" 
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleMarkAsPaid(order.id)}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Marcar Pago
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="destructive"
-                              onClick={() => handleMarkAsExpired(order.id)}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Expirar
-                            </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Paid Orders */}
+            {paidOrders.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5" />
+                  Pagos ({paidOrders.length})
+                </h3>
+                <div className="grid gap-4">
+                  {paidOrders.map((order) => (
+                    <Card key={order.id} className="bg-gray-800 border-green-500/30">
+                      <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-lg">{order.name}</span>
+                              {getStatusBadge(order.status)}
+                              {order.user?.status === 'active' && (
+                                <Badge className="bg-blue-500">
+                                  <Play className="h-3 w-3 mr-1" />
+                                  Anúncios Ativos
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-gray-400 flex items-center gap-2">
+                              <Mail className="h-4 w-4" />
+                              {order.email}
+                            </p>
+                            <p className="text-gray-500 text-sm">
+                              <Calendar className="h-3 w-3 inline mr-1" />
+                              Pago em: {order.paid_at ? new Date(order.paid_at).toLocaleString('pt-BR') : '-'}
+                            </p>
+                            {order.user?.subscription_end && (
+                              <p className="text-blue-400 text-sm">
+                                Ativo até: {new Date(order.user.subscription_end).toLocaleDateString('pt-BR')}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-green-400">
+                              R$ {order.amount.toFixed(2)}
+                            </p>
+                            <div className="flex flex-wrap gap-2 mt-2 justify-end">
+                              {order.clientData && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  className="border-blue-500 text-blue-400"
+                                  onClick={() => openViewDataDialog(order)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Ver Dados
+                                </Button>
+                              )}
+                              {order.user && (
+                                <>
+                                  <Button 
+                                    size="sm" 
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                    onClick={() => openActivateDialog(order)}
+                                  >
+                                    <Play className="h-4 w-4 mr-1" />
+                                    Ativar Anúncios
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="border-gray-600"
+                                    onClick={() => handleResendEmail(order.user!.id)}
+                                  >
+                                    <Mail className="h-4 w-4 mr-1" />
+                                    Reenviar Email
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quick view of client data if exists */}
+                        {order.clientData && (
+                          <div className="mt-4 pt-4 border-t border-gray-700 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            {order.clientData.niche && (
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <Briefcase className="h-3 w-3" />
+                                {order.clientData.niche}
+                              </div>
+                            )}
+                            {order.clientData.region && (
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <MapPin className="h-3 w-3" />
+                                {order.clientData.region}
+                              </div>
+                            )}
+                            {order.clientData.whatsapp && (
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <MessageCircle className="h-3 w-3" />
+                                {order.clientData.whatsapp}
+                              </div>
+                            )}
+                            {order.clientData.instagram && (
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <Instagram className="h-3 w-3" />
+                                {order.clientData.instagram}
+                              </div>
+                            )}
                           </div>
                         )}
-                        {order.infinitepay_link && (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="mt-2 border-gray-600"
-                            onClick={() => window.open(order.infinitepay_link, '_blank')}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            Ver Link
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
-              {orders.length === 0 && (
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-8 text-center text-gray-400">
-                    Nenhum pedido encontrado
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+            {/* Expired Orders */}
+            {expiredOrders.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-red-400 mb-3 flex items-center gap-2">
+                  <XCircle className="h-5 w-5" />
+                  Expirados ({expiredOrders.length})
+                </h3>
+                <div className="grid gap-4">
+                  {expiredOrders.map((order) => (
+                    <Card key={order.id} className="bg-gray-800 border-red-500/30 opacity-75">
+                      <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-lg">{order.name}</span>
+                              {getStatusBadge(order.status)}
+                            </div>
+                            <p className="text-gray-400 flex items-center gap-2">
+                              <Mail className="h-4 w-4" />
+                              {order.email}
+                            </p>
+                            <p className="text-gray-500 text-sm">
+                              <Calendar className="h-3 w-3 inline mr-1" />
+                              {new Date(order.created_at).toLocaleString('pt-BR')}
+                            </p>
+                          </div>
+                          
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-gray-500">
+                              R$ {order.amount.toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {orders.length === 0 && (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-8 text-center text-gray-400">
+                  Nenhum pedido encontrado
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Users Tab */}
@@ -520,7 +814,7 @@ const AdsNewsAdmin = () => {
                       </p>
                     )}
 
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex flex-wrap gap-2 mt-3">
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -535,18 +829,43 @@ const AdsNewsAdmin = () => {
                         Detalhes
                       </Button>
                       {user.status === 'active' && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="border-orange-500 text-orange-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEnableRenewal(user.id);
-                          }}
-                        >
-                          <RotateCcw className="h-4 w-4 mr-1" />
-                          Habilitar Renovação
-                        </Button>
+                        <>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="border-orange-500 text-orange-400"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEnableRenewal(user.id);
+                            }}
+                          >
+                            <RotateCcw className="h-4 w-4 mr-1" />
+                            Renovação
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="border-gray-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleResendEmail(user.id);
+                            }}
+                          >
+                            <Mail className="h-4 w-4 mr-1" />
+                            Email
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleExpireUser(user.id);
+                            }}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Expirar
+                          </Button>
+                        </>
                       )}
                     </div>
                   </CardContent>
@@ -610,6 +929,131 @@ const AdsNewsAdmin = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Activate Ads Dialog */}
+      <Dialog open={activateDialogOpen} onOpenChange={setActivateDialogOpen}>
+        <DialogContent className="bg-gray-800 border-gray-700 text-white">
+          <DialogHeader>
+            <DialogTitle>Ativar Anúncios para {activatingOrder?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Anúncios ativos até *</Label>
+              <Input
+                type="date"
+                value={activateForm.subscriptionEnd}
+                onChange={(e) => setActivateForm({ ...activateForm, subscriptionEnd: e.target.value })}
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-300">URL da Página de Vendas</Label>
+              <Input
+                value={activateForm.salesPageUrl}
+                onChange={(e) => setActivateForm({ ...activateForm, salesPageUrl: e.target.value })}
+                placeholder="https://sua-pagina.com/cliente"
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-gray-300">Enviar email de ativação</Label>
+              <Switch
+                checked={activateForm.sendEmail}
+                onCheckedChange={(checked) => setActivateForm({ ...activateForm, sendEmail: checked })}
+              />
+            </div>
+            <Button 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={handleActivateAds}
+              disabled={activating}
+            >
+              {activating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Ativando...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Ativar Anúncios
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Client Data Dialog */}
+      <Dialog open={viewDataDialogOpen} onOpenChange={setViewDataDialogOpen}>
+        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Dados do Cliente - {viewingOrder?.name}</DialogTitle>
+          </DialogHeader>
+          {viewingOrder?.clientData && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-400 text-xs">Nicho</Label>
+                  <p className="text-white">{viewingOrder.clientData.niche || '-'}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-400 text-xs">Região</Label>
+                  <p className="text-white">{viewingOrder.clientData.region || '-'}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-400 text-xs">WhatsApp</Label>
+                  <p className="text-white">{viewingOrder.clientData.whatsapp || '-'}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-400 text-xs">Instagram</Label>
+                  <p className="text-white">{viewingOrder.clientData.instagram || '-'}</p>
+                </div>
+              </div>
+              {viewingOrder.clientData.telegram_group && (
+                <div>
+                  <Label className="text-gray-400 text-xs">Grupo Telegram</Label>
+                  <p className="text-white break-all">{viewingOrder.clientData.telegram_group}</p>
+                </div>
+              )}
+              {viewingOrder.clientData.observations && (
+                <div>
+                  <Label className="text-gray-400 text-xs">Observações</Label>
+                  <p className="text-white">{viewingOrder.clientData.observations}</p>
+                </div>
+              )}
+              {viewingOrder.clientData.logo_url && (
+                <div>
+                  <Label className="text-gray-400 text-xs">Logo</Label>
+                  <div className="flex items-center gap-2">
+                    <Image className="h-4 w-4 text-blue-400" />
+                    <a 
+                      href={viewingOrder.clientData.logo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:underline"
+                    >
+                      Ver Logo
+                    </a>
+                  </div>
+                </div>
+              )}
+              {viewingOrder.clientData.sales_page_url && (
+                <div>
+                  <Label className="text-gray-400 text-xs">Página de Vendas</Label>
+                  <a 
+                    href={viewingOrder.clientData.sales_page_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:underline break-all"
+                  >
+                    {viewingOrder.clientData.sales_page_url}
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
