@@ -271,7 +271,7 @@ serve(async (req) => {
 
       if (error) throw error;
 
-      // For paid orders, get user client data
+      // For paid orders, get user client data and balance orders
       const ordersWithData = await Promise.all(orders.map(async (order) => {
         if (order.status === 'paid') {
           const { data: user } = await supabase
@@ -287,7 +287,17 @@ serve(async (req) => {
               .eq('user_id', user.id)
               .single();
 
-            return { ...order, user, clientData };
+            const { data: balanceOrders } = await supabase
+              .from('ads_balance_orders')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false });
+
+            return { 
+              ...order, 
+              user: { ...user, ads_balance_orders: balanceOrders || [] }, 
+              clientData 
+            };
           }
         }
         return order;
@@ -409,7 +419,12 @@ serve(async (req) => {
 
     } else if (action === 'activate-ads') {
       // Admin: Activate ads for user with end date and page URL
-      const { userId, subscriptionEnd, salesPageUrl, sendEmail } = body;
+      const { userId, subscriptionEnd, salesPageUrl, sendEmail, balanceAmount } = body;
+
+      // Calculate campaign end date (30 days from activation)
+      const campaignActivatedAt = new Date();
+      const campaignEndDate = new Date(campaignActivatedAt);
+      campaignEndDate.setDate(campaignEndDate.getDate() + 30);
 
       // Update user status and subscription end
       const { error: userError } = await supabase
@@ -422,28 +437,32 @@ serve(async (req) => {
 
       if (userError) throw userError;
 
-      // Save sales page URL if provided
-      if (salesPageUrl) {
-        // Check if client data exists
-        const { data: existing } = await supabase
-          .from('ads_client_data')
-          .select('id')
-          .eq('user_id', userId)
-          .single();
+      // Update client data with campaign activation and sales page
+      const { data: existing } = await supabase
+        .from('ads_client_data')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
 
-        if (existing) {
-          await supabase
-            .from('ads_client_data')
-            .update({ sales_page_url: salesPageUrl })
-            .eq('user_id', userId);
-        } else {
-          await supabase
-            .from('ads_client_data')
-            .insert({
-              user_id: userId,
-              sales_page_url: salesPageUrl
-            });
-        }
+      const campaignData = {
+        sales_page_url: salesPageUrl || null,
+        campaign_active: true,
+        campaign_activated_at: campaignActivatedAt.toISOString(),
+        campaign_end_date: campaignEndDate.toISOString()
+      };
+
+      if (existing) {
+        await supabase
+          .from('ads_client_data')
+          .update(campaignData)
+          .eq('user_id', userId);
+      } else {
+        await supabase
+          .from('ads_client_data')
+          .insert({
+            user_id: userId,
+            ...campaignData
+          });
       }
 
       // Send activation email if requested
@@ -455,36 +474,88 @@ serve(async (req) => {
           .single();
 
         if (user) {
-          const endDate = new Date(subscriptionEnd).toLocaleDateString('pt-BR');
+          const endDate = campaignEndDate.toLocaleDateString('pt-BR');
+          const year = new Date().getFullYear();
 
-          const html = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ads-news-full.png" alt="Ads News" style="max-width: 200px; margin-bottom: 20px;" />
-              
-              <h1 style="color: #1d4ed8;">Olá, ${user.name}! 🎉</h1>
-              
-              <p style="font-size: 18px; color: #333;">Temos uma ótima notícia: <strong>seus anúncios estão ativos!</strong></p>
-              
-              <div style="background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                <p style="margin: 0; font-size: 16px;">📅 <strong>Anúncios ativos até:</strong></p>
-                <p style="margin: 10px 0 0 0; font-size: 24px; font-weight: bold;">${endDate}</p>
-              </div>
-              
-              ${salesPageUrl ? `
-              <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 20px 0;">
-                <p style="margin: 0; color: #1d4ed8;"><strong>🔗 Sua página de vendas:</strong></p>
-                <a href="${salesPageUrl}" style="color: #1d4ed8; word-break: break-all;">${salesPageUrl}</a>
-              </div>
-              ` : ''}
-              
-              <p style="color: #666;">Acesse seu painel para acompanhar os resultados:</p>
-              <a href="https://mrodigital.site/anuncios/dash" style="display: inline-block; background: #1d4ed8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Painel</a>
-              
-              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-              
-              <p style="color: #999; font-size: 12px;">Ads News - Leads no seu WhatsApp o dia todo</p>
-            </div>
-          `;
+          const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 20px 0;">
+<tr>
+<td align="center">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
+<tr>
+<td style="background: linear-gradient(135deg, #1d4ed8, #3b82f6); padding: 30px; text-align: center;">
+<img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ads-news-full.png" alt="Ads News" style="max-width: 180px; height: auto;" />
+</td>
+</tr>
+
+<tr>
+<td style="padding: 40px 30px;">
+<h1 style="color: #1d4ed8; margin: 0 0 20px 0; font-size: 28px;">Olá, ${user.name}! 🎉</h1>
+<p style="font-size: 18px; color: #333333; margin: 0 0 25px 0; line-height: 1.5;">Temos uma ótima notícia: <strong>seus anúncios estão ativos!</strong></p>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #1d4ed8, #3b82f6); border-radius: 12px; margin-bottom: 25px;">
+<tr>
+<td style="padding: 25px; text-align: center;">
+<p style="margin: 0; font-size: 16px; color: #ffffff;">📅 Anúncios ativos até:</p>
+<p style="margin: 10px 0 0 0; font-size: 32px; font-weight: bold; color: #ffffff;">${endDate}</p>
+</td>
+</tr>
+</table>
+
+${salesPageUrl ? `
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f0f9ff; border-radius: 12px; margin-bottom: 25px; border: 2px solid #1d4ed8;">
+<tr>
+<td style="padding: 20px;">
+<p style="margin: 0 0 8px 0; color: #1d4ed8; font-weight: bold;">🔗 Sua página de vendas:</p>
+<a href="${salesPageUrl}" style="color: #1d4ed8; word-break: break-all; font-size: 16px;">${salesPageUrl}</a>
+</td>
+</tr>
+</table>
+` : ''}
+
+${balanceAmount ? `
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f0fdf4; border-radius: 12px; margin-bottom: 25px; border: 2px solid #16a34a;">
+<tr>
+<td style="padding: 20px; text-align: center;">
+<p style="margin: 0 0 8px 0; color: #16a34a; font-weight: bold;">💰 Saldo investido na campanha:</p>
+<p style="margin: 0; font-size: 28px; font-weight: bold; color: #16a34a;">R$ ${Number(balanceAmount).toFixed(2)}</p>
+</td>
+</tr>
+</table>
+` : ''}
+
+<p style="color: #666666; margin: 0 0 20px 0;">Acesse seu painel para acompanhar os resultados:</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td align="center">
+<a href="https://mrodigital.site/anuncios/dash" style="display: inline-block; background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: #ffffff; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">Acessar Painel</a>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr>
+<td style="background-color: #1a1a1a; padding: 25px; text-align: center;">
+<p style="color: #3b82f6; margin: 0 0 8px 0; font-weight: bold; font-size: 14px;">Ads News - Leads no seu WhatsApp</p>
+<p style="color: #888888; margin: 0; font-size: 12px;">© ${year} Ads News - Todos os direitos reservados</p>
+</td>
+</tr>
+
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>`;
 
           await sendEmailViaSMTP(user.email, '🚀 Seus anúncios estão ATIVOS!', html);
         }

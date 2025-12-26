@@ -87,6 +87,9 @@ export type Database = {
       }
       ads_client_data: {
         Row: {
+          campaign_activated_at: string | null
+          campaign_active: boolean | null
+          campaign_end_date: string | null
           competitor1_instagram: string | null
           competitor2_instagram: string | null
           created_at: string
@@ -106,6 +109,9 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          campaign_activated_at?: string | null
+          campaign_active?: boolean | null
+          campaign_end_date?: string | null
           competitor1_instagram?: string | null
           competitor2_instagram?: string | null
           created_at?: string
@@ -125,6 +131,9 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          campaign_activated_at?: string | null
+          campaign_active?: boolean | null
+          campaign_end_date?: string | null
           competitor1_instagram?: string | null
           competitor2_instagram?: string | null
           created_at?: string
