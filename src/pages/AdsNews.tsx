@@ -144,11 +144,11 @@ const AdsNews = () => {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
             Leads no seu WhatsApp<br />
-            <span className="text-orange-400">o dia todo</span> a partir de R$397/mês
+            <span className="text-orange-400">o dia todo</span> por apenas R$397/mês
           </h1>
           <p className="text-lg md:text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
             Vamos anunciar sua empresa, seus produtos e seus negócios. 
-            Primeiro mês por apenas <span className="font-bold text-orange-400">R$397</span>, depois R$600/mês.
+            Mensal promocional de apenas <span className="font-bold text-orange-400">R$397</span>.
           </p>
           <Button 
             size="lg" 
