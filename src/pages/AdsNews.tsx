@@ -310,7 +310,7 @@ const AdsNews = () => {
               {!paymentLink ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="name" className="flex items-center gap-2">
+                    <Label htmlFor="name" className="flex items-center gap-2 text-gray-900">
                       <User className="h-4 w-4" />
                       Nome completo *
                     </Label>
@@ -325,7 +325,7 @@ const AdsNews = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="email" className="flex items-center gap-2">
+                    <Label htmlFor="email" className="flex items-center gap-2 text-gray-900">
                       <Mail className="h-4 w-4" />
                       Email *
                     </Label>
@@ -341,7 +341,7 @@ const AdsNews = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="password" className="flex items-center gap-2">
+                    <Label htmlFor="password" className="flex items-center gap-2 text-gray-900">
                       <Lock className="h-4 w-4" />
                       Senha *
                     </Label>
@@ -357,7 +357,7 @@ const AdsNews = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="phone" className="flex items-center gap-2">
+                    <Label htmlFor="phone" className="flex items-center gap-2 text-gray-900">
                       <Phone className="h-4 w-4" />
                       Telefone (opcional)
                     </Label>
