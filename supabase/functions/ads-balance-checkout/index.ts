@@ -6,8 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const INFINITEPAY_HANDLE = 'mro_instagram';
-const REDIRECT_URL = 'https://adljdeekwifwcdcgbpit.lovableproject.com/anuncios/dash';
+const INFINITEPAY_HANDLE = 'paguemro';
+const INFINITEPAY_CHECKOUT_LINKS_URL = 'https://api.infinitepay.io/invoices/public/checkout/links';
+const REDIRECT_URL = 'https://pay.maisresultadosonline.com.br/anuncios/dash';
 
 const log = (step: string, details?: unknown) => {
   console.log(`[ADS-BALANCE-CHECKOUT] ${step}:`, details ? JSON.stringify(details, null, 2) : '');
@@ -17,6 +18,10 @@ const generateNSU = (): string => {
   const timestamp = Date.now().toString(36);
   const randomPart = Math.random().toString(36).substring(2, 8);
   return `ADSBAL${timestamp}${randomPart}`.toUpperCase();
+};
+
+const getCheckoutUrl = (data: any): string | null => {
+  return data?.checkout_url || data?.checkoutUrl || data?.link || data?.url || null;
 };
 
 serve(async (req) => {
@@ -39,58 +44,72 @@ serve(async (req) => {
       );
     }
 
+    const cleanEmail = email.toLowerCase().trim();
     const nsuOrder = generateNSU();
     const priceInCents = Math.round(amount * 100);
     
     // Product name format: saldoanun_EMAIL (different from initial payment anun_EMAIL)
-    const productName = `saldoanun_${email}`;
+    const description = `saldoanun_${cleanEmail}`;
+    const lineItems = [{ description, quantity: 1, price: priceInCents }];
     
     const webhookUrl = `${supabaseUrl}/functions/v1/ads-webhook`;
     
-    log('Creating InfiniPay balance checkout with Link Integrado', { nsuOrder, productName, priceInCents });
+    log('Creating InfiniPay balance checkout with Link Integrado', { nsuOrder, description, priceInCents });
 
-    // Use Link Integrado format (same as initial payment)
-    const infinitePayPayload = {
+    // Use the correct Link Integrado endpoint (same as ads-checkout)
+    const infinitepayPayload = {
       handle: INFINITEPAY_HANDLE,
+      items: lineItems,
+      itens: lineItems,
+      order_nsu: nsuOrder,
       redirect_url: REDIRECT_URL,
-      items: [
-        {
-          description: productName,
-          quantity: 1,
-          amount: priceInCents
-        }
-      ],
-      webhook_url: webhookUrl
+      webhook_url: webhookUrl,
+      customer: {
+        email: cleanEmail,
+      },
     };
 
-    let paymentLink = '';
-    let fallbackUsed = false;
+    const infinitepayResponse = await fetch(INFINITEPAY_CHECKOUT_LINKS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(infinitepayPayload)
+    });
 
-    try {
-      const infinitePayResponse = await fetch('https://api.infinitepay.io/v2/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(infinitePayPayload)
-      });
+    const infinitepayData = await infinitepayResponse.json().catch(() => ({}));
+    log('InfiniPay response', {
+      status: infinitepayResponse.status,
+      ok: infinitepayResponse.ok,
+      data: infinitepayData,
+    });
 
-      if (infinitePayResponse.ok) {
-        const infinitePayData = await infinitePayResponse.json();
-        log('InfiniPay response', infinitePayData);
-        paymentLink = infinitePayData.paymentLink || infinitePayData.payment_link || infinitePayData.url || '';
-      }
-    } catch (apiError) {
-      log('InfiniPay API error', apiError);
+    if (!infinitepayResponse.ok) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Erro ao criar link de pagamento',
+          details: infinitepayData,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
+    const paymentLink = getCheckoutUrl(infinitepayData);
     if (!paymentLink) {
-      paymentLink = `https://infinitepay.io/${INFINITEPAY_HANDLE}?amount=${priceInCents}&description=${encodeURIComponent(productName)}`;
-      fallbackUsed = true;
-      log('Using fallback link', { paymentLink });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Resposta da InfinitePay sem checkout_url',
+          details: infinitepayData,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Create balance order
+    // Create balance order with 5 minute expiration
+    const expiredAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    
     const { data: balanceOrder, error: balanceError } = await supabase
       .from('ads_balance_orders')
       .insert({
@@ -117,7 +136,7 @@ serve(async (req) => {
         paymentLink,
         nsuOrder,
         orderId: balanceOrder.id,
-        fallbackUsed
+        expiresAt: expiredAt
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

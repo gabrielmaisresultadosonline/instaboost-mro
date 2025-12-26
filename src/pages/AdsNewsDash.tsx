@@ -65,6 +65,8 @@ interface BalanceOrder {
   status: string;
   paid_at: string | null;
   created_at: string;
+  infinitepay_link?: string;
+  nsu_order?: string;
 }
 
 interface PendingPayment {
@@ -151,6 +153,64 @@ const AdsNewsDash = () => {
       }
     }
   }, [searchParams]);
+
+  // Auto-check pending balance orders every 5 seconds
+  useEffect(() => {
+    if (!user) return;
+
+    // Get pending balance orders within 5 minutes
+    const pendingOrders = balanceOrders.filter(order => {
+      if (order.status !== 'pending') return false;
+      const createdAt = new Date(order.created_at);
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      return createdAt > fiveMinutesAgo;
+    });
+
+    if (pendingOrders.length === 0) return;
+
+    const checkBalancePayments = async () => {
+      for (const order of pendingOrders) {
+        if (!order.nsu_order) continue;
+        
+        try {
+          const { data } = await supabase.functions.invoke('ads-check-payment', {
+            body: { order_nsu: order.nsu_order, email: user.email, type: 'balance' }
+          });
+
+          if (data?.paid) {
+            // Payment confirmed! Reload user data
+            const storedUser = localStorage.getItem('ads_user');
+            if (storedUser) {
+              const userData = JSON.parse(storedUser);
+              loadUserData(userData.email, userData.password);
+            }
+            toast({
+              title: "Pagamento de saldo confirmado!",
+              description: "Seu saldo para anúncios foi adicionado."
+            });
+            break;
+          } else if (data?.expired || data?.deleted) {
+            // Order expired, reload to remove from list
+            const storedUser = localStorage.getItem('ads_user');
+            if (storedUser) {
+              const userData = JSON.parse(storedUser);
+              loadUserData(userData.email, userData.password);
+            }
+          }
+        } catch (error) {
+          console.error('Error checking balance payment:', error);
+        }
+      }
+    };
+
+    // Check immediately
+    checkBalancePayments();
+
+    // Then check every 5 seconds
+    const interval = setInterval(checkBalancePayments, 5000);
+
+    return () => clearInterval(interval);
+  }, [user, balanceOrders]);
 
   const startPaymentCheck = (email: string, orderNsu: string, password: string) => {
     setCheckingPayment(true);
@@ -1191,43 +1251,50 @@ const AdsNewsDash = () => {
           </Card>
         )}
 
-        {/* Balance History - Only show if not showing full progress */}
-        {balanceOrders.length > 0 && !hasPaidBalance && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Histórico de Saldo para Anúncios
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {balanceOrders.map((order) => {
-                  const orderDate = new Date(order.created_at);
-                  const paidDate = order.paid_at ? new Date(order.paid_at) : null;
-                  const campaignEnd = paidDate ? new Date(paidDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
-                  const dailyBudget = order.amount / 30;
-                  
-                  return (
-                    <div 
-                      key={order.id}
-                      className={`p-4 rounded-lg border ${order.status === 'paid' ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            {order.status === 'paid' ? (
-                              <span className="flex items-center gap-1 text-green-700 font-semibold">
-                                <CheckCircle className="h-5 w-5" />
-                                Saldo Adicionado
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1 text-yellow-700 font-semibold">
-                                <Clock className="h-5 w-5" />
-                                Aguardando Pagamento
-                              </span>
-                            )}
+        {/* Balance History - Only show pending orders within 5 minutes */}
+        {(() => {
+          // Filter only pending orders created within the last 5 minutes
+          const pendingOrders = balanceOrders.filter(order => {
+            if (order.status !== 'pending') return false;
+            const createdAt = new Date(order.created_at);
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+            return createdAt > fiveMinutesAgo;
+          });
+
+          if (pendingOrders.length === 0 || hasPaidBalance) return null;
+
+          return (
+            <Card className="border-yellow-300 bg-yellow-50/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-yellow-800">
+                  <Clock className="h-5 w-5" />
+                  Aguardando Pagamento de Saldo
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {pendingOrders.map((order) => {
+                    const orderDate = new Date(order.created_at);
+                    const expiresAt = new Date(orderDate.getTime() + 5 * 60 * 1000);
+                    const dailyBudget = order.amount / 30;
+                    const paymentLink = order.infinitepay_link;
+                    
+                    return (
+                      <div 
+                        key={order.id}
+                        className="p-4 rounded-lg border bg-white border-yellow-300"
+                      >
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1 text-yellow-700 font-semibold">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Verificando pagamento...
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              Expira às {expiresAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                           </div>
+                          
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
                             <div>
                               <p className="text-gray-500">Valor</p>
@@ -1246,28 +1313,33 @@ const AdsNewsDash = () => {
                               <p className="font-bold text-gray-800">30 dias</p>
                             </div>
                           </div>
-                        </div>
-                        <div className="text-right text-xs text-gray-500">
-                          <p>Criado: {orderDate.toLocaleDateString('pt-BR')} às {orderDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-                          {paidDate && (
-                            <p className="text-green-600">
-                              Pago: {paidDate.toLocaleDateString('pt-BR')} às {paidDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                            </p>
+                          
+                          {paymentLink && (
+                            <Button 
+                              onClick={() => window.open(paymentLink, '_blank')}
+                              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+                            >
+                              <ExternalLink className="mr-2 h-4 w-4" />
+                              Pagar Agora
+                            </Button>
                           )}
-                          {campaignEnd && order.status === 'paid' && (
-                            <p className="text-blue-600">
-                              Campanha até: {campaignEnd.toLocaleDateString('pt-BR')}
-                            </p>
-                          )}
+                          
+                          <p className="text-xs text-gray-500 text-center">
+                            Criado: {orderDate.toLocaleDateString('pt-BR')} às {orderDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    );
+                  })}
+                </div>
+                
+                <p className="text-xs text-yellow-700 mt-4 text-center">
+                  ⚠️ Se o pagamento não for reconhecido em 5 minutos, gere um novo link de pagamento acima.
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })()}
       </main>
     </div>
   );

@@ -110,10 +110,10 @@ serve(async (req) => {
         .eq('user_id', user.id)
         .single();
 
-      // Get balance orders
+      // Get balance orders (include infinitepay_link for pending payments)
       const { data: balanceOrders } = await supabase
         .from('ads_balance_orders')
-        .select('*')
+        .select('id, user_id, amount, leads_quantity, status, paid_at, created_at, infinitepay_link, nsu_order')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
