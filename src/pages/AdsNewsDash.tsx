@@ -856,7 +856,8 @@ const AdsNewsDash = () => {
           </Card>
         )}
 
-        {/* Client Data Form - Collapsible */}
+        {/* Client Data Form - Only show if balance is NOT paid */}
+        {!hasPaidBalance && (
         <Card className="bg-slate-900 border-slate-700">
           <CardHeader 
             className={`cursor-pointer transition-colors ${hasDataFilled ? 'hover:bg-slate-800' : ''}`}
@@ -1119,9 +1120,10 @@ const AdsNewsDash = () => {
           </CardContent>
           )}
         </Card>
+        )}
 
-        {/* Balance Calculator - Only show after data is filled */}
-        {hasDataFilled && (
+        {/* Balance Calculator - Only show after data is filled and balance NOT paid */}
+        {hasDataFilled && !hasPaidBalance && (
           <Card className="border-2 border-green-200">
             <CardHeader className="bg-green-50">
               <CardTitle className="flex items-center gap-2 text-green-800">
