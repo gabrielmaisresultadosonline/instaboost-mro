@@ -224,17 +224,21 @@ serve(async (req) => {
     log('Webhook received - FULL PAYLOAD', payload);
 
     // Extract payment info from InfiniPay webhook - support multiple formats
-    const { 
-      status, 
+    const {
+      status,
       nsu,
       order_nsu,
-      amount, 
+      amount,
+      paid_amount,
+      receipt_url,
+      transaction_nsu,
+      invoice_slug,
       items,
       payment_status,
       transaction_status,
       payment,
       transaction,
-      data
+      data,
     } = payload;
 
     // Try to get nested data
@@ -242,32 +246,73 @@ serve(async (req) => {
     const nestedNsu = payment?.nsu || transaction?.nsu || data?.nsu || data?.order_nsu;
     const nestedItems = payment?.items || transaction?.items || data?.items;
 
-    // Check if payment is confirmed - support all possible formats
-    const isPaid = status === 'approved' || 
-                   status === 'paid' ||
-                   status === 'confirmed' ||
-                   status === 'completed' ||
-                   payment_status === 'approved' ||
-                   payment_status === 'paid' ||
-                   transaction_status === 'approved' ||
-                   transaction_status === 'paid' ||
-                   nestedStatus === 'approved' ||
-                   nestedStatus === 'paid' ||
-                   nestedStatus === 'confirmed';
+    // Evidence-based fields (common in InfiniPay payloads)
+    const totalAmount =
+      typeof amount === "number"
+        ? amount
+        : typeof data?.amount === "number"
+          ? data.amount
+          : undefined;
 
-    log('Payment status check', { 
-      status, 
-      payment_status, 
-      transaction_status, 
+    const paidAmount =
+      typeof paid_amount === "number"
+        ? paid_amount
+        : typeof data?.paid_amount === "number"
+          ? data.paid_amount
+          : undefined;
+
+    const receiptUrl =
+      typeof receipt_url === "string"
+        ? receipt_url
+        : typeof data?.receipt_url === "string"
+          ? data.receipt_url
+          : undefined;
+
+    const transactionNsu =
+      typeof transaction_nsu === "string"
+        ? transaction_nsu
+        : typeof data?.transaction_nsu === "string"
+          ? data.transaction_nsu
+          : undefined;
+
+    // Check if payment is confirmed - support all possible formats
+    const evidencePaid =
+      (typeof paidAmount === "number" && typeof totalAmount === "number" && paidAmount >= totalAmount && paidAmount > 0) ||
+      Boolean(receiptUrl) ||
+      Boolean(transactionNsu) ||
+      (typeof invoice_slug === "string" && typeof paidAmount === "number" && paidAmount > 0);
+
+    const isPaid =
+      status === "approved" ||
+      status === "paid" ||
+      status === "confirmed" ||
+      status === "completed" ||
+      payment_status === "approved" ||
+      payment_status === "paid" ||
+      transaction_status === "approved" ||
+      transaction_status === "paid" ||
+      nestedStatus === "approved" ||
+      nestedStatus === "paid" ||
+      nestedStatus === "confirmed" ||
+      evidencePaid;
+
+    log("Payment status check", {
+      status,
+      payment_status,
+      transaction_status,
       nestedStatus,
-      isPaid 
+      totalAmount,
+      paidAmount,
+      hasReceiptUrl: Boolean(receiptUrl),
+      hasTransactionNsu: Boolean(transactionNsu),
+      isPaid,
     });
 
     if (!isPaid) {
-      log('Payment not confirmed yet');
+      log("Payment not confirmed yet");
       return new Response(
-        JSON.stringify({ success: true, message: 'Payment not yet confirmed' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: true, message: "Payment not yet confirmed" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -299,16 +344,16 @@ serve(async (req) => {
     // Try to find by NSU if email not found
     const orderNsu = nsu || order_nsu || nestedNsu;
     if (!customerEmail && orderNsu) {
-      log('Trying to find by NSU', orderNsu);
+      log("Trying to find by NSU", orderNsu);
       const { data: orderByNsu } = await supabase
-        .from('ads_orders')
-        .select('email')
-        .eq('nsu_order', orderNsu)
-        .single();
-      
-      if (orderByNsu) {
+        .from("ads_orders")
+        .select("email")
+        .eq("nsu_order", orderNsu)
+        .maybeSingle();
+
+      if (orderByNsu?.email) {
         customerEmail = orderByNsu.email;
-        log('Found email by NSU', customerEmail);
+        log("Found email by NSU", customerEmail);
       }
     }
 
@@ -322,15 +367,23 @@ serve(async (req) => {
 
     log('Processing payment for email', customerEmail);
 
-    // Check initial subscription orders first
-    const { data: order, error: orderError } = await supabase
-      .from('ads_orders')
-      .select('*')
-      .eq('email', customerEmail)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    // Check initial subscription orders first (prioriza o NSU do webhook)
+
+    const { data: order, error: orderError } = orderNsu
+      ? await supabase
+          .from("ads_orders")
+          .select("*")
+          .eq("nsu_order", orderNsu)
+          .eq("status", "pending")
+          .maybeSingle()
+      : await supabase
+          .from("ads_orders")
+          .select("*")
+          .ilike("email", customerEmail)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
     if (order && !orderError) {
       log('Found pending initial order', order);
@@ -352,10 +405,10 @@ serve(async (req) => {
 
       // Get user details for email
       const { data: user } = await supabase
-        .from('ads_users')
-        .select('*')
-        .eq('email', customerEmail)
-        .single();
+        .from("ads_users")
+        .select("*")
+        .ilike("email", customerEmail)
+        .maybeSingle();
 
       // Update user status and subscription dates
       const subscriptionStart = new Date();
@@ -363,13 +416,13 @@ serve(async (req) => {
       subscriptionEnd.setDate(subscriptionEnd.getDate() + 30);
 
       const { error: updateUserError } = await supabase
-        .from('ads_users')
+        .from("ads_users")
         .update({
-          status: 'active',
+          status: "active",
           subscription_start: subscriptionStart.toISOString(),
-          subscription_end: subscriptionEnd.toISOString()
+          subscription_end: subscriptionEnd.toISOString(),
         })
-        .eq('email', customerEmail);
+        .ilike("email", customerEmail);
 
       if (updateUserError) {
         log('Error updating user', updateUserError);
