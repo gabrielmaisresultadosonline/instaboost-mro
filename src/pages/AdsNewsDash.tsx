@@ -671,7 +671,10 @@ const AdsNewsDash = () => {
           <CardContent className="p-6">
             <h1 className="text-2xl font-bold mb-2">Bem-vindo, {user?.name}!</h1>
             <p className="text-blue-100">
-              Preencha seus dados abaixo para começarmos a criar seus anúncios
+              {hasPaidBalance 
+                ? "Suas campanhas estão sendo preparadas!"
+                : "Preencha seus dados abaixo para começarmos a criar seus anúncios"
+              }
             </p>
             {user?.subscription_end && (
               <p className="text-sm text-blue-200 mt-2">
@@ -680,6 +683,102 @@ const AdsNewsDash = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Progress Steps - Show when balance is paid */}
+        {hasPaidBalance && (
+          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-400">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">
+                Status da sua campanha
+              </h3>
+              
+              {/* Progress Steps */}
+              <div className="space-y-4">
+                {/* Step 1 - Subscription */}
+                <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-green-200">
+                  <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-800">Assinatura Ativa</h4>
+                    <p className="text-sm text-gray-600">Pagamento inicial reconhecido</p>
+                  </div>
+                  <span className="text-green-600 font-bold text-sm bg-green-100 px-3 py-1 rounded-full">
+                    APROVADO ✓
+                  </span>
+                </div>
+
+                {/* Step 2 - Business Data */}
+                <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-green-200">
+                  <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-800">Dados do Negócio</h4>
+                    <p className="text-sm text-gray-600">Informações salvas na nuvem</p>
+                  </div>
+                  <span className="text-green-600 font-bold text-sm bg-green-100 px-3 py-1 rounded-full">
+                    APROVADO ✓
+                  </span>
+                </div>
+
+                {/* Step 3 - Balance Payment */}
+                <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-green-200">
+                  <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-800">Saldo para Anúncios</h4>
+                    <p className="text-sm text-gray-600">Pagamento reconhecido e confirmado</p>
+                  </div>
+                  <span className="text-green-600 font-bold text-sm bg-green-100 px-3 py-1 rounded-full">
+                    APROVADO ✓
+                  </span>
+                </div>
+
+                {/* Step 4 - Creating Campaigns */}
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl shadow-sm border-2 border-blue-400">
+                  <div className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-blue-800">Criando suas Campanhas</h4>
+                    <p className="text-sm text-blue-600">Estamos montando seus anúncios agora!</p>
+                  </div>
+                  <span className="text-blue-600 font-bold text-sm bg-blue-100 px-3 py-1 rounded-full animate-pulse">
+                    EM PROGRESSO...
+                  </span>
+                </div>
+              </div>
+
+              {/* Final Message */}
+              <div className="mt-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border border-green-300 text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Send className="h-5 w-5 text-green-600" />
+                  <span className="font-bold text-green-800">Aguarde!</span>
+                </div>
+                <p className="text-green-700">
+                  Estamos criando suas campanhas a partir de agora. Você receberá uma notificação aqui e no seu email quando estiver pronto!
+                </p>
+              </div>
+
+              {clientData.sales_page_url && (
+                <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200 text-center">
+                  <p className="text-sm text-blue-600 mb-2 font-medium">🎉 Sua página está pronta!</p>
+                  <a 
+                    href={clientData.sales_page_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-700 font-bold hover:underline flex items-center justify-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Ver Página de Vendas
+                  </a>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Client Data Form - Collapsible */}
         <Card className="bg-slate-900 border-slate-700">
@@ -1092,41 +1191,8 @@ const AdsNewsDash = () => {
           </Card>
         )}
 
-        {/* Campaign Status - Show after balance is paid */}
-        {hasPaidBalance && (
-          <Card className="border-2 border-green-500">
-            <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Loader2 className="h-10 w-10 text-green-600 animate-spin" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Estamos gerando suas campanhas!
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Em breve você verá como ficou sua página de vendas/apresentação abaixo.
-                Esta é a página que as pessoas vão acessar diretamente pelos nossos anúncios.
-              </p>
-              
-              {clientData.sales_page_url && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-600 mb-2">Sua página está pronta!</p>
-                  <a 
-                    href={clientData.sales_page_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-700 font-medium hover:underline flex items-center justify-center gap-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Ver Página de Vendas
-                  </a>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Balance History */}
-        {balanceOrders.length > 0 && (
+        {/* Balance History - Only show if not showing full progress */}
+        {balanceOrders.length > 0 && !hasPaidBalance && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
