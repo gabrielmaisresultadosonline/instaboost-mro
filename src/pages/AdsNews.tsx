@@ -266,15 +266,15 @@ const AdsNews = () => {
             Investimento mensal para gerar leads no seu WhatsApp
           </p>
           
-          <Card className="border-2 border-orange-400 shadow-xl max-w-sm mx-auto">
+          <Card className="border-2 border-orange-400 shadow-xl max-w-sm mx-auto bg-white">
             <CardContent className="p-8">
               <div className="bg-orange-400 text-white text-sm font-bold px-3 py-1 rounded-full inline-block mb-4">
                 MENSAL
               </div>
-              <div className="text-4xl font-bold text-gray-800 mb-2">
+              <div className="text-4xl font-bold text-gray-900 mb-2">
                 R$<span className="text-5xl">397</span>
               </div>
-              <p className="text-gray-500">por mês</p>
+              <p className="text-gray-600 font-medium">mensal (30 dias)</p>
             </CardContent>
           </Card>
 
