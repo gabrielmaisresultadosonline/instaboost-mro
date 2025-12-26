@@ -180,16 +180,6 @@ const AdsNews = () => {
 
             <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
               <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Send className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Telegram</h3>
-                <p className="text-gray-600">Envio para grupos de Telegram e canais</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
-              <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Instagram className="h-8 w-8 text-pink-600" />
                 </div>
