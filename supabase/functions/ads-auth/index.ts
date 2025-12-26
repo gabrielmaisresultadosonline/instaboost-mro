@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +11,44 @@ const log = (step: string, details?: unknown) => {
   console.log(`[ADS-AUTH] ${step}:`, details ? JSON.stringify(details, null, 2) : '');
 };
 
+const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
+  const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+  if (!smtpPassword) {
+    log("SMTP password not configured, skipping email");
+    return false;
+  }
+
+  try {
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.hostinger.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: "suporte@maisresultadosonline.com.br",
+          password: smtpPassword,
+        },
+      },
+    });
+
+    await client.send({
+      from: "Ads News <suporte@maisresultadosonline.com.br>",
+      to: to,
+      subject: subject,
+      content: "auto",
+      html: html,
+    });
+
+    await client.close();
+    log('Email sent successfully', { to, subject });
+    return true;
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    log('Email send error', { error: errMsg });
+    return false;
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -19,7 +57,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    const smtpPassword = Deno.env.get('SMTP_PASSWORD');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
@@ -384,7 +422,7 @@ serve(async (req) => {
       }
 
       // Send activation email if requested
-      if (sendEmail && resendApiKey) {
+      if (sendEmail && smtpPassword) {
         const { data: user } = await supabase
           .from('ads_users')
           .select('name, email')
@@ -392,44 +430,38 @@ serve(async (req) => {
           .single();
 
         if (user) {
-          const resend = new Resend(resendApiKey);
           const endDate = new Date(subscriptionEnd).toLocaleDateString('pt-BR');
 
-          await resend.emails.send({
-            from: 'Ads News <anuncios@resend.dev>',
-            to: [user.email],
-            subject: '🚀 Seus anúncios estão ATIVOS!',
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ads-news-full.png" alt="Ads News" style="max-width: 200px; margin-bottom: 20px;" />
-                
-                <h1 style="color: #1d4ed8;">Olá, ${user.name}! 🎉</h1>
-                
-                <p style="font-size: 18px; color: #333;">Temos uma ótima notícia: <strong>seus anúncios estão ativos!</strong></p>
-                
-                <div style="background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                  <p style="margin: 0; font-size: 16px;">📅 <strong>Anúncios ativos até:</strong></p>
-                  <p style="margin: 10px 0 0 0; font-size: 24px; font-weight: bold;">${endDate}</p>
-                </div>
-                
-                ${salesPageUrl ? `
-                <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 20px 0;">
-                  <p style="margin: 0; color: #1d4ed8;"><strong>🔗 Sua página de vendas:</strong></p>
-                  <a href="${salesPageUrl}" style="color: #1d4ed8; word-break: break-all;">${salesPageUrl}</a>
-                </div>
-                ` : ''}
-                
-                <p style="color: #666;">Acesse seu painel para acompanhar os resultados:</p>
-                <a href="https://mrodigital.site/anuncios/dash" style="display: inline-block; background: #1d4ed8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Painel</a>
-                
-                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-                
-                <p style="color: #999; font-size: 12px;">Ads News - Leads no seu WhatsApp o dia todo</p>
+          const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ads-news-full.png" alt="Ads News" style="max-width: 200px; margin-bottom: 20px;" />
+              
+              <h1 style="color: #1d4ed8;">Olá, ${user.name}! 🎉</h1>
+              
+              <p style="font-size: 18px; color: #333;">Temos uma ótima notícia: <strong>seus anúncios estão ativos!</strong></p>
+              
+              <div style="background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 16px;">📅 <strong>Anúncios ativos até:</strong></p>
+                <p style="margin: 10px 0 0 0; font-size: 24px; font-weight: bold;">${endDate}</p>
               </div>
-            `
-          });
+              
+              ${salesPageUrl ? `
+              <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <p style="margin: 0; color: #1d4ed8;"><strong>🔗 Sua página de vendas:</strong></p>
+                <a href="${salesPageUrl}" style="color: #1d4ed8; word-break: break-all;">${salesPageUrl}</a>
+              </div>
+              ` : ''}
+              
+              <p style="color: #666;">Acesse seu painel para acompanhar os resultados:</p>
+              <a href="https://mrodigital.site/anuncios/dash" style="display: inline-block; background: #1d4ed8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Painel</a>
+              
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+              
+              <p style="color: #999; font-size: 12px;">Ads News - Leads no seu WhatsApp o dia todo</p>
+            </div>
+          `;
 
-          log('Activation email sent', { email: user.email });
+          await sendEmailViaSMTP(user.email, '🚀 Seus anúncios estão ATIVOS!', html);
         }
       }
 
@@ -442,7 +474,7 @@ serve(async (req) => {
       // Admin: Resend access email to user
       const { userId } = body;
 
-      if (!resendApiKey) {
+      if (!smtpPassword) {
         return new Response(
           JSON.stringify({ success: false, error: 'Email não configurado' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -468,60 +500,106 @@ serve(async (req) => {
         .eq('user_id', userId)
         .single();
 
-      const resend = new Resend(resendApiKey);
       const endDate = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('pt-BR') : 'Não definida';
 
-      await resend.emails.send({
-        from: 'Ads News <anuncios@resend.dev>',
-        to: [user.email],
-        subject: '📧 Seus dados de acesso - Ads News',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ads-news-full.png" alt="Ads News" style="max-width: 200px; margin-bottom: 20px;" />
-            
-            <h1 style="color: #1d4ed8;">Olá, ${user.name}!</h1>
-            
-            <p>Aqui estão seus dados de acesso ao painel Ads News:</p>
-            
-            <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;">
-              <p><strong>📧 Email:</strong> ${user.email}</p>
-              <p><strong>🔑 Senha:</strong> ${user.password}</p>
-              <p><strong>📅 Assinatura até:</strong> ${endDate}</p>
-            </div>
-            
-            ${clientData?.sales_page_url ? `
-            <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 20px 0;">
-              <p style="margin: 0; color: #1d4ed8;"><strong>🔗 Sua página de vendas:</strong></p>
-              <a href="${clientData.sales_page_url}" style="color: #1d4ed8; word-break: break-all;">${clientData.sales_page_url}</a>
-            </div>
-            ` : ''}
-            
-            <a href="https://mrodigital.site/anuncios/dash" style="display: inline-block; background: #1d4ed8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Painel</a>
-            
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-            
-            <p style="color: #999; font-size: 12px;">Ads News - Leads no seu WhatsApp o dia todo</p>
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ads-news-full.png" alt="Ads News" style="max-width: 200px; margin-bottom: 20px;" />
+          
+          <h1 style="color: #1d4ed8;">Olá, ${user.name}!</h1>
+          
+          <p>Aqui estão seus dados de acesso ao painel Ads News:</p>
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p><strong>📧 Email:</strong> ${user.email}</p>
+            <p><strong>🔑 Senha:</strong> ${user.password}</p>
+            <p><strong>📅 Assinatura até:</strong> ${endDate}</p>
           </div>
-        `
-      });
+          
+          ${clientData?.sales_page_url ? `
+          <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <p style="margin: 0; color: #1d4ed8;"><strong>🔗 Sua página de vendas:</strong></p>
+            <a href="${clientData.sales_page_url}" style="color: #1d4ed8; word-break: break-all;">${clientData.sales_page_url}</a>
+          </div>
+          ` : ''}
+          
+          <a href="https://mrodigital.site/anuncios/dash" style="display: inline-block; background: #1d4ed8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Painel</a>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+          
+          <p style="color: #999; font-size: 12px;">Ads News - Leads no seu WhatsApp o dia todo</p>
+        </div>
+      `;
 
-      log('Access email resent', { email: user.email });
+      await sendEmailViaSMTP(user.email, '📧 Seus dados de acesso - Ads News', html);
 
       return new Response(
         JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+
+    } else if (action === 'upload-logo') {
+      // Upload logo for client
+      const { userId, logoBase64, fileName } = body;
+
+      // Convert base64 to blob
+      const base64Data = logoBase64.split(',')[1] || logoBase64;
+      const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      
+      const filePath = `ads-logos/${userId}/${Date.now()}-${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(filePath, binaryData, {
+          contentType: 'image/png',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(filePath);
+
+      // Update client data with logo URL
+      const { data: existing } = await supabase
+        .from('ads_client_data')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+
+      if (existing) {
+        await supabase
+          .from('ads_client_data')
+          .update({ logo_url: publicUrl })
+          .eq('user_id', userId);
+      } else {
+        await supabase
+          .from('ads_client_data')
+          .insert({
+            user_id: userId,
+            logo_url: publicUrl
+          });
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, logoUrl: publicUrl }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
+    } else {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Ação não reconhecida' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errStack = error instanceof Error ? error.stack : undefined;
+    log('Error', { message: errMsg, stack: errStack });
     return new Response(
-      JSON.stringify({ success: false, error: 'Ação inválida' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    log('Error', error);
-    return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ success: false, error: errMsg }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
