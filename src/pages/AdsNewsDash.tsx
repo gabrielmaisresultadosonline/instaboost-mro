@@ -24,7 +24,10 @@ import {
   Clock,
   ExternalLink,
   Lock,
-  ArrowRight
+  ArrowRight,
+  Image,
+  X,
+  Users
 } from "lucide-react";
 
 interface UserData {
@@ -47,6 +50,9 @@ interface ClientData {
   logo_url: string;
   observations: string;
   sales_page_url?: string;
+  competitor1_instagram?: string;
+  competitor2_instagram?: string;
+  media_urls?: string[];
 }
 
 interface BalanceOrder {
@@ -77,12 +83,16 @@ const AdsNewsDash = () => {
     whatsapp: "",
     telegram_group: "",
     logo_url: "",
-    observations: ""
+    observations: "",
+    competitor1_instagram: "",
+    competitor2_instagram: "",
+    media_urls: []
   });
   const [balanceOrders, setBalanceOrders] = useState<BalanceOrder[]>([]);
   const [showLogin, setShowLogin] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   
   // Payment overlay state
   const [showPaymentOverlay, setShowPaymentOverlay] = useState(false);
@@ -209,7 +219,10 @@ const AdsNewsDash = () => {
             telegram_group: data.clientData.telegram_group || "",
             logo_url: data.clientData.logo_url || "",
             observations: data.clientData.observations || "",
-            sales_page_url: data.clientData.sales_page_url || ""
+            sales_page_url: data.clientData.sales_page_url || "",
+            competitor1_instagram: data.clientData.competitor1_instagram || "",
+            competitor2_instagram: data.clientData.competitor2_instagram || "",
+            media_urls: data.clientData.media_urls || []
           });
         }
         setBalanceOrders(data.balanceOrders || []);
@@ -285,7 +298,10 @@ const AdsNewsDash = () => {
           whatsapp: clientData.whatsapp,
           telegramGroup: clientData.telegram_group,
           logoUrl: clientData.logo_url,
-          observations: clientData.observations
+          observations: clientData.observations,
+          competitor1Instagram: clientData.competitor1_instagram,
+          competitor2Instagram: clientData.competitor2_instagram,
+          mediaUrls: clientData.media_urls
         }
       });
 
@@ -352,6 +368,98 @@ const AdsNewsDash = () => {
     } finally {
       setUploadingLogo(false);
     }
+  };
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !user) return;
+
+    const currentMediaCount = clientData.media_urls?.length || 0;
+    const maxFiles = 10;
+    const remainingSlots = maxFiles - currentMediaCount;
+
+    if (files.length > remainingSlots) {
+      toast({
+        title: "Limite excedido",
+        description: `Você pode enviar no máximo ${remainingSlots} arquivo(s) (máximo total: ${maxFiles})`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'video/mp4', 'video/quicktime', 'video/webm'];
+    const maxSize = 90 * 1024 * 1024; // 90MB
+
+    for (const file of Array.from(files)) {
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Tipo não permitido",
+          description: `${file.name}: Apenas imagens (PNG, JPG, GIF, WebP) e vídeos (MP4, MOV, WebM) são permitidos`,
+          variant: "destructive"
+        });
+        return;
+      }
+      if (file.size > maxSize) {
+        toast({
+          title: "Arquivo muito grande",
+          description: `${file.name}: Tamanho máximo é 90MB`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    setUploadingMedia(true);
+    const newUrls: string[] = [];
+
+    try {
+      for (const file of Array.from(files)) {
+        const fileExt = file.name.split('.').pop();
+        const timestamp = Date.now();
+        const fileName = `${user.id}-media-${timestamp}.${fileExt}`;
+        const filePath = `ads-media/${user.id}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('assets')
+          .upload(filePath, file, { upsert: false });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('assets')
+          .getPublicUrl(filePath);
+
+        newUrls.push(urlData.publicUrl);
+      }
+
+      setClientData({ 
+        ...clientData, 
+        media_urls: [...(clientData.media_urls || []), ...newUrls] 
+      });
+      
+      toast({
+        title: "Mídia(s) enviada(s)!",
+        description: `${newUrls.length} arquivo(s) enviado(s) com sucesso`
+      });
+    } catch (error: unknown) {
+      console.error('Media upload error:', error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao enviar mídia",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingMedia(false);
+      // Reset the input
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveMedia = (urlToRemove: string) => {
+    setClientData({
+      ...clientData,
+      media_urls: (clientData.media_urls || []).filter(url => url !== urlToRemove)
+    });
   };
 
   const handleAddBalance = async () => {
@@ -615,6 +723,97 @@ const AdsNewsDash = () => {
                 </div>
                 {clientData.logo_url && (
                   <p className="text-xs text-green-600 mt-1">✓ Logo enviada</p>
+                )}
+              </div>
+            </div>
+
+            {/* Competitors Section */}
+            <div className="border-t pt-4 mt-4">
+              <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Concorrentes (para referência)
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="flex items-center gap-2">
+                    <Instagram className="h-4 w-4" />
+                    Concorrente 1 - Link do Instagram
+                  </Label>
+                  <Input
+                    value={clientData.competitor1_instagram || ""}
+                    onChange={(e) => setClientData({ ...clientData, competitor1_instagram: e.target.value })}
+                    placeholder="https://instagram.com/concorrente1"
+                  />
+                </div>
+
+                <div>
+                  <Label className="flex items-center gap-2">
+                    <Instagram className="h-4 w-4" />
+                    Concorrente 2 - Link do Instagram
+                  </Label>
+                  <Input
+                    value={clientData.competitor2_instagram || ""}
+                    onChange={(e) => setClientData({ ...clientData, competitor2_instagram: e.target.value })}
+                    placeholder="https://instagram.com/concorrente2"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Media Upload Section */}
+            <div className="border-t pt-4 mt-4">
+              <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                <Image className="h-4 w-4" />
+                Mídias da sua empresa (até 10 arquivos, máx. 90MB cada)
+              </h4>
+              <p className="text-sm text-gray-500 mb-3">
+                Envie fotos, vídeos ou imagens que já tem da sua empresa para usarmos nas campanhas
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
+                    onChange={handleMediaUpload}
+                    disabled={uploadingMedia || (clientData.media_urls?.length || 0) >= 10}
+                    multiple
+                    className="flex-1"
+                  />
+                  {uploadingMedia && <Loader2 className="h-5 w-5 animate-spin text-blue-600" />}
+                </div>
+                
+                <p className="text-xs text-gray-500">
+                  {clientData.media_urls?.length || 0}/10 arquivos enviados
+                </p>
+
+                {/* Media Preview Grid */}
+                {clientData.media_urls && clientData.media_urls.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
+                    {clientData.media_urls.map((url, index) => (
+                      <div key={index} className="relative group">
+                        {url.match(/\.(mp4|mov|webm)$/i) ? (
+                          <video 
+                            src={url} 
+                            className="w-full h-24 object-cover rounded-lg bg-gray-100"
+                          />
+                        ) : (
+                          <img 
+                            src={url} 
+                            alt={`Mídia ${index + 1}`} 
+                            className="w-full h-24 object-cover rounded-lg bg-gray-100"
+                          />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMedia(url)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
