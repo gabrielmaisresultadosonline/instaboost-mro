@@ -6,8 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const INFINITEPAY_HANDLE = 'mro_instagram';
-const REDIRECT_URL = 'https://adljdeekwifwcdcgbpit.lovableproject.com/anuncios/dash';
+const INFINITEPAY_HANDLE = 'paguemro';
+const REDIRECT_URL = 'https://pay.maisresultadosonline.com.br/anuncios/dash';
 
 const log = (step: string, details?: unknown) => {
   console.log(`[ADS-CHECKOUT] ${step}:`, details ? JSON.stringify(details, null, 2) : '');
@@ -45,51 +45,16 @@ serve(async (req) => {
     // Product name format: anun_EMAIL
     const productName = `anun_${email}`;
     
-    const webhookUrl = `${supabaseUrl}/functions/v1/ads-webhook`;
+    log('Creating InfiniPay Link Integrado', { nsuOrder, productName, priceInCents });
+
+    // Create Link Integrado format (without URL encoding for the items parameter)
+    const items = [{ name: productName, price: priceInCents, quantity: 1 }];
+    const itemsJson = JSON.stringify(items);
     
-    log('Creating InfiniPay checkout', { nsuOrder, productName, priceInCents });
-
-    // Create InfiniPay checkout
-    const infinitePayPayload = {
-      handle: INFINITEPAY_HANDLE,
-      redirect_url: REDIRECT_URL,
-      items: [
-        {
-          description: productName,
-          quantity: 1,
-          amount: priceInCents
-        }
-      ],
-      webhook_url: webhookUrl
-    };
-
-    let paymentLink = '';
-    let fallbackUsed = false;
-
-    try {
-      const infinitePayResponse = await fetch('https://api.infinitepay.io/v2/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(infinitePayPayload)
-      });
-
-      if (infinitePayResponse.ok) {
-        const infinitePayData = await infinitePayResponse.json();
-        log('InfiniPay response', infinitePayData);
-        paymentLink = infinitePayData.paymentLink || infinitePayData.payment_link || infinitePayData.url || '';
-      }
-    } catch (apiError) {
-      log('InfiniPay API error', apiError);
-    }
-
-    if (!paymentLink) {
-      // Generate fallback link
-      paymentLink = `https://infinitepay.io/${INFINITEPAY_HANDLE}?amount=${priceInCents}&description=${encodeURIComponent(productName)}`;
-      fallbackUsed = true;
-      log('Using fallback link', { paymentLink });
-    }
+    // Build the Link Integrado URL
+    const paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsJson}&redirect_url=${REDIRECT_URL}`;
+    
+    log('Payment link created', { paymentLink });
 
     if (type === 'initial') {
       // Check if user already exists
@@ -147,8 +112,7 @@ serve(async (req) => {
           success: true,
           paymentLink,
           nsuOrder,
-          orderId: order.id,
-          fallbackUsed
+          orderId: order.id
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -179,8 +143,7 @@ serve(async (req) => {
           success: true,
           paymentLink,
           nsuOrder,
-          orderId: balanceOrder.id,
-          fallbackUsed
+          orderId: balanceOrder.id
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
