@@ -514,6 +514,27 @@ const AdsNewsDash = () => {
 
   const hasPaidBalance = balanceOrders.some(order => order.status === 'paid');
   const hasDataFilled = clientData.id && clientData.niche && clientData.whatsapp;
+  
+  // Calculate if there's an active campaign (paid within last 30 days)
+  const activeCampaign = balanceOrders.find(order => {
+    if (order.status !== 'paid' || !order.paid_at) return false;
+    const paidDate = new Date(order.paid_at);
+    const endDate = new Date(paidDate);
+    endDate.setDate(endDate.getDate() + 30);
+    return new Date() < endDate;
+  });
+  
+  const campaignEndDate = activeCampaign ? (() => {
+    const paidDate = new Date(activeCampaign.paid_at!);
+    const endDate = new Date(paidDate);
+    endDate.setDate(endDate.getDate() + 30);
+    return endDate;
+  })() : null;
+  
+  const daysRemaining = campaignEndDate ? Math.ceil((campaignEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
+  
+  // Daily budget calculation
+  const dailyBudget = calculatedAmount / 30;
 
   if (loading) {
     return (
@@ -940,67 +961,110 @@ const AdsNewsDash = () => {
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <Label>Quantidade de leads desejados</Label>
-                  <Input
-                    type="number"
-                    min={38}
-                    value={leadsQuantity}
-                    onChange={(e) => setLeadsQuantity(Math.max(38, parseInt(e.target.value) || 38))}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Mínimo: 38 leads (R$150)</p>
-                </div>
-
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Valor estimado:</span>
-                    <span className="text-2xl font-bold text-blue-600">
-                      R$ {calculatedAmount.toFixed(2)}
-                    </span>
+              {/* Active Campaign Banner */}
+              {activeCampaign && (
+                <div className="bg-green-100 border border-green-300 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <h4 className="font-semibold text-green-800">Campanha Ativa!</h4>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Para aproximadamente {leadsQuantity} leads
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                    <div className="bg-white p-3 rounded">
+                      <p className="text-gray-500">Saldo investido</p>
+                      <p className="font-bold text-green-700">R$ {activeCampaign.amount.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded">
+                      <p className="text-gray-500">Gasto diário</p>
+                      <p className="font-bold text-blue-600">R$ {(activeCampaign.amount / 30).toFixed(2)}/dia</p>
+                    </div>
+                    <div className="bg-white p-3 rounded">
+                      <p className="text-gray-500">Dias restantes</p>
+                      <p className="font-bold text-orange-600">{daysRemaining} dias</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-green-700 mt-3">
+                    Campanha finaliza em: {campaignEndDate?.toLocaleDateString('pt-BR')}
                   </p>
                 </div>
+              )}
 
-                {!balancePaymentLink ? (
-                  <Button 
-                    onClick={handleAddBalance}
-                    disabled={balanceLoading}
-                    className="w-full bg-green-600 hover:bg-green-700"
-                  >
-                    {balanceLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Gerando pagamento...
-                      </>
+              {!activeCampaign && (
+                <>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Quantidade de leads desejados por mês</Label>
+                      <Input
+                        type="number"
+                        min={38}
+                        value={leadsQuantity}
+                        onChange={(e) => setLeadsQuantity(Math.max(38, parseInt(e.target.value) || 38))}
+                        className="text-lg"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Mínimo: 38 leads (R$150)</p>
+                    </div>
+
+                    {/* Calculation Summary */}
+                    <div className="bg-gray-100 p-4 rounded-lg space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                        <span className="text-gray-600">Valor total (30 dias):</span>
+                        <span className="text-2xl font-bold text-blue-600">
+                          R$ {calculatedAmount.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="border-t pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="bg-white p-3 rounded">
+                          <p className="text-xs text-gray-500">Gasto diário</p>
+                          <p className="font-bold text-green-600">R$ {dailyBudget.toFixed(2)}/dia</p>
+                        </div>
+                        <div className="bg-white p-3 rounded">
+                          <p className="text-xs text-gray-500">Leads estimados</p>
+                          <p className="font-bold text-blue-600">~{leadsQuantity} leads/mês</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        O saldo será diluído ao longo de 30 dias de campanha
+                      </p>
+                    </div>
+
+                    {!balancePaymentLink ? (
+                      <Button 
+                        onClick={handleAddBalance}
+                        disabled={balanceLoading}
+                        className="w-full bg-green-600 hover:bg-green-700 text-base py-6"
+                      >
+                        {balanceLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Gerando pagamento...
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="mr-2 h-5 w-5" />
+                            Adicionar Saldo - R$ {calculatedAmount.toFixed(2)}
+                          </>
+                        )}
+                      </Button>
                     ) : (
-                      <>
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        Adicionar Saldo - R$ {calculatedAmount.toFixed(2)}
-                      </>
+                      <div className="space-y-3">
+                        <Button 
+                          onClick={() => window.open(balancePaymentLink, '_blank')}
+                          className="w-full bg-green-600 hover:bg-green-700 text-base py-6"
+                        >
+                          <ExternalLink className="mr-2 h-5 w-5" />
+                          Pagar Saldo - R$ {calculatedAmount.toFixed(2)}
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setBalancePaymentLink("")}
+                          className="w-full"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
                     )}
-                  </Button>
-                ) : (
-                  <div className="space-y-3">
-                    <Button 
-                      onClick={() => window.open(balancePaymentLink, '_blank')}
-                      className="w-full bg-green-600 hover:bg-green-700"
-                    >
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Pagar Saldo - R$ {calculatedAmount.toFixed(2)}
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => setBalancePaymentLink("")}
-                      className="w-full"
-                    >
-                      Cancelar
-                    </Button>
                   </div>
-                )}
-              </div>
+                </>
+              )}
             </CardContent>
           </Card>
         )}
