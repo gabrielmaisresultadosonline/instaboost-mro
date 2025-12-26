@@ -587,6 +587,118 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
+    } else if (action === 'verify-payment') {
+      // Admin: Manually verify payment via InfiniPay API
+      const { orderId } = body;
+      log('Verifying payment for order', orderId);
+
+      // Get order details
+      const { data: order, error: orderError } = await supabase
+        .from('ads_orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+
+      if (orderError || !order) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Pedido não encontrado' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      log('Order found', { nsu: order.nsu_order, email: order.email, status: order.status });
+
+      // Check InfiniPay API for payment status using product name format
+      const productName = `anun_${order.email}`;
+      
+      try {
+        // Try to check payment using InfiniPay API
+        const infinitePayToken = Deno.env.get('INFINITEPAY_TOKEN') || '';
+        
+        if (infinitePayToken) {
+          // If we have token, try direct API check
+          const checkResponse = await fetch('https://api.infinitepay.io/v2/orders', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${infinitePayToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (checkResponse.ok) {
+            const ordersData = await checkResponse.json();
+            log('InfiniPay orders response', ordersData);
+            
+            // Look for matching order by product name or NSU
+            const matchingOrder = ordersData?.data?.find((o: { items?: { name?: string }[], nsu?: string, status?: string }) => {
+              const hasMatchingProduct = o.items?.some((item: { name?: string }) => 
+                item.name?.includes(order.email) || item.name?.includes(productName)
+              );
+              const hasMatchingNsu = o.nsu === order.nsu_order;
+              return (hasMatchingProduct || hasMatchingNsu) && 
+                     (o.status === 'approved' || o.status === 'paid' || o.status === 'confirmed');
+            });
+
+            if (matchingOrder) {
+              log('Found paid order in InfiniPay', matchingOrder);
+              
+              // Update order as paid
+              const subscriptionStart = new Date();
+              const subscriptionEnd = new Date();
+              subscriptionEnd.setDate(subscriptionEnd.getDate() + 30);
+
+              await supabase
+                .from('ads_orders')
+                .update({
+                  status: 'paid',
+                  paid_at: new Date().toISOString(),
+                  invoice_slug: matchingOrder.invoice_slug || null,
+                  transaction_nsu: matchingOrder.transaction_nsu || matchingOrder.nsu || null
+                })
+                .eq('id', orderId);
+
+              await supabase
+                .from('ads_users')
+                .update({
+                  status: 'active',
+                  subscription_start: subscriptionStart.toISOString(),
+                  subscription_end: subscriptionEnd.toISOString()
+                })
+                .ilike('email', order.email);
+
+              return new Response(
+                JSON.stringify({ 
+                  success: true, 
+                  paid: true, 
+                  message: 'Pagamento confirmado e usuário ativado!'
+                }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+          }
+        }
+
+        // If no token or API check didn't find payment, return not paid
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            paid: false, 
+            message: 'Pagamento ainda não confirmado no InfiniPay'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+
+      } catch (apiError) {
+        log('Error checking InfiniPay API', apiError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Erro ao verificar pagamento na API InfiniPay'
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
     } else {
       return new Response(
         JSON.stringify({ success: false, error: 'Ação não reconhecida' }),

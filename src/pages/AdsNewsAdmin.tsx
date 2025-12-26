@@ -246,6 +246,39 @@ const AdsNewsAdmin = () => {
     }
   };
 
+  const handleVerifyPayment = async (orderId: string) => {
+    try {
+      toast({ title: "Verificando pagamento..." });
+      
+      const { data, error } = await supabase.functions.invoke('ads-auth', {
+        body: { action: 'verify-payment', orderId }
+      });
+
+      if (error) throw error;
+      
+      if (data.paid) {
+        await loadAllData();
+        toast({ 
+          title: "Pagamento confirmado!", 
+          description: "Usuário ativado com sucesso."
+        });
+      } else {
+        toast({ 
+          title: "Pagamento não encontrado",
+          description: data.message || "O pagamento ainda não foi confirmado.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Verify payment error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao verificar pagamento",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleMarkAsExpired = async (orderId: string) => {
     try {
       const { error } = await supabase.functions.invoke('ads-auth', {
@@ -553,6 +586,14 @@ const AdsNewsAdmin = () => {
                               R$ {order.amount.toFixed(2)}
                             </p>
                             <div className="flex gap-2 mt-2">
+                              <Button 
+                                size="sm" 
+                                className="bg-blue-600 hover:bg-blue-700"
+                                onClick={() => handleVerifyPayment(order.id)}
+                              >
+                                <RefreshCw className="h-4 w-4 mr-1" />
+                                Verificar
+                              </Button>
                               <Button 
                                 size="sm" 
                                 className="bg-green-600 hover:bg-green-700"

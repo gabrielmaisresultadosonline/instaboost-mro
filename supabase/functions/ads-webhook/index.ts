@@ -388,19 +388,24 @@ serve(async (req) => {
     if (order && !orderError) {
       log('Found pending initial order', order);
       
-      // Update order status
+      // Update order status and save InfiniPay verification data
       const { error: updateOrderError } = await supabase
         .from('ads_orders')
         .update({
           status: 'paid',
-          paid_at: new Date().toISOString()
+          paid_at: new Date().toISOString(),
+          invoice_slug: invoice_slug || data?.invoice_slug || null,
+          transaction_nsu: transactionNsu || null
         })
         .eq('id', order.id);
 
       if (updateOrderError) {
         log('Error updating order', updateOrderError);
       } else {
-        log('Order marked as paid');
+        log('Order marked as paid with verification data', { 
+          invoice_slug: invoice_slug || data?.invoice_slug,
+          transaction_nsu: transactionNsu
+        });
       }
 
       // Get user details for email
