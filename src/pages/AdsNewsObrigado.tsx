@@ -149,14 +149,14 @@ const AdsNewsObrigado = () => {
 
               <Button 
                 onClick={handleAccessDashboard}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-6 text-lg font-bold"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-8 text-xl font-bold animate-pulse"
               >
-                <CheckCircle className="w-5 h-5 mr-2" />
-                Acessar Minha Área
+                <CheckCircle className="w-6 h-6 mr-2" />
+                ACESSAR ÁREA DE MEMBROS
               </Button>
 
-              <p className="text-xs text-blue-300">
-                Você será logado automaticamente
+              <p className="text-sm text-green-300 font-medium">
+                ✅ Você já está logado - clique acima para entrar
               </p>
             </div>
           )}
