@@ -1,5 +1,5 @@
 import { Logo } from '@/components/Logo';
-import { Shield, CheckCircle, Clock, MessageCircle, AlertTriangle } from 'lucide-react';
+import { Shield, CheckCircle, Clock, MessageCircle, AlertTriangle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -74,8 +74,9 @@ const PoliticaCancelamento = () => {
               Suporte Completo
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Caso seu problema seja relacionado à <strong>instalação</strong> ou <strong>modo de utilização</strong>, 
-              temos suporte completo para isso:
+              É por isso que temos <strong>suporte via WhatsApp</strong> e <strong>suporte remoto</strong> para 
+              entregar os resultados funcionais. Caso seu problema seja relacionado à <strong>instalação</strong> ou 
+              <strong> modo de utilização</strong>, temos suporte completo para isso:
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
@@ -88,6 +89,10 @@ const PoliticaCancelamento = () => {
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-700">Suporte remoto para resolução de problemas</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                 <span className="text-gray-700">Atualizações constantes das ferramentas</span>
               </li>
               <li className="flex items-start gap-3">
@@ -95,6 +100,23 @@ const PoliticaCancelamento = () => {
                 <span className="text-gray-700">Atendimento prioritário para dúvidas</span>
               </li>
             </ul>
+          </section>
+
+          {/* Social Proof */}
+          <section className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+              <Users className="w-6 h-6 text-blue-600" />
+              +1.500 Clientes Satisfeitos
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Mais de <strong>1.500 clientes</strong> estão tendo resultados funcionais com nossas ferramentas e sistemas. 
+              <strong> Nenhum com problema, todos 100% satisfeitos.</strong>
+            </p>
+            <div className="bg-white rounded-lg p-4 border border-blue-300">
+              <p className="text-blue-800 font-semibold text-center">
+                🏆 Nossa prioridade é entregar resultados reais para você!
+              </p>
+            </div>
           </section>
 
           {/* Important Notice */}
