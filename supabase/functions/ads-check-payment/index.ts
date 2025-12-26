@@ -23,10 +23,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { order_nsu, email } = await req.json();
+    const { order_nsu, email, type } = await req.json();
     const cleanEmail = typeof email === "string" ? email.toLowerCase().trim() : "";
 
-    log("Checking payment (DB-based)", { order_nsu, email: cleanEmail });
+    log("Checking payment (DB-based)", { order_nsu, email: cleanEmail, type });
 
     if (!order_nsu || !cleanEmail) {
       return new Response(
@@ -38,6 +38,55 @@ serve(async (req) => {
       );
     }
 
+    // Check if this is a balance order or initial order
+    if (type === 'balance') {
+      // Check balance order
+      const { data: balanceOrder, error: balanceError } = await supabase
+        .from("ads_balance_orders")
+        .select("id,status,created_at,paid_at,user_id")
+        .eq("nsu_order", order_nsu)
+        .maybeSingle();
+
+      if (balanceError || !balanceOrder) {
+        log("Balance order not found", { order_nsu, balanceError });
+        return new Response(
+          JSON.stringify({ success: false, paid: false, error: "Balance order not found" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      if (balanceOrder.status === "paid") {
+        return new Response(
+          JSON.stringify({ success: true, paid: true, message: "Balance order already paid" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      // Check if expired (5 minutes for balance orders)
+      const now = new Date();
+      const createdAt = new Date(balanceOrder.created_at);
+      const exceeded = now.getTime() - createdAt.getTime() > 5 * 60 * 1000;
+
+      if (exceeded) {
+        // Delete expired balance order
+        await supabase
+          .from("ads_balance_orders")
+          .delete()
+          .eq("id", balanceOrder.id);
+
+        return new Response(
+          JSON.stringify({ success: true, paid: false, expired: true, deleted: true, message: "Balance order expired and deleted" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, paid: false, message: "Balance payment pending" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Default: check initial order (ads_orders)
     const { data: order, error: orderError } = await supabase
       .from("ads_orders")
       .select("id,status,created_at,expired_at")
