@@ -90,6 +90,7 @@ export type Database = {
           competitor1_instagram: string | null
           competitor2_instagram: string | null
           created_at: string
+          edit_count: number | null
           id: string
           instagram: string | null
           logo_url: string | null
@@ -108,6 +109,7 @@ export type Database = {
           competitor1_instagram?: string | null
           competitor2_instagram?: string | null
           created_at?: string
+          edit_count?: number | null
           id?: string
           instagram?: string | null
           logo_url?: string | null
@@ -126,6 +128,7 @@ export type Database = {
           competitor1_instagram?: string | null
           competitor2_instagram?: string | null
           created_at?: string
+          edit_count?: number | null
           id?: string
           instagram?: string | null
           logo_url?: string | null

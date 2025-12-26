@@ -29,7 +29,8 @@ import {
   X,
   Users,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Pencil
 } from "lucide-react";
 
 interface UserData {
@@ -56,6 +57,7 @@ interface ClientData {
   competitor2_instagram?: string;
   media_urls?: string[];
   offer_description?: string;
+  edit_count?: number;
 }
 
 interface BalanceOrder {
@@ -282,6 +284,7 @@ const AdsNewsDash = () => {
         setUser(data.user);
         if (data.clientData) {
           setClientData({
+            id: data.clientData.id || data.user.id,
             niche: data.clientData.niche || "",
             region: data.clientData.region || "",
             instagram: data.clientData.instagram || "",
@@ -293,7 +296,8 @@ const AdsNewsDash = () => {
             competitor1_instagram: data.clientData.competitor1_instagram || "",
             competitor2_instagram: data.clientData.competitor2_instagram || "",
             media_urls: data.clientData.media_urls || [],
-            offer_description: data.clientData.offer_description || ""
+            offer_description: data.clientData.offer_description || "",
+            edit_count: data.clientData.edit_count || 0
           });
         }
         setBalanceOrders(data.balanceOrders || []);
@@ -379,17 +383,24 @@ const AdsNewsDash = () => {
 
       if (error) throw error;
 
-      // Mark that data has an ID now (saved)
+      // Mark that data has an ID now (saved) and increment edit count locally
       if (!clientData.id) {
-        setClientData(prev => ({ ...prev, id: user.id }));
+        setClientData(prev => ({ ...prev, id: user.id, edit_count: 1 }));
+      } else {
+        setClientData(prev => ({ ...prev, edit_count: (prev.edit_count || 0) + 1 }));
       }
       
       // Collapse the form after successful save
       setIsDataFormCollapsed(true);
 
+      const newEditCount = (clientData.edit_count || 0) + 1;
+      const remaining = Math.max(0, 2 - newEditCount);
+      
       toast({
         title: "Dados salvos!",
-        description: "Suas informações foram salvas com sucesso. Agora você pode adicionar saldo para seus anúncios."
+        description: remaining > 0 
+          ? `Suas informações foram salvas com sucesso. Você ainda pode editar ${remaining} vez${remaining !== 1 ? 'es' : ''} antes da campanha iniciar.`
+          : "Suas informações foram salvas. Limite de edições atingido."
       });
     } catch (error: unknown) {
       console.error('Save error:', error);
@@ -601,6 +612,12 @@ const AdsNewsDash = () => {
   
   const daysRemaining = campaignEndDate ? Math.ceil((campaignEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
   
+  // Check if user can edit business data
+  // Can edit if: edit_count < 2 AND no paid balance, OR campaign ended (30 days passed)
+  const editCount = clientData.edit_count || 0;
+  const canEditData = (editCount < 2 && !hasPaidBalance) || (!activeCampaign && hasPaidBalance);
+  const editsRemaining = Math.max(0, 2 - editCount);
+  
   // Daily budget calculation (use the pre-calculated value)
   const dailyBudget = dailyBudgetCalculated;
 
@@ -795,9 +812,29 @@ const AdsNewsDash = () => {
                     <h4 className="font-bold text-gray-800">Dados do Negócio</h4>
                     <p className="text-sm text-gray-600">Informações salvas na nuvem</p>
                   </div>
-                  <span className="text-green-600 font-bold text-sm bg-green-100 px-3 py-1 rounded-full">
-                    APROVADO ✓
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-600 font-bold text-sm bg-green-100 px-3 py-1 rounded-full">
+                      APROVADO ✓
+                    </span>
+                    {canEditData && (
+                      <button
+                        onClick={() => setIsDataFormCollapsed(false)}
+                        className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
+                        title={`Editar dados (${editsRemaining} edição${editsRemaining !== 1 ? 's' : ''} restante${editsRemaining !== 1 ? 's' : ''})`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    )}
+                    {!canEditData && activeCampaign && (
+                      <button
+                        disabled
+                        className="p-2 rounded-full bg-gray-100 text-gray-400 cursor-not-allowed"
+                        title={`Edição bloqueada durante campanha ativa (${daysRemaining} dias restantes)`}
+                      >
+                        <Lock className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Step 3 - Balance Payment */}
@@ -858,8 +895,8 @@ const AdsNewsDash = () => {
           </Card>
         )}
 
-        {/* Client Data Form - Only show if balance is NOT paid */}
-        {!hasPaidBalance && (
+        {/* Client Data Form - Only show if balance is NOT paid OR if user clicked edit button */}
+        {(!hasPaidBalance || !isDataFormCollapsed) && canEditData && (
         <Card className="bg-slate-900 border-slate-700">
           <CardHeader 
             className={`cursor-pointer transition-colors ${hasDataFilled ? 'hover:bg-slate-800' : ''}`}
