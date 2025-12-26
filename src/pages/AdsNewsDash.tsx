@@ -53,6 +53,7 @@ interface ClientData {
   competitor1_instagram?: string;
   competitor2_instagram?: string;
   media_urls?: string[];
+  offer_description?: string;
 }
 
 interface BalanceOrder {
@@ -86,7 +87,8 @@ const AdsNewsDash = () => {
     observations: "",
     competitor1_instagram: "",
     competitor2_instagram: "",
-    media_urls: []
+    media_urls: [],
+    offer_description: ""
   });
   const [balanceOrders, setBalanceOrders] = useState<BalanceOrder[]>([]);
   const [showLogin, setShowLogin] = useState(false);
@@ -301,7 +303,8 @@ const AdsNewsDash = () => {
           observations: clientData.observations,
           competitor1Instagram: clientData.competitor1_instagram,
           competitor2Instagram: clientData.competitor2_instagram,
-          mediaUrls: clientData.media_urls
+          mediaUrls: clientData.media_urls,
+          offerDescription: clientData.offer_description
         }
       });
 
@@ -815,6 +818,25 @@ const AdsNewsDash = () => {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Offer Description - Highlighted Yellow */}
+            <div className="border-t pt-4 mt-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <Label className="text-yellow-800 font-medium text-base">
+                  ✨ Descreva com suas palavras o que você está oferecendo nesse anúncio
+                </Label>
+                <p className="text-sm text-yellow-700 mb-3">
+                  Explique de forma clara e atrativa o que seu cliente vai receber
+                </p>
+                <Textarea
+                  value={clientData.offer_description || ""}
+                  onChange={(e) => setClientData({ ...clientData, offer_description: e.target.value })}
+                  placeholder="Ex: Curso completo de confeitaria com 50 receitas exclusivas, acesso vitalício e certificado incluso..."
+                  rows={4}
+                  className="bg-yellow-50 border-yellow-300 focus:border-yellow-400 focus:ring-yellow-400"
+                />
               </div>
             </div>
 
