@@ -11,7 +11,7 @@ const INFINITEPAY_HANDLE = "paguemro";
 const INFINITEPAY_CHECKOUT_LINKS_URL =
   "https://api.infinitepay.io/invoices/public/checkout/links";
 
-const REDIRECT_URL = "https://pay.maisresultadosonline.com.br/anuncios/dash";
+const REDIRECT_URL = "https://pay.maisresultadosonline.com.br/anuncios/obrigado";
 
 const log = (step: string, details?: unknown) => {
   console.log(
