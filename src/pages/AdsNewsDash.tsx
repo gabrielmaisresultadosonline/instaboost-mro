@@ -502,7 +502,7 @@ const AdsNewsDash = () => {
   };
 
   const hasPaidBalance = balanceOrders.some(order => order.status === 'paid');
-  const hasDataFilled = clientData.niche && clientData.whatsapp;
+  const hasDataFilled = clientData.id && clientData.niche && clientData.whatsapp;
 
   if (loading) {
     return (
@@ -836,7 +836,7 @@ const AdsNewsDash = () => {
                   onChange={(e) => setClientData({ ...clientData, offer_description: e.target.value })}
                   placeholder="Ex: Curso completo de confeitaria com 50 receitas exclusivas, acesso vitalício e certificado incluso..."
                   rows={4}
-                  className="bg-yellow-50 border-yellow-300 focus:border-yellow-400 focus:ring-yellow-400"
+                  className="bg-yellow-50 border-yellow-300 focus:border-yellow-400 focus:ring-yellow-400 text-gray-900 placeholder:text-yellow-600"
                 />
               </div>
             </div>
