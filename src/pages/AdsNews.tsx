@@ -199,44 +199,19 @@ const AdsNews = () => {
             Campanhas de Tráfego Pago com <span className="text-yellow-300">IA Automático!</span>
           </h1>
           
-          {/* AI Automation Info */}
+          {/* AI Optimization Info - Simplified */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 md:p-8 mb-8 max-w-4xl mx-auto border border-white/20">
-            <p className="text-xl md:text-2xl font-semibold mb-4 text-yellow-300">
-              🤖 Campanha de tráfego pago com IA totalmente automática
+            <p className="text-xl md:text-2xl font-bold mb-4 text-yellow-300">
+              🚀 Campanha Otimizada com IA!
             </p>
-            <p className="text-lg text-blue-100 mb-6">
-              Basta apenas <span className="font-bold text-white">UMA configuração</span> e deixe a IA trabalhar para você!
+            <p className="text-lg md:text-xl text-white font-semibold mb-4">
+              API Oficial da Meta com <span className="text-yellow-300">Andromeda</span>
             </p>
             
-            {/* AI Question */}
-            <div className="bg-gradient-to-r from-purple-600/50 to-blue-600/50 rounded-xl p-5 mb-6 border border-purple-400/30">
-              <p className="text-lg md:text-xl font-semibold text-white mb-2">
-                💡 Já imaginou sua campanha de anúncios <span className="text-yellow-300">assertiva</span> criada pelas maiores IAs do mercado?
+            <div className="bg-gradient-to-r from-orange-500/30 to-yellow-500/30 rounded-xl p-5 border border-orange-400/40">
+              <p className="text-lg md:text-xl text-white">
+                Nós da equipe <span className="font-bold text-yellow-300">MRO</span> vamos criar sua campanha de tráfego pago e vamos ativar nossa <span className="font-bold text-orange-300">OTIMIZAÇÃO IA</span>, <span className="text-2xl font-black text-yellow-300">3x mais assertividade!</span>
               </p>
-            </div>
-            
-            {/* AI Logos */}
-            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
-                <img src="/ai-logos/chatgpt.png" alt="ChatGPT" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
-                <span className="text-xs font-bold text-gray-700 mt-1">ChatGPT</span>
-              </div>
-              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
-                <img src="/ai-logos/deepseek.png" alt="DeepSeek" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
-                <span className="text-xs font-bold text-gray-700 mt-1">DeepSeek</span>
-              </div>
-              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
-                <img src="/ai-logos/nanobanana.png" alt="Nano Banana" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
-                <span className="text-xs font-bold text-gray-700 mt-1">Nano Banana</span>
-              </div>
-              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
-                <img src="/ai-logos/gemini.png" alt="Gemini" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
-                <span className="text-xs font-bold text-gray-700 mt-1">Gemini</span>
-              </div>
-              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
-                <img src="/ai-logos/mro-api.png" alt="API Oficial MRO" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
-                <span className="text-xs font-bold text-gray-700 mt-1">API MRO</span>
-              </div>
             </div>
           </div>
 
