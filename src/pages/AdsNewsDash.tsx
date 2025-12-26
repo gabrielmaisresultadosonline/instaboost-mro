@@ -858,14 +858,18 @@ const AdsNewsDash = () => {
                 </div>
 
                 {/* Step 4 - Campaign Status */}
-                {clientData.campaign_active ? (
+                {clientData.campaign_active || clientData.sales_page_url ? (
                   <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-green-200">
                     <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <CheckCircle className="h-8 w-8 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-gray-800">Campanhas Ativas</h4>
-                      <p className="text-sm text-gray-600">Seus anúncios estão rodando!</p>
+                      <h4 className="font-bold text-gray-800">
+                        {clientData.campaign_active ? 'Campanhas Ativas' : 'Página de Vendas Criada'}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {clientData.campaign_active ? 'Seus anúncios estão rodando!' : 'Sua página de vendas está pronta!'}
+                      </p>
                     </div>
                     <span className="text-green-600 font-bold text-sm bg-green-100 px-3 py-1 rounded-full">
                       APROVADO ✓
@@ -887,8 +891,8 @@ const AdsNewsDash = () => {
                 )}
               </div>
 
-              {/* Final Message - Only show if campaign NOT active */}
-              {!clientData.campaign_active && (
+              {/* Final Message - Only show if campaign NOT active AND no sales page */}
+              {!clientData.campaign_active && !clientData.sales_page_url && (
                 <div className="mt-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border border-green-300 text-center">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Send className="h-5 w-5 text-green-600" />
