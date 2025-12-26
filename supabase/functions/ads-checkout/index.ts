@@ -95,7 +95,7 @@ serve(async (req) => {
           nsu_order: nsuOrder,
           infinitepay_link: paymentLink,
           status: 'pending',
-          expired_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() // 30 minutes
+          expired_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutes
         })
         .select()
         .single();

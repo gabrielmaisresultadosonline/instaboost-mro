@@ -181,3 +181,6 @@ verify_jwt = false
 
 [functions.ads-balance-checkout]
 verify_jwt = false
+
+[functions.ads-check-payment]
+verify_jwt = false

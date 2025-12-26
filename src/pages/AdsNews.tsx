@@ -131,8 +131,8 @@ const AdsNews = () => {
           description: "Clique no botão para realizar o pagamento"
         });
         
-        // Start checking for payment
-        startPaymentCheck(formData.email);
+        // Start checking for payment via InfiniPay API
+        startPaymentCheck(formData.email, data.nsuOrder);
       } else {
         throw new Error(data.error || "Erro ao criar checkout");
       }
@@ -148,34 +148,73 @@ const AdsNews = () => {
     }
   };
 
-  const startPaymentCheck = (email: string) => {
+  const [paymentExpired, setPaymentExpired] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(600); // 10 minutes in seconds
+
+  const startPaymentCheck = (email: string, orderNsu: string) => {
     setCheckingPayment(true);
+    setPaymentExpired(false);
+    setTimeRemaining(600);
     
+    const startTime = Date.now();
+    const maxDuration = 10 * 60 * 1000; // 10 minutes
+    
+    // Countdown timer
+    const countdownInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, Math.ceil((maxDuration - elapsed) / 1000));
+      setTimeRemaining(remaining);
+      
+      if (remaining <= 0) {
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
+    
+    // Payment check every 4 seconds
     const checkInterval = setInterval(async () => {
       try {
-        const { data } = await supabase.functions.invoke('ads-auth', {
-          body: { action: 'check-payment', email }
+        const { data } = await supabase.functions.invoke('ads-check-payment', {
+          body: { order_nsu: orderNsu, email }
         });
 
-        if (data?.isPaid) {
+        if (data?.paid) {
           clearInterval(checkInterval);
+          clearInterval(countdownInterval);
           setCheckingPayment(false);
           toast({
             title: "Pagamento confirmado!",
             description: "Redirecionando para o dashboard..."
           });
           window.location.href = `/anuncios/dash?email=${encodeURIComponent(email)}&password=${encodeURIComponent(formData.password)}`;
+        } else if (data?.expired) {
+          clearInterval(checkInterval);
+          clearInterval(countdownInterval);
+          setCheckingPayment(false);
+          setPaymentExpired(true);
+          toast({
+            title: "Pedido expirado",
+            description: "O tempo para pagamento expirou. Por favor, tente novamente.",
+            variant: "destructive"
+          });
         }
       } catch (error) {
         console.error('Check payment error:', error);
       }
-    }, 5000); // Check every 5 seconds
+    }, 4000); // Check every 4 seconds
 
-    // Stop checking after 30 minutes
+    // Stop checking after 10 minutes
     setTimeout(() => {
       clearInterval(checkInterval);
+      clearInterval(countdownInterval);
       setCheckingPayment(false);
-    }, 30 * 60 * 1000);
+      setPaymentExpired(true);
+    }, maxDuration);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const benefits = [
@@ -459,6 +498,30 @@ const AdsNews = () => {
                     Valor para teste: R$1,00 (produção: R$397)
                   </p>
                 </form>
+              ) : paymentExpired ? (
+                <div className="text-center space-y-6">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                    <span className="text-3xl">⏰</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg mb-2 text-red-600">Tempo expirado!</h4>
+                    <p className="text-gray-600 text-sm">
+                      O tempo para pagamento expirou. Por favor, tente novamente.
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full bg-orange-500 hover:bg-orange-600"
+                    onClick={() => {
+                      setPaymentLink("");
+                      setPaymentExpired(false);
+                      setShowRegister(false);
+                      setTimeout(() => setShowRegister(true), 100);
+                    }}
+                  >
+                    Tentar Novamente
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               ) : (
                 <div className="text-center space-y-6">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
@@ -480,9 +543,20 @@ const AdsNews = () => {
                   </Button>
 
                   {checkingPayment && (
-                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Aguardando confirmação do pagamento...
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-center gap-2 text-sm text-blue-600">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Verificando pagamento...
+                      </div>
+                      <div className="text-lg font-bold text-orange-500">
+                        Tempo restante: {formatTime(timeRemaining)}
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-orange-500 h-2 rounded-full transition-all duration-1000"
+                          style={{ width: `${(timeRemaining / 600) * 100}%` }}
+                        />
+                      </div>
                     </div>
                   )}
 
