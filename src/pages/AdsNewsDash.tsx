@@ -989,19 +989,72 @@ const AdsNewsDash = () => {
                 </div>
               )}
 
-              {/* Sales page link when campaign NOT active but URL exists */}
+              {/* Sales page link when campaign NOT active but URL exists - show big spinning loader too */}
               {!clientData.campaign_active && clientData.sales_page_url && (
-                <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200 text-center">
-                  <p className="text-sm text-blue-600 mb-2 font-medium">🎉 Sua página está pronta!</p>
-                  <a 
-                    href={clientData.sales_page_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-700 font-bold hover:underline flex items-center justify-center gap-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Ver Página de Vendas
-                  </a>
+                <div className="mt-8 p-8 bg-gradient-to-br from-emerald-600 via-green-500 to-teal-500 rounded-2xl text-white text-center shadow-2xl border-4 border-yellow-400">
+                  {/* Main highlight - Page Ready */}
+                  <div className="flex items-center justify-center gap-4 mb-6">
+                    <span className="text-4xl font-black uppercase tracking-wide drop-shadow-lg">
+                      🎉 SUA PÁGINA ESTÁ PRONTA!
+                    </span>
+                  </div>
+                  
+                  {/* Sales page link */}
+                  <div className="bg-white/25 rounded-xl p-5 mb-6 backdrop-blur-sm">
+                    <p className="text-sm text-green-100 mb-2">Sua página de vendas:</p>
+                    <a 
+                      href={clientData.sales_page_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white font-bold text-xl hover:underline flex items-center justify-center gap-2"
+                    >
+                      <ExternalLink className="h-6 w-6" />
+                      {clientData.sales_page_url}
+                    </a>
+                  </div>
+
+                  {/* Leads capture status with BIG spinning loader */}
+                  <div className="bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 rounded-2xl p-8 mb-6 text-gray-900 shadow-xl animate-pulse">
+                    <div className="flex flex-col items-center gap-4">
+                      {/* Big spinning icon */}
+                      <div className="relative">
+                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-2xl border-4 border-white">
+                          <Loader2 className="h-16 w-16 animate-spin text-white" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce">
+                          ATIVADO
+                        </div>
+                      </div>
+                      
+                      {/* Text */}
+                      <div className="text-center">
+                        <p className="text-3xl font-black uppercase tracking-wide mb-2">
+                          ESTAMOS CAPTANDO LEADS PARA VOCÊ!
+                        </p>
+                        <p className="text-lg font-semibold">
+                          Conforme os seus dados e suas configurações
+                        </p>
+                      </div>
+                      
+                      {/* WhatsApp message */}
+                      <div className="bg-white/50 rounded-xl px-6 py-3 mt-2">
+                        <p className="text-xl font-bold flex items-center gap-2">
+                          <MessageCircle className="h-6 w-6" />
+                          Aguarde no seu WhatsApp!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Report info message */}
+                  <div className="p-4 bg-white/15 rounded-xl border-2 border-white/30 backdrop-blur-sm">
+                    <p className="text-lg text-white font-semibold">
+                      📊 <strong>Aguarde Relatório em 30 dias</strong>
+                    </p>
+                    <p className="text-sm text-green-100 mt-1">
+                      Acompanhe no seu email e aqui na sua área de membros
+                    </p>
+                  </div>
                 </div>
               )}
             </CardContent>
