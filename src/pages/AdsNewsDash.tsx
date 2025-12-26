@@ -224,7 +224,8 @@ const AdsNewsDash = () => {
             sales_page_url: data.clientData.sales_page_url || "",
             competitor1_instagram: data.clientData.competitor1_instagram || "",
             competitor2_instagram: data.clientData.competitor2_instagram || "",
-            media_urls: data.clientData.media_urls || []
+            media_urls: data.clientData.media_urls || [],
+            offer_description: data.clientData.offer_description || ""
           });
         }
         setBalanceOrders(data.balanceOrders || []);

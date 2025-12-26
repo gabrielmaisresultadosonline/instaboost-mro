@@ -93,6 +93,7 @@ export type Database = {
           logo_url: string | null
           niche: string | null
           observations: string | null
+          offer_description: string | null
           region: string | null
           sales_page_url: string | null
           telegram_group: string | null
@@ -107,6 +108,7 @@ export type Database = {
           logo_url?: string | null
           niche?: string | null
           observations?: string | null
+          offer_description?: string | null
           region?: string | null
           sales_page_url?: string | null
           telegram_group?: string | null
@@ -121,6 +123,7 @@ export type Database = {
           logo_url?: string | null
           niche?: string | null
           observations?: string | null
+          offer_description?: string | null
           region?: string | null
           sales_page_url?: string | null
           telegram_group?: string | null
