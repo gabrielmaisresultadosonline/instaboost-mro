@@ -188,16 +188,57 @@ const AdsNews = () => {
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
-            Leads no seu WhatsApp<br />
-            <span className="text-orange-400">o dia todo</span> por apenas R$397/mês
+            Vendendo <span className="text-orange-400">3x mais</span> com nossas<br />
+            Campanhas de Tráfego Pago com <span className="text-yellow-300">IA Automático!</span>
           </h1>
+          
+          {/* AI Automation Info */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 md:p-8 mb-8 max-w-4xl mx-auto border border-white/20">
+            <p className="text-xl md:text-2xl font-semibold mb-4 text-yellow-300">
+              🤖 Campanha de tráfego pago com IA totalmente automática
+            </p>
+            <p className="text-lg text-blue-100 mb-6">
+              Basta apenas <span className="font-bold text-white">UMA configuração</span> e deixe a IA trabalhar para você!
+            </p>
+            
+            {/* AI Question */}
+            <div className="bg-gradient-to-r from-purple-600/50 to-blue-600/50 rounded-xl p-5 mb-6 border border-purple-400/30">
+              <p className="text-lg md:text-xl font-semibold text-white mb-2">
+                💡 Já imaginou sua campanha de anúncios <span className="text-yellow-300">assertiva</span> criada pelas maiores IAs do mercado?
+              </p>
+            </div>
+            
+            {/* AI Logos */}
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
+                <img src="/ai-logos/chatgpt.png" alt="ChatGPT" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
+                <span className="text-xs font-bold text-gray-700 mt-1">ChatGPT</span>
+              </div>
+              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
+                <img src="/ai-logos/deepseek.png" alt="DeepSeek" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
+                <span className="text-xs font-bold text-gray-700 mt-1">DeepSeek</span>
+              </div>
+              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
+                <img src="/ai-logos/nanobanana.png" alt="Nano Banana" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
+                <span className="text-xs font-bold text-gray-700 mt-1">Nano Banana</span>
+              </div>
+              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
+                <img src="/ai-logos/gemini.png" alt="Gemini" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
+                <span className="text-xs font-bold text-gray-700 mt-1">Gemini</span>
+              </div>
+              <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center">
+                <img src="/ai-logos/mro-api.png" alt="API Oficial MRO" className="h-12 w-12 md:h-16 md:w-16 object-contain" />
+                <span className="text-xs font-bold text-gray-700 mt-1">API MRO</span>
+              </div>
+            </div>
+          </div>
+
           <p className="text-lg md:text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Vamos anunciar sua empresa, seus produtos e seus negócios. 
-            Mensal promocional de apenas <span className="font-bold text-orange-400">R$397</span>.
+            Leads no seu WhatsApp <span className="text-orange-400 font-bold">o dia todo</span> por apenas <span className="font-bold text-orange-400">R$397/mês</span>.
           </p>
           <Button 
             size="lg" 
-            className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-full shadow-lg"
+            className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-full shadow-lg animate-pulse"
             onClick={() => setShowRegister(true)}
           >
             Quero Começar Agora
