@@ -263,34 +263,20 @@ const AdsNews = () => {
             Comece agora mesmo
           </h2>
           <p className="text-gray-600 mb-8">
-            Primeiro mês promocional, depois mensalidade fixa
+            Investimento mensal para gerar leads no seu WhatsApp
           </p>
           
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <Card className="border-2 border-orange-400 shadow-xl">
-              <CardContent className="p-8">
-                <div className="bg-orange-400 text-white text-sm font-bold px-3 py-1 rounded-full inline-block mb-4">
-                  PRIMEIRO MÊS
-                </div>
-                <div className="text-4xl font-bold text-gray-800 mb-2">
-                  R$<span className="text-5xl">397</span>
-                </div>
-                <p className="text-gray-500">pagamento único</p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-xl">
-              <CardContent className="p-8">
-                <div className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full inline-block mb-4">
-                  MESES SEGUINTES
-                </div>
-                <div className="text-4xl font-bold text-gray-800 mb-2">
-                  R$<span className="text-5xl">600</span>
-                </div>
-                <p className="text-gray-500">por mês</p>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="border-2 border-orange-400 shadow-xl max-w-sm mx-auto">
+            <CardContent className="p-8">
+              <div className="bg-orange-400 text-white text-sm font-bold px-3 py-1 rounded-full inline-block mb-4">
+                MENSAL
+              </div>
+              <div className="text-4xl font-bold text-gray-800 mb-2">
+                R$<span className="text-5xl">397</span>
+              </div>
+              <p className="text-gray-500">por mês</p>
+            </CardContent>
+          </Card>
 
           <Button 
             size="lg" 
