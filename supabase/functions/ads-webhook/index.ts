@@ -347,16 +347,28 @@ serve(async (req) => {
       );
     }
 
-    // Extract email from product name (anun_EMAIL format)
+    // Extract email from product name (anun_EMAIL or saldoanun_EMAIL format)
     let customerEmail = '';
+    let isBalancePayment = false;
     const allItems = items || nestedItems || [];
     
     if (Array.isArray(allItems)) {
       for (const item of allItems) {
         const itemName = item.name || item.description || item.product_name || '';
         log('Checking item', { itemName });
+        
+        // Check for balance payment format first (saldoanun_EMAIL)
+        if (itemName.startsWith('saldoanun_')) {
+          customerEmail = itemName.replace('saldoanun_', '');
+          isBalancePayment = true;
+          log('Found BALANCE payment email', { customerEmail, isBalancePayment });
+          break;
+        }
+        // Check for initial payment format (anun_EMAIL)
         if (itemName.startsWith('anun_')) {
           customerEmail = itemName.replace('anun_', '');
+          isBalancePayment = false;
+          log('Found INITIAL payment email', { customerEmail, isBalancePayment });
           break;
         }
       }
@@ -365,10 +377,20 @@ serve(async (req) => {
     // Try to extract from other payload fields
     if (!customerEmail) {
       const payloadStr = JSON.stringify(payload);
-      const emailMatch = payloadStr.match(/anun_([^"]+@[^"]+)/);
-      if (emailMatch) {
-        customerEmail = emailMatch[1];
-        log('Found email via regex', customerEmail);
+      // Try balance format first
+      const balanceEmailMatch = payloadStr.match(/saldoanun_([^"]+@[^"]+)/);
+      if (balanceEmailMatch) {
+        customerEmail = balanceEmailMatch[1];
+        isBalancePayment = true;
+        log('Found BALANCE email via regex', customerEmail);
+      } else {
+        // Try initial format
+        const emailMatch = payloadStr.match(/anun_([^"]+@[^"]+)/);
+        if (emailMatch) {
+          customerEmail = emailMatch[1];
+          isBalancePayment = false;
+          log('Found INITIAL email via regex', customerEmail);
+        }
       }
     }
 
@@ -384,7 +406,29 @@ serve(async (req) => {
 
       if (orderByNsu?.email) {
         customerEmail = orderByNsu.email;
-        log("Found email by NSU", customerEmail);
+        isBalancePayment = false;
+        log("Found email by NSU (initial order)", customerEmail);
+      } else {
+        // Try balance orders
+        const { data: balanceOrderByNsu } = await supabase
+          .from("ads_balance_orders")
+          .select("user_id")
+          .eq("nsu_order", orderNsu)
+          .maybeSingle();
+        
+        if (balanceOrderByNsu) {
+          const { data: userByBalance } = await supabase
+            .from("ads_users")
+            .select("email")
+            .eq("id", balanceOrderByNsu.user_id)
+            .maybeSingle();
+          
+          if (userByBalance?.email) {
+            customerEmail = userByBalance.email;
+            isBalancePayment = true;
+            log("Found email by balance NSU", customerEmail);
+          }
+        }
       }
     }
 
@@ -396,9 +440,62 @@ serve(async (req) => {
       );
     }
 
-    log('Processing payment for email', customerEmail);
+    log('Processing payment', { customerEmail, isBalancePayment });
 
-    // Check initial subscription orders first
+    // If this is explicitly a balance payment, process balance first
+    if (isBalancePayment) {
+      log('Processing as BALANCE payment');
+      
+      const { data: user } = await supabase
+        .from('ads_users')
+        .select('id, email, name')
+        .ilike('email', customerEmail)
+        .maybeSingle();
+
+      if (user) {
+        const { data: balanceOrder } = await supabase
+          .from('ads_balance_orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (balanceOrder) {
+          log('Found pending balance order', balanceOrder);
+          
+          const { error: updateError } = await supabase
+            .from('ads_balance_orders')
+            .update({
+              status: 'paid',
+              paid_at: new Date().toISOString()
+            })
+            .eq('id', balanceOrder.id);
+
+          if (updateError) {
+            log('Error updating balance order', updateError);
+          } else {
+            log('Balance order marked as paid successfully');
+          }
+
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              type: 'balance', 
+              orderId: balanceOrder.id,
+              email: customerEmail,
+              message: 'Balance order paid successfully'
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      log('No pending balance order found for user');
+    }
+
+    // Check initial subscription orders
     const { data: order, error: orderError } = orderNsu
       ? await supabase
           .from("ads_orders")
@@ -484,49 +581,51 @@ serve(async (req) => {
       );
     }
 
-    // Check balance orders
-    const { data: balanceOrders } = await supabase
-      .from('ads_balance_orders')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
+    // Fallback: Check balance orders if not explicitly a balance payment
+    if (!isBalancePayment) {
+      const { data: balanceOrders } = await supabase
+        .from('ads_balance_orders')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
 
-    if (balanceOrders && balanceOrders.length > 0) {
-      const { data: user } = await supabase
-        .from('ads_users')
-        .select('id')
-        .eq('email', customerEmail)
-        .single();
+      if (balanceOrders && balanceOrders.length > 0) {
+        const { data: user } = await supabase
+          .from('ads_users')
+          .select('id')
+          .ilike('email', customerEmail)
+          .maybeSingle();
 
-      if (user) {
-        const balanceOrder = balanceOrders.find(bo => bo.user_id === user.id);
-        
-        if (balanceOrder) {
-          log('Found pending balance order', balanceOrder);
+        if (user) {
+          const balanceOrder = balanceOrders.find(bo => bo.user_id === user.id);
           
-          const { error: updateError } = await supabase
-            .from('ads_balance_orders')
-            .update({
-              status: 'paid',
-              paid_at: new Date().toISOString()
-            })
-            .eq('id', balanceOrder.id);
+          if (balanceOrder) {
+            log('Found pending balance order (fallback)', balanceOrder);
+            
+            const { error: updateError } = await supabase
+              .from('ads_balance_orders')
+              .update({
+                status: 'paid',
+                paid_at: new Date().toISOString()
+              })
+              .eq('id', balanceOrder.id);
 
-          if (updateError) {
-            log('Error updating balance order', updateError);
-          } else {
-            log('Balance order marked as paid');
+            if (updateError) {
+              log('Error updating balance order', updateError);
+            } else {
+              log('Balance order marked as paid');
+            }
+
+            return new Response(
+              JSON.stringify({ 
+                success: true, 
+                type: 'balance', 
+                orderId: balanceOrder.id,
+                message: 'Balance order paid successfully'
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
           }
-
-          return new Response(
-            JSON.stringify({ 
-              success: true, 
-              type: 'balance', 
-              orderId: balanceOrder.id,
-              message: 'Balance order paid successfully'
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
         }
       }
     }
