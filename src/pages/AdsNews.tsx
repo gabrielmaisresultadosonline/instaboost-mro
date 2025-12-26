@@ -1,0 +1,463 @@
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { 
+  MessageCircle, 
+  Send, 
+  Instagram, 
+  Facebook, 
+  Users, 
+  CheckCircle,
+  ArrowRight,
+  Phone,
+  Mail,
+  User,
+  Lock,
+  Loader2
+} from "lucide-react";
+
+const AdsNews = () => {
+  const [showRegister, setShowRegister] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: ""
+  });
+  const [paymentLink, setPaymentLink] = useState("");
+  const [checkingPayment, setCheckingPayment] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.password) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('ads-checkout', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+          amount: 1, // R$1 for testing (change to 397 for production)
+          type: 'initial'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.paymentLink) {
+        setPaymentLink(data.paymentLink);
+        toast({
+          title: "Cadastro realizado!",
+          description: "Clique no botão para realizar o pagamento"
+        });
+        
+        // Start checking for payment
+        startPaymentCheck(formData.email);
+      } else {
+        throw new Error(data.error || "Erro ao criar checkout");
+      }
+    } catch (error: unknown) {
+      console.error('Error:', error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao processar cadastro",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startPaymentCheck = (email: string) => {
+    setCheckingPayment(true);
+    
+    const checkInterval = setInterval(async () => {
+      try {
+        const { data } = await supabase.functions.invoke('ads-auth', {
+          body: { action: 'check-payment', email }
+        });
+
+        if (data?.isPaid) {
+          clearInterval(checkInterval);
+          setCheckingPayment(false);
+          toast({
+            title: "Pagamento confirmado!",
+            description: "Redirecionando para o dashboard..."
+          });
+          window.location.href = `/anuncios/dash?email=${encodeURIComponent(email)}&password=${encodeURIComponent(formData.password)}`;
+        }
+      } catch (error) {
+        console.error('Check payment error:', error);
+      }
+    }, 5000); // Check every 5 seconds
+
+    // Stop checking after 30 minutes
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      setCheckingPayment(false);
+    }, 30 * 60 * 1000);
+  };
+
+  const benefits = [
+    "Leads no seu WhatsApp o dia todo",
+    "Anúncios para WhatsApp, Telegram e Sites",
+    "Todos os posicionamentos: Facebook, Instagram, WhatsApp Status",
+    "Criamos os anúncios e criativos para você",
+    "Sem dor de cabeça - apenas passe as informações"
+  ];
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-center">
+          <img 
+            src="/ads-news-full.png" 
+            alt="Ads News" 
+            className="h-12 md:h-16"
+          />
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
+            Leads no seu WhatsApp<br />
+            <span className="text-orange-400">o dia todo</span> a partir de R$397/mês
+          </h1>
+          <p className="text-lg md:text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
+            Vamos anunciar sua empresa, seus produtos e seus negócios. 
+            Primeiro mês por apenas <span className="font-bold text-orange-400">R$397</span>, depois R$600/mês.
+          </p>
+          <Button 
+            size="lg" 
+            className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-full shadow-lg"
+            onClick={() => setShowRegister(true)}
+          >
+            Quero Começar Agora
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-gray-800">
+            O que você recebe
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">WhatsApp</h3>
+                <p className="text-gray-600">Anúncios diretos para o seu WhatsApp Business ou normal</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Send className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">Telegram</h3>
+                <p className="text-gray-600">Envio para grupos de Telegram e canais</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Instagram className="h-8 w-8 text-pink-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">Instagram</h3>
+                <p className="text-gray-600">Feed, Stories e Reels patrocinados</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Facebook className="h-8 w-8 text-indigo-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">Facebook</h3>
+                <p className="text-gray-600">Feed, Marketplace e Messenger</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-8 w-8 text-purple-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">Criativos</h3>
+                <p className="text-gray-600">Criamos os anúncios e artes para você</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="h-8 w-8 text-orange-600" />
+                </div>
+                <h3 className="font-bold text-lg mb-2">Sem Dor de Cabeça</h3>
+                <p className="text-gray-600">Apenas passe as informações e nós fazemos tudo</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 md:p-12 text-white">
+            <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">
+              Tudo incluso no seu plano
+            </h2>
+            <div className="space-y-4">
+              {benefits.map((benefit, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <CheckCircle className="h-6 w-6 text-orange-400 flex-shrink-0" />
+                  <span className="text-lg">{benefit}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 pt-6 border-t border-blue-500">
+              <p className="text-sm text-blue-200 text-center">
+                * Este valor não inclui o investimento em tráfego pago (mínimo R$150). 
+                Após o cadastro, você poderá adicionar saldo para os anúncios.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-16 bg-gray-50" id="pricing">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-800">
+            Comece agora mesmo
+          </h2>
+          <p className="text-gray-600 mb-8">
+            Primeiro mês promocional, depois mensalidade fixa
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <Card className="border-2 border-orange-400 shadow-xl">
+              <CardContent className="p-8">
+                <div className="bg-orange-400 text-white text-sm font-bold px-3 py-1 rounded-full inline-block mb-4">
+                  PRIMEIRO MÊS
+                </div>
+                <div className="text-4xl font-bold text-gray-800 mb-2">
+                  R$<span className="text-5xl">397</span>
+                </div>
+                <p className="text-gray-500">pagamento único</p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-xl">
+              <CardContent className="p-8">
+                <div className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full inline-block mb-4">
+                  MESES SEGUINTES
+                </div>
+                <div className="text-4xl font-bold text-gray-800 mb-2">
+                  R$<span className="text-5xl">600</span>
+                </div>
+                <p className="text-gray-500">por mês</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Button 
+            size="lg" 
+            className="mt-8 bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-full shadow-lg"
+            onClick={() => setShowRegister(true)}
+          >
+            Começar Agora por R$397
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
+      </section>
+
+      {/* Registration Modal */}
+      {showRegister && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md bg-white">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-800">Cadastre-se</h3>
+                <button 
+                  onClick={() => setShowRegister(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {!paymentLink ? (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="name" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Nome completo *
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Seu nome"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="email" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email *
+                    </Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="seu@email.com"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="password" className="flex items-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      Senha *
+                    </Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="Crie uma senha"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Telefone (opcional)
+                    </Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="(00) 00000-0000"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-orange-500 hover:bg-orange-600"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        Continuar para Pagamento
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-gray-500 text-center">
+                    Valor para teste: R$1,00 (produção: R$397)
+                  </p>
+                </form>
+              ) : (
+                <div className="text-center space-y-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg mb-2">Cadastro realizado!</h4>
+                    <p className="text-gray-600 text-sm">
+                      Clique no botão abaixo para realizar o pagamento
+                    </p>
+                  </div>
+
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={() => window.open(paymentLink, '_blank')}
+                  >
+                    Pagar Agora
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+
+                  {checkingPayment && (
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Aguardando confirmação do pagamento...
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-400">
+                    Após o pagamento, você será redirecionado automaticamente
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-8">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <img 
+            src="/ads-news-logo.png" 
+            alt="Ads News" 
+            className="h-12 mx-auto mb-4"
+          />
+          <p className="text-gray-400 text-sm">
+            Ads News - Anúncios para WhatsApp, Facebook e Instagram
+          </p>
+          <p className="text-gray-500 text-xs mt-2">
+            © 2024 Todos os direitos reservados
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default AdsNews;

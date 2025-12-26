@@ -1,0 +1,655 @@
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  User, 
+  Save, 
+  LogOut, 
+  Loader2,
+  Instagram,
+  MessageCircle,
+  Send,
+  Upload,
+  MapPin,
+  Briefcase,
+  Calculator,
+  CreditCard,
+  CheckCircle,
+  Clock,
+  ExternalLink
+} from "lucide-react";
+
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+  subscription_start: string;
+  subscription_end: string;
+}
+
+interface ClientData {
+  id?: string;
+  niche: string;
+  region: string;
+  instagram: string;
+  whatsapp: string;
+  telegram_group: string;
+  logo_url: string;
+  observations: string;
+  sales_page_url?: string;
+}
+
+interface BalanceOrder {
+  id: string;
+  amount: number;
+  leads_quantity: number;
+  status: string;
+  paid_at: string | null;
+  created_at: string;
+}
+
+const AdsNewsDash = () => {
+  const [searchParams] = useSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [clientData, setClientData] = useState<ClientData>({
+    niche: "",
+    region: "",
+    instagram: "",
+    whatsapp: "",
+    telegram_group: "",
+    logo_url: "",
+    observations: ""
+  });
+  const [balanceOrders, setBalanceOrders] = useState<BalanceOrder[]>([]);
+  const [showLogin, setShowLogin] = useState(false);
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  
+  // Balance calculator
+  const [leadsQuantity, setLeadsQuantity] = useState(50);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balancePaymentLink, setBalancePaymentLink] = useState("");
+
+  // Calculate cost based on leads (R$3.80 - R$4.70 per lead, using R$4 average)
+  const costPerLead = 4;
+  const calculatedAmount = Math.max(150, leadsQuantity * costPerLead);
+
+  useEffect(() => {
+    // Check if coming from registration with auto-login params
+    const email = searchParams.get('email');
+    const password = searchParams.get('password');
+    
+    if (email && password) {
+      handleLogin(email, password);
+    } else {
+      // Check if user is stored in localStorage
+      const storedUser = localStorage.getItem('ads_user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        loadUserData(userData.email, userData.password);
+      } else {
+        setShowLogin(true);
+        setLoading(false);
+      }
+    }
+  }, [searchParams]);
+
+  const loadUserData = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('ads-auth', {
+        body: { action: 'login', email, password }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setUser(data.user);
+        if (data.clientData) {
+          setClientData({
+            niche: data.clientData.niche || "",
+            region: data.clientData.region || "",
+            instagram: data.clientData.instagram || "",
+            whatsapp: data.clientData.whatsapp || "",
+            telegram_group: data.clientData.telegram_group || "",
+            logo_url: data.clientData.logo_url || "",
+            observations: data.clientData.observations || "",
+            sales_page_url: data.clientData.sales_page_url || ""
+          });
+        }
+        setBalanceOrders(data.balanceOrders || []);
+        localStorage.setItem('ads_user', JSON.stringify({ email, password }));
+        setShowLogin(false);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: unknown) {
+      console.error('Login error:', error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao fazer login",
+        variant: "destructive"
+      });
+      setShowLogin(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (email?: string, password?: string) => {
+    const emailToUse = email || loginData.email;
+    const passwordToUse = password || loginData.password;
+    
+    if (!emailToUse || !passwordToUse) {
+      toast({
+        title: "Erro",
+        description: "Preencha email e senha",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    await loadUserData(emailToUse, passwordToUse);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('ads_user');
+    setUser(null);
+    setShowLogin(true);
+  };
+
+  const handleSaveData = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ads-auth', {
+        body: {
+          action: 'save-client-data',
+          userId: user.id,
+          niche: clientData.niche,
+          region: clientData.region,
+          instagram: clientData.instagram,
+          whatsapp: clientData.whatsapp,
+          telegramGroup: clientData.telegram_group,
+          logoUrl: clientData.logo_url,
+          observations: clientData.observations
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Dados salvos!",
+        description: "Suas informações foram salvas com sucesso"
+      });
+    } catch (error: unknown) {
+      console.error('Save error:', error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao salvar dados",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Erro",
+        description: "Apenas arquivos PNG, JPG ou PDF são permitidos",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-logo.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('user-data')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('user-data')
+        .getPublicUrl(filePath);
+
+      setClientData({ ...clientData, logo_url: urlData.publicUrl });
+      toast({
+        title: "Logo enviada!",
+        description: "Sua logomarca foi enviada com sucesso"
+      });
+    } catch (error: unknown) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao enviar logo",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleAddBalance = async () => {
+    if (!user || leadsQuantity < 1) return;
+
+    setBalanceLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ads-balance-checkout', {
+        body: {
+          userId: user.id,
+          email: user.email,
+          amount: calculatedAmount,
+          leadsQuantity
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.paymentLink) {
+        setBalancePaymentLink(data.paymentLink);
+        toast({
+          title: "Link de pagamento gerado!",
+          description: "Clique para adicionar saldo"
+        });
+      }
+    } catch (error: unknown) {
+      console.error('Balance checkout error:', error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao gerar pagamento",
+        variant: "destructive"
+      });
+    } finally {
+      setBalanceLoading(false);
+    }
+  };
+
+  const hasPaidBalance = balanceOrders.some(order => order.status === 'paid');
+  const hasDataFilled = clientData.niche && clientData.whatsapp;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (showLogin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <img src="/ads-news-full.png" alt="Ads News" className="h-12 mx-auto mb-4" />
+            <CardTitle>Acesse sua conta</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={loginData.email}
+                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                placeholder="seu@email.com"
+              />
+            </div>
+            <div>
+              <Label>Senha</Label>
+              <Input
+                type="password"
+                value={loginData.password}
+                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                placeholder="Sua senha"
+              />
+            </div>
+            <Button 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={() => handleLogin()}
+            >
+              Entrar
+            </Button>
+            <p className="text-center text-sm text-gray-500">
+              Não tem conta? <a href="/anuncios" className="text-blue-600 hover:underline">Cadastre-se aqui</a>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <img src="/ads-news-full.png" alt="Ads News" className="h-10" />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <User className="h-4 w-4" />
+              {user?.name}
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Welcome Card */}
+        <Card className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+          <CardContent className="p-6">
+            <h1 className="text-2xl font-bold mb-2">Bem-vindo, {user?.name}!</h1>
+            <p className="text-blue-100">
+              Preencha seus dados abaixo para começarmos a criar seus anúncios
+            </p>
+            {user?.subscription_end && (
+              <p className="text-sm text-blue-200 mt-2">
+                Assinatura válida até: {new Date(user.subscription_end).toLocaleDateString('pt-BR')}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Client Data Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Dados do seu negócio
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Nicho de atuação *
+                </Label>
+                <Input
+                  value={clientData.niche}
+                  onChange={(e) => setClientData({ ...clientData, niche: e.target.value })}
+                  placeholder="Ex: Restaurante, Loja de roupas, Imobiliária..."
+                />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Região de atuação
+                </Label>
+                <Input
+                  value={clientData.region}
+                  onChange={(e) => setClientData({ ...clientData, region: e.target.value })}
+                  placeholder="Ex: São Paulo - SP ou Brasil todo"
+                />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Instagram className="h-4 w-4" />
+                  Instagram
+                </Label>
+                <Input
+                  value={clientData.instagram}
+                  onChange={(e) => setClientData({ ...clientData, instagram: e.target.value })}
+                  placeholder="@seuinstagram"
+                />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp para os leads *
+                </Label>
+                <Input
+                  value={clientData.whatsapp}
+                  onChange={(e) => setClientData({ ...clientData, whatsapp: e.target.value })}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Link do grupo Telegram (opcional)
+                </Label>
+                <Input
+                  value={clientData.telegram_group}
+                  onChange={(e) => setClientData({ ...clientData, telegram_group: e.target.value })}
+                  placeholder="https://t.me/seugrupo"
+                />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Logomarca (PNG, JPG ou PDF)
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.pdf"
+                    onChange={handleLogoUpload}
+                    disabled={uploadingLogo}
+                  />
+                  {uploadingLogo && <Loader2 className="h-5 w-5 animate-spin" />}
+                </div>
+                {clientData.logo_url && (
+                  <p className="text-xs text-green-600 mt-1">✓ Logo enviada</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label>Observações (informações adicionais sobre o negócio)</Label>
+              <Textarea
+                value={clientData.observations}
+                onChange={(e) => setClientData({ ...clientData, observations: e.target.value })}
+                placeholder="Descreva seu negócio, produtos, diferenciais..."
+                rows={4}
+              />
+            </div>
+
+            <Button 
+              onClick={handleSaveData} 
+              disabled={saving}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Dados
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Balance Calculator - Only show after data is filled */}
+        {hasDataFilled && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                Adicionar Saldo para Anúncios
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-blue-800 mb-2">
+                  <strong>Média por lead:</strong> R$3,80 a R$4,70
+                </p>
+                <p className="text-sm text-blue-600">
+                  Calcule quantas pessoas deseja receber no seu WhatsApp por mês
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label>Quantidade de leads desejados</Label>
+                  <Input
+                    type="number"
+                    min={38}
+                    value={leadsQuantity}
+                    onChange={(e) => setLeadsQuantity(Math.max(38, parseInt(e.target.value) || 38))}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Mínimo: 38 leads (R$150)</p>
+                </div>
+
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Valor estimado:</span>
+                    <span className="text-2xl font-bold text-blue-600">
+                      R$ {calculatedAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Para aproximadamente {leadsQuantity} leads
+                  </p>
+                </div>
+
+                {!balancePaymentLink ? (
+                  <Button 
+                    onClick={handleAddBalance}
+                    disabled={balanceLoading}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {balanceLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Gerando pagamento...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Adicionar Saldo - R$ {calculatedAmount.toFixed(2)}
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => window.open(balancePaymentLink, '_blank')}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Pagar Saldo - R$ {calculatedAmount.toFixed(2)}
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setBalancePaymentLink("")}
+                      className="w-full"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Campaign Status - Show after balance is paid */}
+        {hasPaidBalance && (
+          <Card className="border-2 border-green-500">
+            <CardContent className="p-8 text-center">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="h-10 w-10 text-green-600 animate-spin" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Estamos gerando suas campanhas!
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Em breve você verá como ficou sua página de vendas/apresentação abaixo.
+                Esta é a página que as pessoas vão acessar diretamente pelos nossos anúncios.
+              </p>
+              
+              {clientData.sales_page_url && (
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-600 mb-2">Sua página está pronta!</p>
+                  <a 
+                    href={clientData.sales_page_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-700 font-medium hover:underline flex items-center justify-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Ver Página de Vendas
+                  </a>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Balance History */}
+        {balanceOrders.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de Saldo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {balanceOrders.map((order) => (
+                  <div 
+                    key={order.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium">R$ {order.amount.toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">{order.leads_quantity} leads</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {order.status === 'paid' ? (
+                        <span className="flex items-center gap-1 text-green-600 text-sm">
+                          <CheckCircle className="h-4 w-4" />
+                          Pago
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-yellow-600 text-sm">
+                          <Clock className="h-4 w-4" />
+                          Pendente
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default AdsNewsDash;

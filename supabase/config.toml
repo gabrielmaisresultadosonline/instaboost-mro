@@ -169,3 +169,15 @@ verify_jwt = false
 
 [functions.metodo-seguidor-webhook]
 verify_jwt = false
+
+[functions.ads-checkout]
+verify_jwt = false
+
+[functions.ads-webhook]
+verify_jwt = false
+
+[functions.ads-auth]
+verify_jwt = false
+
+[functions.ads-balance-checkout]
+verify_jwt = false
