@@ -329,6 +329,47 @@ const AdsNews = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* AI Section - Below features */}
+          <div className="mt-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-8 md:p-10 text-white">
+            <h3 className="text-2xl md:text-3xl font-bold text-center mb-4">
+              🤖 Campanha de tráfego pago com IA totalmente automática
+            </h3>
+            <p className="text-lg text-center text-blue-100 mb-6">
+              Basta apenas <span className="font-bold text-white">UMA configuração</span> e deixe a IA trabalhar para você!
+            </p>
+            
+            {/* AI Question */}
+            <div className="bg-gradient-to-r from-purple-600/60 to-indigo-600/60 rounded-xl p-5 mb-8 border border-purple-400/30 max-w-3xl mx-auto">
+              <p className="text-lg md:text-xl font-semibold text-center text-white">
+                💡 Já imaginou sua campanha de anúncios <span className="text-yellow-300">assertiva</span> criada pelas maiores IAs do mercado?
+              </p>
+            </div>
+            
+            {/* AI Logos */}
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
+                <img src="/ai-logos/chatgpt.png" alt="ChatGPT" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
+                <span className="text-sm font-bold text-gray-700 mt-2">ChatGPT</span>
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
+                <img src="/ai-logos/deepseek.png" alt="DeepSeek" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
+                <span className="text-sm font-bold text-gray-700 mt-2">DeepSeek</span>
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
+                <img src="/ai-logos/nanobanana.png" alt="Nano Banana" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
+                <span className="text-sm font-bold text-gray-700 mt-2">Nano Banana</span>
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
+                <img src="/ai-logos/gemini.png" alt="Gemini" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
+                <span className="text-sm font-bold text-gray-700 mt-2">Gemini</span>
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
+                <img src="/ai-logos/mro-api.png" alt="API MRO" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
+                <span className="text-sm font-bold text-gray-700 mt-2">API MRO</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
