@@ -490,7 +490,7 @@ serve(async (req) => {
 
       if (!smtpPassword) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Email não configurado' }),
+          JSON.stringify({ success: false, error: 'Email nao configurado' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -503,7 +503,7 @@ serve(async (req) => {
 
       if (!user) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Usuário não encontrado' }),
+          JSON.stringify({ success: false, error: 'Usuario nao encontrado' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -514,38 +514,110 @@ serve(async (req) => {
         .eq('user_id', userId)
         .single();
 
-      const endDate = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('pt-BR') : 'Não definida';
+      const endDate = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('pt-BR') : 'Nao definida';
+      const year = new Date().getFullYear();
+      const dashboardUrl = 'https://pay.maisresultadosonline.com.br/anuncios/dash';
 
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/ads-news-full.png" alt="Ads News" style="max-width: 200px; margin-bottom: 20px;" />
-          
-          <h1 style="color: #1d4ed8;">Olá, ${user.name}!</h1>
-          
-          <p>Aqui estão seus dados de acesso ao painel Ads News:</p>
-          
-          <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <p><strong>📧 Email:</strong> ${user.email}</p>
-            <p><strong>🔑 Senha:</strong> ${user.password}</p>
-            <p><strong>📅 Assinatura até:</strong> ${endDate}</p>
-          </div>
-          
-          ${clientData?.sales_page_url ? `
-          <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 20px 0;">
-            <p style="margin: 0; color: #1d4ed8;"><strong>🔗 Sua página de vendas:</strong></p>
-            <a href="${clientData.sales_page_url}" style="color: #1d4ed8; word-break: break-all;">${clientData.sales_page_url}</a>
-          </div>
-          ` : ''}
-          
-          <a href="https://mrodigital.site/anuncios/dash" style="display: inline-block; background: #1d4ed8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Painel</a>
-          
-          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-          
-          <p style="color: #999; font-size: 12px;">Ads News - Leads no seu WhatsApp o dia todo</p>
-        </div>
-      `;
+      const salesPageSection = clientData?.sales_page_url ? `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f0f9ff; border-radius: 10px; margin-bottom: 20px;">
+<tr>
+<td style="padding: 15px;">
+<p style="margin: 0 0 10px 0; color: #1d4ed8; font-weight: bold; font-size: 14px;">Sua pagina de vendas:</p>
+<a href="${clientData.sales_page_url}" style="color: #1d4ed8; word-break: break-all; font-size: 14px;">${clientData.sales_page_url}</a>
+</td>
+</tr>
+</table>` : '';
 
-      await sendEmailViaSMTP(user.email, '📧 Seus dados de acesso - Ads News', html);
+      const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dados de Acesso - Ads News</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333333; background-color: #f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 20px 0;">
+<tr>
+<td align="center">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+<tr>
+<td style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; text-align: center;">
+<img src="https://pay.maisresultadosonline.com.br/ads-news-full.png" alt="Ads News" style="height: 50px; margin-bottom: 15px;">
+<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;">Seus Dados de Acesso</h1>
+</td>
+</tr>
+
+<tr>
+<td style="padding: 30px;">
+
+<p style="margin: 0 0 20px 0; font-size: 16px; color: #333333;">Ola <strong>${user.name}</strong>!</p>
+
+<p style="margin: 0 0 20px 0; font-size: 16px; color: #333333;">Aqui estao seus dados de acesso ao painel Ads News:</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border: 2px solid #3b82f6; border-radius: 10px; margin-bottom: 25px;">
+<tr>
+<td style="padding: 20px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="padding: 10px; background-color: #ffffff; border-radius: 5px;">
+<span style="font-size: 12px; color: #666666; display: block; margin-bottom: 5px;">Email:</span>
+<span style="font-size: 16px; color: #1e40af; font-weight: bold;">${user.email}</span>
+</td>
+</tr>
+<tr><td style="height: 10px;"></td></tr>
+<tr>
+<td style="padding: 10px; background-color: #ffffff; border-radius: 5px;">
+<span style="font-size: 12px; color: #666666; display: block; margin-bottom: 5px;">Senha:</span>
+<span style="font-size: 16px; color: #1e40af; font-weight: bold;">${user.password}</span>
+</td>
+</tr>
+<tr><td style="height: 10px;"></td></tr>
+<tr>
+<td style="padding: 12px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 5px; text-align: center;">
+<span style="font-size: 14px; font-weight: bold; color: #ffffff;">Assinatura ate: ${endDate}</span>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+${salesPageSection}
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="text-align: center; padding: 10px 0 25px 0;">
+<a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; font-size: 16px;">Acessar Painel</a>
+</td>
+</tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fff7ed; border-left: 4px solid #f97316; border-radius: 0 8px 8px 0;">
+<tr>
+<td style="padding: 15px;">
+<p style="margin: 0; color: #9a3412; font-size: 14px;"><strong>Duvidas?</strong> Entre em contato pelo WhatsApp: <a href="https://wa.me/5551920356540" style="color: #9a3412;">+55 51 9203-6540</a></p>
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+<tr>
+<td style="background-color: #1a1a1a; padding: 20px; text-align: center;">
+<p style="color: #3b82f6; margin: 0 0 10px 0; font-weight: bold; font-size: 14px;">Ads News - Leads no seu WhatsApp</p>
+<p style="color: #888888; margin: 0; font-size: 12px;">${year} Ads News - Todos os direitos reservados</p>
+</td>
+</tr>
+
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>`;
+
+      await sendEmailViaSMTP(user.email, 'Seus dados de acesso - Ads News', html);
 
       return new Response(
         JSON.stringify({ success: true }),
