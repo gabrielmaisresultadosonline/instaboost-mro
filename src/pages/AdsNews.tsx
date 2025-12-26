@@ -168,11 +168,18 @@ const AdsNews = () => {
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <img 
-            src="/ads-news-full.png" 
-            alt="Ads News" 
-            className="h-10 md:h-14"
-          />
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logo-mro-4.png" 
+              alt="MRO" 
+              className="h-8 md:h-10"
+            />
+            <img 
+              src="/ads-news-full.png" 
+              alt="Ads News" 
+              className="h-10 md:h-14"
+            />
+          </div>
           <Button 
             variant="outline"
             className="border-blue-600 text-blue-600 hover:bg-blue-50"
