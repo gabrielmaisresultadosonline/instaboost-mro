@@ -83,6 +83,7 @@ const AdsNewsAdmin = () => {
   const [salesPageUrl, setSalesPageUrl] = useState("");
   const [savingUrl, setSavingUrl] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastVerification, setLastVerification] = useState<Date | null>(null);
 
   useEffect(() => {
     const storedAdmin = localStorage.getItem('ads_admin');
@@ -94,13 +95,14 @@ const AdsNewsAdmin = () => {
     }
   }, []);
 
-  // Auto-refresh orders every 5 seconds
+  // Auto-refresh orders every 4 seconds
   useEffect(() => {
     if (!isAdmin) return;
 
     const interval = setInterval(() => {
       loadOrders();
-    }, 5000);
+      setLastVerification(new Date());
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [isAdmin]);
@@ -344,7 +346,15 @@ const AdsNewsAdmin = () => {
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <img src="/ads-news-full.png" alt="Ads News" className="h-10" />
+          <div className="flex items-center gap-4">
+            <img src="/ads-news-full.png" alt="Ads News" className="h-10" />
+            {lastVerification && (
+              <div className="flex items-center gap-2 text-sm text-gray-400 bg-gray-900 px-3 py-1.5 rounded-lg">
+                <RefreshCw className="h-3 w-3 text-green-400 animate-spin" />
+                <span>Última verificação: <span className="text-green-400 font-medium">{lastVerification.toLocaleTimeString('pt-BR')}</span></span>
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <Button 
               variant="outline" 
