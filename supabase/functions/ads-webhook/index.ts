@@ -11,7 +11,8 @@ const log = (step: string, details?: unknown) => {
   console.log(`[ADS-WEBHOOK] ${step}:`, details ? JSON.stringify(details, null, 2) : '');
 };
 
-const sendWelcomeEmail = async (email: string, name: string, password: string) => {
+// Email de boas-vindas após pagamento confirmado
+const sendWelcomeEmail = async (email: string, name: string, password: string, subscriptionEnd: Date) => {
   const smtpPassword = Deno.env.get("SMTP_PASSWORD");
   if (!smtpPassword) {
     log("SMTP password not configured, skipping email");
@@ -32,97 +33,72 @@ const sendWelcomeEmail = async (email: string, name: string, password: string) =
     });
 
     const dashboardUrl = 'https://pay.maisresultadosonline.com.br/anuncios/dash';
+    const year = new Date().getFullYear();
+    const formattedDate = subscriptionEnd.toLocaleDateString('pt-BR');
 
     const htmlContent = `<!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagamento Confirmado - Ads News</title>
 </head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333333; background-color: #f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 20px 0;">
 <tr>
-<td style="background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);padding:30px;text-align:center;">
-<img src="https://pay.maisresultadosonline.com.br/ads-news-full.png" alt="Ads News" style="height:60px;margin-bottom:15px;">
-<h1 style="color:#fff;margin:15px 0 0 0;font-size:24px;">🎉 Pagamento Confirmado!</h1>
+<td align="center">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+<!-- Header -->
+<tr>
+<td style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; text-align: center;">
+<img src="https://pay.maisresultadosonline.com.br/ads-news-full.png" alt="Ads News" style="height: 50px; margin-bottom: 15px;">
+<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;">Pagamento Confirmado!</h1>
 </td>
 </tr>
+
+<!-- Body -->
 <tr>
-<td style="padding:30px;background:#ffffff;">
+<td style="padding: 30px;">
 
-<!-- Welcome Message -->
-<div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:20px;border-radius:10px;margin-bottom:25px;text-align:center;">
-<p style="margin:0;color:#fff;font-size:18px;font-weight:bold;">✨ Seu acesso foi liberado com sucesso!</p>
-</div>
-
-<p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${name}</strong>!</p>
-
-<p style="margin:0 0 15px 0;font-size:16px;">Recebemos seu pagamento e seu acesso ao <strong>Ads News</strong> já está liberado! 🚀</p>
-
-<p style="margin:0 0 15px 0;font-size:16px;">Agora vamos trabalhar juntos para gerar leads no seu WhatsApp:</p>
-
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px 0;">
+<!-- Success Box -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
 <tr>
-<td style="padding:8px 0;">
-<span style="display:inline-block;background:#3b82f6;color:#fff;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">📱</span>
-<span style="color:#333;">Leads diretos no seu <strong>WhatsApp</strong></span>
-</td>
-</tr>
-<tr>
-<td style="padding:8px 0;">
-<span style="display:inline-block;background:#3b82f6;color:#fff;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">🎨</span>
-<span style="color:#333;">Criativos <strong>profissionais</strong> para suas campanhas</span>
-</td>
-</tr>
-<tr>
-<td style="padding:8px 0;">
-<span style="display:inline-block;background:#3b82f6;color:#fff;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">📊</span>
-<span style="color:#333;">Campanhas no <strong>Facebook, Instagram e WhatsApp</strong></span>
+<td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 10px; text-align: center;">
+<p style="margin: 0; color: #ffffff; font-size: 18px; font-weight: bold;">Seu acesso foi liberado com sucesso!</p>
 </td>
 </tr>
 </table>
 
-<!-- Access Credentials -->
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border:2px solid #3b82f6;border-radius:10px;margin:20px 0;">
+<p style="margin: 0 0 20px 0; font-size: 16px; color: #333333;">Ola <strong>${name}</strong>!</p>
+
+<p style="margin: 0 0 15px 0; font-size: 16px; color: #333333;">Recebemos seu pagamento e seu acesso ao <strong>Ads News</strong> ja esta liberado!</p>
+
+<p style="margin: 0 0 15px 0; font-size: 16px; color: #333333;">Agora vamos trabalhar juntos para gerar leads no seu WhatsApp. Complete as informacoes do seu negocio no painel para iniciarmos suas campanhas.</p>
+
+<!-- Credentials Box -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border: 2px solid #3b82f6; border-radius: 10px; margin-bottom: 25px;">
 <tr>
-<td style="padding:20px;">
-<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📋 Seus Dados de Acesso:</h3>
-<table width="100%" cellpadding="0" cellspacing="0">
+<td style="padding: 20px;">
+<p style="margin: 0 0 15px 0; font-size: 14px; font-weight: bold; color: #333333;">Seus Dados de Acesso:</p>
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr>
-<td style="padding:12px;background:#f8f9fa;border-radius:5px;margin-bottom:10px;">
-<table width="100%" cellpadding="0" cellspacing="0">
-<tr>
-<td>
-<span style="font-size:12px;color:#666;display:block;">Email:</span>
-<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${email}</span>
-</td>
-<td width="40" style="text-align:right;vertical-align:middle;">
-<span style="font-size:18px;" title="Copie o email">📋</span>
-</td>
-</tr>
-</table>
+<td style="padding: 10px; background-color: #ffffff; border-radius: 5px;">
+<span style="font-size: 12px; color: #666666; display: block; margin-bottom: 5px;">Email:</span>
+<span style="font-size: 16px; color: #1e40af; font-weight: bold;">${email}</span>
 </td>
 </tr>
-<tr><td style="height:10px;"></td></tr>
+<tr><td style="height: 10px;"></td></tr>
 <tr>
-<td style="padding:12px;background:#f8f9fa;border-radius:5px;">
-<table width="100%" cellpadding="0" cellspacing="0">
-<tr>
-<td>
-<span style="font-size:12px;color:#666;display:block;">Senha:</span>
-<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${password}</span>
-</td>
-<td width="40" style="text-align:right;vertical-align:middle;">
-<span style="font-size:18px;" title="Copie a senha">📋</span>
+<td style="padding: 10px; background-color: #ffffff; border-radius: 5px;">
+<span style="font-size: 12px; color: #666666; display: block; margin-bottom: 5px;">Senha:</span>
+<span style="font-size: 16px; color: #1e40af; font-weight: bold;">${password}</span>
 </td>
 </tr>
-</table>
-</td>
-</tr>
-<tr><td style="height:10px;"></td></tr>
+<tr><td style="height: 10px;"></td></tr>
 <tr>
-<td style="padding:12px;background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);border-radius:5px;text-align:center;">
-<span style="font-size:14px;font-weight:bold;color:#fff;">⏱️ 30 dias de acesso</span>
+<td style="padding: 12px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 5px; text-align: center;">
+<span style="font-size: 14px; font-weight: bold; color: #ffffff;">Assinatura ate: ${formattedDate}</span>
 </td>
 </tr>
 </table>
@@ -131,33 +107,57 @@ const sendWelcomeEmail = async (email: string, name: string, password: string) =
 </table>
 
 <!-- Steps -->
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;border-radius:10px;margin:20px 0;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border-radius: 10px; margin-bottom: 25px;">
 <tr>
-<td style="padding:20px;">
-<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📝 Próximos Passos:</h3>
-<table width="100%" cellpadding="0" cellspacing="0">
+<td style="padding: 20px;">
+<p style="margin: 0 0 15px 0; font-size: 14px; font-weight: bold; color: #333333;">Proximos Passos:</p>
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr>
-<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
-<span style="display:inline-block;background:#3b82f6;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">1</span>
-<span style="color:#333;">Acesse o <strong>Dashboard</strong> com seu email e senha</span>
+<td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+<table cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="width: 30px; vertical-align: top;">
+<span style="display: inline-block; background-color: #3b82f6; color: #ffffff; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: bold; font-size: 14px;">1</span>
+</td>
+<td style="padding-left: 10px; color: #333333; font-size: 15px;">Acesse o Dashboard com seu email e senha</td>
+</tr>
+</table>
 </td>
 </tr>
 <tr>
-<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
-<span style="display:inline-block;background:#3b82f6;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">2</span>
-<span style="color:#333;">Preencha as informações do seu <strong>negócio</strong></span>
+<td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+<table cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="width: 30px; vertical-align: top;">
+<span style="display: inline-block; background-color: #3b82f6; color: #ffffff; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: bold; font-size: 14px;">2</span>
+</td>
+<td style="padding-left: 10px; color: #333333; font-size: 15px;">Preencha as informacoes do seu negocio</td>
+</tr>
+</table>
 </td>
 </tr>
 <tr>
-<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
-<span style="display:inline-block;background:#3b82f6;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">3</span>
-<span style="color:#333;">Adicione saldo para suas <strong>campanhas</strong></span>
+<td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+<table cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="width: 30px; vertical-align: top;">
+<span style="display: inline-block; background-color: #3b82f6; color: #ffffff; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: bold; font-size: 14px;">3</span>
+</td>
+<td style="padding-left: 10px; color: #333333; font-size: 15px;">Adicione saldo para suas campanhas</td>
+</tr>
+</table>
 </td>
 </tr>
 <tr>
-<td style="padding:10px 0;">
-<span style="display:inline-block;background:#10b981;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span>
-<span style="color:#333;font-weight:bold;">Pronto! Começaremos a gerar seus leads!</span>
+<td style="padding: 10px 0;">
+<table cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="width: 30px; vertical-align: top;">
+<span style="display: inline-block; background-color: #10b981; color: #ffffff; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-weight: bold; font-size: 14px;">4</span>
+</td>
+<td style="padding-left: 10px; color: #333333; font-size: 15px; font-weight: bold;">Pronto! Vamos criar suas campanhas!</td>
+</tr>
+</table>
 </td>
 </tr>
 </table>
@@ -166,28 +166,59 @@ const sendWelcomeEmail = async (email: string, name: string, password: string) =
 </table>
 
 <!-- CTA Button -->
-<table width="100%" cellpadding="0" cellspacing="0">
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr>
-<td style="text-align:center;padding:20px 0;">
-<a href="${dashboardUrl}" style="display:inline-block;background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:8px;font-weight:bold;font-size:16px;">🚀 Acessar Meu Dashboard</a>
+<td style="text-align: center; padding: 10px 0 25px 0;">
+<a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; font-size: 16px;">Acessar Meu Dashboard</a>
 </td>
 </tr>
 </table>
 
-<div style="background:#fff3cd;border-left:4px solid #ffc107;padding:15px;margin:20px 0;border-radius:0 8px 8px 0;">
-<p style="margin:0;color:#856404;font-size:15px;">
-<strong>💡 Dúvidas?</strong><br>
-Entre em contato pelo WhatsApp: <a href="https://wa.me/5551920356540" style="color:#856404;">+55 51 9203-6540</a>
-</p>
-</div>
+<!-- What you get -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f0fdf4; border-radius: 10px; margin-bottom: 20px;">
+<tr>
+<td style="padding: 20px;">
+<p style="margin: 0 0 15px 0; font-size: 16px; font-weight: bold; color: #166534;">O que voce vai receber:</p>
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="padding: 5px 0; color: #166534; font-size: 14px;">Leads direto no WhatsApp o dia todo</td>
+</tr>
+<tr>
+<td style="padding: 5px 0; color: #166534; font-size: 14px;">Criativos profissionais para suas campanhas</td>
+</tr>
+<tr>
+<td style="padding: 5px 0; color: #166534; font-size: 14px;">Campanhas no Facebook, Instagram e WhatsApp</td>
+</tr>
+<tr>
+<td style="padding: 5px 0; color: #166534; font-size: 14px;">Suporte dedicado via WhatsApp</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+<!-- Contact -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fff7ed; border-left: 4px solid #f97316; border-radius: 0 8px 8px 0;">
+<tr>
+<td style="padding: 15px;">
+<p style="margin: 0; color: #9a3412; font-size: 14px;"><strong>Duvidas?</strong> Entre em contato pelo WhatsApp: <a href="https://wa.me/5551920356540" style="color: #9a3412;">+55 51 9203-6540</a></p>
+</td>
+</tr>
+</table>
 
 </td>
 </tr>
+
+<!-- Footer -->
 <tr>
-<td style="background:#1a1a1a;padding:20px;text-align:center;">
-<p style="color:#3b82f6;margin:0 0 10px 0;font-weight:bold;">Bem-vindo ao Ads News! 🚀</p>
-<p style="color:#888;margin:0;font-size:12px;">© ${new Date().getFullYear()} Ads News - Anúncios para WhatsApp</p>
-<p style="color:#666;margin:10px 0 0 0;font-size:11px;">Este email foi enviado porque você contratou nossos serviços de anúncios.</p>
+<td style="background-color: #1a1a1a; padding: 20px; text-align: center;">
+<p style="color: #3b82f6; margin: 0 0 10px 0; font-weight: bold; font-size: 14px;">Bem-vindo ao Ads News!</p>
+<p style="color: #888888; margin: 0; font-size: 12px;">${year} Ads News - Todos os direitos reservados</p>
+<p style="color: #666666; margin: 10px 0 0 0; font-size: 11px;">Este email foi enviado porque voce contratou nossos servicos de anuncios.</p>
+</td>
+</tr>
+
+</table>
 </td>
 </tr>
 </table>
@@ -197,7 +228,7 @@ Entre em contato pelo WhatsApp: <a href="https://wa.me/5551920356540" style="col
     await client.send({
       from: "Ads News <suporte@maisresultadosonline.com.br>",
       to: email,
-      subject: "🎉 Pagamento Confirmado - Seu acesso ao Ads News está liberado!",
+      subject: "Pagamento Confirmado - Seu acesso ao Ads News esta liberado!",
       html: htmlContent,
     });
 
@@ -246,7 +277,7 @@ serve(async (req) => {
     const nestedNsu = payment?.nsu || transaction?.nsu || data?.nsu || data?.order_nsu;
     const nestedItems = payment?.items || transaction?.items || data?.items;
 
-    // Evidence-based fields (common in InfiniPay payloads)
+    // Evidence-based fields
     const totalAmount =
       typeof amount === "number"
         ? amount
@@ -275,7 +306,7 @@ serve(async (req) => {
           ? data.transaction_nsu
           : undefined;
 
-    // Check if payment is confirmed - support all possible formats
+    // Check if payment is confirmed
     const evidencePaid =
       (typeof paidAmount === "number" && typeof totalAmount === "number" && paidAmount >= totalAmount && paidAmount > 0) ||
       Boolean(receiptUrl) ||
@@ -367,8 +398,7 @@ serve(async (req) => {
 
     log('Processing payment for email', customerEmail);
 
-    // Check initial subscription orders first (prioriza o NSU do webhook)
-
+    // Check initial subscription orders first
     const { data: order, error: orderError } = orderNsu
       ? await supabase
           .from("ads_orders")
@@ -388,7 +418,7 @@ serve(async (req) => {
     if (order && !orderError) {
       log('Found pending initial order', order);
       
-      // Update order status and save InfiniPay verification data
+      // Update order status
       const { error: updateOrderError } = await supabase
         .from('ads_orders')
         .update({
@@ -402,7 +432,7 @@ serve(async (req) => {
       if (updateOrderError) {
         log('Error updating order', updateOrderError);
       } else {
-        log('Order marked as paid with verification data', { 
+        log('Order marked as paid', { 
           invoice_slug: invoice_slug || data?.invoice_slug,
           transaction_nsu: transactionNsu
         });
@@ -440,7 +470,7 @@ serve(async (req) => {
 
       // Send welcome email with credentials
       if (user) {
-        await sendWelcomeEmail(customerEmail, user.name || order.name, user.password);
+        await sendWelcomeEmail(customerEmail, user.name || order.name, user.password, subscriptionEnd);
       }
 
       return new Response(
@@ -462,7 +492,6 @@ serve(async (req) => {
       .order('created_at', { ascending: false });
 
     if (balanceOrders && balanceOrders.length > 0) {
-      // Find the balance order for this user by checking user_id
       const { data: user } = await supabase
         .from('ads_users')
         .select('id')
@@ -504,8 +533,8 @@ serve(async (req) => {
 
     log('No pending order found for email', customerEmail);
     return new Response(
-      JSON.stringify({ success: true, message: 'No pending order found' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: false, error: 'No pending order found' }),
+      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
