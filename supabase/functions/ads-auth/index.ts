@@ -67,6 +67,8 @@ serve(async (req) => {
     if (action === 'login') {
       // Login user - use ilike for case-insensitive email match
       const cleanEmail = email?.toLowerCase()?.trim();
+      const allowPending = body.allowPending === true; // Allow pending users when checking payment
+      
       const { data: user, error } = await supabase
         .from('ads_users')
         .select('*')
@@ -82,10 +84,21 @@ serve(async (req) => {
         );
       }
 
-      if (user.status !== 'active') {
+      // Block only if not active AND not allowing pending users
+      if (user.status !== 'active' && !allowPending) {
         log('User not active', user);
         return new Response(
-          JSON.stringify({ success: false, error: 'Sua conta ainda não está ativa. Aguarde a confirmação do pagamento.' }),
+          JSON.stringify({ 
+            success: false, 
+            error: 'Sua conta ainda não está ativa. Aguarde a confirmação do pagamento.',
+            isPending: user.status === 'pending',
+            user: {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              status: user.status
+            }
+          }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -104,7 +117,7 @@ serve(async (req) => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      log('Login successful', { userId: user.id });
+      log('Login successful', { userId: user.id, status: user.status });
       return new Response(
         JSON.stringify({ 
           success: true, 
