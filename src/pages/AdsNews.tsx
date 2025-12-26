@@ -1,4 +1,5 @@
 import { useState } from "react";
+import metaLogo from "@/assets/meta-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -158,6 +159,20 @@ const AdsNews = () => {
             Quero Começar Agora
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
+        </div>
+      </section>
+
+      {/* Meta Partner Section */}
+      <section className="py-12 bg-white">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <img 
+            src={metaLogo} 
+            alt="Meta Business" 
+            className="h-16 md:h-20 mx-auto mb-4"
+          />
+          <p className="text-xl md:text-2xl font-semibold text-gray-800">
+            Parceiro Oficial da Meta Business
+          </p>
         </div>
       </section>
 
