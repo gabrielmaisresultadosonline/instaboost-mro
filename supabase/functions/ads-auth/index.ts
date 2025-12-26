@@ -184,7 +184,7 @@ serve(async (req) => {
 
     } else if (action === 'save-client-data') {
       // Save client campaign data
-      const { userId, niche, region, instagram, whatsapp, telegramGroup, logoUrl, observations } = body;
+      const { userId, niche, region, instagram, whatsapp, telegramGroup, logoUrl, observations, competitor1Instagram, competitor2Instagram, mediaUrls } = body;
 
       const { data: existing } = await supabase
         .from('ads_client_data')
@@ -203,7 +203,10 @@ serve(async (req) => {
             whatsapp,
             telegram_group: telegramGroup,
             logo_url: logoUrl,
-            observations
+            observations,
+            competitor1_instagram: competitor1Instagram,
+            competitor2_instagram: competitor2Instagram,
+            media_urls: mediaUrls || []
           })
           .eq('user_id', userId);
 
@@ -220,7 +223,10 @@ serve(async (req) => {
             whatsapp,
             telegram_group: telegramGroup,
             logo_url: logoUrl,
-            observations
+            observations,
+            competitor1_instagram: competitor1Instagram,
+            competitor2_instagram: competitor2Instagram,
+            media_urls: mediaUrls || []
           });
 
         if (error) throw error;
