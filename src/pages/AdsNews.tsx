@@ -199,21 +199,10 @@ const AdsNews = () => {
             Campanhas de Tráfego Pago com <span className="text-yellow-300">IA Automático!</span>
           </h1>
           
-          {/* AI Optimization Info - Simplified */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 md:p-8 mb-8 max-w-4xl mx-auto border border-white/20">
-            <p className="text-xl md:text-2xl font-bold mb-4 text-yellow-300">
-              🚀 Campanha Otimizada com IA!
-            </p>
-            <p className="text-lg md:text-xl text-white font-semibold mb-4">
-              API Oficial da Meta com <span className="text-yellow-300">Andromeda</span>
-            </p>
-            
-            <div className="bg-gradient-to-r from-orange-500/30 to-yellow-500/30 rounded-xl p-5 border border-orange-400/40">
-              <p className="text-lg md:text-xl text-white">
-                Nós da equipe <span className="font-bold text-yellow-300">MRO</span> vamos criar sua campanha de tráfego pago e vamos ativar nossa <span className="font-bold text-orange-300">OTIMIZAÇÃO IA</span>, <span className="text-2xl font-black text-yellow-300">3x mais assertividade!</span>
-              </p>
-            </div>
-          </div>
+          {/* Smaller MRO team text */}
+          <p className="text-sm md:text-base text-blue-200 mb-8 max-w-2xl mx-auto">
+            Nós da equipe MRO vamos criar sua campanha de tráfego pago e vamos ativar nossa otimização IA, 3x mais assertividade!
+          </p>
 
           <p className="text-lg md:text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
             Leads no seu WhatsApp <span className="text-orange-400 font-bold">o dia todo</span> por apenas <span className="font-bold text-orange-400">R$397/mês</span>.
@@ -305,21 +294,24 @@ const AdsNews = () => {
             </Card>
           </div>
 
-          {/* AI Section - Below features */}
-          <div className="mt-12 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-8 md:p-10 text-white">
-            <h3 className="text-2xl md:text-3xl font-bold text-center mb-4">
-              🤖 Campanha de tráfego pago com IA totalmente automática
+          {/* AI Optimization Section - Meta Andromeda */}
+          <div className="mt-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 rounded-2xl p-8 md:p-10 text-white">
+            <h3 className="text-2xl md:text-4xl font-black text-center mb-3">
+              🚀 Campanha Otimizada com IA!
+            </h3>
+            <p className="text-xl md:text-2xl text-center text-white font-bold mb-6">
+              API Oficial da Meta com <span className="text-yellow-300">Andromeda</span>
+            </p>
+          </div>
+
+          {/* AI Logos Section */}
+          <div className="mt-8 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-8 md:p-10 text-white">
+            <h3 className="text-xl md:text-2xl font-bold text-center mb-4">
+              🤖 Campanhas criadas pelas maiores IAs do mercado
             </h3>
             <p className="text-lg text-center text-blue-100 mb-6">
               Basta apenas <span className="font-bold text-white">UMA configuração</span> e deixe a IA trabalhar para você!
             </p>
-            
-            {/* AI Question */}
-            <div className="bg-gradient-to-r from-purple-600/60 to-indigo-600/60 rounded-xl p-5 mb-8 border border-purple-400/30 max-w-3xl mx-auto">
-              <p className="text-lg md:text-xl font-semibold text-center text-white">
-                💡 Já imaginou sua campanha de anúncios <span className="text-yellow-300">assertiva</span> criada pelas maiores IAs do mercado?
-              </p>
-            </div>
             
             {/* AI Logos */}
             <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
