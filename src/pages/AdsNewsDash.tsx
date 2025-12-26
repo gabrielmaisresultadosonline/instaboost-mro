@@ -928,22 +928,37 @@ const AdsNewsDash = () => {
                     </a>
                   </div>
 
-                  {/* Leads capture status with spinning loader */}
-                  <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl p-6 mb-6 text-gray-900">
-                    <div className="flex items-center justify-center gap-4 mb-3">
-                      <Loader2 className="h-10 w-10 animate-spin text-gray-900" />
-                      <div className="text-left">
-                        <p className="text-xl font-black uppercase">
-                          Estamos Captando Leads Para Você!
+                  {/* Leads capture status with BIG spinning loader */}
+                  <div className="bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 rounded-2xl p-8 mb-6 text-gray-900 shadow-xl animate-pulse">
+                    <div className="flex flex-col items-center gap-4">
+                      {/* Big spinning icon */}
+                      <div className="relative">
+                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-2xl border-4 border-white">
+                          <Loader2 className="h-16 w-16 animate-spin text-white" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce">
+                          ATIVADO
+                        </div>
+                      </div>
+                      
+                      {/* Text */}
+                      <div className="text-center">
+                        <p className="text-3xl font-black uppercase tracking-wide mb-2">
+                          ESTAMOS CAPTANDO LEADS PARA VOCÊ!
                         </p>
-                        <p className="text-sm font-medium">
+                        <p className="text-lg font-semibold">
                           Conforme os seus dados e suas configurações
                         </p>
                       </div>
+                      
+                      {/* WhatsApp message */}
+                      <div className="bg-white/50 rounded-xl px-6 py-3 mt-2">
+                        <p className="text-xl font-bold flex items-center gap-2">
+                          <MessageCircle className="h-6 w-6" />
+                          Aguarde no seu WhatsApp!
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-lg font-bold mt-3">
-                      📱 Aguarde no seu WhatsApp!
-                    </p>
                   </div>
 
                   {/* Campaign dates */}
