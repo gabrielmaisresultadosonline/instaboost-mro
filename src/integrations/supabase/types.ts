@@ -14,6 +14,222 @@ export type Database = {
   }
   public: {
     Tables: {
+      ads_admins: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          password: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          password: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          password?: string
+        }
+        Relationships: []
+      }
+      ads_balance_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          infinitepay_link: string | null
+          leads_quantity: number
+          nsu_order: string
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          infinitepay_link?: string | null
+          leads_quantity: number
+          nsu_order: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          infinitepay_link?: string | null
+          leads_quantity?: number
+          nsu_order?: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ads_balance_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ads_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ads_client_data: {
+        Row: {
+          created_at: string
+          id: string
+          instagram: string | null
+          logo_url: string | null
+          niche: string | null
+          observations: string | null
+          region: string | null
+          sales_page_url: string | null
+          telegram_group: string | null
+          updated_at: string
+          user_id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          niche?: string | null
+          observations?: string | null
+          region?: string | null
+          sales_page_url?: string | null
+          telegram_group?: string | null
+          updated_at?: string
+          user_id: string
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          niche?: string | null
+          observations?: string | null
+          region?: string | null
+          sales_page_url?: string | null
+          telegram_group?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ads_client_data_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "ads_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ads_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          name: string
+          nsu_order: string
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          email: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          name: string
+          nsu_order: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          name?: string
+          nsu_order?: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ads_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "ads_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ads_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          password: string
+          phone: string | null
+          status: string
+          subscription_end: string | null
+          subscription_start: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          password: string
+          phone?: string | null
+          status?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          password?: string
+          phone?: string | null
+          status?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       call_analytics: {
         Row: {
           created_at: string
