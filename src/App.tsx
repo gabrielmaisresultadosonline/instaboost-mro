@@ -37,6 +37,7 @@ import AreaDeMembros from "./pages/AreaDeMembros";
 import AdsNews from "./pages/AdsNews";
 import AdsNewsDash from "./pages/AdsNewsDash";
 import AdsNewsAdmin from "./pages/AdsNewsAdmin";
+import PoliticaCancelamento from "./pages/PoliticaCancelamento";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ const App = () => (
           <Route path="/anuncios" element={<AdsNews />} />
           <Route path="/anuncios/dash" element={<AdsNewsDash />} />
           <Route path="/anuncios/admin" element={<AdsNewsAdmin />} />
+          <Route path="/politica-de-cancelamento" element={<PoliticaCancelamento />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
