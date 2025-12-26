@@ -87,10 +87,13 @@ export type Database = {
       }
       ads_client_data: {
         Row: {
+          competitor1_instagram: string | null
+          competitor2_instagram: string | null
           created_at: string
           id: string
           instagram: string | null
           logo_url: string | null
+          media_urls: string[] | null
           niche: string | null
           observations: string | null
           offer_description: string | null
@@ -102,10 +105,13 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          competitor1_instagram?: string | null
+          competitor2_instagram?: string | null
           created_at?: string
           id?: string
           instagram?: string | null
           logo_url?: string | null
+          media_urls?: string[] | null
           niche?: string | null
           observations?: string | null
           offer_description?: string | null
@@ -117,10 +123,13 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          competitor1_instagram?: string | null
+          competitor2_instagram?: string | null
           created_at?: string
           id?: string
           instagram?: string | null
           logo_url?: string | null
+          media_urls?: string[] | null
           niche?: string | null
           observations?: string | null
           offer_description?: string | null
