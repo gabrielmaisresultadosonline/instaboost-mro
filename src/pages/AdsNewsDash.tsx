@@ -113,9 +113,9 @@ const AdsNewsDash = () => {
       setPendingPayment(pendingData);
       setShowPaymentOverlay(true);
       startPaymentCheck(pendingData.email, pendingData.nsuOrder, pendingData.password);
-      // Still load user data in background
+      // Still load user data in background - allow pending users
       if (email && password) {
-        loadUserData(email, password, true);
+        loadUserData(email, password, true, true);
       }
     } else if (email && password) {
       handleLogin(email, password);
@@ -190,10 +190,10 @@ const AdsNewsDash = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const loadUserData = async (email: string, password: string, skipOverlayCheck = false) => {
+  const loadUserData = async (email: string, password: string, skipOverlayCheck = false, allowPending = false) => {
     try {
       const { data, error } = await supabase.functions.invoke('ads-auth', {
-        body: { action: 'login', email, password }
+        body: { action: 'login', email, password, allowPending }
       });
 
       if (error) throw error;
