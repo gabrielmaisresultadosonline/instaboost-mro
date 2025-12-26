@@ -1,4 +1,4 @@
-import { Logo } from '@/components/Logo';
+import logoMro3 from '@/assets/logo-mro-3.png';
 import { Shield, CheckCircle, Clock, MessageCircle, AlertTriangle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +12,7 @@ const PoliticaCancelamento = () => {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-center">
-            <Logo size="lg" />
+            <img src={logoMro3} alt="MRO - Mais Resultados Online" className="h-16 w-auto" />
           </div>
         </div>
       </header>
