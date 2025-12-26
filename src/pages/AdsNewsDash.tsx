@@ -674,101 +674,107 @@ const AdsNewsDash = () => {
         </Card>
 
         {/* Client Data Form - Collapsible */}
-        <Card>
+        <Card className="bg-slate-900 border-slate-700">
           <CardHeader 
-            className={`cursor-pointer ${hasDataFilled ? 'hover:bg-gray-50' : ''}`}
+            className={`cursor-pointer transition-colors ${hasDataFilled ? 'hover:bg-slate-800' : ''}`}
             onClick={() => hasDataFilled && setIsDataFormCollapsed(!isDataFormCollapsed)}
           >
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-white">
               <div className="flex items-center gap-2">
-                <Briefcase className="h-5 w-5" />
+                <Briefcase className="h-5 w-5 text-blue-400" />
                 Dados do seu negócio
                 {hasDataFilled && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full ml-2">
-                    ✓ Salvo
+                  <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full ml-2 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Salvo
                   </span>
                 )}
               </div>
               {hasDataFilled && (
                 isDataFormCollapsed ? (
-                  <ChevronDown className="h-5 w-5 text-gray-500" />
+                  <ChevronDown className="h-5 w-5 text-slate-400" />
                 ) : (
-                  <ChevronUp className="h-5 w-5 text-gray-500" />
+                  <ChevronUp className="h-5 w-5 text-slate-400" />
                 )
               )}
             </CardTitle>
             {hasDataFilled && isDataFormCollapsed && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-slate-400 mt-1">
                 Clique para editar seus dados
               </p>
             )}
           </CardHeader>
           {(!hasDataFilled || !isDataFormCollapsed) && (
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 bg-slate-900">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label className="flex items-center gap-2">
-                  <Briefcase className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-white">
+                  <Briefcase className="h-4 w-4 text-blue-400" />
                   Nicho de atuação *
                 </Label>
                 <Input
                   value={clientData.niche}
                   onChange={(e) => setClientData({ ...clientData, niche: e.target.value })}
                   placeholder="Ex: Restaurante, Loja de roupas, Imobiliária..."
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               <div>
-                <Label className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-white">
+                  <MapPin className="h-4 w-4 text-blue-400" />
                   Região de atuação
                 </Label>
                 <Input
                   value={clientData.region}
                   onChange={(e) => setClientData({ ...clientData, region: e.target.value })}
                   placeholder="Ex: São Paulo - SP ou Brasil todo"
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               <div>
-                <Label className="flex items-center gap-2">
-                  <Instagram className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-white">
+                  <Instagram className="h-4 w-4 text-pink-400" />
                   Instagram
                 </Label>
                 <Input
                   value={clientData.instagram}
                   onChange={(e) => setClientData({ ...clientData, instagram: e.target.value })}
                   placeholder="@seuinstagram"
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               <div>
-                <Label className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-white">
+                  <MessageCircle className="h-4 w-4 text-green-400" />
                   WhatsApp para os leads *
                 </Label>
                 <Input
                   value={clientData.whatsapp}
                   onChange={(e) => setClientData({ ...clientData, whatsapp: e.target.value })}
                   placeholder="(00) 00000-0000"
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               <div>
-                <Label className="flex items-center gap-2">
-                  <Send className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-white">
+                  <Send className="h-4 w-4 text-blue-400" />
                   Link do grupo Telegram (opcional)
                 </Label>
                 <Input
                   value={clientData.telegram_group}
                   onChange={(e) => setClientData({ ...clientData, telegram_group: e.target.value })}
                   placeholder="https://t.me/seugrupo"
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 
               <div>
-                <Label className="flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-white">
+                  <Upload className="h-4 w-4 text-blue-400" />
                   Logomarca (PNG, JPG ou PDF)
                 </Label>
                 <div className="flex gap-2">
@@ -777,55 +783,58 @@ const AdsNewsDash = () => {
                     accept=".png,.jpg,.jpeg,.pdf"
                     onChange={handleLogoUpload}
                     disabled={uploadingLogo}
+                    className="bg-slate-800 border-slate-600 text-white file:bg-slate-700 file:text-white file:border-0"
                   />
-                  {uploadingLogo && <Loader2 className="h-5 w-5 animate-spin" />}
+                  {uploadingLogo && <Loader2 className="h-5 w-5 animate-spin text-blue-400" />}
                 </div>
                 {clientData.logo_url && (
-                  <p className="text-xs text-green-600 mt-1">✓ Logo enviada</p>
+                  <p className="text-xs text-green-400 mt-1">✓ Logo enviada</p>
                 )}
               </div>
             </div>
 
             {/* Competitors Section */}
-            <div className="border-t pt-4 mt-4">
-              <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
-                <Users className="h-4 w-4" />
+            <div className="border-t border-slate-700 pt-4 mt-4">
+              <h4 className="font-medium text-slate-300 mb-3 flex items-center gap-2">
+                <Users className="h-4 w-4 text-blue-400" />
                 Concorrentes (para referência)
               </h4>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="flex items-center gap-2">
-                    <Instagram className="h-4 w-4" />
+                  <Label className="flex items-center gap-2 text-white">
+                    <Instagram className="h-4 w-4 text-pink-400" />
                     Concorrente 1 - Link do Instagram
                   </Label>
                   <Input
                     value={clientData.competitor1_instagram || ""}
                     onChange={(e) => setClientData({ ...clientData, competitor1_instagram: e.target.value })}
                     placeholder="https://instagram.com/concorrente1"
+                    className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                   />
                 </div>
 
                 <div>
-                  <Label className="flex items-center gap-2">
-                    <Instagram className="h-4 w-4" />
+                  <Label className="flex items-center gap-2 text-white">
+                    <Instagram className="h-4 w-4 text-pink-400" />
                     Concorrente 2 - Link do Instagram
                   </Label>
                   <Input
                     value={clientData.competitor2_instagram || ""}
                     onChange={(e) => setClientData({ ...clientData, competitor2_instagram: e.target.value })}
                     placeholder="https://instagram.com/concorrente2"
+                    className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
                   />
                 </div>
               </div>
             </div>
 
             {/* Media Upload Section */}
-            <div className="border-t pt-4 mt-4">
-              <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
-                <Image className="h-4 w-4" />
+            <div className="border-t border-slate-700 pt-4 mt-4">
+              <h4 className="font-medium text-slate-300 mb-3 flex items-center gap-2">
+                <Image className="h-4 w-4 text-blue-400" />
                 Mídias da sua empresa (até 10 arquivos, máx. 90MB cada)
               </h4>
-              <p className="text-sm text-gray-500 mb-3">
+              <p className="text-sm text-slate-400 mb-3">
                 Envie fotos, vídeos ou imagens que já tem da sua empresa para usarmos nas campanhas
               </p>
               
@@ -837,12 +846,12 @@ const AdsNewsDash = () => {
                     onChange={handleMediaUpload}
                     disabled={uploadingMedia || (clientData.media_urls?.length || 0) >= 10}
                     multiple
-                    className="flex-1"
+                    className="flex-1 bg-slate-800 border-slate-600 text-white file:bg-slate-700 file:text-white file:border-0"
                   />
-                  {uploadingMedia && <Loader2 className="h-5 w-5 animate-spin text-blue-600" />}
+                  {uploadingMedia && <Loader2 className="h-5 w-5 animate-spin text-blue-400" />}
                 </div>
                 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-400">
                   {clientData.media_urls?.length || 0}/10 arquivos enviados
                 </p>
 
@@ -854,13 +863,13 @@ const AdsNewsDash = () => {
                         {url.match(/\.(mp4|mov|webm)$/i) ? (
                           <video 
                             src={url} 
-                            className="w-full h-24 object-cover rounded-lg bg-gray-100"
+                            className="w-full h-24 object-cover rounded-lg bg-slate-700"
                           />
                         ) : (
                           <img 
                             src={url} 
                             alt={`Mídia ${index + 1}`} 
-                            className="w-full h-24 object-cover rounded-lg bg-gray-100"
+                            className="w-full h-24 object-cover rounded-lg bg-slate-700"
                           />
                         )}
                         <button
@@ -878,12 +887,12 @@ const AdsNewsDash = () => {
             </div>
 
             {/* Offer Description - Highlighted Yellow */}
-            <div className="border-t pt-4 mt-4">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <Label className="text-yellow-800 font-medium text-base">
+            <div className="border-t border-slate-700 pt-4 mt-4">
+              <div className="bg-amber-900/30 border border-amber-600/50 rounded-lg p-4">
+                <Label className="text-amber-300 font-medium text-base">
                   ✨ Descreva com suas palavras o que você está oferecendo nesse anúncio
                 </Label>
-                <p className="text-sm text-yellow-700 mb-3">
+                <p className="text-sm text-amber-400/80 mb-3">
                   Explique de forma clara e atrativa o que seu cliente vai receber
                 </p>
                 <Textarea
@@ -891,18 +900,19 @@ const AdsNewsDash = () => {
                   onChange={(e) => setClientData({ ...clientData, offer_description: e.target.value })}
                   placeholder="Ex: Curso completo de confeitaria com 50 receitas exclusivas, acesso vitalício e certificado incluso..."
                   rows={4}
-                  className="bg-yellow-50 border-yellow-300 focus:border-yellow-400 focus:ring-yellow-400 text-gray-900 placeholder:text-yellow-600"
+                  className="bg-slate-800 border-amber-600/50 focus:border-amber-400 focus:ring-amber-400 text-white placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             <div>
-              <Label>Observações (informações adicionais sobre o negócio)</Label>
+              <Label className="text-white">Observações (informações adicionais sobre o negócio)</Label>
               <Textarea
                 value={clientData.observations}
                 onChange={(e) => setClientData({ ...clientData, observations: e.target.value })}
                 placeholder="Descreva seu negócio, produtos, diferenciais..."
                 rows={4}
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
               />
             </div>
 
@@ -991,16 +1001,19 @@ const AdsNewsDash = () => {
               {!activeCampaign && (
                 <>
                   <div className="space-y-4">
-                    <div>
-                      <Label>Quantidade de leads desejados por mês</Label>
+                    <div className="bg-gradient-to-r from-blue-600/20 to-green-600/20 border-2 border-blue-500 rounded-xl p-4">
+                      <Label className="text-lg font-bold text-blue-600 flex items-center gap-2 mb-3">
+                        <Users className="h-5 w-5" />
+                        Quantidade de leads desejados por mês
+                      </Label>
                       <Input
                         type="number"
                         min={38}
                         value={leadsQuantity}
                         onChange={(e) => setLeadsQuantity(Math.max(38, parseInt(e.target.value) || 38))}
-                        className="text-lg"
+                        className="text-2xl font-bold text-center h-14 bg-white border-2 border-blue-400 focus:border-blue-600 text-blue-700"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Mínimo: 38 leads (R$150)</p>
+                      <p className="text-xs text-orange-600 mt-2 font-medium">Mínimo: 38 leads (R$150)</p>
                     </div>
 
                     {/* Calculation Summary */}
