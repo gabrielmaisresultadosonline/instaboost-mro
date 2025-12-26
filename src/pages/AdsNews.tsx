@@ -398,7 +398,7 @@ const AdsNews = () => {
                     <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg mb-2">Cadastro realizado!</h4>
+                    <h4 className="font-bold text-lg mb-2 text-gray-900">Cadastro realizado!</h4>
                     <p className="text-gray-600 text-sm">
                       Clique no botão abaixo para realizar o pagamento
                     </p>
