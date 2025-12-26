@@ -939,6 +939,13 @@ const AdsNewsDash = () => {
                       )}
                     </div>
                   )}
+
+                  {/* Report info message */}
+                  <div className="mt-4 p-3 bg-white/10 rounded-lg border border-white/20">
+                    <p className="text-sm text-green-100 text-center">
+                      📊 <strong>Relatório do seu anúncio em 30 dias</strong> - acompanhe no seu email e aqui na sua área de membros
+                    </p>
+                  </div>
                 </div>
               )}
 
