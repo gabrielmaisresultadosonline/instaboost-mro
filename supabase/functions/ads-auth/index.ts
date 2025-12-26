@@ -65,11 +65,12 @@ serve(async (req) => {
     log('Request received', { action, email });
 
     if (action === 'login') {
-      // Login user
+      // Login user - use ilike for case-insensitive email match
+      const cleanEmail = email?.toLowerCase()?.trim();
       const { data: user, error } = await supabase
         .from('ads_users')
         .select('*')
-        .eq('email', email)
+        .ilike('email', cleanEmail)
         .eq('password', password)
         .single();
 
