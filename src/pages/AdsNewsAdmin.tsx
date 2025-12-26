@@ -46,6 +46,9 @@ interface ClientData {
   competitor2_instagram: string;
   media_urls: string[];
   offer_description: string;
+  campaign_active?: boolean;
+  campaign_activated_at?: string;
+  campaign_end_date?: string;
 }
 
 interface User {
@@ -89,6 +92,12 @@ interface Order {
     id: string;
     status: string;
     subscription_end: string;
+    ads_balance_orders?: {
+      id: string;
+      amount: number;
+      status: string;
+      paid_at: string;
+    }[];
   };
   clientData?: ClientData;
 }
@@ -348,13 +357,19 @@ const AdsNewsAdmin = () => {
 
     setActivating(true);
     try {
+      // Get balance amount from user's paid balance orders
+      const userBalanceOrders = activatingOrder.user?.ads_balance_orders || [];
+      const paidBalance = userBalanceOrders.find((o: { status: string }) => o.status === 'paid');
+      const balanceAmount = paidBalance?.amount || 0;
+
       const { error } = await supabase.functions.invoke('ads-auth', {
         body: {
           action: 'activate-ads',
           userId: activatingOrder.user.id,
           subscriptionEnd: activateForm.subscriptionEnd,
           salesPageUrl: activateForm.salesPageUrl,
-          sendEmail: activateForm.sendEmail
+          sendEmail: activateForm.sendEmail,
+          balanceAmount
         }
       });
 

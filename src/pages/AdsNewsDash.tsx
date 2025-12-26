@@ -58,6 +58,9 @@ interface ClientData {
   media_urls?: string[];
   offer_description?: string;
   edit_count?: number;
+  campaign_active?: boolean;
+  campaign_activated_at?: string;
+  campaign_end_date?: string;
 }
 
 interface BalanceOrder {
@@ -297,7 +300,10 @@ const AdsNewsDash = () => {
             competitor2_instagram: data.clientData.competitor2_instagram || "",
             media_urls: data.clientData.media_urls || [],
             offer_description: data.clientData.offer_description || "",
-            edit_count: data.clientData.edit_count || 0
+            edit_count: data.clientData.edit_count || 0,
+            campaign_active: data.clientData.campaign_active || false,
+            campaign_activated_at: data.clientData.campaign_activated_at || "",
+            campaign_end_date: data.clientData.campaign_end_date || ""
           });
         }
         setBalanceOrders(data.balanceOrders || []);
@@ -851,33 +857,89 @@ const AdsNewsDash = () => {
                   </span>
                 </div>
 
-                {/* Step 4 - Creating Campaigns */}
-                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl shadow-sm border-2 border-blue-400">
-                  <div className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                {/* Step 4 - Campaign Status */}
+                {clientData.campaign_active ? (
+                  <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-green-200">
+                    <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-800">Campanhas Ativas</h4>
+                      <p className="text-sm text-gray-600">Seus anúncios estão rodando!</p>
+                    </div>
+                    <span className="text-green-600 font-bold text-sm bg-green-100 px-3 py-1 rounded-full">
+                      APROVADO ✓
+                    </span>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-blue-800">Criando suas Campanhas</h4>
-                    <p className="text-sm text-blue-600">Estamos montando seus anúncios agora!</p>
+                ) : (
+                  <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl shadow-sm border-2 border-blue-400">
+                    <div className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Loader2 className="h-8 w-8 text-white animate-spin" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-blue-800">Criando suas Campanhas</h4>
+                      <p className="text-sm text-blue-600">Estamos montando seus anúncios agora!</p>
+                    </div>
+                    <span className="text-blue-600 font-bold text-sm bg-blue-100 px-3 py-1 rounded-full animate-pulse">
+                      EM PROGRESSO...
+                    </span>
                   </div>
-                  <span className="text-blue-600 font-bold text-sm bg-blue-100 px-3 py-1 rounded-full animate-pulse">
-                    EM PROGRESSO...
-                  </span>
-                </div>
+                )}
               </div>
 
-              {/* Final Message */}
-              <div className="mt-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border border-green-300 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Send className="h-5 w-5 text-green-600" />
-                  <span className="font-bold text-green-800">Aguarde!</span>
+              {/* Final Message - Only show if campaign NOT active */}
+              {!clientData.campaign_active && (
+                <div className="mt-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl border border-green-300 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Send className="h-5 w-5 text-green-600" />
+                    <span className="font-bold text-green-800">Aguarde!</span>
+                  </div>
+                  <p className="text-green-700">
+                    Estamos criando suas campanhas a partir de agora. Você receberá uma notificação aqui e no seu email quando estiver pronto!
+                  </p>
                 </div>
-                <p className="text-green-700">
-                  Estamos criando suas campanhas a partir de agora. Você receberá uma notificação aqui e no seu email quando estiver pronto!
-                </p>
-              </div>
+              )}
 
-              {clientData.sales_page_url && (
+              {/* Campaign Active - Show sales page prominently */}
+              {clientData.campaign_active && clientData.sales_page_url && (
+                <div className="mt-6 p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl text-white text-center shadow-lg">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <CheckCircle className="h-8 w-8" />
+                    <span className="font-bold text-2xl">🎉 Sua página está pronta!</span>
+                  </div>
+                  
+                  <div className="bg-white/20 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-green-100 mb-2">Sua página de vendas:</p>
+                    <a 
+                      href={clientData.sales_page_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white font-bold text-lg hover:underline flex items-center justify-center gap-2"
+                    >
+                      <ExternalLink className="h-5 w-5" />
+                      {clientData.sales_page_url}
+                    </a>
+                  </div>
+
+                  {clientData.campaign_end_date && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                      <div className="bg-white/10 rounded-lg p-3">
+                        <p className="text-sm text-green-100">Campanha ativa até:</p>
+                        <p className="font-bold text-xl">{new Date(clientData.campaign_end_date).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                      {activeCampaign && (
+                        <div className="bg-white/10 rounded-lg p-3">
+                          <p className="text-sm text-green-100">Saldo investido:</p>
+                          <p className="font-bold text-xl">R$ {activeCampaign.amount.toFixed(2)}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sales page link when campaign NOT active but URL exists */}
+              {!clientData.campaign_active && clientData.sales_page_url && (
                 <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200 text-center">
                   <p className="text-sm text-blue-600 mb-2 font-medium">🎉 Sua página está pronta!</p>
                   <a 
