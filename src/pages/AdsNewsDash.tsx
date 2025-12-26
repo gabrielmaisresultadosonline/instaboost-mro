@@ -27,7 +27,9 @@ import {
   ArrowRight,
   Image,
   X,
-  Users
+  Users,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 interface UserData {
@@ -95,6 +97,7 @@ const AdsNewsDash = () => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [isDataFormCollapsed, setIsDataFormCollapsed] = useState(false);
   
   // Payment overlay state
   const [showPaymentOverlay, setShowPaymentOverlay] = useState(false);
@@ -311,9 +314,17 @@ const AdsNewsDash = () => {
 
       if (error) throw error;
 
+      // Mark that data has an ID now (saved)
+      if (!clientData.id) {
+        setClientData(prev => ({ ...prev, id: user.id }));
+      }
+      
+      // Collapse the form after successful save
+      setIsDataFormCollapsed(true);
+
       toast({
         title: "Dados salvos!",
-        description: "Suas informações foram salvas com sucesso"
+        description: "Suas informações foram salvas com sucesso. Agora você pode adicionar saldo para seus anúncios."
       });
     } catch (error: unknown) {
       console.error('Save error:', error);
@@ -641,14 +652,37 @@ const AdsNewsDash = () => {
           </CardContent>
         </Card>
 
-        {/* Client Data Form */}
+        {/* Client Data Form - Collapsible */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Dados do seu negócio
+          <CardHeader 
+            className={`cursor-pointer ${hasDataFilled ? 'hover:bg-gray-50' : ''}`}
+            onClick={() => hasDataFilled && setIsDataFormCollapsed(!isDataFormCollapsed)}
+          >
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Dados do seu negócio
+                {hasDataFilled && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full ml-2">
+                    ✓ Salvo
+                  </span>
+                )}
+              </div>
+              {hasDataFilled && (
+                isDataFormCollapsed ? (
+                  <ChevronDown className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <ChevronUp className="h-5 w-5 text-gray-500" />
+                )
+              )}
             </CardTitle>
+            {hasDataFilled && isDataFormCollapsed && (
+              <p className="text-sm text-gray-500 mt-1">
+                Clique para editar seus dados
+              </p>
+            )}
           </CardHeader>
+          {(!hasDataFilled || !isDataFormCollapsed) && (
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -869,18 +903,34 @@ const AdsNewsDash = () => {
               )}
             </Button>
           </CardContent>
+          )}
         </Card>
 
         {/* Balance Calculator - Only show after data is filled */}
         {hasDataFilled && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="border-2 border-green-200">
+            <CardHeader className="bg-green-50">
+              <CardTitle className="flex items-center gap-2 text-green-800">
                 <Calculator className="h-5 w-5" />
-                Adicionar Saldo para Anúncios
+                Adicionar Saldo para Anúncios Meta (Facebook/Instagram)
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
+              {/* Explanation Section */}
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                <h4 className="font-semibold text-amber-800 mb-2">📢 Importante entender:</h4>
+                <div className="space-y-2 text-sm text-amber-900">
+                  <p>
+                    <strong>O valor pago anteriormente (R$397)</strong> foi para a <strong>Ads News - desenvolvida pela MRO</strong>, 
+                    para nós desenvolvermos, configurarmos e gerenciarmos suas campanhas de anúncios!
+                  </p>
+                  <p>
+                    <strong>Agora, o saldo abaixo</strong> é o valor que vai <strong>diretamente para o Meta (Facebook/Instagram)</strong>. 
+                    Cada lead que chegar no seu WhatsApp ou site tem um custo cobrado pelo Facebook, e esse valor é apenas para isso.
+                  </p>
+                </div>
+              </div>
+
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-800 mb-2">
                   <strong>Média por lead:</strong> R$3,80 a R$4,70
