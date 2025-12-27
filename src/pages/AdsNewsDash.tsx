@@ -30,7 +30,8 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
-  Pencil
+  Pencil,
+  AlertCircle
 } from "lucide-react";
 
 interface UserData {
@@ -119,11 +120,16 @@ const AdsNewsDash = () => {
 
   // Calculate cost based on leads (R$3.80 - R$4.70 per lead, using R$4 average)
   // Minimum Meta daily spend: R$7/day = R$210 for 30 days
+  // Maximum balance limit: R$700 (contact admin for more)
   const costPerLead = 4;
   const minDailySpend = 7; // Meta minimum
   const minMonthlySpend = minDailySpend * 30; // R$210
+  const maxBalanceLimit = 700; // Maximum R$700 limit
   const minLeads = Math.ceil(minMonthlySpend / costPerLead); // ~53 leads
-  const calculatedAmount = Math.max(minMonthlySpend, leadsQuantity * costPerLead);
+  const maxLeads = Math.floor(maxBalanceLimit / costPerLead); // ~175 leads
+  const rawCalculatedAmount = Math.max(minMonthlySpend, leadsQuantity * costPerLead);
+  const calculatedAmount = Math.min(rawCalculatedAmount, maxBalanceLimit);
+  const isOverLimit = rawCalculatedAmount > maxBalanceLimit;
   const dailyBudgetCalculated = calculatedAmount / 30;
 
   useEffect(() => {
@@ -561,6 +567,16 @@ const AdsNewsDash = () => {
 
   const handleAddBalance = async () => {
     if (!user || leadsQuantity < 1) return;
+
+    // Check if amount exceeds limit
+    if (isOverLimit) {
+      toast({
+        title: "Limite de saldo excedido",
+        description: "O valor máximo permitido é R$700. Para investir mais, entre em contato com o administrador.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setBalanceLoading(true);
     try {
@@ -1391,29 +1407,62 @@ const AdsNewsDash = () => {
               {!activeCampaign && (
                 <>
                   <div className="space-y-4">
-                    <div className="bg-gradient-to-r from-blue-600/20 to-green-600/20 border-2 border-blue-500 rounded-xl p-4">
-                      <Label className="text-lg font-bold text-blue-600 flex items-center gap-2 mb-3">
+                    <div className={`bg-gradient-to-r ${isOverLimit ? 'from-red-600/20 to-orange-600/20 border-red-500' : 'from-blue-600/20 to-green-600/20 border-blue-500'} border-2 rounded-xl p-4`}>
+                      <Label className={`text-lg font-bold ${isOverLimit ? 'text-red-600' : 'text-blue-600'} flex items-center gap-2 mb-3`}>
                         <Users className="h-5 w-5" />
                         Quantidade de leads desejados por mês
                       </Label>
                       <Input
                         type="number"
                         min={minLeads}
+                        max={maxLeads}
                         value={leadsQuantity}
-                        onChange={(e) => setLeadsQuantity(Math.max(minLeads, parseInt(e.target.value) || minLeads))}
-                        className="text-2xl font-bold text-center h-14 bg-white border-2 border-blue-400 focus:border-blue-600 text-blue-700"
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || minLeads;
+                          setLeadsQuantity(Math.max(minLeads, value));
+                        }}
+                        className={`text-2xl font-bold text-center h-14 bg-white border-2 ${isOverLimit ? 'border-red-400 focus:border-red-600 text-red-700' : 'border-blue-400 focus:border-blue-600 text-blue-700'}`}
                       />
-                      <p className="text-xs text-orange-600 mt-2 font-medium">
-                        Mínimo: {minLeads} leads (R${minMonthlySpend}) - Gasto mínimo Meta: R${minDailySpend}/dia
-                      </p>
+                      <div className="flex flex-col gap-1 mt-2">
+                        <p className="text-xs text-orange-600 font-medium">
+                          Mínimo: {minLeads} leads (R${minMonthlySpend}) - Gasto mínimo Meta: R${minDailySpend}/dia
+                        </p>
+                        <p className="text-xs text-red-600 font-medium">
+                          Máximo: {maxLeads} leads (R${maxBalanceLimit}) - Para mais, contate o admin
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Over Limit Warning */}
+                    {isOverLimit && (
+                      <div className="bg-red-100 border border-red-300 p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="h-5 w-5 text-red-600" />
+                          <h4 className="font-semibold text-red-800">⚠️ Limite de saldo atingido!</h4>
+                        </div>
+                        <p className="text-sm text-red-700">
+                          O valor máximo permitido é <strong>R$700</strong>. Se você deseja investir mais do que isso, 
+                          entre em contato com o administrador para liberação especial.
+                        </p>
+                        <a 
+                          href="https://wa.me/5511999999999?text=Olá! Gostaria de solicitar liberação para investir mais de R$700 em saldo no Ads News."
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 mt-3 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          Contatar Administrador
+                        </a>
+                      </div>
+                    )}
 
                     {/* Calculation Summary */}
                     <div className="bg-gray-100 p-4 rounded-lg space-y-3">
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                         <span className="text-gray-600">Valor total (30 dias):</span>
-                        <span className="text-2xl font-bold text-blue-600">
+                        <span className={`text-2xl font-bold ${isOverLimit ? 'text-red-600' : 'text-blue-600'}`}>
                           R$ {calculatedAmount.toFixed(2)}
+                          {isOverLimit && <span className="text-sm ml-2">(limitado)</span>}
                         </span>
                       </div>
                       <div className="border-t pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1423,7 +1472,9 @@ const AdsNewsDash = () => {
                         </div>
                         <div className="bg-white p-3 rounded">
                           <p className="text-xs text-gray-500">Leads estimados</p>
-                          <p className="font-bold text-blue-600">~{leadsQuantity} leads/mês</p>
+                          <p className={`font-bold ${isOverLimit ? 'text-red-600' : 'text-blue-600'}`}>
+                            ~{isOverLimit ? maxLeads : leadsQuantity} leads/mês
+                          </p>
                         </div>
                       </div>
                       <p className="text-xs text-gray-500">

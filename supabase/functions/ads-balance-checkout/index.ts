@@ -44,6 +44,19 @@ serve(async (req) => {
       );
     }
 
+    // Maximum balance limit validation: R$700
+    const MAX_BALANCE_LIMIT = 700;
+    if (amount > MAX_BALANCE_LIMIT) {
+      log('Amount exceeds maximum limit', { amount, maxLimit: MAX_BALANCE_LIMIT });
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `O valor máximo permitido é R$${MAX_BALANCE_LIMIT}. Para investir mais, entre em contato com o administrador.` 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const cleanEmail = email.toLowerCase().trim();
     const nsuOrder = generateNSU();
     const priceInCents = Math.round(amount * 100);
