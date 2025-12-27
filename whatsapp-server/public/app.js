@@ -1,14 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Detectar base URL (para funcionar tanto em / quanto em /whatsapp-api/)
-    const BASE_URL = window.location.pathname.endsWith('/') 
-        ? window.location.pathname.slice(0, -1) 
-        : window.location.pathname.replace(/\/[^\/]*$/, '');
-    
-    const API_BASE = BASE_URL || '';
-    
-    // Socket.io - conectar ao mesmo host
+    const firstSegment = window.location.pathname.split('/').filter(Boolean)[0];
+    const API_BASE = firstSegment === 'whatsapp-api' ? '/whatsapp-api' : '';
+
+    // Socket.io - conectar ao mesmo host (funciona com / e /whatsapp-api/)
+    const SOCKET_PATH = (API_BASE || '') + '/socket.io/';
     const socket = io({
-        path: '/socket.io/',
+        path: SOCKET_PATH,
         transports: ['websocket', 'polling']
     });
     
