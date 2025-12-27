@@ -20,6 +20,7 @@ NC='\033[0m' # No Color
 # Variáveis
 APP_NAME="ia-mro"
 APP_DIR="/var/www/$APP_NAME"
+WHATSAPP_DIR="$APP_DIR/whatsapp-server"
 DOMAIN="maisresultadosonline.com.br"
 REPO_URL="https://github.com/gabrielmaisresultadosonline/instaboost-mro.git"
 
@@ -29,10 +30,58 @@ sudo apt update && sudo apt upgrade -y
 echo -e "${YELLOW}Instalando dependências do sistema...${NC}"
 sudo apt install -y curl git nginx certbot python3-certbot-nginx
 
+# Dependências para Puppeteer/Chromium (WhatsApp Web)
+echo -e "${YELLOW}Instalando dependências do Chromium...${NC}"
+sudo apt install -y \
+    gconf-service \
+    libasound2 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libc6 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libexpat1 \
+    libfontconfig1 \
+    libgcc1 \
+    libgconf-2-4 \
+    libgdk-pixbuf2.0-0 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libnspr4 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstdc++6 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    ca-certificates \
+    fonts-liberation \
+    libappindicator1 \
+    libnss3 \
+    lsb-release \
+    xdg-utils \
+    wget \
+    libgbm-dev || true
+
 # Instalar Node.js 20 LTS
 echo -e "${YELLOW}Instalando Node.js 20 LTS...${NC}"
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
+
+# Instalar PM2 globalmente
+echo -e "${YELLOW}Instalando PM2...${NC}"
+sudo npm install -g pm2
 
 # Verificar versões
 echo -e "${GREEN}Node.js: $(node -v)${NC}"
@@ -56,12 +105,33 @@ fi
 
 sudo chown -R $USER:$USER $APP_DIR
 
-# Instalar dependências e fazer build
-echo -e "${YELLOW}Instalando dependências...${NC}"
+# ============= Frontend =============
+echo -e "${YELLOW}Instalando dependências do frontend...${NC}"
 npm install
 
-echo -e "${YELLOW}Fazendo build da aplicação...${NC}"
+echo -e "${YELLOW}Fazendo build do frontend...${NC}"
 npm run build
+
+# ============= WhatsApp Backend =============
+echo -e "${YELLOW}Configurando WhatsApp Multi Connect...${NC}"
+
+if [ -d "$WHATSAPP_DIR" ]; then
+    cd $WHATSAPP_DIR
+    
+    npm install
+    
+    # Criar .env
+    echo "PORT=3001" > .env
+    echo "NODE_ENV=production" >> .env
+    
+    # Iniciar com PM2
+    pm2 delete whatsapp-multi 2>/dev/null || true
+    pm2 start server/index.js --name "whatsapp-multi"
+    pm2 save
+    pm2 startup | tail -1 | bash || true
+    
+    cd $APP_DIR
+fi
 
 # Configurar Nginx
 echo -e "${YELLOW}Configurando Nginx...${NC}"
@@ -83,6 +153,30 @@ server {
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+    }
+
+    # WhatsApp API Backend - Proxy para Node.js
+    location /whatsapp-api/ {
+        proxy_pass http://localhost:3001/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_read_timeout 86400;
+    }
+
+    # Socket.io para WhatsApp
+    location /socket.io/ {
+        proxy_pass http://localhost:3001/socket.io/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
     }
 
     # SPA routing - all routes go to index.html
@@ -118,8 +212,14 @@ sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos --e
 echo ""
 echo -e "${GREEN}✅ Tudo pronto!${NC}"
 echo ""
-echo "🌐 Acesse: https://$DOMAIN"
+echo "🌐 Frontend: https://$DOMAIN"
+echo "📱 WhatsApp API: https://$DOMAIN/whatsapp-api/"
 echo ""
 echo "📝 Para atualizar futuramente, execute:"
 echo "   cd $APP_DIR && ./deploy/update.sh"
+echo ""
+echo "📊 Comandos PM2 úteis:"
+echo "   pm2 status              # Ver status"
+echo "   pm2 logs whatsapp-multi # Ver logs"
+echo "   pm2 restart whatsapp-multi # Reiniciar"
 echo ""
