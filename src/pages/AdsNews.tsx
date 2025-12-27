@@ -192,24 +192,24 @@ const AdsNews = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16 md:py-24">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
-            🚀 Vendendo <span className="text-orange-400">3x mais</span> com tráfego pago<br />
-            <span className="text-yellow-300">otimizado por IA!</span>
+      <section className="bg-gradient-to-b from-blue-600 to-blue-700 text-white py-20 md:py-28">
+        <div className="max-w-5xl mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight tracking-tight">
+            Vendendo <span className="text-orange-400">3x mais</span> com tráfego pago<br />
+            <span className="text-orange-300">otimizado por IA</span>
           </h1>
           
           {/* ADS NEWS AI subtitle */}
-          <p className="text-lg md:text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            Utilize o <span className="font-bold text-yellow-300">ADS NEWS AI</span> — campanhas de anúncio prontas em poucas horas com apenas um prompt!
+          <p className="text-lg md:text-xl text-blue-100 mb-10 max-w-3xl mx-auto font-light leading-relaxed">
+            Utilize o <span className="font-semibold text-white">ADS NEWS AI</span> — campanhas de anúncio prontas em poucas horas com apenas um prompt.
           </p>
 
-          <p className="text-lg md:text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Leads no seu WhatsApp <span className="text-orange-400 font-bold">o dia todo</span> por apenas <span className="font-bold text-orange-400">R$397/mês</span>.
+          <p className="text-lg md:text-xl mb-10 text-blue-100 max-w-3xl mx-auto">
+            Leads no seu WhatsApp <span className="text-orange-400 font-semibold">o dia todo</span> por apenas <span className="font-bold text-white">R$397/mês</span>.
           </p>
           <Button 
             size="lg" 
-            className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-full shadow-lg animate-pulse"
+            className="bg-orange-500 hover:bg-orange-600 text-white text-lg font-semibold px-10 py-6 rounded-lg shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105"
             onClick={() => setShowRegister(true)}
           >
             Quero Começar Agora
