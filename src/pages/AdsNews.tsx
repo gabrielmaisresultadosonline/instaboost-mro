@@ -199,7 +199,8 @@ const AdsNews = () => {
       <section className="bg-gradient-to-b from-blue-600 to-blue-700 text-white py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight tracking-tight">
-            Vendendo <span className="text-orange-400">3x mais</span> com tráfego pago<br />
+            Vendendo <span className="text-orange-400">3x mais</span><br />
+            com tráfego pago<br />
             <span className="text-orange-300">otimizado por IA</span>
           </h1>
           
