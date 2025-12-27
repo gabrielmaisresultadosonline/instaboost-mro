@@ -194,10 +194,15 @@ const AdsNews = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
-            Vendendo <span className="text-orange-400">3x mais</span> com nossas<br />
-            Campanhas de Tráfego Pago com <span className="text-yellow-300">IA Automático!</span>
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
+            🚀 Vendendo <span className="text-orange-400">3x mais</span> com tráfego pago<br />
+            <span className="text-yellow-300">otimizado por IA!</span>
           </h1>
+          
+          {/* ADS NEWS AI subtitle */}
+          <p className="text-lg md:text-xl text-blue-100 mb-6 max-w-3xl mx-auto">
+            Utilize o <span className="font-bold text-yellow-300">ADS NEWS AI</span> — campanhas com assertividade em <span className="font-bold text-orange-400">98%</span> do seu público alvo nas primeiras campanhas.
+          </p>
           
           {/* Smaller MRO team text */}
           <p className="text-sm md:text-base text-blue-200 mb-8 max-w-2xl mx-auto">
