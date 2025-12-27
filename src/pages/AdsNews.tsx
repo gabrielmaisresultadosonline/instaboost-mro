@@ -200,13 +200,8 @@ const AdsNews = () => {
           </h1>
           
           {/* ADS NEWS AI subtitle */}
-          <p className="text-lg md:text-xl text-blue-100 mb-6 max-w-3xl mx-auto">
-            Utilize o <span className="font-bold text-yellow-300">ADS NEWS AI</span> — campanhas com assertividade em <span className="font-bold text-orange-400">98%</span> do seu público alvo nas primeiras campanhas.
-          </p>
-          
-          {/* Smaller MRO team text */}
-          <p className="text-sm md:text-base text-blue-200 mb-8 max-w-2xl mx-auto">
-            Nós da equipe MRO vamos criar sua campanha de tráfego pago e vamos ativar nossa otimização IA, 3x mais assertividade!
+          <p className="text-lg md:text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+            Utilize o <span className="font-bold text-yellow-300">ADS NEWS AI</span> — campanhas de anúncio prontas em poucas horas com apenas um prompt!
           </p>
 
           <p className="text-lg md:text-xl mb-8 text-blue-100 max-w-3xl mx-auto">
