@@ -401,36 +401,90 @@ const AdsNews = () => {
           </div>
 
 
-          {/* AI Logos Section */}
-          <div className="mt-8 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-8 md:p-10 text-white">
+          {/* AI Logos Section - Orbital Design */}
+          <div className="mt-8 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-8 md:p-10 text-white overflow-hidden">
             <h3 className="text-xl md:text-2xl font-bold text-center mb-4">
               🤖 Campanhas criadas pelas maiores IAs do mercado
             </h3>
-            <p className="text-lg text-center text-blue-100 mb-6">
+            <p className="text-lg text-center text-blue-100 mb-8">
               Basta apenas <span className="font-bold text-white">UMA configuração</span> e deixe a IA trabalhar para você!
             </p>
             
-            {/* AI Logos */}
-            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
-                <img src="/ai-logos/chatgpt.png" alt="ChatGPT" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
-                <span className="text-sm font-bold text-gray-700 mt-2">ChatGPT</span>
+            {/* Orbital AI Logos */}
+            <div className="relative flex items-center justify-center min-h-[320px] md:min-h-[380px]">
+              {/* SVG Lines connecting to center */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+                <defs>
+                  <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.3" />
+                    <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.3" />
+                  </linearGradient>
+                </defs>
+                {/* Animated circular orbit */}
+                <circle cx="50%" cy="50%" r="120" fill="none" stroke="url(#lineGradient)" strokeWidth="2" strokeDasharray="8 4" className="animate-[spin_20s_linear_infinite]" style={{ transformOrigin: 'center' }} />
+                <circle cx="50%" cy="50%" r="140" fill="none" stroke="url(#lineGradient)" strokeWidth="1" strokeDasharray="4 8" className="animate-[spin_25s_linear_infinite_reverse]" style={{ transformOrigin: 'center' }} />
+              </svg>
+
+              {/* Center MRO API */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                <div className="bg-white rounded-2xl p-5 shadow-2xl flex flex-col items-center min-w-[110px] ring-4 ring-orange-400/50 animate-pulse">
+                  <img src="/ai-logos/mro-api.png" alt="API MRO" className="h-16 w-16 md:h-20 md:w-20 object-contain" />
+                  <span className="text-sm font-bold text-gray-700 mt-2">API MRO</span>
+                </div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
-                <img src="/ai-logos/deepseek.png" alt="DeepSeek" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
-                <span className="text-sm font-bold text-gray-700 mt-2">DeepSeek</span>
+
+              {/* Orbiting AI logos with animated lines */}
+              {/* ChatGPT - Top */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-0 z-10">
+                <div className="relative">
+                  <div className="absolute left-1/2 top-full w-0.5 h-16 md:h-20 bg-gradient-to-b from-blue-300 to-transparent -translate-x-1/2">
+                    <div className="absolute w-2 h-2 bg-blue-300 rounded-full -left-[3px] animate-[bounce_1.5s_ease-in-out_infinite]" />
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center min-w-[80px] md:min-w-[90px] hover:scale-110 transition-transform">
+                    <img src="/ai-logos/chatgpt.png" alt="ChatGPT" className="h-10 w-10 md:h-12 md:w-12 object-contain" />
+                    <span className="text-xs font-bold text-gray-700 mt-1">ChatGPT</span>
+                  </div>
+                </div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
-                <img src="/ai-logos/nanobanana.png" alt="Nano Banana" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
-                <span className="text-sm font-bold text-gray-700 mt-2">Nano Banana</span>
+
+              {/* DeepSeek - Right */}
+              <div className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-10">
+                <div className="relative">
+                  <div className="absolute right-full top-1/2 w-12 md:w-16 h-0.5 bg-gradient-to-l from-blue-300 to-transparent -translate-y-1/2">
+                    <div className="absolute w-2 h-2 bg-blue-300 rounded-full -top-[3px] right-0 animate-[bounce_1.8s_ease-in-out_infinite]" />
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center min-w-[80px] md:min-w-[90px] hover:scale-110 transition-transform">
+                    <img src="/ai-logos/deepseek.png" alt="DeepSeek" className="h-10 w-10 md:h-12 md:w-12 object-contain" />
+                    <span className="text-xs font-bold text-gray-700 mt-1">DeepSeek</span>
+                  </div>
+                </div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
-                <img src="/ai-logos/gemini.png" alt="Gemini" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
-                <span className="text-sm font-bold text-gray-700 mt-2">Gemini</span>
+
+              {/* Gemini - Bottom */}
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-0 z-10">
+                <div className="relative">
+                  <div className="absolute left-1/2 bottom-full w-0.5 h-16 md:h-20 bg-gradient-to-t from-blue-300 to-transparent -translate-x-1/2">
+                    <div className="absolute w-2 h-2 bg-blue-300 rounded-full -left-[3px] bottom-0 animate-[bounce_2s_ease-in-out_infinite]" />
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center min-w-[80px] md:min-w-[90px] hover:scale-110 transition-transform">
+                    <img src="/ai-logos/gemini.png" alt="Gemini" className="h-10 w-10 md:h-12 md:w-12 object-contain" />
+                    <span className="text-xs font-bold text-gray-700 mt-1">Gemini</span>
+                  </div>
+                </div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-lg flex flex-col items-center min-w-[100px]">
-                <img src="/ai-logos/mro-api.png" alt="API MRO" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
-                <span className="text-sm font-bold text-gray-700 mt-2">API MRO</span>
+
+              {/* Nano Banana - Left */}
+              <div className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-10">
+                <div className="relative">
+                  <div className="absolute left-full top-1/2 w-12 md:w-16 h-0.5 bg-gradient-to-r from-blue-300 to-transparent -translate-y-1/2">
+                    <div className="absolute w-2 h-2 bg-blue-300 rounded-full -top-[3px] left-0 animate-[bounce_1.6s_ease-in-out_infinite]" />
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-lg flex flex-col items-center min-w-[80px] md:min-w-[90px] hover:scale-110 transition-transform">
+                    <img src="/ai-logos/nanobanana.png" alt="Nano Banana" className="h-10 w-10 md:h-12 md:w-12 object-contain" />
+                    <span className="text-xs font-bold text-gray-700 mt-1">Nano Banana</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
