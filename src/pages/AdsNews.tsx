@@ -163,7 +163,7 @@ const AdsNews = () => {
     "Leads no seu WhatsApp o dia todo",
     "Anúncios para WhatsApp, Telegram e Sites",
     "Todos os posicionamentos: Facebook, Instagram, WhatsApp Status",
-    "Criamos os anúncios e criativos para você",
+    "Criamos os anúncios e criativos para você - tudo incluso",
     "Sem dor de cabeça - apenas passe as informações"
   ];
 
@@ -386,7 +386,7 @@ const AdsNews = () => {
                   <Users className="h-8 w-8 text-purple-600" />
                 </div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Criativos</h3>
-                <p className="text-gray-600">Criamos os anúncios e artes para você</p>
+                <p className="text-gray-600">Criamos os anúncios e artes para você - tudo incluso</p>
               </CardContent>
             </Card>
 
@@ -464,7 +464,7 @@ const AdsNews = () => {
             Comece agora mesmo
           </h2>
           <p className="text-gray-600 mb-8">
-            Investimento mensal para gerar leads no seu WhatsApp
+            Investimento mensal para gerar leads - tudo incluso
           </p>
           
           <Card className="border-2 border-orange-400 shadow-xl max-w-sm mx-auto bg-white">
