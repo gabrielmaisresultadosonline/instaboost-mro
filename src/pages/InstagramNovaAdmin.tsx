@@ -21,9 +21,16 @@ import {
   Copy,
   Phone,
   AlertTriangle,
-  Trash2
+  Trash2,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInDays, addDays } from "date-fns";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { ptBR } from "date-fns/locale";
 
 const ADMIN_EMAIL = "mro@gmail.com";
@@ -66,6 +73,14 @@ export default function InstagramNovaAdmin() {
   const autoCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [autoCheckEnabled, setAutoCheckEnabled] = useState(true);
   const [lastAutoCheck, setLastAutoCheck] = useState<Date | null>(null);
+  
+  // State para seções colapsáveis
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    completed: true,
+    paid: true,
+    pending: false,
+    expired: false
+  });
 
   // Check if already authenticated
   useEffect(() => {
@@ -320,6 +335,27 @@ ${GROUP_LINK}`;
     return matchesSearch && matchesFilter;
   });
 
+  // Agrupar pedidos por status
+  const groupedOrders = {
+    completed: filteredOrders.filter(o => o.status === "completed"),
+    paid: filteredOrders.filter(o => o.status === "paid"),
+    pending: filteredOrders.filter(o => o.status === "pending"),
+    expired: filteredOrders.filter(o => o.status === "expired"),
+  };
+
+  // Calcular dias restantes (365 dias a partir do pagamento)
+  const getDaysRemaining = (order: MROOrder) => {
+    if (!order.paid_at) return null;
+    const paidDate = new Date(order.paid_at);
+    const expirationDate = addDays(paidDate, 365);
+    const daysLeft = differenceInDays(expirationDate, new Date());
+    return daysLeft > 0 ? daysLeft : 0;
+  };
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
   // Stats corrigidos - incluindo "paid" e "completed" como pagos
   const stats = {
     total: orders.length,
@@ -329,6 +365,126 @@ ${GROUP_LINK}`;
     expired: orders.filter(o => o.status === "expired").length,
     totalRevenue: orders.filter(o => o.status === "paid" || o.status === "completed").reduce((sum, o) => sum + Number(o.amount), 0)
   };
+
+  // Renderizar card de pedido compacto
+  const renderOrderCard = (order: MROOrder, compact = false) => {
+    const daysRemaining = getDaysRemaining(order);
+    
+    return (
+      <div 
+        key={order.id} 
+        className={`bg-zinc-800/30 border border-zinc-700/50 rounded-lg ${compact ? "p-3" : "p-4"}`}
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className={`flex-1 grid grid-cols-2 ${compact ? "md:grid-cols-4" : "md:grid-cols-5"} gap-3`}>
+            <div>
+              <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
+                <Mail className="w-3 h-3" /> Email
+              </div>
+              <p className="text-white text-xs font-medium truncate">{order.email}</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
+                <User className="w-3 h-3" /> Usuário
+              </div>
+              <p className="text-white text-xs font-mono">{order.username}</p>
+            </div>
+            {!compact && (
+              <div>
+                <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
+                  <Phone className="w-3 h-3" /> Celular
+                </div>
+                <p className="text-white text-xs">{order.phone || "-"}</p>
+              </div>
+            )}
+            <div>
+              <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
+                <DollarSign className="w-3 h-3" /> Valor
+              </div>
+              <p className="text-white text-xs">R$ {Number(order.amount).toFixed(2)}</p>
+            </div>
+            {daysRemaining !== null && (
+              <div>
+                <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
+                  <Calendar className="w-3 h-3" /> Dias Restantes
+                </div>
+                <p className={`text-xs font-bold ${daysRemaining > 30 ? "text-green-400" : daysRemaining > 7 ? "text-yellow-400" : "text-red-400"}`}>
+                  {daysRemaining} dias
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {(order.status === "completed" || order.status === "paid") && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => copyToClipboard(order)}
+                className="border-green-500/50 text-green-400 hover:bg-green-500/10 h-7 px-2 text-xs"
+              >
+                <Copy className="w-3 h-3 mr-1" />
+                Copiar
+              </Button>
+            )}
+            
+            {order.status === "pending" && (
+              <Button
+                size="sm"
+                onClick={() => checkPayment(order)}
+                className="bg-blue-500 hover:bg-blue-600 h-7 px-2 text-xs"
+                disabled={loading}
+              >
+                Verificar
+              </Button>
+            )}
+            
+            {order.api_created && (
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs py-0.5">
+                API ✓
+              </Badge>
+            )}
+            
+            {order.email_sent && (
+              <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs py-0.5">
+                Email ✓
+              </Badge>
+            )}
+            
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => deleteOrder(order)}
+              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-7 w-7 p-0"
+              title="Excluir pedido"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="mt-2 pt-2 border-t border-zinc-700/30 flex items-center gap-3 text-[10px] text-zinc-500 flex-wrap">
+          <span>NSU: {order.nsu_order}</span>
+          {order.paid_at && (
+            <span className="text-green-500">Pago: {format(new Date(order.paid_at), "dd/MM HH:mm", { locale: ptBR })}</span>
+          )}
+          {order.status === "pending" && order.expired_at && (
+            <span className="text-yellow-500">
+              Expira: {format(new Date(order.expired_at), "dd/MM HH:mm", { locale: ptBR })}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Configuração das seções
+  const sections = [
+    { key: "completed", label: "Completos", color: "green", icon: CheckCircle, orders: groupedOrders.completed },
+    { key: "paid", label: "Pagos", color: "blue", icon: CheckCircle, orders: groupedOrders.paid },
+    { key: "pending", label: "Pendentes", color: "yellow", icon: Clock, orders: groupedOrders.pending },
+    { key: "expired", label: "Expirados", color: "red", icon: AlertTriangle, orders: groupedOrders.expired },
+  ];
 
   if (!isAuthenticated) {
     return (
@@ -489,7 +645,7 @@ ${GROUP_LINK}`;
           </div>
         </div>
 
-        {/* Orders List */}
+        {/* Orders List - Collapsible Sections */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
@@ -502,114 +658,54 @@ ${GROUP_LINK}`;
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredOrders.map((order) => (
-              <Card key={order.id} className="bg-zinc-800/50 border-zinc-700">
-                <CardContent className="p-4">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-4">
-                      <div>
-                        <div className="flex items-center gap-1 text-zinc-400 text-xs mb-1">
-                          <Mail className="w-3 h-3" /> Email
-                        </div>
-                        <p className="text-white text-sm font-medium truncate">{order.email}</p>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1 text-zinc-400 text-xs mb-1">
-                          <User className="w-3 h-3" /> Usuário/Senha
-                        </div>
-                        <p className="text-white text-sm font-mono">{order.username}</p>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1 text-zinc-400 text-xs mb-1">
-                          <Phone className="w-3 h-3" /> Celular
-                        </div>
-                        <p className="text-white text-sm">{order.phone || "-"}</p>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1 text-zinc-400 text-xs mb-1">
-                          <DollarSign className="w-3 h-3" /> Plano/Valor
-                        </div>
-                        <p className="text-white text-sm">
-                          {order.plan_type === "annual" ? "Anual" : "Vitalício"} - R$ {Number(order.amount).toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1 text-zinc-400 text-xs mb-1">
-                          <Calendar className="w-3 h-3" /> Data
-                        </div>
-                        <p className="text-white text-sm">
-                          {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {getStatusBadge(order.status)}
-                      
-                      {order.status === "pending" && (
-                        <Button
-                          size="sm"
-                          onClick={() => checkPayment(order)}
-                          className="bg-blue-500 hover:bg-blue-600"
-                          disabled={loading}
-                        >
-                          Verificar
-                        </Button>
-                      )}
-                      
-                      {(order.status === "completed" || order.status === "paid") && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => copyToClipboard(order)}
-                          className="border-green-500/50 text-green-400 hover:bg-green-500/10"
-                        >
-                          <Copy className="w-3 h-3 mr-1" />
-                          Copiar Acesso
-                        </Button>
-                      )}
-                      
-                      {order.api_created && (
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                          API ✓
+            {sections.map(({ key, label, color, icon: Icon, orders: sectionOrders }) => {
+              if (sectionOrders.length === 0) return null;
+              
+              const isOpen = openSections[key];
+              const colorClasses: Record<string, string> = {
+                green: "bg-green-500/10 border-green-500/40 hover:bg-green-500/20",
+                blue: "bg-blue-500/10 border-blue-500/40 hover:bg-blue-500/20",
+                yellow: "bg-yellow-500/10 border-yellow-500/40 hover:bg-yellow-500/20",
+                red: "bg-red-500/10 border-red-500/40 hover:bg-red-500/20",
+              };
+              const textClasses: Record<string, string> = {
+                green: "text-green-400",
+                blue: "text-blue-400",
+                yellow: "text-yellow-400",
+                red: "text-red-400",
+              };
+              
+              return (
+                <Collapsible key={key} open={isOpen} onOpenChange={() => toggleSection(key)}>
+                  <CollapsibleTrigger asChild>
+                    <div 
+                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${colorClasses[color]}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {isOpen ? (
+                          <ChevronDown className={`w-5 h-5 ${textClasses[color]}`} />
+                        ) : (
+                          <ChevronRight className={`w-5 h-5 ${textClasses[color]}`} />
+                        )}
+                        <Icon className={`w-5 h-5 ${textClasses[color]}`} />
+                        <span className={`font-semibold ${textClasses[color]}`}>{label}</span>
+                        <Badge className={`${colorClasses[color]} ${textClasses[color]} border-none`}>
+                          {sectionOrders.length}
                         </Badge>
-                      )}
-                      
-                      {order.email_sent && (
-                        <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                          Email ✓
-                        </Badge>
-                      )}
-                      
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => deleteOrder(order)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2"
-                        title="Excluir pedido"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 pt-3 border-t border-zinc-700/50 flex items-center gap-4 text-xs text-zinc-500 flex-wrap">
-                    <span>NSU: {order.nsu_order}</span>
-                    {order.paid_at && (
-                      <span>Pago: {format(new Date(order.paid_at), "dd/MM HH:mm", { locale: ptBR })}</span>
-                    )}
-                    {order.completed_at && (
-                      <span>Completo: {format(new Date(order.completed_at), "dd/MM HH:mm", { locale: ptBR })}</span>
-                    )}
-                    {order.status === "pending" && order.expired_at && (
-                      <span className="text-yellow-500">
-                        Expira: {format(new Date(order.expired_at), "dd/MM HH:mm", { locale: ptBR })}
+                      </div>
+                      <span className="text-zinc-400 text-sm">
+                        {isOpen ? "Clique para ocultar" : "Clique para expandir"}
                       </span>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="mt-2 space-y-2 pl-2 border-l-2 border-zinc-700/50 ml-4">
+                      {sectionOrders.map((order) => renderOrderCard(order, true))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
           </div>
         )}
       </div>
