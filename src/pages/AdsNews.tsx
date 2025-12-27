@@ -294,18 +294,6 @@ const AdsNews = () => {
             </Card>
           </div>
 
-          {/* AI Optimization Section - Meta Andromeda */}
-          <div className="mt-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 rounded-2xl p-8 md:p-10 text-white">
-            <h3 className="text-3xl md:text-5xl font-black text-center mb-4">
-              🚀 Vendendo 3x mais com tráfego pago otimizado por IA!
-            </h3>
-            <p className="text-lg md:text-xl text-center text-blue-100 mb-6 max-w-3xl mx-auto">
-              Utilize o <span className="font-bold text-yellow-300">ADS NEWS AI</span> — campanhas com assertividade em <span className="font-bold text-yellow-300">98%</span> do seu público alvo nas primeiras campanhas.
-            </p>
-            <p className="text-xl md:text-2xl text-center text-white font-bold">
-              API Oficial da Meta com <span className="text-yellow-300">Andromeda</span>
-            </p>
-          </div>
 
           {/* AI Logos Section */}
           <div className="mt-8 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-8 md:p-10 text-white">
