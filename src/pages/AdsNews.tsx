@@ -206,7 +206,7 @@ const AdsNews = () => {
           
           {/* ADS NEWS AI subtitle */}
           <p className="text-lg md:text-xl text-blue-100 mb-10 max-w-3xl mx-auto font-light leading-relaxed">
-            Utilize o <span className="font-semibold text-white">ADS NEWS AI</span> — campanhas de anúncio prontas em poucas horas com apenas um prompt.
+            Utilize o <span className="font-semibold text-white">ADS NEWS AI</span> — campanhas de anúncio prontas em poucas horas com apenas uma configuração inicial.
           </p>
 
           <p className="text-lg md:text-xl mb-10 text-blue-100 max-w-3xl mx-auto">
