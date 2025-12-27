@@ -204,7 +204,7 @@ const AdsNews = () => {
             <span className="text-orange-300">otimizado por IA</span>
           </h1>
           <p className="text-xl md:text-2xl text-orange-200 font-semibold mb-6">
-            Com apenas 1 comando e tudo se ativa no automático!<br />
+            Com apenas 1 comando tudo se ativa no automático!<br />
             <span className="text-blue-200">Sem dor de cabeça.</span>
           </p>
           
