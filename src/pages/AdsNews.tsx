@@ -215,7 +215,10 @@ const AdsNews = () => {
           <Button 
             size="lg" 
             className="bg-orange-500 hover:bg-orange-600 text-white text-lg font-semibold px-10 py-6 rounded-lg shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105"
-            onClick={() => setShowRegister(true)}
+            onClick={() => {
+              const pricingSection = document.getElementById('pricing');
+              pricingSection?.scrollIntoView({ behavior: 'smooth' });
+            }}
           >
             Quero Começar Agora
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -490,7 +493,7 @@ const AdsNews = () => {
 
           <Button 
             size="lg" 
-            className="mt-8 bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-full shadow-lg"
+            className="mt-8 bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-full shadow-lg animate-pulse hover:animate-none"
             onClick={() => setShowRegister(true)}
           >
             Começar Agora por R$397
