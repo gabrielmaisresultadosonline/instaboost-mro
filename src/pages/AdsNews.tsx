@@ -198,11 +198,15 @@ const AdsNews = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-blue-600 to-blue-700 text-white py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight tracking-tight">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight tracking-tight">
             Vendendo <span className="text-orange-400">3x mais</span><br />
             com tráfego pago<br />
             <span className="text-orange-300">otimizado por IA</span>
           </h1>
+          <p className="text-xl md:text-2xl text-orange-200 font-semibold mb-6">
+            Com apenas 1 comando e tudo se ativa no automático!<br />
+            <span className="text-blue-200">Sem dor de cabeça.</span>
+          </p>
           
           {/* ADS NEWS AI subtitle */}
           <p className="text-lg md:text-xl text-blue-100 mb-10 max-w-3xl mx-auto font-light leading-relaxed">
