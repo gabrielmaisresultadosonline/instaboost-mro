@@ -1,5 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const socket = io();
+    // Detectar base URL (para funcionar tanto em / quanto em /whatsapp-api/)
+    const BASE_URL = window.location.pathname.endsWith('/') 
+        ? window.location.pathname.slice(0, -1) 
+        : window.location.pathname.replace(/\/[^\/]*$/, '');
+    
+    const API_BASE = BASE_URL || '';
+    
+    // Socket.io - conectar ao mesmo host
+    const socket = io({
+        path: '/socket.io/',
+        transports: ['websocket', 'polling']
+    });
+    
     let currentSessionId = null;
     
     // Elementos DOM
@@ -19,13 +31,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const connectedSessions = document.getElementById('connectedSessions');
     const pendingSessions = document.getElementById('pendingSessions');
     
+    // Helper para fazer requisições
+    async function apiRequest(endpoint, options = {}) {
+        const url = API_BASE + endpoint;
+        console.log('API Request:', url);
+        const response = await fetch(url, options);
+        return response;
+    }
+    
     // Criar nova sessão
     createSessionBtn.addEventListener('click', async () => {
         createSessionBtn.disabled = true;
         createSessionBtn.innerHTML = '<span class="loader"></span> Criando...';
         
         try {
-            const response = await fetch('/api/create-session', {
+            const response = await apiRequest('/api/create-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -57,6 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Atualizar lista de sessões
                 loadActiveSessions();
+            } else {
+                alert('Erro: ' + (data.message || 'Falha ao criar sessão'));
             }
         } catch (error) {
             console.error('Erro ao criar sessão:', error);
@@ -101,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMessageBtn.innerHTML = '<span class="loader"></span> Enviando...';
         
         try {
-            const response = await fetch('/api/send-message', {
+            const response = await apiRequest('/api/send-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -131,6 +153,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Socket.io listeners
+    socket.on('connect', () => {
+        console.log('Socket conectado:', socket.id);
+    });
+    
+    socket.on('connect_error', (err) => {
+        console.error('Erro de conexão socket:', err);
+    });
+    
     socket.on('qr-generated', (data) => {
         console.log('QR recebido:', data.sessionId);
         if (data.sessionId === currentSessionId) {
@@ -191,13 +221,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     socket.on('message-received', (data) => {
         console.log('Mensagem recebida:', data);
-        // Aqui você pode adicionar notificações ou atualizar uma lista de mensagens
     });
     
     // Carregar sessões ativas
     async function loadActiveSessions() {
         try {
-            const response = await fetch('/api/active-sessions');
+            const response = await apiRequest('/api/active-sessions');
             const data = await response.json();
             
             renderSessions(data.sessions);
@@ -297,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.disconnectSession = async function(sessionId) {
         if (confirm('Tem certeza que deseja desconectar esta sessão?')) {
             try {
-                const response = await fetch('/api/disconnect-session', {
+                const response = await apiRequest('/api/disconnect-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -308,13 +337,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Se for a sessão atual, esconder QR Code
                     if (sessionId === currentSessionId) {
                         qrContainer.style.display = 'none';
                         currentSessionId = null;
                     }
-                    
-                    // Recarregar lista
                     loadActiveSessions();
                 } else {
                     alert('Erro: ' + data.message);
