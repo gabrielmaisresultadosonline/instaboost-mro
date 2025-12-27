@@ -20,7 +20,11 @@ import {
   User,
   Lock,
   Loader2,
-  LogIn
+  LogIn,
+  UserPlus,
+  Building2,
+  Settings,
+  Rocket
 } from "lucide-react";
 
 const AdsNews = () => {
@@ -229,6 +233,108 @@ const AdsNews = () => {
           <p className="text-xl md:text-2xl font-semibold text-gray-800">
             Parceiro Oficial da Meta Business
           </p>
+        </div>
+      </section>
+
+      {/* Steps Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-4 text-gray-900">
+            Como Funciona
+          </h2>
+          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+            Em apenas 4 passos simples você terá sua campanha ativa
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Passo 1 */}
+            <div className="relative">
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 h-full">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl mb-4">
+                  1
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                  <UserPlus className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="font-bold text-lg text-gray-900 mb-2">Crie sua Conta</h3>
+                <p className="text-gray-600 text-sm">
+                  Cadastre-se e ative sua conta para começar a receber leads qualificados.
+                </p>
+              </div>
+              <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                <ArrowRight className="h-6 w-6 text-gray-300" />
+              </div>
+            </div>
+
+            {/* Passo 2 */}
+            <div className="relative">
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 h-full">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl mb-4">
+                  2
+                </div>
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                  <Building2 className="h-6 w-6 text-orange-600" />
+                </div>
+                <h3 className="font-bold text-lg text-gray-900 mb-2">Dados do Negócio</h3>
+                <p className="text-gray-600 text-sm">
+                  Informe os dados da sua empresa e da sua propaganda para personalizar seus anúncios.
+                </p>
+              </div>
+              <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                <ArrowRight className="h-6 w-6 text-gray-300" />
+              </div>
+            </div>
+
+            {/* Passo 3 */}
+            <div className="relative">
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 h-full">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl mb-4">
+                  3
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                  <Settings className="h-6 w-6 text-green-600" />
+                </div>
+                <h3 className="font-bold text-lg text-gray-900 mb-2">Configure seu Saldo</h3>
+                <p className="text-gray-600 text-sm">
+                  Defina quantas mensagens deseja receber mensalmente e adicione seu saldo de campanha.
+                </p>
+              </div>
+              <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                <ArrowRight className="h-6 w-6 text-gray-300" />
+              </div>
+            </div>
+
+            {/* Passo 4 */}
+            <div className="relative">
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 h-full">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl mb-4">
+                  4
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                  <Rocket className="h-6 w-6 text-purple-600" />
+                </div>
+                <h3 className="font-bold text-lg text-gray-900 mb-2">Anúncios Prontos</h3>
+                <p className="text-gray-600 text-sm">
+                  Sua página de vendas e anúncios são criados automaticamente. Aguarde os leads no seu WhatsApp!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to action */}
+          <div className="mt-12 text-center">
+            <p className="text-gray-700 text-lg mb-6">
+              Pronto para receber leads qualificados no seu WhatsApp?
+            </p>
+            <Button 
+              size="lg" 
+              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-6 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
+              onClick={() => setShowRegister(true)}
+            >
+              Começar Agora
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </section>
 
