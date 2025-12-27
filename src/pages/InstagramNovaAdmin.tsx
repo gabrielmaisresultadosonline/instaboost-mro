@@ -20,7 +20,8 @@ import {
   DollarSign,
   Copy,
   Phone,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -264,6 +265,31 @@ ${GROUP_LINK}`;
       toast.success("Mensagem copiada para área de transferência!");
     } catch (e) {
       toast.error("Erro ao copiar");
+    }
+  };
+
+  const deleteOrder = async (order: MROOrder) => {
+    if (!confirm(`Tem certeza que deseja excluir o pedido de ${order.username}?`)) {
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from("mro_orders")
+        .delete()
+        .eq("id", order.id);
+
+      if (error) {
+        console.error("Error deleting order:", error);
+        toast.error("Erro ao excluir pedido");
+        return;
+      }
+
+      toast.success("Pedido excluído com sucesso!");
+      loadOrders();
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao excluir pedido");
     }
   };
 
@@ -554,6 +580,16 @@ ${GROUP_LINK}`;
                           Email ✓
                         </Badge>
                       )}
+                      
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteOrder(order)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2"
+                        title="Excluir pedido"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                   
