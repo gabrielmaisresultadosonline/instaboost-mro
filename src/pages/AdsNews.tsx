@@ -786,9 +786,23 @@ const AdsNews = () => {
               </a>
             </div>
             
-            <p className="text-gray-500 text-xs text-center">
-              © 2024 Ads News. Todos os direitos reservados. CNPJ: XX.XXX.XXX/0001-XX
-            </p>
+            <div className="text-center space-y-2">
+              <p className="text-gray-400 text-sm font-medium">
+                Uma criação da MRO - Mais Resultados Online
+              </p>
+              <p className="text-gray-500 text-xs">
+                Mais Resultados Online
+              </p>
+              <p className="text-gray-500 text-xs">
+                Gabriel Fernandes da Silva
+              </p>
+              <p className="text-gray-500 text-xs">
+                CNPJ: 54.840.738/0001-96
+              </p>
+              <p className="text-gray-600 text-xs mt-4">
+                © 2024 Ads News. Todos os direitos reservados.
+              </p>
+            </div>
           </div>
         </div>
       </footer>
