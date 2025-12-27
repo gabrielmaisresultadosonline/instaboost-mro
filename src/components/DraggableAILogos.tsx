@@ -18,10 +18,10 @@ const DraggableAILogos = () => {
   const [dragging, setDragging] = useState<string | null>(null);
   
   const [positions, setPositions] = useState<LogoState>({
-    chatgpt: { x: 0, y: -100 },
-    deepseek: { x: 140, y: 0 },
-    gemini: { x: 0, y: 100 },
-    nanobanana: { x: -140, y: 0 },
+    chatgpt: { x: 0, y: -120 },
+    deepseek: { x: 180, y: 0 },
+    gemini: { x: 0, y: 120 },
+    nanobanana: { x: -180, y: 0 },
   });
 
   useEffect(() => {
