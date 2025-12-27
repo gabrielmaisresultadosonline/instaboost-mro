@@ -470,12 +470,21 @@ const AdsNews = () => {
           <Card className="border-2 border-orange-400 shadow-xl max-w-sm mx-auto bg-white">
             <CardContent className="p-8">
               <div className="bg-orange-400 text-white text-sm font-bold px-3 py-1 rounded-full inline-block mb-4">
-                MENSAL
+                🔥 PROMOÇÃO MENSAL
               </div>
-              <div className="text-4xl font-bold text-gray-900 mb-2">
+              <div className="text-lg text-gray-500 line-through mb-1">
+                De R$1.500
+              </div>
+              <div className="text-2xl font-bold text-gray-700 mb-2">
+                POR APENAS
+              </div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">
                 R$<span className="text-5xl">397</span>
               </div>
               <p className="text-gray-600 font-medium">mensal (30 dias)</p>
+              <p className="text-xs text-green-600 mt-2 font-semibold">
+                Economia de R$1.103 por mês!
+              </p>
             </CardContent>
           </Card>
 
@@ -676,20 +685,102 @@ const AdsNews = () => {
         </div>
       )}
 
+      {/* How Ads News Works Section */}
+      <section className="py-16 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center text-white">
+            📢 Como seus anúncios serão criados
+          </h2>
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 md:p-10 text-white space-y-6">
+            <p className="text-lg leading-relaxed text-blue-100">
+              As campanhas e os anúncios serão feitos diretamente em nossa página <span className="font-bold text-orange-400">Ads News</span> através da sua configuração. 
+              Se você precisar de anúncios apenas na sua cidade, o Ads News vai estar lá. Se precisar para o Brasil todo, 
+              vamos anunciar para o Brasil todo. E assim por diante!
+            </p>
+            
+            <p className="text-lg leading-relaxed text-blue-100">
+              Vamos criar uma <span className="font-bold text-white">página de vendas profissional</span> em nosso site onde vamos anunciar para essa página. 
+              Dentro dela, vamos incluir seu número de WhatsApp para direcionar os leads, ou seu site, 
+              ou grupos em WhatsApp e Telegram — como você preferir!
+            </p>
+            
+            <p className="text-lg leading-relaxed text-blue-100">
+              Vamos anunciar seus <span className="font-bold text-orange-400">produtos</span>, sua <span className="font-bold text-orange-400">empresa</span>, 
+              sua <span className="font-bold text-orange-400">loja</span> de maneira fácil e rápida, diretamente por aqui, agora mesmo.
+            </p>
+            
+            <div className="bg-orange-500/20 border border-orange-400/30 rounded-xl p-6 mt-6">
+              <p className="text-xl font-bold text-center text-white mb-2">
+                💡 Mesmo sem conhecimento nenhum e com baixo investimento...
+              </p>
+              <p className="text-lg text-center text-blue-100">
+                Você vai conseguir estar anunciado na internet assim como seu concorrente faz e grandes marcas que você conhece.
+              </p>
+            </div>
+            
+            <div className="text-center mt-8">
+              <p className="text-2xl font-bold text-orange-400 mb-4">
+                🚀 Faça parte e não perca tempo!
+              </p>
+              <Button 
+                size="lg" 
+                className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-full shadow-lg"
+                onClick={() => setShowRegister(true)}
+              >
+                Quero Começar Agora
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <img 
-            src="/ads-news-logo.png" 
-            alt="Ads News" 
-            className="h-12 mx-auto mb-4"
-          />
-          <p className="text-gray-400 text-sm">
-            Ads News - Anúncios para WhatsApp, Facebook e Instagram
-          </p>
-          <p className="text-gray-500 text-xs mt-2">
-            © 2024 Todos os direitos reservados
-          </p>
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <img 
+              src="/ads-news-logo.png" 
+              alt="Ads News" 
+              className="h-14 mx-auto mb-6"
+            />
+            <p className="text-gray-400 text-lg mb-2">
+              Ads News - Anúncios para WhatsApp, Facebook e Instagram
+            </p>
+            <p className="text-gray-500 text-sm">
+              Transformando negócios através de tráfego pago inteligente
+            </p>
+          </div>
+          
+          <div className="border-t border-gray-700 pt-8">
+            <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 mb-6">
+              <a 
+                href="/politica-cancelamento" 
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Política de Cancelamento
+              </a>
+              <span className="hidden md:block text-gray-600">|</span>
+              <a 
+                href="#" 
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Política de Privacidade
+              </a>
+              <span className="hidden md:block text-gray-600">|</span>
+              <a 
+                href="#" 
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Termos de Uso
+              </a>
+            </div>
+            
+            <p className="text-gray-500 text-xs text-center">
+              © 2024 Ads News. Todos os direitos reservados. CNPJ: XX.XXX.XXX/0001-XX
+            </p>
+          </div>
         </div>
       </footer>
     </div>
