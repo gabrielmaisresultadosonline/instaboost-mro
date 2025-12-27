@@ -12,17 +12,76 @@ interface LogoState {
   nanobanana: Position;
 }
 
+const basePositions: LogoState = {
+  chatgpt: { x: 0, y: -120 },
+  deepseek: { x: 180, y: 0 },
+  gemini: { x: 0, y: 120 },
+  nanobanana: { x: -180, y: 0 },
+};
+
 const DraggableAILogos = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [centerPos, setCenterPos] = useState<Position>({ x: 0, y: 0 });
   const [dragging, setDragging] = useState<string | null>(null);
+  const animationRef = useRef<number | null>(null);
   
-  const [positions, setPositions] = useState<LogoState>({
-    chatgpt: { x: 0, y: -120 },
-    deepseek: { x: 180, y: 0 },
-    gemini: { x: 0, y: 120 },
-    nanobanana: { x: -180, y: 0 },
+  const [positions, setPositions] = useState<LogoState>(basePositions);
+  const [offsets, setOffsets] = useState<LogoState>({
+    chatgpt: { x: 0, y: 0 },
+    deepseek: { x: 0, y: 0 },
+    gemini: { x: 0, y: 0 },
+    nanobanana: { x: 0, y: 0 },
   });
+
+  // Idle trembling animation
+  useEffect(() => {
+    const speeds = {
+      chatgpt: { x: 0.8, y: 1.2, phaseX: 0, phaseY: Math.PI / 2 },
+      deepseek: { x: 1.0, y: 0.7, phaseX: Math.PI / 3, phaseY: Math.PI },
+      gemini: { x: 0.9, y: 1.1, phaseX: Math.PI / 4, phaseY: 0 },
+      nanobanana: { x: 1.1, y: 0.8, phaseX: Math.PI, phaseY: Math.PI / 6 },
+    };
+    
+    let startTime = Date.now();
+    
+    const animate = () => {
+      if (dragging) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      
+      const elapsed = (Date.now() - startTime) / 1000;
+      
+      setOffsets({
+        chatgpt: {
+          x: Math.sin(elapsed * speeds.chatgpt.x + speeds.chatgpt.phaseX) * 8,
+          y: Math.sin(elapsed * speeds.chatgpt.y + speeds.chatgpt.phaseY) * 6,
+        },
+        deepseek: {
+          x: Math.sin(elapsed * speeds.deepseek.x + speeds.deepseek.phaseX) * 10,
+          y: Math.sin(elapsed * speeds.deepseek.y + speeds.deepseek.phaseY) * 7,
+        },
+        gemini: {
+          x: Math.sin(elapsed * speeds.gemini.x + speeds.gemini.phaseX) * 7,
+          y: Math.sin(elapsed * speeds.gemini.y + speeds.gemini.phaseY) * 9,
+        },
+        nanobanana: {
+          x: Math.sin(elapsed * speeds.nanobanana.x + speeds.nanobanana.phaseX) * 9,
+          y: Math.sin(elapsed * speeds.nanobanana.y + speeds.nanobanana.phaseY) * 6,
+        },
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [dragging]);
 
   useEffect(() => {
     const updateCenter = () => {
@@ -140,8 +199,9 @@ const DraggableAILogos = () => {
         {/* Dynamic lines from each logo to center */}
         {logos.map((logo) => {
           const pos = positions[logo.id as keyof LogoState];
-          const logoX = centerPos.x + pos.x;
-          const logoY = centerPos.y + pos.y;
+          const offset = offsets[logo.id as keyof LogoState];
+          const logoX = centerPos.x + pos.x + (dragging === logo.id ? 0 : offset.x);
+          const logoY = centerPos.y + pos.y + (dragging === logo.id ? 0 : offset.y);
           
           return (
             <g key={logo.id}>
@@ -193,17 +253,19 @@ const DraggableAILogos = () => {
       {/* Draggable Logos */}
       {logos.map((logo) => {
         const pos = positions[logo.id as keyof LogoState];
+        const offset = offsets[logo.id as keyof LogoState];
         const isDragging = dragging === logo.id;
+        const finalX = pos.x + (isDragging ? 0 : offset.x);
+        const finalY = pos.y + (isDragging ? 0 : offset.y);
         
         return (
           <div
             key={logo.id}
-            className={`absolute z-10 cursor-grab active:cursor-grabbing transition-shadow duration-200 ${isDragging ? 'scale-110 shadow-xl' : 'hover:scale-105'}`}
+            className={`absolute z-10 cursor-grab active:cursor-grabbing ${isDragging ? 'scale-110 shadow-xl' : 'hover:scale-105'}`}
             style={{
-              left: centerPos.x + pos.x,
-              top: centerPos.y + pos.y,
+              left: centerPos.x + finalX,
+              top: centerPos.y + finalY,
               transform: 'translate(-50%, -50%)',
-              transition: isDragging ? 'none' : 'transform 0.2s ease'
             }}
             onMouseDown={handleMouseDown(logo.id)}
             onTouchStart={handleMouseDown(logo.id)}
