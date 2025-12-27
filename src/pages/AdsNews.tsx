@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DraggableAILogos from "@/components/DraggableAILogos";
 import { useNavigate } from "react-router-dom";
 import metaLogo from "@/assets/meta-logo.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -401,105 +402,20 @@ const AdsNews = () => {
           </div>
 
 
-          {/* AI Logos Section - Orbital Design with Interactive Lines */}
-          <div className="mt-8 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-8 md:p-10 text-white overflow-hidden">
+          {/* AI Logos Section - Interactive Draggable Design */}
+          <div className="mt-8 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-6 md:p-8 text-white overflow-hidden">
             <h3 className="text-xl md:text-2xl font-bold text-center mb-4">
               🤖 Campanhas criadas pelas maiores IAs do mercado
             </h3>
-            <p className="text-lg text-center text-blue-100 mb-6">
+            <p className="text-lg text-center text-blue-100 mb-4">
               Basta apenas <span className="font-bold text-white">UMA configuração</span> e deixe a IA trabalhar para você!
             </p>
             
-            {/* Interactive Orbital AI Logos */}
-            <div className="relative flex items-center justify-center h-[280px] md:h-[320px]">
-              {/* Dynamic SVG Lines */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
-                <defs>
-                  <linearGradient id="lineGradientBlue" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.6" />
-                    <stop offset="50%" stopColor="#60a5fa" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#93c5fd" stopOpacity="0.6" />
-                  </linearGradient>
-                  <filter id="glow">
-                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                    <feMerge>
-                      <feMergeNode in="coloredBlur"/>
-                      <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                  </filter>
-                </defs>
-                {/* Animated circular orbits */}
-                <circle cx="50%" cy="50%" r="90" fill="none" stroke="rgba(147, 197, 253, 0.3)" strokeWidth="1" strokeDasharray="4 4" className="animate-[spin_15s_linear_infinite]" style={{ transformOrigin: 'center' }} />
-                <circle cx="50%" cy="50%" r="110" fill="none" stroke="rgba(147, 197, 253, 0.2)" strokeWidth="1" strokeDasharray="2 6" className="animate-[spin_20s_linear_infinite_reverse]" style={{ transformOrigin: 'center' }} />
-                
-                {/* Continuous lines to center - Top (ChatGPT) */}
-                <line x1="50%" y1="25%" x2="50%" y2="42%" stroke="url(#lineGradientBlue)" strokeWidth="2" filter="url(#glow)">
-                  <animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
-                </line>
-                <circle cx="50%" cy="33%" r="3" fill="#60a5fa" className="animate-pulse" />
-                
-                {/* Right (DeepSeek) */}
-                <line x1="75%" y1="50%" x2="58%" y2="50%" stroke="url(#lineGradientBlue)" strokeWidth="2" filter="url(#glow)">
-                  <animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2.2s" repeatCount="indefinite" />
-                </line>
-                <circle cx="66%" cy="50%" r="3" fill="#60a5fa" className="animate-pulse" />
-                
-                {/* Bottom (Gemini) */}
-                <line x1="50%" y1="75%" x2="50%" y2="58%" stroke="url(#lineGradientBlue)" strokeWidth="2" filter="url(#glow)">
-                  <animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite" />
-                </line>
-                <circle cx="50%" cy="67%" r="3" fill="#60a5fa" className="animate-pulse" />
-                
-                {/* Left (Nano Banana) */}
-                <line x1="25%" y1="50%" x2="42%" y2="50%" stroke="url(#lineGradientBlue)" strokeWidth="2" filter="url(#glow)">
-                  <animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2.4s" repeatCount="indefinite" />
-                </line>
-                <circle cx="34%" cy="50%" r="3" fill="#60a5fa" className="animate-pulse" />
-              </svg>
-
-              {/* Center MRO API */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                <div className="bg-white/95 backdrop-blur rounded-2xl p-4 shadow-2xl flex flex-col items-center min-w-[100px] ring-4 ring-blue-300/50">
-                  <img src="/ai-logos/mro-api.png" alt="API MRO" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
-                  <span className="text-sm font-bold text-gray-700 mt-1">API MRO</span>
-                </div>
-              </div>
-
-              {/* ChatGPT - Top */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-2 z-10 cursor-grab active:cursor-grabbing hover:scale-110 transition-transform duration-200">
-                <div className="bg-white rounded-xl p-2.5 shadow-lg flex flex-col items-center min-w-[70px] md:min-w-[80px]">
-                  <img src="/ai-logos/chatgpt.png" alt="ChatGPT" className="h-8 w-8 md:h-10 md:w-10 object-contain" />
-                  <span className="text-[10px] md:text-xs font-bold text-gray-700 mt-1">ChatGPT</span>
-                </div>
-              </div>
-
-              {/* DeepSeek - Right */}
-              <div className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 z-10 cursor-grab active:cursor-grabbing hover:scale-110 transition-transform duration-200">
-                <div className="bg-white rounded-xl p-2.5 shadow-lg flex flex-col items-center min-w-[70px] md:min-w-[80px]">
-                  <img src="/ai-logos/deepseek.png" alt="DeepSeek" className="h-8 w-8 md:h-10 md:w-10 object-contain" />
-                  <span className="text-[10px] md:text-xs font-bold text-gray-700 mt-1">DeepSeek</span>
-                </div>
-              </div>
-
-              {/* Gemini - Bottom */}
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-2 z-10 cursor-grab active:cursor-grabbing hover:scale-110 transition-transform duration-200">
-                <div className="bg-white rounded-xl p-2.5 shadow-lg flex flex-col items-center min-w-[70px] md:min-w-[80px]">
-                  <img src="/ai-logos/gemini.png" alt="Gemini" className="h-8 w-8 md:h-10 md:w-10 object-contain" />
-                  <span className="text-[10px] md:text-xs font-bold text-gray-700 mt-1">Gemini</span>
-                </div>
-              </div>
-
-              {/* Nano Banana - Left */}
-              <div className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 z-10 cursor-grab active:cursor-grabbing hover:scale-110 transition-transform duration-200">
-                <div className="bg-white rounded-xl p-2.5 shadow-lg flex flex-col items-center min-w-[70px] md:min-w-[80px]">
-                  <img src="/ai-logos/nanobanana.png" alt="Nano Banana" className="h-8 w-8 md:h-10 md:w-10 object-contain" />
-                  <span className="text-[10px] md:text-xs font-bold text-gray-700 mt-1">Nano Banana</span>
-                </div>
-              </div>
-            </div>
+            {/* Interactive Draggable AI Logos */}
+            <DraggableAILogos />
             
             {/* Explanation Text */}
-            <div className="mt-6 text-center max-w-2xl mx-auto">
+            <div className="mt-4 text-center max-w-2xl mx-auto">
               <p className="text-blue-100 text-sm md:text-base leading-relaxed">
                 A <span className="font-bold text-white">MRO</span> recebe os dados do seu anúncio, 
                 <span className="text-orange-300 font-semibold"> gera informações com as melhores IAs do mercado</span>, 
