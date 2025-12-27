@@ -709,6 +709,16 @@ const AdsNews = () => {
               Vamos anunciar seus <span className="font-bold text-orange-400">produtos</span>, sua <span className="font-bold text-orange-400">empresa</span>, 
               sua <span className="font-bold text-orange-400">loja</span> de maneira fácil e rápida, diretamente por aqui, agora mesmo.
             </p>
+
+            <div className="bg-green-500/20 border border-green-400/30 rounded-xl p-6">
+              <p className="text-xl font-bold text-center text-white mb-2">
+                🎯 Não são leads quaisquer!
+              </p>
+              <p className="text-lg text-center text-blue-100">
+                São <span className="font-bold text-green-400">leads qualificados</span> para gerar <span className="font-bold text-white">vendas e conversões</span> — 
+                para que seu investimento conosco faça total sentido!
+              </p>
+            </div>
             
             <div className="bg-orange-500/20 border border-orange-400/30 rounded-xl p-6 mt-6">
               <p className="text-xl font-bold text-center text-white mb-2">
