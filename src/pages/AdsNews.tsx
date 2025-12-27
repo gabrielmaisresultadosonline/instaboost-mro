@@ -208,15 +208,7 @@ const AdsNews = () => {
             <span className="text-blue-200">Sem dor de cabeça.</span>
           </p>
           
-          {/* ADS NEWS AI subtitle */}
-          <p className="text-lg md:text-xl text-blue-100 mb-10 max-w-3xl mx-auto font-light leading-relaxed">
-            Utilize o <span className="font-semibold text-white">ADS NEWS AI</span> — campanhas de anúncio prontas em poucas horas com apenas uma configuração inicial.
-          </p>
-
-          <p className="text-lg md:text-xl mb-10 text-blue-100 max-w-3xl mx-auto">
-            Leads no seu WhatsApp <span className="text-orange-400 font-semibold">o dia todo</span> por apenas <span className="font-bold text-white">R$397/mês</span>.
-          </p>
-          <Button 
+          <Button
             size="lg" 
             className="bg-orange-500 hover:bg-orange-600 text-white text-lg font-semibold px-10 py-6 rounded-lg shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105"
             onClick={() => {
