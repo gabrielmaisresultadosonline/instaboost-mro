@@ -88,7 +88,7 @@ serve(async (req) => {
 
     // Webhook URL para receber notificação de pagamento
     const webhookUrl = `${supabaseUrl}/functions/v1/mro-payment-webhook`;
-    const redirectUrl = `${supabaseUrl.replace('supabase.co', 'lovable.app').replace('/functions/v1', '')}/mroobrigado?nsu=${orderNsu}`;
+    const redirectUrl = `https://maisresultadosonline.com.br/obrigado?nsu=${orderNsu}`;
 
     log("Preparing InfiniPay request", { 
       email: cleanEmail, 
