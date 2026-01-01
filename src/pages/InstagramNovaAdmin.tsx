@@ -376,7 +376,7 @@ ${GROUP_LINK}`;
         className={`bg-zinc-800/30 border border-zinc-700/50 rounded-lg ${compact ? "p-3" : "p-4"}`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className={`flex-1 grid grid-cols-2 ${compact ? "md:grid-cols-4" : "md:grid-cols-5"} gap-3`}>
+          <div className={`flex-1 grid grid-cols-2 ${compact ? "md:grid-cols-5" : "md:grid-cols-5"} gap-3`}>
             <div>
               <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
                 <Mail className="w-3 h-3" /> Email
@@ -389,14 +389,12 @@ ${GROUP_LINK}`;
               </div>
               <p className="text-white text-xs font-mono">{order.username}</p>
             </div>
-            {!compact && (
-              <div>
-                <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
-                  <Phone className="w-3 h-3" /> Celular
-                </div>
-                <p className="text-white text-xs">{order.phone || "-"}</p>
+            <div>
+              <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
+                <Phone className="w-3 h-3" /> Celular
               </div>
-            )}
+              <p className="text-white text-xs">{order.phone || "-"}</p>
+            </div>
             <div>
               <div className="flex items-center gap-1 text-zinc-400 text-xs mb-0.5">
                 <DollarSign className="w-3 h-3" /> Valor
