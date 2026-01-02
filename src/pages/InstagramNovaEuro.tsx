@@ -5,18 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CreditCard, Mail, CheckCircle, User, Euro, Sparkles } from "lucide-react";
+import { Loader2, CreditCard, Mail, CheckCircle, User, Crown, Sparkles, Phone } from "lucide-react";
 
-const PLAN = {
-  name: "Anual",
-  price: 300,
-  days: 365,
-  description: "1 ano de acesso completo",
+// Valores em Euro - mesmos valores que em Reais, só que em Euro
+const PLANS = {
+  annual: { name: "Anual", price: 397, days: 365, description: "Acesso por 1 ano" },
+  lifetime: { name: "Vitalício", price: 797, days: 999999, description: "Acesso para sempre" },
 };
 
 export default function InstagramNovaEuro() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
   const [loading, setLoading] = useState(false);
   const [paymentCreated, setPaymentCreated] = useState(false);
   const [sessionId, setSessionId] = useState("");
@@ -102,11 +103,16 @@ export default function InstagramNovaEuro() {
     setLoading(true);
 
     try {
+      const plan = PLANS[selectedPlan];
+      
       // Call edge function to create Stripe checkout
       const { data, error } = await supabase.functions.invoke("create-euro-checkout", {
         body: { 
           email: email.toLowerCase().trim(),
           username: username.toLowerCase().trim(),
+          phone: phone.trim(),
+          planType: selectedPlan,
+          amount: plan.price,
           checkUserExists: true,
         }
       });
@@ -172,20 +178,22 @@ export default function InstagramNovaEuro() {
     }
   };
 
+  const plan = PLANS[selectedPlan];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-lg bg-zinc-800/80 border-zinc-700 backdrop-blur-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4">
-            <Euro className="w-8 h-8 text-white" />
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center mb-4">
+            <Sparkles className="w-8 h-8 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold text-white">
             MRO Ferramenta Instagram
           </CardTitle>
           <CardDescription className="text-zinc-400">
             {!paymentCreated 
-              ? "Pagamento em Euro via Stripe"
-              : "Clique para finalizar o pagamento"
+              ? "Escolha seu plano e crie sua conta"
+              : "Link de pagamento gerado! Clique para pagar"
             }
           </CardDescription>
         </CardHeader>
@@ -193,20 +201,47 @@ export default function InstagramNovaEuro() {
         <CardContent>
           {!paymentCreated ? (
             <form onSubmit={handleCreatePayment} className="space-y-6">
-              {/* Plan Display */}
-              <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="w-6 h-6 text-blue-400" />
-                    <div>
-                      <p className="text-white font-semibold">Plano {PLAN.name}</p>
-                      <p className="text-zinc-400 text-sm">{PLAN.description}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-blue-400">€{PLAN.price}</p>
-                    <p className="text-xs text-zinc-500">EUR</p>
-                  </div>
+              {/* Seleção de Plano */}
+              <div className="space-y-3">
+                <label className="text-sm text-zinc-300 font-medium">Escolha seu Plano</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan("annual")}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      selectedPlan === "annual"
+                        ? "border-amber-500 bg-amber-500/10"
+                        : "border-zinc-600 bg-zinc-700/30 hover:border-zinc-500"
+                    }`}
+                  >
+                    <Crown className={`w-6 h-6 mx-auto mb-2 ${selectedPlan === "annual" ? "text-amber-500" : "text-zinc-400"}`} />
+                    <p className={`font-semibold ${selectedPlan === "annual" ? "text-amber-500" : "text-white"}`}>
+                      Anual
+                    </p>
+                    <p className="text-2xl font-bold text-white mt-1">
+                      €{PLANS.annual.price}
+                    </p>
+                    <p className="text-xs text-zinc-400 mt-1">365 dias de acesso</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan("lifetime")}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      selectedPlan === "lifetime"
+                        ? "border-emerald-500 bg-emerald-500/10"
+                        : "border-zinc-600 bg-zinc-700/30 hover:border-zinc-500"
+                    }`}
+                  >
+                    <Sparkles className={`w-6 h-6 mx-auto mb-2 ${selectedPlan === "lifetime" ? "text-emerald-500" : "text-zinc-400"}`} />
+                    <p className={`font-semibold ${selectedPlan === "lifetime" ? "text-emerald-500" : "text-white"}`}>
+                      Vitalício
+                    </p>
+                    <p className="text-2xl font-bold text-white mt-1">
+                      €{PLANS.lifetime.price}
+                    </p>
+                    <p className="text-xs text-zinc-400 mt-1">Acesso para sempre</p>
+                  </button>
                 </div>
               </div>
 
@@ -250,11 +285,26 @@ export default function InstagramNovaEuro() {
                 </p>
               </div>
 
-              {/* Summary */}
+              {/* Telefone */}
+              <div className="space-y-2">
+                <label className="text-sm text-zinc-300 flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  Telefone (opcional)
+                </label>
+                <Input
+                  type="tel"
+                  placeholder="+351 912 345 678"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="bg-zinc-700/50 border-zinc-600 text-white placeholder:text-zinc-500"
+                />
+              </div>
+
+              {/* Resumo */}
               <div className="bg-zinc-700/30 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-400">Plano</span>
-                  <span className="text-white font-medium">{PLAN.name}</span>
+                  <span className="text-white font-medium">{plan.name}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-400">Usuário/Senha</span>
@@ -263,8 +313,8 @@ export default function InstagramNovaEuro() {
                 <div className="border-t border-zinc-600 pt-2 mt-2">
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Total</span>
-                    <span className="text-2xl font-bold text-blue-400">
-                      €{PLAN.price}
+                    <span className="text-2xl font-bold text-amber-400">
+                      €{plan.price}
                     </span>
                   </div>
                 </div>
@@ -272,18 +322,18 @@ export default function InstagramNovaEuro() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-6"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold py-6"
                 disabled={loading || !!usernameError || !username}
               >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando...
+                    Gerando...
                   </>
                 ) : (
                   <>
                     <CreditCard className="mr-2 h-5 w-5" />
-                    Pagar €{PLAN.price} com Stripe
+                    Pagar €{plan.price} com Stripe
                   </>
                 )}
               </Button>
@@ -294,9 +344,9 @@ export default function InstagramNovaEuro() {
             </form>
           ) : (
             <div className="space-y-4">
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                <p className="text-sm text-zinc-400 mb-1">Session ID</p>
-                <p className="text-sm font-mono text-blue-400 truncate">{sessionId}</p>
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                <p className="text-sm text-zinc-400 mb-1">ID do Pedido</p>
+                <p className="text-sm font-mono text-amber-400 truncate">{sessionId}</p>
               </div>
 
               <div className="bg-zinc-700/30 rounded-lg p-4 space-y-2">
@@ -310,16 +360,16 @@ export default function InstagramNovaEuro() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-400">Plano</span>
-                  <span className="text-white">{PLAN.name}</span>
+                  <span className="text-white">{plan.name}</span>
                 </div>
               </div>
 
               <Button
                 onClick={handleOpenPayment}
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-6"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold py-6"
               >
                 <CreditCard className="mr-2 h-5 w-5" />
-                Pagar €{PLAN.price}
+                Pagar €{plan.price}
               </Button>
 
               <Button
