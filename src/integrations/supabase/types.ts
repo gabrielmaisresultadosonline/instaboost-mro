@@ -695,6 +695,60 @@ export type Database = {
           },
         ]
       }
+      mro_euro_orders: {
+        Row: {
+          amount: number
+          api_created: boolean | null
+          completed_at: string | null
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          id: string
+          paid_at: string | null
+          phone: string | null
+          plan_type: string
+          status: string
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          amount?: number
+          api_created?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          id?: string
+          paid_at?: string | null
+          phone?: string | null
+          plan_type?: string
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          amount?: number
+          api_created?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          id?: string
+          paid_at?: string | null
+          phone?: string | null
+          plan_type?: string
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       mro_orders: {
         Row: {
           amount: number
