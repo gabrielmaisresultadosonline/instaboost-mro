@@ -471,6 +471,11 @@ ${GROUP_LINK}`;
               Expira: {format(new Date(order.expired_at), "dd/MM HH:mm", { locale: ptBR })}
             </span>
           )}
+          {order.status === "expired" && (
+            <span className="text-red-400">
+              Tentativa: {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+            </span>
+          )}
         </div>
       </div>
     );
