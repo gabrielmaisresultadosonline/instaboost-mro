@@ -644,12 +644,22 @@ const VendasCompleta = () => {
         
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 animate-pulse">
-              <span className="text-xl sm:text-2xl">🎄</span>
-              <span className="text-xl sm:text-2xl">🍾</span>
-              <span className="text-red-400 font-black text-sm sm:text-lg">PROMOÇÃO INÍCIO DE ANO!</span>
-              <span className="text-xl sm:text-2xl">🍾</span>
-              <span className="text-xl sm:text-2xl">🎄</span>
+            <div className="flex flex-col items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-2xl px-4 sm:px-6 py-3 sm:py-4 mb-6 animate-pulse">
+              <div className="flex items-center gap-2">
+                <span className="text-xl sm:text-2xl">🎄</span>
+                <span className="text-xl sm:text-2xl">🍾</span>
+                <span className="text-red-400 font-black text-sm sm:text-lg">PROMOÇÃO INÍCIO DE ANO!</span>
+                <span className="text-xl sm:text-2xl">🍾</span>
+                <span className="text-xl sm:text-2xl">🎄</span>
+              </div>
+              <div className="text-yellow-400 font-black text-lg sm:text-2xl">
+                Até dia 06/01/2026
+              </div>
+              {!promoTimeLeft.expired && (
+                <div className="text-white/90 text-sm sm:text-base font-medium">
+                  Falta{promoTimeLeft.days > 0 ? ` ${promoTimeLeft.days} dia${promoTimeLeft.days > 1 ? 's' : ''}` : ''}{promoTimeLeft.hours > 0 ? ` ${promoTimeLeft.hours}h` : ''}{promoTimeLeft.minutes > 0 ? ` ${promoTimeLeft.minutes}min` : ''}
+                </div>
+              )}
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
               ESCOLHA SEU <span className="text-amber-400">PLANO</span>
