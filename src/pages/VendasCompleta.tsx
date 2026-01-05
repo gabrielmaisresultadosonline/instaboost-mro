@@ -659,14 +659,17 @@ const VendasCompleta = () => {
             {/* Banner Promocional com Countdown */}
             {!promoTimeLeft.expired && (
               <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 rounded-xl py-3 px-4 sm:px-6 shadow-lg max-w-2xl mx-auto">
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+                <div className="flex flex-col items-center justify-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="animate-pulse text-lg sm:text-xl">🔥</span>
+                    <span className="animate-pulse text-lg sm:text-xl">🎉</span>
                     <span className="font-bold text-white text-sm sm:text-base uppercase tracking-wide">
-                      PROMOÇÃO VÁLIDA ATÉ 06/01/2026
+                      PROMOÇÃO INÍCIO DE ANO!
                     </span>
-                    <span className="animate-pulse text-lg sm:text-xl">🔥</span>
+                    <span className="animate-pulse text-lg sm:text-xl">🎉</span>
                   </div>
+                  <p className="text-yellow-200 text-sm sm:text-base font-medium">
+                    Inicie 2026 com o pé direito!
+                  </p>
                   <div className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1">
                     <Clock className="w-4 h-4 text-yellow-300" />
                     <span className="text-yellow-300 font-bold text-sm sm:text-base">
