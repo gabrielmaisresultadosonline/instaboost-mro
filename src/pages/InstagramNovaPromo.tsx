@@ -371,20 +371,20 @@ const InstagramNovaPromo = () => {
               
               <div className="text-lg text-gray-300 mb-2">por apenas</div>
               
-              <div className="text-5xl md:text-6xl font-black text-green-400 mb-2">
-                R$ 300
+              <div className="text-5xl md:text-6xl font-black text-green-400 mb-1">
+                12x de R$30
               </div>
+              
+              <p className="text-gray-300 text-xl mb-3">
+                ou <span className="text-white font-bold">R$300 à vista</span>
+              </p>
               
               <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-4 py-2 mb-4">
                 <Gift className="w-5 h-5 text-red-400" />
                 <span className="text-red-400 font-bold">R$97 REAIS DE DESCONTO!</span>
               </div>
               
-              <p className="text-gray-400 text-lg">
-                ou até <span className="text-white font-bold">12x de R$30</span> no cartão
-              </p>
-              
-              <p className="text-yellow-400 text-sm mt-2 font-medium">
+              <p className="text-yellow-400 text-sm font-medium">
                 ⏰ Válido apenas nas próximas 8 horas
               </p>
             </div>
