@@ -463,8 +463,13 @@ ${GROUP_LINK}`;
         
         <div className="mt-2 pt-2 border-t border-zinc-700/30 flex items-center gap-3 text-[10px] text-zinc-500 flex-wrap">
           <span>NSU: {order.nsu_order}</span>
+          <span className="text-blue-400">
+            Cadastro: {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+          </span>
           {order.paid_at && (
-            <span className="text-green-500">Pago: {format(new Date(order.paid_at), "dd/MM HH:mm", { locale: ptBR })}</span>
+            <span className="text-green-500">
+              Pago: {format(new Date(order.paid_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+            </span>
           )}
           {order.status === "pending" && order.expired_at && (
             <span className="text-yellow-500">
