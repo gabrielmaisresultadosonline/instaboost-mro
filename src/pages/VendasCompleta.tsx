@@ -646,7 +646,9 @@ const VendasCompleta = () => {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 animate-pulse">
               <span className="text-xl sm:text-2xl">🎄</span>
-              <span className="text-red-400 font-black text-sm sm:text-lg">PROMOÇÃO DE FINAL DE ANO!</span>
+              <span className="text-xl sm:text-2xl">🍾</span>
+              <span className="text-red-400 font-black text-sm sm:text-lg">PROMOÇÃO INÍCIO DE ANO!</span>
+              <span className="text-xl sm:text-2xl">🍾</span>
               <span className="text-xl sm:text-2xl">🎄</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
