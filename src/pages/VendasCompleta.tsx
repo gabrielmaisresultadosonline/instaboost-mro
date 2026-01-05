@@ -661,11 +661,13 @@ const VendasCompleta = () => {
               <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 rounded-xl py-3 px-4 sm:px-6 shadow-lg max-w-2xl mx-auto">
                 <div className="flex flex-col items-center justify-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="animate-pulse text-lg sm:text-xl">🎉</span>
+                    <span className="text-lg sm:text-xl">🎄</span>
+                    <span className="text-lg sm:text-xl">🍾</span>
                     <span className="font-bold text-white text-sm sm:text-base uppercase tracking-wide">
                       PROMOÇÃO INÍCIO DE ANO!
                     </span>
-                    <span className="animate-pulse text-lg sm:text-xl">🎉</span>
+                    <span className="text-lg sm:text-xl">🍾</span>
+                    <span className="text-lg sm:text-xl">🎄</span>
                   </div>
                   <p className="text-yellow-200 text-sm sm:text-base font-medium">
                     Inicie 2026 com o pé direito!
