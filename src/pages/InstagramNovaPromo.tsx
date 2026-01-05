@@ -254,21 +254,10 @@ const InstagramNovaPromo = () => {
         </div>
       </div>
 
-      {/* Header */}
-      <header className="fixed top-9 sm:top-10 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
-          <img src={logoMro} alt="MRO" className="h-8 sm:h-10 object-contain" />
-          <Button 
-            onClick={scrollToPricing}
-            className="bg-green-500 hover:bg-green-600 text-white font-bold animate-pulse text-xs sm:text-sm px-3 sm:px-4 py-2"
-          >
-            Garantir Desconto
-          </Button>
-        </div>
-      </header>
+      {/* Header removido conforme solicitação */}
 
       {/* Hero Section */}
-      <section className="relative pt-28 sm:pt-32 md:pt-36 pb-10 sm:pb-16 px-3 sm:px-4">
+      <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Special Discount Badge */}
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-bounce">
@@ -371,8 +360,9 @@ const InstagramNovaPromo = () => {
               
               <div className="text-base sm:text-lg text-gray-300 mb-2">por apenas</div>
               
-              <div className="text-4xl sm:text-5xl md:text-6xl font-black text-green-400 mb-1">
-                12x de R$30
+              <div className="text-green-400 mb-1">
+                <span className="text-lg sm:text-xl md:text-2xl font-medium">12x de</span>
+                <span className="text-5xl sm:text-6xl md:text-7xl font-black ml-2">R$30</span>
               </div>
               
               <p className="text-gray-300 text-lg sm:text-xl mb-3">
