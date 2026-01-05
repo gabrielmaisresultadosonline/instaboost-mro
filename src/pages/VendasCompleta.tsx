@@ -54,6 +54,9 @@ const VendasCompleta = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [timeLeft, setTimeLeft] = useState({ hours: 47, minutes: 59, seconds: 59 });
+  
+  // Countdown para promoção - 06/01/2026 às 16:00
+  const [promoTimeLeft, setPromoTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, expired: false });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
   const [salesSettings, setSalesSettings] = useState<SalesSettings>({
@@ -200,6 +203,31 @@ const VendasCompleta = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Countdown para promoção - 06/01/2026 às 16:00
+  useEffect(() => {
+    const promoEndDate = new Date('2026-01-06T16:00:00-03:00');
+    
+    const updatePromoCountdown = () => {
+      const now = new Date();
+      const diff = promoEndDate.getTime() - now.getTime();
+      
+      if (diff <= 0) {
+        setPromoTimeLeft({ days: 0, hours: 0, minutes: 0, expired: true });
+        return;
+      }
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      setPromoTimeLeft({ days, hours, minutes, expired: false });
+    };
+    
+    updatePromoCountdown();
+    const timer = setInterval(updatePromoCountdown, 60000); // Atualiza a cada minuto
+    return () => clearInterval(timer);
+  }, []);
+
   const scrollToPricing = () => {
     pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -313,8 +341,32 @@ const VendasCompleta = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Banner Promocional */}
+      {!promoTimeLeft.expired && (
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-2 px-4 shadow-lg">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
+            <div className="flex items-center gap-2">
+              <span className="animate-pulse text-lg sm:text-xl">🔥</span>
+              <span className="font-bold text-white text-sm sm:text-base uppercase tracking-wide">
+                PROMOÇÃO VÁLIDA ATÉ 06/01/2026
+              </span>
+              <span className="animate-pulse text-lg sm:text-xl">🔥</span>
+            </div>
+            <div className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1">
+              <Clock className="w-4 h-4 text-yellow-300" />
+              <span className="text-yellow-300 font-bold text-sm sm:text-base">
+                Falta{promoTimeLeft.days > 0 ? ` ${promoTimeLeft.days} dia${promoTimeLeft.days > 1 ? 's' : ''}` : ''}{promoTimeLeft.hours > 0 ? ` ${promoTimeLeft.hours}h` : ''}{promoTimeLeft.minutes > 0 ? ` ${promoTimeLeft.minutes}min` : ''} para acabar!
+              </span>
+            </div>
+            <span className="text-white/90 text-xs sm:text-sm font-medium">
+              ÚLTIMAS VAGAS PROMOCIONAIS - Aproveite!
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
+      <header className={`fixed ${!promoTimeLeft.expired ? 'top-10 sm:top-9' : 'top-0'} left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800 transition-all`}>
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <img src={logoMro} alt="MRO" className="h-10 object-contain" />
           <Button 
@@ -327,7 +379,7 @@ const VendasCompleta = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-28 pb-16 px-4">
+      <section className={`relative ${!promoTimeLeft.expired ? 'pt-36 sm:pt-32' : 'pt-28'} pb-16 px-4 transition-all`}>
         <div className="max-w-5xl mx-auto text-center">
           <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-8 object-contain" />
           
@@ -639,7 +691,7 @@ const VendasCompleta = () => {
                 <div className="text-gray-500 line-through text-lg mb-1">De R$497</div>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl sm:text-5xl font-black text-white">12x</span>
-                  <span className="text-4xl sm:text-5xl font-black text-blue-400">R$33</span>
+                  <span className="text-4xl sm:text-5xl font-black text-blue-400">R$30</span>
                 </div>
                 <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$300</span> à vista</p>
               </div>
