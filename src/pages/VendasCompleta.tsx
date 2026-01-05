@@ -778,23 +778,6 @@ const VendasCompleta = () => {
             </div>
           </div>
 
-          {/* Countdown Timer */}
-          <div className="text-center mt-8">
-            <p className="text-red-400 font-bold text-sm sm:text-lg animate-pulse mb-4">⏰ Promoção válida apenas nas próximas:</p>
-            <div className="flex items-center justify-center gap-1 sm:gap-2">
-              <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.hours).padStart(2, '0')}h</span>
-              </div>
-              <span className="text-gray-500 text-lg sm:text-xl">:</span>
-              <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.minutes).padStart(2, '0')}m</span>
-              </div>
-              <span className="text-gray-500 text-lg sm:text-xl">:</span>
-              <div className="bg-red-600/20 border border-red-500/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2">
-                <span className="text-red-400 font-bold text-base sm:text-xl">{String(timeLeft.seconds).padStart(2, '0')}s</span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
