@@ -365,18 +365,27 @@ const InstagramNovaPromo = () => {
               <h3 className="text-2xl md:text-3xl font-bold mb-4">Plano Anual Completo</h3>
               
               {/* Price */}
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <span className="text-gray-500 line-through text-xl">R$ 497</span>
-                <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                  -40% OFF
-                </div>
+              <div className="mb-2">
+                <span className="text-gray-500 line-through text-2xl">De R$ 397</span>
               </div>
+              
+              <div className="text-lg text-gray-300 mb-2">por apenas</div>
               
               <div className="text-5xl md:text-6xl font-black text-green-400 mb-2">
                 R$ 300
               </div>
+              
+              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-4 py-2 mb-4">
+                <Gift className="w-5 h-5 text-red-400" />
+                <span className="text-red-400 font-bold">R$97 REAIS DE DESCONTO!</span>
+              </div>
+              
               <p className="text-gray-400 text-lg">
                 ou até <span className="text-white font-bold">12x de R$30</span> no cartão
+              </p>
+              
+              <p className="text-yellow-400 text-sm mt-2 font-medium">
+                ⏰ Válido apenas nas próximas 8 horas
               </p>
             </div>
             
