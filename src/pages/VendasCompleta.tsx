@@ -341,32 +341,8 @@ const VendasCompleta = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      {/* Banner Promocional */}
-      {!promoTimeLeft.expired && (
-        <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-red-500 to-red-600 py-2 px-4 shadow-lg">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
-            <div className="flex items-center gap-2">
-              <span className="animate-pulse text-lg sm:text-xl">🔥</span>
-              <span className="font-bold text-white text-sm sm:text-base uppercase tracking-wide">
-                PROMOÇÃO VÁLIDA ATÉ 06/01/2026
-              </span>
-              <span className="animate-pulse text-lg sm:text-xl">🔥</span>
-            </div>
-            <div className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1">
-              <Clock className="w-4 h-4 text-yellow-300" />
-              <span className="text-yellow-300 font-bold text-sm sm:text-base">
-                Falta{promoTimeLeft.days > 0 ? ` ${promoTimeLeft.days} dia${promoTimeLeft.days > 1 ? 's' : ''}` : ''}{promoTimeLeft.hours > 0 ? ` ${promoTimeLeft.hours}h` : ''}{promoTimeLeft.minutes > 0 ? ` ${promoTimeLeft.minutes}min` : ''} para acabar!
-              </span>
-            </div>
-            <span className="text-white/90 text-xs sm:text-sm font-medium">
-              ÚLTIMAS VAGAS PROMOCIONAIS - Aproveite!
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
-      <header className={`fixed ${!promoTimeLeft.expired ? 'top-10 sm:top-9' : 'top-0'} left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800 transition-all`}>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <img src={logoMro} alt="MRO" className="h-10 object-contain" />
           <Button 
@@ -379,7 +355,7 @@ const VendasCompleta = () => {
       </header>
 
       {/* Hero Section */}
-      <section className={`relative ${!promoTimeLeft.expired ? 'pt-36 sm:pt-32' : 'pt-28'} pb-16 px-4 transition-all`}>
+      <section className="relative pt-28 pb-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-8 object-contain" />
           
@@ -676,9 +652,33 @@ const VendasCompleta = () => {
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
               ESCOLHA SEU <span className="text-amber-400">PLANO</span>
             </h2>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-400 text-lg mb-6">
               A solução definitiva para crescer no Instagram sem gastar com anúncios
             </p>
+            
+            {/* Banner Promocional com Countdown */}
+            {!promoTimeLeft.expired && (
+              <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 rounded-xl py-3 px-4 sm:px-6 shadow-lg max-w-2xl mx-auto">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="animate-pulse text-lg sm:text-xl">🔥</span>
+                    <span className="font-bold text-white text-sm sm:text-base uppercase tracking-wide">
+                      PROMOÇÃO VÁLIDA ATÉ 06/01/2026
+                    </span>
+                    <span className="animate-pulse text-lg sm:text-xl">🔥</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1">
+                    <Clock className="w-4 h-4 text-yellow-300" />
+                    <span className="text-yellow-300 font-bold text-sm sm:text-base">
+                      Falta{promoTimeLeft.days > 0 ? ` ${promoTimeLeft.days} dia${promoTimeLeft.days > 1 ? 's' : ''}` : ''}{promoTimeLeft.hours > 0 ? ` ${promoTimeLeft.hours}h` : ''}{promoTimeLeft.minutes > 0 ? ` ${promoTimeLeft.minutes}min` : ''} para acabar!
+                    </span>
+                  </div>
+                </div>
+                <p className="text-white/90 text-xs sm:text-sm font-medium mt-2">
+                  ÚLTIMAS VAGAS PROMOCIONAIS - Aproveite!
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
