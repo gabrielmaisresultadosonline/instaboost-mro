@@ -239,28 +239,28 @@ const InstagramNovaPromo = () => {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Urgency Banner */}
-      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-3 text-center">
-          <AlertTriangle className="w-5 h-5 text-yellow-300 animate-pulse" />
-          <span className="text-sm md:text-base font-bold text-white">
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2 px-2">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
+          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
+          <span className="text-xs sm:text-sm md:text-base font-bold text-white leading-tight">
             🎁 VOCÊ RECEBEU UM DESCONTO ESPECIAL! Aproveite em{" "}
-            <span className="bg-black/30 px-2 py-1 rounded text-yellow-300 font-mono">
+            <span className="bg-black/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-yellow-300 font-mono text-xs sm:text-sm">
               {promoTimeLeft.expired ? "EXPIRADO" : 
                 `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
               }
             </span>
           </span>
-          <AlertTriangle className="w-5 h-5 text-yellow-300 animate-pulse" />
+          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
         </div>
       </div>
 
       {/* Header */}
-      <header className="fixed top-10 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={logoMro} alt="MRO" className="h-10 object-contain" />
+      <header className="fixed top-9 sm:top-10 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
+          <img src={logoMro} alt="MRO" className="h-8 sm:h-10 object-contain" />
           <Button 
             onClick={scrollToPricing}
-            className="bg-green-500 hover:bg-green-600 text-white font-bold animate-pulse"
+            className="bg-green-500 hover:bg-green-600 text-white font-bold animate-pulse text-xs sm:text-sm px-3 sm:px-4 py-2"
           >
             Garantir Desconto
           </Button>
@@ -268,23 +268,23 @@ const InstagramNovaPromo = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-36 pb-16 px-4">
+      <section className="relative pt-28 sm:pt-32 md:pt-36 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Special Discount Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-6 py-3 mb-8 animate-bounce">
-            <Gift className="w-6 h-6 text-yellow-300" />
-            <span className="font-bold text-lg">DESCONTO ESPECIAL LIBERADO!</span>
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-bounce">
+            <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
+            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL LIBERADO!</span>
           </div>
           
-          <img src={logoMro} alt="MRO" className="h-20 md:h-28 mx-auto mb-8 object-contain" />
+          <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           
           {/* Animated Title */}
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
+            <h1 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent px-2">
               FERRAMENTA COMPLETA PARA INSTAGRAM
             </h1>
-            <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black">
+            <h2 className="relative text-lg sm:text-xl md:text-3xl lg:text-4xl font-black">
               <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
                 POR APENAS 12x DE R$30
               </span>
@@ -292,34 +292,34 @@ const InstagramNovaPromo = () => {
           </div>
 
           {/* Countdown Timer Large */}
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-xl p-4 min-w-[80px]">
-              <div className="text-3xl md:text-5xl font-bold font-mono">
+          <div className="mt-6 sm:mt-8 flex items-center justify-center gap-2 sm:gap-4">
+            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
+              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
                 {String(promoTimeLeft.hours).padStart(2, '0')}
               </div>
-              <div className="text-xs text-red-200">HORAS</div>
+              <div className="text-[10px] sm:text-xs text-red-200">HORAS</div>
             </div>
-            <span className="text-3xl font-bold text-red-500">:</span>
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-xl p-4 min-w-[80px]">
-              <div className="text-3xl md:text-5xl font-bold font-mono">
+            <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
+            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
+              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
                 {String(promoTimeLeft.minutes).padStart(2, '0')}
               </div>
-              <div className="text-xs text-red-200">MINUTOS</div>
+              <div className="text-[10px] sm:text-xs text-red-200">MINUTOS</div>
             </div>
-            <span className="text-3xl font-bold text-red-500">:</span>
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-xl p-4 min-w-[80px]">
-              <div className="text-3xl md:text-5xl font-bold font-mono">
+            <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
+            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
+              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
                 {String(promoTimeLeft.seconds).padStart(2, '0')}
               </div>
-              <div className="text-xs text-red-200">SEGUNDOS</div>
+              <div className="text-[10px] sm:text-xs text-red-200">SEGUNDOS</div>
             </div>
           </div>
 
           {/* Main Video */}
-          <div className="mt-10 max-w-4xl mx-auto">
+          <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
             <div 
               onClick={() => openVideo("U-WmszcYekA")}
-              className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-green-500/30 hover:border-green-500/60 transition-all"
+              className="relative rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-green-500/30 hover:border-green-500/60 transition-all"
             >
               <img 
                 src="https://img.youtube.com/vi/U-WmszcYekA/maxresdefault.jpg" 
@@ -327,8 +327,8 @@ const InstagramNovaPromo = () => {
                 className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
-                  <Play className="w-10 h-10 text-white ml-1" fill="white" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
+                  <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" fill="white" />
                 </div>
               </div>
             </div>
@@ -337,64 +337,64 @@ const InstagramNovaPromo = () => {
           {/* CTA Button */}
           <Button 
             onClick={scrollToPricing}
-            className="mt-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg px-10 py-6 rounded-full shadow-lg shadow-green-500/30"
+            className="mt-8 sm:mt-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30"
           >
-            GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-5 h-5" />
+            GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         </div>
       </section>
 
       {/* O que está incluso */}
-      <section ref={pricingRef} className="py-16 px-4 bg-gradient-to-b from-gray-950 to-black">
+      <section ref={pricingRef} className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-center mb-3 sm:mb-4">
             <span className="text-green-400">OFERTA ESPECIAL</span>
           </h2>
-          <p className="text-center text-gray-400 mb-10 text-lg">Promoção válida apenas por 8 horas</p>
+          <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">Promoção válida apenas por 8 horas</p>
           
           {/* Pricing Card */}
-          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-green-500 rounded-3xl p-8 relative overflow-hidden">
+          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-green-500 rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden">
             {/* Badge */}
             <div className="absolute -top-1 left-1/2 -translate-x-1/2">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold px-6 py-2 rounded-b-xl text-sm">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap">
                 🔥 DESCONTO ESPECIAL
               </div>
             </div>
             
-            <div className="text-center mt-6 mb-8">
-              <h3 className="text-2xl md:text-3xl font-bold mb-4">Plano Anual Completo</h3>
+            <div className="text-center mt-6 sm:mt-6 mb-6 sm:mb-8">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Plano Anual Completo</h3>
               
               {/* Price */}
               <div className="mb-2">
-                <span className="text-gray-500 line-through text-2xl">De R$ 397</span>
+                <span className="text-gray-500 line-through text-lg sm:text-2xl">De R$ 397</span>
               </div>
               
-              <div className="text-lg text-gray-300 mb-2">por apenas</div>
+              <div className="text-base sm:text-lg text-gray-300 mb-2">por apenas</div>
               
-              <div className="text-5xl md:text-6xl font-black text-green-400 mb-1">
+              <div className="text-4xl sm:text-5xl md:text-6xl font-black text-green-400 mb-1">
                 12x de R$30
               </div>
               
-              <p className="text-gray-300 text-xl mb-3">
+              <p className="text-gray-300 text-lg sm:text-xl mb-3">
                 ou <span className="text-white font-bold">R$300 à vista</span>
               </p>
               
-              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-4 py-2 mb-4">
-                <Gift className="w-5 h-5 text-red-400" />
-                <span className="text-red-400 font-bold">R$97 REAIS DE DESCONTO!</span>
+              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-3 sm:mb-4">
+                <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
+                <span className="text-red-400 font-bold text-sm sm:text-base">R$97 REAIS DE DESCONTO!</span>
               </div>
               
-              <p className="text-yellow-400 text-sm font-medium">
+              <p className="text-yellow-400 text-xs sm:text-sm font-medium">
                 ⏰ Válido apenas nas próximas 8 horas
               </p>
             </div>
             
             {/* Features */}
-            <div className="space-y-4 mb-8">
+            <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
               {planFeatures.map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0" />
-                  <span className="text-gray-200">{feature}</span>
+                <div key={i} className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-200 text-sm sm:text-base">{feature}</span>
                 </div>
               ))}
             </div>
@@ -409,19 +409,19 @@ const InstagramNovaPromo = () => {
                 setShowCheckoutModal(true);
               }}
               disabled={promoTimeLeft.expired}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl py-7 rounded-xl shadow-lg shadow-green-500/30 disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-green-500/30 disabled:opacity-50"
             >
               {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "QUERO GARANTIR AGORA"}
             </Button>
             
             {/* Secure badges */}
-            <div className="flex items-center justify-center gap-4 mt-6 text-sm text-gray-400">
+            <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 text-xs sm:text-sm text-gray-400 flex-wrap">
               <div className="flex items-center gap-1">
-                <Shield className="w-4 h-4" />
+                <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Compra Segura</span>
               </div>
               <div className="flex items-center gap-1">
-                <CreditCard className="w-4 h-4" />
+                <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>PIX ou Cartão</span>
               </div>
             </div>
@@ -430,18 +430,18 @@ const InstagramNovaPromo = () => {
       </section>
 
       {/* Garantia */}
-      <section className="py-16 px-4 bg-black">
+      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-black">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-2xl p-8">
-            <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-12 h-12 text-green-400" />
+          <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-xl sm:rounded-2xl p-5 sm:p-8">
+            <div className="flex flex-col items-center gap-4 sm:gap-6 text-center">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-green-400" />
               </div>
-              <div className="text-center md:text-left">
-                <h3 className="text-2xl md:text-3xl font-bold text-green-400 mb-3">
+              <div>
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-green-400 mb-2 sm:mb-3">
                   30 Dias de Resultados Garantidos
                 </h3>
-                <p className="text-gray-300">
+                <p className="text-gray-300 text-sm sm:text-base">
                   Nós garantimos engajamento, clientes, público e vendas utilizando nossa ferramenta de modo contínuo. 
                   Se em 30 dias você não estiver completamente satisfeito, devolvemos <strong className="text-white">100% do seu investimento!</strong>
                 </p>
@@ -452,86 +452,86 @@ const InstagramNovaPromo = () => {
       </section>
 
       {/* O QUE VOCÊ VAI RECEBER */}
-      <section className="py-16 px-4 bg-gradient-to-b from-black to-gray-950">
+      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-center mb-10 sm:mb-16">
             O QUE VOCÊ VAI <span className="text-green-400">RECEBER</span>
           </h2>
 
           {/* IA Section */}
-          <div className="mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg px-4 py-2">
-                <span className="font-bold text-sm">NOVO</span>
+          <div className="mb-10 sm:mb-16">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2">
+                <span className="font-bold text-xs sm:text-sm">NOVO</span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold">
+              <h3 className="text-lg sm:text-2xl md:text-3xl font-bold">
                 Inteligência artificial automática
               </h3>
             </div>
             
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-8">
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 {iaFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-300">{feature}</span>
+                  <div key={i} className="flex items-start gap-2 sm:gap-3">
+                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-300 text-sm sm:text-base">{feature}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-green-400 font-medium mt-6 text-center text-lg">
+              <p className="text-green-400 font-medium mt-4 sm:mt-6 text-center text-sm sm:text-lg">
                 Tudo isso personalizado para você, em segundos!
               </p>
             </div>
           </div>
 
           {/* MRO Principal */}
-          <div className="mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-green-500 rounded-lg px-4 py-2">
-                <span className="font-bold text-black text-sm">PRINCIPAL</span>
+          <div className="mb-10 sm:mb-16">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <div className="bg-green-500 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2">
+                <span className="font-bold text-black text-xs sm:text-sm">PRINCIPAL</span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold">
+              <h3 className="text-lg sm:text-2xl md:text-3xl font-bold">
                 FERRAMENTA MRO
               </h3>
             </div>
             
-            <div className="bg-gray-900/50 border border-green-500/30 rounded-2xl p-8">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-gray-900/50 border border-green-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-8">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {mroFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-4 bg-gray-800/50 rounded-xl p-4">
-                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
-                      <feature.icon className="w-6 h-6 text-green-400" />
+                  <div key={i} className="flex items-center gap-3 sm:gap-4 bg-gray-800/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                      <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
                     </div>
-                    <span className="font-medium">{feature.title}</span>
+                    <span className="font-medium text-sm sm:text-base">{feature.title}</span>
                   </div>
                 ))}
               </div>
               
-              <p className="text-gray-400 mt-8 text-center max-w-3xl mx-auto">
+              <p className="text-gray-400 mt-6 sm:mt-8 text-center max-w-3xl mx-auto text-sm sm:text-base">
                 Tudo isso em alta escala, todos os dias, atraindo um novo público real e interessado em você.
               </p>
               
-              <div className="mt-6 text-center">
-                <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-6 py-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-400" />
-                  <span className="text-green-400 font-bold">Resultados comprovados em até 7 horas de uso!</span>
+              <div className="mt-4 sm:mt-6 text-center">
+                <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-4 sm:px-6 py-2 sm:py-3">
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+                  <span className="text-green-400 font-bold text-xs sm:text-sm">Resultados comprovados em até 7 horas de uso!</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Area de Membros */}
-          <div className="mb-16">
-            <h3 className="text-2xl md:text-3xl font-bold mb-6">
+          <div className="mb-10 sm:mb-16">
+            <h3 className="text-lg sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6">
               ÁREA DE MEMBROS <span className="text-green-400">VITALÍCIA</span>
             </h3>
             
-            <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-8">
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 {areaMembroFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <Video className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-300">{feature}</span>
+                  <div key={i} className="flex items-start gap-2 sm:gap-3">
+                    <Video className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-300 text-sm sm:text-base">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -539,17 +539,17 @@ const InstagramNovaPromo = () => {
           </div>
 
           {/* Grupo VIP */}
-          <div className="mb-16">
-            <h3 className="text-2xl md:text-3xl font-bold mb-6">
+          <div className="mb-10 sm:mb-16">
+            <h3 className="text-lg sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6">
               GRUPO VIP DE <span className="text-green-400">SUPORTE E NETWORKING</span>
             </h3>
             
-            <div className="bg-gray-900/50 border border-green-500/30 rounded-2xl p-8">
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-gray-900/50 border border-green-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-8">
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 {grupoVipFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <MessageCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-300">{feature}</span>
+                  <div key={i} className="flex items-start gap-2 sm:gap-3">
+                    <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-300 text-sm sm:text-base">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -559,15 +559,15 @@ const InstagramNovaPromo = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 px-4 bg-gradient-to-b from-gray-950 to-black">
+      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-4xl font-bold mb-6">
+          <h2 className="text-xl sm:text-2xl md:text-4xl font-bold mb-4 sm:mb-6">
             Não perca essa <span className="text-green-400">oportunidade única!</span>
           </h2>
           
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <Timer className="w-8 h-8 text-red-500 animate-pulse" />
-            <span className="text-xl font-bold">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
+            <Timer className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 animate-pulse" />
+            <span className="text-base sm:text-xl font-bold">
               Oferta expira em{" "}
               <span className="text-red-500 font-mono">
                 {promoTimeLeft.expired ? "EXPIRADO" : 
@@ -586,7 +586,7 @@ const InstagramNovaPromo = () => {
               setShowCheckoutModal(true);
             }}
             disabled={promoTimeLeft.expired}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl px-12 py-7 rounded-full shadow-lg shadow-green-500/30 disabled:opacity-50"
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-green-500/30 disabled:opacity-50"
           >
             {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
           </Button>
@@ -596,14 +596,14 @@ const InstagramNovaPromo = () => {
       {/* Video Modal */}
       {showVideoModal && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setShowVideoModal(false)}
         >
           <button 
-            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white hover:text-gray-300 z-10"
             onClick={() => setShowVideoModal(false)}
           >
-            <X className="w-8 h-8" />
+            <X className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
           <div className="w-full max-w-5xl aspect-video" onClick={e => e.stopPropagation()}>
             <iframe
@@ -618,27 +618,27 @@ const InstagramNovaPromo = () => {
 
       {/* Checkout Modal */}
       {showCheckoutModal && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-green-500/30 rounded-2xl max-w-md w-full p-6 relative">
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-gray-900 border border-green-500/30 rounded-xl sm:rounded-2xl max-w-md w-full p-4 sm:p-6 relative my-4">
             <button 
               onClick={() => setShowCheckoutModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-white"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
             
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
-              <div className="text-3xl font-bold text-green-400">
+            <div className="text-center mb-4 sm:mb-6">
+              <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
+              <div className="text-2xl sm:text-3xl font-bold text-green-400">
                 12x de R$30
               </div>
-              <p className="text-gray-400 text-sm">ou R$300 à vista no PIX</p>
+              <p className="text-gray-400 text-xs sm:text-sm">ou R$300 à vista no PIX</p>
             </div>
             
-            <form onSubmit={handleCheckout} className="space-y-4">
+            <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4">
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">
-                  <Mail className="w-4 h-4 inline mr-1" />
+                <label className="text-xs sm:text-sm text-gray-400 mb-1 block">
+                  <Mail className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
                   E-mail
                 </label>
                 <Input
@@ -646,14 +646,14 @@ const InstagramNovaPromo = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="bg-gray-800 border-gray-700 text-white"
+                  className="bg-gray-800 border-gray-700 text-white text-sm sm:text-base"
                   required
                 />
               </div>
               
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">
-                  <Phone className="w-4 h-4 inline mr-1" />
+                <label className="text-xs sm:text-sm text-gray-400 mb-1 block">
+                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
                   Celular com DDD
                 </label>
                 <Input
@@ -661,14 +661,14 @@ const InstagramNovaPromo = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="(11) 99999-9999"
-                  className="bg-gray-800 border-gray-700 text-white"
+                  className="bg-gray-800 border-gray-700 text-white text-sm sm:text-base"
                   required
                 />
               </div>
               
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">
-                  <User className="w-4 h-4 inline mr-1" />
+                <label className="text-xs sm:text-sm text-gray-400 mb-1 block">
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
                   Nome de usuário (login)
                 </label>
                 <Input
@@ -676,13 +676,13 @@ const InstagramNovaPromo = () => {
                   value={username}
                   onChange={(e) => validateUsername(e.target.value)}
                   placeholder="seunome"
-                  className={`bg-gray-800 border-gray-700 text-white ${usernameError ? 'border-red-500' : ''}`}
+                  className={`bg-gray-800 border-gray-700 text-white text-sm sm:text-base ${usernameError ? 'border-red-500' : ''}`}
                   required
                 />
                 {usernameError && (
-                  <p className="text-red-400 text-xs mt-1">{usernameError}</p>
+                  <p className="text-red-400 text-[10px] sm:text-xs mt-1">{usernameError}</p>
                 )}
-                <p className="text-gray-500 text-xs mt-1">
+                <p className="text-gray-500 text-[10px] sm:text-xs mt-1">
                   Apenas letras minúsculas, sem espaços ou números
                 </p>
               </div>
@@ -690,24 +690,24 @@ const InstagramNovaPromo = () => {
               <Button
                 type="submit"
                 disabled={loading || promoTimeLeft.expired}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 rounded-xl"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-5 sm:py-6 rounded-xl text-sm sm:text-base"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
                     Processando...
                   </>
                 ) : (
                   <>
-                    <CreditCard className="w-5 h-5 mr-2" />
+                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     PAGAR AGORA
                   </>
                 )}
               </Button>
             </form>
             
-            <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
-              <Shield className="w-4 h-4" />
+            <div className="flex items-center justify-center gap-2 mt-3 sm:mt-4 text-[10px] sm:text-xs text-gray-500">
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Pagamento 100% seguro via InfiniPay</span>
             </div>
           </div>
@@ -715,8 +715,8 @@ const InstagramNovaPromo = () => {
       )}
 
       {/* Footer */}
-      <footer className="py-8 px-4 border-t border-gray-800">
-        <div className="max-w-7xl mx-auto text-center text-gray-500 text-sm">
+      <footer className="py-6 sm:py-8 px-3 sm:px-4 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto text-center text-gray-500 text-xs sm:text-sm">
           <p>© 2025 MRO - Mais Resultados Online. Todos os direitos reservados.</p>
         </div>
       </footer>
