@@ -136,36 +136,39 @@ export const UserHeader = ({ onLogout, onReanalysisComplete }: UserHeaderProps) 
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-1 sm:gap-3">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 text-sm">
-              <User className="w-4 h-4" />
-              <span className="font-medium">{user.username}</span>
+            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-secondary/50 text-xs sm:text-sm max-w-[180px] sm:max-w-none">
+              <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="font-medium truncate">{user.username}</span>
               
               {/* Admin Lock Icon */}
               <button
-                onClick={() => setShowAdminModal(true)}
-                className="p-1 hover:bg-secondary rounded-full transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAdminModal(true);
+                }}
+                className="p-0.5 sm:p-1 hover:bg-secondary rounded-full transition-colors flex-shrink-0"
                 title="Acesso Admin"
               >
-                <KeyRound className="w-3.5 h-3.5 text-muted-foreground hover:text-amber-500 transition-colors" />
+                <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground hover:text-amber-500 transition-colors" />
               </button>
               
               {isLifetime ? (
-                <div className="flex items-center gap-1">
-                  <Crown className="w-4 h-4 text-amber-500" />
-                  <span className="text-amber-500 font-semibold text-xs">Vitalício</span>
+                <div className="hidden xs:flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+                  <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
+                  <span className="hidden sm:inline text-amber-500 font-semibold text-xs">Vitalício</span>
                   {user.creativesUnlocked ? (
-                    <Unlock className="w-3 h-3 text-green-500" />
+                    <Unlock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500" />
                   ) : (
-                    <Lock className="w-3 h-3 text-red-400" />
+                    <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
                   )}
                 </div>
               ) : (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="w-3 h-3" />
+                <span className="hidden xs:flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">
+                  <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   {user.daysRemaining}d
                 </span>
               )}
@@ -188,8 +191,8 @@ export const UserHeader = ({ onLogout, onReanalysisComplete }: UserHeaderProps) 
         </Tooltip>
       </TooltipProvider>
 
-      <Button variant="ghost" size="sm" onClick={handleLogout}>
-        <LogOut className="w-4 h-4" />
+      <Button variant="ghost" size="sm" onClick={handleLogout} className="p-1.5 sm:p-2 h-auto">
+        <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </Button>
 
       {/* Admin Access Modal */}

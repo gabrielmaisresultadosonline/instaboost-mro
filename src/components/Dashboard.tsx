@@ -114,22 +114,22 @@ export const Dashboard = ({
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-card border-b border-border">
-        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           {/* Desktop/Tablet Header */}
-          <div className="hidden sm:flex items-center justify-between">
-            <div className="flex items-center gap-2 md:gap-4">
+          <div className="hidden md:flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 lg:gap-4 min-w-0 flex-1">
               <Logo size="sm" />
               {/* Botão Ferramenta MRO */}
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow text-xs md:text-sm px-2 md:px-4"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow text-xs lg:text-sm px-2 lg:px-4 flex-shrink-0"
                 data-tutorial="mro-button"
               >
-                <Wrench className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                <span className="hidden md:inline">Ferramenta MRO</span>
-                <span className="md:hidden">MRO</span>
+                <Wrench className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
+                <span className="hidden lg:inline">Ferramenta MRO</span>
+                <span className="lg:hidden">MRO</span>
               </Button>
-              <div className="hidden md:block" data-tutorial="profile-selector">
+              <div className="hidden lg:block min-w-0" data-tutorial="profile-selector">
                 <ProfileSelector
                   profiles={session.profiles}
                   activeProfileId={session.activeProfileId}
@@ -200,22 +200,10 @@ export const Dashboard = ({
           </div>
 
           {/* Mobile Header - Layout Vertical */}
-          <div className="sm:hidden">
-            {/* Linha 1: Logo centralizada */}
-            <div className="flex justify-center mb-3">
+          <div className="md:hidden">
+            {/* Linha 1: Logo + User */}
+            <div className="flex items-center justify-between mb-2">
               <Logo size="sm" />
-            </div>
-
-            {/* Linha 2: Botão MRO + User */}
-            <div className="flex items-center justify-between mb-3">
-              <Button
-                onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1.5 h-8"
-                data-tutorial="mro-button"
-              >
-                <Wrench className="w-3 h-3 mr-1" />
-                Ferramenta MRO
-              </Button>
               <div className="flex items-center gap-1">
                 <TutorialButton
                   onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
@@ -227,21 +215,31 @@ export const Dashboard = ({
               </div>
             </div>
 
-            {/* Linha 3: Profile Selector */}
-            <div className="mb-3" data-tutorial="profile-selector">
-              <ProfileSelector
-                profiles={session.profiles}
-                activeProfileId={session.activeProfileId}
-                onSelectProfile={onSelectProfile}
-                onAddProfile={onNavigateToRegister}
-                onRemoveProfile={onRemoveProfile}
-                isLoading={isLoading}
-              />
+            {/* Linha 2: Botão MRO + Profile Selector */}
+            <div className="flex items-center gap-2 mb-2">
+              <Button
+                onClick={() => navigate('/mro-ferramenta')}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 h-7 sm:h-8 flex-shrink-0"
+                data-tutorial="mro-button"
+              >
+                <Wrench className="w-3 h-3 mr-1" />
+                <span className="hidden xs:inline">Ferramenta </span>MRO
+              </Button>
+              <div className="flex-1 min-w-0" data-tutorial="profile-selector">
+                <ProfileSelector
+                  profiles={session.profiles}
+                  activeProfileId={session.activeProfileId}
+                  onSelectProfile={onSelectProfile}
+                  onAddProfile={onNavigateToRegister}
+                  onRemoveProfile={onRemoveProfile}
+                  isLoading={isLoading}
+                />
+              </div>
             </div>
 
-            {/* Linha 4: Tabs horizontais scrolláveis - scroll suave */}
+            {/* Linha 3: Tabs horizontais scrolláveis */}
             <div className="relative -mx-2">
-              <nav className="flex items-center gap-2 overflow-x-auto pb-2 px-2 snap-x snap-mandatory scrollbar-hide">
+              <nav className="flex items-center gap-1.5 overflow-x-auto pb-2 px-2 snap-x snap-mandatory scrollbar-hide">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -254,7 +252,7 @@ export const Dashboard = ({
                       }
                       setActiveTab(tab.id as Tab);
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-300 whitespace-nowrap text-xs flex-shrink-0 snap-start ${
+                    className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all duration-300 whitespace-nowrap text-[10px] sm:text-xs flex-shrink-0 snap-start ${
                       tab.locked
                         ? 'text-muted-foreground/50 cursor-not-allowed opacity-60 bg-secondary/30'
                         : activeTab === tab.id
@@ -262,7 +260,7 @@ export const Dashboard = ({
                           : 'text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary'
                     }`}
                   >
-                    {tab.locked ? <Lock className="w-3.5 h-3.5" /> : React.cloneElement(tab.icon as React.ReactElement, { className: 'w-3.5 h-3.5' })}
+                    {tab.locked ? <Lock className="w-3 h-3" /> : React.cloneElement(tab.icon as React.ReactElement, { className: 'w-3 h-3' })}
                     <span>{tab.label}</span>
                   </button>
                 ))}
@@ -270,8 +268,8 @@ export const Dashboard = ({
             </div>
           </div>
 
-          {/* Tablet Profile Selector (md screens) */}
-          <div className="hidden sm:block md:hidden mt-2">
+          {/* Tablet Profile Selector (md-lg screens) */}
+          <div className="hidden md:block lg:hidden mt-2">
             <ProfileSelector
               profiles={session.profiles}
               activeProfileId={session.activeProfileId}
@@ -282,8 +280,8 @@ export const Dashboard = ({
             />
           </div>
 
-          {/* Tablet Tabs (when hidden on lg+) */}
-          <nav className="hidden sm:flex lg:hidden items-center gap-1 mt-3 overflow-x-auto pb-1">
+          {/* Tablet Tabs (md-lg screens) */}
+          <nav className="hidden md:flex lg:hidden items-center gap-1 mt-2 overflow-x-auto pb-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -313,7 +311,7 @@ export const Dashboard = ({
       </header>
 
       {/* Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
             <ProfileCard 
