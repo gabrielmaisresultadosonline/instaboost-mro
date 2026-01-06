@@ -17,6 +17,7 @@ interface AnalysisRequest {
     category: string;
     externalUrl: string;
   };
+  nicheHint?: string; // Admin can provide correct niche for reanalysis
 }
 
 serve(async (req) => {
@@ -25,11 +26,16 @@ serve(async (req) => {
   }
 
   try {
-    const { profile }: AnalysisRequest = await req.json();
+    const { profile, nicheHint }: AnalysisRequest = await req.json();
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-    console.log('Analisando perfil:', profile.username);
+    console.log('Analisando perfil:', profile.username, nicheHint ? `(Nicho informado: ${nicheHint})` : '');
+
+    // Build context with niche hint if provided
+    const nicheContext = nicheHint 
+      ? `\n\nIMPORTANTE: O administrador informou que este perfil é do nicho "${nicheHint}". Use esta informação para fazer uma análise mais precisa e contextualizada para este nicho específico.`
+      : '';
 
     // Primeiro, tenta com DeepSeek
     let analysisResult = null;
@@ -60,7 +66,7 @@ RETORNE APENAS JSON VÁLIDO no seguinte formato:
   "engagementScore": número de 0 a 100,
   "profileScore": número de 0 a 100,
   "recommendations": ["lista de recomendações específicas"]
-}`
+}${nicheContext}`
               },
               {
                 role: 'user',
@@ -75,10 +81,11 @@ Posts: ${profile.posts}
 Conta comercial: ${profile.isBusinessAccount ? 'Sim' : 'Não'}
 Categoria: ${profile.category || 'Não definida'}
 Link externo: ${profile.externalUrl || 'Não tem'}
+${nicheHint ? `\nNICHO CORRETO (informado pelo admin): ${nicheHint}` : ''}
 
 Taxa de engajamento estimada: ${((profile.followers * 0.03) / profile.posts * 100).toFixed(2)}%
 
-Forneça uma análise completa.`
+Forneça uma análise completa${nicheHint ? ` focada no nicho de ${nicheHint}` : ''}.`
               }
             ],
             temperature: 0.7,
@@ -95,6 +102,10 @@ Forneça uma análise completa.`
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               analysisResult = JSON.parse(jsonMatch[0]);
+              // If admin provided niche, ensure it's used
+              if (nicheHint && analysisResult) {
+                analysisResult.niche = nicheHint;
+              }
               console.log('DeepSeek analysis successful');
             }
           }
@@ -133,7 +144,7 @@ RETORNE APENAS JSON VÁLIDO:
   "engagementScore": 0-100,
   "profileScore": 0-100,
   "recommendations": ["recomendações"]
-}`
+}${nicheContext}`
               },
               {
                 role: 'user',
@@ -145,7 +156,8 @@ Seguindo: ${profile.following}
 Posts: ${profile.posts}
 Comercial: ${profile.isBusinessAccount ? 'Sim' : 'Não'}
 Categoria: ${profile.category || 'N/A'}
-Link: ${profile.externalUrl || 'N/A'}`
+Link: ${profile.externalUrl || 'N/A'}
+${nicheHint ? `NICHO CORRETO: ${nicheHint}` : ''}`
               }
             ],
           }),
@@ -159,6 +171,10 @@ Link: ${profile.externalUrl || 'N/A'}`
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               analysisResult = JSON.parse(jsonMatch[0]);
+              // If admin provided niche, ensure it's used
+              if (nicheHint && analysisResult) {
+                analysisResult.niche = nicheHint;
+              }
               console.log('Lovable AI analysis successful');
             }
           }
@@ -173,7 +189,7 @@ Link: ${profile.externalUrl || 'N/A'}`
     // Se nenhuma IA funcionou, gera análise básica
     if (!analysisResult) {
       console.log('Using fallback analysis');
-      analysisResult = generateFallbackAnalysis(profile);
+      analysisResult = generateFallbackAnalysis(profile, nicheHint);
     }
 
     return new Response(
@@ -191,10 +207,11 @@ Link: ${profile.externalUrl || 'N/A'}`
   }
 });
 
-function generateFallbackAnalysis(profile: any) {
+function generateFallbackAnalysis(profile: any, nicheHint?: string) {
   const hasGoodBio = profile.bio && profile.bio.length > 50;
   const hasLink = !!profile.externalUrl;
   const followerRatio = profile.following > 0 ? profile.followers / profile.following : 0;
+  const niche = nicheHint || profile.category || 'Negócio Local';
   
   return {
     strengths: [
@@ -210,12 +227,12 @@ function generateFallbackAnalysis(profile: any) {
       profile.followers < 1000 ? '⚠️ Base de seguidores pequena' : '',
     ].filter(Boolean),
     opportunities: [
-      '🎯 Implementar estratégia MRO para crescimento orgânico',
+      `🎯 Implementar estratégia MRO para ${niche}`,
       '🎯 Aumentar frequência de Stories com CTAs',
       '🎯 Criar conteúdo com mais presença humana',
       '🎯 Desenvolver calendário editorial consistente',
     ],
-    niche: profile.category || 'Negócio Local',
+    niche: niche,
     audienceType: 'Público local interessado em soluções profissionais',
     contentScore: Math.min(100, Math.floor(profile.posts * 0.3 + (hasGoodBio ? 30 : 10))),
     engagementScore: Math.min(100, Math.floor(Math.random() * 40 + 30)),
