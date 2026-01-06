@@ -23,7 +23,10 @@ import {
   AlertTriangle,
   Trash2,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Settings,
+  Save,
+  Users
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import {
@@ -81,6 +84,20 @@ export default function InstagramNovaAdmin() {
     pending: false,
     expired: false
   });
+
+  // Configuração de afiliado
+  const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
+  const [affiliateId, setAffiliateId] = useState("");
+  const [affiliateEmail, setAffiliateEmail] = useState("");
+  const [savingAffiliate, setSavingAffiliate] = useState(false);
+
+  // Carregar configuração de afiliado do localStorage
+  useEffect(() => {
+    const savedAffiliateId = localStorage.getItem("mro_affiliate_id") || "mila";
+    const savedAffiliateEmail = localStorage.getItem("mro_affiliate_email") || "";
+    setAffiliateId(savedAffiliateId);
+    setAffiliateEmail(savedAffiliateEmail);
+  }, []);
 
   // Check if already authenticated
   useEffect(() => {
@@ -356,6 +373,26 @@ ${GROUP_LINK}`;
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  const saveAffiliateConfig = () => {
+    setSavingAffiliate(true);
+    try {
+      localStorage.setItem("mro_affiliate_id", affiliateId.trim().toLowerCase());
+      localStorage.setItem("mro_affiliate_email", affiliateEmail.trim());
+      toast.success("Configuração de afiliado salva com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao salvar configuração");
+    } finally {
+      setSavingAffiliate(false);
+    }
+  };
+
+  // Contar vendas por afiliado
+  const affiliateSales = orders.filter(o => 
+    (o.status === "paid" || o.status === "completed") && 
+    o.email.toLowerCase().startsWith(`${affiliateId.toLowerCase()}:`)
+  );
+  const affiliateRevenue = affiliateSales.reduce((sum, o) => sum + Number(o.amount), 0);
+
   // Stats corrigidos - incluindo "paid" e "completed" como pagos
   const stats = {
     total: orders.length,
@@ -557,6 +594,15 @@ ${GROUP_LINK}`;
           </div>
           <div className="flex gap-2">
             <Button
+              onClick={() => setShowAffiliateConfig(!showAffiliateConfig)}
+              variant="outline"
+              size="sm"
+              className={`border-zinc-600 ${showAffiliateConfig ? "text-purple-400 border-purple-500/50" : "text-zinc-400"}`}
+            >
+              <Settings className="w-4 h-4 mr-1" />
+              Afiliados
+            </Button>
+            <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
               size="sm"
@@ -583,6 +629,77 @@ ${GROUP_LINK}`;
             </Button>
           </div>
         </div>
+
+        {/* Configuração de Afiliados */}
+        {showAffiliateConfig && (
+          <Card className="bg-purple-500/10 border-purple-500/30 mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-purple-400 flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Configuração de Afiliado
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm text-zinc-400 mb-1 block">Identificador do Afiliado</label>
+                  <Input
+                    placeholder="ex: mila"
+                    value={affiliateId}
+                    onChange={(e) => setAffiliateId(e.target.value)}
+                    className="bg-zinc-800/50 border-zinc-600 text-white"
+                  />
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Usado como prefixo no email: {affiliateId || "afiliado"}:email@exemplo.com
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm text-zinc-400 mb-1 block">Email do Afiliado</label>
+                  <Input
+                    type="email"
+                    placeholder="email@afiliado.com"
+                    value={affiliateEmail}
+                    onChange={(e) => setAffiliateEmail(e.target.value)}
+                    className="bg-zinc-800/50 border-zinc-600 text-white"
+                  />
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Email para contato/comissões
+                  </p>
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={saveAffiliateConfig}
+                    className="bg-purple-500 hover:bg-purple-600 text-white"
+                    disabled={savingAffiliate}
+                  >
+                    {savingAffiliate ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                    Salvar Configuração
+                  </Button>
+                </div>
+              </div>
+
+              {/* Stats do afiliado atual */}
+              {affiliateId && (
+                <div className="mt-4 pt-4 border-t border-purple-500/20">
+                  <div className="flex items-center gap-6">
+                    <div>
+                      <p className="text-xs text-zinc-400">Vendas via "{affiliateId}"</p>
+                      <p className="text-xl font-bold text-purple-400">{affiliateSales.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-zinc-400">Receita Afiliado</p>
+                      <p className="text-xl font-bold text-purple-400">R$ {affiliateRevenue.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-zinc-400">Link da Promo</p>
+                      <p className="text-sm text-purple-300 font-mono">/instagram-promo-{affiliateId}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
