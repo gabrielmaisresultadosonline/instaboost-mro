@@ -18,6 +18,7 @@ import InstagramNovaAdmin from "./pages/InstagramNovaAdmin";
 import InstagramNovaEuro from "./pages/InstagramNovaEuro";
 import InstagramNovaEuroAdmin from "./pages/InstagramNovaEuroAdmin";
 import InstagramNovaPromo from "./pages/InstagramNovaPromo";
+import InstagramPromoMila from "./pages/InstagramPromoMila";
 import Membro from "./pages/Membro";
 import Ligacao from "./pages/Ligacao";
 import Obrigado from "./pages/Obrigado";
@@ -69,6 +70,7 @@ const App = () => (
           <Route path="/instagram-nova-euro" element={<InstagramNovaEuro />} />
           <Route path="/instagram-nova-euro-admin" element={<InstagramNovaEuroAdmin />} />
           <Route path="/instagram-nova-promo" element={<InstagramNovaPromo />} />
+          <Route path="/instagram-promo-mila" element={<InstagramPromoMila />} />
           <Route path="/mrointeligente" element={<VendasCompleta />} />
           <Route path="/membro" element={<Membro />} />
           <Route path="/ligacao" element={<Ligacao />} />
