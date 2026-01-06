@@ -38,6 +38,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
+import milaSouza from "@/assets/mila-souza.png";
 
 const InstagramPromoMila = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -98,14 +99,14 @@ const InstagramPromoMila = () => {
     setLoading(true);
 
     try {
-      // Preço promocional: R$300
+      // Preço promocional: R$397 - Indicação Milla
       const { data: checkData, error: checkError } = await supabase.functions.invoke("create-mro-checkout", {
         body: { 
-          email: email.toLowerCase().trim(),
+          email: `mila:${email.toLowerCase().trim()}`,
           username: username.toLowerCase().trim(),
           phone: phone.replace(/\D/g, "").trim(),
           planType: "annual",
-          amount: 300,
+          amount: 397,
           checkUserExists: true
         }
       });
@@ -153,18 +154,10 @@ const InstagramPromoMila = () => {
     trackPageView('Sales Page - Instagram Promo Mila');
   }, []);
 
-  // Countdown de 8 horas baseado no localStorage
+  // Countdown até 07/01/2026 às 20:00
   useEffect(() => {
-    const PROMO_KEY = 'mro_promo_mila_start_time';
-    let promoStartTime = localStorage.getItem(PROMO_KEY);
-    
-    if (!promoStartTime) {
-      promoStartTime = Date.now().toString();
-      localStorage.setItem(PROMO_KEY, promoStartTime);
-    }
-    
-    const startTime = parseInt(promoStartTime);
-    const promoEndTime = startTime + (8 * 60 * 60 * 1000); // 8 horas em milissegundos
+    // Data limite: 07/01/2026 às 20:00 (horário de Brasília)
+    const promoEndTime = new Date('2026-01-07T20:00:00-03:00').getTime();
     
     const updateCountdown = () => {
       const now = Date.now();
@@ -259,10 +252,17 @@ const InstagramPromoMila = () => {
       {/* Hero Section */}
       <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Special Discount Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-bounce">
-            <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL LIBERADO!</span>
+          {/* Mila Souza Photo & Special Badge */}
+          <div className="mb-6 sm:mb-8">
+            <img 
+              src={milaSouza} 
+              alt="Milla Souza" 
+              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full mx-auto mb-4 border-4 border-green-500 shadow-lg shadow-green-500/30 object-cover"
+            />
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 animate-bounce">
+              <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
+              <span className="font-bold text-sm sm:text-lg">PROMOÇÃO ESPECIAL PARA ALUNOS MILLA SOUZA!</span>
+            </div>
           </div>
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
@@ -275,7 +275,7 @@ const InstagramPromoMila = () => {
             </h1>
             <h2 className="relative text-lg sm:text-xl md:text-3xl lg:text-4xl font-black">
               <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                POR APENAS 12x DE R$30
+                12X DE R$41
               </span>
             </h2>
           </div>
@@ -339,14 +339,14 @@ const InstagramPromoMila = () => {
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-center mb-3 sm:mb-4">
             <span className="text-green-400">OFERTA ESPECIAL</span>
           </h2>
-          <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">Promoção válida apenas por 8 horas</p>
+          <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">Promoção válida até 07/01 às 20h</p>
           
           {/* Pricing Card */}
           <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-green-500 rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden">
             {/* Badge */}
             <div className="absolute -top-1 left-1/2 -translate-x-1/2">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-b-xl text-xs sm:text-sm whitespace-nowrap">
-                🔥 DESCONTO ESPECIAL
+                🔥 PROMOÇÃO ALUNOS MILLA SOUZA
               </div>
             </div>
             
@@ -355,27 +355,26 @@ const InstagramPromoMila = () => {
               
               {/* Price */}
               <div className="mb-2">
-                <span className="text-gray-500 line-through text-lg sm:text-2xl">De R$ 397</span>
+                <span className="text-gray-500 line-through text-lg sm:text-2xl">De R$497</span>
               </div>
               
-              <div className="text-base sm:text-lg text-gray-300 mb-2">por apenas</div>
+              <div className="text-base sm:text-lg text-gray-300 mb-2">POR APENAS</div>
               
               <div className="text-green-400 mb-1">
-                <span className="text-lg sm:text-xl md:text-2xl font-medium">12x de</span>
-                <span className="text-5xl sm:text-6xl md:text-7xl font-black ml-2">R$30</span>
+                <span className="text-5xl sm:text-6xl md:text-7xl font-black">R$397</span>
               </div>
               
-              <p className="text-gray-300 text-lg sm:text-xl mb-3">
-                ou <span className="text-white font-bold">R$300 à vista</span>
-              </p>
+              <div className="text-green-400 mb-3">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-black">12X DE R$41</span>
+              </div>
               
               <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-3 sm:mb-4">
                 <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
-                <span className="text-red-400 font-bold text-sm sm:text-base">R$97 REAIS DE DESCONTO!</span>
+                <span className="text-red-400 font-bold text-sm sm:text-base">R$100 OFF DE DESCONTO!</span>
               </div>
               
               <p className="text-yellow-400 text-xs sm:text-sm font-medium">
-                ⏰ Válido apenas nas próximas 8 horas
+                ⏰ Válido até 07/01/2026 às 20:00h
               </p>
             </div>
             
@@ -578,7 +577,7 @@ const InstagramPromoMila = () => {
             disabled={promoTimeLeft.expired}
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-green-500/30 disabled:opacity-50"
           >
-            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
+            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$100"}
           </Button>
         </div>
       </section>
@@ -620,9 +619,9 @@ const InstagramPromoMila = () => {
             <div className="text-center mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold mb-2">Finalize seu Cadastro</h3>
               <div className="text-2xl sm:text-3xl font-bold text-green-400">
-                12x de R$30
+                12X DE R$41
               </div>
-              <p className="text-gray-400 text-xs sm:text-sm">ou R$300 à vista no PIX</p>
+              <p className="text-gray-400 text-xs sm:text-sm">ou R$397 à vista no PIX</p>
             </div>
             
             <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4">
