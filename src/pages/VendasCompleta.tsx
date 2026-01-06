@@ -46,8 +46,8 @@ interface SalesSettings {
 
 // Valores de produção
 const PLANS = {
-  annual: { name: "Anual", price: 300.00, days: 365, description: "Acesso por 1 ano" },
-  lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
+  annual: { name: "Anual", price: 497.00, days: 365, description: "Acesso por 1 ano" },
+  lifetime: { name: "Vitalício", price: 897.00, days: 999999, description: "Acesso para sempre" },
 };
 
 const VendasCompleta = () => {
@@ -644,58 +644,12 @@ const VendasCompleta = () => {
         
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-12">
-            <div className="flex flex-col items-center gap-2 bg-red-600/20 border border-red-500/50 rounded-2xl px-4 sm:px-6 py-3 sm:py-4 mb-6 animate-pulse">
-              <div className="flex items-center gap-2">
-                <span className="text-xl sm:text-2xl">🎄</span>
-                <span className="text-xl sm:text-2xl">🍾</span>
-                <span className="text-red-400 font-black text-sm sm:text-lg">PROMOÇÃO INÍCIO DE ANO!</span>
-                <span className="text-xl sm:text-2xl">🍾</span>
-                <span className="text-xl sm:text-2xl">🎄</span>
-              </div>
-              <div className="text-yellow-400 font-black text-lg sm:text-2xl">
-                Até dia 06/01/2026
-              </div>
-              {!promoTimeLeft.expired && (
-                <div className="text-white/90 text-sm sm:text-base font-medium">
-                  Falta{promoTimeLeft.days > 0 ? ` ${promoTimeLeft.days} dia${promoTimeLeft.days > 1 ? 's' : ''}` : ''}{promoTimeLeft.hours > 0 ? ` ${promoTimeLeft.hours}h` : ''}{promoTimeLeft.minutes > 0 ? ` ${promoTimeLeft.minutes}min` : ''}
-                </div>
-              )}
-            </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
               ESCOLHA SEU <span className="text-amber-400">PLANO</span>
             </h2>
             <p className="text-gray-400 text-lg mb-6">
               A solução definitiva para crescer no Instagram sem gastar com anúncios
             </p>
-            
-            {/* Banner Promocional com Countdown */}
-            {!promoTimeLeft.expired && (
-              <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 rounded-xl py-3 px-4 sm:px-6 shadow-lg max-w-2xl mx-auto">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg sm:text-xl">🎄</span>
-                    <span className="text-lg sm:text-xl">🍾</span>
-                    <span className="font-bold text-white text-sm sm:text-base uppercase tracking-wide">
-                      PROMOÇÃO INÍCIO DE ANO!
-                    </span>
-                    <span className="text-lg sm:text-xl">🍾</span>
-                    <span className="text-lg sm:text-xl">🎄</span>
-                  </div>
-                  <p className="text-yellow-200 text-sm sm:text-base font-medium">
-                    Inicie 2026 com o pé direito!
-                  </p>
-                  <div className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1">
-                    <Clock className="w-4 h-4 text-yellow-300" />
-                    <span className="text-yellow-300 font-bold text-sm sm:text-base">
-                      Falta{promoTimeLeft.days > 0 ? ` ${promoTimeLeft.days} dia${promoTimeLeft.days > 1 ? 's' : ''}` : ''}{promoTimeLeft.hours > 0 ? ` ${promoTimeLeft.hours}h` : ''}{promoTimeLeft.minutes > 0 ? ` ${promoTimeLeft.minutes}min` : ''} para acabar!
-                    </span>
-                  </div>
-                </div>
-                <p className="text-white/90 text-xs sm:text-sm font-medium mt-2">
-                  ÚLTIMAS VAGAS PROMOCIONAIS - Aproveite!
-                </p>
-              </div>
-            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
@@ -705,12 +659,11 @@ const VendasCompleta = () => {
               <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo por 12 meses</p>
 
               <div className="text-center mb-6">
-                <div className="text-gray-500 line-through text-lg mb-1">De R$497</div>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-white">12x</span>
-                  <span className="text-4xl sm:text-5xl font-black text-blue-400">R$30</span>
+                  <span className="text-2xl sm:text-3xl font-bold text-white">12x de</span>
+                  <span className="text-5xl sm:text-6xl font-black text-blue-400">R$51</span>
                 </div>
-                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$300</span> à vista</p>
+                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$497</span> à vista</p>
               </div>
 
               <div className="space-y-2 mb-6">
@@ -747,12 +700,11 @@ const VendasCompleta = () => {
               <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo para sempre</p>
 
               <div className="text-center mb-6">
-                <div className="text-gray-500 line-through text-lg mb-1">De R$997</div>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-white">12x</span>
-                  <span className="text-4xl sm:text-5xl font-black text-amber-400">R$81</span>
+                  <span className="text-2xl sm:text-3xl font-bold text-white">12x de</span>
+                  <span className="text-5xl sm:text-6xl font-black text-amber-400">R$92</span>
                 </div>
-                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$797</span> à vista</p>
+                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$897</span> à vista</p>
               </div>
 
               <div className="space-y-2 mb-6">
