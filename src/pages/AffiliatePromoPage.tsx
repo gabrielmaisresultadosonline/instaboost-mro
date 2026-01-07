@@ -121,49 +121,31 @@ const AffiliatePromoPage = () => {
   useEffect(() => {
     if (!affiliate) return;
 
+    // Contador fictício de escassez - SEMPRE começa em 10 horas quando usuário entra
+    // Armazena apenas na sessão atual (não persiste entre recarregamentos)
+    const startTime = Date.now();
+    const tenHoursMs = 10 * 60 * 60 * 1000; // 10 horas em milissegundos
+
     const updateCountdown = () => {
-      // SEMPRE mostrar 10 horas para criar urgência (evergreen countdown)
-      // Usa localStorage para manter consistência durante a sessão
-      const storageKey = `promo_end_${affiliateId}`;
-      let endTime: number;
-      
-      const storedEndTime = localStorage.getItem(storageKey);
-      if (storedEndTime) {
-        endTime = parseInt(storedEndTime);
-        // Se expirou, resetar para mais 10 horas
-        if (Date.now() > endTime) {
-          endTime = Date.now() + 10 * 60 * 60 * 1000;
-          localStorage.setItem(storageKey, endTime.toString());
-        }
-      } else {
-        // Primeira visita: 10 horas a partir de agora
-        endTime = Date.now() + 10 * 60 * 60 * 1000;
-        localStorage.setItem(storageKey, endTime.toString());
+      const elapsed = Date.now() - startTime;
+      let remaining = tenHoursMs - elapsed;
+
+      // Se chegou a zero, reinicia (nunca expira de verdade)
+      if (remaining <= 0) {
+        remaining = tenHoursMs;
       }
 
-      const now = Date.now();
-      const diff = endTime - now;
+      const hours = Math.floor(remaining / (1000 * 60 * 60));
+      const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
 
-      if (diff <= 0) {
-        // Resetar para mais 10 horas (evergreen)
-        const newEndTime = Date.now() + 10 * 60 * 60 * 1000;
-        localStorage.setItem(storageKey, newEndTime.toString());
-        setPromoTimeLeft({ days: 0, hours: 10, minutes: 0, seconds: 0, expired: false });
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      setPromoTimeLeft({ days, hours, minutes, seconds, expired: false });
+      setPromoTimeLeft({ days: 0, hours, minutes, seconds, expired: false });
     };
 
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, [affiliate, affiliateId]);
+  }, [affiliate]);
 
   // Track PageView
   useEffect(() => {
