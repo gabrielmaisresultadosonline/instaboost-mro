@@ -11,6 +11,24 @@ const logStep = (step: string, details?: any) => {
   console.log(`[AFFILIATE-RESUMO-STORAGE] ${step}${detailsStr}`);
 };
 
+// Function to format date to Brazil timezone (UTC-3)
+const formatToBrazilTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  // Subtract 3 hours to convert UTC to Brazil time (UTC-3)
+  const brazilOffset = -3 * 60; // -3 hours in minutes
+  const utcOffset = date.getTimezoneOffset(); // Get current timezone offset
+  const totalOffset = brazilOffset - utcOffset;
+  const brazilDate = new Date(date.getTime() + totalOffset * 60 * 1000);
+  
+  const day = brazilDate.getDate().toString().padStart(2, '0');
+  const month = (brazilDate.getMonth() + 1).toString().padStart(2, '0');
+  const year = brazilDate.getFullYear();
+  const hours = brazilDate.getHours().toString().padStart(2, '0');
+  const minutes = brazilDate.getMinutes().toString().padStart(2, '0');
+  
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -228,7 +246,7 @@ serve(async (req) => {
         customerName: sale.username,
         phone: sale.phone || "",
         amount: sale.amount,
-        date: new Date(sale.paid_at || sale.created_at).toLocaleString('pt-BR')
+        date: formatToBrazilTime(sale.paid_at || sale.created_at)
       }));
       
       const attemptsList = attempts.filter((a: any) => {
@@ -238,7 +256,7 @@ serve(async (req) => {
         email: attempt.email.replace(`${affiliateId}:`, "").replace(`${affiliateId.toLowerCase()}:`, ""),
         username: attempt.username,
         phone: attempt.phone || "",
-        date: new Date(attempt.created_at).toLocaleString('pt-BR')
+        date: formatToBrazilTime(attempt.created_at)
       }));
       
       // Multiple attempts detection
@@ -256,7 +274,7 @@ serve(async (req) => {
             email,
             username: latestAttempt?.username || '',
             phone: latestAttempt?.phone || '',
-            date: latestAttempt ? new Date(latestAttempt.created_at).toLocaleString('pt-BR') : '',
+            date: latestAttempt ? formatToBrazilTime(latestAttempt.created_at) : '',
             totalAttempts: count
           };
         });
