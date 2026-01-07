@@ -122,27 +122,33 @@ const AffiliatePromoPage = () => {
     if (!affiliate) return;
 
     const updateCountdown = () => {
+      // SEMPRE mostrar 10 horas para criar urgência (evergreen countdown)
+      // Usa localStorage para manter consistência durante a sessão
+      const storageKey = `promo_end_${affiliateId}`;
       let endTime: number;
       
-      // Usar data e hora configuradas pelo afiliado
-      if (affiliate.promoEndDate) {
-        const endDateStr = affiliate.promoEndDate;
-        const endTimeStr = affiliate.promoEndTime || "23:59";
-        endTime = new Date(`${endDateStr}T${endTimeStr}:00-03:00`).getTime();
-      } else if (affiliate.promoEndTime) {
-        // Apenas hora, usar hoje
-        const today = new Date().toISOString().split('T')[0];
-        endTime = new Date(`${today}T${affiliate.promoEndTime}:00-03:00`).getTime();
+      const storedEndTime = localStorage.getItem(storageKey);
+      if (storedEndTime) {
+        endTime = parseInt(storedEndTime);
+        // Se expirou, resetar para mais 10 horas
+        if (Date.now() > endTime) {
+          endTime = Date.now() + 10 * 60 * 60 * 1000;
+          localStorage.setItem(storageKey, endTime.toString());
+        }
       } else {
-        // Padrão: 24 horas a partir de agora
-        endTime = Date.now() + 24 * 60 * 60 * 1000;
+        // Primeira visita: 10 horas a partir de agora
+        endTime = Date.now() + 10 * 60 * 60 * 1000;
+        localStorage.setItem(storageKey, endTime.toString());
       }
 
       const now = Date.now();
       const diff = endTime - now;
 
       if (diff <= 0) {
-        setPromoTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: true });
+        // Resetar para mais 10 horas (evergreen)
+        const newEndTime = Date.now() + 10 * 60 * 60 * 1000;
+        localStorage.setItem(storageKey, newEndTime.toString());
+        setPromoTimeLeft({ days: 0, hours: 10, minutes: 0, seconds: 0, expired: false });
         return;
       }
 
@@ -157,7 +163,7 @@ const AffiliatePromoPage = () => {
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, [affiliate]);
+  }, [affiliate, affiliateId]);
 
   // Track PageView
   useEffect(() => {
@@ -304,19 +310,8 @@ const AffiliatePromoPage = () => {
 
   // Formatar data de expiração para exibição
   const getExpirationText = () => {
-    if (!affiliate) return "";
-    if (affiliate.promoEndDate) {
-      const date = new Date(affiliate.promoEndDate + "T00:00:00");
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      const time = affiliate.promoEndTime || "23:59";
-      return `${day}/${month}/${year} às ${time}h`;
-    }
-    if (affiliate.promoEndTime) {
-      return `hoje às ${affiliate.promoEndTime}h`;
-    }
-    return "";
+    // Sempre mostrar "termina em 10 horas" para criar urgência
+    return "termina em 10 horas";
   };
 
   if (loading) {
