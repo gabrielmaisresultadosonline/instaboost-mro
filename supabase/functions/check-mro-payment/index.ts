@@ -102,7 +102,8 @@ serve(async (req) => {
             success: true, 
             status: updatedOrder?.status || "paid", 
             order: updatedOrder,
-            webhook_triggered: true 
+            webhook_triggered: true,
+            message: "Pagamento processado com sucesso"
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
         );

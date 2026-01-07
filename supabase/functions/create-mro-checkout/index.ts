@@ -100,19 +100,28 @@ serve(async (req) => {
     });
 
     // Descrição do produto inclui email e username para identificação
-    // Formato: MROIG_PLANO_username_email
+    // Formato: MROIG_PLANO_username_email (email pode ter prefixo de afiliado: afiliado:email)
     const productDescription = `MROIG_${planLabel}_${cleanUsername}_${cleanEmail}`;
+    
+    // Para o InfiniPay, usar o email real do cliente (sem prefixo de afiliado)
+    // Formato com afiliado: "afiliado:email@gmail.com" -> extrair "email@gmail.com"
+    let customerEmailForPayment = cleanEmail;
+    if (cleanEmail.includes(':')) {
+      const emailParts = cleanEmail.split(':');
+      customerEmailForPayment = emailParts.slice(1).join(':'); // Pegar tudo após o primeiro ":"
+    }
 
     // Usar a API pública de invoices para criar link com webhook
     const infinitepayPayload = {
       amount: priceInCents,
-      customer_email: cleanEmail,
-      description: productDescription,
+      customer_email: customerEmailForPayment, // Email real do cliente
+      description: productDescription, // Mantém formato completo com afiliado
       order_nsu: orderNsu,
       redirect_url: redirectUrl,
       webhook_url: webhookUrl,
       metadata: {
-        email: cleanEmail,
+        email: cleanEmail, // Email completo com prefixo de afiliado
+        real_email: customerEmailForPayment,
         username: cleanUsername,
         plan_type: planType,
         phone: cleanPhone,
