@@ -29,7 +29,9 @@ serve(async (req) => {
       // For summary
       totalSales,
       totalCommission,
-      salesList
+      salesList,
+      promoStartTime,
+      promoEndTime
     } = await req.json();
     
     logStep("Request received", { type, affiliateEmail, affiliateName, affiliateId });
@@ -217,6 +219,7 @@ Continue assim! Você está no caminho certo! 🔥
 <div style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:25px;border-radius:15px;margin-bottom:25px;text-align:center;">
 <p style="margin:0;color:#000;font-size:18px;font-weight:bold;">🎉 PARABÉNS, ${finalAffiliateName.toUpperCase()}!</p>
 <p style="margin:10px 0 0 0;color:#000;font-size:14px;">Aqui está o resumo completo das suas vendas!</p>
+${promoStartTime && promoEndTime ? `<p style="margin:10px 0 0 0;color:#333;font-size:13px;">⏰ Promoção: ${promoStartTime} às ${promoEndTime}</p>` : ''}
 </div>
 
 <!-- Stats Cards -->
@@ -261,6 +264,7 @@ ${salesRows || '<tr><td colspan="5" style="padding:20px;text-align:center;color:
 🙏 Obrigado por fazer parte da família MRO!
 </p>
 <p style="margin:10px 0 0 0;color:#666;font-size:14px;">
+${promoEndTime ? `A promoção foi finalizada às ${promoEndTime}.` : 'A promoção foi finalizada.'}<br>
 Seu pagamento será processado em breve.
 </p>
 </div>

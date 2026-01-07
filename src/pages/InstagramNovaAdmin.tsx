@@ -32,7 +32,9 @@ import {
   Image,
   Send,
   X,
-  Filter
+  Filter,
+  Upload,
+  Clipboard
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import {
@@ -78,6 +80,8 @@ interface Affiliate {
   active: boolean;
   createdAt: string;
   commissionNotified: string[]; // NSU orders that have been notified
+  promoStartTime?: string; // HH:mm
+  promoEndTime?: string;   // HH:mm
 }
 
 export default function InstagramNovaAdmin() {
@@ -114,10 +118,15 @@ export default function InstagramNovaAdmin() {
   const [affiliatePhotoUrl, setAffiliatePhotoUrl] = useState("");
   const [affiliateActive, setAffiliateActive] = useState(true);
   const [savingAffiliate, setSavingAffiliate] = useState(false);
+  const [promoStartTime, setPromoStartTime] = useState("");
+  const [promoEndTime, setPromoEndTime] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   
   // Histórico de afiliados
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [selectedAffiliateFilter, setSelectedAffiliateFilter] = useState<string>("all");
+  const [mainAffiliateFilter, setMainAffiliateFilter] = useState<string>("all");
   
   // Envio de emails
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -453,7 +462,19 @@ ${GROUP_LINK}`;
     
     const matchesFilter = filterStatus === "all" || order.status === filterStatus;
     
-    return matchesSearch && matchesFilter;
+    // Filtro por afiliado na lista principal
+    let matchesAffiliateFilter = true;
+    if (mainAffiliateFilter === "affiliates_only") {
+      // Só vendas de afiliados
+      matchesAffiliateFilter = affiliates.some(a => 
+        order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
+      );
+    } else if (mainAffiliateFilter !== "all" && mainAffiliateFilter !== "") {
+      // Filtrar por afiliado específico
+      matchesAffiliateFilter = order.email.toLowerCase().startsWith(`${mainAffiliateFilter.toLowerCase()}:`);
+    }
+    
+    return matchesSearch && matchesFilter && matchesAffiliateFilter;
   });
 
   // Agrupar pedidos por status
@@ -475,6 +496,65 @@ ${GROUP_LINK}`;
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  // Upload de foto do afiliado
+  const handlePhotoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error("Arquivo inválido. Envie uma imagem.");
+      return;
+    }
+    
+    setUploadingPhoto(true);
+    try {
+      const fileName = `affiliates/${affiliateId || 'temp'}_${Date.now()}.${file.name.split('.').pop()}`;
+      
+      const { data, error } = await supabase.storage
+        .from('user-data')
+        .upload(fileName, file, { upsert: true });
+      
+      if (error) {
+        console.error("Upload error:", error);
+        toast.error("Erro ao fazer upload da foto");
+        return;
+      }
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('user-data')
+        .getPublicUrl(fileName);
+      
+      setAffiliatePhotoUrl(urlData.publicUrl);
+      toast.success("Foto carregada com sucesso!");
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao fazer upload");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handlePhotoUpload(file);
+    }
+  };
+
+  const handlePhotoPaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+          handlePhotoUpload(file);
+          break;
+        }
+      }
+    }
   };
 
   // Salvar configuração de afiliado
@@ -512,7 +592,9 @@ ${GROUP_LINK}`;
         photoUrl: affiliatePhotoUrl.trim(),
         active: affiliateActive,
         createdAt: existingIndex >= 0 ? affiliates[existingIndex].createdAt : new Date().toISOString(),
-        commissionNotified: existingIndex >= 0 ? affiliates[existingIndex].commissionNotified : []
+        commissionNotified: existingIndex >= 0 ? affiliates[existingIndex].commissionNotified : [],
+        promoStartTime: promoStartTime,
+        promoEndTime: promoEndTime
       };
       
       let updatedAffiliates: Affiliate[];
@@ -565,7 +647,9 @@ ${GROUP_LINK}`;
           affiliateName: affiliate.name,
           totalSales: affiliateSales.length,
           totalCommission: totalCommission,
-          salesList: salesList
+          salesList: salesList,
+          promoStartTime: affiliate.promoStartTime,
+          promoEndTime: affiliate.promoEndTime
         }
       });
       
@@ -615,6 +699,8 @@ ${GROUP_LINK}`;
     setAffiliateEmail(affiliate.email);
     setAffiliatePhotoUrl(affiliate.photoUrl);
     setAffiliateActive(true);
+    setPromoStartTime(affiliate.promoStartTime || "");
+    setPromoEndTime(affiliate.promoEndTime || "");
     
     localStorage.setItem("mro_affiliate_id", affiliate.id);
     localStorage.setItem("mro_affiliate_name", affiliate.name);
@@ -945,7 +1031,7 @@ ${GROUP_LINK}`;
 
                 {/* Tab: Configuração */}
                 <TabsContent value="config">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     <div>
                       <label className="text-sm text-zinc-400 mb-1 block">Identificador do Afiliado *</label>
                       <Input
@@ -980,15 +1066,79 @@ ${GROUP_LINK}`;
                         Receberá emails de comissão
                       </p>
                     </div>
+                  </div>
+                  
+                  {/* Linha 2: Foto e Horários */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                      <label className="text-sm text-zinc-400 mb-1 block">URL da Foto</label>
+                      <label className="text-sm text-zinc-400 mb-1 block">Foto do Afiliado</label>
+                      <div 
+                        className="bg-zinc-800/50 border-2 border-dashed border-zinc-600 rounded-lg p-3 text-center cursor-pointer hover:border-purple-500 transition-colors"
+                        onClick={() => photoInputRef.current?.click()}
+                        onPaste={handlePhotoPaste}
+                        tabIndex={0}
+                      >
+                        <input
+                          ref={photoInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoFileChange}
+                          className="hidden"
+                        />
+                        {uploadingPhoto ? (
+                          <div className="flex items-center justify-center gap-2 py-2">
+                            <Loader2 className="w-5 h-5 text-purple-400 animate-spin" />
+                            <span className="text-sm text-purple-400">Carregando...</span>
+                          </div>
+                        ) : affiliatePhotoUrl ? (
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src={affiliatePhotoUrl} 
+                              alt={affiliateName} 
+                              className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                            <div className="text-left flex-1">
+                              <p className="text-xs text-green-400">Foto carregada ✓</p>
+                              <p className="text-xs text-zinc-500 truncate max-w-[150px]">{affiliatePhotoUrl.split('/').pop()}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="py-2">
+                            <div className="flex items-center justify-center gap-2 text-zinc-400 mb-1">
+                              <Upload className="w-4 h-4" />
+                              <span className="text-sm">Clique ou Ctrl+V</span>
+                            </div>
+                            <p className="text-xs text-zinc-500">Arraste, cole ou selecione uma imagem</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm text-zinc-400 mb-1 block">Horário Início Promoção</label>
                       <Input
-                        type="url"
-                        placeholder="https://..."
-                        value={affiliatePhotoUrl}
-                        onChange={(e) => setAffiliatePhotoUrl(e.target.value)}
+                        type="time"
+                        value={promoStartTime}
+                        onChange={(e) => setPromoStartTime(e.target.value)}
                         className="bg-zinc-800/50 border-zinc-600 text-white"
                       />
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Quando a promoção começa
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm text-zinc-400 mb-1 block">Horário Fim Promoção</label>
+                      <Input
+                        type="time"
+                        value={promoEndTime}
+                        onChange={(e) => setPromoEndTime(e.target.value)}
+                        className="bg-zinc-800/50 border-zinc-600 text-white"
+                      />
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Quando a comissão será repassada
+                      </p>
                     </div>
                   </div>
                   
@@ -1024,19 +1174,6 @@ ${GROUP_LINK}`;
                       Salvar Configuração
                     </Button>
                   </div>
-
-                  {/* Preview da foto se existir */}
-                  {affiliatePhotoUrl && (
-                    <div className="mt-4 pt-4 border-t border-purple-500/20">
-                      <p className="text-xs text-zinc-400 mb-2">Preview da foto:</p>
-                      <img 
-                        src={affiliatePhotoUrl} 
-                        alt={affiliateName} 
-                        className="w-16 h-16 rounded-full object-cover border-2 border-purple-500"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                      />
-                    </div>
-                  )}
                 </TabsContent>
 
                 {/* Tab: Histórico de Afiliados */}
@@ -1262,7 +1399,7 @@ ${GROUP_LINK}`;
               className="pl-10 bg-zinc-800/50 border-zinc-700 text-white"
             />
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             {["all", "pending", "paid", "completed", "expired"].map((status) => (
               <Button
                 key={status}
@@ -1277,6 +1414,21 @@ ${GROUP_LINK}`;
                 {status === "all" ? "Todos" : status === "pending" ? "Pendentes" : status === "paid" ? "Pagos" : status === "completed" ? "Completos" : "Expirados"}
               </Button>
             ))}
+            
+            {/* Filtro por Afiliado */}
+            {affiliates.length > 0 && (
+              <select
+                value={mainAffiliateFilter}
+                onChange={(e) => setMainAffiliateFilter(e.target.value)}
+                className="bg-zinc-800/50 border border-purple-500/50 text-purple-300 rounded-lg px-3 py-1.5 text-sm"
+              >
+                <option value="all">Todos</option>
+                <option value="affiliates_only">Só Afiliados</option>
+                {affiliates.map(a => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
