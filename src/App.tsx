@@ -66,6 +66,7 @@ const App = () => (
           <Route path="/mro-ferramenta" element={<MROFerramenta />} />
           <Route path="/mropagamento" element={<MROPagamento />} />
           <Route path="/mroobrigado" element={<MROObrigado />} />
+          <Route path="/mro-obrigado" element={<MROObrigado />} />
           <Route path="/vendas" element={<Vendas />} />
           <Route path="/instagram-nova" element={<VendasCompleta />} />
           <Route path="/instagram-nova-admin" element={<InstagramNovaAdmin />} />
