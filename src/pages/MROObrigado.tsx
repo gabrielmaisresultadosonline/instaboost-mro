@@ -14,9 +14,20 @@ export default function MROObrigado() {
   const [checking, setChecking] = useState(false);
 
   // Parâmetros da URL - podem vir do redirect do InfiniPay
-  const nsu = searchParams.get("nsu") || searchParams.get("order_nsu");
+  // Documentação InfiniPay: receipt_url, order_nsu, slug, capture_method, transaction_nsu
+  const nsu = searchParams.get("order_nsu") || searchParams.get("nsu");
   const transactionNsu = searchParams.get("transaction_nsu");
   const slug = searchParams.get("slug");
+  const captureMethod = searchParams.get("capture_method");
+  const receiptUrl = searchParams.get("receipt_url");
+
+  // Log para debug
+  useEffect(() => {
+    console.log("[MROObrigado] URL Params:", { 
+      nsu, transactionNsu, slug, captureMethod, receiptUrl,
+      allParams: Object.fromEntries(searchParams.entries())
+    });
+  }, []);
 
   useEffect(() => {
     if (nsu) {
@@ -42,19 +53,26 @@ export default function MROObrigado() {
       setOrder(data);
 
       // Se ainda não está completo, verificar pagamento
-      if (data.status === "pending") {
+      if (data.status === "pending" || data.status === "paid") {
         setChecking(true);
         
         // Verificar via edge function passando parâmetros do redirect do InfiniPay
-        console.log("[MROObrigado] Verificando pagamento", { nsu, transactionNsu, slug });
+        console.log("[MROObrigado] Verificando pagamento", { 
+          nsu, transactionNsu, slug, captureMethod, receiptUrl,
+          orderStatus: data.status 
+        });
         
-        await supabase.functions.invoke("check-mro-payment", {
+        const result = await supabase.functions.invoke("check-mro-payment", {
           body: { 
             nsu_order: nsu,
             transaction_nsu: transactionNsu,
-            slug: slug
+            slug: slug,
+            capture_method: captureMethod,
+            force_webhook: data.status === "paid" // Forçar webhook se já está pago
           }
         });
+        
+        console.log("[MROObrigado] Check result:", result);
         
         // Recarregar após verificação
         setTimeout(() => {
