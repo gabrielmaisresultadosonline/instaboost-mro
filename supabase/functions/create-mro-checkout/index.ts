@@ -101,82 +101,30 @@ serve(async (req) => {
     });
 
     // Descrição do produto inclui email e username para identificação
-    // Formato: MROIG_PLANO_username_email (email pode ter prefixo de afiliado: afiliado:email)
-    const productDescription = `MROIG_${planLabel}_${cleanUsername}_${cleanEmail}`;
+    // Formato: MROIG_PLANO_username_email (email pode incluir afiliado:email@real.com)
+    let productDescription = `MROIG_${planType === "lifetime" ? "VITALICIO" : "ANUAL"}_${cleanUsername}_${cleanEmail}`;
     
-    // Para o InfiniPay, usar o email real do cliente (sem prefixo de afiliado)
+    // Email para mostrar no checkout (sem prefixo do afiliado)
     let customerEmailForPayment = cleanEmail;
-    if (cleanEmail.includes(':')) {
-      const emailParts = cleanEmail.split(':');
-      customerEmailForPayment = emailParts.slice(1).join(':');
+    if (cleanEmail.includes(":") && cleanEmail.includes("@")) {
+      const emailParts = cleanEmail.split(":");
+      customerEmailForPayment = emailParts.slice(1).join(":");
     }
 
-    // Tentar criar link via API oficial primeiro (com webhook)
-    const apiLineItems = [{
-      description: productDescription,
-      quantity: 1,
+    // Criar link integrado InfiniPay com webhook_url
+    const itemData = [{
+      name: productDescription,
       price: priceInCents,
+      quantity: 1
     }];
 
-    const infinitepayPayload = {
-      handle: INFINITEPAY_HANDLE,
-      items: apiLineItems,
-      itens: apiLineItems,
-      order_nsu: orderNsu,
-      redirect_url: redirectUrl,
-      webhook_url: webhookUrl,
-      customer: {
-        email: customerEmailForPayment,
-        phone_number: cleanPhone ? `+55${cleanPhone}` : undefined,
-      },
-    };
+    // Codificar items para URL
+    const itemsEncoded = encodeURIComponent(JSON.stringify(itemData));
+    
+    // Criar link integrado com NSU no redirect + webhook para verificação automática
+    const paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsEncoded}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}`;
 
-    log("Calling InfiniPay API", infinitepayPayload);
-
-    let paymentLink = "";
-    let apiSuccess = false;
-
-    try {
-      const infinitepayResponse = await fetch(
-        "https://api.infinitepay.io/invoices/public/checkout/links",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(infinitepayPayload),
-        }
-      );
-
-      const infinitepayData = await infinitepayResponse.json();
-      log("InfiniPay API response", { status: infinitepayResponse.status, data: infinitepayData });
-
-      if (infinitepayResponse.ok) {
-        paymentLink = infinitepayData.checkout_url || infinitepayData.link || infinitepayData.url;
-        if (paymentLink) {
-          apiSuccess = true;
-          log("API link created successfully with webhook", { paymentLink });
-        }
-      }
-    } catch (apiError) {
-      log("InfiniPay API error", { error: String(apiError) });
-    }
-
-    // Fallback: criar link via URL params se API falhar
-    if (!apiSuccess || !paymentLink) {
-      log("Using fallback URL method");
-      
-      const itemData = [{
-        name: productDescription,
-        price: priceInCents,
-        quantity: 1
-      }];
-
-      const itemsEncoded = encodeURIComponent(JSON.stringify(itemData));
-      paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsEncoded}&redirect_url=${encodeURIComponent(redirectUrl)}`;
-      
-      log("Fallback link created", { paymentLink });
-    }
-
-    log("Integrated payment link created", { paymentLink, orderNsu });
+    log("Integrated payment link created with webhook", { paymentLink, orderNsu, webhookUrl });
 
     // Salvar pedido no banco (expira em 30 minutos)
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
