@@ -34,9 +34,9 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { nsu_order, transaction_nsu, slug } = body;
+    const { nsu_order, transaction_nsu, slug, force_webhook } = body;
 
-    log("Request params", { nsu_order, transaction_nsu, slug });
+    log("Request params", { nsu_order, transaction_nsu, slug, force_webhook });
 
     if (!nsu_order) {
       return new Response(
@@ -60,6 +60,8 @@ serve(async (req) => {
       );
     }
 
+    log("Order found", { status: order.status, email: order.email, username: order.username });
+
     // Se já está completed, retornar sucesso
     if (order.status === "completed") {
       log("Order already completed");
@@ -69,38 +71,49 @@ serve(async (req) => {
       );
     }
 
-    // Se já está pago mas não completed, tentar processar
-    if (order.status === "paid") {
-      log("Order paid but not completed, triggering webhook manually");
+    // Se já está pago mas não completed, tentar processar via webhook
+    if (order.status === "paid" || force_webhook) {
+      log("Order paid or force_webhook, triggering webhook manually");
       
-      // Chamar webhook para processar
-      await supabase.functions.invoke("mro-payment-webhook", {
-        body: {
-          order_nsu: nsu_order,
-          items: [{
-            description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${order.username}_${order.email}`
-          }]
-        }
-      });
+      try {
+        // Chamar webhook para processar
+        const webhookResult = await supabase.functions.invoke("mro-payment-webhook", {
+          body: {
+            order_nsu: nsu_order,
+            items: [{
+              description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${order.username}_${order.email}`
+            }]
+          }
+        });
 
-      // Aguardar um pouco e verificar novamente
-      await new Promise(resolve => setTimeout(resolve, 2000));
+        log("Webhook result", webhookResult);
 
-      const { data: updatedOrder } = await supabase
-        .from("mro_orders")
-        .select("*")
-        .eq("nsu_order", nsu_order)
-        .single();
+        // Aguardar um pouco e verificar novamente
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-      return new Response(
-        JSON.stringify({ success: true, status: updatedOrder?.status || "paid", order: updatedOrder }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
+        const { data: updatedOrder } = await supabase
+          .from("mro_orders")
+          .select("*")
+          .eq("nsu_order", nsu_order)
+          .single();
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            status: updatedOrder?.status || "paid", 
+            order: updatedOrder,
+            webhook_triggered: true 
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      } catch (webhookError) {
+        log("Error invoking webhook", { error: String(webhookError) });
+      }
     }
 
-    // Se tem transaction_nsu e slug, verificar via payment_check
+    // Tentar verificar via InfiniPay payment_check se tiver os parâmetros
     if (transaction_nsu && slug) {
-      log("Checking payment via InfiniPay API", { transaction_nsu, slug });
+      log("Checking payment via InfiniPay API with transaction_nsu", { transaction_nsu, slug });
 
       try {
         const checkResponse = await fetch(
@@ -121,7 +134,17 @@ serve(async (req) => {
         log("InfiniPay payment_check response", checkData);
 
         if (checkData.paid) {
-          log("Payment confirmed via API, triggering webhook");
+          log("Payment confirmed via API, updating order and triggering webhook");
+
+          // Atualizar para paid primeiro
+          await supabase
+            .from("mro_orders")
+            .update({ 
+              status: "paid", 
+              paid_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq("nsu_order", nsu_order);
 
           // Chamar webhook para processar
           await supabase.functions.invoke("mro-payment-webhook", {
@@ -143,7 +166,12 @@ serve(async (req) => {
             .single();
 
           return new Response(
-            JSON.stringify({ success: true, status: updatedOrder?.status || "paid", order: updatedOrder }),
+            JSON.stringify({ 
+              success: true, 
+              status: updatedOrder?.status || "paid", 
+              order: updatedOrder,
+              payment_confirmed: true 
+            }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
           );
         }
@@ -152,7 +180,87 @@ serve(async (req) => {
       }
     }
 
+    // Tentar buscar status via API pública do InfiniPay usando o link
+    if (order.infinitepay_link) {
+      log("Trying to extract slug from payment link", { link: order.infinitepay_link });
+      
+      try {
+        // Extrair parâmetros do link
+        const url = new URL(order.infinitepay_link);
+        const lenc = url.searchParams.get('lenc');
+        
+        if (lenc) {
+          log("Found lenc parameter, checking payment status", { lenc: lenc.substring(0, 50) + "..." });
+          
+          // Tentar verificar o pagamento usando o lenc como slug
+          const checkResponse = await fetch(
+            "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                handle: INFINITEPAY_HANDLE,
+                order_nsu: nsu_order,
+                slug: lenc,
+              }),
+            }
+          );
+
+          if (checkResponse.ok) {
+            const checkData = await checkResponse.json();
+            log("InfiniPay payment_check with lenc response", checkData);
+
+            if (checkData.paid) {
+              log("Payment confirmed via lenc, updating order and triggering webhook");
+
+              // Atualizar para paid
+              await supabase
+                .from("mro_orders")
+                .update({ 
+                  status: "paid", 
+                  paid_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+                .eq("nsu_order", nsu_order);
+
+              // Chamar webhook
+              await supabase.functions.invoke("mro-payment-webhook", {
+                body: {
+                  order_nsu: nsu_order,
+                  items: [{
+                    description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${order.username}_${order.email}`
+                  }]
+                }
+              });
+
+              await new Promise(resolve => setTimeout(resolve, 3000));
+
+              const { data: updatedOrder } = await supabase
+                .from("mro_orders")
+                .select("*")
+                .eq("nsu_order", nsu_order)
+                .single();
+
+              return new Response(
+                JSON.stringify({ 
+                  success: true, 
+                  status: updatedOrder?.status || "paid", 
+                  order: updatedOrder,
+                  payment_confirmed: true,
+                  method: "lenc"
+                }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+              );
+            }
+          }
+        }
+      } catch (lencError) {
+        log("Error checking with lenc", { error: String(lencError) });
+      }
+    }
+
     // Pedido ainda pendente
+    log("Order still pending");
     return new Response(
       JSON.stringify({ success: true, status: "pending", order }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
