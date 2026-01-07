@@ -50,12 +50,20 @@ serve(async (req) => {
       .from("mro_orders")
       .select("*")
       .eq("nsu_order", nsu_order)
-      .single();
+      .maybeSingle();
 
-    if (orderError || !order) {
+    if (orderError) {
+      log("Database error", { error: orderError.message, nsu_order });
+      return new Response(
+        JSON.stringify({ error: "Database error", details: orderError.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
+    if (!order) {
       log("Order not found", { nsu_order });
       return new Response(
-        JSON.stringify({ error: "Order not found" }),
+        JSON.stringify({ error: "Order not found", nsu_order }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
       );
     }
