@@ -135,30 +135,61 @@ export default function InstagramNovaAdmin() {
   // Envio de emails
   const [sendingEmail, setSendingEmail] = useState(false);
 
-  // Carregar configuração de afiliados do localStorage
-  useEffect(() => {
-    // Carregar afiliado ativo atual
-    const savedAffiliateId = localStorage.getItem("mro_affiliate_id") || "";
-    const savedAffiliateName = localStorage.getItem("mro_affiliate_name") || "";
-    const savedAffiliateEmail = localStorage.getItem("mro_affiliate_email") || "";
-    const savedAffiliatePhotoUrl = localStorage.getItem("mro_affiliate_photo_url") || "";
-    const savedAffiliateActive = localStorage.getItem("mro_affiliate_active") !== "false";
-    
-    setAffiliateId(savedAffiliateId);
-    setAffiliateName(savedAffiliateName);
-    setAffiliateEmail(savedAffiliateEmail);
-    setAffiliatePhotoUrl(savedAffiliatePhotoUrl);
-    setAffiliateActive(savedAffiliateActive);
-    
-    // Carregar histórico de afiliados
-    const savedAffiliates = localStorage.getItem("mro_affiliates_history");
-    if (savedAffiliates) {
-      try {
-        setAffiliates(JSON.parse(savedAffiliates));
-      } catch (e) {
-        console.error("Error parsing affiliates history:", e);
+  // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
+  const loadAffiliatesFromCloud = async () => {
+    try {
+      console.log("[AFFILIATES] Loading from cloud...");
+      const { data, error } = await supabase.storage
+        .from('user-data')
+        .download('admin/affiliates.json');
+      
+      if (error) {
+        console.log("[AFFILIATES] No cloud data yet, using localStorage fallback");
+        // Fallback para localStorage
+        const savedAffiliates = localStorage.getItem("mro_affiliates_history");
+        if (savedAffiliates) {
+          setAffiliates(JSON.parse(savedAffiliates));
+        }
+        return;
+      }
+      
+      const text = await data.text();
+      const cloudAffiliates: Affiliate[] = JSON.parse(text);
+      console.log("[AFFILIATES] Loaded from cloud:", cloudAffiliates.length);
+      
+      setAffiliates(cloudAffiliates);
+      // Sincronizar com localStorage
+      localStorage.setItem("mro_affiliates_history", JSON.stringify(cloudAffiliates));
+      
+      // Se há afiliado ativo, carregar seus dados
+      const activeAffiliate = cloudAffiliates.find(a => a.active);
+      if (activeAffiliate) {
+        setAffiliateId(activeAffiliate.id);
+        setAffiliateName(activeAffiliate.name);
+        setAffiliateEmail(activeAffiliate.email);
+        setAffiliatePhotoUrl(activeAffiliate.photoUrl);
+        setAffiliateActive(true);
+        setPromoStartDate(activeAffiliate.promoStartDate || "");
+        setPromoEndDate(activeAffiliate.promoEndDate || "");
+        setPromoStartTime(activeAffiliate.promoStartTime || "");
+        setPromoEndTime(activeAffiliate.promoEndTime || "");
+      }
+    } catch (e) {
+      console.error("[AFFILIATES] Error loading from cloud:", e);
+      // Fallback para localStorage
+      const savedAffiliates = localStorage.getItem("mro_affiliates_history");
+      if (savedAffiliates) {
+        try {
+          setAffiliates(JSON.parse(savedAffiliates));
+        } catch (parseError) {
+          console.error("Error parsing localStorage affiliates:", parseError);
+        }
       }
     }
+  };
+
+  useEffect(() => {
+    loadAffiliatesFromCloud();
   }, []);
 
   // Check if already authenticated
