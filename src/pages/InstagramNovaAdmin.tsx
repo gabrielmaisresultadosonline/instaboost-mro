@@ -176,7 +176,26 @@ export default function InstagramNovaAdmin() {
     }
   }, [isAuthenticated, autoCheckEnabled]);
 
-  // Notificar afiliado quando houver nova venda
+  // Salvar afiliados no Supabase Storage para o webhook poder acessar
+  useEffect(() => {
+    if (affiliates.length > 0) {
+      saveAffiliatesToStorage();
+    }
+  }, [affiliates]);
+
+  const saveAffiliatesToStorage = async () => {
+    try {
+      const blob = new Blob([JSON.stringify(affiliates)], { type: 'application/json' });
+      await supabase.storage
+        .from('user-data')
+        .upload('admin/affiliates.json', blob, { upsert: true });
+      console.log("[AFFILIATES] Saved to storage");
+    } catch (e) {
+      console.error("[AFFILIATES] Error saving to storage:", e);
+    }
+  };
+
+  // Notificar afiliado quando houver nova venda (backup - o webhook também envia)
   useEffect(() => {
     if (orders.length > 0 && affiliates.length > 0) {
       checkAndNotifyAffiliates();
@@ -185,9 +204,9 @@ export default function InstagramNovaAdmin() {
 
   const checkAndNotifyAffiliates = async () => {
     for (const affiliate of affiliates) {
-      if (!affiliate.active || !affiliate.email) continue;
+      if (!affiliate.email) continue;
       
-      // Buscar vendas deste afiliado que ainda não foram notificadas
+      // Buscar vendas APENAS deste afiliado específico que ainda não foram notificadas
       const affiliateSales = orders.filter(o => 
         (o.status === "paid" || o.status === "completed") && 
         o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`) &&
@@ -195,37 +214,19 @@ export default function InstagramNovaAdmin() {
       );
       
       for (const sale of affiliateSales) {
-        // Enviar email de comissão
-        try {
-          const { error } = await supabase.functions.invoke("affiliate-commission-email", {
-            body: {
-              type: "commission",
-              affiliateEmail: affiliate.email,
-              affiliateName: affiliate.name,
-              customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
-              customerName: sale.username,
-              commission: "97"
-            }
-          });
-          
-          if (!error) {
-            // Marcar como notificado
-            const updatedAffiliates = affiliates.map(a => {
-              if (a.id === affiliate.id) {
-                return {
-                  ...a,
-                  commissionNotified: [...(a.commissionNotified || []), sale.nsu_order]
-                };
-              }
-              return a;
-            });
-            setAffiliates(updatedAffiliates);
-            localStorage.setItem("mro_affiliates_history", JSON.stringify(updatedAffiliates));
-            console.log(`[AFFILIATE] Comissão notificada para ${affiliate.name} - Venda ${sale.nsu_order}`);
+        // Marcar como notificado (o webhook já enviou o email)
+        const updatedAffiliates = affiliates.map(a => {
+          if (a.id === affiliate.id) {
+            return {
+              ...a,
+              commissionNotified: [...(a.commissionNotified || []), sale.nsu_order]
+            };
           }
-        } catch (e) {
-          console.error(`[AFFILIATE] Erro ao notificar comissão:`, e);
-        }
+          return a;
+        });
+        setAffiliates(updatedAffiliates);
+        localStorage.setItem("mro_affiliates_history", JSON.stringify(updatedAffiliates));
+        console.log(`[AFFILIATE] Venda registrada para ${affiliate.name} - ${sale.nsu_order}`);
       }
     }
   };

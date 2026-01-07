@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
@@ -21,6 +22,7 @@ serve(async (req) => {
       type, // 'commission' | 'summary'
       affiliateEmail, 
       affiliateName,
+      affiliateId,
       customerEmail,
       customerName,
       commission,
@@ -30,13 +32,53 @@ serve(async (req) => {
       salesList
     } = await req.json();
     
-    logStep("Request received", { type, affiliateEmail, affiliateName });
+    logStep("Request received", { type, affiliateEmail, affiliateName, affiliateId });
 
-    if (!affiliateEmail || !affiliateName) {
+    // Se não temos o email do afiliado mas temos o ID, tentar buscar do storage
+    let finalAffiliateEmail = affiliateEmail;
+    let finalAffiliateName = affiliateName;
+    
+    if (!finalAffiliateEmail && affiliateId) {
+      // Tentar buscar dados do afiliado do Supabase Storage
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        
+        if (supabaseUrl && supabaseServiceKey) {
+          const supabase = createClient(supabaseUrl, supabaseServiceKey);
+          
+          // Buscar do storage o arquivo de afiliados
+          const { data, error } = await supabase.storage
+            .from('user-data')
+            .download('admin/affiliates.json');
+          
+          if (!error && data) {
+            const text = await data.text();
+            const affiliates = JSON.parse(text);
+            const affiliate = affiliates.find((a: any) => a.id === affiliateId);
+            
+            if (affiliate) {
+              finalAffiliateEmail = affiliate.email;
+              finalAffiliateName = affiliate.name;
+              logStep("Found affiliate from storage", { affiliateId, email: finalAffiliateEmail });
+            }
+          }
+        }
+      } catch (e) {
+        logStep("Could not load affiliate from storage", { error: String(e) });
+      }
+    }
+
+    if (!finalAffiliateEmail) {
+      logStep("No affiliate email found, skipping");
       return new Response(
-        JSON.stringify({ success: false, error: 'Affiliate email and name are required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify({ success: false, error: 'Affiliate email not found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
+    }
+
+    if (!finalAffiliateName) {
+      finalAffiliateName = affiliateId || "Afiliado";
     }
 
     const smtpPassword = Deno.env.get("SMTP_PASSWORD");
@@ -65,7 +107,7 @@ serve(async (req) => {
 
     if (type === 'commission') {
       // Email de comissão por venda individual
-      subject = `💰 Temos uma comissão para você, ${affiliateName}!`;
+      subject = `💰 Temos uma comissão para você, ${finalAffiliateName}!`;
       htmlContent = `<!DOCTYPE html>
 <html>
 <head>
@@ -84,7 +126,7 @@ serve(async (req) => {
 <td style="padding:30px;background:#ffffff;">
 
 <div style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:25px;border-radius:15px;margin-bottom:25px;text-align:center;">
-<p style="margin:0;color:#000;font-size:16px;font-weight:bold;">🎉 PARABÉNS, ${affiliateName.toUpperCase()}!</p>
+<p style="margin:0;color:#000;font-size:16px;font-weight:bold;">🎉 PARABÉNS, ${finalAffiliateName.toUpperCase()}!</p>
 <p style="margin:10px 0 0 0;color:#000;font-size:14px;">Você tem uma nova comissão!</p>
 </div>
 
@@ -138,7 +180,7 @@ Continue assim! Você está no caminho certo! 🔥
 
     } else if (type === 'summary') {
       // Email de resumo final
-      subject = `📊 Resumo Final das suas Vendas - ${affiliateName}`;
+      subject = `📊 Resumo Final das suas Vendas - ${finalAffiliateName}`;
       
       // Build sales table rows
       let salesRows = '';
@@ -173,7 +215,7 @@ Continue assim! Você está no caminho certo! 🔥
 <td style="padding:30px;background:#ffffff;">
 
 <div style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:25px;border-radius:15px;margin-bottom:25px;text-align:center;">
-<p style="margin:0;color:#000;font-size:18px;font-weight:bold;">🎉 PARABÉNS, ${affiliateName.toUpperCase()}!</p>
+<p style="margin:0;color:#000;font-size:18px;font-weight:bold;">🎉 PARABÉNS, ${finalAffiliateName.toUpperCase()}!</p>
 <p style="margin:10px 0 0 0;color:#000;font-size:14px;">Aqui está o resumo completo das suas vendas!</p>
 </div>
 
@@ -242,21 +284,26 @@ Entre em contato conosco pelo suporte que teremos prazer em ajudar!
 </table>
 </body>
 </html>`;
+    } else {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid type' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
     }
 
     await client.send({
       from: "MRO - Afiliados <suporte@maisresultadosonline.com.br>",
-      to: affiliateEmail,
+      to: finalAffiliateEmail,
       subject: subject,
       html: htmlContent,
     });
 
     await client.close();
 
-    logStep("Email sent successfully", { type, affiliateEmail });
+    logStep("Email sent successfully", { type, affiliateEmail: finalAffiliateEmail });
 
     return new Response(
-      JSON.stringify({ success: true, message: `${type} email sent` }),
+      JSON.stringify({ success: true, message: `${type} email sent to ${finalAffiliateEmail}` }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
