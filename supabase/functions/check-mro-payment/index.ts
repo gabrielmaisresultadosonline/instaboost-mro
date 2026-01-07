@@ -259,6 +259,70 @@ serve(async (req) => {
       }
     }
 
+    // Método alternativo: buscar pelo order_nsu na API (sem slug)
+    log("Trying direct order_nsu check with InfiniPay");
+    try {
+      const directCheckResponse = await fetch(
+        "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            handle: INFINITEPAY_HANDLE,
+            order_nsu: nsu_order,
+          }),
+        }
+      );
+
+      if (directCheckResponse.ok) {
+        const directCheckData = await directCheckResponse.json();
+        log("InfiniPay direct check response", directCheckData);
+
+        if (directCheckData.paid) {
+          log("Payment confirmed via direct check, updating order and triggering webhook");
+
+          await supabase
+            .from("mro_orders")
+            .update({ 
+              status: "paid", 
+              paid_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq("nsu_order", nsu_order);
+
+          await supabase.functions.invoke("mro-payment-webhook", {
+            body: {
+              order_nsu: nsu_order,
+              items: [{
+                description: `MROIG_${order.plan_type === "lifetime" ? "VITALICIO" : "ANUAL"}_${order.username}_${order.email}`
+              }]
+            }
+          });
+
+          await new Promise(resolve => setTimeout(resolve, 3000));
+
+          const { data: updatedOrder } = await supabase
+            .from("mro_orders")
+            .select("*")
+            .eq("nsu_order", nsu_order)
+            .single();
+
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              status: updatedOrder?.status || "paid", 
+              order: updatedOrder,
+              payment_confirmed: true,
+              method: "direct_nsu"
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+          );
+        }
+      }
+    } catch (directError) {
+      log("Error in direct check", { error: String(directError) });
+    }
+
     // Pedido ainda pendente
     log("Order still pending");
     return new Response(
