@@ -429,51 +429,10 @@ const AffiliatePromoPage = () => {
                 <span className="text-xl sm:text-2xl font-bold">ou R$397 à vista no PIX</span>
               </div>
               
-              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6">
+              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
                 <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
                 <span className="text-red-400 font-bold text-sm sm:text-base">R$100 OFF DE DESCONTO!</span>
               </div>
-              
-              {/* Countdown Timer */}
-              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
-                {promoTimeLeft.days > 0 && (
-                  <>
-                    <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
-                      <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
-                        {String(promoTimeLeft.days).padStart(2, '0')}
-                      </div>
-                      <div className="text-[9px] sm:text-[10px] text-red-200">DIAS</div>
-                    </div>
-                    <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
-                  </>
-                )}
-                <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
-                    {String(promoTimeLeft.hours).padStart(2, '0')}
-                  </div>
-                  <div className="text-[9px] sm:text-[10px] text-red-200">HORAS</div>
-                </div>
-                <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
-                <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
-                    {String(promoTimeLeft.minutes).padStart(2, '0')}
-                  </div>
-                  <div className="text-[9px] sm:text-[10px] text-red-200">MINUTOS</div>
-                </div>
-                <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
-                <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
-                    {String(promoTimeLeft.seconds).padStart(2, '0')}
-                  </div>
-                  <div className="text-[9px] sm:text-[10px] text-red-200">SEGUNDOS</div>
-                </div>
-              </div>
-              
-              {getExpirationText() && (
-                <p className="text-yellow-400 text-xs sm:text-sm font-medium">
-                  ⏰ {getExpirationText()}
-                </p>
-              )}
             </div>
             
             {/* Features */}
@@ -513,6 +472,51 @@ const AffiliatePromoPage = () => {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Countdown Timer Section */}
+      <section className="py-8 sm:py-12 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
+            {promoTimeLeft.days > 0 && (
+              <>
+                <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
+                    {String(promoTimeLeft.days).padStart(2, '0')}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-red-200">DIAS</div>
+                </div>
+                <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
+              </>
+            )}
+            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
+                {String(promoTimeLeft.hours).padStart(2, '0')}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-red-200">HORAS</div>
+            </div>
+            <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
+            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
+                {String(promoTimeLeft.minutes).padStart(2, '0')}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-red-200">MINUTOS</div>
+            </div>
+            <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
+            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
+                {String(promoTimeLeft.seconds).padStart(2, '0')}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-red-200">SEGUNDOS</div>
+            </div>
+          </div>
+          
+          {getExpirationText() && (
+            <p className="text-yellow-400 text-sm sm:text-base font-medium">
+              ⏰ {getExpirationText()}
+            </p>
+          )}
         </div>
       </section>
 
