@@ -339,7 +339,7 @@ const AffiliatePromoPage = () => {
                 <span className="text-4xl font-bold text-white">{affiliate.name.charAt(0).toUpperCase()}</span>
               </div>
             )}
-            <p className="text-green-400 text-xs sm:text-sm font-medium">
+            <p className="text-green-400 text-sm sm:text-base md:text-lg font-bold">
               🎁 Promoção especial para alunos {affiliate.name}
             </p>
           </div>
@@ -349,9 +349,12 @@ const AffiliatePromoPage = () => {
           {/* Title */}
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent px-2">
-              NÃO GASTE COM ANÚNCIOS UTILIZE A MRO INTELIGENTE!
+            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-3 text-white italic px-2">
+              NÃO GASTE MAIS COM ANÚNCIOS
             </h1>
+            <h2 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-orange-500 italic px-2">
+              UTILIZE A MRO INTELIGENTE
+            </h2>
           </div>
 
 
