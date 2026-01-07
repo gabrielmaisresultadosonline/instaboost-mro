@@ -28,6 +28,8 @@ interface SaleItem {
   phone: string;
   amount: number;
   date: string;
+  nsuOrder?: string;
+  commissionPaid?: boolean;
 }
 
 interface AttemptItem {
@@ -43,6 +45,8 @@ interface ResumoData {
   affiliateName: string;
   totalSales: number;
   totalCommission: number;
+  paidCommissionsTotal?: number;
+  pendingCommissionsTotal?: number;
   salesList: SaleItem[];
   attemptsList: AttemptItem[];
   multipleAttemptsList: AttemptItem[];
@@ -274,24 +278,24 @@ export default function AffiliateResumo() {
           <Card className="bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500/30">
             <CardContent className="p-4 text-center">
               <DollarSign className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-              <p className="text-2xl md:text-3xl font-bold text-amber-400">R${resumoData?.totalCommission || 0}</p>
-              <p className="text-xs text-zinc-400">Comissão</p>
+              <p className="text-2xl md:text-3xl font-bold text-amber-400">R${resumoData?.paidCommissionsTotal || 0}</p>
+              <p className="text-xs text-zinc-400">Recebido</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border-yellow-500/30">
+            <CardContent className="p-4 text-center">
+              <Clock className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+              <p className="text-2xl md:text-3xl font-bold text-yellow-400">R${resumoData?.pendingCommissionsTotal || 0}</p>
+              <p className="text-xs text-zinc-400">A Receber</p>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30">
             <CardContent className="p-4 text-center">
-              <Clock className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+              <TrendingUp className="w-6 h-6 text-blue-400 mx-auto mb-2" />
               <p className="text-2xl md:text-3xl font-bold text-blue-400">{notPaidAttempts}</p>
               <p className="text-xs text-zinc-400">Tentativas</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30">
-            <CardContent className="p-4 text-center">
-              <TrendingUp className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-              <p className="text-2xl md:text-3xl font-bold text-purple-400">{resumoData?.multipleAttemptsList?.length || 0}</p>
-              <p className="text-xs text-zinc-400">Múltiplas</p>
             </CardContent>
           </Card>
         </div>
@@ -314,17 +318,29 @@ export default function AffiliateResumo() {
                     <th className="text-left p-2 text-zinc-400">Cliente</th>
                     <th className="text-left p-2 text-zinc-400">📱</th>
                     <th className="text-left p-2 text-zinc-400">Valor</th>
+                    <th className="text-left p-2 text-zinc-400">Status</th>
                     <th className="text-left p-2 text-zinc-400">Data</th>
                   </tr>
                 </thead>
                 <tbody>
                   {resumoData.salesList.map((sale, index) => (
-                    <tr key={index} className="border-b border-zinc-700/50">
+                    <tr key={index} className={`border-b border-zinc-700/50 ${sale.commissionPaid ? 'bg-green-500/5' : ''}`}>
                       <td className="p-2 text-white">{index + 1}</td>
                       <td className="p-2 text-white text-xs">{sale.customerEmail}</td>
                       <td className="p-2 text-white">{sale.customerName || '-'}</td>
                       <td className="p-2 text-green-400 text-xs">{sale.phone || '-'}</td>
                       <td className="p-2 text-green-400 font-medium">R$ {Number(sale.amount).toFixed(2)}</td>
+                      <td className="p-2">
+                        {sale.commissionPaid ? (
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                            ✅ Recebido
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+                            ⏳ Pendente
+                          </Badge>
+                        )}
+                      </td>
                       <td className="p-2 text-zinc-400 text-xs">{sale.date}</td>
                     </tr>
                   ))}

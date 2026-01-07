@@ -165,6 +165,11 @@ export default function InstagramNovaAdmin() {
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
   const [showPasswordVisible, setShowPasswordVisible] = useState<Record<string, boolean>>({});
+  
+  // Comissões pagas por afiliado - Record<affiliateId, nsu_order[]>
+  const [paidCommissions, setPaidCommissions] = useState<Record<string, string[]>>({});
+  const [selectedSalesForPayment, setSelectedSalesForPayment] = useState<Set<string>>(new Set());
+  const [savingCommissions, setSavingCommissions] = useState(false);
 
   // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async (forceRefresh = false) => {
@@ -287,7 +292,125 @@ export default function InstagramNovaAdmin() {
   useEffect(() => {
     loadAffiliatesFromCloud();
     loadAffiliateSettings();
+    loadPaidCommissions();
   }, []);
+  
+  // Carregar comissões pagas da nuvem
+  const loadPaidCommissions = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('user-data')
+        .download('admin/paid-commissions.json');
+      
+      if (!error && data) {
+        const text = await data.text();
+        const commissions = JSON.parse(text);
+        setPaidCommissions(commissions);
+        console.log("[COMMISSIONS] Loaded paid commissions:", commissions);
+      }
+    } catch (e) {
+      console.log("[COMMISSIONS] No paid commissions data yet");
+    }
+  };
+  
+  // Salvar comissões pagas na nuvem
+  const savePaidCommissions = async (commissions: Record<string, string[]>) => {
+    try {
+      const blob = new Blob([JSON.stringify(commissions)], { type: 'application/json' });
+      const { error } = await supabase.storage
+        .from('user-data')
+        .upload('admin/paid-commissions.json', blob, { upsert: true });
+      
+      if (error) {
+        console.error("[COMMISSIONS] Error saving:", error);
+        return false;
+      }
+      console.log("[COMMISSIONS] Saved successfully");
+      return true;
+    } catch (e) {
+      console.error("[COMMISSIONS] Error:", e);
+      return false;
+    }
+  };
+  
+  // Marcar vendas selecionadas como comissão paga
+  const markSelectedAsPaid = async () => {
+    if (selectedSalesForPayment.size === 0) {
+      toast.error("Selecione pelo menos uma venda");
+      return;
+    }
+    
+    setSavingCommissions(true);
+    try {
+      const updatedCommissions = { ...paidCommissions };
+      
+      // Agrupar vendas selecionadas por afiliado
+      selectedSalesForPayment.forEach(nsuOrder => {
+        const order = orders.find(o => o.nsu_order === nsuOrder);
+        if (order) {
+          const affiliateMatch = affiliates.find(a => 
+            order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
+          );
+          if (affiliateMatch) {
+            if (!updatedCommissions[affiliateMatch.id]) {
+              updatedCommissions[affiliateMatch.id] = [];
+            }
+            if (!updatedCommissions[affiliateMatch.id].includes(nsuOrder)) {
+              updatedCommissions[affiliateMatch.id].push(nsuOrder);
+            }
+          }
+        }
+      });
+      
+      const success = await savePaidCommissions(updatedCommissions);
+      if (success) {
+        setPaidCommissions(updatedCommissions);
+        setSelectedSalesForPayment(new Set());
+        toast.success(`${selectedSalesForPayment.size} comissão(ões) marcada(s) como paga(s)!`);
+      } else {
+        toast.error("Erro ao salvar");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao marcar comissões");
+    } finally {
+      setSavingCommissions(false);
+    }
+  };
+  
+  // Verificar se comissão já foi paga
+  const isCommissionPaid = (affiliateId: string, nsuOrder: string) => {
+    return paidCommissions[affiliateId]?.includes(nsuOrder) || false;
+  };
+  
+  // Toggle seleção de venda para pagamento
+  const toggleSaleSelection = (nsuOrder: string) => {
+    setSelectedSalesForPayment(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(nsuOrder)) {
+        newSet.delete(nsuOrder);
+      } else {
+        newSet.add(nsuOrder);
+      }
+      return newSet;
+    });
+  };
+  
+  // Selecionar/deselecionar todas vendas pendentes de pagamento
+  const toggleSelectAllUnpaid = () => {
+    const unpaidSales = getFilteredAffiliateSales().filter(order => {
+      const affiliate = affiliates.find(a => 
+        order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
+      );
+      return affiliate && !isCommissionPaid(affiliate.id, order.nsu_order);
+    });
+    
+    if (selectedSalesForPayment.size === unpaidSales.length) {
+      setSelectedSalesForPayment(new Set());
+    } else {
+      setSelectedSalesForPayment(new Set(unpaidSales.map(o => o.nsu_order)));
+    }
+  };
 
   // Check if already authenticated
   useEffect(() => {
@@ -2372,21 +2495,52 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
 
                 {/* Tab: Vendas por Afiliado */}
                 <TabsContent value="sales">
-                  <div className="mb-4 flex items-center gap-4">
-                    <Filter className="w-4 h-4 text-zinc-400" />
-                    <select
-                      value={selectedAffiliateFilter}
-                      onChange={(e) => setSelectedAffiliateFilter(e.target.value)}
-                      className="bg-zinc-800 border border-zinc-600 text-white rounded-lg px-3 py-2"
-                    >
-                      <option value="all">Todos os Afiliados</option>
-                      {affiliates.map(a => (
-                        <option key={a.id} value={a.id}>{a.name} ({a.id})</option>
-                      ))}
-                    </select>
-                    <span className="text-sm text-zinc-400">
-                      {getFilteredAffiliateSales().length} vendas
-                    </span>
+                  <div className="mb-4 flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <Filter className="w-4 h-4 text-zinc-400" />
+                      <select
+                        value={selectedAffiliateFilter}
+                        onChange={(e) => setSelectedAffiliateFilter(e.target.value)}
+                        className="bg-zinc-800 border border-zinc-600 text-white rounded-lg px-3 py-2"
+                      >
+                        <option value="all">Todos os Afiliados</option>
+                        {affiliates.map(a => (
+                          <option key={a.id} value={a.id}>{a.name} ({a.id})</option>
+                        ))}
+                      </select>
+                      <span className="text-sm text-zinc-400">
+                        {getFilteredAffiliateSales().length} vendas
+                      </span>
+                    </div>
+                    
+                    {/* Ações em massa */}
+                    {getFilteredAffiliateSales().length > 0 && (
+                      <div className="flex items-center gap-2 ml-auto">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={toggleSelectAllUnpaid}
+                          className="h-8 border-zinc-600 text-zinc-300"
+                        >
+                          {selectedSalesForPayment.size > 0 ? "Desmarcar Todas" : "Selecionar Pendentes"}
+                        </Button>
+                        {selectedSalesForPayment.size > 0 && (
+                          <Button
+                            size="sm"
+                            onClick={markSelectedAsPaid}
+                            disabled={savingCommissions}
+                            className="h-8 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            {savingCommissions ? (
+                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                            ) : (
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                            )}
+                            Dar Baixa ({selectedSalesForPayment.size})
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   
                   {getFilteredAffiliateSales().length === 0 ? (
@@ -2401,11 +2555,36 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                         const affiliate = affiliates.find(a => 
                           order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
                         );
+                        const commissionIsPaid = affiliate && isCommissionPaid(affiliate.id, order.nsu_order);
+                        const isSelected = selectedSalesForPayment.has(order.nsu_order);
                         
                         return (
-                          <div key={order.id} className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-3">
+                          <div 
+                            key={order.id} 
+                            className={`bg-zinc-800/30 border rounded-lg p-3 transition-colors ${
+                              commissionIsPaid 
+                                ? 'border-green-500/50 bg-green-500/5' 
+                                : isSelected 
+                                  ? 'border-blue-500/50 bg-blue-500/5' 
+                                  : 'border-zinc-700/50'
+                            }`}
+                          >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-4">
+                                {/* Checkbox para selecionar */}
+                                {!commissionIsPaid && (
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => toggleSaleSelection(order.nsu_order)}
+                                    className="w-5 h-5 rounded border-zinc-600 bg-zinc-700 text-blue-500 focus:ring-blue-500 cursor-pointer"
+                                  />
+                                )}
+                                {commissionIsPaid && (
+                                  <div className="w-5 h-5 flex items-center justify-center">
+                                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                  </div>
+                                )}
                                 <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
                                   {affiliate?.name || "Afiliado"}
                                 </Badge>
@@ -2421,9 +2600,15 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                                     {format(new Date(order.paid_at || order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                                   </p>
                                 </div>
-                                <Badge className="bg-yellow-500/20 text-yellow-400">
-                                  Comissão: R$ 97
-                                </Badge>
+                                {commissionIsPaid ? (
+                                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                    ✅ Comissão Paga
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-yellow-500/20 text-yellow-400">
+                                    💰 R$ 97 pendente
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </div>
