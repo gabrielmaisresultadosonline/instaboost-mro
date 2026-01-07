@@ -85,8 +85,9 @@ serve(async (req) => {
       }
     }
 
-    // Redirect URL com NSU para página de obrigado
-    const redirectUrl = `https://maisresultadosonline.com.br/obrigado?nsu=${orderNsu}`;
+    // Redirect URL para página de obrigado
+    // A InfiniPay adiciona automaticamente: order_nsu, transaction_nsu, slug, capture_method, receipt_url
+    const redirectUrl = `https://maisresultadosonline.com.br/mro-obrigado`;
     
     // Webhook URL para receber notificação automática de pagamento
     const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
