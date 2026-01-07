@@ -6,11 +6,46 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const INFINITEPAY_HANDLE = "paguemro";
+
 const log = (step: string, details?: unknown) => {
   const timestamp = new Date().toISOString();
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[${timestamp}] [INFINITEPAY-WEBHOOK] ${step}${detailsStr}`);
 };
+
+// Função para verificar pagamento via API da InfiniPay
+async function verifyPaymentWithAPI(orderNsu: string, transactionNsu?: string, slug?: string): Promise<{ paid: boolean; data?: any }> {
+  try {
+    log("Verifying payment via InfiniPay API", { orderNsu, transactionNsu, slug });
+    
+    const response = await fetch(
+      "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          handle: INFINITEPAY_HANDLE,
+          order_nsu: orderNsu,
+          ...(transactionNsu && { transaction_nsu: transactionNsu }),
+          ...(slug && { slug: slug }),
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      log("InfiniPay API response", data);
+      return { paid: data.paid === true, data };
+    } else {
+      log("InfiniPay API error", { status: response.status });
+      return { paid: false };
+    }
+  } catch (error) {
+    log("Error calling InfiniPay API", { error: String(error) });
+    return { paid: false };
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -48,7 +83,7 @@ serve(async (req) => {
 
     // Extrair informações do nome do produto
     let email: string | null = null;
-    let emailWithAffiliate: string | null = null; // Email completo incluindo prefixo afiliado
+    let emailWithAffiliate: string | null = null;
     let username: string | null = null;
     let affiliateId: string | null = null;
     let isMROOrder = false;
@@ -61,36 +96,30 @@ serve(async (req) => {
         // Formato MRO: MROIG_ANUAL_username_afiliado:email ou MROIG_VITALICIO_username_email
         if (itemName.startsWith("MROIG_")) {
           isMROOrder = true;
-          // Parse: MROIG_PLANO_username_email (email pode ser afiliado:email@real.com)
           const parts = itemName.split("_");
           if (parts.length >= 4) {
             username = parts[2];
             emailWithAffiliate = parts.slice(3).join("_").toLowerCase();
             
-            // Verificar se tem prefixo de afiliado (formato: afiliado:email@real.com)
             if (emailWithAffiliate && emailWithAffiliate.includes(":") && emailWithAffiliate.includes("@")) {
               const colonIndex = emailWithAffiliate.indexOf(":");
               const potentialAffiliate = emailWithAffiliate.substring(0, colonIndex);
               const potentialEmail = emailWithAffiliate.substring(colonIndex + 1);
               
-              // Verificar se depois do : é um email válido
               if (potentialEmail.includes("@")) {
                 affiliateId = potentialAffiliate;
                 email = potentialEmail;
                 log("Detected affiliate sale", { affiliateId, realEmail: email });
               } else {
-                // Não é formato de afiliado, é o email completo
                 email = emailWithAffiliate;
               }
             } else if (emailWithAffiliate) {
-              // Email normal sem afiliado
               email = emailWithAffiliate;
             }
           }
           log("Parsed MRO order", { username, email, emailWithAffiliate, affiliateId });
           break;
         }
-        // Formato antigo: MRO_email
         else if (itemName.startsWith("MRO_")) {
           email = itemName.replace("MRO_", "").toLowerCase();
           emailWithAffiliate = email;
@@ -134,7 +163,7 @@ serve(async (req) => {
         }
       }
 
-      // Se não encontrou pelo NSU, tentar pelo email com afiliado + username (como está salvo no banco)
+      // Se não encontrou pelo NSU, tentar pelo email com afiliado + username
       if (!mroOrder && emailWithAffiliate && username) {
         const result = await supabase
           .from("mro_orders")
@@ -149,11 +178,11 @@ serve(async (req) => {
         mroOrder = result.data;
         
         if (mroOrder) {
-          log("Found MRO order by emailWithAffiliate+username", { orderId: mroOrder.id, emailWithAffiliate, username });
+          log("Found MRO order by emailWithAffiliate+username", { orderId: mroOrder.id });
         }
       }
 
-      // Se ainda não encontrou, tentar pelo email real + username
+      // Tentar pelo email real + username
       if (!mroOrder && email && username && email !== emailWithAffiliate) {
         const result = await supabase
           .from("mro_orders")
@@ -168,7 +197,7 @@ serve(async (req) => {
         mroOrder = result.data;
         
         if (mroOrder) {
-          log("Found MRO order by realEmail+username", { orderId: mroOrder.id, email, username });
+          log("Found MRO order by realEmail+username", { orderId: mroOrder.id });
         }
       }
 
@@ -186,7 +215,50 @@ serve(async (req) => {
         mroOrder = result.data;
         
         if (mroOrder) {
-          log("Found MRO order by username only", { orderId: mroOrder.id, username });
+          log("Found MRO order by username only", { orderId: mroOrder.id });
+        }
+      }
+
+      // Se ainda não encontrou, verificar via API da InfiniPay e buscar pedidos pendentes recentes
+      if (!mroOrder && order_nsu) {
+        log("No order found, verifying payment via API and checking recent pending orders");
+        
+        // Verificar se o pagamento foi confirmado via API
+        const { paid } = await verifyPaymentWithAPI(order_nsu, transaction_nsu, invoice_slug);
+        
+        if (paid) {
+          log("Payment confirmed via API, looking for recent pending orders");
+          
+          // Buscar pedidos pendentes recentes (últimos 30 minutos)
+          const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+          const { data: recentOrders } = await supabase
+            .from("mro_orders")
+            .select("*")
+            .eq("status", "pending")
+            .gte("created_at", thirtyMinutesAgo)
+            .order("created_at", { ascending: false })
+            .limit(10);
+          
+          if (recentOrders && recentOrders.length > 0) {
+            // Tentar encontrar pelo email ou username no item description
+            for (const order of recentOrders) {
+              if (
+                (email && order.email.includes(email)) ||
+                (username && order.username === username) ||
+                (emailWithAffiliate && order.email === emailWithAffiliate)
+              ) {
+                mroOrder = order;
+                log("Found matching order from recent pending", { orderId: order.id });
+                break;
+              }
+            }
+            
+            // Se não encontrou match específico, pegar o mais recente
+            if (!mroOrder) {
+              mroOrder = recentOrders[0];
+              log("Using most recent pending order", { orderId: mroOrder.id });
+            }
+          }
         }
       }
 
