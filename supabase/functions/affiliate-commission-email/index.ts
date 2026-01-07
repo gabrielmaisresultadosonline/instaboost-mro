@@ -19,7 +19,7 @@ serve(async (req) => {
 
   try {
     const { 
-      type, // 'commission' | 'summary' | 'welcome'
+      type, // 'commission' | 'summary' | 'welcome' | 'simple_summary'
       affiliateEmail, 
       affiliateName,
       affiliateId,
@@ -44,7 +44,10 @@ serve(async (req) => {
       // WhatsApp number (optional, will fallback to storage)
       whatsappNumber,
       // Timestamp do resumo
-      summaryTimestamp
+      summaryTimestamp,
+      // For simple_summary
+      notPaidAttempts,
+      resumoLink
     } = await req.json();
     
     logStep("Request received", { type, affiliateEmail, affiliateName, affiliateId });
@@ -367,6 +370,29 @@ Continue assim! Você está no caminho certo! 🔥
 </table>
 </body>
 </html>`;
+
+    } else if (type === 'simple_summary') {
+      // Email simplificado com link
+      const timestamp = summaryTimestamp || new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      
+      subject = `📊 Seu Resumo de Vendas MRO - ${totalSales} vendas | R$${totalCommission}`;
+      
+      htmlContent = `Ola ${finalAffiliateName}!
+
+Seu resumo de vendas esta pronto:
+
+- Vendas: ${totalSales}
+- Comissao: R$${totalCommission}
+- Tentativas a recuperar: ${notPaidAttempts || 0}
+
+Acesse seu resumo completo com todos os detalhes:
+${resumoLink}
+
+Senha de acesso: ${affiliateId || 'mro2024'}
+
+Atualizado em ${timestamp}
+
+MRO - Programa de Afiliados`;
 
     } else if (type === 'summary' || type === 'partial_summary') {
       // Email de resumo (final ou parcial)

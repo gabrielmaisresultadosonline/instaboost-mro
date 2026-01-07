@@ -196,3 +196,6 @@ verify_jwt = false
 
 [functions.euro-sales-summary]
 verify_jwt = false
+
+[functions.affiliate-resumo-storage]
+verify_jwt = false
