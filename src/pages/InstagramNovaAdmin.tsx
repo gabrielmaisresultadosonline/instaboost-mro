@@ -34,7 +34,9 @@ import {
   X,
   Filter,
   Upload,
-  Clipboard
+  Clipboard,
+  Pencil,
+  Plus
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import {
@@ -126,6 +128,8 @@ export default function InstagramNovaAdmin() {
   const [promoEndTime, setPromoEndTime] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [isEditingAffiliate, setIsEditingAffiliate] = useState(false);
+  const [editingAffiliateOriginalId, setEditingAffiliateOriginalId] = useState<string | null>(null);
   
   // Histórico de afiliados
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
@@ -593,6 +597,38 @@ ${GROUP_LINK}`;
     }
   };
 
+  // Limpar formulário para novo afiliado
+  const clearAffiliateForm = () => {
+    setAffiliateId("");
+    setAffiliateName("");
+    setAffiliateEmail("");
+    setAffiliatePhotoUrl("");
+    setAffiliateActive(true);
+    setPromoStartDate("");
+    setPromoEndDate("");
+    setPromoStartTime("");
+    setPromoEndTime("");
+    setIsEditingAffiliate(false);
+    setEditingAffiliateOriginalId(null);
+  };
+
+  // Carregar afiliado para edição
+  const loadAffiliateForEdit = (affiliate: Affiliate) => {
+    setAffiliateId(affiliate.id);
+    setAffiliateName(affiliate.name);
+    setAffiliateEmail(affiliate.email);
+    setAffiliatePhotoUrl(affiliate.photoUrl);
+    setAffiliateActive(affiliate.active);
+    setPromoStartDate(affiliate.promoStartDate || "");
+    setPromoEndDate(affiliate.promoEndDate || "");
+    setPromoStartTime(affiliate.promoStartTime || "");
+    setPromoEndTime(affiliate.promoEndTime || "");
+    setIsEditingAffiliate(true);
+    setEditingAffiliateOriginalId(affiliate.id);
+    setActiveTab("config");
+    toast.info(`Editando afiliado: ${affiliate.name}`);
+  };
+
   // Salvar configuração de afiliado
   const saveAffiliateConfig = () => {
     if (!affiliateId.trim()) {
@@ -612,6 +648,14 @@ ${GROUP_LINK}`;
     try {
       const cleanId = affiliateId.trim().toLowerCase();
       
+      // Verificar se ID já existe (exceto se estiver editando o mesmo)
+      const existingWithSameId = affiliates.find(a => a.id === cleanId);
+      if (existingWithSameId && editingAffiliateOriginalId !== cleanId) {
+        toast.error("Já existe um afiliado com este identificador!");
+        setSavingAffiliate(false);
+        return;
+      }
+      
       // Salvar no localStorage
       localStorage.setItem("mro_affiliate_id", cleanId);
       localStorage.setItem("mro_affiliate_name", affiliateName.trim());
@@ -620,7 +664,7 @@ ${GROUP_LINK}`;
       localStorage.setItem("mro_affiliate_active", affiliateActive.toString());
       
       // Adicionar/atualizar no histórico
-      const existingIndex = affiliates.findIndex(a => a.id === cleanId);
+      const existingIndex = affiliates.findIndex(a => a.id === (editingAffiliateOriginalId || cleanId));
       const newAffiliate: Affiliate = {
         id: cleanId,
         name: affiliateName.trim(),
@@ -638,14 +682,18 @@ ${GROUP_LINK}`;
       let updatedAffiliates: Affiliate[];
       if (existingIndex >= 0) {
         updatedAffiliates = affiliates.map((a, i) => i === existingIndex ? newAffiliate : a);
+        toast.success("Afiliado atualizado com sucesso!");
       } else {
         updatedAffiliates = [...affiliates, newAffiliate];
+        toast.success("Novo afiliado cadastrado com sucesso!");
       }
       
       setAffiliates(updatedAffiliates);
       localStorage.setItem("mro_affiliates_history", JSON.stringify(updatedAffiliates));
       
-      toast.success("Configuração de afiliado salva com sucesso!");
+      // Resetar estado de edição
+      setIsEditingAffiliate(false);
+      setEditingAffiliateOriginalId(null);
     } catch (error) {
       toast.error("Erro ao salvar configuração");
     } finally {
@@ -1109,6 +1157,42 @@ ${GROUP_LINK}`;
 
                 {/* Tab: Configuração */}
                 <TabsContent value="config">
+                  {/* Cabeçalho com botões */}
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-purple-500/20">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-white font-semibold">
+                        {isEditingAffiliate ? `Editando: ${affiliateName || editingAffiliateOriginalId}` : "Novo Afiliado"}
+                      </h3>
+                      {isEditingAffiliate && (
+                        <Badge className="bg-blue-500/20 text-blue-400">Modo Edição</Badge>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {isEditingAffiliate && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={clearAffiliateForm}
+                          className="border-zinc-600 text-zinc-300"
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          Cancelar Edição
+                        </Button>
+                      )}
+                      {!isEditingAffiliate && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={clearAffiliateForm}
+                          className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Novo Afiliado
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     <div>
                       <label className="text-sm text-zinc-400 mb-1 block">Identificador do Afiliado *</label>
@@ -1281,11 +1365,26 @@ ${GROUP_LINK}`;
 
                 {/* Tab: Histórico de Afiliados */}
                 <TabsContent value="affiliates">
+                  {/* Botão novo afiliado no topo */}
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-purple-500/20">
+                    <div className="text-zinc-400 text-sm">
+                      {affiliates.length} afiliado(s) cadastrado(s)
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => { clearAffiliateForm(); setActiveTab("config"); }}
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Novo Afiliado
+                    </Button>
+                  </div>
+                  
                   {affiliates.length === 0 ? (
                     <div className="text-center py-8 text-zinc-400">
                       <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
                       <p>Nenhum afiliado cadastrado</p>
-                      <p className="text-sm">Configure um afiliado na aba "Configuração"</p>
+                      <p className="text-sm">Clique em "+ Novo Afiliado" para começar</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1372,6 +1471,15 @@ ${GROUP_LINK}`;
                                       Parar + Resumo
                                     </Button>
                                   )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => loadAffiliateForEdit(affiliate)}
+                                    className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                                  >
+                                    <Pencil className="w-4 h-4 mr-1" />
+                                    Editar
+                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="ghost"
