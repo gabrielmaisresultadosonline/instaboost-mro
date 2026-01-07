@@ -830,6 +830,58 @@ ${GROUP_LINK}`;
     }
   };
 
+  // Enviar apenas resumo (sem parar promoção)
+  const sendSummaryOnly = async (affiliate: Affiliate) => {
+    if (!confirm(`Enviar resumo de vendas até agora para ${affiliate.name}?\n\nA promoção continuará ativa.`)) {
+      return;
+    }
+    
+    setSendingEmail(true);
+    try {
+      // Buscar vendas deste afiliado
+      const affiliateSales = orders.filter(o => 
+        (o.status === "paid" || o.status === "completed") && 
+        o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
+      );
+      
+      const totalCommission = affiliateSales.length * 97;
+      
+      // Preparar lista de vendas
+      const salesList = affiliateSales.map(sale => ({
+        customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
+        customerName: sale.username,
+        amount: sale.amount,
+        date: format(new Date(sale.paid_at || sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+      }));
+      
+      // Enviar email de resumo parcial
+      const { error } = await supabase.functions.invoke("affiliate-commission-email", {
+        body: {
+          type: "partial_summary", // Tipo diferente para indicar que é parcial
+          affiliateEmail: affiliate.email,
+          affiliateName: affiliate.name,
+          totalSales: affiliateSales.length,
+          totalCommission: totalCommission,
+          salesList: salesList,
+          promoStartTime: affiliate.promoStartTime,
+          promoEndTime: affiliate.promoEndTime
+        }
+      });
+      
+      if (error) {
+        toast.error("Erro ao enviar email de resumo");
+        return;
+      }
+      
+      toast.success(`Resumo parcial enviado para ${affiliate.name}!`);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao processar");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   // Parar promoção e enviar resumo
   const stopAffiliatePromo = async (affiliate: Affiliate) => {
     if (!confirm(`Deseja parar a promoção de ${affiliate.name} e enviar o resumo por email?`)) {
@@ -1693,7 +1745,7 @@ ${GROUP_LINK}`;
                                   <p className="text-xl font-bold text-green-400">R$ {commission}</p>
                                 </div>
                                 
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
                                   {!affiliate.active ? (
                                     <Button
                                       size="sm"
@@ -1704,16 +1756,30 @@ ${GROUP_LINK}`;
                                       Ativar
                                     </Button>
                                   ) : (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => stopAffiliatePromo(affiliate)}
-                                      className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-                                      disabled={sendingEmail}
-                                    >
-                                      {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <PowerOff className="w-4 h-4 mr-1" />}
-                                      Parar + Resumo
-                                    </Button>
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => sendSummaryOnly(affiliate)}
+                                        className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                                        disabled={sendingEmail}
+                                        title="Enviar resumo parcial sem parar a promoção"
+                                      >
+                                        {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
+                                        Resumir
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => stopAffiliatePromo(affiliate)}
+                                        className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                                        disabled={sendingEmail}
+                                        title="Parar promoção e enviar resumo final"
+                                      >
+                                        {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <PowerOff className="w-4 h-4 mr-1" />}
+                                        Parar + Resumo
+                                      </Button>
+                                    </>
                                   )}
                                   <Button
                                     size="sm"

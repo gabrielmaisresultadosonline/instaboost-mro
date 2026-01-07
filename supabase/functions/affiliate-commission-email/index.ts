@@ -363,9 +363,12 @@ Continue assim! Você está no caminho certo! 🔥
 </body>
 </html>`;
 
-    } else if (type === 'summary') {
-      // Email de resumo final
-      subject = `📊 Resumo Final das suas Vendas - ${finalAffiliateName}`;
+    } else if (type === 'summary' || type === 'partial_summary') {
+      // Email de resumo (final ou parcial)
+      const isPartial = type === 'partial_summary';
+      subject = isPartial 
+        ? `📊 Resumo Parcial das suas Vendas - ${finalAffiliateName}`
+        : `📊 Resumo Final das suas Vendas - ${finalAffiliateName}`;
       
       // Build sales table rows
       let salesRows = '';
@@ -382,6 +385,18 @@ Continue assim! Você está no caminho certo! 🔥
         });
       }
 
+      const headerTitle = isPartial 
+        ? '📊 Resumo Parcial de Vendas'
+        : '📊 Resumo Final de Vendas';
+      
+      const subtitle = isPartial
+        ? 'Aqui está o resumo das suas vendas até agora!'
+        : 'Aqui está o resumo completo das suas vendas!';
+      
+      const footerMessage = isPartial
+        ? 'A promoção continua ativa! Continue vendendo! 🚀'
+        : `${promoEndTime ? `A promoção foi finalizada às ${promoEndTime}.` : 'A promoção foi finalizada.'}<br>Seu pagamento será processado em breve.`;
+
       htmlContent = `<!DOCTYPE html>
 <html>
 <head>
@@ -391,17 +406,18 @@ Continue assim! Você está no caminho certo! 🔥
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:700px;margin:0 auto;background:#ffffff;">
 <tr>
-<td style="background:linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%);padding:30px;text-align:center;">
+<td style="background:linear-gradient(135deg,${isPartial ? '#3b82f6 0%,#1d4ed8' : '#8b5cf6 0%,#6366f1'} 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#FFD700;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#fff;margin:15px 0 0 0;font-size:28px;">📊 Resumo Final de Vendas</h1>
+<h1 style="color:#fff;margin:15px 0 0 0;font-size:28px;">${headerTitle}</h1>
+${isPartial ? '<p style="color:#fbbf24;margin:10px 0 0 0;font-size:14px;font-weight:bold;">📍 Promoção ainda em andamento!</p>' : ''}
 </td>
 </tr>
 <tr>
 <td style="padding:30px;background:#ffffff;">
 
 <div style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:25px;border-radius:15px;margin-bottom:25px;text-align:center;">
-<p style="margin:0;color:#000;font-size:18px;font-weight:bold;">🎉 PARABÉNS, ${finalAffiliateName.toUpperCase()}!</p>
-<p style="margin:10px 0 0 0;color:#000;font-size:14px;">Aqui está o resumo completo das suas vendas!</p>
+<p style="margin:0;color:#000;font-size:18px;font-weight:bold;">${isPartial ? '📈' : '🎉'} PARABÉNS, ${finalAffiliateName.toUpperCase()}!</p>
+<p style="margin:10px 0 0 0;color:#000;font-size:14px;">${subtitle}</p>
 ${promoStartTime && promoEndTime ? `<p style="margin:10px 0 0 0;color:#333;font-size:13px;">⏰ Promoção: ${promoStartTime} às ${promoEndTime}</p>` : ''}
 </div>
 
@@ -410,13 +426,13 @@ ${promoStartTime && promoEndTime ? `<p style="margin:10px 0 0 0;color:#333;font-
 <tr>
 <td width="50%" style="padding-right:10px;">
 <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:15px;padding:20px;text-align:center;">
-<p style="margin:0;color:#666;font-size:12px;">Total de Vendas</p>
+<p style="margin:0;color:#666;font-size:12px;">Total de Vendas ${isPartial ? '(até agora)' : ''}</p>
 <p style="margin:5px 0;color:#10b981;font-size:36px;font-weight:bold;">${totalSales || 0}</p>
 </div>
 </td>
 <td width="50%" style="padding-left:10px;">
 <div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:15px;padding:20px;text-align:center;">
-<p style="margin:0;color:#666;font-size:12px;">Comissão Total</p>
+<p style="margin:0;color:#666;font-size:12px;">Comissão ${isPartial ? 'Acumulada' : 'Total'}</p>
 <p style="margin:5px 0;color:#f59e0b;font-size:36px;font-weight:bold;">R$ ${totalCommission || '0'},00</p>
 </div>
 </td>
@@ -442,13 +458,12 @@ ${salesRows || '<tr><td colspan="5" style="padding:20px;text-align:center;color:
 </table>
 </div>
 
-<div style="background:#ede9fe;border:2px solid #8b5cf6;border-radius:15px;padding:20px;text-align:center;margin-bottom:25px;">
-<p style="margin:0;color:#6366f1;font-size:16px;font-weight:bold;">
-🙏 Obrigado por fazer parte da família MRO!
+<div style="background:${isPartial ? '#dbeafe' : '#ede9fe'};border:2px solid ${isPartial ? '#3b82f6' : '#8b5cf6'};border-radius:15px;padding:20px;text-align:center;margin-bottom:25px;">
+<p style="margin:0;color:${isPartial ? '#1d4ed8' : '#6366f1'};font-size:16px;font-weight:bold;">
+${isPartial ? '🔥 Continue vendendo!' : '🙏 Obrigado por fazer parte da família MRO!'}
 </p>
 <p style="margin:10px 0 0 0;color:#666;font-size:14px;">
-${promoEndTime ? `A promoção foi finalizada às ${promoEndTime}.` : 'A promoção foi finalizada.'}<br>
-Seu pagamento será processado em breve.
+${footerMessage}
 </p>
 </div>
 
@@ -465,7 +480,7 @@ Entre em contato conosco pelo suporte que teremos prazer em ajudar!
 <td style="background:#1a1a1a;padding:20px;text-align:center;">
 <p style="color:#FFD700;margin:0 0 10px 0;font-weight:bold;">MRO - Programa de Afiliados 💛</p>
 <p style="color:#888;margin:0;font-size:12px;">© ${new Date().getFullYear()} MRO - Mais Resultados Online</p>
-<p style="color:#666;margin:10px 0 0 0;font-size:11px;">Este é um resumo automático das suas vendas como afiliado.</p>
+<p style="color:#666;margin:10px 0 0 0;font-size:11px;">${isPartial ? 'Este é um resumo parcial - a promoção ainda está ativa!' : 'Este é um resumo automático das suas vendas como afiliado.'}</p>
 </td>
 </tr>
 </table>
