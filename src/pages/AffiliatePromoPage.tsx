@@ -36,7 +36,14 @@ import {
   Loader2,
   Phone,
   Timer,
-  AlertTriangle
+  AlertTriangle,
+  Calendar,
+  FileText,
+  DollarSign,
+  HelpCircle,
+  Smartphone,
+  TrendingUp,
+  ShoppingCart
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 
@@ -654,11 +661,254 @@ const AffiliatePromoPage = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* BÔNUS INCLUSOS */}
+      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-center mb-10 sm:mb-16">
+            + <span className="text-green-400">BÔNUS INCLUSOS</span>
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {/* Bônus 1 */}
+            <div className="bg-gradient-to-b from-gray-900 to-gray-950 border border-green-500/30 rounded-xl p-5 sm:p-6">
+              <div className="bg-green-500 rounded-full w-12 h-12 flex items-center justify-center mb-4 mx-auto">
+                <Brain className="w-6 h-6 text-black" />
+              </div>
+              <h3 className="text-center text-lg sm:text-xl font-bold mb-2 text-green-400">BÔNUS #1</h3>
+              <h4 className="text-center text-base sm:text-lg font-bold mb-3">Análise de I.A Completa</h4>
+              <p className="text-gray-400 text-sm text-center">
+                Nossa inteligência artificial analisa seu perfil em profundidade: bio, posts, engajamento e identifica todas as oportunidades de melhoria baseado no seu nicho.
+              </p>
+            </div>
+
+            {/* Bônus 2 */}
+            <div className="bg-gradient-to-b from-gray-900 to-gray-950 border border-green-500/30 rounded-xl p-5 sm:p-6">
+              <div className="bg-green-500 rounded-full w-12 h-12 flex items-center justify-center mb-4 mx-auto">
+                <Calendar className="w-6 h-6 text-black" />
+              </div>
+              <h3 className="text-center text-lg sm:text-xl font-bold mb-2 text-green-400">BÔNUS #2</h3>
+              <h4 className="text-center text-base sm:text-lg font-bold mb-3">Acompanhamento Anual</h4>
+              <p className="text-gray-400 text-sm text-center">
+                Suporte e acompanhamento durante todo o ano para garantir que você está sempre evoluindo e alcançando seus objetivos de crescimento.
+              </p>
+            </div>
+
+            {/* Bônus 3 */}
+            <div className="bg-gradient-to-b from-gray-900 to-gray-950 border border-green-500/30 rounded-xl p-5 sm:p-6">
+              <div className="bg-green-500 rounded-full w-12 h-12 flex items-center justify-center mb-4 mx-auto">
+                <RefreshCw className="w-6 h-6 text-black" />
+              </div>
+              <h3 className="text-center text-lg sm:text-xl font-bold mb-2 text-green-400">BÔNUS #3</h3>
+              <h4 className="text-center text-base sm:text-lg font-bold mb-3">Estratégias Mensais (30 em 30 dias)</h4>
+              <p className="text-gray-400 text-sm text-center">
+                A cada 30 dias você recebe uma nova estratégia personalizada baseada no seu nicho e nos resultados do mês anterior.
+              </p>
+            </div>
+          </div>
+
+          {/* Mais recursos da I.A */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-xl sm:rounded-2xl p-5 sm:p-8 mb-6">
+            <h3 className="text-lg sm:text-xl font-bold mb-6 text-center">
+              E mais recursos da <span className="text-green-400">I.A da MRO</span>
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-sm sm:text-base">Ideias de Conteúdo Ilimitadas</h4>
+                  <p className="text-gray-400 text-sm">Dezenas de ideias de posts, reels e stories alinhadas com seu nicho</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <FileText className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-sm sm:text-base">Scripts de Vendas</h4>
+                  <p className="text-gray-400 text-sm">Scripts prontos e gatilhos mentais para transformar seguidores em clientes</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* BÔNUS GRÁTIS - Fature R$5.000 */}
+      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-500/50 rounded-2xl p-6 sm:p-10">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/50 rounded-full px-4 py-2 mb-4">
+                <Gift className="w-5 h-5 text-yellow-400" />
+                <span className="text-yellow-400 font-bold text-sm sm:text-base">BÔNUS GRÁTIS</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl md:text-4xl font-bold mb-4">
+                FAÇA MAIS DE <span className="text-green-400">5 MIL MENSAL</span> PRESTANDO SERVIÇO COM ESSA FERRAMENTA
+              </h2>
+              <p className="text-gray-300 text-sm sm:text-base max-w-3xl mx-auto mb-4">
+                Rode esse sistema para outras empresas e fature mensalmente por isso!
+              </p>
+            </div>
+
+            <div className="space-y-4 text-gray-300 text-sm sm:text-base mb-6">
+              <p>
+                Temos um método completo no qual você pode prestar serviços utilizando essa ferramenta, fechando contratos com empresas que buscam engajamento, clientes e vendas.
+              </p>
+              <p>
+                Você roda a ferramenta para o cliente, cobra uma mensalidade, e gera uma renda recorrente. Tudo pode ser feito de qualquer lugar do mundo com seu notebook.
+              </p>
+              <p>
+                Para quem deseja oferecer esse serviço, entregamos <strong className="text-white">4 contas vitalícias + 5 testes grátis por mês</strong> (de 1 dia cada).
+              </p>
+              <p>
+                Esses testes servem para apresentar o serviço: você roda a ferramenta por 1 dia, o cliente vê o resultado e você fecha um contrato mensal com ele.
+              </p>
+            </div>
+
+            {/* Video de como faturar */}
+            <div 
+              onClick={() => openVideo("WQwnAHNvSMU")}
+              className="relative rounded-xl overflow-hidden cursor-pointer group shadow-xl mb-6 max-w-2xl mx-auto"
+            >
+              <img 
+                src="https://img.youtube.com/vi/WQwnAHNvSMU/maxresdefault.jpg" 
+                alt="Video Como Faturar" 
+                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center group-hover:bg-black/40 transition-colors">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                  <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" fill="white" />
+                </div>
+              </div>
+              <div className="absolute bottom-2 left-2 right-2 text-center">
+                <span className="bg-black/70 text-white text-xs sm:text-sm px-3 py-1 rounded-full">
+                  🎬 VÍDEO: COMO FATURAR COM A MRO
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-green-500/20 border border-green-500/50 rounded-xl p-4 sm:p-6 text-center mb-4">
+              <DollarSign className="w-10 h-10 text-green-400 mx-auto mb-2" />
+              <p className="text-green-400 font-bold text-lg sm:text-xl">
+                OU SEJA, VOCÊ PODE FATURAR MAIS DE R$5.000,00 POR MÊS PRESTANDO SERVIÇO COM ESSA FERRAMENTA!
+              </p>
+            </div>
+
+            <p className="text-gray-400 text-sm text-center">
+              Caso precise de mais contas no futuro, cobramos R$150 por conta adicional para quem já utiliza o sistema.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Video de Apresentação */}
+      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-black">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6">
+            CONFIRA UMA APRESENTAÇÃO DE COMO DESENVOLVEMOS ESSA SOLUÇÃO:
+          </h2>
+          <p className="text-gray-400 mb-8">
+            Está pronto para começar? Entre em contato e garanta seu acesso vitalício agora mesmo!
+          </p>
+          
+          <Button 
+            onClick={scrollToPricing}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30"
+          >
+            GARANTIR MEU ACESSO <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-12">
+            Perguntas <span className="text-green-400">Frequentes</span>
+          </h2>
+
+          <div className="space-y-4">
+            {[
+              {
+                question: "Quais são os planos disponíveis hoje?",
+                answer: "Oferecemos o Plano Anual Completo que inclui acesso à ferramenta MRO, 4 contas simultâneas, 5 testes mensais, área de membros, grupo VIP e todos os bônus exclusivos."
+              },
+              {
+                question: "Por que interagir em massa vai me ajudar?",
+                answer: "A interação em massa com perfis estratégicos do seu nicho faz com que mais pessoas vejam seu perfil, aumentando naturalmente seu alcance, engajamento e seguidores qualificados."
+              },
+              {
+                question: "Mas isso traz vendas, ou só seguidores?",
+                answer: "Traz vendas! Quando você interage com pessoas do seu nicho que têm interesse no que você oferece, elas vêm até seu perfil e se tornam potenciais clientes. Diferente de seguidores comprados, esses são reais e interessados."
+              },
+              {
+                question: "Isso em massa não gera bloqueio?",
+                answer: "Não! Nossa ferramenta foi desenvolvida para respeitar os limites do Instagram, com intervalos e comportamentos humanizados. Milhares de usuários usam diariamente sem problemas."
+              },
+              {
+                question: "Funciona só em computador?",
+                answer: "Sim, nossa ferramenta é compatível apenas com computadores de mesa, notebooks ou MacBooks. Não funciona em celulares, tablets ou dispositivos móveis."
+              }
+            ].map((faq, i) => (
+              <details key={i} className="group bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
+                <summary className="flex items-center justify-between gap-4 p-4 sm:p-5 cursor-pointer list-none">
+                  <div className="flex items-center gap-3">
+                    <HelpCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                    <span className="font-medium text-sm sm:text-base">{faq.question}</span>
+                  </div>
+                  <ChevronDown className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform flex-shrink-0" />
+                </summary>
+                <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
+                  <p className="text-gray-400 text-sm sm:text-base ml-8">{faq.answer}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Ainda está com dúvidas? */}
       <section className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-xl sm:text-2xl md:text-4xl font-bold mb-4 sm:mb-6">
-            Não perca essa <span className="text-green-400">oportunidade única!</span>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
+            Ainda está com <span className="text-green-400">dúvidas?</span>
+          </h2>
+          <p className="text-gray-400 mb-8 text-sm sm:text-base">
+            Veja no vídeo abaixo como nossa ferramenta pode transformar seus resultados sem gastar com anúncios pagos
+          </p>
+
+          {/* Resultados cards */}
+          <div className="grid sm:grid-cols-3 gap-4 mb-10">
+            <div className="bg-gray-900/50 border border-green-500/30 rounded-xl p-5">
+              <TrendingUp className="w-10 h-10 text-green-400 mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Resultados Rápidos</h3>
+              <p className="text-gray-400 text-sm">Em apenas 7 horas utilizando nossa ferramenta você já começa a ver os primeiros resultados no seu negócio</p>
+            </div>
+            <div className="bg-gray-900/50 border border-green-500/30 rounded-xl p-5">
+              <Heart className="w-10 h-10 text-green-400 mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Engajamento Garantido</h3>
+              <p className="text-gray-400 text-sm">Aumente significativamente o engajamento do seu público sem depender de algoritmos ou anúncios pagos</p>
+            </div>
+            <div className="bg-gray-900/50 border border-green-500/30 rounded-xl p-5">
+              <ShoppingCart className="w-10 h-10 text-green-400 mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Mais Vendas</h3>
+              <p className="text-gray-400 text-sm">Método comprovado que gera clientes e aumenta suas vendas de forma consistente e previsível</p>
+            </div>
+          </div>
+
+          {/* Nota de compatibilidade */}
+          <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 mb-6 flex items-center justify-center gap-3">
+            <Monitor className="w-5 h-5 text-gray-400" />
+            <p className="text-gray-400 text-xs sm:text-sm">
+              <strong className="text-white">Nota:</strong> Nossa ferramenta é compatível apenas com computadores de mesa, notebooks ou MacBooks. Não funciona em celulares, tablets ou dispositivos móveis.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA - Pronto para Escalar? */}
+      <section className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-6">
+            Pronto para <span className="text-green-400">Escalar seu Instagram?</span>
           </h2>
           
           <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
