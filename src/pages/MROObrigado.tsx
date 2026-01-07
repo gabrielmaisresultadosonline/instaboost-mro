@@ -13,7 +13,10 @@ export default function MROObrigado() {
   const [order, setOrder] = useState<any>(null);
   const [checking, setChecking] = useState(false);
 
-  const nsu = searchParams.get("nsu");
+  // Parâmetros da URL - podem vir do redirect do InfiniPay
+  const nsu = searchParams.get("nsu") || searchParams.get("order_nsu");
+  const transactionNsu = searchParams.get("transaction_nsu");
+  const slug = searchParams.get("slug");
 
   useEffect(() => {
     if (nsu) {
@@ -41,9 +44,16 @@ export default function MROObrigado() {
       // Se ainda não está completo, verificar pagamento
       if (data.status === "pending") {
         setChecking(true);
-        // Tentar verificar via edge function
+        
+        // Verificar via edge function passando parâmetros do redirect do InfiniPay
+        console.log("[MROObrigado] Verificando pagamento", { nsu, transactionNsu, slug });
+        
         await supabase.functions.invoke("check-mro-payment", {
-          body: { nsu_order: nsu }
+          body: { 
+            nsu_order: nsu,
+            transaction_nsu: transactionNsu,
+            slug: slug
+          }
         });
         
         // Recarregar após verificação
