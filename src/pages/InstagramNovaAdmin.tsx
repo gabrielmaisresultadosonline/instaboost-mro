@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -144,6 +145,11 @@ export default function InstagramNovaAdmin() {
   // Envio de emails
   const [sendingEmail, setSendingEmail] = useState(false);
   const [sendingWelcomeEmail, setSendingWelcomeEmail] = useState<string | null>(null);
+  
+  // Modal de resumo com email adicional
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [summaryModalAffiliate, setSummaryModalAffiliate] = useState<Affiliate | null>(null);
+  const [additionalEmail, setAdditionalEmail] = useState("");
   
   // Configuração de WhatsApp para emails de afiliados
   const [affiliateWhatsApp, setAffiliateWhatsApp] = useState("");
@@ -830,11 +836,16 @@ ${GROUP_LINK}`;
     }
   };
 
+  // Abrir modal de resumo
+  const openSummaryModal = (affiliate: Affiliate) => {
+    setSummaryModalAffiliate(affiliate);
+    setAdditionalEmail("");
+    setShowSummaryModal(true);
+  };
+
   // Enviar apenas resumo (sem parar promoção)
-  const sendSummaryOnly = async (affiliate: Affiliate) => {
-    if (!confirm(`Enviar resumo de vendas e tentativas para ${affiliate.name}?\n\nA promoção continuará ativa.`)) {
-      return;
-    }
+  const sendSummaryOnly = async (affiliate: Affiliate, extraEmail?: string) => {
+    setShowSummaryModal(false);
     
     setSendingEmail(true);
     try {
@@ -886,29 +897,39 @@ ${GROUP_LINK}`;
         hasPaid: item.hasPaid
       }));
       
-      // Enviar email de resumo parcial
-      const { error } = await supabase.functions.invoke("affiliate-commission-email", {
-        body: {
-          type: "partial_summary",
-          affiliateEmail: affiliate.email,
-          affiliateName: affiliate.name,
-          totalSales: affiliateSales.length,
-          totalCommission: totalCommission,
-          salesList: salesList,
-          attemptsList: attemptsList,
-          multipleAttemptsList: multipleAttemptsList,
-          promoStartTime: affiliate.promoStartTime,
-          promoEndTime: affiliate.promoEndTime,
-          summaryTimestamp: timestamp
-        }
-      });
-      
-      if (error) {
-        toast.error("Erro ao enviar email de resumo");
-        return;
+      // Lista de emails para enviar
+      const emailsToSend = [affiliate.email];
+      if (extraEmail && extraEmail.trim() && extraEmail.includes("@")) {
+        emailsToSend.push(extraEmail.trim());
       }
       
-      toast.success(`Resumo enviado para ${affiliate.name}! (${timestamp})`);
+      // Enviar para cada email
+      for (const targetEmail of emailsToSend) {
+        const { error } = await supabase.functions.invoke("affiliate-commission-email", {
+          body: {
+            type: "partial_summary",
+            affiliateEmail: targetEmail,
+            affiliateName: affiliate.name,
+            totalSales: affiliateSales.length,
+            totalCommission: totalCommission,
+            salesList: salesList,
+            attemptsList: attemptsList,
+            multipleAttemptsList: multipleAttemptsList,
+            promoStartTime: affiliate.promoStartTime,
+            promoEndTime: affiliate.promoEndTime,
+            summaryTimestamp: timestamp
+          }
+        });
+        
+        if (error) {
+          console.error(`Error sending to ${targetEmail}:`, error);
+        }
+      }
+      
+      const destinations = emailsToSend.length > 1 
+        ? `${affiliate.name} e ${extraEmail}` 
+        : affiliate.name;
+      toast.success(`Resumo enviado para ${destinations}! (${timestamp})`);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao processar");
@@ -1895,7 +1916,7 @@ ${GROUP_LINK}`;
                                       <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => sendSummaryOnly(affiliate)}
+                                        onClick={() => openSummaryModal(affiliate)}
                                         className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
                                         disabled={sendingEmail}
                                         title="Enviar resumo parcial sem parar a promoção"
@@ -2422,6 +2443,66 @@ ${GROUP_LINK}`;
           </div>
         )}
       </div>
+
+      {/* Modal de Resumo com Email Adicional */}
+      <Dialog open={showSummaryModal} onOpenChange={setShowSummaryModal}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Send className="w-5 h-5 text-purple-400" />
+              Enviar Resumo
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Enviar resumo de vendas e tentativas para {summaryModalAffiliate?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700/50">
+              <p className="text-sm text-zinc-400 mb-1">Destino principal:</p>
+              <p className="text-white font-medium">{summaryModalAffiliate?.email}</p>
+            </div>
+            
+            <div>
+              <label className="text-sm text-zinc-400 mb-2 block">
+                Email adicional (opcional)
+              </label>
+              <Input
+                type="email"
+                placeholder="seu@email.com"
+                value={additionalEmail}
+                onChange={(e) => setAdditionalEmail(e.target.value)}
+                className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
+              />
+              <p className="text-xs text-zinc-500 mt-1">
+                Digite um email extra para receber uma cópia do resumo
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowSummaryModal(false)}
+              className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => summaryModalAffiliate && sendSummaryOnly(summaryModalAffiliate, additionalEmail)}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              disabled={sendingEmail}
+            >
+              {sendingEmail ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Enviar Resumo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
