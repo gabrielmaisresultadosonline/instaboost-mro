@@ -1,279 +1,129 @@
-import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CheckCircle, ExternalLink, Copy, MessageCircle } from "lucide-react";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle, Sparkles, MessageCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { trackPageView, trackPurchase, trackLead } from "@/lib/facebookTracking";
 
-export default function MROObrigado() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [order, setOrder] = useState<any>(null);
-  const [checking, setChecking] = useState(false);
+const MROObrigado = () => {
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const { toast } = useToast();
 
-  // Parâmetros da URL - podem vir do redirect do InfiniPay
-  // Documentação InfiniPay: receipt_url, order_nsu, slug, capture_method, transaction_nsu
-  const nsu = searchParams.get("order_nsu") || searchParams.get("nsu");
-  const transactionNsu = searchParams.get("transaction_nsu");
-  const slug = searchParams.get("slug");
-  const captureMethod = searchParams.get("capture_method");
-  const receiptUrl = searchParams.get("receipt_url");
-
-  // Log para debug
+  // Track Purchase on page load (this is the thank you page after payment)
   useEffect(() => {
-    console.log("[MROObrigado] URL Params:", { 
-      nsu, transactionNsu, slug, captureMethod, receiptUrl,
-      allParams: Object.fromEntries(searchParams.entries())
-    });
+    trackPageView('Thank You Page - MRO Purchase Complete');
+    trackPurchase(397, 'MRO I.A + Automação');
   }, []);
 
-  useEffect(() => {
-    if (nsu) {
-      checkOrder();
-    } else {
-      setLoading(false);
-    }
-  }, [nsu]);
-
-  const checkOrder = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("mro_orders")
-        .select("*")
-        .eq("nsu_order", nsu)
-        .single();
-
-      if (error) {
-        console.error("Error fetching order:", error);
-        return;
-      }
-
-      setOrder(data);
-
-      // Se ainda não está completo, verificar pagamento
-      if (data.status === "pending" || data.status === "paid") {
-        setChecking(true);
-        
-        // Verificar via edge function passando parâmetros do redirect do InfiniPay
-        console.log("[MROObrigado] Verificando pagamento", { 
-          nsu, transactionNsu, slug, captureMethod, receiptUrl,
-          orderStatus: data.status 
-        });
-        
-        const result = await supabase.functions.invoke("check-mro-payment", {
-          body: { 
-            nsu_order: nsu,
-            transaction_nsu: transactionNsu,
-            slug: slug,
-            capture_method: captureMethod,
-            force_webhook: data.status === "paid" // Forçar webhook se já está pago
-          }
-        });
-        
-        console.log("[MROObrigado] Check result:", result);
-        
-        // Recarregar após verificação
-        setTimeout(() => {
-          checkOrder();
-        }, 3000);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-      setChecking(false);
-    }
-  };
-
-  const copyCredentials = async () => {
-    if (!order) return;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const text = `Usuário: ${order.username}\nSenha: ${order.username}`;
-    await navigator.clipboard.writeText(text);
-    toast.success("Credenciais copiadas!");
+    if (!nome.trim() || !email.trim()) {
+      toast({
+        title: "Preencha todos os campos",
+        description: "Nome e email são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Track Lead event when user submits form to WhatsApp
+    trackLead('Thank You Page - WhatsApp Access Request');
+
+    const message = encodeURIComponent(
+      `Olá! Acabei de comprar o MRO I.A + Automação!\n\nNome: ${nome.trim()}\nEmail: ${email.trim()}`
+    );
+    
+    window.open(`https://wa.me/555192036540?text=${message}`, "_blank");
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-zinc-800/80 border-zinc-700 backdrop-blur-sm">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-12 h-12 text-amber-500 animate-spin mb-4" />
-            <p className="text-zinc-400">Verificando pagamento...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-zinc-800/80 border-zinc-700 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-xl text-white">Pedido não encontrado</CardTitle>
-            <CardDescription className="text-zinc-400">
-              Não foi possível localizar seu pedido.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              onClick={() => navigate("/mroferramenta")}
-              className="w-full bg-amber-500 hover:bg-amber-600"
-            >
-              Voltar ao início
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const isCompleted = order.status === "completed";
-  const isPaid = order.status === "paid" || isCompleted;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-zinc-800/80 border-zinc-700 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          {isCompleted ? (
-            <>
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle className="w-8 h-8 text-white" />
-              </div>
-              <CardTitle className="text-2xl font-bold text-white">
-                Acesso Liberado! 🎉
-              </CardTitle>
-              <CardDescription className="text-zinc-400">
-                Seu acesso à ferramenta MRO Instagram foi liberado com sucesso!
-              </CardDescription>
-            </>
-          ) : isPaid ? (
-            <>
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center mb-4">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
-              </div>
-              <CardTitle className="text-2xl font-bold text-white">
-                Pagamento Confirmado!
-              </CardTitle>
-              <CardDescription className="text-zinc-400">
-                Aguarde enquanto liberamos seu acesso...
-              </CardDescription>
-            </>
-          ) : (
-            <>
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-zinc-500 to-zinc-600 rounded-full flex items-center justify-center mb-4">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
-              </div>
-              <CardTitle className="text-2xl font-bold text-white">
-                Aguardando Pagamento
-              </CardTitle>
-              <CardDescription className="text-zinc-400">
-                Seu pagamento ainda está sendo processado...
-              </CardDescription>
-            </>
-          )}
-        </CardHeader>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8">
+        {/* Celebration Header */}
+        <div className="text-center space-y-4 animate-fade-in">
+          <div className="relative inline-block">
+            <CheckCircle className="w-20 h-20 text-green-500 mx-auto animate-bounce" />
+            <Sparkles className="w-8 h-8 text-yellow-400 absolute -top-2 -right-2 animate-pulse" />
+            <Sparkles className="w-6 h-6 text-yellow-400 absolute -bottom-1 -left-2 animate-pulse" style={{ animationDelay: "0.5s" }} />
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-yellow-400 to-primary bg-clip-text text-transparent animate-pulse">
+            OBRIGADO!
+          </h1>
+          
+          <div className="space-y-2">
+            <p className="text-xl font-semibold text-foreground">
+              Parabéns por fazer parte do MRO!
+            </p>
+            <p className="text-muted-foreground">
+              Você acaba de adquirir um sistema que vai transformar seus resultados no Instagram com Inteligência Artificial + Automação.
+            </p>
+          </div>
+        </div>
 
-        <CardContent className="space-y-4">
-          {isCompleted && (
-            <>
-              <div className="bg-zinc-700/50 rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-400 text-sm">Usuário</span>
-                  <span className="text-white font-mono font-bold">{order.username}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-400 text-sm">Senha</span>
-                  <span className="text-white font-mono font-bold">{order.username}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-400 text-sm">Plano</span>
-                  <span className="text-amber-400 font-medium">
-                    {order.plan_type === "lifetime" ? "Vitalício" : "Anual (365 dias)"}
-                  </span>
-                </div>
-              </div>
-
-              <Button
-                onClick={copyCredentials}
-                variant="outline"
-                className="w-full border-zinc-600 text-zinc-300 hover:bg-zinc-700"
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copiar credenciais
-              </Button>
-
-              <Button
-                onClick={() => window.open("https://maisresultadosonline.com.br", "_blank")}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold"
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Acessar Área de Membros
-              </Button>
-
-              <Button
-                onClick={() => window.open("https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi", "_blank")}
-                variant="outline"
-                className="w-full border-green-600 text-green-400 hover:bg-green-900/20"
-              >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Entrar no Grupo de Avisos
-              </Button>
-
-              <p className="text-xs text-zinc-500 text-center">
-                Os dados de acesso também foram enviados para: <strong>{order.email}</strong>
+        {/* Form Card */}
+        <Card className="border-primary/30 bg-card/80 backdrop-blur-sm shadow-xl">
+          <CardContent className="p-6 space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-lg font-semibold text-foreground">
+                Para receber seu acesso
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Digite seus dados abaixo e clique em "Receber Acesso"
               </p>
-            </>
-          )}
+            </div>
 
-          {!isCompleted && (
-            <>
-              <div className="bg-zinc-700/30 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-400">NSU</span>
-                  <span className="text-white font-mono">{order.nsu_order}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-400">Email</span>
-                  <span className="text-white">{order.email}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-400">Status</span>
-                  <span className={isPaid ? "text-amber-400" : "text-zinc-400"}>
-                    {isPaid ? "Processando..." : "Aguardando pagamento"}
-                  </span>
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome Completo</Label>
+                <Input
+                  id="nome"
+                  type="text"
+                  placeholder="Digite seu nome completo"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="bg-background/50"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Digite seu melhor e-mail"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-background/50"
+                />
               </div>
 
               <Button
-                onClick={checkOrder}
-                variant="outline"
-                className="w-full border-zinc-600 text-zinc-300 hover:bg-zinc-700"
-                disabled={checking}
+                type="submit"
+                className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700 text-white gap-2"
               >
-                {checking ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Verificar novamente
-                  </>
-                )}
+                <MessageCircle className="w-5 h-5" />
+                Receber Acesso
               </Button>
+            </form>
 
-              <p className="text-xs text-zinc-500 text-center">
-                Esta página será atualizada automaticamente quando o pagamento for confirmado.
-              </p>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            <p className="text-xs text-center text-muted-foreground">
+              Ao clicar, você será direcionado ao WhatsApp para receber suas credenciais de acesso.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <p className="text-center text-sm text-muted-foreground">
+          © {new Date().getFullYear()} MRO - Mais Resultados Online
+        </p>
+      </div>
     </div>
   );
-}
+};
+
+export default MROObrigado;
