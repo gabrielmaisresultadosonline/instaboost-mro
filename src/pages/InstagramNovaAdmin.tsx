@@ -12,6 +12,7 @@ import {
   Search, 
   RefreshCw, 
   CheckCircle, 
+  CheckCircle2,
   Clock, 
   XCircle,
   Mail,
@@ -494,6 +495,45 @@ export default function InstagramNovaAdmin() {
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao verificar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Aprovar pagamento manualmente (reconhecer pagamento)
+  const approveManually = async (order: MROOrder) => {
+    if (!confirm(`Aprovar MANUALMENTE o pagamento de ${order.username}?\n\nIsso irá criar o acesso (se não existir) e enviar os emails.\nSe o usuário já foi criado manualmente, o sistema irá pular essa etapa e apenas confirmar.`)) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("mro-payment-webhook", {
+        body: { 
+          order_id: order.id,
+          manual_approve: true
+        }
+      });
+
+      if (error) {
+        toast.error("Erro ao aprovar manualmente");
+        return;
+      }
+
+      if (data.status === "completed") {
+        if (data.api_already_exists) {
+          toast.success(`Aprovado! Usuário já existia (criado manualmente). Email enviado: ${data.email_sent ? "Sim" : "Não"}`);
+        } else {
+          toast.success("Aprovação manual realizada! Acesso criado e email enviado.");
+        }
+      } else {
+        toast.warning(data.message || "Aprovação parcial realizada");
+      }
+
+      loadOrders();
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao aprovar manualmente");
     } finally {
       setLoading(false);
     }
@@ -1045,14 +1085,41 @@ ${GROUP_LINK}`;
               </Button>
             )}
             
-            {order.status === "pending" && (
+            {(order.status === "pending" || order.status === "expired") && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() => checkPayment(order)}
+                  className="bg-blue-500 hover:bg-blue-600 h-7 px-2 text-xs"
+                  disabled={loading}
+                  title="Verificar se pagamento foi confirmado"
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Verificar
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => approveManually(order)}
+                  className="bg-green-600 hover:bg-green-700 h-7 px-2 text-xs"
+                  disabled={loading}
+                  title="Aprovar manualmente e criar acesso"
+                >
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Aprovar
+                </Button>
+              </>
+            )}
+
+            {order.status === "paid" && !order.api_created && (
               <Button
                 size="sm"
-                onClick={() => checkPayment(order)}
-                className="bg-blue-500 hover:bg-blue-600 h-7 px-2 text-xs"
+                onClick={() => approveManually(order)}
+                className="bg-orange-500 hover:bg-orange-600 h-7 px-2 text-xs"
                 disabled={loading}
+                title="Reprocessar criação de acesso"
               >
-                Verificar
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Criar Acesso
               </Button>
             )}
             

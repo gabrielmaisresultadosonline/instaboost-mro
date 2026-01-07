@@ -15,10 +15,40 @@ const log = (step: string, details?: unknown) => {
   console.log(`[${timestamp}] [MRO-PAYMENT-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Verificar se usuário já existe
+async function checkUserExists(username: string): Promise<boolean> {
+  try {
+    log("Checking if user exists", { username });
+    const response = await fetch(`${INSTAGRAM_API_URL}/api/users/${username}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      const exists = !!(data && data.username);
+      log("User check result", { username, exists });
+      return exists;
+    }
+    return false;
+  } catch (error) {
+    log("Error checking user existence", { username, error: String(error) });
+    return false;
+  }
+}
+
 // Criar usuário na API SquareCloud/Instagram
-async function createInstagramUser(username: string, password: string, daysAccess: number): Promise<boolean> {
+async function createInstagramUser(username: string, password: string, daysAccess: number): Promise<{ success: boolean; alreadyExists: boolean; message: string }> {
   try {
     log("Creating Instagram user", { username, daysAccess });
+
+    // Primeiro verificar se já existe
+    const alreadyExists = await checkUserExists(username);
+    if (alreadyExists) {
+      log("User already exists - skipping creation", { username });
+      return { 
+        success: true, 
+        alreadyExists: true, 
+        message: "Usuário já existe - criado manualmente anteriormente" 
+      };
+    }
 
     // Primeiro habilitar usuário
     const enableResponse = await fetch(`${INSTAGRAM_API_URL}/habilitar-usuario/${username}`, {
@@ -44,10 +74,40 @@ async function createInstagramUser(username: string, password: string, daysAcces
     const result = await addResponse.json();
     log("Add user result", result);
 
-    return addResponse.ok;
+    if (addResponse.ok) {
+      return { success: true, alreadyExists: false, message: "Usuário criado com sucesso" };
+    } else {
+      // Se falhou, verificar se é porque já existe
+      const existsNow = await checkUserExists(username);
+      if (existsNow) {
+        log("User creation failed but user exists - treating as success", { username });
+        return { 
+          success: true, 
+          alreadyExists: true, 
+          message: "Usuário já existia ou foi criado" 
+        };
+      }
+      return { success: false, alreadyExists: false, message: "Erro ao criar usuário" };
+    }
   } catch (error) {
     log("Error creating Instagram user", { error: String(error) });
-    return false;
+    
+    // Mesmo com erro, verificar se usuário existe (pode ter sido criado manualmente)
+    try {
+      const existsNow = await checkUserExists(username);
+      if (existsNow) {
+        log("Error occurred but user exists - treating as manual creation", { username });
+        return { 
+          success: true, 
+          alreadyExists: true, 
+          message: "Usuário já existe (criado manualmente)" 
+        };
+      }
+    } catch (e) {
+      // Ignorar erro na verificação
+    }
+    
+    return { success: false, alreadyExists: false, message: String(error) };
   }
 }
 
@@ -234,12 +294,20 @@ serve(async (req) => {
     const payload = await req.json();
     log("Webhook payload", payload);
 
+    // Suportar chamada manual do admin (manual_approve)
+    const manualApprove = payload.manual_approve === true;
+    const orderId = payload.order_id;
+
     // Extrair dados do webhook InfiniPay
     const orderNsu = payload.order_nsu;
     const items = payload.items || [];
 
-    if (!orderNsu) {
-      log("No order_nsu in payload, trying to extract from items");
+    if (!orderNsu && !orderId) {
+      log("No order_nsu or order_id in payload");
+      return new Response(
+        JSON.stringify({ success: false, message: "Missing order identifier" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
     }
 
     // Tentar extrair dados do item (formato: MROIG_PLANO_username_email)
@@ -264,12 +332,19 @@ serve(async (req) => {
     // Buscar pedido no banco
     let order = null;
 
-    if (orderNsu) {
+    if (orderId) {
+      const { data } = await supabase
+        .from("mro_orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
+      order = data;
+    } else if (orderNsu) {
       const { data } = await supabase
         .from("mro_orders")
         .select("*")
         .eq("nsu_order", orderNsu)
-        .eq("status", "pending")
+        .in("status", ["pending", "paid"]) // Aceitar pending ou paid
         .single();
       order = data;
     }
@@ -279,7 +354,7 @@ serve(async (req) => {
         .from("mro_orders")
         .select("*")
         .eq("email", extractedEmail)
-        .eq("status", "pending")
+        .in("status", ["pending", "paid"])
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
@@ -287,65 +362,86 @@ serve(async (req) => {
     }
 
     if (!order) {
-      log("No pending order found", { orderNsu, extractedEmail });
+      log("No order found", { orderNsu, orderId, extractedEmail });
       return new Response(
-        JSON.stringify({ success: false, message: "No pending order found" }),
+        JSON.stringify({ success: false, message: "No order found" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
-    log("Found order", { orderId: order.id, email: order.email, username: order.username });
+    // Se já está completo, não processar novamente
+    if (order.status === "completed" && !manualApprove) {
+      log("Order already completed", { orderId: order.id });
+      return new Response(
+        JSON.stringify({ success: true, status: "completed", order, message: "Already processed" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
-    // Marcar como pago
-    await supabase
-      .from("mro_orders")
-      .update({
-        status: "paid",
-        paid_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", order.id);
+    log("Processing order", { orderId: order.id, email: order.email, username: order.username, manualApprove });
+
+    // Marcar como pago (se ainda não estava)
+    if (order.status === "pending") {
+      await supabase
+        .from("mro_orders")
+        .update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.id);
+    }
 
     // Calcular dias de acesso
     const daysAccess = order.plan_type === "lifetime" ? 999999 : 365;
 
-    // Criar usuário na API do SquareCloud
-    const apiCreated = await createInstagramUser(order.username, order.username, daysAccess);
-    log("API user creation result", { apiCreated });
+    // Criar usuário na API do SquareCloud (ou verificar se já existe)
+    const apiResult = await createInstagramUser(order.username, order.username, daysAccess);
+    log("API user creation result", apiResult);
 
-    // Enviar email
-    const emailSent = await sendAccessEmail(order.email, order.username, order.username, order.plan_type);
-    log("Email send result", { emailSent });
+    // Determinar email real do cliente (remover prefixo de afiliado se houver)
+    let customerEmail = order.email;
+    const emailParts = order.email.split(":");
+    if (emailParts.length >= 2) {
+      customerEmail = emailParts.slice(1).join(":");
+    }
+
+    // Enviar email (SEMPRE enviar, mesmo se usuário já existia)
+    let emailSent = order.email_sent || false;
+    if (!emailSent) {
+      emailSent = await sendAccessEmail(customerEmail, order.username, order.username, order.plan_type);
+      log("Email send result", { emailSent });
+    } else {
+      log("Email already sent previously, skipping");
+    }
 
     // Marcar como completo
     await supabase
       .from("mro_orders")
       .update({
         status: "completed",
-        api_created: apiCreated,
+        api_created: apiResult.success,
         email_sent: emailSent,
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id);
 
-    log("Order completed successfully", { orderId: order.id, apiCreated, emailSent });
+    log("Order completed successfully", { 
+      orderId: order.id, 
+      apiCreated: apiResult.success, 
+      apiAlreadyExists: apiResult.alreadyExists,
+      emailSent 
+    });
 
     // Verificar se é venda de afiliado e enviar email de comissão
-    // O email do afiliado tem formato: affiliateId:customerEmail
-    const emailParts = order.email.split(":");
     if (emailParts.length >= 2) {
       const affiliateId = emailParts[0].toLowerCase();
-      const customerEmail = emailParts.slice(1).join(":");
       
       log("Affiliate sale detected", { affiliateId, customerEmail });
       
-      // Buscar dados do afiliado do storage (será enviado pelo frontend via admin)
       // Enviar notificação de comissão para o afiliado
       try {
-        // O email do afiliado precisa ser passado - vamos armazenar junto com o pedido
-        // Por agora, fazemos uma chamada para a edge function de email
-        const supabaseUrl = Deno.env.get("SUPABASE_URL");
         if (supabaseUrl) {
           await fetch(`${supabaseUrl}/functions/v1/affiliate-commission-email`, {
             method: "POST",
@@ -373,8 +469,11 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        status: "completed",
         order_id: order.id,
-        api_created: apiCreated,
+        api_created: apiResult.success,
+        api_already_exists: apiResult.alreadyExists,
+        api_message: apiResult.message,
         email_sent: emailSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
