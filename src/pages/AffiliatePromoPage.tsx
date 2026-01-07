@@ -318,26 +318,10 @@ const AffiliatePromoPage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      {/* Urgency Banner */}
-      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2 px-2">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
-          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
-          <span className="text-xs sm:text-sm md:text-base font-bold text-white leading-tight">
-            🎁 VOCÊ RECEBEU UM DESCONTO ESPECIAL! Aproveite em{" "}
-            <span className="bg-black/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-yellow-300 font-mono text-xs sm:text-sm">
-              {promoTimeLeft.expired ? "EXPIRADO" : 
-                promoTimeLeft.days > 0 
-                  ? `${promoTimeLeft.days}D ${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
-                  : `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
-              }
-            </span>
-          </span>
-          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
-        </div>
-      </div>
+      {/* Removed Urgency Banner */}
 
       {/* Hero Section */}
-      <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
+      <section className="relative pt-4 sm:pt-6 md:pt-8 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Affiliate Photo & Special Badge */}
           <div className="mb-6 sm:mb-8">
@@ -355,10 +339,9 @@ const AffiliatePromoPage = () => {
                 <span className="text-4xl font-bold text-white">{affiliate.name.charAt(0).toUpperCase()}</span>
               </div>
             )}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 animate-bounce">
-              <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-              <span className="font-bold text-sm sm:text-lg">PROMOÇÃO ESPECIAL PARA ALUNOS {affiliate.name.toUpperCase()}!</span>
-            </div>
+            <p className="text-green-400 text-xs sm:text-sm font-medium">
+              🎁 Promoção especial para alunos {affiliate.name}
+            </p>
           </div>
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
@@ -367,50 +350,10 @@ const AffiliatePromoPage = () => {
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
             <h1 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent px-2">
-              FERRAMENTA COMPLETA PARA INSTAGRAM
+              NÃO GASTE COM ANÚNCIOS UTILIZE A MRO INTELIGENTE!
             </h1>
-            <h2 className="relative text-lg sm:text-xl md:text-3xl lg:text-4xl font-black">
-              <span className="text-gray-400 text-base sm:text-lg md:text-xl">12x de</span>{" "}
-              <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent text-3xl sm:text-4xl md:text-6xl">
-                R$41
-              </span>
-            </h2>
           </div>
 
-          {/* Countdown Timer Large */}
-          <div className="mt-6 sm:mt-8 flex items-center justify-center gap-2 sm:gap-4">
-            {promoTimeLeft.days > 0 && (
-              <>
-                <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-                  <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                    {String(promoTimeLeft.days).padStart(2, '0')}
-                  </div>
-                  <div className="text-[10px] sm:text-xs text-red-200">DIAS</div>
-                </div>
-                <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
-              </>
-            )}
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.hours).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">HORAS</div>
-            </div>
-            <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.minutes).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">MINUTOS</div>
-            </div>
-            <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.seconds).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">SEGUNDOS</div>
-            </div>
-          </div>
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
@@ -483,9 +426,44 @@ const AffiliatePromoPage = () => {
                 <span className="text-xl sm:text-2xl font-bold">ou R$397 à vista no PIX</span>
               </div>
               
-              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-3 sm:mb-4">
+              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6">
                 <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
                 <span className="text-red-400 font-bold text-sm sm:text-base">R$100 OFF DE DESCONTO!</span>
+              </div>
+              
+              {/* Countdown Timer */}
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
+                {promoTimeLeft.days > 0 && (
+                  <>
+                    <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
+                      <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
+                        {String(promoTimeLeft.days).padStart(2, '0')}
+                      </div>
+                      <div className="text-[9px] sm:text-[10px] text-red-200">DIAS</div>
+                    </div>
+                    <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
+                  </>
+                )}
+                <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
+                    {String(promoTimeLeft.hours).padStart(2, '0')}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-red-200">HORAS</div>
+                </div>
+                <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
+                <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
+                    {String(promoTimeLeft.minutes).padStart(2, '0')}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-red-200">MINUTOS</div>
+                </div>
+                <span className="text-lg sm:text-xl font-bold text-red-500">:</span>
+                <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[65px]">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold font-mono">
+                    {String(promoTimeLeft.seconds).padStart(2, '0')}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-red-200">SEGUNDOS</div>
+                </div>
               </div>
               
               {getExpirationText() && (
