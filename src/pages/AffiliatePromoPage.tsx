@@ -232,12 +232,8 @@ const AffiliatePromoPage = () => {
         return;
       }
 
-      window.open(checkData.payment_link, "_blank");
-      setShowCheckoutModal(false);
-      toast.success("Checkout criado! Complete o pagamento na nova aba.");
-      setEmail("");
-      setUsername("");
-      setPhone("");
+      // Redirecionar diretamente para o checkout (evita bloqueio de popup em mobile)
+      window.location.href = checkData.payment_link;
 
     } catch (error) {
       console.error("Error:", error);
