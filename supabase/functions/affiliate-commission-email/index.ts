@@ -35,7 +35,9 @@ serve(async (req) => {
       // For welcome
       promoStartDate,
       promoEndDate,
-      affiliateLink
+      affiliateLink,
+      // For lifetime affiliates
+      isLifetime
     } = await req.json();
     
     logStep("Request received", { type, affiliateEmail, affiliateName, affiliateId });
@@ -115,14 +117,32 @@ serve(async (req) => {
       // Email de boas-vindas para novo afiliado
       subject = `🎉 Bem-vindo à Família MRO, ${finalAffiliateName}!`;
       
-      // Formatar datas
+      // Formatar datas (só se não for vitalício)
       let promoDateText = '';
-      if (promoEndDate && promoEndTime) {
-        const endDate = new Date(promoEndDate + 'T' + promoEndTime);
-        promoDateText = `dia ${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')} às ${promoEndTime}`;
-      } else if (promoEndDate) {
-        const endDate = new Date(promoEndDate);
-        promoDateText = `dia ${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')}`;
+      let paymentInfo = '';
+      
+      if (isLifetime) {
+        // Afiliado vitalício - recebe na hora
+        paymentInfo = `<div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);border-left:5px solid #047857;padding:20px 25px;margin:25px 0;border-radius:0 15px 15px 0;">
+<p style="margin:0;color:#fff;font-size:15px;line-height:1.8;">
+<strong>⚡ COMISSÃO NA HORA!</strong><br>
+Você é um afiliado <strong>VITALÍCIO</strong>! Suas comissões serão repassadas <strong>imediatamente</strong> quando cada venda for aprovada!
+</p>
+</div>`;
+      } else {
+        if (promoEndDate && promoEndTime) {
+          const endDate = new Date(promoEndDate + 'T' + promoEndTime);
+          promoDateText = `dia ${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')} às ${promoEndTime}`;
+        } else if (promoEndDate) {
+          const endDate = new Date(promoEndDate);
+          promoDateText = `dia ${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')}`;
+        }
+        
+        paymentInfo = `<div style="background:#fef3c7;border-left:5px solid #f59e0b;padding:20px 25px;margin:25px 0;border-radius:0 15px 15px 0;">
+<p style="margin:0;color:#92400e;font-size:15px;line-height:1.8;">
+<strong>📅 As comissões serão passadas ao final da promoção ${promoDateText ? promoDateText : ''}.</strong>
+</p>
+</div>`;
       }
       
       htmlContent = `<!DOCTYPE html>
@@ -139,6 +159,7 @@ serve(async (req) => {
 <td style="background:linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%);padding:40px 30px;text-align:center;">
 <div style="background:#000;color:#FFD700;display:inline-block;padding:12px 30px;border-radius:10px;font-size:36px;font-weight:bold;letter-spacing:3px;margin-bottom:15px;box-shadow:0 4px 15px rgba(0,0,0,0.3);">MRO</div>
 <h1 style="color:#fff;margin:20px 0 0 0;font-size:32px;text-shadow:0 2px 10px rgba(0,0,0,0.2);">🎉 Bem-vindo(a)!</h1>
+${isLifetime ? '<p style="color:#FFD700;margin:10px 0 0 0;font-size:14px;font-weight:bold;">⭐ AFILIADO VITALÍCIO ⭐</p>' : ''}
 </td>
 </tr>
 
@@ -158,12 +179,8 @@ serve(async (req) => {
 <p style="margin:0;color:#047857;font-size:14px;">E pode deixar que o <strong>suporte todo é nosso!</strong></p>
 </div>
 
-<!-- Payment Info -->
-<div style="background:#fef3c7;border-left:5px solid #f59e0b;padding:20px 25px;margin:25px 0;border-radius:0 15px 15px 0;">
-<p style="margin:0;color:#92400e;font-size:15px;line-height:1.8;">
-<strong>📅 As comissões serão passadas ao final da promoção ${promoDateText ? promoDateText : ''}.</strong>
-</p>
-</div>
+<!-- Payment Info (dynamic based on lifetime or not) -->
+${paymentInfo}
 
 <!-- Notifications -->
 <div style="background:#ede9fe;border:2px solid #8b5cf6;border-radius:15px;padding:25px;margin-bottom:25px;">
