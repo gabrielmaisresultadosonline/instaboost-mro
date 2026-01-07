@@ -352,13 +352,13 @@ const AffiliatePromoPage = () => {
               className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-3 text-white px-2"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
             >
-              NÃO GASTE MAIS COM ANÚNCIOS
+              NÃO GASTE COM ANÚNCIOS,
             </h1>
             <h2 
               className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-orange-500 px-2"
               style={{ textShadow: '0 2px 8px rgba(249,115,22,0.3), 0 1px 3px rgba(0,0,0,0.8)' }}
             >
-              UTILIZE A MRO INTELIGENTE
+              UTILIZE A MRO INTELIGENTE!
             </h2>
           </div>
 
