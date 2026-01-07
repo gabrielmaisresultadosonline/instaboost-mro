@@ -141,6 +141,9 @@ export default function InstagramNovaAdmin() {
   // Envio de emails
   const [sendingEmail, setSendingEmail] = useState(false);
   const [sendingWelcomeEmail, setSendingWelcomeEmail] = useState<string | null>(null);
+  
+  // Configuração de WhatsApp para emails de afiliados
+  const [affiliateWhatsApp, setAffiliateWhatsApp] = useState("");
 
   // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async () => {
@@ -196,8 +199,48 @@ export default function InstagramNovaAdmin() {
     }
   };
 
+  // Carregar configurações globais de afiliados
+  const loadAffiliateSettings = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('user-data')
+        .download('admin/affiliate-settings.json');
+      
+      if (!error && data) {
+        const text = await data.text();
+        const settings = JSON.parse(text);
+        setAffiliateWhatsApp(settings.whatsapp || "");
+        console.log("[AFFILIATES] Loaded settings:", settings);
+      } else {
+        // Fallback localStorage
+        const savedWhatsApp = localStorage.getItem("mro_affiliate_whatsapp");
+        if (savedWhatsApp) {
+          setAffiliateWhatsApp(savedWhatsApp);
+        }
+      }
+    } catch (e) {
+      console.error("[AFFILIATES] Error loading settings:", e);
+    }
+  };
+
+  // Salvar configurações globais de afiliados
+  const saveAffiliateSettings = async (whatsapp: string) => {
+    try {
+      const settings = { whatsapp };
+      const blob = new Blob([JSON.stringify(settings)], { type: 'application/json' });
+      await supabase.storage
+        .from('user-data')
+        .upload('admin/affiliate-settings.json', blob, { upsert: true });
+      localStorage.setItem("mro_affiliate_whatsapp", whatsapp);
+      console.log("[AFFILIATES] Settings saved");
+    } catch (e) {
+      console.error("[AFFILIATES] Error saving settings:", e);
+    }
+  };
+
   useEffect(() => {
     loadAffiliatesFromCloud();
+    loadAffiliateSettings();
   }, []);
 
   // Check if already authenticated
@@ -1375,6 +1418,42 @@ ${GROUP_LINK}`;
                       </div>
                     </div>
                   )}
+                  
+                  {/* Configurações Globais de Afiliados */}
+                  <div className="mb-4 p-4 bg-zinc-800/50 border border-zinc-600 rounded-lg">
+                    <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-green-400" />
+                      Configurações Globais (Emails)
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm text-zinc-400 mb-1 block">WhatsApp para Contato (Comissões)</label>
+                        <Input
+                          placeholder="5511999999999"
+                          value={affiliateWhatsApp}
+                          onChange={(e) => setAffiliateWhatsApp(e.target.value.replace(/\D/g, ""))}
+                          className="bg-zinc-800/50 border-zinc-600 text-white"
+                        />
+                        <p className="text-xs text-zinc-500 mt-1">
+                          Número que aparecerá nos emails de comissão para afiliados vitalícios
+                        </p>
+                      </div>
+                      <div className="flex items-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            saveAffiliateSettings(affiliateWhatsApp);
+                            toast.success("Configurações de WhatsApp salvas!");
+                          }}
+                          className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                        >
+                          <Save className="w-4 h-4 mr-1" />
+                          Salvar WhatsApp
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                   
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-purple-500/20">
                     <div className="flex items-center gap-4">
