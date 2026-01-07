@@ -115,7 +115,7 @@ export default function InstagramNovaAdmin() {
 
   // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
-  const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales">("config");
+  const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview">("config");
   
   // Afiliado atual sendo editado
   const [affiliateId, setAffiliateId] = useState("");
@@ -1054,6 +1054,41 @@ ${GROUP_LINK}`;
     );
   };
 
+  // Tentativas de afiliado (pessoas que tentaram mas não pagaram - pending ou expired)
+  const getAffiliateAttempts = (affId: string) => {
+    return orders.filter(o => 
+      (o.status === "pending" || o.status === "expired") && 
+      o.email.toLowerCase().startsWith(`${affId.toLowerCase()}:`)
+    );
+  };
+
+  // Identificar pessoas que tentaram múltiplas vezes (mesmo email base)
+  const getMultipleAttempts = (affId: string) => {
+    const affiliateOrders = orders.filter(o => 
+      o.email.toLowerCase().startsWith(`${affId.toLowerCase()}:`)
+    );
+    
+    // Agrupar por email base (sem o prefixo do afiliado)
+    const emailGroups: Record<string, typeof affiliateOrders> = {};
+    affiliateOrders.forEach(o => {
+      const baseEmail = o.email.toLowerCase().split(':')[1];
+      if (!emailGroups[baseEmail]) {
+        emailGroups[baseEmail] = [];
+      }
+      emailGroups[baseEmail].push(o);
+    });
+    
+    // Retornar emails que aparecem mais de uma vez
+    return Object.entries(emailGroups)
+      .filter(([, attempts]) => attempts.length > 1)
+      .map(([email, attempts]) => ({
+        email,
+        attempts,
+        hasPaid: attempts.some(a => a.status === "paid" || a.status === "completed"),
+        totalAttempts: attempts.length
+      }));
+  };
+
   // Vendas filtradas por afiliado (para aba de vendas)
   const getFilteredAffiliateSales = () => {
     if (selectedAffiliateFilter === "all") {
@@ -1064,6 +1099,18 @@ ${GROUP_LINK}`;
       );
     } else {
       return getAffiliateSales(selectedAffiliateFilter);
+    }
+  };
+
+  // Todas as tentativas filtradas por afiliado
+  const getFilteredAffiliateAttempts = () => {
+    if (selectedAffiliateFilter === "all") {
+      return orders.filter(o => 
+        (o.status === "pending" || o.status === "expired") && 
+        affiliates.some(a => o.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`))
+      );
+    } else {
+      return getAffiliateAttempts(selectedAffiliateFilter);
     }
   };
 
@@ -1352,7 +1399,7 @@ ${GROUP_LINK}`;
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-                <TabsList className="bg-zinc-800/50 mb-4">
+                <TabsList className="bg-zinc-800/50 mb-4 flex-wrap">
                   <TabsTrigger value="config" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
                     Configuração
                   </TabsTrigger>
@@ -1360,7 +1407,13 @@ ${GROUP_LINK}`;
                     Histórico ({affiliates.length})
                   </TabsTrigger>
                   <TabsTrigger value="sales" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
-                    Vendas Afiliados
+                    Vendas
+                  </TabsTrigger>
+                  <TabsTrigger value="attempts" className="data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
+                    Tentativas
+                  </TabsTrigger>
+                  <TabsTrigger value="email-preview" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+                    📧 Preview Email
                   </TabsTrigger>
                 </TabsList>
 
@@ -1681,6 +1734,8 @@ ${GROUP_LINK}`;
                     <div className="space-y-3">
                       {affiliates.map((affiliate) => {
                         const sales = getAffiliateSales(affiliate.id);
+                        const attempts = getAffiliateAttempts(affiliate.id);
+                        const multipleAttempts = getMultipleAttempts(affiliate.id);
                         const revenue = sales.reduce((sum, o) => sum + Number(o.amount), 0);
                         const commission = sales.length * 97;
                         
@@ -1689,7 +1744,7 @@ ${GROUP_LINK}`;
                             key={affiliate.id}
                             className={`bg-zinc-800/50 border rounded-lg p-4 ${affiliate.active ? "border-green-500/50" : "border-zinc-700/50"}`}
                           >
-                            <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center justify-between gap-4 flex-wrap">
                               <div className="flex items-center gap-4">
                                 <div className="relative">
                                   {affiliate.photoUrl ? (
@@ -1735,15 +1790,25 @@ ${GROUP_LINK}`;
                                 </div>
                               </div>
                               
-                              <div className="flex items-center gap-6">
-                                <div className="text-center">
+                              <div className="flex items-center gap-4 flex-wrap">
+                                <div className="text-center px-3 py-1 bg-purple-500/10 rounded-lg">
                                   <p className="text-xs text-zinc-400">Vendas</p>
                                   <p className="text-xl font-bold text-purple-400">{sales.length}</p>
                                 </div>
-                                <div className="text-center">
+                                <div className="text-center px-3 py-1 bg-green-500/10 rounded-lg">
                                   <p className="text-xs text-zinc-400">Comissão</p>
                                   <p className="text-xl font-bold text-green-400">R$ {commission}</p>
                                 </div>
+                                <div className="text-center px-3 py-1 bg-yellow-500/10 rounded-lg">
+                                  <p className="text-xs text-zinc-400">Tentativas</p>
+                                  <p className="text-xl font-bold text-yellow-400">{attempts.length}</p>
+                                </div>
+                                {multipleAttempts.length > 0 && (
+                                  <div className="text-center px-3 py-1 bg-orange-500/10 rounded-lg" title="Pessoas que tentaram mais de uma vez">
+                                    <p className="text-xs text-zinc-400">Múltiplas</p>
+                                    <p className="text-xl font-bold text-orange-400">{multipleAttempts.length}</p>
+                                  </div>
+                                )}
                                 
                                 <div className="flex gap-2 flex-wrap">
                                   {!affiliate.active ? (
@@ -1879,6 +1944,260 @@ ${GROUP_LINK}`;
                       </div>
                     </div>
                   )}
+                </TabsContent>
+
+                {/* Tab: Tentativas (pessoas que não pagaram) */}
+                <TabsContent value="attempts">
+                  <div className="mb-4 flex items-center gap-4">
+                    <Filter className="w-4 h-4 text-zinc-400" />
+                    <select
+                      value={selectedAffiliateFilter}
+                      onChange={(e) => setSelectedAffiliateFilter(e.target.value)}
+                      className="bg-zinc-800 border border-zinc-600 text-white rounded-lg px-3 py-2"
+                    >
+                      <option value="all">Todos os Afiliados</option>
+                      {affiliates.map(a => (
+                        <option key={a.id} value={a.id}>{a.name} ({a.id})</option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-yellow-400">
+                      {getFilteredAffiliateAttempts().length} tentativas sem pagamento
+                    </span>
+                  </div>
+                  
+                  {getFilteredAffiliateAttempts().length === 0 ? (
+                    <div className="text-center py-8 text-zinc-400">
+                      <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>Nenhuma tentativa pendente</p>
+                      <p className="text-sm text-green-400">Ótimo! Todas as pessoas pagaram 🎉</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {/* Primeiro mostrar pessoas com múltiplas tentativas */}
+                      {(() => {
+                        const multipleAttemptsList = selectedAffiliateFilter === "all" 
+                          ? affiliates.flatMap(a => getMultipleAttempts(a.id))
+                          : getMultipleAttempts(selectedAffiliateFilter);
+                        
+                        if (multipleAttemptsList.length > 0) {
+                          return (
+                            <div className="mb-4">
+                              <h4 className="text-orange-400 font-medium mb-2 flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4" />
+                                Múltiplas Tentativas ({multipleAttemptsList.length} pessoas)
+                              </h4>
+                              <div className="space-y-2">
+                                {multipleAttemptsList.map(item => {
+                                  const affiliate = affiliates.find(a => 
+                                    item.attempts[0]?.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
+                                  );
+                                  return (
+                                    <div key={item.email} className={`bg-zinc-800/30 border rounded-lg p-3 ${item.hasPaid ? 'border-green-500/30' : 'border-orange-500/30'}`}>
+                                      <div className="flex items-center justify-between flex-wrap gap-2">
+                                        <div className="flex items-center gap-3">
+                                          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                                            {affiliate?.name || "Afiliado"}
+                                          </Badge>
+                                          <div>
+                                            <p className="text-sm text-white">{item.email}</p>
+                                            <p className="text-xs text-zinc-400">
+                                              {item.totalAttempts} tentativas
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          {item.hasPaid ? (
+                                            <Badge className="bg-green-500/20 text-green-400 flex items-center gap-1">
+                                              <CheckCircle2 className="w-3 h-3" />
+                                              Pagou na {item.attempts.findIndex(a => a.status === "paid" || a.status === "completed") + 1}ª tentativa
+                                            </Badge>
+                                          ) : (
+                                            <Badge className="bg-red-500/20 text-red-400 flex items-center gap-1">
+                                              <XCircle className="w-3 h-3" />
+                                              Não pagou
+                                            </Badge>
+                                          )}
+                                          <span className="text-xs text-zinc-500">
+                                            Última: {format(new Date(item.attempts[item.attempts.length - 1].created_at), "dd/MM HH:mm", { locale: ptBR })}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                      
+                      {/* Lista de todas as tentativas */}
+                      <h4 className="text-yellow-400 font-medium mb-2 mt-4">Todas as Tentativas</h4>
+                      {getFilteredAffiliateAttempts().map(order => {
+                        const affiliate = affiliates.find(a => 
+                          order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
+                        );
+                        
+                        return (
+                          <div key={order.id} className="bg-zinc-800/30 border border-yellow-500/20 rounded-lg p-3">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="flex items-center gap-4">
+                                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                                  {affiliate?.name || "Afiliado"}
+                                </Badge>
+                                <div>
+                                  <p className="text-sm text-white">{order.email.split(":")[1]}</p>
+                                  <p className="text-xs text-zinc-400">{order.username} | {order.phone || "sem telefone"}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <Badge className={order.status === "expired" ? "bg-red-500/20 text-red-400" : "bg-yellow-500/20 text-yellow-400"}>
+                                    {order.status === "expired" ? "Expirado" : "Pendente"}
+                                  </Badge>
+                                  <p className="text-xs text-zinc-400 mt-1">
+                                    {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Tab: Preview do Email */}
+                <TabsContent value="email-preview">
+                  <div className="mb-4">
+                    <h4 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      Preview dos Emails Enviados aos Afiliados
+                    </h4>
+                    <p className="text-sm text-zinc-400 mb-4">
+                      Veja como os emails chegam para os afiliados em diferentes situações.
+                    </p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Email de Boas-Vindas */}
+                    <div className="border border-blue-500/30 rounded-lg overflow-hidden">
+                      <div className="bg-blue-500/10 px-4 py-2 flex items-center justify-between">
+                        <span className="text-blue-400 font-medium">📧 Email de Boas-Vindas</span>
+                        <Badge className="bg-blue-500/20 text-blue-400">Enviado ao cadastrar afiliado</Badge>
+                      </div>
+                      <div className="p-4 bg-zinc-900/50 max-h-96 overflow-y-auto">
+                        <div className="text-center mb-4">
+                          <div className="bg-black text-yellow-400 inline-block px-6 py-3 rounded-xl font-bold text-2xl border-2 border-yellow-400 mb-2">MRO</div>
+                          <h3 className="text-xl text-white font-bold">🎉 Bem-vindo(a)!</h3>
+                        </div>
+                        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 p-4 rounded-xl text-center mb-4">
+                          <p className="text-black font-bold">🤝 Estamos felizes em ter você conosco em parceria!</p>
+                          <p className="text-zinc-800">Olá, <strong>[Nome do Afiliado]</strong>!</p>
+                        </div>
+                        <div className="bg-zinc-800 border-2 border-green-500 rounded-xl p-4 text-center mb-4">
+                          <p className="text-green-400 font-medium">💰 Sua Comissão por Venda:</p>
+                          <p className="text-green-400 text-4xl font-bold my-2">R$ 97</p>
+                          <p className="text-zinc-400 text-sm">Suporte todo é nosso!</p>
+                        </div>
+                        <div className="bg-zinc-800 border-l-4 border-yellow-400 p-4 rounded-r-xl mb-4">
+                          <p className="text-white text-sm">
+                            <strong className="text-yellow-400">📅 Afiliado com prazo:</strong> Comissões serão passadas ao final da promoção.
+                          </p>
+                          <p className="text-green-400 text-sm mt-2">
+                            <strong>⚡ Afiliado Vitalício:</strong> Recebe imediatamente quando cada venda é aprovada!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Email de Comissão */}
+                    <div className="border border-green-500/30 rounded-lg overflow-hidden">
+                      <div className="bg-green-500/10 px-4 py-2 flex items-center justify-between">
+                        <span className="text-green-400 font-medium">💰 Email de Comissão</span>
+                        <Badge className="bg-green-500/20 text-green-400">Enviado a cada venda aprovada</Badge>
+                      </div>
+                      <div className="p-4 bg-zinc-900/50 max-h-96 overflow-y-auto">
+                        <div className="text-center mb-4">
+                          <div className="bg-black text-yellow-400 inline-block px-6 py-3 rounded-xl font-bold text-2xl border-2 border-yellow-400 mb-2">MRO</div>
+                          <h3 className="text-xl text-green-400 font-bold">💰 Comissão Confirmada!</h3>
+                        </div>
+                        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 p-4 rounded-xl text-center mb-4">
+                          <p className="text-black font-bold">🎉 PARABÉNS, [NOME]!</p>
+                          <p className="text-zinc-800">Você tem uma nova comissão!</p>
+                        </div>
+                        <div className="bg-zinc-800 border-2 border-green-500 rounded-xl p-4 text-center mb-4">
+                          <p className="text-zinc-400 text-sm">Valor da sua comissão:</p>
+                          <p className="text-green-400 text-4xl font-bold my-2">R$ 97,00</p>
+                          <p className="text-green-400 font-medium">🚀 Vamos para cima!</p>
+                        </div>
+                        <div className="bg-zinc-800 rounded-xl p-4 mb-4">
+                          <h4 className="text-yellow-400 font-medium mb-2">📋 Detalhes da Venda:</h4>
+                          <div className="bg-zinc-900 rounded p-2 mb-2">
+                            <span className="text-xs text-zinc-400 block">Cliente:</span>
+                            <span className="text-white font-medium">[Nome do Cliente]</span>
+                          </div>
+                          <div className="bg-zinc-900 rounded p-2">
+                            <span className="text-xs text-zinc-400 block">Email do cliente:</span>
+                            <span className="text-white font-mono text-sm">[email@cliente.com]</span>
+                          </div>
+                        </div>
+                        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-center">
+                          <p className="text-white font-bold">⚡ RECEBA AGORA!</p>
+                          <p className="text-white/90 text-sm mt-1">
+                            Para afiliados vitalícios: Entre em contato pelo WhatsApp e envie seu PIX!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Email de Resumo */}
+                    <div className="border border-purple-500/30 rounded-lg overflow-hidden">
+                      <div className="bg-purple-500/10 px-4 py-2 flex items-center justify-between">
+                        <span className="text-purple-400 font-medium">📊 Email de Resumo Final</span>
+                        <Badge className="bg-purple-500/20 text-purple-400">Enviado ao parar promoção</Badge>
+                      </div>
+                      <div className="p-4 bg-zinc-900/50 max-h-96 overflow-y-auto">
+                        <div className="text-center mb-4">
+                          <div className="bg-black text-yellow-400 inline-block px-6 py-3 rounded-xl font-bold text-2xl border-2 border-yellow-400 mb-2">MRO</div>
+                          <h3 className="text-xl text-purple-400 font-bold">📊 Resumo Final de Vendas</h3>
+                        </div>
+                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-4 rounded-xl text-center mb-4">
+                          <p className="text-white font-bold text-lg">🎉 Parabéns, [Nome]!</p>
+                          <p className="text-white/90">Aqui está o resumo completo das suas vendas!</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="bg-zinc-800 border-2 border-purple-500 rounded-xl p-4 text-center">
+                            <p className="text-zinc-400 text-sm">Total de Vendas:</p>
+                            <p className="text-purple-400 text-3xl font-bold">[X]</p>
+                          </div>
+                          <div className="bg-zinc-800 border-2 border-green-500 rounded-xl p-4 text-center">
+                            <p className="text-zinc-400 text-sm">Total de Comissões:</p>
+                            <p className="text-green-400 text-3xl font-bold">R$ [Y]</p>
+                          </div>
+                        </div>
+                        <div className="bg-zinc-800 rounded-xl p-4">
+                          <h4 className="text-yellow-400 font-medium mb-3">📋 Lista de Vendas:</h4>
+                          <div className="bg-zinc-900 rounded p-2 text-sm">
+                            <div className="grid grid-cols-4 gap-2 text-zinc-400 font-medium border-b border-zinc-700 pb-2 mb-2">
+                              <span>#</span>
+                              <span>Email</span>
+                              <span>Valor</span>
+                              <span>Data</span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-2 text-zinc-300">
+                              <span>1</span>
+                              <span>cliente@...</span>
+                              <span>R$ 297</span>
+                              <span>01/01</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>
