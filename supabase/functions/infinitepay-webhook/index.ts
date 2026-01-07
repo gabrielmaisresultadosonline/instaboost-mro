@@ -48,7 +48,9 @@ serve(async (req) => {
 
     // Extrair informações do nome do produto
     let email: string | null = null;
+    let emailWithAffiliate: string | null = null; // Email completo incluindo prefixo afiliado
     let username: string | null = null;
+    let affiliateId: string | null = null;
     let isMROOrder = false;
     
     if (items && Array.isArray(items)) {
@@ -56,21 +58,42 @@ serve(async (req) => {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
         
-        // Formato MRO: MROIG_ANUAL_username_email ou MROIG_VITALICIO_username_email
+        // Formato MRO: MROIG_ANUAL_username_afiliado:email ou MROIG_VITALICIO_username_email
         if (itemName.startsWith("MROIG_")) {
           isMROOrder = true;
-          // Parse: MROIG_PLANO_username_email
+          // Parse: MROIG_PLANO_username_email (email pode ser afiliado:email@real.com)
           const parts = itemName.split("_");
           if (parts.length >= 4) {
             username = parts[2];
-            email = parts.slice(3).join("_").toLowerCase(); // Email pode ter _ no afiliado (afiliado:email)
+            emailWithAffiliate = parts.slice(3).join("_").toLowerCase();
+            
+            // Verificar se tem prefixo de afiliado (formato: afiliado:email@real.com)
+            if (emailWithAffiliate && emailWithAffiliate.includes(":") && emailWithAffiliate.includes("@")) {
+              const colonIndex = emailWithAffiliate.indexOf(":");
+              const potentialAffiliate = emailWithAffiliate.substring(0, colonIndex);
+              const potentialEmail = emailWithAffiliate.substring(colonIndex + 1);
+              
+              // Verificar se depois do : é um email válido
+              if (potentialEmail.includes("@")) {
+                affiliateId = potentialAffiliate;
+                email = potentialEmail;
+                log("Detected affiliate sale", { affiliateId, realEmail: email });
+              } else {
+                // Não é formato de afiliado, é o email completo
+                email = emailWithAffiliate;
+              }
+            } else if (emailWithAffiliate) {
+              // Email normal sem afiliado
+              email = emailWithAffiliate;
+            }
           }
-          log("Parsed MRO order", { username, email });
+          log("Parsed MRO order", { username, email, emailWithAffiliate, affiliateId });
           break;
         }
         // Formato antigo: MRO_email
         else if (itemName.startsWith("MRO_")) {
           email = itemName.replace("MRO_", "").toLowerCase();
+          emailWithAffiliate = email;
           break;
         }
       }
@@ -80,6 +103,8 @@ serve(async (req) => {
       order_nsu, 
       transaction_nsu, 
       email, 
+      emailWithAffiliate,
+      affiliateId,
       username,
       isMROOrder,
       amount, 
@@ -109,8 +134,27 @@ serve(async (req) => {
         }
       }
 
-      // Se não encontrou pelo NSU, tentar pelo email + username
-      if (!mroOrder && email && username) {
+      // Se não encontrou pelo NSU, tentar pelo email com afiliado + username (como está salvo no banco)
+      if (!mroOrder && emailWithAffiliate && username) {
+        const result = await supabase
+          .from("mro_orders")
+          .select("*")
+          .eq("email", emailWithAffiliate)
+          .eq("username", username)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        mroOrder = result.data;
+        
+        if (mroOrder) {
+          log("Found MRO order by emailWithAffiliate+username", { orderId: mroOrder.id, emailWithAffiliate, username });
+        }
+      }
+
+      // Se ainda não encontrou, tentar pelo email real + username
+      if (!mroOrder && email && username && email !== emailWithAffiliate) {
         const result = await supabase
           .from("mro_orders")
           .select("*")
@@ -124,18 +168,37 @@ serve(async (req) => {
         mroOrder = result.data;
         
         if (mroOrder) {
-          log("Found MRO order by email+username", { orderId: mroOrder.id, email, username });
+          log("Found MRO order by realEmail+username", { orderId: mroOrder.id, email, username });
+        }
+      }
+
+      // Última tentativa: buscar só pelo username
+      if (!mroOrder && username) {
+        const result = await supabase
+          .from("mro_orders")
+          .select("*")
+          .eq("username", username)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        mroOrder = result.data;
+        
+        if (mroOrder) {
+          log("Found MRO order by username only", { orderId: mroOrder.id, username });
         }
       }
 
       if (!mroOrder) {
-        log("No pending MRO order found", { order_nsu, email, username });
+        log("No pending MRO order found", { order_nsu, email, emailWithAffiliate, username });
         return new Response(
           JSON.stringify({ 
             success: false, 
             error: "No pending MRO order found",
             order_nsu,
             email,
+            emailWithAffiliate,
             username
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
