@@ -103,46 +103,102 @@ serve(async (req) => {
     // Formato: MROIG_PLANO_username_email
     const productDescription = `MROIG_${planLabel}_${cleanUsername}_${cleanEmail}`;
 
-    const lineItems = [{
-      description: productDescription,
-      quantity: 1,
-      price: priceInCents,
-    }];
-
+    // Usar a API pública de invoices para criar link com webhook
     const infinitepayPayload = {
-      handle: INFINITEPAY_HANDLE,
-      items: lineItems,
-      itens: lineItems,
+      amount: priceInCents,
+      customer_email: cleanEmail,
+      description: productDescription,
       order_nsu: orderNsu,
       redirect_url: redirectUrl,
       webhook_url: webhookUrl,
-      customer: {
+      metadata: {
         email: cleanEmail,
-      },
+        username: cleanUsername,
+        plan_type: planType,
+        phone: cleanPhone,
+      }
     };
 
-    log("Calling InfiniPay API", infinitepayPayload);
-
-    const infinitepayResponse = await fetch(
-      "https://api.infinitepay.io/invoices/public/checkout/links",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(infinitepayPayload),
-      }
-    );
-
-    const infinitepayData = await infinitepayResponse.json();
-    log("InfiniPay response", { status: infinitepayResponse.status, data: infinitepayData });
+    log("Calling InfiniPay Invoice API", infinitepayPayload);
 
     let paymentLink: string;
+    let invoiceSlug: string | null = null;
 
-    if (!infinitepayResponse.ok) {
-      log("InfiniPay API error, using fallback", infinitepayData);
+    try {
+      // Tentar criar invoice com a API de invoices (que suporta webhook)
+      const infinitepayResponse = await fetch(
+        `https://api.infinitepay.io/v2/invoices?handle=${INFINITEPAY_HANDLE}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(infinitepayPayload),
+        }
+      );
+
+      const infinitepayData = await infinitepayResponse.json();
+      log("InfiniPay Invoice response", { status: infinitepayResponse.status, data: infinitepayData });
+
+      if (infinitepayResponse.ok && infinitepayData.url) {
+        paymentLink = infinitepayData.url;
+        invoiceSlug = infinitepayData.slug || infinitepayData.id || null;
+        log("Invoice created successfully", { paymentLink, invoiceSlug });
+      } else {
+        // Se falhar, tentar API de checkout links
+        log("Invoice API failed, trying checkout links API");
+        
+        const lineItems = [{
+          description: productDescription,
+          quantity: 1,
+          price: priceInCents,
+        }];
+
+        const checkoutPayload = {
+          handle: INFINITEPAY_HANDLE,
+          items: lineItems,
+          itens: lineItems,
+          order_nsu: orderNsu,
+          redirect_url: redirectUrl,
+          webhook_url: webhookUrl,
+          customer: {
+            email: cleanEmail,
+          },
+        };
+
+        const checkoutResponse = await fetch(
+          "https://api.infinitepay.io/invoices/public/checkout/links",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(checkoutPayload),
+          }
+        );
+
+        const checkoutData = await checkoutResponse.json();
+        log("InfiniPay Checkout response", { status: checkoutResponse.status, data: checkoutData });
+
+        if (checkoutResponse.ok && (checkoutData.checkout_url || checkoutData.link || checkoutData.url)) {
+          paymentLink = checkoutData.checkout_url || checkoutData.link || checkoutData.url;
+          invoiceSlug = checkoutData.slug || null;
+        } else {
+          // Fallback final: criar link manualmente
+          log("Both APIs failed, using manual fallback");
+          
+          const fallbackItems = JSON.stringify([{
+            name: productDescription,
+            price: priceInCents,
+            quantity: 1
+          }]);
+          
+          paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${encodeURIComponent(fallbackItems)}&redirect_url=${encodeURIComponent(redirectUrl)}`;
+        }
+      }
+    } catch (apiError) {
+      log("API error, using fallback", { error: String(apiError) });
       
-      // Fallback: criar link manualmente
       const fallbackItems = JSON.stringify([{
         name: productDescription,
         price: priceInCents,
@@ -150,8 +206,6 @@ serve(async (req) => {
       }]);
       
       paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${encodeURIComponent(fallbackItems)}&redirect_url=${encodeURIComponent(redirectUrl)}`;
-    } else {
-      paymentLink = infinitepayData.checkout_url || infinitepayData.link || infinitepayData.url;
     }
 
     // Salvar pedido no banco (expira em 30 minutos)
