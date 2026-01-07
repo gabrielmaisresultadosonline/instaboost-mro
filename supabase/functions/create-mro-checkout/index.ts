@@ -82,21 +82,18 @@ serve(async (req) => {
         }
       } catch (e) {
         log("Error checking user existence (continuing)", e);
-        // Continuar mesmo se der erro na verificação
       }
     }
 
-    // Webhook URL para receber notificação de pagamento
-    const webhookUrl = `${supabaseUrl}/functions/v1/mro-payment-webhook`;
+    // Redirect URL com NSU para página de obrigado
     const redirectUrl = `https://maisresultadosonline.com.br/obrigado?nsu=${orderNsu}`;
 
-    log("Preparing InfiniPay request", { 
+    log("Preparing InfiniPay integrated link", { 
       email: cleanEmail, 
       username: cleanUsername,
       planType,
       orderNsu, 
-      priceInCents,
-      webhookUrl 
+      priceInCents
     });
 
     // Descrição do produto inclui email e username para identificação
@@ -104,117 +101,31 @@ serve(async (req) => {
     const productDescription = `MROIG_${planLabel}_${cleanUsername}_${cleanEmail}`;
     
     // Para o InfiniPay, usar o email real do cliente (sem prefixo de afiliado)
-    // Formato com afiliado: "afiliado:email@gmail.com" -> extrair "email@gmail.com"
     let customerEmailForPayment = cleanEmail;
     if (cleanEmail.includes(':')) {
       const emailParts = cleanEmail.split(':');
-      customerEmailForPayment = emailParts.slice(1).join(':'); // Pegar tudo após o primeiro ":"
+      customerEmailForPayment = emailParts.slice(1).join(':');
     }
 
-    // Usar a API pública de invoices para criar link com webhook
-    const infinitepayPayload = {
-      amount: priceInCents,
-      customer_email: customerEmailForPayment, // Email real do cliente
-      description: productDescription, // Mantém formato completo com afiliado
-      order_nsu: orderNsu,
-      redirect_url: redirectUrl,
-      webhook_url: webhookUrl,
-      metadata: {
-        email: cleanEmail, // Email completo com prefixo de afiliado
-        real_email: customerEmailForPayment,
-        username: cleanUsername,
-        plan_type: planType,
-        phone: cleanPhone,
-      }
-    };
+    // Criar link integrado InfiniPay
+    // O InfiniPay usa link com parâmetros items + redirect_url
+    // O items é um JSON codificado em base64 ou URL-encoded
+    const itemData = [{
+      name: productDescription,
+      price: priceInCents,
+      quantity: 1
+    }];
 
-    log("Calling InfiniPay Invoice API", infinitepayPayload);
+    // Codificar items para URL
+    const itemsEncoded = encodeURIComponent(JSON.stringify(itemData));
+    
+    // Criar link integrado com NSU no redirect para identificação
+    const paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsEncoded}&redirect_url=${encodeURIComponent(redirectUrl)}`;
 
-    let paymentLink: string;
-    let invoiceSlug: string | null = null;
-
-    try {
-      // Tentar criar checkout link com a API pública (que suporta webhook)
-      const lineItems = [{
-        description: productDescription,
-        quantity: 1,
-        price: priceInCents,
-      }];
-
-      const checkoutPayload = {
-        handle: INFINITEPAY_HANDLE,
-        items: lineItems,
-        itens: lineItems, // Alguns endpoints usam "itens" em pt-BR
-        order_nsu: orderNsu,
-        redirect_url: redirectUrl,
-        webhook_url: webhookUrl,
-        customer: {
-          email: customerEmailForPayment,
-        },
-      };
-
-      log("Calling InfiniPay Checkout Links API", checkoutPayload);
-
-      const checkoutResponse = await fetch(
-        "https://api.infinitepay.io/invoices/public/checkout/links",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(checkoutPayload),
-        }
-      );
-
-      const responseText = await checkoutResponse.text();
-      log("InfiniPay raw response", { status: checkoutResponse.status, text: responseText.substring(0, 500) });
-
-      let checkoutData: any = {};
-      try {
-        if (responseText && responseText.trim()) {
-          checkoutData = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        log("Failed to parse response as JSON", { responseText: responseText.substring(0, 200) });
-      }
-
-      log("InfiniPay parsed response", checkoutData);
-
-      if (checkoutResponse.ok && (checkoutData.checkout_url || checkoutData.link || checkoutData.url)) {
-        paymentLink = checkoutData.checkout_url || checkoutData.link || checkoutData.url;
-        invoiceSlug = checkoutData.slug || checkoutData.lenc || null;
-        log("Checkout link created successfully", { paymentLink, invoiceSlug });
-      } else if (checkoutData.lenc) {
-        // Se temos lenc, construir a URL com ele
-        paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?lenc=${checkoutData.lenc}`;
-        invoiceSlug = checkoutData.lenc;
-        log("Built link from lenc", { paymentLink, invoiceSlug });
-      } else {
-        // Fallback: criar link manualmente (sem webhook integrado)
-        log("API did not return a valid link, using manual fallback");
-        
-        const fallbackItems = JSON.stringify([{
-          name: productDescription,
-          price: priceInCents,
-          quantity: 1
-        }]);
-        
-        paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${encodeURIComponent(fallbackItems)}&redirect_url=${encodeURIComponent(redirectUrl)}`;
-      }
-    } catch (apiError) {
-      log("API error, using fallback", { error: String(apiError) });
-      
-      const fallbackItems = JSON.stringify([{
-        name: productDescription,
-        price: priceInCents,
-        quantity: 1
-      }]);
-      
-      paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${encodeURIComponent(fallbackItems)}&redirect_url=${encodeURIComponent(redirectUrl)}`;
-    }
+    log("Integrated payment link created", { paymentLink, orderNsu });
 
     // Salvar pedido no banco (expira em 30 minutos)
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
     const { data: orderData, error: insertError } = await supabase
       .from("mro_orders")
       .insert({
@@ -236,7 +147,7 @@ serve(async (req) => {
       throw insertError;
     }
 
-    log("Order created successfully", { orderId: orderData.id, paymentLink });
+    log("Order created successfully", { orderId: orderData.id, paymentLink, orderNsu });
 
     return new Response(
       JSON.stringify({
