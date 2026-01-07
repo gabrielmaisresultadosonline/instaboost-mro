@@ -668,20 +668,16 @@ const VendasCompleta = () => {
                 <p className="text-gray-400 mt-2">ou à vista PIX <span className="text-white font-bold">R$397</span></p>
               </div>
 
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2 mb-6">
                 {annualFeatures.map((feature, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
                     <span className="text-gray-300">{feature}</span>
                   </div>
                 ))}
-              </div>
-
-              {/* Bônus Afiliado */}
-              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl p-3 mb-6">
-                <div className="flex items-center gap-2 text-sm">
-                  <Gift className="w-5 h-5 text-green-400 flex-shrink-0" />
-                  <span className="text-green-400 font-bold">{affiliateBonus}</span>
+                {/* Info Afiliado */}
+                <div className="flex items-center gap-2 text-xs text-gray-500 pt-1">
+                  <span>• {affiliateBonus}</span>
                 </div>
               </div>
 
@@ -717,20 +713,16 @@ const VendasCompleta = () => {
                 <p className="text-gray-400 mt-2">ou à vista PIX <span className="text-white font-bold">R$797</span></p>
               </div>
 
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2 mb-6">
                 {lifetimeFeatures.map((feature, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
                     <span className="text-gray-300">{feature}</span>
                   </div>
                 ))}
-              </div>
-
-              {/* Bônus Afiliado */}
-              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl p-3 mb-6">
-                <div className="flex items-center gap-2 text-sm">
-                  <Gift className="w-5 h-5 text-green-400 flex-shrink-0" />
-                  <span className="text-green-400 font-bold">{affiliateBonus}</span>
+                {/* Info Afiliado */}
+                <div className="flex items-center gap-2 text-xs text-gray-500 pt-1">
+                  <span>• {affiliateBonus}</span>
                 </div>
               </div>
 
