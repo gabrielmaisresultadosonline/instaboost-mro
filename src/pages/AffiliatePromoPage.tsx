@@ -292,8 +292,8 @@ const AffiliatePromoPage = () => {
 
   // Formatar data de expiração para exibição
   const getExpirationText = () => {
-    // Sempre mostrar "termina em 10 horas" para criar urgência
-    return "termina em 10 horas";
+    // Sempre mostrar a mensagem de urgência
+    return "PROMOÇÃO TERMINA EM 10 HORAS";
   };
 
   if (loading) {
@@ -449,7 +449,7 @@ const AffiliatePromoPage = () => {
           </h2>
           {getExpirationText() && (
             <p className="text-center text-gray-400 mb-8 sm:mb-10 text-base sm:text-lg">
-              Promoção válida até {getExpirationText()}
+              ⏰ {getExpirationText()}
             </p>
           )}
           
@@ -490,7 +490,7 @@ const AffiliatePromoPage = () => {
               
               {getExpirationText() && (
                 <p className="text-yellow-400 text-xs sm:text-sm font-medium">
-                  ⏰ Válido até {getExpirationText()}
+                  ⏰ {getExpirationText()}
                 </p>
               )}
             </div>
