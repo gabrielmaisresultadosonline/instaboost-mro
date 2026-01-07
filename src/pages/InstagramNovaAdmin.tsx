@@ -26,7 +26,13 @@ import {
   ChevronRight,
   Settings,
   Save,
-  Users
+  Users,
+  Power,
+  PowerOff,
+  Image,
+  Send,
+  X,
+  Filter
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import {
@@ -35,6 +41,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ptBR } from "date-fns/locale";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
@@ -62,6 +70,16 @@ interface MROOrder {
   updated_at: string;
 }
 
+interface Affiliate {
+  id: string;
+  name: string;
+  email: string;
+  photoUrl: string;
+  active: boolean;
+  createdAt: string;
+  commissionNotified: string[]; // NSU orders that have been notified
+}
+
 export default function InstagramNovaAdmin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -85,18 +103,49 @@ export default function InstagramNovaAdmin() {
     expired: false
   });
 
-  // Configuração de afiliado
+  // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
+  const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales">("config");
+  
+  // Afiliado atual sendo editado
   const [affiliateId, setAffiliateId] = useState("");
+  const [affiliateName, setAffiliateName] = useState("");
   const [affiliateEmail, setAffiliateEmail] = useState("");
+  const [affiliatePhotoUrl, setAffiliatePhotoUrl] = useState("");
+  const [affiliateActive, setAffiliateActive] = useState(true);
   const [savingAffiliate, setSavingAffiliate] = useState(false);
+  
+  // Histórico de afiliados
+  const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
+  const [selectedAffiliateFilter, setSelectedAffiliateFilter] = useState<string>("all");
+  
+  // Envio de emails
+  const [sendingEmail, setSendingEmail] = useState(false);
 
-  // Carregar configuração de afiliado do localStorage
+  // Carregar configuração de afiliados do localStorage
   useEffect(() => {
-    const savedAffiliateId = localStorage.getItem("mro_affiliate_id") || "mila";
+    // Carregar afiliado ativo atual
+    const savedAffiliateId = localStorage.getItem("mro_affiliate_id") || "";
+    const savedAffiliateName = localStorage.getItem("mro_affiliate_name") || "";
     const savedAffiliateEmail = localStorage.getItem("mro_affiliate_email") || "";
+    const savedAffiliatePhotoUrl = localStorage.getItem("mro_affiliate_photo_url") || "";
+    const savedAffiliateActive = localStorage.getItem("mro_affiliate_active") !== "false";
+    
     setAffiliateId(savedAffiliateId);
+    setAffiliateName(savedAffiliateName);
     setAffiliateEmail(savedAffiliateEmail);
+    setAffiliatePhotoUrl(savedAffiliatePhotoUrl);
+    setAffiliateActive(savedAffiliateActive);
+    
+    // Carregar histórico de afiliados
+    const savedAffiliates = localStorage.getItem("mro_affiliates_history");
+    if (savedAffiliates) {
+      try {
+        setAffiliates(JSON.parse(savedAffiliates));
+      } catch (e) {
+        console.error("Error parsing affiliates history:", e);
+      }
+    }
   }, []);
 
   // Check if already authenticated
@@ -108,7 +157,7 @@ export default function InstagramNovaAdmin() {
     }
   }, []);
 
-  // Verificação automática a cada 30 segundos
+  // Verificação automática a cada 30 segundos + notificar afiliados de novas vendas
   useEffect(() => {
     if (isAuthenticated && autoCheckEnabled) {
       // Verificar imediatamente ao carregar
@@ -126,6 +175,60 @@ export default function InstagramNovaAdmin() {
       };
     }
   }, [isAuthenticated, autoCheckEnabled]);
+
+  // Notificar afiliado quando houver nova venda
+  useEffect(() => {
+    if (orders.length > 0 && affiliates.length > 0) {
+      checkAndNotifyAffiliates();
+    }
+  }, [orders, affiliates]);
+
+  const checkAndNotifyAffiliates = async () => {
+    for (const affiliate of affiliates) {
+      if (!affiliate.active || !affiliate.email) continue;
+      
+      // Buscar vendas deste afiliado que ainda não foram notificadas
+      const affiliateSales = orders.filter(o => 
+        (o.status === "paid" || o.status === "completed") && 
+        o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`) &&
+        !affiliate.commissionNotified?.includes(o.nsu_order)
+      );
+      
+      for (const sale of affiliateSales) {
+        // Enviar email de comissão
+        try {
+          const { error } = await supabase.functions.invoke("affiliate-commission-email", {
+            body: {
+              type: "commission",
+              affiliateEmail: affiliate.email,
+              affiliateName: affiliate.name,
+              customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
+              customerName: sale.username,
+              commission: "97"
+            }
+          });
+          
+          if (!error) {
+            // Marcar como notificado
+            const updatedAffiliates = affiliates.map(a => {
+              if (a.id === affiliate.id) {
+                return {
+                  ...a,
+                  commissionNotified: [...(a.commissionNotified || []), sale.nsu_order]
+                };
+              }
+              return a;
+            });
+            setAffiliates(updatedAffiliates);
+            localStorage.setItem("mro_affiliates_history", JSON.stringify(updatedAffiliates));
+            console.log(`[AFFILIATE] Comissão notificada para ${affiliate.name} - Venda ${sale.nsu_order}`);
+          }
+        } catch (e) {
+          console.error(`[AFFILIATE] Erro ao notificar comissão:`, e);
+        }
+      }
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -373,11 +476,54 @@ ${GROUP_LINK}`;
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // Salvar configuração de afiliado
   const saveAffiliateConfig = () => {
+    if (!affiliateId.trim()) {
+      toast.error("Informe o identificador do afiliado");
+      return;
+    }
+    if (!affiliateName.trim()) {
+      toast.error("Informe o nome do afiliado");
+      return;
+    }
+    if (!affiliateEmail.trim()) {
+      toast.error("Informe o email do afiliado");
+      return;
+    }
+    
     setSavingAffiliate(true);
     try {
-      localStorage.setItem("mro_affiliate_id", affiliateId.trim().toLowerCase());
+      const cleanId = affiliateId.trim().toLowerCase();
+      
+      // Salvar no localStorage
+      localStorage.setItem("mro_affiliate_id", cleanId);
+      localStorage.setItem("mro_affiliate_name", affiliateName.trim());
       localStorage.setItem("mro_affiliate_email", affiliateEmail.trim());
+      localStorage.setItem("mro_affiliate_photo_url", affiliatePhotoUrl.trim());
+      localStorage.setItem("mro_affiliate_active", affiliateActive.toString());
+      
+      // Adicionar/atualizar no histórico
+      const existingIndex = affiliates.findIndex(a => a.id === cleanId);
+      const newAffiliate: Affiliate = {
+        id: cleanId,
+        name: affiliateName.trim(),
+        email: affiliateEmail.trim(),
+        photoUrl: affiliatePhotoUrl.trim(),
+        active: affiliateActive,
+        createdAt: existingIndex >= 0 ? affiliates[existingIndex].createdAt : new Date().toISOString(),
+        commissionNotified: existingIndex >= 0 ? affiliates[existingIndex].commissionNotified : []
+      };
+      
+      let updatedAffiliates: Affiliate[];
+      if (existingIndex >= 0) {
+        updatedAffiliates = affiliates.map((a, i) => i === existingIndex ? newAffiliate : a);
+      } else {
+        updatedAffiliates = [...affiliates, newAffiliate];
+      }
+      
+      setAffiliates(updatedAffiliates);
+      localStorage.setItem("mro_affiliates_history", JSON.stringify(updatedAffiliates));
+      
       toast.success("Configuração de afiliado salva com sucesso!");
     } catch (error) {
       toast.error("Erro ao salvar configuração");
@@ -386,12 +532,145 @@ ${GROUP_LINK}`;
     }
   };
 
-  // Contar vendas por afiliado
-  const affiliateSales = orders.filter(o => 
-    (o.status === "paid" || o.status === "completed") && 
-    o.email.toLowerCase().startsWith(`${affiliateId.toLowerCase()}:`)
-  );
-  const affiliateRevenue = affiliateSales.reduce((sum, o) => sum + Number(o.amount), 0);
+  // Parar promoção e enviar resumo
+  const stopAffiliatePromo = async (affiliate: Affiliate) => {
+    if (!confirm(`Deseja parar a promoção de ${affiliate.name} e enviar o resumo por email?`)) {
+      return;
+    }
+    
+    setSendingEmail(true);
+    try {
+      // Buscar vendas deste afiliado
+      const affiliateSales = orders.filter(o => 
+        (o.status === "paid" || o.status === "completed") && 
+        o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
+      );
+      
+      const totalCommission = affiliateSales.length * 97;
+      
+      // Preparar lista de vendas
+      const salesList = affiliateSales.map(sale => ({
+        customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
+        customerName: sale.username,
+        amount: sale.amount,
+        date: format(new Date(sale.paid_at || sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+      }));
+      
+      // Enviar email de resumo
+      const { error } = await supabase.functions.invoke("affiliate-commission-email", {
+        body: {
+          type: "summary",
+          affiliateEmail: affiliate.email,
+          affiliateName: affiliate.name,
+          totalSales: affiliateSales.length,
+          totalCommission: totalCommission,
+          salesList: salesList
+        }
+      });
+      
+      if (error) {
+        toast.error("Erro ao enviar email de resumo");
+        return;
+      }
+      
+      // Desativar afiliado
+      const updatedAffiliates = affiliates.map(a => {
+        if (a.id === affiliate.id) {
+          return { ...a, active: false };
+        }
+        return a;
+      });
+      setAffiliates(updatedAffiliates);
+      localStorage.setItem("mro_affiliates_history", JSON.stringify(updatedAffiliates));
+      
+      // Se é o afiliado ativo atual, desativar também no localStorage principal
+      if (affiliate.id === affiliateId) {
+        setAffiliateActive(false);
+        localStorage.setItem("mro_affiliate_active", "false");
+      }
+      
+      toast.success(`Promoção de ${affiliate.name} encerrada! Resumo enviado por email.`);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao processar");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  // Ativar afiliado
+  const activateAffiliate = (affiliate: Affiliate) => {
+    // Desativar todos os outros
+    const updatedAffiliates = affiliates.map(a => ({
+      ...a,
+      active: a.id === affiliate.id
+    }));
+    setAffiliates(updatedAffiliates);
+    localStorage.setItem("mro_affiliates_history", JSON.stringify(updatedAffiliates));
+    
+    // Setar como afiliado ativo atual
+    setAffiliateId(affiliate.id);
+    setAffiliateName(affiliate.name);
+    setAffiliateEmail(affiliate.email);
+    setAffiliatePhotoUrl(affiliate.photoUrl);
+    setAffiliateActive(true);
+    
+    localStorage.setItem("mro_affiliate_id", affiliate.id);
+    localStorage.setItem("mro_affiliate_name", affiliate.name);
+    localStorage.setItem("mro_affiliate_email", affiliate.email);
+    localStorage.setItem("mro_affiliate_photo_url", affiliate.photoUrl);
+    localStorage.setItem("mro_affiliate_active", "true");
+    
+    toast.success(`${affiliate.name} ativado!`);
+  };
+
+  // Excluir afiliado do histórico
+  const deleteAffiliate = (affiliate: Affiliate) => {
+    if (!confirm(`Deseja excluir ${affiliate.name} do histórico?`)) {
+      return;
+    }
+    
+    const updatedAffiliates = affiliates.filter(a => a.id !== affiliate.id);
+    setAffiliates(updatedAffiliates);
+    localStorage.setItem("mro_affiliates_history", JSON.stringify(updatedAffiliates));
+    
+    // Se é o afiliado ativo atual, limpar
+    if (affiliate.id === affiliateId) {
+      setAffiliateId("");
+      setAffiliateName("");
+      setAffiliateEmail("");
+      setAffiliatePhotoUrl("");
+      setAffiliateActive(false);
+      localStorage.removeItem("mro_affiliate_id");
+      localStorage.removeItem("mro_affiliate_name");
+      localStorage.removeItem("mro_affiliate_email");
+      localStorage.removeItem("mro_affiliate_photo_url");
+      localStorage.removeItem("mro_affiliate_active");
+    }
+    
+    toast.success("Afiliado excluído do histórico");
+  };
+
+  // Contar vendas por afiliado específico
+  const getAffiliateSales = (affId: string) => {
+    return orders.filter(o => 
+      (o.status === "paid" || o.status === "completed") && 
+      o.email.toLowerCase().startsWith(`${affId.toLowerCase()}:`)
+    );
+  };
+
+  // Vendas filtradas por afiliado (para aba de vendas)
+  const getFilteredAffiliateSales = () => {
+    if (selectedAffiliateFilter === "all") {
+      // Todas as vendas de afiliados
+      return orders.filter(o => 
+        (o.status === "paid" || o.status === "completed") && 
+        affiliates.some(a => o.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`))
+      );
+    } else {
+      return getAffiliateSales(selectedAffiliateFilter);
+    }
+  };
 
   // Stats corrigidos - incluindo "paid" e "completed" como pagos
   const stats = {
@@ -630,73 +909,303 @@ ${GROUP_LINK}`;
           </div>
         </div>
 
-        {/* Configuração de Afiliados */}
+        {/* Configuração de Afiliados Expandida */}
         {showAffiliateConfig && (
           <Card className="bg-purple-500/10 border-purple-500/30 mb-6">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-purple-400 flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Configuração de Afiliado
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg text-purple-400 flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Sistema de Afiliados
+                </CardTitle>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowAffiliateConfig(false)}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm text-zinc-400 mb-1 block">Identificador do Afiliado</label>
-                  <Input
-                    placeholder="ex: mila"
-                    value={affiliateId}
-                    onChange={(e) => setAffiliateId(e.target.value)}
-                    className="bg-zinc-800/50 border-zinc-600 text-white"
-                  />
-                  <p className="text-xs text-zinc-500 mt-1">
-                    Usado como prefixo no email: {affiliateId || "afiliado"}:email@exemplo.com
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm text-zinc-400 mb-1 block">Email do Afiliado</label>
-                  <Input
-                    type="email"
-                    placeholder="email@afiliado.com"
-                    value={affiliateEmail}
-                    onChange={(e) => setAffiliateEmail(e.target.value)}
-                    className="bg-zinc-800/50 border-zinc-600 text-white"
-                  />
-                  <p className="text-xs text-zinc-500 mt-1">
-                    Email para contato/comissões
-                  </p>
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    onClick={saveAffiliateConfig}
-                    className="bg-purple-500 hover:bg-purple-600 text-white"
-                    disabled={savingAffiliate}
-                  >
-                    {savingAffiliate ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                    Salvar Configuração
-                  </Button>
-                </div>
-              </div>
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+                <TabsList className="bg-zinc-800/50 mb-4">
+                  <TabsTrigger value="config" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+                    Configuração
+                  </TabsTrigger>
+                  <TabsTrigger value="affiliates" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+                    Histórico ({affiliates.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="sales" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+                    Vendas Afiliados
+                  </TabsTrigger>
+                </TabsList>
 
-              {/* Stats do afiliado atual */}
-              {affiliateId && (
-                <div className="mt-4 pt-4 border-t border-purple-500/20">
-                  <div className="flex items-center gap-6">
+                {/* Tab: Configuração */}
+                <TabsContent value="config">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div>
-                      <p className="text-xs text-zinc-400">Vendas via "{affiliateId}"</p>
-                      <p className="text-xl font-bold text-purple-400">{affiliateSales.length}</p>
+                      <label className="text-sm text-zinc-400 mb-1 block">Identificador do Afiliado *</label>
+                      <Input
+                        placeholder="ex: mila"
+                        value={affiliateId}
+                        onChange={(e) => setAffiliateId(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
+                        className="bg-zinc-800/50 border-zinc-600 text-white"
+                      />
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Usado como prefixo: {affiliateId || "id"}:email@exemplo.com
+                      </p>
                     </div>
                     <div>
-                      <p className="text-xs text-zinc-400">Receita Afiliado</p>
-                      <p className="text-xl font-bold text-purple-400">R$ {affiliateRevenue.toFixed(2)}</p>
+                      <label className="text-sm text-zinc-400 mb-1 block">Nome do Afiliado *</label>
+                      <Input
+                        placeholder="Ex: Milla Souza"
+                        value={affiliateName}
+                        onChange={(e) => setAffiliateName(e.target.value)}
+                        className="bg-zinc-800/50 border-zinc-600 text-white"
+                      />
                     </div>
                     <div>
-                      <p className="text-xs text-zinc-400">Link da Promo</p>
-                      <p className="text-sm text-purple-300 font-mono">/instagram-promo-{affiliateId}</p>
+                      <label className="text-sm text-zinc-400 mb-1 block">Email do Afiliado *</label>
+                      <Input
+                        type="email"
+                        placeholder="email@afiliado.com"
+                        value={affiliateEmail}
+                        onChange={(e) => setAffiliateEmail(e.target.value)}
+                        className="bg-zinc-800/50 border-zinc-600 text-white"
+                      />
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Receberá emails de comissão
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-zinc-400 mb-1 block">URL da Foto</label>
+                      <Input
+                        type="url"
+                        placeholder="https://..."
+                        value={affiliatePhotoUrl}
+                        onChange={(e) => setAffiliatePhotoUrl(e.target.value)}
+                        className="bg-zinc-800/50 border-zinc-600 text-white"
+                      />
                     </div>
                   </div>
-                </div>
-              )}
+                  
+                  <div className="flex items-center justify-between gap-4 pt-4 border-t border-purple-500/20">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={affiliateActive}
+                          onCheckedChange={setAffiliateActive}
+                        />
+                        <span className={`text-sm ${affiliateActive ? "text-green-400" : "text-red-400"}`}>
+                          {affiliateActive ? (
+                            <><Power className="w-4 h-4 inline mr-1" /> Promoção Ativa</>
+                          ) : (
+                            <><PowerOff className="w-4 h-4 inline mr-1" /> Promoção Parada</>
+                          )}
+                        </span>
+                      </div>
+                      
+                      {affiliateId && (
+                        <div className="text-sm text-zinc-400">
+                          Link: <span className="text-purple-300 font-mono">/instagram-promo-{affiliateId}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <Button
+                      onClick={saveAffiliateConfig}
+                      className="bg-purple-500 hover:bg-purple-600 text-white"
+                      disabled={savingAffiliate}
+                    >
+                      {savingAffiliate ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                      Salvar Configuração
+                    </Button>
+                  </div>
+
+                  {/* Preview da foto se existir */}
+                  {affiliatePhotoUrl && (
+                    <div className="mt-4 pt-4 border-t border-purple-500/20">
+                      <p className="text-xs text-zinc-400 mb-2">Preview da foto:</p>
+                      <img 
+                        src={affiliatePhotoUrl} 
+                        alt={affiliateName} 
+                        className="w-16 h-16 rounded-full object-cover border-2 border-purple-500"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Tab: Histórico de Afiliados */}
+                <TabsContent value="affiliates">
+                  {affiliates.length === 0 ? (
+                    <div className="text-center py-8 text-zinc-400">
+                      <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>Nenhum afiliado cadastrado</p>
+                      <p className="text-sm">Configure um afiliado na aba "Configuração"</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {affiliates.map((affiliate) => {
+                        const sales = getAffiliateSales(affiliate.id);
+                        const revenue = sales.reduce((sum, o) => sum + Number(o.amount), 0);
+                        const commission = sales.length * 97;
+                        
+                        return (
+                          <div 
+                            key={affiliate.id}
+                            className={`bg-zinc-800/50 border rounded-lg p-4 ${affiliate.active ? "border-green-500/50" : "border-zinc-700/50"}`}
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-4">
+                                {affiliate.photoUrl ? (
+                                  <img 
+                                    src={affiliate.photoUrl} 
+                                    alt={affiliate.name}
+                                    className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                    <User className="w-6 h-6 text-purple-400" />
+                                  </div>
+                                )}
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-bold text-white">{affiliate.name}</h4>
+                                    <Badge className={affiliate.active ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}>
+                                      {affiliate.active ? "Ativo" : "Inativo"}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-zinc-400">{affiliate.email}</p>
+                                  <p className="text-xs text-zinc-500 font-mono">ID: {affiliate.id}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-6">
+                                <div className="text-center">
+                                  <p className="text-xs text-zinc-400">Vendas</p>
+                                  <p className="text-xl font-bold text-purple-400">{sales.length}</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-zinc-400">Comissão</p>
+                                  <p className="text-xl font-bold text-green-400">R$ {commission}</p>
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                  {!affiliate.active ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => activateAffiliate(affiliate)}
+                                      className="bg-green-500 hover:bg-green-600"
+                                    >
+                                      <Power className="w-4 h-4 mr-1" />
+                                      Ativar
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => stopAffiliatePromo(affiliate)}
+                                      className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                                      disabled={sendingEmail}
+                                    >
+                                      {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <PowerOff className="w-4 h-4 mr-1" />}
+                                      Parar + Resumo
+                                    </Button>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => deleteAffiliate(affiliate)}
+                                    className="text-red-400 hover:bg-red-500/10"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Tab: Vendas por Afiliado */}
+                <TabsContent value="sales">
+                  <div className="mb-4 flex items-center gap-4">
+                    <Filter className="w-4 h-4 text-zinc-400" />
+                    <select
+                      value={selectedAffiliateFilter}
+                      onChange={(e) => setSelectedAffiliateFilter(e.target.value)}
+                      className="bg-zinc-800 border border-zinc-600 text-white rounded-lg px-3 py-2"
+                    >
+                      <option value="all">Todos os Afiliados</option>
+                      {affiliates.map(a => (
+                        <option key={a.id} value={a.id}>{a.name} ({a.id})</option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-zinc-400">
+                      {getFilteredAffiliateSales().length} vendas
+                    </span>
+                  </div>
+                  
+                  {getFilteredAffiliateSales().length === 0 ? (
+                    <div className="text-center py-8 text-zinc-400">
+                      <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>Nenhuma venda de afiliados</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {getFilteredAffiliateSales().map(order => {
+                        // Encontrar qual afiliado
+                        const affiliate = affiliates.find(a => 
+                          order.email.toLowerCase().startsWith(`${a.id.toLowerCase()}:`)
+                        );
+                        
+                        return (
+                          <div key={order.id} className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                                  {affiliate?.name || "Afiliado"}
+                                </Badge>
+                                <div>
+                                  <p className="text-sm text-white">{order.email.split(":")[1]}</p>
+                                  <p className="text-xs text-zinc-400">{order.username}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <p className="text-sm font-bold text-green-400">R$ {Number(order.amount).toFixed(2)}</p>
+                                  <p className="text-xs text-zinc-400">
+                                    {format(new Date(order.paid_at || order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                                  </p>
+                                </div>
+                                <Badge className="bg-yellow-500/20 text-yellow-400">
+                                  Comissão: R$ 97
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Total */}
+                      <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4 mt-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-purple-400 font-bold">Total de Comissões</span>
+                          <span className="text-2xl font-bold text-purple-400">
+                            R$ {getFilteredAffiliateSales().length * 97},00
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         )}
