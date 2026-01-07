@@ -601,7 +601,11 @@ Entre em contato com as pessoas que tentaram comprar mas não finalizaram. Muita
       from: "MRO - Afiliados <suporte@maisresultadosonline.com.br>",
       to: finalAffiliateEmail,
       subject: subject,
-      html: htmlContent,
+      content: htmlContent,
+      mimeContent: [{
+        mimeType: "text/html",
+        content: htmlContent,
+      }],
     });
 
     await client.close();
