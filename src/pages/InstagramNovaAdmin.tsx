@@ -80,6 +80,8 @@ interface Affiliate {
   active: boolean;
   createdAt: string;
   commissionNotified: string[]; // NSU orders that have been notified
+  promoStartDate?: string; // YYYY-MM-DD
+  promoEndDate?: string;   // YYYY-MM-DD
   promoStartTime?: string; // HH:mm
   promoEndTime?: string;   // HH:mm
 }
@@ -118,6 +120,8 @@ export default function InstagramNovaAdmin() {
   const [affiliatePhotoUrl, setAffiliatePhotoUrl] = useState("");
   const [affiliateActive, setAffiliateActive] = useState(true);
   const [savingAffiliate, setSavingAffiliate] = useState(false);
+  const [promoStartDate, setPromoStartDate] = useState("");
+  const [promoEndDate, setPromoEndDate] = useState("");
   const [promoStartTime, setPromoStartTime] = useState("");
   const [promoEndTime, setPromoEndTime] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -593,6 +597,8 @@ ${GROUP_LINK}`;
         active: affiliateActive,
         createdAt: existingIndex >= 0 ? affiliates[existingIndex].createdAt : new Date().toISOString(),
         commissionNotified: existingIndex >= 0 ? affiliates[existingIndex].commissionNotified : [],
+        promoStartDate: promoStartDate,
+        promoEndDate: promoEndDate,
         promoStartTime: promoStartTime,
         promoEndTime: promoEndTime
       };
@@ -699,6 +705,8 @@ ${GROUP_LINK}`;
     setAffiliateEmail(affiliate.email);
     setAffiliatePhotoUrl(affiliate.photoUrl);
     setAffiliateActive(true);
+    setPromoStartDate(affiliate.promoStartDate || "");
+    setPromoEndDate(affiliate.promoEndDate || "");
     setPromoStartTime(affiliate.promoStartTime || "");
     setPromoEndTime(affiliate.promoEndTime || "");
     
@@ -1116,20 +1124,27 @@ ${GROUP_LINK}`;
                     </div>
                     
                     <div>
-                      <label className="text-sm text-zinc-400 mb-1 block">Horário Início Promoção</label>
+                      <label className="text-sm text-zinc-400 mb-1 block">Data Início</label>
                       <Input
-                        type="time"
-                        value={promoStartTime}
-                        onChange={(e) => setPromoStartTime(e.target.value)}
+                        type="date"
+                        value={promoStartDate}
+                        onChange={(e) => setPromoStartDate(e.target.value)}
                         className="bg-zinc-800/50 border-zinc-600 text-white"
                       />
-                      <p className="text-xs text-zinc-500 mt-1">
-                        Quando a promoção começa
-                      </p>
                     </div>
                     
                     <div>
-                      <label className="text-sm text-zinc-400 mb-1 block">Horário Fim Promoção</label>
+                      <label className="text-sm text-zinc-400 mb-1 block">Data Fim</label>
+                      <Input
+                        type="date"
+                        value={promoEndDate}
+                        onChange={(e) => setPromoEndDate(e.target.value)}
+                        className="bg-zinc-800/50 border-zinc-600 text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm text-zinc-400 mb-1 block">Hora Fim</label>
                       <Input
                         type="time"
                         value={promoEndTime}
@@ -1137,10 +1152,33 @@ ${GROUP_LINK}`;
                         className="bg-zinc-800/50 border-zinc-600 text-white"
                       />
                       <p className="text-xs text-zinc-500 mt-1">
-                        Quando a comissão será repassada
+                        Horário de expiração
                       </p>
                     </div>
                   </div>
+                  
+                  {/* Link do afiliado */}
+                  {affiliateId && (
+                    <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                      <label className="text-sm text-green-400 mb-1 block font-medium">Link do Afiliado:</label>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-sm text-green-300 bg-zinc-800 px-3 py-2 rounded font-mono">
+                          {window.location.origin}/promo/{affiliateId.toLowerCase()}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/promo/${affiliateId.toLowerCase()}`);
+                            toast.success("Link copiado!");
+                          }}
+                          className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-purple-500/20">
                     <div className="flex items-center gap-4">
@@ -1158,11 +1196,6 @@ ${GROUP_LINK}`;
                         </span>
                       </div>
                       
-                      {affiliateId && (
-                        <div className="text-sm text-zinc-400">
-                          Link: <span className="text-purple-300 font-mono">/instagram-promo-{affiliateId}</span>
-                        </div>
-                      )}
                     </div>
                     
                     <Button
