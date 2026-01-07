@@ -86,6 +86,7 @@ interface Affiliate {
   promoEndDate?: string;   // YYYY-MM-DD
   promoStartTime?: string; // HH:mm
   promoEndTime?: string;   // HH:mm
+  isLifetime?: boolean;    // true = afiliado vitalício, recebe comissão na hora
 }
 
 export default function InstagramNovaAdmin() {
@@ -126,6 +127,7 @@ export default function InstagramNovaAdmin() {
   const [promoEndDate, setPromoEndDate] = useState("");
   const [promoStartTime, setPromoStartTime] = useState("");
   const [promoEndTime, setPromoEndTime] = useState("");
+  const [isLifetimeAffiliate, setIsLifetimeAffiliate] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [isEditingAffiliate, setIsEditingAffiliate] = useState(false);
@@ -178,6 +180,7 @@ export default function InstagramNovaAdmin() {
         setPromoEndDate(activeAffiliate.promoEndDate || "");
         setPromoStartTime(activeAffiliate.promoStartTime || "");
         setPromoEndTime(activeAffiliate.promoEndTime || "");
+        setIsLifetimeAffiliate(activeAffiliate.isLifetime || false);
       }
     } catch (e) {
       console.error("[AFFILIATES] Error loading from cloud:", e);
@@ -608,6 +611,7 @@ ${GROUP_LINK}`;
     setPromoEndDate("");
     setPromoStartTime("");
     setPromoEndTime("");
+    setIsLifetimeAffiliate(false);
     setIsEditingAffiliate(false);
     setEditingAffiliateOriginalId(null);
   };
@@ -623,6 +627,7 @@ ${GROUP_LINK}`;
     setPromoEndDate(affiliate.promoEndDate || "");
     setPromoStartTime(affiliate.promoStartTime || "");
     setPromoEndTime(affiliate.promoEndTime || "");
+    setIsLifetimeAffiliate(affiliate.isLifetime || false);
     setIsEditingAffiliate(true);
     setEditingAffiliateOriginalId(affiliate.id);
     setActiveTab("config");
@@ -665,6 +670,10 @@ ${GROUP_LINK}`;
       
       // Adicionar/atualizar no histórico
       const existingIndex = affiliates.findIndex(a => a.id === (editingAffiliateOriginalId || cleanId));
+      
+      // Determinar se é vitalício: sem datas definidas OU toggle manual
+      const isLifetime = isLifetimeAffiliate || (!promoStartDate && !promoEndDate && !promoStartTime && !promoEndTime);
+      
       const newAffiliate: Affiliate = {
         id: cleanId,
         name: affiliateName.trim(),
@@ -673,10 +682,11 @@ ${GROUP_LINK}`;
         active: affiliateActive,
         createdAt: existingIndex >= 0 ? affiliates[existingIndex].createdAt : new Date().toISOString(),
         commissionNotified: existingIndex >= 0 ? affiliates[existingIndex].commissionNotified : [],
-        promoStartDate: promoStartDate,
-        promoEndDate: promoEndDate,
-        promoStartTime: promoStartTime,
-        promoEndTime: promoEndTime
+        promoStartDate: isLifetime ? undefined : promoStartDate,
+        promoEndDate: isLifetime ? undefined : promoEndDate,
+        promoStartTime: isLifetime ? undefined : promoStartTime,
+        promoEndTime: isLifetime ? undefined : promoEndTime,
+        isLifetime: isLifetime
       };
       
       let updatedAffiliates: Affiliate[];
@@ -789,7 +799,7 @@ ${GROUP_LINK}`;
     setPromoEndDate(affiliate.promoEndDate || "");
     setPromoStartTime(affiliate.promoStartTime || "");
     setPromoEndTime(affiliate.promoEndTime || "");
-    
+    setIsLifetimeAffiliate(affiliate.isLifetime || false);
     localStorage.setItem("mro_affiliate_id", affiliate.id);
     localStorage.setItem("mro_affiliate_name", affiliate.name);
     localStorage.setItem("mro_affiliate_email", affiliate.email);
@@ -847,7 +857,8 @@ ${GROUP_LINK}`;
           promoStartDate: affiliate.promoStartDate,
           promoEndDate: affiliate.promoEndDate,
           promoEndTime: affiliate.promoEndTime,
-          affiliateLink
+          affiliateLink,
+          isLifetime: affiliate.isLifetime || false
         }
       });
 
@@ -1277,39 +1288,70 @@ ${GROUP_LINK}`;
                       </div>
                     </div>
                     
-                    <div>
-                      <label className="text-sm text-zinc-400 mb-1 block">Data Início</label>
-                      <Input
-                        type="date"
-                        value={promoStartDate}
-                        onChange={(e) => setPromoStartDate(e.target.value)}
-                        className="bg-zinc-800/50 border-zinc-600 text-white"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm text-zinc-400 mb-1 block">Data Fim</label>
-                      <Input
-                        type="date"
-                        value={promoEndDate}
-                        onChange={(e) => setPromoEndDate(e.target.value)}
-                        className="bg-zinc-800/50 border-zinc-600 text-white"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm text-zinc-400 mb-1 block">Hora Fim</label>
-                      <Input
-                        type="time"
-                        value={promoEndTime}
-                        onChange={(e) => setPromoEndTime(e.target.value)}
-                        className="bg-zinc-800/50 border-zinc-600 text-white"
-                      />
-                      <p className="text-xs text-zinc-500 mt-1">
-                        Horário de expiração
-                      </p>
+                    {/* Toggle Vitalício */}
+                    <div className="col-span-2 lg:col-span-3 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm text-amber-400 font-medium flex items-center gap-2">
+                            ⭐ Afiliado Vitalício
+                          </label>
+                          <p className="text-xs text-zinc-500 mt-1">
+                            Sem data definida - Recebe comissão <strong className="text-green-400">na hora</strong> que vender
+                          </p>
+                        </div>
+                        <Switch
+                          checked={isLifetimeAffiliate}
+                          onCheckedChange={(checked) => {
+                            setIsLifetimeAffiliate(checked);
+                            if (checked) {
+                              setPromoStartDate("");
+                              setPromoEndDate("");
+                              setPromoStartTime("");
+                              setPromoEndTime("");
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Datas da promoção - só mostra se NÃO for vitalício */}
+                  {!isLifetimeAffiliate && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="text-sm text-zinc-400 mb-1 block">Data Início</label>
+                        <Input
+                          type="date"
+                          value={promoStartDate}
+                          onChange={(e) => setPromoStartDate(e.target.value)}
+                          className="bg-zinc-800/50 border-zinc-600 text-white"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm text-zinc-400 mb-1 block">Data Fim</label>
+                        <Input
+                          type="date"
+                          value={promoEndDate}
+                          onChange={(e) => setPromoEndDate(e.target.value)}
+                          className="bg-zinc-800/50 border-zinc-600 text-white"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm text-zinc-400 mb-1 block">Hora Fim</label>
+                        <Input
+                          type="time"
+                          value={promoEndTime}
+                          onChange={(e) => setPromoEndTime(e.target.value)}
+                          className="bg-zinc-800/50 border-zinc-600 text-white"
+                        />
+                        <p className="text-xs text-zinc-500 mt-1">
+                          Horário de expiração (comissões repassadas após)
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Link do afiliado */}
                   {affiliateId && (
@@ -1428,11 +1470,16 @@ ${GROUP_LINK}`;
                                   </Button>
                                 </div>
                                 <div>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <h4 className="font-bold text-white">{affiliate.name}</h4>
                                     <Badge className={affiliate.active ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}>
                                       {affiliate.active ? "Ativo" : "Inativo"}
                                     </Badge>
+                                    {affiliate.isLifetime && (
+                                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                                        ⭐ Vitalício
+                                      </Badge>
+                                    )}
                                   </div>
                                   <p className="text-sm text-zinc-400">{affiliate.email}</p>
                                   <p className="text-xs text-zinc-500 font-mono">ID: {affiliate.id}</p>
