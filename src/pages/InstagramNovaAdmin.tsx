@@ -150,6 +150,8 @@ export default function InstagramNovaAdmin() {
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [summaryModalAffiliate, setSummaryModalAffiliate] = useState<Affiliate | null>(null);
   const [additionalEmail, setAdditionalEmail] = useState("");
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [emailPreviewHtml, setEmailPreviewHtml] = useState("");
   
   // Configuração de WhatsApp para emails de afiliados
   const [affiliateWhatsApp, setAffiliateWhatsApp] = useState("");
@@ -836,11 +838,201 @@ ${GROUP_LINK}`;
     }
   };
 
+  // Gerar HTML da prévia do email
+  const generateEmailPreviewHtml = (affiliate: Affiliate) => {
+    const affiliateSales = orders.filter(o => 
+      (o.status === "paid" || o.status === "completed") && 
+      o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
+    );
+    
+    const affiliateAttempts = orders.filter(o => 
+      (o.status === "pending" || o.status === "expired") && 
+      o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
+    );
+    
+    const paidEmails = affiliateSales.map(s => s.email.toLowerCase().split(':')[1]);
+    const totalCommission = affiliateSales.length * 97;
+    const now = new Date();
+    const timestamp = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+    
+    const salesList = affiliateSales.map(sale => ({
+      customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
+      customerName: sale.username,
+      phone: sale.phone || "",
+      amount: sale.amount,
+      date: format(new Date(sale.paid_at || sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+    }));
+    
+    const attemptsList = affiliateAttempts.map(attempt => {
+      const baseEmail = attempt.email.toLowerCase().split(':')[1];
+      return {
+        email: baseEmail,
+        name: attempt.username,
+        phone: attempt.phone || "",
+        date: format(new Date(attempt.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+        eventuallyPaid: paidEmails.includes(baseEmail)
+      };
+    });
+    
+    const totalAttempts = attemptsList.length;
+    const notPaidAttempts = attemptsList.filter(a => !a.eventuallyPaid).length;
+    
+    // Build sales rows
+    let salesRows = '';
+    if (salesList.length > 0) {
+      salesList.forEach((sale, index) => {
+        salesRows += `<tr style="border-bottom:1px solid #e5e7eb;">
+          <td style="padding:8px;font-size:12px;">${index + 1}</td>
+          <td style="padding:8px;font-size:12px;">${sale.customerEmail}</td>
+          <td style="padding:8px;font-size:12px;">${sale.customerName || '-'}</td>
+          <td style="padding:8px;font-size:12px;">${sale.phone || '-'}</td>
+          <td style="padding:8px;font-size:12px;">R$ ${Number(sale.amount).toFixed(2)}</td>
+          <td style="padding:8px;font-size:12px;">${sale.date}</td>
+        </tr>`;
+      });
+    }
+    
+    // Build attempts rows
+    let attemptsRows = '';
+    if (attemptsList.length > 0) {
+      attemptsList.forEach((attempt, index) => {
+        attemptsRows += `<tr style="border-bottom:1px solid #e5e7eb;background:${attempt.eventuallyPaid ? '#f0fdf4' : '#fef2f2'};">
+          <td style="padding:8px;font-size:12px;">${index + 1}</td>
+          <td style="padding:8px;font-size:12px;">${attempt.email}</td>
+          <td style="padding:8px;font-size:12px;">${attempt.name || '-'}</td>
+          <td style="padding:8px;font-size:12px;">${attempt.phone || '-'}</td>
+          <td style="padding:8px;font-size:12px;">${attempt.date}</td>
+          <td style="padding:8px;font-size:12px;font-weight:bold;color:${attempt.eventuallyPaid ? '#10b981' : '#ef4444'};">${attempt.eventuallyPaid ? '✅ PAGOU' : '❌ NÃO PAGOU'}</td>
+        </tr>`;
+      });
+    }
+    
+    const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:10px;font-family:Arial,sans-serif;background:#f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:100%;background:#fff;border-radius:8px;overflow:hidden;">
+<tr>
+<td style="background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);padding:15px;text-align:center;">
+<div style="background:#000;color:#FFD700;display:inline-block;padding:8px 20px;border-radius:6px;font-size:20px;font-weight:bold;">MRO</div>
+<h1 style="color:#fff;margin:10px 0 0 0;font-size:18px;">📊 Resumo de Vendas e Tentativas</h1>
+<p style="color:#fbbf24;margin:5px 0 0 0;font-size:12px;">📍 Promoção ainda em andamento!</p>
+</td>
+</tr>
+<tr>
+<td style="padding:15px;background:#fff;">
+
+<div style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:15px;border-radius:10px;margin-bottom:15px;text-align:center;">
+<p style="margin:0;color:#000;font-size:14px;font-weight:bold;">Olá, ${affiliate.name.toUpperCase()}!</p>
+<p style="margin:5px 0 0 0;color:#000;font-size:12px;">Resumo gerado em ${timestamp}</p>
+</div>
+
+<!-- Stats Cards -->
+<table width="100%" cellpadding="0" cellspacing="5" style="margin-bottom:15px;">
+<tr>
+<td width="25%" style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:10px;text-align:center;">
+<p style="margin:0;color:#666;font-size:10px;">Vendas</p>
+<p style="margin:3px 0;color:#10b981;font-size:20px;font-weight:bold;">${affiliateSales.length}</p>
+</td>
+<td width="25%" style="background:#fef3c7;border:2px solid #f59e0b;border-radius:8px;padding:10px;text-align:center;">
+<p style="margin:0;color:#666;font-size:10px;">Comissão</p>
+<p style="margin:3px 0;color:#f59e0b;font-size:20px;font-weight:bold;">R$${totalCommission}</p>
+</td>
+<td width="25%" style="background:#fef2f2;border:2px solid #ef4444;border-radius:8px;padding:10px;text-align:center;">
+<p style="margin:0;color:#666;font-size:10px;">Tentativas</p>
+<p style="margin:3px 0;color:#ef4444;font-size:20px;font-weight:bold;">${totalAttempts}</p>
+</td>
+<td width="25%" style="background:#fce7f3;border:2px solid #ec4899;border-radius:8px;padding:10px;text-align:center;">
+<p style="margin:0;color:#666;font-size:10px;">A Recuperar</p>
+<p style="margin:3px 0;color:#ec4899;font-size:20px;font-weight:bold;">${notPaidAttempts}</p>
+</td>
+</tr>
+</table>
+
+<!-- Sales Table -->
+<div style="background:#f0fdf4;border-radius:8px;padding:10px;margin-bottom:15px;border:2px solid #10b981;">
+<h3 style="color:#10b981;margin:0 0 10px 0;font-size:14px;">✅ VENDAS CONFIRMADAS</h3>
+<div style="overflow-x:auto;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:6px;border-collapse:collapse;font-size:11px;">
+<thead>
+<tr style="background:#10b981;color:#fff;">
+<th style="padding:8px;text-align:left;">#</th>
+<th style="padding:8px;text-align:left;">Email</th>
+<th style="padding:8px;text-align:left;">Cliente</th>
+<th style="padding:8px;text-align:left;">📱 Tel</th>
+<th style="padding:8px;text-align:left;">Valor</th>
+<th style="padding:8px;text-align:left;">Data</th>
+</tr>
+</thead>
+<tbody>
+${salesRows || '<tr><td colspan="6" style="padding:15px;text-align:center;color:#666;">Nenhuma venda registrada ainda</td></tr>'}
+</tbody>
+</table>
+</div>
+</div>
+
+${attemptsList.length > 0 ? `
+<!-- Attempts Table -->
+<div style="background:#fef2f2;border-radius:8px;padding:10px;margin-bottom:15px;border:2px solid #fca5a5;">
+<h3 style="color:#dc2626;margin:0 0 5px 0;font-size:14px;">🎯 TENTATIVAS - RECUPERE ESSAS VENDAS!</h3>
+<p style="color:#666;margin:0 0 10px 0;font-size:11px;">Pessoas que tentaram comprar mas não finalizaram.</p>
+<div style="overflow-x:auto;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:6px;border-collapse:collapse;font-size:11px;">
+<thead>
+<tr style="background:#dc2626;color:#fff;">
+<th style="padding:8px;text-align:left;">#</th>
+<th style="padding:8px;text-align:left;">Email</th>
+<th style="padding:8px;text-align:left;">Nome</th>
+<th style="padding:8px;text-align:left;">📱 Tel</th>
+<th style="padding:8px;text-align:left;">Data</th>
+<th style="padding:8px;text-align:left;">Status</th>
+</tr>
+</thead>
+<tbody>
+${attemptsRows}
+</tbody>
+</table>
+</div>
+</div>
+` : ''}
+
+<div style="background:#dbeafe;border:2px solid #3b82f6;border-radius:10px;padding:12px;text-align:center;">
+<p style="margin:0;color:#1d4ed8;font-size:13px;font-weight:bold;">
+${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar!` : '🔥 Continue vendendo!'}
+</p>
+</div>
+
+</td>
+</tr>
+<tr>
+<td style="background:#1a1a1a;padding:12px;text-align:center;">
+<p style="color:#FFD700;margin:0;font-weight:bold;font-size:12px;">MRO - Programa de Afiliados 💛</p>
+<p style="color:#888;margin:5px 0 0 0;font-size:10px;">© ${new Date().getFullYear()} MRO</p>
+</td>
+</tr>
+</table>
+</body>
+</html>`;
+    
+    return html;
+  };
+
   // Abrir modal de resumo
   const openSummaryModal = (affiliate: Affiliate) => {
     setSummaryModalAffiliate(affiliate);
     setAdditionalEmail("");
+    setShowEmailPreview(false);
+    setEmailPreviewHtml("");
     setShowSummaryModal(true);
+  };
+  
+  // Mostrar prévia do email
+  const showPreview = () => {
+    if (summaryModalAffiliate) {
+      const html = generateEmailPreviewHtml(summaryModalAffiliate);
+      setEmailPreviewHtml(html);
+      setShowEmailPreview(true);
+    }
   };
 
   // Enviar apenas resumo (sem parar promoção)
@@ -2444,63 +2636,119 @@ ${GROUP_LINK}`;
         )}
       </div>
 
-      {/* Modal de Resumo com Email Adicional */}
-      <Dialog open={showSummaryModal} onOpenChange={setShowSummaryModal}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-md">
+      {/* Modal de Resumo com Email Adicional e Prévia */}
+      <Dialog open={showSummaryModal} onOpenChange={(open) => {
+        setShowSummaryModal(open);
+        if (!open) {
+          setShowEmailPreview(false);
+          setEmailPreviewHtml("");
+        }
+      }}>
+        <DialogContent className={`bg-zinc-900 border-zinc-700 text-white ${showEmailPreview ? 'max-w-4xl max-h-[90vh]' : 'max-w-md'}`}>
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Send className="w-5 h-5 text-purple-400" />
-              Enviar Resumo
+              {showEmailPreview ? 'Prévia do Email' : 'Enviar Resumo'}
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Enviar resumo de vendas e tentativas para {summaryModalAffiliate?.name}
+              {showEmailPreview 
+                ? 'Veja como o email vai aparecer para o destinatário' 
+                : `Enviar resumo de vendas e tentativas para ${summaryModalAffiliate?.name}`
+              }
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700/50">
-              <p className="text-sm text-zinc-400 mb-1">Destino principal:</p>
-              <p className="text-white font-medium">{summaryModalAffiliate?.email}</p>
+          {showEmailPreview ? (
+            <div className="space-y-4">
+              {/* Prévia do email em iframe */}
+              <div className="bg-white rounded-lg overflow-hidden" style={{ height: '60vh' }}>
+                <iframe
+                  srcDoc={emailPreviewHtml}
+                  className="w-full h-full border-0"
+                  title="Email Preview"
+                  sandbox="allow-same-origin"
+                />
+              </div>
+              
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEmailPreview(false)}
+                  className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                >
+                  <ChevronDown className="w-4 h-4 mr-2 rotate-90" />
+                  Voltar
+                </Button>
+                <Button
+                  onClick={() => summaryModalAffiliate && sendSummaryOnly(summaryModalAffiliate, additionalEmail)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  disabled={sendingEmail}
+                >
+                  {sendingEmail ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  Confirmar e Enviar
+                </Button>
+              </DialogFooter>
             </div>
-            
-            <div>
-              <label className="text-sm text-zinc-400 mb-2 block">
-                Email adicional (opcional)
-              </label>
-              <Input
-                type="email"
-                placeholder="seu@email.com"
-                value={additionalEmail}
-                onChange={(e) => setAdditionalEmail(e.target.value)}
-                className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
-              />
-              <p className="text-xs text-zinc-500 mt-1">
-                Digite um email extra para receber uma cópia do resumo
-              </p>
-            </div>
-          </div>
-          
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowSummaryModal(false)}
-              className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => summaryModalAffiliate && sendSummaryOnly(summaryModalAffiliate, additionalEmail)}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              disabled={sendingEmail}
-            >
-              {sendingEmail ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Send className="w-4 h-4 mr-2" />
-              )}
-              Enviar Resumo
-            </Button>
-          </DialogFooter>
+          ) : (
+            <>
+              <div className="space-y-4 py-4">
+                <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700/50">
+                  <p className="text-sm text-zinc-400 mb-1">Destino principal:</p>
+                  <p className="text-white font-medium">{summaryModalAffiliate?.email}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm text-zinc-400 mb-2 block">
+                    Email adicional (opcional)
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={additionalEmail}
+                    onChange={(e) => setAdditionalEmail(e.target.value)}
+                    className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
+                  />
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Digite um email extra para receber uma cópia do resumo
+                  </p>
+                </div>
+              </div>
+              
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSummaryModal(false)}
+                  className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={showPreview}
+                  className="border-blue-600 text-blue-400 hover:bg-blue-900/30"
+                >
+                  <Image className="w-4 h-4 mr-2" />
+                  Ver Prévia
+                </Button>
+                <Button
+                  onClick={() => summaryModalAffiliate && sendSummaryOnly(summaryModalAffiliate, additionalEmail)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  disabled={sendingEmail}
+                >
+                  {sendingEmail ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  Enviar Resumo
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
