@@ -331,6 +331,45 @@ serve(async (req) => {
 
     log("Order completed successfully", { orderId: order.id, apiCreated, emailSent });
 
+    // Verificar se é venda de afiliado e enviar email de comissão
+    // O email do afiliado tem formato: affiliateId:customerEmail
+    const emailParts = order.email.split(":");
+    if (emailParts.length >= 2) {
+      const affiliateId = emailParts[0].toLowerCase();
+      const customerEmail = emailParts.slice(1).join(":");
+      
+      log("Affiliate sale detected", { affiliateId, customerEmail });
+      
+      // Buscar dados do afiliado do storage (será enviado pelo frontend via admin)
+      // Enviar notificação de comissão para o afiliado
+      try {
+        // O email do afiliado precisa ser passado - vamos armazenar junto com o pedido
+        // Por agora, fazemos uma chamada para a edge function de email
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        if (supabaseUrl) {
+          await fetch(`${supabaseUrl}/functions/v1/affiliate-commission-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            },
+            body: JSON.stringify({
+              type: "commission",
+              affiliateId: affiliateId,
+              customerEmail: customerEmail,
+              customerName: order.username,
+              commission: "97",
+              orderId: order.id,
+              orderNsu: order.nsu_order
+            }),
+          });
+          log("Affiliate commission email request sent");
+        }
+      } catch (emailError) {
+        log("Error sending affiliate commission email", { error: String(emailError) });
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
