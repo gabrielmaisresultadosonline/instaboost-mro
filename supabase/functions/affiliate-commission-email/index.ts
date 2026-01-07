@@ -19,7 +19,7 @@ serve(async (req) => {
 
   try {
     const { 
-      type, // 'commission' | 'summary'
+      type, // 'commission' | 'summary' | 'welcome'
       affiliateEmail, 
       affiliateName,
       affiliateId,
@@ -31,7 +31,11 @@ serve(async (req) => {
       totalCommission,
       salesList,
       promoStartTime,
-      promoEndTime
+      promoEndTime,
+      // For welcome
+      promoStartDate,
+      promoEndDate,
+      affiliateLink
     } = await req.json();
     
     logStep("Request received", { type, affiliateEmail, affiliateName, affiliateId });
@@ -107,7 +111,128 @@ serve(async (req) => {
     let subject = '';
     let htmlContent = '';
 
-    if (type === 'commission') {
+    if (type === 'welcome') {
+      // Email de boas-vindas para novo afiliado
+      subject = `🎉 Bem-vindo à Família MRO, ${finalAffiliateName}!`;
+      
+      // Formatar datas
+      let promoDateText = '';
+      if (promoEndDate && promoEndTime) {
+        const endDate = new Date(promoEndDate + 'T' + promoEndTime);
+        promoDateText = `dia ${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')} às ${promoEndTime}`;
+      } else if (promoEndDate) {
+        const endDate = new Date(promoEndDate);
+        promoDateText = `dia ${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')}`;
+      }
+      
+      htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
+
+<!-- Header -->
+<tr>
+<td style="background:linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%);padding:40px 30px;text-align:center;">
+<div style="background:#000;color:#FFD700;display:inline-block;padding:12px 30px;border-radius:10px;font-size:36px;font-weight:bold;letter-spacing:3px;margin-bottom:15px;box-shadow:0 4px 15px rgba(0,0,0,0.3);">MRO</div>
+<h1 style="color:#fff;margin:20px 0 0 0;font-size:32px;text-shadow:0 2px 10px rgba(0,0,0,0.2);">🎉 Bem-vindo(a)!</h1>
+</td>
+</tr>
+
+<!-- Greeting -->
+<tr>
+<td style="padding:30px;background:#ffffff;">
+
+<div style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;border-radius:20px;margin-bottom:30px;text-align:center;box-shadow:0 4px 20px rgba(255,215,0,0.3);">
+<p style="margin:0;color:#000;font-size:20px;font-weight:bold;">🤝 Estamos felizes em ter você conosco em parceria!</p>
+<p style="margin:15px 0 0 0;color:#333;font-size:16px;">Olá, <strong>${finalAffiliateName}</strong>!</p>
+</div>
+
+<!-- Commission Info -->
+<div style="background:#f0fdf4;border:3px solid #10b981;border-radius:20px;padding:30px;text-align:center;margin-bottom:30px;">
+<p style="margin:0;color:#059669;font-size:16px;font-weight:bold;">💰 Sua Comissão por Venda:</p>
+<p style="margin:15px 0;color:#10b981;font-size:56px;font-weight:bold;text-shadow:0 2px 5px rgba(16,185,129,0.2);">R$ 97</p>
+<p style="margin:0;color:#047857;font-size:14px;">E pode deixar que o <strong>suporte todo é nosso!</strong></p>
+</div>
+
+<!-- Payment Info -->
+<div style="background:#fef3c7;border-left:5px solid #f59e0b;padding:20px 25px;margin:25px 0;border-radius:0 15px 15px 0;">
+<p style="margin:0;color:#92400e;font-size:15px;line-height:1.8;">
+<strong>📅 As comissões serão passadas ao final da promoção ${promoDateText ? promoDateText : ''}.</strong>
+</p>
+</div>
+
+<!-- Notifications -->
+<div style="background:#ede9fe;border:2px solid #8b5cf6;border-radius:15px;padding:25px;margin-bottom:25px;">
+<p style="margin:0;color:#6366f1;font-size:15px;line-height:1.8;">
+📧 <strong>Todas as vendas</strong> feitas pelo seu link serão <strong>notificadas no seu email</strong> quando aprovadas.
+</p>
+<p style="margin:15px 0 0 0;color:#7c3aed;font-size:14px;">
+Assim contabilizando junto com a gente de forma <strong>transparente</strong>.
+</p>
+</div>
+
+<!-- Potential Earnings -->
+<div style="background:linear-gradient(135deg,#1a1a1a 0%,#2d2d2d 100%);border-radius:20px;padding:30px;text-align:center;margin-bottom:25px;">
+<p style="margin:0;color:#FFD700;font-size:18px;font-weight:bold;">🚀 Seu faturamento não tem limite!</p>
+<p style="margin:20px 0;color:#fff;font-size:16px;">Você pode chegar a mais de</p>
+<p style="margin:0;color:#10b981;font-size:48px;font-weight:bold;">R$ 5.000</p>
+<p style="margin:10px 0 0 0;color:#9ca3af;font-size:14px;">com apenas <strong style="color:#FFD700;">60 vendas!</strong></p>
+</div>
+
+<!-- Support Info -->
+<div style="background:#f0f9ff;border:2px solid #3b82f6;border-radius:15px;padding:25px;margin-bottom:25px;">
+<p style="margin:0;color:#1e40af;font-size:15px;line-height:1.9;">
+<strong>💼 Suporte Completo:</strong><br><br>
+✅ O suporte da ferramenta será feito por <strong>nós</strong>, não precisa se preocupar com seus clientes!<br><br>
+✅ Para quem está vendendo, vamos dar <strong>total suporte</strong> aqui também para ter 100% de <strong>confiança e credibilidade</strong> com ambos.
+</p>
+</div>
+
+<!-- Affiliate Link -->
+${affiliateLink ? `
+<div style="background:#f0fdf4;border:2px dashed #10b981;border-radius:15px;padding:25px;text-align:center;margin-bottom:25px;">
+<p style="margin:0 0 15px 0;color:#059669;font-size:14px;font-weight:bold;">🔗 Seu Link de Afiliado:</p>
+<div style="background:#000;padding:15px 20px;border-radius:10px;word-break:break-all;">
+<a href="${affiliateLink}" style="color:#10b981;font-family:monospace;font-size:14px;text-decoration:none;">${affiliateLink}</a>
+</div>
+<p style="margin:15px 0 0 0;color:#666;font-size:12px;">Use sempre este link para suas vendas!</p>
+</div>
+` : ''}
+
+<!-- Final Message -->
+<div style="text-align:center;padding:20px 0;">
+<p style="margin:0;color:#333;font-size:18px;line-height:1.8;">
+<strong>MRO agradece mais uma vez a parceria!</strong><br>
+Utilize sempre o seu link de compra e <strong style="color:#8b5cf6;">vamos pra cima! 🔥</strong>
+</p>
+</div>
+
+<div style="text-align:center;padding:30px 0 10px 0;border-top:2px solid #e5e7eb;margin-top:20px;">
+<p style="margin:0;color:#666;font-size:16px;">Atenciosamente,</p>
+<p style="margin:10px 0 0 0;color:#8b5cf6;font-size:24px;font-weight:bold;">Gabriel</p>
+<p style="margin:5px 0 0 0;color:#999;font-size:14px;">Fundador MRO</p>
+</div>
+
+</td>
+</tr>
+
+<!-- Footer -->
+<tr>
+<td style="background:#1a1a1a;padding:25px;text-align:center;">
+<p style="color:#FFD700;margin:0 0 10px 0;font-weight:bold;font-size:16px;">MRO - Programa de Afiliados 💛</p>
+<p style="color:#888;margin:0;font-size:12px;">© ${new Date().getFullYear()} MRO - Mais Resultados Online</p>
+<p style="color:#666;margin:10px 0 0 0;font-size:11px;">Juntos vamos longe! 🚀</p>
+</td>
+</tr>
+</table>
+</body>
+</html>`;
+
+    } else if (type === 'commission') {
       // Email de comissão por venda individual
       subject = `💰 Temos uma comissão para você, ${finalAffiliateName}!`;
       htmlContent = `<!DOCTYPE html>

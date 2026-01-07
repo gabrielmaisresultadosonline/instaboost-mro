@@ -134,6 +134,7 @@ export default function InstagramNovaAdmin() {
   
   // Envio de emails
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingWelcomeEmail, setSendingWelcomeEmail] = useState<string | null>(null);
 
   // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async () => {
@@ -777,7 +778,45 @@ ${GROUP_LINK}`;
     toast.success("Afiliado excluído do histórico");
   };
 
-  // Contar vendas por afiliado específico
+  // Enviar email de boas-vindas para afiliado
+  const sendWelcomeEmail = async (affiliate: Affiliate) => {
+    if (!affiliate.email) {
+      toast.error("Afiliado não tem email cadastrado");
+      return;
+    }
+    
+    setSendingWelcomeEmail(affiliate.id);
+    
+    try {
+      const affiliateLink = `${window.location.origin}/promo/${affiliate.id.toLowerCase()}`;
+      
+      const { data, error } = await supabase.functions.invoke("affiliate-commission-email", {
+        body: {
+          type: "welcome",
+          affiliateEmail: affiliate.email,
+          affiliateName: affiliate.name,
+          affiliateId: affiliate.id,
+          promoStartDate: affiliate.promoStartDate,
+          promoEndDate: affiliate.promoEndDate,
+          promoEndTime: affiliate.promoEndTime,
+          affiliateLink
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success(`Email de boas-vindas enviado para ${affiliate.name}!`);
+      } else {
+        throw new Error(data?.error || "Erro ao enviar email");
+      }
+    } catch (error) {
+      console.error("Error sending welcome email:", error);
+      toast.error("Erro ao enviar email de boas-vindas");
+    } finally {
+      setSendingWelcomeEmail(null);
+    }
+  };
   const getAffiliateSales = (affId: string) => {
     return orders.filter(o => 
       (o.status === "paid" || o.status === "completed") && 
@@ -1262,17 +1301,33 @@ ${GROUP_LINK}`;
                           >
                             <div className="flex items-center justify-between gap-4">
                               <div className="flex items-center gap-4">
-                                {affiliate.photoUrl ? (
-                                  <img 
-                                    src={affiliate.photoUrl} 
-                                    alt={affiliate.name}
-                                    className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
-                                    <User className="w-6 h-6 text-purple-400" />
-                                  </div>
-                                )}
+                                <div className="relative">
+                                  {affiliate.photoUrl ? (
+                                    <img 
+                                      src={affiliate.photoUrl} 
+                                      alt={affiliate.name}
+                                      className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                      <User className="w-6 h-6 text-purple-400" />
+                                    </div>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => { e.stopPropagation(); sendWelcomeEmail(affiliate); }}
+                                    disabled={sendingWelcomeEmail === affiliate.id}
+                                    className="absolute -right-1 -bottom-1 text-blue-400 hover:bg-blue-500/20 bg-zinc-800 border border-blue-500/50 h-6 w-6 p-0 rounded-full"
+                                    title="Enviar email de boas-vindas"
+                                  >
+                                    {sendingWelcomeEmail === affiliate.id ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                      <Mail className="w-3 h-3" />
+                                    )}
+                                  </Button>
+                                </div>
                                 <div>
                                   <div className="flex items-center gap-2">
                                     <h4 className="font-bold text-white">{affiliate.name}</h4>
