@@ -1035,12 +1035,92 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     }
   };
 
+  // Gerar link do resumo
+  const getResumoLink = (affiliateId: string) => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/resumo/${affiliateId}`;
+  };
+
+  // Copiar link do resumo
+  const copyResumoLink = (affiliateId: string) => {
+    const link = getResumoLink(affiliateId);
+    navigator.clipboard.writeText(link);
+    toast.success("Link do resumo copiado!");
+  };
+
+  // Salvar resumo na nuvem
+  const saveResumoToCloud = async (affiliate: Affiliate) => {
+    const affiliateSales = orders.filter(o => 
+      (o.status === "paid" || o.status === "completed") && 
+      o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
+    );
+    
+    const affiliateAttempts = orders.filter(o => 
+      (o.status === "pending" || o.status === "expired") && 
+      o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
+    );
+    
+    const paidEmails = affiliateSales.map(s => s.email.toLowerCase().split(':')[1]);
+    const totalCommission = affiliateSales.length * 97;
+    
+    const salesList = affiliateSales.map(sale => ({
+      customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
+      customerName: sale.username,
+      phone: sale.phone || "",
+      amount: sale.amount,
+      date: format(new Date(sale.paid_at || sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+    }));
+    
+    const attemptsList = affiliateAttempts
+      .filter(attempt => !paidEmails.includes(attempt.email.toLowerCase().split(':')[1]))
+      .map(attempt => ({
+        email: attempt.email.toLowerCase().split(':')[1],
+        username: attempt.username,
+        phone: attempt.phone || "",
+        date: format(new Date(attempt.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+      }));
+    
+    const multipleAttempts = getMultipleAttempts(affiliate.id);
+    const multipleAttemptsList = multipleAttempts.map(item => ({
+      email: item.email,
+      username: "",
+      phone: "",
+      date: ""
+    }));
+    
+    const resumoData = {
+      affiliateId: affiliate.id,
+      affiliateName: affiliate.name,
+      totalSales: affiliateSales.length,
+      totalCommission: totalCommission,
+      salesList: salesList,
+      attemptsList: attemptsList,
+      multipleAttemptsList: multipleAttemptsList,
+      promoStatus: affiliate.active ? "em andamento" : "finalizada",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    await supabase.functions.invoke("affiliate-resumo-storage", {
+      body: {
+        action: "save",
+        affiliateId: affiliate.id,
+        resumoData: resumoData
+      }
+    });
+    
+    return resumoData;
+  };
+
   // Enviar apenas resumo (sem parar promoção)
   const sendSummaryOnly = async (affiliate: Affiliate, extraEmail?: string) => {
     setShowSummaryModal(false);
     
     setSendingEmail(true);
     try {
+      // Salvar resumo na nuvem primeiro
+      await saveResumoToCloud(affiliate);
+      
       // Buscar vendas deste afiliado
       const affiliateSales = orders.filter(o => 
         (o.status === "paid" || o.status === "completed") && 
@@ -1060,68 +1140,36 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
       const now = new Date();
       const timestamp = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
       
-      // Preparar lista de vendas com telefone
-      const salesList = affiliateSales.map(sale => ({
-        customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
-        customerName: sale.username,
-        phone: sale.phone || "",
-        amount: sale.amount,
-        date: format(new Date(sale.paid_at || sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
-      }));
-      
-      // Preparar lista de tentativas
-      const attemptsList = affiliateAttempts.map(attempt => {
-        const baseEmail = attempt.email.toLowerCase().split(':')[1];
-        return {
-          email: baseEmail,
-          name: attempt.username,
-          phone: attempt.phone || "",
-          date: format(new Date(attempt.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
-          eventuallyPaid: paidEmails.includes(baseEmail)
-        };
-      });
-      
-      // Preparar lista de tentativas múltiplas
-      const multipleAttempts = getMultipleAttempts(affiliate.id);
-      const multipleAttemptsList = multipleAttempts.map(item => ({
-        email: item.email,
-        totalAttempts: item.totalAttempts,
-        hasPaid: item.hasPaid
-      }));
-      
       // Lista de emails para enviar
       const emailsToSend = [affiliate.email];
       if (extraEmail && extraEmail.trim() && extraEmail.includes("@")) {
         emailsToSend.push(extraEmail.trim());
       }
       
-      // Enviar para cada email
+      const resumoLink = getResumoLink(affiliate.id);
+      const notPaidAttempts = affiliateAttempts.filter(a => !paidEmails.includes(a.email.toLowerCase().split(':')[1])).length;
+      
+      // Enviar email simplificado para cada destinatário
       for (const targetEmail of emailsToSend) {
-        const { error } = await supabase.functions.invoke("affiliate-commission-email", {
+        await supabase.functions.invoke("affiliate-commission-email", {
           body: {
-            type: "partial_summary",
+            type: "simple_summary",
             affiliateEmail: targetEmail,
             affiliateName: affiliate.name,
             totalSales: affiliateSales.length,
             totalCommission: totalCommission,
-            salesList: salesList,
-            attemptsList: attemptsList,
-            multipleAttemptsList: multipleAttemptsList,
-            promoStartTime: affiliate.promoStartTime,
-            promoEndTime: affiliate.promoEndTime,
-            summaryTimestamp: timestamp
+            notPaidAttempts: notPaidAttempts,
+            resumoLink: resumoLink,
+            summaryTimestamp: timestamp,
+            isLifetime: affiliate.isLifetime
           }
         });
-        
-        if (error) {
-          console.error(`Error sending to ${targetEmail}:`, error);
-        }
       }
       
       const destinations = emailsToSend.length > 1 
         ? `${affiliate.name} e ${extraEmail}` 
         : affiliate.name;
-      toast.success(`Resumo enviado para ${destinations}! (${timestamp})`);
+      toast.success(`Resumo enviado para ${destinations}! Link: ${resumoLink}`);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao processar");
