@@ -20,10 +20,13 @@ import {
   Euro,
   Copy,
   Phone,
-  AlertTriangle,
   Trash2,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  Send
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import {
@@ -32,6 +35,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ptBR } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
@@ -58,6 +69,13 @@ interface EuroOrder {
   updated_at: string;
 }
 
+interface VerificationAttempt {
+  orderId: string;
+  timestamp: Date;
+  result: "success" | "pending" | "error";
+  message: string;
+}
+
 export default function InstagramNovaEuroAdmin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -72,6 +90,16 @@ export default function InstagramNovaEuroAdmin() {
   const autoCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [autoCheckEnabled, setAutoCheckEnabled] = useState(true);
   const [lastAutoCheck, setLastAutoCheck] = useState<Date | null>(null);
+  
+  // Verification attempts tracking
+  const [verificationAttempts, setVerificationAttempts] = useState<VerificationAttempt[]>([]);
+  const [showAttemptsDialog, setShowAttemptsDialog] = useState(false);
+  
+  // Summary dialog
+  const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+  const [summaryEmail, setSummaryEmail] = useState("");
+  const [summaryName, setSummaryName] = useState("");
+  const [sendingSummary, setSendingSummary] = useState(false);
   
   // State para seções colapsáveis
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -156,6 +184,19 @@ export default function InstagramNovaEuroAdmin() {
     }
   };
 
+  // Add verification attempt to log
+  const addVerificationAttempt = (orderId: string, result: "success" | "pending" | "error", message: string) => {
+    setVerificationAttempts(prev => [
+      {
+        orderId,
+        timestamp: new Date(),
+        result,
+        message
+      },
+      ...prev.slice(0, 99) // Keep last 100 attempts
+    ]);
+  };
+
   // Verificar pagamentos pendentes automaticamente
   const checkPendingPayments = async () => {
     try {
@@ -171,16 +212,25 @@ export default function InstagramNovaEuroAdmin() {
       
       for (const order of pendingOrders) {
         try {
-          const { data } = await supabase.functions.invoke("verify-euro-payment", {
+          const { data, error } = await supabase.functions.invoke("verify-euro-payment", {
             body: { order_id: order.id }
           });
+
+          if (error) {
+            addVerificationAttempt(order.id, "error", `Erro: ${error.message}`);
+            continue;
+          }
 
           if (data?.status === "completed" || data?.status === "paid") {
             console.log(`[AUTO-CHECK EURO] Pagamento confirmado para ${order.username}`);
             toast.success(`Pagamento confirmado: ${order.username}`);
+            addVerificationAttempt(order.id, "success", `Pagamento ${data.status} - ${order.username}`);
+          } else {
+            addVerificationAttempt(order.id, "pending", `Ainda pendente - ${order.username}`);
           }
         } catch (e) {
           console.error(`[AUTO-CHECK EURO] Erro ao verificar ${order.id}:`, e);
+          addVerificationAttempt(order.id, "error", `Exceção: ${String(e)}`);
         }
       }
 
@@ -200,23 +250,106 @@ export default function InstagramNovaEuroAdmin() {
 
       if (error) {
         toast.error("Erro ao verificar pagamento");
+        addVerificationAttempt(order.id, "error", `Erro manual: ${error.message}`);
         return;
       }
 
       if (data.status === "completed") {
         toast.success("Pagamento confirmado e acesso liberado!");
+        addVerificationAttempt(order.id, "success", "Verificação manual: Completo");
       } else if (data.status === "paid") {
         toast.info("Pagamento confirmado! Processando acesso...");
+        addVerificationAttempt(order.id, "success", "Verificação manual: Pago");
       } else {
         toast.info("Pagamento ainda não confirmado");
+        addVerificationAttempt(order.id, "pending", "Verificação manual: Pendente");
       }
 
       loadOrders();
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao verificar");
+      addVerificationAttempt(order.id, "error", `Exceção manual: ${String(error)}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Aprovar pagamento manualmente
+  const approveManually = async (order: EuroOrder) => {
+    if (!confirm(`Tem certeza que deseja aprovar MANUALMENTE o pagamento de ${order.username}?\n\nIsso irá criar o acesso mesmo sem confirmação do Stripe.`)) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-euro-payment", {
+        body: { 
+          order_id: order.id,
+          manual_approve: true
+        }
+      });
+
+      if (error) {
+        toast.error("Erro ao aprovar manualmente");
+        addVerificationAttempt(order.id, "error", `Aprovação manual erro: ${error.message}`);
+        return;
+      }
+
+      if (data.status === "completed") {
+        toast.success("Aprovação manual realizada! Acesso liberado.");
+        addVerificationAttempt(order.id, "success", "APROVAÇÃO MANUAL: Completo");
+      } else {
+        toast.warning(data.message || "Aprovação parcial");
+        addVerificationAttempt(order.id, "pending", `Aprovação manual: ${data.message}`);
+      }
+
+      loadOrders();
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao aprovar manualmente");
+      addVerificationAttempt(order.id, "error", `Exceção aprovação manual: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Enviar resumo de vendas
+  const sendSalesSummary = async () => {
+    if (!summaryEmail.includes("@")) {
+      toast.error("Email inválido");
+      return;
+    }
+
+    setSendingSummary(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("euro-sales-summary", {
+        body: {
+          affiliateEmail: summaryEmail,
+          affiliateName: summaryName || "Afiliado",
+          sendEmail: true
+        }
+      });
+
+      if (error) {
+        toast.error("Erro ao enviar resumo");
+        return;
+      }
+
+      if (data.emailSent) {
+        toast.success("Resumo enviado por email com sucesso!");
+      } else {
+        toast.warning(data.message || "Resumo gerado mas email não enviado");
+      }
+
+      setShowSummaryDialog(false);
+      setSummaryEmail("");
+      setSummaryName("");
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao enviar resumo");
+    } finally {
+      setSendingSummary(false);
     }
   };
 
@@ -396,13 +529,40 @@ ${GROUP_LINK}`;
             )}
             
             {order.status === "pending" && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() => checkPayment(order)}
+                  className="bg-blue-500 hover:bg-blue-600 h-7 px-2 text-xs"
+                  disabled={loading}
+                  title="Verificar pagamento no Stripe"
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Verificar
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => approveManually(order)}
+                  className="bg-green-600 hover:bg-green-700 h-7 px-2 text-xs"
+                  disabled={loading}
+                  title="Aprovar manualmente (sem verificar Stripe)"
+                >
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Aprovar
+                </Button>
+              </>
+            )}
+
+            {order.status === "paid" && !order.api_created && (
               <Button
                 size="sm"
-                onClick={() => checkPayment(order)}
-                className="bg-blue-500 hover:bg-blue-600 h-7 px-2 text-xs"
+                onClick={() => approveManually(order)}
+                className="bg-orange-500 hover:bg-orange-600 h-7 px-2 text-xs"
                 disabled={loading}
+                title="Reprocessar criação de acesso"
               >
-                Verificar
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Criar Acesso
               </Button>
             )}
             
@@ -435,6 +595,7 @@ ${GROUP_LINK}`;
           {order.paid_at && (
             <span className="text-green-500">Pago: {format(new Date(order.paid_at), "dd/MM HH:mm", { locale: ptBR })}</span>
           )}
+          <span className="text-zinc-600">Criado: {format(new Date(order.created_at), "dd/MM HH:mm", { locale: ptBR })}</span>
         </div>
       </div>
     );
@@ -497,7 +658,7 @@ ${GROUP_LINK}`;
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <Euro className="w-6 h-6 text-blue-400" />
@@ -511,7 +672,25 @@ ${GROUP_LINK}`;
               </p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              onClick={() => setShowAttemptsDialog(true)}
+              variant="outline"
+              size="sm"
+              className="border-zinc-600 text-zinc-300"
+            >
+              <AlertCircle className="w-4 h-4 mr-2" />
+              Tentativas ({verificationAttempts.length})
+            </Button>
+            <Button
+              onClick={() => setShowSummaryDialog(true)}
+              variant="outline"
+              size="sm"
+              className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Resumo
+            </Button>
             <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
@@ -665,6 +844,145 @@ ${GROUP_LINK}`;
           </div>
         )}
       </div>
+
+      {/* Verification Attempts Dialog */}
+      <Dialog open={showAttemptsDialog} onOpenChange={setShowAttemptsDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-blue-400" />
+              Tentativas de Verificação
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Histórico das últimas {verificationAttempts.length} tentativas de verificação de pagamento
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {verificationAttempts.length === 0 ? (
+              <p className="text-zinc-500 text-center py-8">Nenhuma tentativa registrada ainda</p>
+            ) : (
+              verificationAttempts.map((attempt, index) => (
+                <div 
+                  key={index}
+                  className={`p-3 rounded-lg border ${
+                    attempt.result === "success" 
+                      ? "bg-green-500/10 border-green-500/30" 
+                      : attempt.result === "error"
+                      ? "bg-red-500/10 border-red-500/30"
+                      : "bg-yellow-500/10 border-yellow-500/30"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {attempt.result === "success" && <CheckCircle className="w-4 h-4 text-green-400" />}
+                      {attempt.result === "error" && <XCircle className="w-4 h-4 text-red-400" />}
+                      {attempt.result === "pending" && <Clock className="w-4 h-4 text-yellow-400" />}
+                      <span className={`text-sm ${
+                        attempt.result === "success" ? "text-green-400" :
+                        attempt.result === "error" ? "text-red-400" : "text-yellow-400"
+                      }`}>
+                        {attempt.message}
+                      </span>
+                    </div>
+                    <span className="text-zinc-500 text-xs">
+                      {format(attempt.timestamp, "HH:mm:ss", { locale: ptBR })}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setVerificationAttempts([])}
+              className="border-zinc-600 text-zinc-300"
+            >
+              Limpar Histórico
+            </Button>
+            <Button onClick={() => setShowAttemptsDialog(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sales Summary Dialog */}
+      <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-700">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <FileText className="w-5 h-5 text-purple-400" />
+              Enviar Resumo de Vendas
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Envie um resumo das vendas Euro para um email específico
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
+              <p className="text-zinc-400 text-sm mb-2">Resumo atual:</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-zinc-500 text-xs">Total de Vendas</p>
+                  <p className="text-white text-lg font-bold">{stats.paid}</p>
+                </div>
+                <div>
+                  <p className="text-zinc-500 text-xs">Receita Total</p>
+                  <p className="text-green-400 text-lg font-bold">€{stats.totalRevenue.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-zinc-400 text-sm mb-1 block">Nome do Destinatário</label>
+              <Input
+                placeholder="Ex: João Silva"
+                value={summaryName}
+                onChange={(e) => setSummaryName(e.target.value)}
+                className="bg-zinc-800/50 border-zinc-600 text-white"
+              />
+            </div>
+            
+            <div>
+              <label className="text-zinc-400 text-sm mb-1 block">Email do Destinatário *</label>
+              <Input
+                type="email"
+                placeholder="email@exemplo.com"
+                value={summaryEmail}
+                onChange={(e) => setSummaryEmail(e.target.value)}
+                className="bg-zinc-800/50 border-zinc-600 text-white"
+                required
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSummaryDialog(false)}
+              className="border-zinc-600 text-zinc-300"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={sendSalesSummary}
+              disabled={sendingSummary || !summaryEmail}
+              className="bg-purple-500 hover:bg-purple-600"
+            >
+              {sendingSummary ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Enviar Resumo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
