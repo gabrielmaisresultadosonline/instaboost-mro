@@ -832,7 +832,7 @@ ${GROUP_LINK}`;
 
   // Enviar apenas resumo (sem parar promoção)
   const sendSummaryOnly = async (affiliate: Affiliate) => {
-    if (!confirm(`Enviar resumo de vendas até agora para ${affiliate.name}?\n\nA promoção continuará ativa.`)) {
+    if (!confirm(`Enviar resumo de vendas e tentativas para ${affiliate.name}?\n\nA promoção continuará ativa.`)) {
       return;
     }
     
@@ -844,27 +844,62 @@ ${GROUP_LINK}`;
         o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
       );
       
-      const totalCommission = affiliateSales.length * 97;
+      // Buscar tentativas (pending ou expired)
+      const affiliateAttempts = orders.filter(o => 
+        (o.status === "pending" || o.status === "expired") && 
+        o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
+      );
       
-      // Preparar lista de vendas
+      // Verificar quais tentativas eventualmente pagaram
+      const paidEmails = affiliateSales.map(s => s.email.toLowerCase().split(':')[1]);
+      
+      const totalCommission = affiliateSales.length * 97;
+      const now = new Date();
+      const timestamp = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+      
+      // Preparar lista de vendas com telefone
       const salesList = affiliateSales.map(sale => ({
         customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
         customerName: sale.username,
+        phone: sale.phone || "",
         amount: sale.amount,
         date: format(new Date(sale.paid_at || sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
+      }));
+      
+      // Preparar lista de tentativas
+      const attemptsList = affiliateAttempts.map(attempt => {
+        const baseEmail = attempt.email.toLowerCase().split(':')[1];
+        return {
+          email: baseEmail,
+          name: attempt.username,
+          phone: attempt.phone || "",
+          date: format(new Date(attempt.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+          eventuallyPaid: paidEmails.includes(baseEmail)
+        };
+      });
+      
+      // Preparar lista de tentativas múltiplas
+      const multipleAttempts = getMultipleAttempts(affiliate.id);
+      const multipleAttemptsList = multipleAttempts.map(item => ({
+        email: item.email,
+        totalAttempts: item.totalAttempts,
+        hasPaid: item.hasPaid
       }));
       
       // Enviar email de resumo parcial
       const { error } = await supabase.functions.invoke("affiliate-commission-email", {
         body: {
-          type: "partial_summary", // Tipo diferente para indicar que é parcial
+          type: "partial_summary",
           affiliateEmail: affiliate.email,
           affiliateName: affiliate.name,
           totalSales: affiliateSales.length,
           totalCommission: totalCommission,
           salesList: salesList,
+          attemptsList: attemptsList,
+          multipleAttemptsList: multipleAttemptsList,
           promoStartTime: affiliate.promoStartTime,
-          promoEndTime: affiliate.promoEndTime
+          promoEndTime: affiliate.promoEndTime,
+          summaryTimestamp: timestamp
         }
       });
       
@@ -873,7 +908,7 @@ ${GROUP_LINK}`;
         return;
       }
       
-      toast.success(`Resumo parcial enviado para ${affiliate.name}!`);
+      toast.success(`Resumo enviado para ${affiliate.name}! (${timestamp})`);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao processar");
@@ -884,7 +919,7 @@ ${GROUP_LINK}`;
 
   // Parar promoção e enviar resumo
   const stopAffiliatePromo = async (affiliate: Affiliate) => {
-    if (!confirm(`Deseja parar a promoção de ${affiliate.name} e enviar o resumo por email?`)) {
+    if (!confirm(`Deseja parar a promoção de ${affiliate.name} e enviar o resumo final por email?`)) {
       return;
     }
     
@@ -896,17 +931,49 @@ ${GROUP_LINK}`;
         o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
       );
       
-      const totalCommission = affiliateSales.length * 97;
+      // Buscar tentativas (pending ou expired)
+      const affiliateAttempts = orders.filter(o => 
+        (o.status === "pending" || o.status === "expired") && 
+        o.email.toLowerCase().startsWith(`${affiliate.id.toLowerCase()}:`)
+      );
       
-      // Preparar lista de vendas
+      // Verificar quais tentativas eventualmente pagaram
+      const paidEmails = affiliateSales.map(s => s.email.toLowerCase().split(':')[1]);
+      
+      const totalCommission = affiliateSales.length * 97;
+      const now = new Date();
+      const timestamp = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+      
+      // Preparar lista de vendas com telefone
       const salesList = affiliateSales.map(sale => ({
         customerEmail: sale.email.replace(`${affiliate.id}:`, ""),
         customerName: sale.username,
+        phone: sale.phone || "",
         amount: sale.amount,
         date: format(new Date(sale.paid_at || sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })
       }));
       
-      // Enviar email de resumo
+      // Preparar lista de tentativas
+      const attemptsList = affiliateAttempts.map(attempt => {
+        const baseEmail = attempt.email.toLowerCase().split(':')[1];
+        return {
+          email: baseEmail,
+          name: attempt.username,
+          phone: attempt.phone || "",
+          date: format(new Date(attempt.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+          eventuallyPaid: paidEmails.includes(baseEmail)
+        };
+      });
+      
+      // Preparar lista de tentativas múltiplas
+      const multipleAttempts = getMultipleAttempts(affiliate.id);
+      const multipleAttemptsList = multipleAttempts.map(item => ({
+        email: item.email,
+        totalAttempts: item.totalAttempts,
+        hasPaid: item.hasPaid
+      }));
+      
+      // Enviar email de resumo final
       const { error } = await supabase.functions.invoke("affiliate-commission-email", {
         body: {
           type: "summary",
@@ -915,8 +982,11 @@ ${GROUP_LINK}`;
           totalSales: affiliateSales.length,
           totalCommission: totalCommission,
           salesList: salesList,
+          attemptsList: attemptsList,
+          multipleAttemptsList: multipleAttemptsList,
           promoStartTime: affiliate.promoStartTime,
-          promoEndTime: affiliate.promoEndTime
+          promoEndTime: affiliate.promoEndTime,
+          summaryTimestamp: timestamp
         }
       });
       
@@ -941,7 +1011,7 @@ ${GROUP_LINK}`;
         localStorage.setItem("mro_affiliate_active", "false");
       }
       
-      toast.success(`Promoção de ${affiliate.name} encerrada! Resumo enviado por email.`);
+      toast.success(`Promoção de ${affiliate.name} encerrada! Resumo enviado.`);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao processar");

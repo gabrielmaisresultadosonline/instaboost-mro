@@ -32,6 +32,9 @@ serve(async (req) => {
       salesList,
       promoStartTime,
       promoEndTime,
+      // For attempts list in summary
+      attemptsList,
+      multipleAttemptsList,
       // For welcome
       promoStartDate,
       promoEndDate,
@@ -39,7 +42,9 @@ serve(async (req) => {
       // For lifetime affiliates
       isLifetime,
       // WhatsApp number (optional, will fallback to storage)
-      whatsappNumber
+      whatsappNumber,
+      // Timestamp do resumo
+      summaryTimestamp
     } = await req.json();
     
     logStep("Request received", { type, affiliateEmail, affiliateName, affiliateId });
@@ -366,8 +371,10 @@ Continue assim! Você está no caminho certo! 🔥
     } else if (type === 'summary' || type === 'partial_summary') {
       // Email de resumo (final ou parcial)
       const isPartial = type === 'partial_summary';
+      const timestamp = summaryTimestamp || new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      
       subject = isPartial 
-        ? `📊 Resumo Parcial das suas Vendas - ${finalAffiliateName}`
+        ? `📊 Resumo de Vendas e Tentativas - ${finalAffiliateName} (${timestamp})`
         : `📊 Resumo Final das suas Vendas - ${finalAffiliateName}`;
       
       // Build sales table rows
@@ -379,23 +386,103 @@ Continue assim! Você está no caminho certo! 🔥
 <td style="padding:12px;font-size:14px;">${index + 1}</td>
 <td style="padding:12px;font-size:14px;">${sale.customerEmail}</td>
 <td style="padding:12px;font-size:14px;">${sale.customerName || '-'}</td>
+<td style="padding:12px;font-size:14px;">${sale.phone || '-'}</td>
 <td style="padding:12px;font-size:14px;">R$ ${Number(sale.amount).toFixed(2)}</td>
 <td style="padding:12px;font-size:14px;">${sale.date}</td>
 </tr>`;
         });
       }
 
+      // Build attempts table rows (pessoas que tentaram mas não pagaram)
+      let attemptsRows = '';
+      let attemptsSection = '';
+      if (attemptsList && attemptsList.length > 0) {
+        attemptsList.forEach((attempt: any, index: number) => {
+          attemptsRows += `
+<tr style="border-bottom:1px solid #e5e7eb;background:${attempt.eventuallyPaid ? '#f0fdf4' : '#fef2f2'};">
+<td style="padding:12px;font-size:14px;">${index + 1}</td>
+<td style="padding:12px;font-size:14px;">${attempt.email}</td>
+<td style="padding:12px;font-size:14px;">${attempt.name || '-'}</td>
+<td style="padding:12px;font-size:14px;"><a href="https://wa.me/${(attempt.phone || '').replace(/\D/g, '')}" style="color:#10b981;text-decoration:none;">${attempt.phone || '-'}</a></td>
+<td style="padding:12px;font-size:14px;">${attempt.date}</td>
+<td style="padding:12px;font-size:14px;font-weight:bold;color:${attempt.eventuallyPaid ? '#10b981' : '#ef4444'};">${attempt.eventuallyPaid ? '✅ PAGOU' : '❌ NÃO PAGOU'}</td>
+</tr>`;
+        });
+
+        attemptsSection = `
+<!-- Attempts Table -->
+<div style="background:#fef2f2;border-radius:10px;padding:20px;margin-bottom:25px;overflow-x:auto;border:2px solid #fca5a5;">
+<h3 style="color:#dc2626;margin:0 0 5px 0;font-size:16px;">🎯 TENTATIVAS - RECUPERE ESSAS VENDAS!</h3>
+<p style="color:#666;margin:0 0 15px 0;font-size:13px;">Pessoas que tentaram comprar mas não finalizaram. Entre em contato para recuperar!</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;border-collapse:collapse;">
+<thead>
+<tr style="background:#dc2626;color:#fff;">
+<th style="padding:12px;text-align:left;font-size:12px;border-radius:8px 0 0 0;">#</th>
+<th style="padding:12px;text-align:left;font-size:12px;">Email</th>
+<th style="padding:12px;text-align:left;font-size:12px;">Nome</th>
+<th style="padding:12px;text-align:left;font-size:12px;">📱 Telefone</th>
+<th style="padding:12px;text-align:left;font-size:12px;">Data/Hora</th>
+<th style="padding:12px;text-align:left;font-size:12px;border-radius:0 8px 0 0;">Status</th>
+</tr>
+</thead>
+<tbody>
+${attemptsRows}
+</tbody>
+</table>
+<p style="color:#dc2626;margin:15px 0 0 0;font-size:13px;font-weight:bold;">💡 Dica: Clique no telefone para abrir o WhatsApp diretamente!</p>
+</div>`;
+      }
+
+      // Build multiple attempts section (pessoas que tentaram mais de uma vez)
+      let multipleAttemptsSection = '';
+      if (multipleAttemptsList && multipleAttemptsList.length > 0) {
+        let multipleRows = '';
+        multipleAttemptsList.forEach((item: any, index: number) => {
+          multipleRows += `
+<tr style="border-bottom:1px solid #e5e7eb;background:${item.hasPaid ? '#f0fdf4' : '#fef9c3'};">
+<td style="padding:12px;font-size:14px;">${index + 1}</td>
+<td style="padding:12px;font-size:14px;">${item.email}</td>
+<td style="padding:12px;font-size:14px;font-weight:bold;color:#f59e0b;">${item.totalAttempts}x</td>
+<td style="padding:12px;font-size:14px;font-weight:bold;color:${item.hasPaid ? '#10b981' : '#ef4444'};">${item.hasPaid ? '✅ Finalizou' : '❌ Não Finalizou'}</td>
+</tr>`;
+        });
+
+        multipleAttemptsSection = `
+<!-- Multiple Attempts -->
+<div style="background:#fef9c3;border-radius:10px;padding:20px;margin-bottom:25px;overflow-x:auto;border:2px solid #fbbf24;">
+<h3 style="color:#d97706;margin:0 0 5px 0;font-size:16px;">🔄 TENTATIVAS MÚLTIPLAS</h3>
+<p style="color:#666;margin:0 0 15px 0;font-size:13px;">Pessoas que tentaram mais de uma vez - demonstram alto interesse!</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;border-collapse:collapse;">
+<thead>
+<tr style="background:#d97706;color:#fff;">
+<th style="padding:12px;text-align:left;font-size:12px;border-radius:8px 0 0 0;">#</th>
+<th style="padding:12px;text-align:left;font-size:12px;">Email</th>
+<th style="padding:12px;text-align:left;font-size:12px;">Tentativas</th>
+<th style="padding:12px;text-align:left;font-size:12px;border-radius:0 8px 0 0;">Status</th>
+</tr>
+</thead>
+<tbody>
+${multipleRows}
+</tbody>
+</table>
+</div>`;
+      }
+
       const headerTitle = isPartial 
-        ? '📊 Resumo Parcial de Vendas'
+        ? '📊 Resumo de Vendas e Tentativas'
         : '📊 Resumo Final de Vendas';
       
       const subtitle = isPartial
-        ? 'Aqui está o resumo das suas vendas até agora!'
+        ? `Resumo gerado em ${timestamp}`
         : 'Aqui está o resumo completo das suas vendas!';
       
       const footerMessage = isPartial
-        ? 'A promoção continua ativa! Continue vendendo! 🚀'
+        ? 'A promoção continua ativa! Use as tentativas para recuperar vendas! 🚀'
         : `${promoEndTime ? `A promoção foi finalizada às ${promoEndTime}.` : 'A promoção foi finalizada.'}<br>Seu pagamento será processado em breve.`;
+
+      // Stats for attempts
+      const totalAttempts = attemptsList?.length || 0;
+      const notPaidAttempts = attemptsList?.filter((a: any) => !a.eventuallyPaid).length || 0;
 
       htmlContent = `<!DOCTYPE html>
 <html>
@@ -404,7 +491,7 @@ Continue assim! Você está no caminho certo! 🔥
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:700px;margin:0 auto;background:#ffffff;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:750px;margin:0 auto;background:#ffffff;">
 <tr>
 <td style="background:linear-gradient(135deg,${isPartial ? '#3b82f6 0%,#1d4ed8' : '#8b5cf6 0%,#6366f1'} 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#FFD700;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
@@ -416,7 +503,7 @@ ${isPartial ? '<p style="color:#fbbf24;margin:10px 0 0 0;font-size:14px;font-wei
 <td style="padding:30px;background:#ffffff;">
 
 <div style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:25px;border-radius:15px;margin-bottom:25px;text-align:center;">
-<p style="margin:0;color:#000;font-size:18px;font-weight:bold;">${isPartial ? '📈' : '🎉'} PARABÉNS, ${finalAffiliateName.toUpperCase()}!</p>
+<p style="margin:0;color:#000;font-size:18px;font-weight:bold;">Olá, ${finalAffiliateName.toUpperCase()}!</p>
 <p style="margin:10px 0 0 0;color:#000;font-size:14px;">${subtitle}</p>
 ${promoStartTime && promoEndTime ? `<p style="margin:10px 0 0 0;color:#333;font-size:13px;">⏰ Promoção: ${promoStartTime} às ${promoEndTime}</p>` : ''}
 </div>
@@ -424,43 +511,60 @@ ${promoStartTime && promoEndTime ? `<p style="margin:10px 0 0 0;color:#333;font-
 <!-- Stats Cards -->
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;">
 <tr>
-<td width="50%" style="padding-right:10px;">
-<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:15px;padding:20px;text-align:center;">
-<p style="margin:0;color:#666;font-size:12px;">Total de Vendas ${isPartial ? '(até agora)' : ''}</p>
-<p style="margin:5px 0;color:#10b981;font-size:36px;font-weight:bold;">${totalSales || 0}</p>
+<td width="25%" style="padding-right:5px;">
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:12px;padding:15px;text-align:center;">
+<p style="margin:0;color:#666;font-size:11px;">Vendas</p>
+<p style="margin:5px 0;color:#10b981;font-size:28px;font-weight:bold;">${totalSales || 0}</p>
 </div>
 </td>
-<td width="50%" style="padding-left:10px;">
-<div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:15px;padding:20px;text-align:center;">
-<p style="margin:0;color:#666;font-size:12px;">Comissão ${isPartial ? 'Acumulada' : 'Total'}</p>
-<p style="margin:5px 0;color:#f59e0b;font-size:36px;font-weight:bold;">R$ ${totalCommission || '0'},00</p>
+<td width="25%" style="padding:0 5px;">
+<div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:12px;padding:15px;text-align:center;">
+<p style="margin:0;color:#666;font-size:11px;">Comissão</p>
+<p style="margin:5px 0;color:#f59e0b;font-size:28px;font-weight:bold;">R$${totalCommission || '0'}</p>
+</div>
+</td>
+<td width="25%" style="padding:0 5px;">
+<div style="background:#fef2f2;border:2px solid #ef4444;border-radius:12px;padding:15px;text-align:center;">
+<p style="margin:0;color:#666;font-size:11px;">Tentativas</p>
+<p style="margin:5px 0;color:#ef4444;font-size:28px;font-weight:bold;">${totalAttempts}</p>
+</div>
+</td>
+<td width="25%" style="padding-left:5px;">
+<div style="background:#fce7f3;border:2px solid #ec4899;border-radius:12px;padding:15px;text-align:center;">
+<p style="margin:0;color:#666;font-size:11px;">A Recuperar</p>
+<p style="margin:5px 0;color:#ec4899;font-size:28px;font-weight:bold;">${notPaidAttempts}</p>
 </div>
 </td>
 </tr>
 </table>
 
 <!-- Sales Table -->
-<div style="background:#f8f9fa;border-radius:10px;padding:20px;margin-bottom:25px;overflow-x:auto;">
-<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📋 Lista de Vendas Realizadas:</h3>
+<div style="background:#f0fdf4;border-radius:10px;padding:20px;margin-bottom:25px;overflow-x:auto;border:2px solid #10b981;">
+<h3 style="color:#10b981;margin:0 0 15px 0;font-size:16px;">✅ VENDAS CONFIRMADAS</h3>
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;border-collapse:collapse;">
 <thead>
-<tr style="background:#1a1a1a;color:#fff;">
-<th style="padding:12px;text-align:left;font-size:12px;border-radius:8px 0 0 0;">#</th>
-<th style="padding:12px;text-align:left;font-size:12px;">Email</th>
-<th style="padding:12px;text-align:left;font-size:12px;">Cliente</th>
-<th style="padding:12px;text-align:left;font-size:12px;">Valor</th>
-<th style="padding:12px;text-align:left;font-size:12px;border-radius:0 8px 0 0;">Data</th>
+<tr style="background:#10b981;color:#fff;">
+<th style="padding:12px;text-align:left;font-size:11px;border-radius:8px 0 0 0;">#</th>
+<th style="padding:12px;text-align:left;font-size:11px;">Email</th>
+<th style="padding:12px;text-align:left;font-size:11px;">Cliente</th>
+<th style="padding:12px;text-align:left;font-size:11px;">📱 Tel</th>
+<th style="padding:12px;text-align:left;font-size:11px;">Valor</th>
+<th style="padding:12px;text-align:left;font-size:11px;border-radius:0 8px 0 0;">Data</th>
 </tr>
 </thead>
 <tbody>
-${salesRows || '<tr><td colspan="5" style="padding:20px;text-align:center;color:#666;">Nenhuma venda registrada</td></tr>'}
+${salesRows || '<tr><td colspan="6" style="padding:20px;text-align:center;color:#666;">Nenhuma venda registrada ainda</td></tr>'}
 </tbody>
 </table>
 </div>
 
+${attemptsSection}
+
+${multipleAttemptsSection}
+
 <div style="background:${isPartial ? '#dbeafe' : '#ede9fe'};border:2px solid ${isPartial ? '#3b82f6' : '#8b5cf6'};border-radius:15px;padding:20px;text-align:center;margin-bottom:25px;">
 <p style="margin:0;color:${isPartial ? '#1d4ed8' : '#6366f1'};font-size:16px;font-weight:bold;">
-${isPartial ? '🔥 Continue vendendo!' : '🙏 Obrigado por fazer parte da família MRO!'}
+${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar!` : '🔥 Continue vendendo!'}
 </p>
 <p style="margin:10px 0 0 0;color:#666;font-size:14px;">
 ${footerMessage}
@@ -469,8 +573,8 @@ ${footerMessage}
 
 <div style="background:#f0f9ff;border-left:4px solid #3b82f6;padding:15px;margin:20px 0;border-radius:0 8px 8px 0;">
 <p style="margin:0;color:#1e40af;font-size:14px;">
-<strong>📧 Dúvidas?</strong><br>
-Entre em contato conosco pelo suporte que teremos prazer em ajudar!
+<strong>💡 Dica de Recuperação:</strong><br>
+Entre em contato com as pessoas que tentaram comprar mas não finalizaram. Muitas vezes só precisam de um empurrãozinho!
 </p>
 </div>
 
@@ -480,7 +584,7 @@ Entre em contato conosco pelo suporte que teremos prazer em ajudar!
 <td style="background:#1a1a1a;padding:20px;text-align:center;">
 <p style="color:#FFD700;margin:0 0 10px 0;font-weight:bold;">MRO - Programa de Afiliados 💛</p>
 <p style="color:#888;margin:0;font-size:12px;">© ${new Date().getFullYear()} MRO - Mais Resultados Online</p>
-<p style="color:#666;margin:10px 0 0 0;font-size:11px;">${isPartial ? 'Este é um resumo parcial - a promoção ainda está ativa!' : 'Este é um resumo automático das suas vendas como afiliado.'}</p>
+<p style="color:#666;margin:10px 0 0 0;font-size:11px;">Resumo gerado em ${timestamp}</p>
 </td>
 </tr>
 </table>
