@@ -38,7 +38,10 @@ import {
   Upload,
   Clipboard,
   Pencil,
-  Plus
+  Plus,
+  Link,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import {
@@ -155,6 +158,13 @@ export default function InstagramNovaAdmin() {
   
   // Configuração de WhatsApp para emails de afiliados
   const [affiliateWhatsApp, setAffiliateWhatsApp] = useState("");
+  
+  // Link de acompanhamento - senha por afiliado
+  const [affiliatePasswords, setAffiliatePasswords] = useState<Record<string, string>>({});
+  const [showPasswordInput, setShowPasswordInput] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [showPasswordVisible, setShowPasswordVisible] = useState<Record<string, boolean>>({});
 
   // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async (forceRefresh = false) => {
@@ -1338,6 +1348,66 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     toast.success("Afiliado excluído do histórico");
   };
 
+  // Salvar senha do afiliado na nuvem
+  const saveAffiliatePassword = async (affId: string, password: string) => {
+    setSavingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("affiliate-resumo-storage", {
+        body: {
+          action: "set-password",
+          affiliateId: affId,
+          password
+        }
+      });
+      
+      if (error) throw error;
+      
+      setAffiliatePasswords(prev => ({ ...prev, [affId]: password }));
+      setShowPasswordInput(null);
+      setNewPassword("");
+      toast.success("Senha salva com sucesso!");
+    } catch (error) {
+      console.error("Error saving password:", error);
+      toast.error("Erro ao salvar senha");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  // Carregar senha do afiliado
+  const loadAffiliatePassword = async (affId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("affiliate-resumo-storage", {
+        body: {
+          action: "get-config",
+          affiliateId: affId
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.password) {
+        setAffiliatePasswords(prev => ({ ...prev, [affId]: data.password }));
+      }
+    } catch (error) {
+      console.log("No password configured for", affId);
+    }
+  };
+
+  // Gerar link de acompanhamento
+  const getTrackingLink = (affId: string) => {
+    return `${window.location.origin}/resumo/${affId.toLowerCase()}`;
+  };
+
+  // Copiar link com senha
+  const copyTrackingLink = (affId: string) => {
+    const link = getTrackingLink(affId);
+    const password = affiliatePasswords[affId] || affId.toLowerCase();
+    const text = `📊 Link de Acompanhamento MRO\n\n🔗 Link: ${link}\n🔐 Senha: ${password}`;
+    navigator.clipboard.writeText(text);
+    toast.success("Link e senha copiados!");
+  };
+
   // Enviar email de boas-vindas para afiliado
   const sendWelcomeEmail = async (affiliate: Affiliate) => {
     if (!affiliate.email) {
@@ -2193,6 +2263,102 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                                     className="text-red-400 hover:bg-red-500/10"
                                   >
                                     <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Link de Acompanhamento */}
+                            <div className="mt-3 pt-3 border-t border-zinc-700/50">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Link className="w-4 h-4 text-blue-400" />
+                                <span className="text-sm text-blue-400 font-medium">Link de Acompanhamento</span>
+                              </div>
+                              <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                <code className="flex-1 text-xs text-green-300 bg-zinc-900 px-3 py-2 rounded font-mono truncate">
+                                  {getTrackingLink(affiliate.id)}
+                                </code>
+                                <div className="flex items-center gap-2">
+                                  {/* Senha */}
+                                  {showPasswordInput === affiliate.id ? (
+                                    <div className="flex items-center gap-1">
+                                      <Input
+                                        type="text"
+                                        placeholder="Nova senha"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="h-8 w-28 text-xs bg-zinc-800 border-zinc-600"
+                                      />
+                                      <Button
+                                        size="sm"
+                                        onClick={() => saveAffiliatePassword(affiliate.id, newPassword)}
+                                        disabled={savingPassword || !newPassword}
+                                        className="h-8 bg-green-500 hover:bg-green-600"
+                                      >
+                                        {savingPassword ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => { setShowPasswordInput(null); setNewPassword(""); }}
+                                        className="h-8 text-zinc-400"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-1">
+                                      <div className="flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded text-xs">
+                                        <span className="text-zinc-400">Senha:</span>
+                                        <span className={`font-mono ${showPasswordVisible[affiliate.id] ? 'text-amber-400' : 'text-zinc-500'}`}>
+                                          {showPasswordVisible[affiliate.id] 
+                                            ? (affiliatePasswords[affiliate.id] || affiliate.id.toLowerCase())
+                                            : '••••••'
+                                          }
+                                        </span>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => {
+                                            setShowPasswordVisible(prev => ({ ...prev, [affiliate.id]: !prev[affiliate.id] }));
+                                            if (!affiliatePasswords[affiliate.id]) {
+                                              loadAffiliatePassword(affiliate.id);
+                                            }
+                                          }}
+                                          className="h-6 w-6 p-0 text-zinc-400 hover:text-white"
+                                        >
+                                          {showPasswordVisible[affiliate.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                        </Button>
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setShowPasswordInput(affiliate.id)}
+                                        className="h-7 px-2 text-xs border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                                        title="Alterar senha"
+                                      >
+                                        <Pencil className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => copyTrackingLink(affiliate.id)}
+                                    className="h-7 px-2 border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                                    title="Copiar link + senha"
+                                  >
+                                    <Copy className="w-3 h-3 mr-1" />
+                                    Copiar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => window.open(getTrackingLink(affiliate.id), '_blank')}
+                                    className="h-7 px-2 border-green-500/50 text-green-400 hover:bg-green-500/10"
+                                    title="Abrir link"
+                                  >
+                                    <Link className="w-3 h-3" />
                                   </Button>
                                 </div>
                               </div>

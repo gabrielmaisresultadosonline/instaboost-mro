@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,13 +11,13 @@ import {
   CheckCircle, 
   Clock, 
   DollarSign,
-  Mail,
   Phone,
   User,
-  Calendar,
   TrendingUp,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -35,6 +35,7 @@ interface AttemptItem {
   username: string;
   phone: string;
   date: string;
+  totalAttempts?: number;
 }
 
 interface ResumoData {
@@ -46,13 +47,12 @@ interface ResumoData {
   attemptsList: AttemptItem[];
   multipleAttemptsList: AttemptItem[];
   promoStatus: string;
-  createdAt: string;
+  createdAt?: string;
   updatedAt: string;
 }
 
 export default function AffiliateResumo() {
   const { affiliateId } = useParams();
-  const [searchParams] = useSearchParams();
   
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
@@ -63,6 +63,7 @@ export default function AffiliateResumo() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [isRealtime, setIsRealtime] = useState(true);
 
   // Check if already authenticated via sessionStorage
   useEffect(() => {
@@ -109,9 +110,10 @@ export default function AffiliateResumo() {
     setError("");
 
     try {
+      // Try to get realtime data first
       const { data, error } = await supabase.functions.invoke("affiliate-resumo-storage", {
         body: { 
-          action: "get",
+          action: "get-realtime",
           affiliateId
         }
       });
@@ -121,8 +123,23 @@ export default function AffiliateResumo() {
       if (data.success && data.resumo) {
         setResumoData(data.resumo);
         setLastUpdate(new Date());
+        setIsRealtime(true);
       } else {
-        setError("Nenhum resumo encontrado ainda");
+        // Fallback to stored resumo
+        const { data: storedData, error: storedError } = await supabase.functions.invoke("affiliate-resumo-storage", {
+          body: { 
+            action: "get",
+            affiliateId
+          }
+        });
+        
+        if (storedData?.success && storedData?.resumo) {
+          setResumoData(storedData.resumo);
+          setLastUpdate(new Date(storedData.resumo.updatedAt));
+          setIsRealtime(false);
+        } else {
+          setError("Nenhum resumo encontrado ainda");
+        }
       }
     } catch (err) {
       console.error("Load error:", err);
@@ -202,7 +219,7 @@ export default function AffiliateResumo() {
         <Card className="w-full max-w-md bg-zinc-800/80 border-zinc-700 text-center p-8">
           <AlertCircle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
           <p className="text-white text-lg">{error}</p>
-          <p className="text-zinc-400 text-sm mt-2">Aguarde o resumo ser gerado pelo administrador</p>
+          <p className="text-zinc-400 text-sm mt-2">Aguarde as primeiras tentativas de compra</p>
           <Button
             onClick={loadResumo}
             className="mt-4 bg-amber-500 hover:bg-amber-600 text-black"
@@ -215,7 +232,7 @@ export default function AffiliateResumo() {
     );
   }
 
-  const notPaidAttempts = (resumoData?.attemptsList?.length || 0) + (resumoData?.multipleAttemptsList?.length || 0);
+  const notPaidAttempts = (resumoData?.attemptsList?.length || 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-4">
@@ -231,9 +248,17 @@ export default function AffiliateResumo() {
           <p className="text-zinc-400 mt-2">
             Olá, <span className="text-amber-400 font-semibold">{resumoData?.affiliateName}</span>!
           </p>
-          <Badge className={`mt-2 ${resumoData?.promoStatus === 'em andamento' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'}`}>
-            {resumoData?.promoStatus === 'em andamento' ? '📍 Promoção em andamento' : '✅ Promoção finalizada'}
-          </Badge>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <Badge className={`${resumoData?.promoStatus === 'vitalício' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : resumoData?.promoStatus === 'em andamento' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'}`}>
+              {resumoData?.promoStatus === 'vitalício' ? '⭐ Afiliado Vitalício' : resumoData?.promoStatus === 'em andamento' ? '📍 Promoção em andamento' : '✅ Promoção finalizada'}
+            </Badge>
+            {isRealtime && (
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 flex items-center gap-1">
+                <Wifi className="w-3 h-3" />
+                Tempo Real
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -265,8 +290,8 @@ export default function AffiliateResumo() {
           <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30">
             <CardContent className="p-4 text-center">
               <TrendingUp className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-              <p className="text-2xl md:text-3xl font-bold text-purple-400">{notPaidAttempts}</p>
-              <p className="text-xs text-zinc-400">A Recuperar</p>
+              <p className="text-2xl md:text-3xl font-bold text-purple-400">{resumoData?.multipleAttemptsList?.length || 0}</p>
+              <p className="text-xs text-zinc-400">Múltiplas</p>
             </CardContent>
           </Card>
         </div>
@@ -287,7 +312,7 @@ export default function AffiliateResumo() {
                     <th className="text-left p-2 text-zinc-400">#</th>
                     <th className="text-left p-2 text-zinc-400">Email</th>
                     <th className="text-left p-2 text-zinc-400">Cliente</th>
-                    <th className="text-left p-2 text-zinc-400">Telefone</th>
+                    <th className="text-left p-2 text-zinc-400">📱</th>
                     <th className="text-left p-2 text-zinc-400">Valor</th>
                     <th className="text-left p-2 text-zinc-400">Data</th>
                   </tr>
@@ -298,7 +323,7 @@ export default function AffiliateResumo() {
                       <td className="p-2 text-white">{index + 1}</td>
                       <td className="p-2 text-white text-xs">{sale.customerEmail}</td>
                       <td className="p-2 text-white">{sale.customerName || '-'}</td>
-                      <td className="p-2 text-white">{sale.phone || '-'}</td>
+                      <td className="p-2 text-green-400 text-xs">{sale.phone || '-'}</td>
                       <td className="p-2 text-green-400 font-medium">R$ {Number(sale.amount).toFixed(2)}</td>
                       <td className="p-2 text-zinc-400 text-xs">{sale.date}</td>
                     </tr>
@@ -325,7 +350,7 @@ export default function AffiliateResumo() {
                     <th className="text-left p-2 text-zinc-400">#</th>
                     <th className="text-left p-2 text-zinc-400">Email</th>
                     <th className="text-left p-2 text-zinc-400">Usuário</th>
-                    <th className="text-left p-2 text-zinc-400">Telefone</th>
+                    <th className="text-left p-2 text-zinc-400">📱</th>
                     <th className="text-left p-2 text-zinc-400">Data</th>
                   </tr>
                 </thead>
@@ -335,7 +360,7 @@ export default function AffiliateResumo() {
                       <td className="p-2 text-white">{index + 1}</td>
                       <td className="p-2 text-white text-xs">{attempt.email}</td>
                       <td className="p-2 text-white">{attempt.username || '-'}</td>
-                      <td className="p-2 text-yellow-400">{attempt.phone || '-'}</td>
+                      <td className="p-2 text-yellow-400 text-xs">{attempt.phone || '-'}</td>
                       <td className="p-2 text-zinc-400 text-xs">{attempt.date}</td>
                     </tr>
                   ))}
@@ -361,8 +386,9 @@ export default function AffiliateResumo() {
                     <th className="text-left p-2 text-zinc-400">#</th>
                     <th className="text-left p-2 text-zinc-400">Email</th>
                     <th className="text-left p-2 text-zinc-400">Usuário</th>
-                    <th className="text-left p-2 text-zinc-400">Telefone</th>
-                    <th className="text-left p-2 text-zinc-400">Última Tentativa</th>
+                    <th className="text-left p-2 text-zinc-400">📱</th>
+                    <th className="text-left p-2 text-zinc-400">Tentativas</th>
+                    <th className="text-left p-2 text-zinc-400">Última</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -371,7 +397,8 @@ export default function AffiliateResumo() {
                       <td className="p-2 text-white">{index + 1}</td>
                       <td className="p-2 text-white text-xs">{attempt.email}</td>
                       <td className="p-2 text-white">{attempt.username || '-'}</td>
-                      <td className="p-2 text-orange-400">{attempt.phone || '-'}</td>
+                      <td className="p-2 text-orange-400 text-xs">{attempt.phone || '-'}</td>
+                      <td className="p-2 text-orange-400 font-bold">{attempt.totalAttempts}x</td>
                       <td className="p-2 text-zinc-400 text-xs">{attempt.date}</td>
                     </tr>
                   ))}
@@ -381,11 +408,25 @@ export default function AffiliateResumo() {
           </Card>
         )}
 
+        {/* Nenhum dado ainda */}
+        {!resumoData?.salesList?.length && !resumoData?.attemptsList?.length && (
+          <Card className="bg-zinc-800/50 border-zinc-700 mb-4">
+            <CardContent className="p-8 text-center">
+              <Clock className="w-12 h-12 text-zinc-500 mx-auto mb-4" />
+              <p className="text-white text-lg">Aguardando dados...</p>
+              <p className="text-zinc-400 text-sm mt-2">As vendas e tentativas aparecerão aqui automaticamente</p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Footer */}
         <div className="text-center py-6 border-t border-zinc-700 mt-6">
           <p className="text-amber-400 font-semibold mb-1">MRO - Programa de Afiliados 💛</p>
           <p className="text-zinc-500 text-xs">
-            Última atualização: {lastUpdate ? format(lastUpdate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : '-'}
+            Última atualização: {lastUpdate ? format(lastUpdate, "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR }) : '-'}
+          </p>
+          <p className="text-zinc-600 text-xs mt-1">
+            Atualiza automaticamente a cada 30 segundos
           </p>
           <Button
             onClick={loadResumo}
@@ -395,7 +436,7 @@ export default function AffiliateResumo() {
             disabled={loading}
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-            Atualizar
+            Atualizar Agora
           </Button>
         </div>
       </div>

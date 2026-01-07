@@ -67,6 +67,38 @@ serve(async (req) => {
       }
     }
 
+    if (action === "get-config") {
+      // Get affiliate config (password, etc)
+      try {
+        const { data, error } = await supabase.storage
+          .from('user-data')
+          .download(`affiliate-resumos/${affiliateId}/config.json`);
+        
+        if (error) {
+          logStep("Config not found", { affiliateId });
+          return new Response(
+            JSON.stringify({ success: true, password: affiliateId }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const text = await data.text();
+        const config = JSON.parse(text);
+        
+        logStep("Config loaded", { affiliateId });
+        
+        return new Response(
+          JSON.stringify({ success: true, password: config.password }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ success: true, password: affiliateId }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     if (action === "set-password") {
       // Set affiliate password
       const config = { password, updatedAt: new Date().toISOString() };
@@ -138,6 +170,116 @@ serve(async (req) => {
       const resumo = JSON.parse(text);
       
       logStep("Resumo loaded", { affiliateId });
+      
+      return new Response(
+        JSON.stringify({ success: true, resumo }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === "get-realtime") {
+      // Get realtime data from mro_orders
+      logStep("Fetching realtime data for affiliate", { affiliateId });
+      
+      // Get affiliate config to get name
+      let affiliateName = affiliateId;
+      let isLifetime = false;
+      try {
+        const { data: configData } = await supabase.storage
+          .from('user-data')
+          .download('admin/affiliates.json');
+        
+        if (configData) {
+          const affiliatesText = await configData.text();
+          const affiliates = JSON.parse(affiliatesText);
+          const affiliate = affiliates.find((a: any) => a.id.toLowerCase() === affiliateId.toLowerCase());
+          if (affiliate) {
+            affiliateName = affiliate.name;
+            isLifetime = affiliate.isLifetime || false;
+          }
+        }
+      } catch (e) {
+        logStep("Could not load affiliate config", { error: e });
+      }
+      
+      // Get orders for this affiliate
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('mro_orders')
+        .select('*')
+        .ilike('email', `${affiliateId.toLowerCase()}:%`)
+        .order('created_at', { ascending: false });
+      
+      if (ordersError) {
+        logStep("Error fetching orders", { error: ordersError.message });
+        throw ordersError;
+      }
+      
+      const orders = ordersData || [];
+      logStep("Fetched orders", { count: orders.length });
+      
+      // Calculate stats
+      const sales = orders.filter((o: any) => o.status === 'paid' || o.status === 'completed');
+      const attempts = orders.filter((o: any) => o.status === 'pending' || o.status === 'expired');
+      
+      const paidEmails = sales.map((s: any) => s.email.toLowerCase().split(':')[1]);
+      
+      const salesList = sales.map((sale: any) => ({
+        customerEmail: sale.email.replace(`${affiliateId}:`, "").replace(`${affiliateId.toLowerCase()}:`, ""),
+        customerName: sale.username,
+        phone: sale.phone || "",
+        amount: sale.amount,
+        date: new Date(sale.paid_at || sale.created_at).toLocaleString('pt-BR')
+      }));
+      
+      const attemptsList = attempts.filter((a: any) => {
+        const baseEmail = a.email.toLowerCase().split(':')[1];
+        return !paidEmails.includes(baseEmail);
+      }).map((attempt: any) => ({
+        email: attempt.email.replace(`${affiliateId}:`, "").replace(`${affiliateId.toLowerCase()}:`, ""),
+        username: attempt.username,
+        phone: attempt.phone || "",
+        date: new Date(attempt.created_at).toLocaleString('pt-BR')
+      }));
+      
+      // Multiple attempts detection
+      const emailCounts: Record<string, number> = {};
+      attempts.forEach((a: any) => {
+        const baseEmail = a.email.toLowerCase().split(':')[1];
+        emailCounts[baseEmail] = (emailCounts[baseEmail] || 0) + 1;
+      });
+      
+      const multipleAttemptsList = Object.entries(emailCounts)
+        .filter(([, count]) => count > 1)
+        .map(([email, count]) => {
+          const latestAttempt = attempts.find((a: any) => a.email.toLowerCase().split(':')[1] === email);
+          return {
+            email,
+            username: latestAttempt?.username || '',
+            phone: latestAttempt?.phone || '',
+            date: latestAttempt ? new Date(latestAttempt.created_at).toLocaleString('pt-BR') : '',
+            totalAttempts: count
+          };
+        });
+      
+      const totalCommission = sales.length * 97;
+      
+      const resumo = {
+        affiliateId,
+        affiliateName,
+        totalSales: sales.length,
+        totalCommission,
+        salesList,
+        attemptsList,
+        multipleAttemptsList,
+        promoStatus: isLifetime ? 'vitalício' : 'em andamento',
+        updatedAt: new Date().toISOString()
+      };
+      
+      logStep("Realtime resumo built", { 
+        sales: sales.length, 
+        attempts: attemptsList.length,
+        multipleAttempts: multipleAttemptsList.length 
+      });
       
       return new Response(
         JSON.stringify({ success: true, resumo }),
