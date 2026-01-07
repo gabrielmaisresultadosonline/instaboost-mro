@@ -190,3 +190,6 @@ verify_jwt = false
 
 [functions.verify-euro-payment]
 verify_jwt = false
+
+[functions.affiliate-commission-email]
+verify_jwt = false

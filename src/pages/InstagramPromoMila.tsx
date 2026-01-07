@@ -55,6 +55,22 @@ const InstagramPromoMila = () => {
   const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // Verificar se afiliado está ativo
+  const [affiliateActive, setAffiliateActive] = useState(true);
+  
+  useEffect(() => {
+    const checkAffiliateStatus = () => {
+      const savedActive = localStorage.getItem("mro_affiliate_active");
+      const savedId = localStorage.getItem("mro_affiliate_id");
+      // Só bloquear se explicitamente false E for o afiliado mila
+      if (savedId === "mila" && savedActive === "false") {
+        setAffiliateActive(false);
+        setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
+      }
+    };
+    checkAffiliateStatus();
+  }, []);
 
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
