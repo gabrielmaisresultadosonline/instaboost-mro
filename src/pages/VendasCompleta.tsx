@@ -46,8 +46,8 @@ interface SalesSettings {
 
 // Valores de produção
 const PLANS = {
-  annual: { name: "Anual", price: 497.00, days: 365, description: "Acesso por 1 ano" },
-  lifetime: { name: "Vitalício", price: 897.00, days: 999999, description: "Acesso para sempre" },
+  annual: { name: "Anual", price: 397.00, days: 365, description: "Acesso por 1 ano" },
+  lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
 };
 
 const VendasCompleta = () => {
@@ -338,6 +338,8 @@ const VendasCompleta = () => {
     "Suporte prioritário",
     "Atualizações gratuitas para sempre"
   ];
+
+  const affiliateBonus = "Cadastro Afiliado - Comissão de R$97 Por venda";
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
@@ -660,19 +662,27 @@ const VendasCompleta = () => {
 
               <div className="text-center mb-6">
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-2xl sm:text-3xl font-bold text-white">12x de</span>
-                  <span className="text-5xl sm:text-6xl font-black text-blue-400">R$51</span>
+                  <span className="text-lg sm:text-xl text-gray-400">12x de</span>
+                  <span className="text-5xl sm:text-6xl font-black text-blue-400">R$41</span>
                 </div>
-                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$497</span> à vista</p>
+                <p className="text-gray-400 mt-2">ou à vista PIX <span className="text-white font-bold">R$397</span></p>
               </div>
 
-              <div className="space-y-2 mb-6">
+              <div className="space-y-2 mb-4">
                 {annualFeatures.map((feature, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
                     <span className="text-gray-300">{feature}</span>
                   </div>
                 ))}
+              </div>
+
+              {/* Bônus Afiliado */}
+              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl p-3 mb-6">
+                <div className="flex items-center gap-2 text-sm">
+                  <Gift className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  <span className="text-green-400 font-bold">{affiliateBonus}</span>
+                </div>
               </div>
 
               <Button 
@@ -701,19 +711,27 @@ const VendasCompleta = () => {
 
               <div className="text-center mb-6">
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-2xl sm:text-3xl font-bold text-white">12x de</span>
-                  <span className="text-5xl sm:text-6xl font-black text-amber-400">R$92</span>
+                  <span className="text-lg sm:text-xl text-gray-400">12x de</span>
+                  <span className="text-5xl sm:text-6xl font-black text-amber-400">R$81</span>
                 </div>
-                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$897</span> à vista</p>
+                <p className="text-gray-400 mt-2">ou à vista PIX <span className="text-white font-bold">R$797</span></p>
               </div>
 
-              <div className="space-y-2 mb-6">
+              <div className="space-y-2 mb-4">
                 {lifetimeFeatures.map((feature, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
                     <span className="text-gray-300">{feature}</span>
                   </div>
                 ))}
+              </div>
+
+              {/* Bônus Afiliado */}
+              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl p-3 mb-6">
+                <div className="flex items-center gap-2 text-sm">
+                  <Gift className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  <span className="text-green-400 font-bold">{affiliateBonus}</span>
+                </div>
               </div>
 
               <Button 
