@@ -137,6 +137,8 @@ export default function InstagramNovaAdmin() {
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [selectedAffiliateFilter, setSelectedAffiliateFilter] = useState<string>("all");
   const [mainAffiliateFilter, setMainAffiliateFilter] = useState<string>("all");
+  const [affiliatesLoaded, setAffiliatesLoaded] = useState(false);
+  const [loadingAffiliates, setLoadingAffiliates] = useState(false);
   
   // Envio de emails
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -146,28 +148,44 @@ export default function InstagramNovaAdmin() {
   const [affiliateWhatsApp, setAffiliateWhatsApp] = useState("");
 
   // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
-  const loadAffiliatesFromCloud = async () => {
+  const loadAffiliatesFromCloud = async (forceRefresh = false) => {
+    if (loadingAffiliates) return;
+    setLoadingAffiliates(true);
+    
     try {
-      console.log("[AFFILIATES] Loading from cloud...");
+      console.log("[AFFILIATES] Loading from cloud...", { forceRefresh });
+      
+      // Adicionar timestamp para evitar cache
       const { data, error } = await supabase.storage
         .from('user-data')
         .download('admin/affiliates.json');
       
       if (error) {
-        console.log("[AFFILIATES] No cloud data yet, using localStorage fallback");
-        // Fallback para localStorage
-        const savedAffiliates = localStorage.getItem("mro_affiliates_history");
-        if (savedAffiliates) {
-          setAffiliates(JSON.parse(savedAffiliates));
+        console.log("[AFFILIATES] No cloud data yet or error:", error.message);
+        // Se não tem dados na nuvem, usar localStorage apenas se ainda não carregou
+        if (!affiliatesLoaded) {
+          const savedAffiliates = localStorage.getItem("mro_affiliates_history");
+          if (savedAffiliates) {
+            try {
+              const parsed = JSON.parse(savedAffiliates);
+              setAffiliates(parsed);
+              console.log("[AFFILIATES] Loaded from localStorage:", parsed.length);
+            } catch (e) {
+              console.error("[AFFILIATES] Error parsing localStorage:", e);
+            }
+          }
         }
+        setAffiliatesLoaded(true);
+        setLoadingAffiliates(false);
         return;
       }
       
       const text = await data.text();
       const cloudAffiliates: Affiliate[] = JSON.parse(text);
-      console.log("[AFFILIATES] Loaded from cloud:", cloudAffiliates.length);
+      console.log("[AFFILIATES] Loaded from cloud:", cloudAffiliates.length, cloudAffiliates.map(a => a.id));
       
       setAffiliates(cloudAffiliates);
+      setAffiliatesLoaded(true);
       // Sincronizar com localStorage
       localStorage.setItem("mro_affiliates_history", JSON.stringify(cloudAffiliates));
       
@@ -185,17 +203,26 @@ export default function InstagramNovaAdmin() {
         setPromoEndTime(activeAffiliate.promoEndTime || "");
         setIsLifetimeAffiliate(activeAffiliate.isLifetime || false);
       }
+      
+      if (forceRefresh) {
+        toast.success(`${cloudAffiliates.length} afiliado(s) sincronizado(s) da nuvem!`);
+      }
     } catch (e) {
       console.error("[AFFILIATES] Error loading from cloud:", e);
-      // Fallback para localStorage
-      const savedAffiliates = localStorage.getItem("mro_affiliates_history");
-      if (savedAffiliates) {
-        try {
-          setAffiliates(JSON.parse(savedAffiliates));
-        } catch (parseError) {
-          console.error("Error parsing localStorage affiliates:", parseError);
+      // Fallback para localStorage apenas se ainda não carregou
+      if (!affiliatesLoaded) {
+        const savedAffiliates = localStorage.getItem("mro_affiliates_history");
+        if (savedAffiliates) {
+          try {
+            setAffiliates(JSON.parse(savedAffiliates));
+          } catch (parseError) {
+            console.error("Error parsing localStorage affiliates:", parseError);
+          }
         }
       }
+      setAffiliatesLoaded(true);
+    } finally {
+      setLoadingAffiliates(false);
     }
   };
 
@@ -272,19 +299,28 @@ export default function InstagramNovaAdmin() {
   }, [isAuthenticated, autoCheckEnabled]);
 
   // Salvar afiliados no Supabase Storage para o webhook poder acessar
+  // Só salvar depois de já ter carregado para evitar sobrescrever dados da nuvem
   useEffect(() => {
-    if (affiliates.length > 0) {
+    if (affiliates.length > 0 && affiliatesLoaded) {
       saveAffiliatesToStorage();
     }
-  }, [affiliates]);
+  }, [affiliates, affiliatesLoaded]);
 
   const saveAffiliatesToStorage = async () => {
     try {
       const blob = new Blob([JSON.stringify(affiliates)], { type: 'application/json' });
-      await supabase.storage
+      const { error } = await supabase.storage
         .from('user-data')
         .upload('admin/affiliates.json', blob, { upsert: true });
-      console.log("[AFFILIATES] Saved to storage");
+      
+      if (error) {
+        console.error("[AFFILIATES] Error saving to storage:", error);
+        toast.error("Erro ao salvar afiliados na nuvem");
+      } else {
+        console.log("[AFFILIATES] Saved to storage:", affiliates.length, "affiliates");
+        // Atualizar localStorage também
+        localStorage.setItem("mro_affiliates_history", JSON.stringify(affiliates));
+      }
     } catch (e) {
       console.error("[AFFILIATES] Error saving to storage:", e);
     }
@@ -1488,8 +1524,24 @@ ${GROUP_LINK}`;
                 <TabsContent value="affiliates">
                   {/* Botão novo afiliado no topo */}
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-purple-500/20">
-                    <div className="text-zinc-400 text-sm">
-                      {affiliates.length} afiliado(s) cadastrado(s)
+                    <div className="flex items-center gap-3">
+                      <span className="text-zinc-400 text-sm">
+                        {affiliates.length} afiliado(s) cadastrado(s)
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => loadAffiliatesFromCloud(true)}
+                        disabled={loadingAffiliates}
+                        className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                      >
+                        {loadingAffiliates ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="w-4 h-4" />
+                        )}
+                        <span className="ml-1">Sincronizar</span>
+                      </Button>
                     </div>
                     <Button
                       size="sm"
@@ -1500,7 +1552,6 @@ ${GROUP_LINK}`;
                       Novo Afiliado
                     </Button>
                   </div>
-                  
                   {affiliates.length === 0 ? (
                     <div className="text-center py-8 text-zinc-400">
                       <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
