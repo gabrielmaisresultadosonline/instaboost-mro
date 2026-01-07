@@ -347,12 +347,18 @@ const AffiliatePromoPage = () => {
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           
           {/* Title */}
-          <div className="relative">
+          <div className="relative group">
             <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-3 text-white italic px-2">
+            <h1 
+              className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-3 text-white px-2 drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:drop-shadow-[0_4px_30px_rgba(255,255,255,0.6)] transition-all duration-300"
+              style={{ textShadow: '0 4px 20px rgba(255,255,255,0.2), 0 2px 10px rgba(0,0,0,0.8)' }}
+            >
               NÃO GASTE MAIS COM ANÚNCIOS
             </h1>
-            <h2 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-orange-500 italic px-2">
+            <h2 
+              className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-orange-500 px-2 drop-shadow-[0_4px_20px_rgba(249,115,22,0.4)] hover:drop-shadow-[0_4px_30px_rgba(249,115,22,0.7)] transition-all duration-300 animate-pulse"
+              style={{ textShadow: '0 4px 25px rgba(249,115,22,0.5), 0 2px 10px rgba(0,0,0,0.8)' }}
+            >
               UTILIZE A MRO INTELIGENTE
             </h2>
           </div>
