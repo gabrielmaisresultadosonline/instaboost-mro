@@ -220,6 +220,22 @@ serve(async (req) => {
         logStep("Could not load affiliate config", { error: e });
       }
       
+      // Load paid commissions
+      let paidCommissions: Record<string, string[]> = {};
+      try {
+        const { data: commissionsData } = await supabase.storage
+          .from('user-data')
+          .download('admin/paid-commissions.json');
+        
+        if (commissionsData) {
+          const commissionsText = await commissionsData.text();
+          paidCommissions = JSON.parse(commissionsText);
+          logStep("Loaded paid commissions", { paidCommissions });
+        }
+      } catch (e) {
+        logStep("No paid commissions data yet");
+      }
+      
       // Get orders for this affiliate
       const { data: ordersData, error: ordersError } = await supabase
         .from('mro_orders')
@@ -241,12 +257,17 @@ serve(async (req) => {
       
       const paidEmails = sales.map((s: any) => s.email.toLowerCase().split(':')[1]);
       
+      // Get paid commission NSUs for this affiliate
+      const affiliatePaidCommissions = paidCommissions[affiliateId] || paidCommissions[affiliateId.toLowerCase()] || [];
+      
       const salesList = sales.map((sale: any) => ({
         customerEmail: sale.email.replace(`${affiliateId}:`, "").replace(`${affiliateId.toLowerCase()}:`, ""),
         customerName: sale.username,
         phone: sale.phone || "",
         amount: sale.amount,
-        date: formatToBrazilTime(sale.paid_at || sale.created_at)
+        date: formatToBrazilTime(sale.paid_at || sale.created_at),
+        nsuOrder: sale.nsu_order,
+        commissionPaid: affiliatePaidCommissions.includes(sale.nsu_order)
       }));
       
       const attemptsList = attempts.filter((a: any) => {
@@ -280,12 +301,16 @@ serve(async (req) => {
         });
       
       const totalCommission = sales.length * 97;
+      const paidCommissionsTotal = salesList.filter(s => s.commissionPaid).length * 97;
+      const pendingCommissionsTotal = totalCommission - paidCommissionsTotal;
       
       const resumo = {
         affiliateId,
         affiliateName,
         totalSales: sales.length,
         totalCommission,
+        paidCommissionsTotal,
+        pendingCommissionsTotal,
         salesList,
         attemptsList,
         multipleAttemptsList,
@@ -296,7 +321,8 @@ serve(async (req) => {
       logStep("Realtime resumo built", { 
         sales: sales.length, 
         attempts: attemptsList.length,
-        multipleAttempts: multipleAttemptsList.length 
+        multipleAttempts: multipleAttemptsList.length,
+        paidCommissions: salesList.filter(s => s.commissionPaid).length
       });
       
       return new Response(
