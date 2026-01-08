@@ -37,27 +37,40 @@ export default function MROPagamento() {
     setCheckingUsername(true);
     try {
       const checkUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users/${usernameToCheck}`;
+      console.log('[Username Check] Checking:', usernameToCheck);
       const response = await fetch(checkUrl);
+      console.log('[Username Check] Response status:', response.status);
       
       if (response.ok) {
         const userData = await response.json();
-        if (userData && userData.username) {
+        console.log('[Username Check] User data:', userData);
+        // Se retornou dados do usuário, ele já existe
+        if (userData && (userData.username || userData.user || Object.keys(userData).length > 0)) {
           // Usuário já existe
           setUsernameAvailable(false);
           setUsernameError("Usuário já em uso. Utilize outro usuário");
+          console.log('[Username Check] User EXISTS - not available');
         } else {
           setUsernameAvailable(true);
           setUsernameError("");
+          console.log('[Username Check] Empty response - available');
         }
-      } else {
-        // Usuário não existe (404 ou erro)
+      } else if (response.status === 404) {
+        // 404 significa que usuário não existe = disponível
         setUsernameAvailable(true);
         setUsernameError("");
+        console.log('[Username Check] 404 - User available');
+      } else {
+        // Outro erro - manter como indeterminado
+        console.log('[Username Check] Other error:', response.status);
+        setUsernameAvailable(null);
+        setUsernameError("Erro ao verificar. Tente novamente.");
       }
     } catch (e) {
-      // Em caso de erro de rede, assumir disponível
-      setUsernameAvailable(true);
-      setUsernameError("");
+      // Em caso de erro de rede, NÃO assumir disponível - mostrar erro
+      console.error('[Username Check] Network error:', e);
+      setUsernameAvailable(null);
+      setUsernameError("Erro ao verificar disponibilidade");
     } finally {
       setCheckingUsername(false);
     }
