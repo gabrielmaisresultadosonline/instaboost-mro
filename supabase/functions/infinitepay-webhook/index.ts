@@ -47,6 +47,45 @@ async function verifyPaymentWithAPI(orderNsu: string, transactionNsu?: string, s
   }
 }
 
+// Função para salvar log do webhook
+async function saveWebhookLog(
+  supabase: any,
+  logData: {
+    event_type: string;
+    order_nsu?: string | null;
+    transaction_nsu?: string | null;
+    email?: string | null;
+    username?: string | null;
+    affiliate_id?: string | null;
+    amount?: number | null;
+    status: string;
+    payload?: any;
+    result_message?: string | null;
+    order_found?: boolean;
+    order_id?: string | null;
+  }
+) {
+  try {
+    await supabase.from("infinitepay_webhook_logs").insert({
+      event_type: logData.event_type,
+      order_nsu: logData.order_nsu || null,
+      transaction_nsu: logData.transaction_nsu || null,
+      email: logData.email || null,
+      username: logData.username || null,
+      affiliate_id: logData.affiliate_id || null,
+      amount: logData.amount || null,
+      status: logData.status,
+      payload: logData.payload || null,
+      result_message: logData.result_message || null,
+      order_found: logData.order_found || false,
+      order_id: logData.order_id || null,
+    });
+    log("Webhook log saved");
+  } catch (e) {
+    log("Error saving webhook log", { error: String(e) });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -282,6 +321,22 @@ serve(async (req) => {
 
       if (!mroOrder) {
         log("No pending MRO order found", { order_nsu, email, emailWithAffiliate, username });
+        
+        // Salvar log de webhook não encontrado
+        await saveWebhookLog(supabase, {
+          event_type: "mro_order_not_found",
+          order_nsu,
+          transaction_nsu,
+          email,
+          username,
+          affiliate_id: affiliateId,
+          amount: paid_amount || amount,
+          status: "not_found",
+          payload: body,
+          result_message: "No pending MRO order found",
+          order_found: false,
+        });
+        
         return new Response(
           JSON.stringify({ 
             success: false, 
@@ -314,6 +369,22 @@ serve(async (req) => {
       }
 
       log("MRO order marked as PAID, triggering webhook", { orderId: mroOrder.id });
+      
+      // Salvar log de sucesso
+      await saveWebhookLog(supabase, {
+        event_type: "mro_payment_confirmed",
+        order_nsu,
+        transaction_nsu,
+        email: mroOrder.email,
+        username: mroOrder.username,
+        affiliate_id: affiliateId,
+        amount: paid_amount || amount,
+        status: "success",
+        payload: body,
+        result_message: `MRO order ${mroOrder.id} marked as PAID`,
+        order_found: true,
+        order_id: mroOrder.id,
+      });
 
       // Chamar o mro-payment-webhook para processar o acesso
       try {
