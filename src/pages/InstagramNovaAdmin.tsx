@@ -617,8 +617,8 @@ export default function InstagramNovaAdmin() {
 
       // Processar pedidos expirados
       const now = new Date();
-      const processedOrders = (data || []).map(order => {
-        // Se está pendente e passou de 30 minutos, marcar como expirado
+      const processedOrders = (data || []).map((order) => {
+        // Se está pendente e passou do expired_at, marcar como expirado
         if (order.status === "pending" && order.expired_at) {
           const expiredAt = new Date(order.expired_at);
           if (now > expiredAt) {
@@ -628,7 +628,61 @@ export default function InstagramNovaAdmin() {
         return order;
       });
 
-      setOrders(processedOrders);
+      // Remover duplicatas por email: manter apenas 1 registro por email na lista.
+      // Regra: se existir pagamento (paid/completed), ele sempre vence (mesmo que haja pending mais recente).
+      const normalizeEmailKey = (email: string) => {
+        const lower = (email || "").trim().toLowerCase();
+        // Alguns pedidos podem vir como "afiliado:email@..."; usar apenas o email final.
+        const parts = lower.split(":");
+        const last = parts[parts.length - 1];
+        if (parts.length > 1 && last.includes("@")) return last;
+        return lower;
+      };
+
+      const statusRank = (status: string) => {
+        if (status === "completed") return 3;
+        if (status === "paid") return 2;
+        if (status === "pending") return 1;
+        if (status === "expired") return 0;
+        return 0;
+      };
+
+      const orderTimestamp = (order: MROOrder) => {
+        const t =
+          order.completed_at ||
+          order.paid_at ||
+          order.updated_at ||
+          order.created_at;
+        const ms = new Date(t).getTime();
+        return Number.isFinite(ms) ? ms : 0;
+      };
+
+      const bestByEmail = new Map<string, MROOrder>();
+      for (const order of processedOrders) {
+        const key = normalizeEmailKey(order.email);
+        const current = bestByEmail.get(key);
+        if (!current) {
+          bestByEmail.set(key, order);
+          continue;
+        }
+
+        const rNew = statusRank(order.status);
+        const rCur = statusRank(current.status);
+        if (rNew > rCur) {
+          bestByEmail.set(key, order);
+          continue;
+        }
+        if (rNew === rCur && orderTimestamp(order) > orderTimestamp(current)) {
+          bestByEmail.set(key, order);
+        }
+      }
+
+      const uniqueOrders = processedOrders.filter((o) => {
+        const key = normalizeEmailKey(o.email);
+        return bestByEmail.get(key)?.id === o.id;
+      });
+
+      setOrders(uniqueOrders);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao carregar dados");
