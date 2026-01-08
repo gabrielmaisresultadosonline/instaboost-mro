@@ -201,6 +201,24 @@ serve(async (req) => {
         }
       }
 
+      // Tentar buscar pelo email real em qualquer lugar do campo email (afiliado:email)
+      if (!mroOrder && email) {
+        const result = await supabase
+          .from("mro_orders")
+          .select("*")
+          .ilike("email", `%${email}%`)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        mroOrder = result.data;
+        
+        if (mroOrder) {
+          log("Found MRO order by email pattern match (ILIKE)", { orderId: mroOrder.id, searchedEmail: email, foundEmail: mroOrder.email });
+        }
+      }
+
       // Última tentativa: buscar só pelo username
       if (!mroOrder && username) {
         const result = await supabase
