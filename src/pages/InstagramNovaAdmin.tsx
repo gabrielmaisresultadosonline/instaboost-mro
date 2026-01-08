@@ -103,13 +103,20 @@ export default function InstagramNovaAdmin() {
   const [loginLoading, setLoginLoading] = useState(false);
   
   const [orders, setOrders] = useState<MROOrder[]>([]);
+  const ordersRef = useRef<MROOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "paid" | "completed" | "expired">("all");
   
   const autoCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const logsAutoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [autoCheckEnabled, setAutoCheckEnabled] = useState(true);
   const [lastAutoCheck, setLastAutoCheck] = useState<Date | null>(null);
+
+  // Importante: manter sempre a lista mais recente para o auto-check (intervalo não recria quando orders muda)
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
   
   // State para seções colapsáveis
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -212,9 +219,26 @@ export default function InstagramNovaAdmin() {
   };
 
   useEffect(() => {
-    if (showWebhookLogs) {
-      loadWebhookLogs();
+    if (!showWebhookLogs) {
+      if (logsAutoRefreshIntervalRef.current) {
+        clearInterval(logsAutoRefreshIntervalRef.current);
+        logsAutoRefreshIntervalRef.current = null;
+      }
+      return;
     }
+
+    // Carregar imediatamente e manter atualizando enquanto o modal estiver aberto
+    loadWebhookLogs();
+    logsAutoRefreshIntervalRef.current = setInterval(() => {
+      loadWebhookLogs();
+    }, 5000);
+
+    return () => {
+      if (logsAutoRefreshIntervalRef.current) {
+        clearInterval(logsAutoRefreshIntervalRef.current);
+        logsAutoRefreshIntervalRef.current = null;
+      }
+    };
   }, [showWebhookLogs]);
 
   // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
@@ -618,9 +642,10 @@ export default function InstagramNovaAdmin() {
     try {
       const now = new Date();
       const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+      const currentOrders = ordersRef.current;
       
       // Filtrar pedidos pendentes criados nos últimos 15 minutos
-      const recentPendingOrders = orders.filter(o => {
+      const recentPendingOrders = currentOrders.filter(o => {
         if (o.status !== "pending") return false;
         const createdAt = new Date(o.created_at);
         return createdAt >= fifteenMinutesAgo;
@@ -3234,10 +3259,10 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           <DialogHeader>
             <DialogTitle className="text-cyan-400 flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Webhook Logs - InfiniPay
+              Logs - InfiniPay
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Últimos 50 eventos recebidos pelo webhook
+              Últimos 50 eventos (webhook + auto_check)
             </DialogDescription>
           </DialogHeader>
           
