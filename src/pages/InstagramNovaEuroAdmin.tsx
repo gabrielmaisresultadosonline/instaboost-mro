@@ -198,7 +198,30 @@ export default function InstagramNovaEuroAdmin() {
         return;
       }
 
-      setOrders(data || []);
+      // Remover duplicatas por email - manter apenas o registro mais recente com status pago/completed
+      // Para emails com múltiplos pagamentos, manter apenas 1 (o mais recente)
+      const ordersData = data || [];
+      const emailMap = new Map<string, EuroOrder>();
+      const uniqueOrders: EuroOrder[] = [];
+
+      for (const order of ordersData) {
+        const emailLower = order.email.toLowerCase();
+        
+        // Se status é pending, sempre incluir (pode ter múltiplos pendentes)
+        if (order.status === "pending") {
+          uniqueOrders.push(order);
+          continue;
+        }
+
+        // Para paid/completed, manter apenas 1 por email (o mais recente, que vem primeiro pois está ordenado desc)
+        if (!emailMap.has(emailLower)) {
+          emailMap.set(emailLower, order);
+          uniqueOrders.push(order);
+        }
+        // Se já existe um registro para este email, ignorar duplicatas
+      }
+
+      setOrders(uniqueOrders);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao carregar dados");
