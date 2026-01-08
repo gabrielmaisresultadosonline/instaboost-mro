@@ -365,6 +365,57 @@ export type Database = {
         }
         Relationships: []
       }
+      infinitepay_webhook_logs: {
+        Row: {
+          affiliate_id: string | null
+          amount: number | null
+          created_at: string
+          email: string | null
+          event_type: string
+          id: string
+          order_found: boolean | null
+          order_id: string | null
+          order_nsu: string | null
+          payload: Json | null
+          result_message: string | null
+          status: string
+          transaction_nsu: string | null
+          username: string | null
+        }
+        Insert: {
+          affiliate_id?: string | null
+          amount?: number | null
+          created_at?: string
+          email?: string | null
+          event_type?: string
+          id?: string
+          order_found?: boolean | null
+          order_id?: string | null
+          order_nsu?: string | null
+          payload?: Json | null
+          result_message?: string | null
+          status?: string
+          transaction_nsu?: string | null
+          username?: string | null
+        }
+        Update: {
+          affiliate_id?: string | null
+          amount?: number | null
+          created_at?: string
+          email?: string | null
+          event_type?: string
+          id?: string
+          order_found?: boolean | null
+          order_id?: string | null
+          order_nsu?: string | null
+          payload?: Json | null
+          result_message?: string | null
+          status?: string
+          transaction_nsu?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       metodo_seguidor_admins: {
         Row: {
           created_at: string

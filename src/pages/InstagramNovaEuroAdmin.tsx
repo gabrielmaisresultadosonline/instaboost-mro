@@ -26,7 +26,8 @@ import {
   CheckCircle2,
   AlertCircle,
   FileText,
-  Send
+  Send,
+  Activity
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import {
@@ -76,6 +77,23 @@ interface VerificationAttempt {
   message: string;
 }
 
+interface WebhookLog {
+  id: string;
+  created_at: string;
+  event_type: string;
+  order_nsu: string | null;
+  transaction_nsu: string | null;
+  email: string | null;
+  username: string | null;
+  affiliate_id: string | null;
+  amount: number | null;
+  status: string;
+  payload: any;
+  result_message: string | null;
+  order_found: boolean;
+  order_id: string | null;
+}
+
 export default function InstagramNovaEuroAdmin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -100,6 +118,11 @@ export default function InstagramNovaEuroAdmin() {
   const [summaryEmail, setSummaryEmail] = useState("");
   const [summaryName, setSummaryName] = useState("");
   const [sendingSummary, setSendingSummary] = useState(false);
+  
+  // Webhook logs
+  const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
+  const [showWebhookLogsDialog, setShowWebhookLogsDialog] = useState(false);
+  const [loadingLogs, setLoadingLogs] = useState(false);
   
   // State para seções colapsáveis
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -181,6 +204,31 @@ export default function InstagramNovaEuroAdmin() {
       toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Carregar logs do webhook
+  const loadWebhookLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const { data, error } = await supabase
+        .from("infinitepay_webhook_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error("Error loading webhook logs:", error);
+        toast.error("Erro ao carregar logs do webhook");
+        return;
+      }
+
+      setWebhookLogs(data || []);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao carregar logs");
+    } finally {
+      setLoadingLogs(false);
     }
   };
 
@@ -683,6 +731,15 @@ ${GROUP_LINK}`;
               Tentativas ({verificationAttempts.length})
             </Button>
             <Button
+              onClick={() => { setShowWebhookLogsDialog(true); loadWebhookLogs(); }}
+              variant="outline"
+              size="sm"
+              className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
+            >
+              <Activity className="w-4 h-4 mr-2" />
+              Webhook Logs
+            </Button>
+            <Button
               onClick={() => setShowSummaryDialog(true)}
               variant="outline"
               size="sm"
@@ -979,6 +1036,116 @@ ${GROUP_LINK}`;
                 <Send className="w-4 h-4 mr-2" />
               )}
               Enviar Resumo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Webhook Logs Dialog */}
+      <Dialog open={showWebhookLogsDialog} onOpenChange={setShowWebhookLogsDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 text-orange-400" />
+              Logs do Webhook InfiniPay
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Histórico dos últimos webhooks recebidos do InfiniPay
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto space-y-2">
+            {loadingLogs ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-orange-400" />
+              </div>
+            ) : webhookLogs.length === 0 ? (
+              <p className="text-zinc-500 text-center py-8">Nenhum log registrado ainda</p>
+            ) : (
+              webhookLogs.map((log) => (
+                <div 
+                  key={log.id}
+                  className={`p-3 rounded-lg border ${
+                    log.status === "success" 
+                      ? "bg-green-500/10 border-green-500/30" 
+                      : log.status === "not_found"
+                      ? "bg-red-500/10 border-red-500/30"
+                      : "bg-yellow-500/10 border-yellow-500/30"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      {log.status === "success" && <CheckCircle className="w-4 h-4 text-green-400" />}
+                      {log.status === "not_found" && <XCircle className="w-4 h-4 text-red-400" />}
+                      {log.status !== "success" && log.status !== "not_found" && <Clock className="w-4 h-4 text-yellow-400" />}
+                      <Badge className={`${
+                        log.status === "success" ? "bg-green-500/20 text-green-400 border-green-500/30" :
+                        log.status === "not_found" ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                        "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                      }`}>
+                        {log.event_type}
+                      </Badge>
+                      {log.order_found && (
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                          Pedido Encontrado
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-zinc-500 text-xs whitespace-nowrap">
+                      {format(new Date(log.created_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    <div>
+                      <span className="text-zinc-500">NSU:</span>
+                      <span className="text-white ml-1 font-mono">{log.order_nsu || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500">Email:</span>
+                      <span className="text-white ml-1">{log.email || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500">Usuário:</span>
+                      <span className="text-white ml-1 font-mono">{log.username || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500">Afiliado:</span>
+                      <span className="text-purple-400 ml-1">{log.affiliate_id || "-"}</span>
+                    </div>
+                  </div>
+                  
+                  {log.result_message && (
+                    <p className={`mt-2 text-xs ${
+                      log.status === "success" ? "text-green-400" :
+                      log.status === "not_found" ? "text-red-400" : "text-yellow-400"
+                    }`}>
+                      {log.result_message}
+                    </p>
+                  )}
+                  
+                  {log.amount && (
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Valor: R$ {(log.amount / 100).toFixed(2)}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+          
+          <DialogFooter className="pt-4 border-t border-zinc-700">
+            <Button
+              variant="outline"
+              onClick={loadWebhookLogs}
+              disabled={loadingLogs}
+              className="border-zinc-600 text-zinc-300"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loadingLogs ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+            <Button onClick={() => setShowWebhookLogsDialog(false)}>
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
