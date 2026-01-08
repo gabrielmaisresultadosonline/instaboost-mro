@@ -41,8 +41,10 @@ import {
   Plus,
   Link,
   Eye,
-  EyeOff
+  EyeOff,
+  FileText
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, differenceInDays, addDays } from "date-fns";
 import {
   Collapsible,
@@ -170,6 +172,50 @@ export default function InstagramNovaAdmin() {
   const [paidCommissions, setPaidCommissions] = useState<Record<string, string[]>>({});
   const [selectedSalesForPayment, setSelectedSalesForPayment] = useState<Set<string>>(new Set());
   const [savingCommissions, setSavingCommissions] = useState(false);
+
+  // Webhook Logs
+  interface WebhookLog {
+    id: string;
+    created_at: string;
+    event_type: string;
+    order_nsu: string | null;
+    transaction_nsu: string | null;
+    email: string | null;
+    username: string | null;
+    affiliate_id: string | null;
+    amount: number | null;
+    status: string;
+    result_message: string | null;
+    order_found: boolean | null;
+  }
+  const [showWebhookLogs, setShowWebhookLogs] = useState(false);
+  const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  const loadWebhookLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const { data, error } = await supabase
+        .from('infinitepay_webhook_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setWebhookLogs(data || []);
+    } catch (error) {
+      console.error("Error loading webhook logs:", error);
+      toast.error("Erro ao carregar logs");
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showWebhookLogs) {
+      loadWebhookLogs();
+    }
+  }, [showWebhookLogs]);
 
   // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async (forceRefresh = false) => {
@@ -1854,15 +1900,26 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Admin MRO Instagram</h1>
-            <p className="text-zinc-400 text-sm">Gerenciamento de pedidos /instagram-nova</p>
-            {lastAutoCheck && (
-              <p className="text-zinc-500 text-xs mt-1">
-                Última verificação: {format(lastAutoCheck, "HH:mm:ss", { locale: ptBR })}
-                {autoCheckEnabled && " (auto: 30s)"}
-              </p>
-            )}
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Admin MRO Instagram</h1>
+              <p className="text-zinc-400 text-sm">Gerenciamento de pedidos /instagram-nova</p>
+              {lastAutoCheck && (
+                <p className="text-zinc-500 text-xs mt-1">
+                  Última verificação: {format(lastAutoCheck, "HH:mm:ss", { locale: ptBR })}
+                  {autoCheckEnabled && " (auto: 30s)"}
+                </p>
+              )}
+            </div>
+            <Button
+              onClick={() => setShowWebhookLogs(true)}
+              variant="outline"
+              size="sm"
+              className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
+            >
+              <FileText className="w-4 h-4 mr-1" />
+              Logs
+            </Button>
           </div>
           <div className="flex gap-2">
             <Button
@@ -3148,6 +3205,113 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Webhook Logs */}
+      <Dialog open={showWebhookLogs} onOpenChange={setShowWebhookLogs}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-400 flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Webhook Logs - InfiniPay
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Últimos 50 eventos recebidos pelo webhook
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              size="sm"
+              onClick={loadWebhookLogs}
+              disabled={loadingLogs}
+              className="bg-cyan-600 hover:bg-cyan-700"
+            >
+              <RefreshCw className={`w-4 h-4 mr-1 ${loadingLogs ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+            <span className="text-xs text-zinc-500">
+              {webhookLogs.length > 0 && `Último log: ${format(new Date(webhookLogs[0]?.created_at), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}`}
+            </span>
+          </div>
+          
+          <ScrollArea className="h-[500px]">
+            {loadingLogs ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+              </div>
+            ) : webhookLogs.length === 0 ? (
+              <div className="text-center py-8 text-zinc-500">
+                Nenhum log encontrado
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {webhookLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className={`p-3 rounded-lg border text-sm ${
+                      log.status === 'success' 
+                        ? 'bg-green-500/10 border-green-500/30' 
+                        : log.status === 'error'
+                        ? 'bg-red-500/10 border-red-500/30'
+                        : 'bg-zinc-800/50 border-zinc-700/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className={`text-xs ${
+                          log.status === 'success' ? 'bg-green-500/20 text-green-400' :
+                          log.status === 'error' ? 'bg-red-500/20 text-red-400' :
+                          'bg-zinc-700 text-zinc-300'
+                        }`}>
+                          {log.status}
+                        </Badge>
+                        <Badge className="bg-cyan-500/20 text-cyan-400 text-xs">
+                          {log.event_type}
+                        </Badge>
+                        {log.order_found !== null && (
+                          <Badge className={`text-xs ${log.order_found ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                            {log.order_found ? 'Order Found' : 'Order Not Found'}
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-zinc-500">
+                        {format(new Date(log.created_at), "dd/MM HH:mm:ss", { locale: ptBR })}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      {log.order_nsu && (
+                        <div><span className="text-zinc-500">NSU Order:</span> <span className="text-white">{log.order_nsu}</span></div>
+                      )}
+                      {log.transaction_nsu && (
+                        <div><span className="text-zinc-500">Transaction NSU:</span> <span className="text-white">{log.transaction_nsu}</span></div>
+                      )}
+                      {log.email && (
+                        <div><span className="text-zinc-500">Email:</span> <span className="text-white">{log.email}</span></div>
+                      )}
+                      {log.username && (
+                        <div><span className="text-zinc-500">Username:</span> <span className="text-white">{log.username}</span></div>
+                      )}
+                      {log.affiliate_id && (
+                        <div><span className="text-zinc-500">Afiliado:</span> <span className="text-purple-400">{log.affiliate_id}</span></div>
+                      )}
+                      {log.amount && (
+                        <div><span className="text-zinc-500">Valor:</span> <span className="text-green-400">R$ {log.amount.toFixed(2)}</span></div>
+                      )}
+                    </div>
+                    
+                    {log.result_message && (
+                      <div className="mt-2 pt-2 border-t border-zinc-700/50 text-xs">
+                        <span className="text-zinc-500">Resultado:</span> <span className="text-zinc-300">{log.result_message}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
