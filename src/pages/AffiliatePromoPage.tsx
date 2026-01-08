@@ -78,6 +78,9 @@ const AffiliatePromoPage = () => {
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const usernameCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   // Carregar dados do afiliado
@@ -161,20 +164,70 @@ const AffiliatePromoPage = () => {
     }
   }, [affiliate]);
 
-  // Validar username
+  // Verificar disponibilidade do username na SquareCloud
+  const checkUsernameAvailability = async (usernameToCheck: string) => {
+    if (usernameToCheck.length < 4) {
+      setUsernameAvailable(null);
+      return;
+    }
+    
+    setCheckingUsername(true);
+    try {
+      const checkUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users/${usernameToCheck}`;
+      const response = await fetch(checkUrl);
+      
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData && userData.username) {
+          // Usuário já existe
+          setUsernameAvailable(false);
+          setUsernameError("Usuário já existe, escolha outro nome");
+        } else {
+          setUsernameAvailable(true);
+          setUsernameError("");
+        }
+      } else {
+        // Usuário não existe (404 ou erro)
+        setUsernameAvailable(true);
+        setUsernameError("");
+      }
+    } catch (e) {
+      // Em caso de erro de rede, assumir disponível
+      setUsernameAvailable(true);
+      setUsernameError("");
+    } finally {
+      setCheckingUsername(false);
+    }
+  };
+
+  // Validar username com debounce para verificação
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
     setUsername(cleaned);
+    setUsernameAvailable(null);
+    
+    // Limpar timeout anterior
+    if (usernameCheckTimeoutRef.current) {
+      clearTimeout(usernameCheckTimeoutRef.current);
+    }
     
     if (value !== cleaned) {
       setUsernameError("Apenas letras minúsculas, sem espaços ou números");
+      return;
     } else if (cleaned.length < 4) {
       setUsernameError("Mínimo de 4 caracteres");
+      return;
     } else if (cleaned.length > 20) {
       setUsernameError("Máximo de 20 caracteres");
+      return;
     } else {
       setUsernameError("");
     }
+    
+    // Debounce: verificar disponibilidade após 500ms
+    usernameCheckTimeoutRef.current = setTimeout(() => {
+      checkUsernameAvailability(cleaned);
+    }, 500);
   };
 
   // Checkout
@@ -1034,20 +1087,45 @@ const AffiliatePromoPage = () => {
                   <User className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
                   Nome de usuário (login)
                 </label>
-                <Input
-                  type="text"
-                  value={username}
-                  onChange={(e) => validateUsername(e.target.value)}
-                  placeholder="seunome"
-                  className={`bg-gray-800 border-gray-700 text-white text-sm sm:text-base ${usernameError ? 'border-red-500' : ''}`}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    type="text"
+                    value={username}
+                    onChange={(e) => validateUsername(e.target.value)}
+                    placeholder="seunome"
+                    className={`bg-gray-800 border-gray-700 text-white text-sm sm:text-base pr-10 ${
+                      usernameError ? 'border-red-500' : 
+                      usernameAvailable === true ? 'border-green-500' : ''
+                    }`}
+                    required
+                  />
+                  {checkingUsername && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable === true && username.length >= 4 && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable === false && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <X className="w-4 h-4 text-red-500" />
+                    </div>
+                  )}
+                </div>
                 {usernameError && (
                   <p className="text-red-400 text-[10px] sm:text-xs mt-1">{usernameError}</p>
                 )}
-                <p className="text-gray-500 text-[10px] sm:text-xs mt-1">
-                  Apenas letras minúsculas, sem espaços ou números
-                </p>
+                {!usernameError && usernameAvailable === true && username.length >= 4 && (
+                  <p className="text-green-400 text-[10px] sm:text-xs mt-1">✓ Usuário disponível!</p>
+                )}
+                {!usernameError && usernameAvailable === null && username.length < 4 && (
+                  <p className="text-gray-500 text-[10px] sm:text-xs mt-1">
+                    Apenas letras minúsculas, sem espaços ou números
+                  </p>
+                )}
               </div>
               
               <Button

@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CreditCard, Mail, CheckCircle, User, Crown, Sparkles } from "lucide-react";
+import { Loader2, CreditCard, Mail, CheckCircle, User, Crown, Sparkles, CheckCircle2, X } from "lucide-react";
 
 // Valores para teste (alterar para 397.00 e 797.00 em produção)
 const PLANS = {
@@ -22,22 +22,75 @@ export default function MROPagamento() {
   const [nsuOrder, setNsuOrder] = useState("");
   const [paymentLink, setPaymentLink] = useState("");
   const [usernameError, setUsernameError] = useState("");
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const usernameCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
+
+  // Verificar disponibilidade do username na SquareCloud
+  const checkUsernameAvailability = async (usernameToCheck: string) => {
+    if (usernameToCheck.length < 4) {
+      setUsernameAvailable(null);
+      return;
+    }
+    
+    setCheckingUsername(true);
+    try {
+      const checkUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users/${usernameToCheck}`;
+      const response = await fetch(checkUrl);
+      
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData && userData.username) {
+          // Usuário já existe
+          setUsernameAvailable(false);
+          setUsernameError("Usuário já existe, escolha outro nome");
+        } else {
+          setUsernameAvailable(true);
+          setUsernameError("");
+        }
+      } else {
+        // Usuário não existe (404 ou erro)
+        setUsernameAvailable(true);
+        setUsernameError("");
+      }
+    } catch (e) {
+      // Em caso de erro de rede, assumir disponível
+      setUsernameAvailable(true);
+      setUsernameError("");
+    } finally {
+      setCheckingUsername(false);
+    }
+  };
 
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
     setUsername(cleaned);
+    setUsernameAvailable(null);
+    
+    // Limpar timeout anterior
+    if (usernameCheckTimeoutRef.current) {
+      clearTimeout(usernameCheckTimeoutRef.current);
+    }
     
     if (value !== cleaned) {
       setUsernameError("Apenas letras minúsculas, sem espaços ou números");
+      return;
     } else if (cleaned.length < 4) {
       setUsernameError("Mínimo de 4 caracteres");
+      return;
     } else if (cleaned.length > 20) {
       setUsernameError("Máximo de 20 caracteres");
+      return;
     } else {
       setUsernameError("");
     }
+    
+    // Debounce: verificar disponibilidade após 500ms
+    usernameCheckTimeoutRef.current = setTimeout(() => {
+      checkUsernameAvailability(cleaned);
+    }, 500);
   };
 
   const handleCreatePayment = async (e: React.FormEvent) => {
@@ -221,22 +274,45 @@ export default function MROPagamento() {
                   <User className="w-4 h-4" />
                   Nome de Usuário
                 </label>
-                <Input
-                  type="text"
-                  placeholder="seuusuario"
-                  value={username}
-                  onChange={(e) => validateUsername(e.target.value)}
-                  className={`bg-zinc-700/50 border-zinc-600 text-white placeholder:text-zinc-500 ${
-                    usernameError ? "border-red-500" : ""
-                  }`}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="seuusuario"
+                    value={username}
+                    onChange={(e) => validateUsername(e.target.value)}
+                    className={`bg-zinc-700/50 border-zinc-600 text-white placeholder:text-zinc-500 pr-10 ${
+                      usernameError ? "border-red-500" : 
+                      usernameAvailable === true ? "border-green-500" : ""
+                    }`}
+                    required
+                  />
+                  {checkingUsername && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="w-4 h-4 animate-spin text-zinc-400" />
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable === true && username.length >= 4 && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable === false && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <X className="w-4 h-4 text-red-500" />
+                    </div>
+                  )}
+                </div>
                 {usernameError && (
                   <p className="text-xs text-red-400">{usernameError}</p>
                 )}
-                <p className="text-xs text-zinc-500">
-                  Apenas letras minúsculas, sem espaços ou números. Este será seu usuário e senha.
-                </p>
+                {!usernameError && usernameAvailable === true && username.length >= 4 && (
+                  <p className="text-xs text-green-400">✓ Usuário disponível!</p>
+                )}
+                {!usernameError && usernameAvailable === null && username.length < 4 && (
+                  <p className="text-xs text-zinc-500">
+                    Apenas letras minúsculas, sem espaços ou números. Este será seu usuário e senha.
+                  </p>
+                )}
               </div>
 
               {/* Resumo */}
