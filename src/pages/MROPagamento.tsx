@@ -28,47 +28,52 @@ export default function MROPagamento() {
   const navigate = useNavigate();
 
   // Verificar disponibilidade do username na SquareCloud usando /verificar-numero
+  // Regra: enviar nome e senha iguais (numero = username) e interpretar:
+  // - senhaCorrespondente === true  => já existe (não disponível)
+  // - senhaCorrespondente === false => disponível
   const checkUsernameAvailability = async (usernameToCheck: string) => {
     if (usernameToCheck.length < 4) {
       setUsernameAvailable(null);
       return;
     }
-    
+
     setCheckingUsername(true);
     try {
-      console.log('[Username Check] Checking via /verificar-numero:', usernameToCheck);
-      
-      const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `nome=${encodeURIComponent(usernameToCheck)}&numero=check_existence`
+      const body = new URLSearchParams({
+        nome: usernameToCheck,
+        numero: usernameToCheck,
       });
-      
-      console.log('[Username Check] Response status:', response.status);
-      const data = await response.json();
-      console.log('[Username Check] Response data:', data);
-      
-      // Se a API retornar que existe um usuário com esse nome (mesmo que senha errada)
-      if (data.error && data.error.includes('não encontrado')) {
-        // Nome não existe = disponível
-        setUsernameAvailable(true);
-        setUsernameError("");
-        console.log('[Username Check] User NOT found - available');
-      } else if (data.senhaCorrespondente === false || data.senhaCorrespondente === true) {
-        // Nome existe (seja senha certa ou errada) = não disponível
-        setUsernameAvailable(false);
-        setUsernameError("Usuário já em uso. Utilize outro usuário");
-        console.log('[Username Check] User EXISTS - not available');
-      } else {
-        // Resposta inesperada - assumir indisponível por segurança
-        setUsernameAvailable(false);
-        setUsernameError("Usuário já em uso. Utilize outro usuário");
-        console.log('[Username Check] Unexpected response - assuming not available');
+
+      const response = await fetch(
+        'https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setUsernameAvailable(null);
+        setUsernameError('Erro ao verificar disponibilidade');
+        return;
       }
-    } catch (e) {
-      console.error('[Username Check] Network error:', e);
+
+      if (data?.senhaCorrespondente === true) {
+        setUsernameAvailable(false);
+        setUsernameError('Usuário já em uso. Utilize outro usuário');
+      } else if (data?.senhaCorrespondente === false) {
+        setUsernameAvailable(true);
+        setUsernameError('');
+      } else {
+        setUsernameAvailable(null);
+        setUsernameError('Erro ao verificar disponibilidade');
+      }
+    } catch {
       setUsernameAvailable(null);
-      setUsernameError("Erro ao verificar disponibilidade");
+      setUsernameError('Erro ao verificar disponibilidade');
     } finally {
       setCheckingUsername(false);
     }
