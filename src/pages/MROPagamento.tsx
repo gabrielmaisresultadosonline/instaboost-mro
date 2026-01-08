@@ -44,7 +44,7 @@ export default function MROPagamento() {
         if (userData && userData.username) {
           // Usuário já existe
           setUsernameAvailable(false);
-          setUsernameError("Usuário já existe, escolha outro nome");
+          setUsernameError("Usuário já em uso. Utilize outro usuário");
         } else {
           setUsernameAvailable(true);
           setUsernameError("");
