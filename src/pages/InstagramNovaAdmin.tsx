@@ -628,7 +628,7 @@ export default function InstagramNovaAdmin() {
         return order;
       });
 
-      // Remover duplicatas por email: manter apenas 1 registro por email na lista.
+      // Remover duplicatas por email OU telefone: manter apenas 1 registro por email/telefone na lista.
       // Regra: se existir pagamento (paid/completed), ele sempre vence (mesmo que haja pending mais recente).
       const normalizeEmailKey = (email: string) => {
         const lower = (email || "").trim().toLowerCase();
@@ -637,6 +637,12 @@ export default function InstagramNovaAdmin() {
         const last = parts[parts.length - 1];
         if (parts.length > 1 && last.includes("@")) return last;
         return lower;
+      };
+
+      const normalizePhone = (phone: string | null | undefined): string => {
+        if (!phone) return "";
+        // Remove tudo que não é dígito
+        return phone.replace(/\D/g, "");
       };
 
       const statusRank = (status: string) => {
@@ -657,32 +663,71 @@ export default function InstagramNovaAdmin() {
         return Number.isFinite(ms) ? ms : 0;
       };
 
+      // Função para verificar se novo pedido é "melhor" que o atual
+      const isBetterOrder = (newOrder: MROOrder, current: MROOrder): boolean => {
+        const rNew = statusRank(newOrder.status);
+        const rCur = statusRank(current.status);
+        if (rNew > rCur) return true;
+        if (rNew < rCur) return false;
+        return orderTimestamp(newOrder) > orderTimestamp(current);
+      };
+
+      // Primeiro pass: agrupar por email
       const bestByEmail = new Map<string, MROOrder>();
       for (const order of processedOrders) {
         const key = normalizeEmailKey(order.email);
         const current = bestByEmail.get(key);
-        if (!current) {
-          bestByEmail.set(key, order);
-          continue;
-        }
-
-        const rNew = statusRank(order.status);
-        const rCur = statusRank(current.status);
-        if (rNew > rCur) {
-          bestByEmail.set(key, order);
-          continue;
-        }
-        if (rNew === rCur && orderTimestamp(order) > orderTimestamp(current)) {
+        if (!current || isBetterOrder(order, current)) {
           bestByEmail.set(key, order);
         }
       }
 
-      const uniqueOrders = processedOrders.filter((o) => {
-        const key = normalizeEmailKey(o.email);
-        return bestByEmail.get(key)?.id === o.id;
+      // Segundo pass: também agrupar por telefone (se tiver)
+      const bestByPhone = new Map<string, MROOrder>();
+      for (const order of processedOrders) {
+        const phoneKey = normalizePhone(order.phone);
+        if (!phoneKey || phoneKey.length < 8) continue; // Ignorar telefones inválidos/curtos
+        const current = bestByPhone.get(phoneKey);
+        if (!current || isBetterOrder(order, current)) {
+          bestByPhone.set(phoneKey, order);
+        }
+      }
+
+      // Construir set de IDs que são os "melhores" por email OU telefone
+      const bestOrderIds = new Set<string>();
+      bestByEmail.forEach((order) => bestOrderIds.add(order.id));
+      bestByPhone.forEach((order) => bestOrderIds.add(order.id));
+
+      // Agora filtrar: manter apenas pedidos que são os melhores por AMBOS critérios
+      // Se um pedido com mesmo telefone existe com status melhor, remover o atual
+      const finalOrders: MROOrder[] = [];
+      const seenEmails = new Set<string>();
+      const seenPhones = new Set<string>();
+
+      // Ordenar por rank de status (desc) e timestamp (desc) para processar melhores primeiro
+      const sortedOrders = [...processedOrders].sort((a, b) => {
+        const rankDiff = statusRank(b.status) - statusRank(a.status);
+        if (rankDiff !== 0) return rankDiff;
+        return orderTimestamp(b) - orderTimestamp(a);
       });
 
-      setOrders(uniqueOrders);
+      for (const order of sortedOrders) {
+        const emailKey = normalizeEmailKey(order.email);
+        const phoneKey = normalizePhone(order.phone);
+
+        // Se já vimos este email OU este telefone, pular (já temos um melhor)
+        if (seenEmails.has(emailKey)) continue;
+        if (phoneKey && phoneKey.length >= 8 && seenPhones.has(phoneKey)) continue;
+
+        // Este é o melhor para este email/telefone
+        finalOrders.push(order);
+        seenEmails.add(emailKey);
+        if (phoneKey && phoneKey.length >= 8) {
+          seenPhones.add(phoneKey);
+        }
+      }
+
+      setOrders(finalOrders);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Erro ao carregar dados");

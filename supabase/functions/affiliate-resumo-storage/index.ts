@@ -255,12 +255,17 @@ serve(async (req) => {
       const salesRaw = orders.filter((o: any) => o.status === 'paid' || o.status === 'completed');
       const attempts = orders.filter((o: any) => o.status === 'pending' || o.status === 'expired');
 
-      // Deduplicar vendas por email (manter apenas a venda mais recente por email)
+      // Deduplicar vendas por email OU telefone (manter apenas a venda mais recente)
       const getBaseEmail = (rawEmail: string): string => {
         const lower = (rawEmail || '').trim().toLowerCase();
         const parts = lower.split(':');
         if (parts.length > 1) return parts.slice(1).join(':');
         return lower;
+      };
+
+      const normalizePhone = (phone: string | null | undefined): string => {
+        if (!phone) return "";
+        return phone.replace(/\D/g, "");
       };
 
       const saleTimestamp = (sale: any): number => {
@@ -275,28 +280,44 @@ serve(async (req) => {
         return 0;
       };
 
-      const bestSaleByEmail = new Map<string, any>();
-      for (const sale of salesRaw) {
-        const key = getBaseEmail(sale.email);
-        const current = bestSaleByEmail.get(key);
-        if (!current) {
-          bestSaleByEmail.set(key, sale);
-          continue;
-        }
+      const isBetterSale = (newSale: any, current: any): boolean => {
+        const rNew = saleRank(newSale.status);
+        const rCur = saleRank(current.status);
+        if (rNew > rCur) return true;
+        if (rNew < rCur) return false;
+        return saleTimestamp(newSale) > saleTimestamp(current);
+      };
 
-        const tsNew = saleTimestamp(sale);
-        const tsCur = saleTimestamp(current);
-        if (tsNew > tsCur) {
-          bestSaleByEmail.set(key, sale);
-          continue;
-        }
-        if (tsNew === tsCur && saleRank(sale.status) > saleRank(current.status)) {
-          bestSaleByEmail.set(key, sale);
+      // Ordenar por rank e timestamp (melhores primeiro)
+      const sortedSales = [...salesRaw].sort((a: any, b: any) => {
+        const rankDiff = saleRank(b.status) - saleRank(a.status);
+        if (rankDiff !== 0) return rankDiff;
+        return saleTimestamp(b) - saleTimestamp(a);
+      });
+
+      // Deduplicar por email E telefone
+      const seenEmails = new Set<string>();
+      const seenPhones = new Set<string>();
+      const sales: any[] = [];
+
+      for (const sale of sortedSales) {
+        const emailKey = getBaseEmail(sale.email);
+        const phoneKey = normalizePhone(sale.phone);
+
+        // Se já vimos este email OU este telefone, pular
+        if (seenEmails.has(emailKey)) continue;
+        if (phoneKey && phoneKey.length >= 8 && seenPhones.has(phoneKey)) continue;
+
+        // Este é o melhor para este email/telefone
+        sales.push(sale);
+        seenEmails.add(emailKey);
+        if (phoneKey && phoneKey.length >= 8) {
+          seenPhones.add(phoneKey);
         }
       }
 
-      const sales = Array.from(bestSaleByEmail.values()).sort((a: any, b: any) => saleTimestamp(b) - saleTimestamp(a));
       const paidEmailSet = new Set(sales.map((s: any) => getBaseEmail(s.email)));
+      const paidPhoneSet = new Set(sales.map((s: any) => normalizePhone(s.phone)).filter(p => p && p.length >= 8));
 
       // Get paid commission NSUs for this affiliate
       const affiliatePaidCommissions = paidCommissions[affiliateId] || paidCommissions[affiliateId.toLowerCase()] || [];
@@ -311,8 +332,15 @@ serve(async (req) => {
         commissionPaid: affiliatePaidCommissions.includes(sale.nsu_order)
       }));
 
+      // Filtrar tentativas: remover se email OU telefone já está em vendas pagas
       const attemptsList = attempts
-        .filter((a: any) => !paidEmailSet.has(getBaseEmail(a.email)))
+        .filter((a: any) => {
+          const emailKey = getBaseEmail(a.email);
+          const phoneKey = normalizePhone(a.phone);
+          if (paidEmailSet.has(emailKey)) return false;
+          if (phoneKey && phoneKey.length >= 8 && paidPhoneSet.has(phoneKey)) return false;
+          return true;
+        })
         .map((attempt: any) => ({
           email: attempt.email.replace(`${affiliateId}:`, "").replace(`${affiliateId.toLowerCase()}:`, ""),
           username: attempt.username,
