@@ -1118,10 +1118,15 @@ const AffiliatePromoPage = () => {
                 {usernameError && (
                   <p className="text-red-400 text-[10px] sm:text-xs mt-1">{usernameError}</p>
                 )}
-                {!usernameError && usernameAvailable === true && username.length >= 4 && (
+                {checkingUsername && !usernameError && (
+                  <p className="text-yellow-400 text-[10px] sm:text-xs mt-1 flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Verificando disponibilidade...
+                  </p>
+                )}
+                {!checkingUsername && !usernameError && usernameAvailable === true && username.length >= 4 && (
                   <p className="text-green-400 text-[10px] sm:text-xs mt-1">✓ Usuário disponível!</p>
                 )}
-                {!usernameError && usernameAvailable === null && username.length < 4 && (
+                {!checkingUsername && !usernameError && usernameAvailable === null && username.length < 4 && (
                   <p className="text-gray-500 text-[10px] sm:text-xs mt-1">
                     Apenas letras minúsculas, sem espaços ou números
                   </p>
