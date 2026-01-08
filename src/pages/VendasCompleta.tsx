@@ -72,22 +72,98 @@ const VendasCompleta = () => {
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [usernameError, setUsernameError] = useState("");
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const usernameCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Verificar disponibilidade do username na SquareCloud usando /verificar-numero
+  // Regra: enviar nome e senha iguais (numero = username) e interpretar:
+  // - senhaCorrespondente === true  => já existe (não disponível)
+  // - senhaCorrespondente === false => disponível
+  const checkUsernameAvailability = async (
+    usernameToCheck: string
+  ): Promise<boolean | null> => {
+    if (usernameToCheck.length < 4) {
+      setUsernameAvailable(null);
+      return null;
+    }
+
+    setCheckingUsername(true);
+    try {
+      const body = new URLSearchParams({
+        nome: usernameToCheck,
+        numero: usernameToCheck,
+      });
+
+      const response = await fetch(
+        'https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setUsernameAvailable(null);
+        return null;
+      }
+
+      if (data?.senhaCorrespondente === true) {
+        setUsernameAvailable(false);
+        setUsernameError("Usuário já em uso. Utilize outro usuário");
+        return false;
+      }
+
+      if (data?.senhaCorrespondente === false) {
+        setUsernameAvailable(true);
+        setUsernameError((prev) =>
+          prev === "Usuário já em uso. Utilize outro usuário" ? "" : prev
+        );
+        return true;
+      }
+
+      setUsernameAvailable(null);
+      return null;
+    } catch {
+      setUsernameAvailable(null);
+      return null;
+    } finally {
+      setCheckingUsername(false);
+    }
+  };
 
   // Validar username: apenas letras minúsculas, sem espaços, sem números
   const validateUsername = (value: string) => {
     const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
     setUsername(cleaned);
-    
+    setUsernameAvailable(null);
+
+    // Limpar timeout anterior
+    if (usernameCheckTimeoutRef.current) {
+      clearTimeout(usernameCheckTimeoutRef.current);
+    }
+
     if (value !== cleaned) {
       setUsernameError("Apenas letras minúsculas, sem espaços ou números");
+      return;
     } else if (cleaned.length < 4) {
       setUsernameError("Mínimo de 4 caracteres");
+      return;
     } else if (cleaned.length > 20) {
       setUsernameError("Máximo de 20 caracteres");
-    } else {
-      setUsernameError("");
+      return;
     }
+
+    setUsernameError("");
+
+    // Debounce da verificação
+    usernameCheckTimeoutRef.current = setTimeout(() => {
+      void checkUsernameAvailability(cleaned);
+    }, 500);
   };
 
   // Criar checkout e abrir pagamento
@@ -111,6 +187,24 @@ const VendasCompleta = () => {
 
     if (usernameError) {
       toast.error(usernameError);
+      return;
+    }
+
+    if (checkingUsername) {
+      toast.error("Aguarde a verificação do usuário");
+      return;
+    }
+
+    const availability =
+      usernameAvailable ?? (await checkUsernameAvailability(username.toLowerCase().trim()));
+
+    if (availability === false) {
+      toast.error("Este nome de usuário já está em uso. Escolha outro.");
+      return;
+    }
+
+    if (availability !== true) {
+      toast.error("Não foi possível verificar o usuário. Tente novamente.");
       return;
     }
 
