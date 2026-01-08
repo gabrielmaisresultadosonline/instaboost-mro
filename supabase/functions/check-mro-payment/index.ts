@@ -14,24 +14,55 @@ const log = (step: string, details?: unknown) => {
   console.log(`[${timestamp}] [CHECK-MRO-PAYMENT] ${step}${detailsStr}`);
 };
 
+// Salvar log de verificação no banco
+const saveVerificationLog = async (
+  supabase: any,
+  data: {
+    event_type: string;
+    order_nsu: string | null;
+    email?: string | null;
+    username?: string | null;
+    status: string;
+    result_message: string;
+    order_found?: boolean;
+  }
+) => {
+  try {
+    await supabase.from("infinitepay_webhook_logs").insert({
+      event_type: data.event_type,
+      order_nsu: data.order_nsu,
+      email: data.email || null,
+      username: data.username || null,
+      status: data.status,
+      result_message: data.result_message,
+      order_found: data.order_found ?? null,
+    });
+  } catch (e) {
+    console.error("Error saving verification log:", e);
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return new Response(
+      JSON.stringify({ error: "Missing Supabase configuration" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { persistSession: false },
+  });
+
   try {
     log("Checking MRO payment");
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error("Missing Supabase configuration");
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { persistSession: false },
-    });
 
     const body = await req.json();
     const { nsu_order, transaction_nsu, slug, force_webhook } = body;
@@ -54,6 +85,13 @@ serve(async (req) => {
 
     if (orderError) {
       log("Database error", { error: orderError.message, nsu_order });
+      await saveVerificationLog(supabase, {
+        event_type: "auto_check",
+        order_nsu: nsu_order,
+        status: "error",
+        result_message: `Erro no banco: ${orderError.message}`,
+        order_found: false,
+      });
       return new Response(
         JSON.stringify({ error: "Database error", details: orderError.message }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
@@ -62,6 +100,13 @@ serve(async (req) => {
 
     if (!order) {
       log("Order not found", { nsu_order });
+      await saveVerificationLog(supabase, {
+        event_type: "auto_check",
+        order_nsu: nsu_order,
+        status: "error",
+        result_message: "Pedido não encontrado",
+        order_found: false,
+      });
       return new Response(
         JSON.stringify({ error: "Order not found", nsu_order }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
@@ -73,6 +118,15 @@ serve(async (req) => {
     // Se já está completed, retornar sucesso
     if (order.status === "completed") {
       log("Order already completed");
+      await saveVerificationLog(supabase, {
+        event_type: "auto_check",
+        order_nsu: nsu_order,
+        email: order.email,
+        username: order.username,
+        status: "success",
+        result_message: "Pedido já está completo",
+        order_found: true,
+      });
       return new Response(
         JSON.stringify({ success: true, status: "completed", order }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
@@ -104,6 +158,16 @@ serve(async (req) => {
           .select("*")
           .eq("nsu_order", nsu_order)
           .single();
+
+        await saveVerificationLog(supabase, {
+          event_type: "auto_check",
+          order_nsu: nsu_order,
+          email: order.email,
+          username: order.username,
+          status: "success",
+          result_message: `Webhook acionado - status: ${updatedOrder?.status || "paid"}`,
+          order_found: true,
+        });
 
         return new Response(
           JSON.stringify({ 
@@ -173,6 +237,16 @@ serve(async (req) => {
             .select("*")
             .eq("nsu_order", nsu_order)
             .single();
+
+          await saveVerificationLog(supabase, {
+            event_type: "auto_check",
+            order_nsu: nsu_order,
+            email: order.email,
+            username: order.username,
+            status: "success",
+            result_message: "Pagamento confirmado via API (transaction_nsu)",
+            order_found: true,
+          });
 
           return new Response(
             JSON.stringify({ 
@@ -250,6 +324,16 @@ serve(async (req) => {
                 .eq("nsu_order", nsu_order)
                 .single();
 
+              await saveVerificationLog(supabase, {
+                event_type: "auto_check",
+                order_nsu: nsu_order,
+                email: order.email,
+                username: order.username,
+                status: "success",
+                result_message: "Pagamento confirmado via lenc",
+                order_found: true,
+              });
+
               return new Response(
                 JSON.stringify({ 
                   success: true, 
@@ -316,6 +400,16 @@ serve(async (req) => {
             .eq("nsu_order", nsu_order)
             .single();
 
+          await saveVerificationLog(supabase, {
+            event_type: "auto_check",
+            order_nsu: nsu_order,
+            email: order.email,
+            username: order.username,
+            status: "success",
+            result_message: "Pagamento confirmado via direct_nsu",
+            order_found: true,
+          });
+
           return new Response(
             JSON.stringify({ 
               success: true, 
@@ -332,8 +426,18 @@ serve(async (req) => {
       log("Error in direct check", { error: String(directError) });
     }
 
-    // Pedido ainda pendente
+    // Pedido ainda pendente - salvar log
     log("Order still pending");
+    await saveVerificationLog(supabase, {
+      event_type: "auto_check",
+      order_nsu: nsu_order,
+      email: order.email,
+      username: order.username,
+      status: "pending",
+      result_message: "Aguardando pagamento",
+      order_found: true,
+    });
+
     return new Response(
       JSON.stringify({ success: true, status: "pending", order }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
@@ -342,6 +446,13 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     log("ERROR", { message: errorMessage });
+
+    await saveVerificationLog(supabase, {
+      event_type: "auto_check",
+      order_nsu: null,
+      status: "error",
+      result_message: `Erro: ${errorMessage}`,
+    });
 
     return new Response(
       JSON.stringify({ error: errorMessage }),
