@@ -467,16 +467,16 @@ export default function InstagramNovaAdmin() {
     }
   }, []);
 
-  // Verificação automática a cada 30 segundos + notificar afiliados de novas vendas
+  // Verificação automática a cada 8 segundos (para pedidos recentes até 15 min)
   useEffect(() => {
     if (isAuthenticated && autoCheckEnabled) {
       // Verificar imediatamente ao carregar
       checkPendingPayments();
       
-      // Configurar intervalo de 30 segundos
+      // Configurar intervalo de 8 segundos para verificação agressiva
       autoCheckIntervalRef.current = setInterval(() => {
         checkPendingPayments();
-      }, 30000);
+      }, 8000); // 8 segundos
       
       return () => {
         if (autoCheckIntervalRef.current) {
@@ -613,21 +613,34 @@ export default function InstagramNovaAdmin() {
     }
   };
 
-  // Verificar pagamentos pendentes automaticamente
+  // Verificar pagamentos pendentes automaticamente (apenas pedidos dos últimos 15 min)
   const checkPendingPayments = async () => {
     try {
-      const pendingOrders = orders.filter(o => o.status === "pending");
+      const now = new Date();
+      const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
       
-      if (pendingOrders.length === 0) {
+      // Filtrar pedidos pendentes criados nos últimos 15 minutos
+      const recentPendingOrders = orders.filter(o => {
+        if (o.status !== "pending") return false;
+        const createdAt = new Date(o.created_at);
+        return createdAt >= fifteenMinutesAgo;
+      });
+      
+      if (recentPendingOrders.length === 0) {
         setLastAutoCheck(new Date());
-        loadOrders(); // Recarregar para pegar novos pedidos
+        // Recarregar a cada 30 segundos se não há pedidos recentes
+        const timeSinceLastLoad = localStorage.getItem("mro_last_load_time");
+        if (!timeSinceLastLoad || Date.now() - parseInt(timeSinceLastLoad) > 30000) {
+          loadOrders();
+          localStorage.setItem("mro_last_load_time", Date.now().toString());
+        }
         return;
       }
 
-      console.log(`[AUTO-CHECK] Verificando ${pendingOrders.length} pedidos pendentes...`);
+      console.log(`[AUTO-CHECK] Verificando ${recentPendingOrders.length} pedidos pendentes (últimos 15min)...`);
       
-      for (const order of pendingOrders) {
-        // Verificar se expirou (mais de 30 minutos)
+      for (const order of recentPendingOrders) {
+        // Verificar se expirou
         if (order.expired_at) {
           const expiredAt = new Date(order.expired_at);
           if (new Date() > expiredAt) {
@@ -636,15 +649,22 @@ export default function InstagramNovaAdmin() {
           }
         }
 
-        // Verificar pagamento
+        // Calcular tempo desde criação
+        const createdAt = new Date(order.created_at);
+        const minutesSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / 60000);
+        console.log(`[AUTO-CHECK] Verificando ${order.nsu_order} (${order.username}) - ${minutesSinceCreation}min desde criação`);
+
+        // Verificar pagamento via API
         try {
           const { data } = await supabase.functions.invoke("check-mro-payment", {
             body: { nsu_order: order.nsu_order }
           });
 
           if (data?.status === "completed" || data?.status === "paid") {
-            console.log(`[AUTO-CHECK] Pagamento confirmado para ${order.nsu_order}`);
+            console.log(`[AUTO-CHECK] ✅ Pagamento confirmado para ${order.nsu_order}`);
             toast.success(`Pagamento confirmado: ${order.username}`);
+          } else {
+            console.log(`[AUTO-CHECK] ⏳ Aguardando pagamento: ${order.nsu_order}`);
           }
         } catch (e) {
           console.error(`[AUTO-CHECK] Erro ao verificar ${order.nsu_order}:`, e);
@@ -1907,7 +1927,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               {lastAutoCheck && (
                 <p className="text-zinc-500 text-xs mt-1">
                   Última verificação: {format(lastAutoCheck, "HH:mm:ss", { locale: ptBR })}
-                  {autoCheckEnabled && " (auto: 30s)"}
+                  {autoCheckEnabled && " (auto: 8s para pedidos recentes)"}
                 </p>
               )}
             </div>
