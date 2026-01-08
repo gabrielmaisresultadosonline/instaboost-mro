@@ -330,8 +330,7 @@ serve(async (req) => {
     }
 
     // Buscar pedido no banco
-    // IMPORTANTE: Sempre buscar por ID ou NSU primeiro, NUNCA por email apenas
-    // Isso garante que cada pedido seja processado individualmente
+    // Prioridade: order_id > order_nsu > fallback por email (apenas 1x por email)
     let order = null;
 
     if (orderId) {
@@ -354,14 +353,25 @@ serve(async (req) => {
       log("Searched by orderNsu", { orderNsu, found: !!order });
     }
 
-    // NÃO fazer fallback por email - isso causava aprovar apenas um pedido
-    // quando múltiplos pedidos tinham o mesmo email
-    // Se não encontrou por ID ou NSU, o pedido não existe
+    // Fallback por email (somente 1 pedido por email: o mais recente)
+    // Útil quando o provedor envia payload sem order_id/nsu válido, mas com itens contendo email.
+    if (!order && extractedEmail) {
+      const { data } = await supabase
+        .from("mro_orders")
+        .select("*")
+        .eq("email", extractedEmail)
+        .in("status", ["pending", "paid"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      order = data;
+      log("Fallback search by email", { extractedEmail, found: !!order });
+    }
 
     if (!order) {
       log("No order found", { orderNsu, orderId, extractedEmail });
       return new Response(
-        JSON.stringify({ success: false, message: "No order found - must provide valid order_id or order_nsu" }),
+        JSON.stringify({ success: false, message: "No order found" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
