@@ -164,7 +164,7 @@ const AffiliatePromoPage = () => {
     }
   }, [affiliate]);
 
-  // Verificar disponibilidade do username na SquareCloud
+  // Verificar disponibilidade do username na SquareCloud usando /verificar-numero
   const checkUsernameAvailability = async (usernameToCheck: string) => {
     if (usernameToCheck.length < 4) {
       setUsernameAvailable(null);
@@ -173,38 +173,37 @@ const AffiliatePromoPage = () => {
     
     setCheckingUsername(true);
     try {
-      const checkUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users/${usernameToCheck}`;
-      console.log('[Username Check] Checking:', usernameToCheck);
-      const response = await fetch(checkUrl);
-      console.log('[Username Check] Response status:', response.status);
+      console.log('[Username Check] Checking via /verificar-numero:', usernameToCheck);
       
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('[Username Check] User data:', userData);
-        // Se retornou dados do usuário, ele já existe
-        if (userData && (userData.username || userData.user || Object.keys(userData).length > 0)) {
-          // Usuário já existe
-          setUsernameAvailable(false);
-          setUsernameError("Usuário já em uso. Utilize outro usuário");
-          console.log('[Username Check] User EXISTS - not available');
-        } else {
-          setUsernameAvailable(true);
-          setUsernameError("");
-          console.log('[Username Check] Empty response - available');
-        }
-      } else if (response.status === 404) {
-        // 404 significa que usuário não existe = disponível
+      const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `nome=${encodeURIComponent(usernameToCheck)}&numero=check_existence`
+      });
+      
+      console.log('[Username Check] Response status:', response.status);
+      const data = await response.json();
+      console.log('[Username Check] Response data:', data);
+      
+      // Se a API retornar que existe um usuário com esse nome (mesmo que senha errada)
+      // O endpoint retorna erro se o nome não existe, ou senhaCorrespondente: false se nome existe mas senha errada
+      if (data.error && data.error.includes('não encontrado')) {
+        // Nome não existe = disponível
         setUsernameAvailable(true);
         setUsernameError("");
-        console.log('[Username Check] 404 - User available');
+        console.log('[Username Check] User NOT found - available');
+      } else if (data.senhaCorrespondente === false || data.senhaCorrespondente === true) {
+        // Nome existe (seja senha certa ou errada) = não disponível
+        setUsernameAvailable(false);
+        setUsernameError("Usuário já em uso. Utilize outro usuário");
+        console.log('[Username Check] User EXISTS - not available');
       } else {
-        // Outro erro - manter como indeterminado
-        console.log('[Username Check] Other error:', response.status);
-        setUsernameAvailable(null);
-        setUsernameError("Erro ao verificar. Tente novamente.");
+        // Resposta inesperada - assumir indisponível por segurança
+        setUsernameAvailable(false);
+        setUsernameError("Usuário já em uso. Utilize outro usuário");
+        console.log('[Username Check] Unexpected response - assuming not available');
       }
     } catch (e) {
-      // Em caso de erro de rede, NÃO assumir disponível - mostrar erro
       console.error('[Username Check] Network error:', e);
       setUsernameAvailable(null);
       setUsernameError("Erro ao verificar disponibilidade");
