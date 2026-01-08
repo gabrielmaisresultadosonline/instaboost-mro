@@ -91,7 +91,7 @@ serve(async (req) => {
     // Webhook URL para receber notificação automática de pagamento
     const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
 
-    log("Preparing InfiniPay integrated link", { 
+    log("Preparing InfiniPay API request", { 
       email: cleanEmail, 
       username: cleanUsername,
       planType,
@@ -111,20 +111,59 @@ serve(async (req) => {
       customerEmailForPayment = emailParts.slice(1).join(":");
     }
 
-    // Criar link integrado InfiniPay com webhook_url
-    const itemData = [{
-      name: productDescription,
+    // Criar checkout via API oficial (não link direto) para garantir webhook
+    const lineItems = [{
+      description: productDescription,
+      quantity: 1,
       price: priceInCents,
-      quantity: 1
     }];
 
-    // Codificar items para URL
-    const itemsEncoded = encodeURIComponent(JSON.stringify(itemData));
-    
-    // Criar link integrado com NSU no redirect + webhook para verificação automática
-    const paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsEncoded}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}`;
+    const infinitepayPayload = {
+      handle: INFINITEPAY_HANDLE,
+      items: lineItems,
+      itens: lineItems, // compatibilidade
+      order_nsu: orderNsu,
+      redirect_url: redirectUrl,
+      webhook_url: webhookUrl,
+      customer: {
+        email: customerEmailForPayment,
+      },
+    };
 
-    log("Integrated payment link created with webhook", { paymentLink, orderNsu, webhookUrl });
+    log("Calling InfiniPay API", infinitepayPayload);
+
+    const infinitepayResponse = await fetch(
+      "https://api.infinitepay.io/invoices/public/checkout/links",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(infinitepayPayload),
+      }
+    );
+
+    const infinitepayData = await infinitepayResponse.json();
+    log("InfiniPay API response", { status: infinitepayResponse.status, data: infinitepayData });
+
+    let paymentLink: string;
+
+    if (!infinitepayResponse.ok) {
+      log("InfiniPay API error, using fallback link", infinitepayData);
+      
+      // Fallback: link manual
+      const itemData = [{
+        name: productDescription,
+        price: priceInCents,
+        quantity: 1
+      }];
+      const itemsEncoded = encodeURIComponent(JSON.stringify(itemData));
+      paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsEncoded}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}`;
+    } else {
+      // Extrair link do checkout da resposta
+      paymentLink = infinitepayData.checkout_url || infinitepayData.link || infinitepayData.url;
+      log("Payment link created via API", { paymentLink, orderNsu });
+    }
 
     // Salvar pedido no banco (expira em 30 minutos)
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
