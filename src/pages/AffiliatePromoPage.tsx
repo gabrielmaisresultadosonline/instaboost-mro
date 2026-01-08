@@ -232,8 +232,26 @@ const AffiliatePromoPage = () => {
         return;
       }
 
-      // Redirecionar diretamente para o checkout (evita bloqueio de popup em mobile)
-      window.location.href = checkData.payment_link;
+      const paymentLink = checkData.payment_link as string;
+
+      // Em ambientes embedados (ex: preview/iframe), o checkout pode recusar abrir.
+      // Então abrimos em nova aba. Em navegação normal, redirecionamos na mesma aba (melhor no mobile).
+      let isEmbedded = false;
+      try {
+        isEmbedded = window.self !== window.top;
+      } catch {
+        isEmbedded = true;
+      }
+
+      if (isEmbedded) {
+        const opened = window.open(paymentLink, "_blank", "noopener,noreferrer");
+        if (!opened) {
+          // Fallback: se popup foi bloqueado, tentar redirecionar mesmo assim
+          window.location.href = paymentLink;
+        }
+      } else {
+        window.location.href = paymentLink;
+      }
 
     } catch (error) {
       console.error("Error:", error);
