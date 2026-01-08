@@ -252,14 +252,55 @@ serve(async (req) => {
       logStep("Fetched orders", { count: orders.length });
       
       // Calculate stats
-      const sales = orders.filter((o: any) => o.status === 'paid' || o.status === 'completed');
+      const salesRaw = orders.filter((o: any) => o.status === 'paid' || o.status === 'completed');
       const attempts = orders.filter((o: any) => o.status === 'pending' || o.status === 'expired');
-      
-      const paidEmails = sales.map((s: any) => s.email.toLowerCase().split(':')[1]);
-      
+
+      // Deduplicar vendas por email (manter apenas a venda mais recente por email)
+      const getBaseEmail = (rawEmail: string): string => {
+        const lower = (rawEmail || '').trim().toLowerCase();
+        const parts = lower.split(':');
+        if (parts.length > 1) return parts.slice(1).join(':');
+        return lower;
+      };
+
+      const saleTimestamp = (sale: any): number => {
+        const t = sale.completed_at || sale.paid_at || sale.updated_at || sale.created_at;
+        const ms = new Date(t).getTime();
+        return Number.isFinite(ms) ? ms : 0;
+      };
+
+      const saleRank = (status: string): number => {
+        if (status === 'completed') return 2;
+        if (status === 'paid') return 1;
+        return 0;
+      };
+
+      const bestSaleByEmail = new Map<string, any>();
+      for (const sale of salesRaw) {
+        const key = getBaseEmail(sale.email);
+        const current = bestSaleByEmail.get(key);
+        if (!current) {
+          bestSaleByEmail.set(key, sale);
+          continue;
+        }
+
+        const tsNew = saleTimestamp(sale);
+        const tsCur = saleTimestamp(current);
+        if (tsNew > tsCur) {
+          bestSaleByEmail.set(key, sale);
+          continue;
+        }
+        if (tsNew === tsCur && saleRank(sale.status) > saleRank(current.status)) {
+          bestSaleByEmail.set(key, sale);
+        }
+      }
+
+      const sales = Array.from(bestSaleByEmail.values()).sort((a: any, b: any) => saleTimestamp(b) - saleTimestamp(a));
+      const paidEmailSet = new Set(sales.map((s: any) => getBaseEmail(s.email)));
+
       // Get paid commission NSUs for this affiliate
       const affiliatePaidCommissions = paidCommissions[affiliateId] || paidCommissions[affiliateId.toLowerCase()] || [];
-      
+
       const salesList = sales.map((sale: any) => ({
         customerEmail: sale.email.replace(`${affiliateId}:`, "").replace(`${affiliateId.toLowerCase()}:`, ""),
         customerName: sale.username,
@@ -269,28 +310,27 @@ serve(async (req) => {
         nsuOrder: sale.nsu_order,
         commissionPaid: affiliatePaidCommissions.includes(sale.nsu_order)
       }));
-      
-      const attemptsList = attempts.filter((a: any) => {
-        const baseEmail = a.email.toLowerCase().split(':')[1];
-        return !paidEmails.includes(baseEmail);
-      }).map((attempt: any) => ({
-        email: attempt.email.replace(`${affiliateId}:`, "").replace(`${affiliateId.toLowerCase()}:`, ""),
-        username: attempt.username,
-        phone: attempt.phone || "",
-        date: formatToBrazilTime(attempt.created_at)
-      }));
-      
+
+      const attemptsList = attempts
+        .filter((a: any) => !paidEmailSet.has(getBaseEmail(a.email)))
+        .map((attempt: any) => ({
+          email: attempt.email.replace(`${affiliateId}:`, "").replace(`${affiliateId.toLowerCase()}:`, ""),
+          username: attempt.username,
+          phone: attempt.phone || "",
+          date: formatToBrazilTime(attempt.created_at)
+        }));
+
       // Multiple attempts detection
       const emailCounts: Record<string, number> = {};
       attempts.forEach((a: any) => {
-        const baseEmail = a.email.toLowerCase().split(':')[1];
+        const baseEmail = getBaseEmail(a.email);
         emailCounts[baseEmail] = (emailCounts[baseEmail] || 0) + 1;
       });
-      
+
       const multipleAttemptsList = Object.entries(emailCounts)
         .filter(([, count]) => count > 1)
         .map(([email, count]) => {
-          const latestAttempt = attempts.find((a: any) => a.email.toLowerCase().split(':')[1] === email);
+          const latestAttempt = attempts.find((a: any) => getBaseEmail(a.email) === email);
           return {
             email,
             username: latestAttempt?.username || '',
@@ -299,11 +339,11 @@ serve(async (req) => {
             totalAttempts: count
           };
         });
-      
+
       const totalCommission = sales.length * 97;
       const paidCommissionsTotal = salesList.filter(s => s.commissionPaid).length * 97;
       const pendingCommissionsTotal = totalCommission - paidCommissionsTotal;
-      
+
       const resumo = {
         affiliateId,
         affiliateName,
