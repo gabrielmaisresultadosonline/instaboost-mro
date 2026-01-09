@@ -296,6 +296,7 @@ serve(async (req) => {
 
     // Suportar chamada manual do admin (manual_approve)
     const manualApprove = payload.manual_approve === true;
+    const resendEmailOnly = payload.resend_email_only === true;
     const orderId = payload.order_id;
 
     // Extrair dados do webhook InfiniPay
@@ -376,8 +377,8 @@ serve(async (req) => {
       );
     }
 
-    // Se já está completo, não processar novamente
-    if (order.status === "completed" && !manualApprove) {
+    // Se já está completo, não processar novamente (exceto se for apenas reenviar email)
+    if (order.status === "completed" && !manualApprove && !resendEmailOnly) {
       log("Order already completed", { orderId: order.id });
       return new Response(
         JSON.stringify({ success: true, status: "completed", order, message: "Already processed" }),
@@ -385,7 +386,37 @@ serve(async (req) => {
       );
     }
 
-    log("Processing order", { orderId: order.id, email: order.email, username: order.username, manualApprove });
+    log("Processing order", { orderId: order.id, email: order.email, username: order.username, manualApprove, resendEmailOnly });
+
+    // Se for apenas reenvio de email, pular o resto e ir direto para o envio
+    if (resendEmailOnly) {
+      // Determinar email real do cliente (remover prefixo de afiliado se houver)
+      let customerEmail = order.email;
+      const emailParts = order.email.split(":");
+      if (emailParts.length >= 2) {
+        customerEmail = emailParts.slice(1).join(":");
+      }
+
+      log("Resending email only", { customerEmail, username: order.username });
+      const emailSent = await sendAccessEmail(customerEmail, order.username, order.username, order.plan_type);
+      
+      if (emailSent) {
+        await supabase
+          .from("mro_orders")
+          .update({
+            email_sent: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", order.id);
+      }
+      
+      log("Email resend result", { emailSent, customerEmail });
+      
+      return new Response(
+        JSON.stringify({ success: emailSent, message: emailSent ? "Email reenviado" : "Falha ao reenviar email" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
     // Marcar como pago (se ainda não estava)
     if (order.status === "pending") {

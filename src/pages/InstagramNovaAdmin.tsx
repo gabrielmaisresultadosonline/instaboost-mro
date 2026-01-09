@@ -199,6 +199,13 @@ export default function InstagramNovaAdmin() {
   const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
 
+  // Reenvio de email e edição de email
+  const [resendingEmail, setResendingEmail] = useState<string | null>(null);
+  const [showEditEmailModal, setShowEditEmailModal] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<MROOrder | null>(null);
+  const [newEmail, setNewEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
   const loadWebhookLogs = async () => {
     setLoadingLogs(true);
     try {
@@ -1761,6 +1768,85 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
       setSendingWelcomeEmail(null);
     }
   };
+
+  // Reenviar email de acesso para o cliente
+  const resendAccessEmail = async (order: MROOrder) => {
+    if (!order.api_created) {
+      toast.error("Acesso ainda não foi criado. Crie o acesso primeiro.");
+      return;
+    }
+    
+    setResendingEmail(order.id);
+    
+    try {
+      // Chamar o webhook para reprocessar e reenviar email
+      const { data, error } = await supabase.functions.invoke("mro-payment-webhook", {
+        body: {
+          manual_approve: true,
+          order_id: order.id,
+          resend_email_only: true
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success(`Email reenviado para ${order.email}!`);
+        // Atualizar lista
+        loadOrders();
+      } else {
+        throw new Error(data?.message || "Erro ao reenviar email");
+      }
+    } catch (error) {
+      console.error("Error resending email:", error);
+      toast.error("Erro ao reenviar email");
+    } finally {
+      setResendingEmail(null);
+    }
+  };
+
+  // Abrir modal para editar email
+  const openEditEmailModal = (order: MROOrder) => {
+    setEditingOrder(order);
+    setNewEmail(order.email);
+    setShowEditEmailModal(true);
+  };
+
+  // Salvar novo email
+  const saveNewEmail = async () => {
+    if (!editingOrder || !newEmail.trim()) return;
+    
+    if (!newEmail.includes("@")) {
+      toast.error("Email inválido");
+      return;
+    }
+    
+    setSavingEmail(true);
+    
+    try {
+      const { error } = await supabase
+        .from("mro_orders")
+        .update({ 
+          email: newEmail.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", editingOrder.id);
+
+      if (error) throw error;
+      
+      toast.success("Email atualizado com sucesso!");
+      setShowEditEmailModal(false);
+      setEditingOrder(null);
+      setNewEmail("");
+      loadOrders();
+    } catch (error) {
+      console.error("Error updating email:", error);
+      toast.error("Erro ao atualizar email");
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
   const getAffiliateSales = (affId: string) => {
     return orders.filter(o => 
       (o.status === "paid" || o.status === "completed") && 
@@ -1946,6 +2032,37 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs py-0.5">
                 Email ✓
               </Badge>
+            )}
+
+            {/* Botões de Editar Email e Reenviar - apenas para pagos/completos */}
+            {(order.status === "completed" || order.status === "paid") && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => openEditEmailModal(order)}
+                  className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 h-7 px-2 text-xs"
+                  title="Editar email do cliente"
+                >
+                  <Pencil className="w-3 h-3 mr-1" />
+                  Editar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => resendAccessEmail(order)}
+                  className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 h-7 px-2 text-xs"
+                  disabled={resendingEmail === order.id || !order.api_created}
+                  title={order.api_created ? "Reenviar email de acesso" : "Crie o acesso primeiro"}
+                >
+                  {resendingEmail === order.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  ) : (
+                    <Send className="w-3 h-3 mr-1" />
+                  )}
+                  Reenviar
+                </Button>
+              </>
             )}
             
             <Button
@@ -3456,6 +3573,77 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               </div>
             )}
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Editar Email */}
+      <Dialog open={showEditEmailModal} onOpenChange={setShowEditEmailModal}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-amber-400 flex items-center gap-2">
+              <Pencil className="w-5 h-5" />
+              Editar Email
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Altere o email do cliente antes de reenviar o acesso
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {editingOrder && (
+              <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700/50 space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="w-4 h-4 text-zinc-400" />
+                  <span className="text-zinc-400">Usuário:</span>
+                  <span className="text-white font-mono">{editingOrder.username}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4 text-zinc-400" />
+                  <span className="text-zinc-400">Celular:</span>
+                  <span className="text-white">{editingOrder.phone || "-"}</span>
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <label className="text-sm text-zinc-400 mb-2 block">
+                Novo Email
+              </label>
+              <Input
+                type="email"
+                placeholder="novoemail@exemplo.com"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditEmailModal(false);
+                setEditingOrder(null);
+                setNewEmail("");
+              }}
+              className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={saveNewEmail}
+              className="bg-amber-500 hover:bg-amber-600 text-black"
+              disabled={savingEmail || !newEmail.trim()}
+            >
+              {savingEmail ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Salvar Email
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
