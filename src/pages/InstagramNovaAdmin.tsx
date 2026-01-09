@@ -2052,8 +2052,8 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   variant="outline"
                   onClick={() => resendAccessEmail(order)}
                   className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 h-7 px-2 text-xs"
-                  disabled={resendingEmail === order.id || !order.api_created}
-                  title={order.api_created ? "Reenviar email de acesso" : "Crie o acesso primeiro"}
+                  disabled={resendingEmail === order.id}
+                  title="Reenviar email de acesso"
                 >
                   {resendingEmail === order.id ? (
                     <Loader2 className="w-3 h-3 animate-spin mr-1" />
