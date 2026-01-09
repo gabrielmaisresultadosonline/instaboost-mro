@@ -622,6 +622,35 @@ export default function InstagramNovaAdmin() {
         return;
       }
 
+      // Verificar na API os pedidos paid/completed que não têm api_created = true
+      const ordersToVerify = (data || []).filter(
+        (o) => (o.status === "paid" || o.status === "completed") && !o.api_created
+      );
+      
+      if (ordersToVerify.length > 0) {
+        console.log(`[API-VERIFY] Verificando ${ordersToVerify.length} pedidos na API...`);
+        const verifyIds = ordersToVerify.map((o) => o.id);
+        
+        try {
+          const { data: verifyResult } = await supabase.functions.invoke("verify-api-access", {
+            body: { order_ids: verifyIds }
+          });
+          
+          if (verifyResult?.updated > 0) {
+            console.log(`[API-VERIFY] ${verifyResult.updated} pedidos atualizados como api_created`);
+            // Atualizar localmente os pedidos verificados
+            const updatedSet = new Set(verifyResult.updatedIds || []);
+            data?.forEach((order) => {
+              if (updatedSet.has(order.id)) {
+                order.api_created = true;
+              }
+            });
+          }
+        } catch (verifyError) {
+          console.error("[API-VERIFY] Erro na verificação:", verifyError);
+        }
+      }
+
       // Processar pedidos expirados
       const now = new Date();
       const processedOrders = (data || []).map((order) => {
