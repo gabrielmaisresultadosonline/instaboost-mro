@@ -47,6 +47,7 @@ import AdsNewsObrigado from "./pages/AdsNewsObrigado";
 import AdsNewsObrigadoSaldo from "./pages/AdsNewsObrigadoSaldo";
 import PoliticaCancelamento from "./pages/PoliticaCancelamento";
 import WhatsAppConnect from "./pages/WhatsAppConnect";
+import BemVindoMembroVip from "./pages/BemVindoMembroVip";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,7 @@ const App = () => (
           <Route path="/anuncios/obrigado-saldo" element={<AdsNewsObrigadoSaldo />} />
           <Route path="/politica-de-cancelamento" element={<PoliticaCancelamento />} />
           <Route path="/whatsapp" element={<WhatsAppConnect />} />
+          <Route path="/seja-bem-vindo-membro-vip" element={<BemVindoMembroVip />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
