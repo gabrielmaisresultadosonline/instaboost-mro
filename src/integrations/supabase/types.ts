@@ -365,6 +365,108 @@ export type Database = {
         }
         Relationships: []
       }
+      free_trial_registrations: {
+        Row: {
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          expiration_email_sent: boolean | null
+          expires_at: string
+          full_name: string
+          generated_password: string
+          generated_username: string
+          id: string
+          instagram_removed: boolean | null
+          instagram_removed_at: string | null
+          instagram_username: string
+          mro_master_user: string
+          registered_at: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          expiration_email_sent?: boolean | null
+          expires_at: string
+          full_name: string
+          generated_password: string
+          generated_username: string
+          id?: string
+          instagram_removed?: boolean | null
+          instagram_removed_at?: string | null
+          instagram_username: string
+          mro_master_user: string
+          registered_at?: string
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          expiration_email_sent?: boolean | null
+          expires_at?: string
+          full_name?: string
+          generated_password?: string
+          generated_username?: string
+          id?: string
+          instagram_removed?: boolean | null
+          instagram_removed_at?: string | null
+          instagram_username?: string
+          mro_master_user?: string
+          registered_at?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      free_trial_settings: {
+        Row: {
+          created_at: string
+          download_link: string | null
+          group_link: string | null
+          id: string
+          installation_video_url: string | null
+          is_active: boolean | null
+          mro_master_password: string
+          mro_master_username: string
+          trial_duration_hours: number | null
+          updated_at: string
+          usage_video_url: string | null
+          welcome_video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          download_link?: string | null
+          group_link?: string | null
+          id?: string
+          installation_video_url?: string | null
+          is_active?: boolean | null
+          mro_master_password: string
+          mro_master_username: string
+          trial_duration_hours?: number | null
+          updated_at?: string
+          usage_video_url?: string | null
+          welcome_video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          download_link?: string | null
+          group_link?: string | null
+          id?: string
+          installation_video_url?: string | null
+          is_active?: boolean | null
+          mro_master_password?: string
+          mro_master_username?: string
+          trial_duration_hours?: number | null
+          updated_at?: string
+          usage_video_url?: string | null
+          welcome_video_url?: string | null
+        }
+        Relationships: []
+      }
       infinitepay_webhook_logs: {
         Row: {
           affiliate_id: string | null
