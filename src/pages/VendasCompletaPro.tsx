@@ -44,9 +44,9 @@ interface SalesSettings {
   ctaButtonText: string;
 }
 
-// Valores de produção
+// Valores de produção - PRO
 const PLANS = {
-  annual: { name: "Anual", price: 397.00, days: 365, description: "Acesso por 1 ano" },
+  annual: { name: "Anual", price: 300.00, days: 365, description: "Acesso por 1 ano" },
   lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
 };
 
@@ -757,9 +757,9 @@ const VendasCompletaPro = () => {
               <div className="text-center mb-6">
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-lg sm:text-xl text-gray-400">12x de</span>
-                  <span className="text-5xl sm:text-6xl font-black text-blue-400">R$41</span>
+                  <span className="text-5xl sm:text-6xl font-black text-blue-400">R$30</span>
                 </div>
-                <p className="text-gray-400 mt-2">ou à vista PIX <span className="text-white font-bold">R$397</span></p>
+                <p className="text-gray-400 mt-2">ou à vista PIX <span className="text-white font-bold">R$300</span></p>
               </div>
 
               <div className="space-y-2 mb-6">
