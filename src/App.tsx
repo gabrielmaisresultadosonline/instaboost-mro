@@ -49,6 +49,8 @@ import PoliticaCancelamento from "./pages/PoliticaCancelamento";
 import WhatsAppConnect from "./pages/WhatsAppConnect";
 import BemVindoMembroVip from "./pages/BemVindoMembroVip";
 import VendasCompletaPro from "./pages/VendasCompletaPro";
+import TesteGratis from "./pages/TesteGratis";
+import TesteGratisAdmin from "./pages/TesteGratisAdmin";
 
 const queryClient = new QueryClient();
 
@@ -106,6 +108,8 @@ const App = () => (
           <Route path="/whatsapp" element={<WhatsAppConnect />} />
           <Route path="/seja-bem-vindo-membro-vip" element={<BemVindoMembroVip />} />
           <Route path="/instagram-nova-pro" element={<VendasCompletaPro />} />
+          <Route path="/testegratis" element={<TesteGratis />} />
+          <Route path="/testegratis/admin" element={<TesteGratisAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

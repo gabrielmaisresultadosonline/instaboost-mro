@@ -1,0 +1,323 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const log = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[FREE-TRIAL-REGISTER] ${step}${detailsStr}`);
+};
+
+// SquareCloud API URL
+const SQUARE_API_URL = "https://mro-instagram.squareweb.app";
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { fullName, email, whatsapp, instagramUsername } = await req.json();
+    
+    log("Request received", { fullName, email, whatsapp, instagramUsername });
+
+    // Validate inputs
+    if (!fullName || !email || !whatsapp || !instagramUsername) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Todos os campos são obrigatórios' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Initialize Supabase
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Normalize Instagram username
+    const normalizedIG = instagramUsername.toLowerCase().replace(/^@/, '');
+
+    // Check if this Instagram was already used for trial
+    const { data: existingTrial } = await supabase
+      .from('free_trial_registrations')
+      .select('*')
+      .eq('instagram_username', normalizedIG)
+      .single();
+
+    if (existingTrial) {
+      log("Instagram already used", { instagram: normalizedIG, testedAt: existingTrial.registered_at });
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          alreadyTested: true,
+          testedAt: existingTrial.registered_at,
+          message: `Este Instagram já foi utilizado para teste em ${new Date(existingTrial.registered_at).toLocaleString('pt-BR')}. Adquira um plano para continuar!`
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get trial settings
+    const { data: settings, error: settingsError } = await supabase
+      .from('free_trial_settings')
+      .select('*')
+      .limit(1)
+      .single();
+
+    if (settingsError || !settings) {
+      log("Settings not found", { error: settingsError });
+      return new Response(
+        JSON.stringify({ success: false, message: 'Configurações do teste não encontradas' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    if (!settings.is_active) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Teste grátis está temporariamente desabilitado' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const mroUsername = settings.mro_master_username;
+    const mroPassword = settings.mro_master_password;
+    const trialHours = settings.trial_duration_hours || 24;
+
+    // Generate unique username and password for this trial
+    const timestamp = Date.now().toString(36);
+    const generatedUsername = mroUsername; // Use master username
+    const generatedPassword = mroPassword; // Use master password
+
+    // Calculate expiration (24 hours from now)
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + trialHours);
+
+    // Add Instagram to MRO master account via SquareCloud API
+    log("Adding Instagram to MRO account", { mroUsername, instagram: normalizedIG });
+    
+    try {
+      const addIgResponse = await fetch(`${SQUARE_API_URL}/adicionar-instagram`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: mroUsername,
+          igInstagram: normalizedIG
+        })
+      });
+
+      const addIgResult = await addIgResponse.json();
+      log("Add IG result", addIgResult);
+
+      if (!addIgResult.success) {
+        return new Response(
+          JSON.stringify({ success: false, message: addIgResult.message || 'Erro ao adicionar Instagram' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } catch (apiError) {
+      log("API Error", { error: apiError });
+      return new Response(
+        JSON.stringify({ success: false, message: 'Erro ao conectar com o servidor de automação' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    // Save registration to database
+    const { error: insertError } = await supabase
+      .from('free_trial_registrations')
+      .insert({
+        full_name: fullName,
+        email: email.toLowerCase(),
+        whatsapp,
+        instagram_username: normalizedIG,
+        generated_username: generatedUsername,
+        generated_password: generatedPassword,
+        mro_master_user: mroUsername,
+        expires_at: expiresAt.toISOString(),
+        email_sent: false,
+        instagram_removed: false
+      });
+
+    if (insertError) {
+      log("Insert error", { error: insertError });
+      // Try to remove Instagram from MRO since registration failed
+      try {
+        await fetch(`${SQUARE_API_URL}/remover-instagram`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: mroUsername,
+            instagram: normalizedIG
+          })
+        });
+      } catch (e) {
+        log("Failed to rollback Instagram", { error: e });
+      }
+      
+      return new Response(
+        JSON.stringify({ success: false, message: 'Erro ao salvar registro' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    // Send welcome email
+    const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+    if (smtpPassword) {
+      try {
+        const client = new SMTPClient({
+          connection: {
+            hostname: "smtp.hostinger.com",
+            port: 465,
+            tls: true,
+            auth: {
+              username: "suporte@maisresultadosonline.com.br",
+              password: smtpPassword,
+            },
+          },
+        });
+
+        const downloadLink = settings.download_link || '#';
+        const groupLink = settings.group_link || '#';
+        const expiresAtFormatted = expiresAt.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+        const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
+<tr>
+<td style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:30px;text-align:center;">
+<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
+<h1 style="color:#fff;margin:15px 0 0 0;font-size:24px;">🎉 Teste Liberado!</h1>
+</td>
+</tr>
+<tr>
+<td style="padding:30px;background:#ffffff;">
+
+<div style="background:#fff3cd;border-left:4px solid #ffc107;padding:15px;margin:0 0 25px 0;border-radius:0 8px 8px 0;">
+<p style="margin:0;color:#856404;font-size:15px;">
+<strong>⚠️ IMPORTANTE: Você tem 24 horas para testar!</strong><br>
+Seu teste expira em: <strong>${expiresAtFormatted}</strong><br>
+Após esse período, você não poderá testar novamente com este Instagram.
+</p>
+</div>
+
+<p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${fullName}</strong>!</p>
+
+<p style="margin:0 0 15px 0;font-size:16px;">Seu teste grátis de 24 horas do <strong>MRO</strong> foi liberado! 🚀</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;border:2px solid #667eea;border-radius:10px;margin:20px 0;">
+<tr>
+<td style="padding:20px;">
+<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📋 Seus Dados de Acesso:</h3>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td style="padding:12px;background:#fff;border-radius:5px;margin-bottom:10px;">
+<span style="font-size:12px;color:#666;display:block;">Usuário:</span>
+<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${generatedUsername}</span>
+</td>
+</tr>
+<tr><td style="height:10px;"></td></tr>
+<tr>
+<td style="padding:12px;background:#fff;border-radius:5px;">
+<span style="font-size:12px;color:#666;display:block;">Senha:</span>
+<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${generatedPassword}</span>
+</td>
+</tr>
+<tr><td style="height:10px;"></td></tr>
+<tr>
+<td style="padding:12px;background:#fff;border-radius:5px;">
+<span style="font-size:12px;color:#666;display:block;">Instagram cadastrado:</span>
+<span style="font-size:18px;color:#E1306C;font-family:monospace;font-weight:bold;">@${normalizedIG}</span>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td style="text-align:center;padding:15px 0;">
+<a href="${downloadLink}" style="display:inline-block;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:8px;font-weight:bold;font-size:16px;">📥 Download do Sistema</a>
+</td>
+</tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:15px 0;">
+<tr>
+<td style="text-align:center;padding:15px;background:#25D366;border-radius:8px;">
+<a href="${groupLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:14px;">📱 Entrar no Grupo do WhatsApp</a>
+</td>
+</tr>
+</table>
+
+<div style="background:#ffe6e6;border-left:4px solid #ff4444;padding:15px;margin:25px 0;border-radius:0 8px 8px 0;">
+<p style="margin:0;color:#c00;font-size:14px;">
+<strong>🔴 Lembre-se:</strong> Após testar uma vez, você não conseguirá testar novamente com este Instagram. 
+Valorize suas 24 horas de teste! Após esse período, adquira um de nossos planos.
+</p>
+</div>
+
+</td>
+</tr>
+<tr>
+<td style="background:#1a1a1a;padding:20px;text-align:center;">
+<p style="color:#667eea;margin:0 0 10px 0;font-weight:bold;">Bom teste! 💛</p>
+<p style="color:#888;margin:0;font-size:12px;">© ${new Date().getFullYear()} MRO - Mais Resultados Online</p>
+</td>
+</tr>
+</table>
+</body>
+</html>`;
+
+        await client.send({
+          from: "MRO - Mais Resultados Online <suporte@maisresultadosonline.com.br>",
+          to: email,
+          subject: "🎉 Seu Teste Grátis de 24h foi Liberado! - MRO",
+          html: htmlContent,
+        });
+
+        await client.close();
+
+        // Update email_sent status
+        await supabase
+          .from('free_trial_registrations')
+          .update({ email_sent: true })
+          .eq('instagram_username', normalizedIG);
+
+        log("Email sent successfully", { email });
+      } catch (emailError) {
+        log("Email error", { error: emailError });
+        // Continue even if email fails
+      }
+    }
+
+    log("Registration successful", { instagram: normalizedIG, expiresAt: expiresAt.toISOString() });
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        username: generatedUsername,
+        password: generatedPassword,
+        expiresAt: expiresAt.toISOString(),
+        message: 'Teste liberado com sucesso!'
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    log('Error', { error: error instanceof Error ? error.message : 'Unknown' });
+    return new Response(
+      JSON.stringify({ success: false, message: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});
