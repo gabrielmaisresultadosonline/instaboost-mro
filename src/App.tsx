@@ -48,6 +48,7 @@ import AdsNewsObrigadoSaldo from "./pages/AdsNewsObrigadoSaldo";
 import PoliticaCancelamento from "./pages/PoliticaCancelamento";
 import WhatsAppConnect from "./pages/WhatsAppConnect";
 import BemVindoMembroVip from "./pages/BemVindoMembroVip";
+import VendasCompletaPro from "./pages/VendasCompletaPro";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,7 @@ const App = () => (
           <Route path="/politica-de-cancelamento" element={<PoliticaCancelamento />} />
           <Route path="/whatsapp" element={<WhatsAppConnect />} />
           <Route path="/seja-bem-vindo-membro-vip" element={<BemVindoMembroVip />} />
+          <Route path="/instagram-nova-pro" element={<VendasCompletaPro />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
