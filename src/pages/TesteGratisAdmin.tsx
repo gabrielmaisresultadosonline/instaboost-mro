@@ -68,17 +68,38 @@ const TesteGratisAdmin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [runningExpCheck, setRunningExpCheck] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
 
-  // Simple admin auth (you can replace with your existing auth)
-  const ADMIN_PASSWORD = 'mro2024admin';
+  const handleAdminLogin = async () => {
+    if (!adminEmail || !adminPassword) {
+      toast.error('Preencha email e senha!');
+      return;
+    }
 
-  const handleAdminLogin = () => {
-    if (adminPassword === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      loadData();
-    } else {
-      toast.error('Senha incorreta!');
+    setLoginLoading(true);
+    try {
+      // Check credentials against database
+      const { data, error } = await supabase
+        .from('free_trial_settings')
+        .select('admin_email, admin_password')
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+
+      if (data.admin_email === adminEmail && data.admin_password === adminPassword) {
+        setIsAuthenticated(true);
+        loadData();
+      } else {
+        toast.error('Email ou senha incorretos!');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Erro ao verificar credenciais');
+    } finally {
+      setLoginLoading(false);
     }
   };
 
@@ -218,7 +239,17 @@ const TesteGratisAdmin = () => {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <Label>Senha do Admin</Label>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  placeholder="admin@email.com"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
+                />
+              </div>
+              <div>
+                <Label>Senha</Label>
                 <Input
                   type="password"
                   value={adminPassword}
@@ -227,7 +258,8 @@ const TesteGratisAdmin = () => {
                   onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
                 />
               </div>
-              <Button className="w-full" onClick={handleAdminLogin}>
+              <Button className="w-full" onClick={handleAdminLogin} disabled={loginLoading}>
+                {loginLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Entrar
               </Button>
             </div>
