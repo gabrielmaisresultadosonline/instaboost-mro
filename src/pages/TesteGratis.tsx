@@ -471,11 +471,12 @@ const TesteGratis = () => {
           <Button 
             onClick={() => setShowForm(true)}
             size="lg"
-            className="bg-yellow-400 hover:bg-yellow-300 text-black text-lg px-10 py-7 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.3)] font-bold w-full md:w-auto"
+            className="relative overflow-hidden bg-yellow-400 hover:bg-yellow-300 text-black text-lg px-10 py-7 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.3)] font-bold w-full md:w-auto group"
           >
-            <Rocket className="w-5 h-5 mr-2" />
-            Liberar Teste Grátis de 24h
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full animate-shine" />
+            <Rocket className="w-5 h-5 mr-2 relative z-10" />
+            <span className="relative z-10">Liberar Teste Grátis de 24h</span>
+            <ArrowRight className="w-5 h-5 ml-2 relative z-10" />
           </Button>
         </div>
       </section>
@@ -679,10 +680,11 @@ const TesteGratis = () => {
           <Button 
             onClick={() => setShowForm(true)}
             size="lg"
-            className="bg-yellow-400 hover:bg-yellow-300 text-black text-lg px-10 py-7 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.3)] font-bold"
+            className="relative overflow-hidden bg-yellow-400 hover:bg-yellow-300 text-black text-lg px-10 py-7 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.3)] font-bold group"
           >
-            <Rocket className="w-5 h-5 mr-2" />
-            Liberar Meu Teste Agora
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full animate-shine" />
+            <Rocket className="w-5 h-5 mr-2 relative z-10" />
+            <span className="relative z-10">Liberar Meu Teste Agora</span>
           </Button>
         </div>
       </section>
