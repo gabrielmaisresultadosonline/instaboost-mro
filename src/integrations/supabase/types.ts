@@ -427,8 +427,6 @@ export type Database = {
       }
       free_trial_settings: {
         Row: {
-          admin_email: string | null
-          admin_password: string | null
           created_at: string
           download_link: string | null
           group_link: string | null
@@ -446,8 +444,6 @@ export type Database = {
           welcome_video_url: string | null
         }
         Insert: {
-          admin_email?: string | null
-          admin_password?: string | null
           created_at?: string
           download_link?: string | null
           group_link?: string | null
@@ -465,8 +461,6 @@ export type Database = {
           welcome_video_url?: string | null
         }
         Update: {
-          admin_email?: string | null
-          admin_password?: string | null
           created_at?: string
           download_link?: string | null
           group_link?: string | null
