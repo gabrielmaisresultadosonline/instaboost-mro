@@ -450,17 +450,19 @@ const AffiliatePromoPage = () => {
             >
               UTILIZE A MRO INTELIGENTE!
             </h2>
+            <p className="text-gray-300 text-sm sm:text-base mt-3">
+              Instale em seu notebook, macbook ou computador de mesa!
+            </p>
           </div>
-
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
             <div 
-              onClick={() => openVideo("U-WmszcYekA")}
+              onClick={() => openVideo("yFN-F2U9z8w")}
               className="relative rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-green-500/30 hover:border-green-500/60 transition-all"
             >
               <img 
-                src="https://img.youtube.com/vi/U-WmszcYekA/maxresdefault.jpg" 
+                src="https://img.youtube.com/vi/yFN-F2U9z8w/maxresdefault.jpg" 
                 alt="Video MRO" 
                 className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
               />

@@ -161,16 +161,14 @@ const TesteGratisAdmin = () => {
 
     setLoginLoading(true);
     try {
-      // Check credentials against database
-      const { data, error } = await supabase
-        .from('free_trial_settings')
-        .select('admin_email, admin_password')
-        .limit(1)
-        .single();
+      // Check credentials via edge function using metodo_seguidor_admins table
+      const { data, error } = await supabase.functions.invoke('metodo-seguidor-admin-auth', {
+        body: { email: adminEmail, password: adminPassword }
+      });
 
       if (error) throw error;
 
-      if (data.admin_email === adminEmail && data.admin_password === adminPassword) {
+      if (data.success) {
         setIsAuthenticated(true);
         loadData();
       } else {
