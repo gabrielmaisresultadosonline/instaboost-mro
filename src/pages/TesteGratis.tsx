@@ -19,8 +19,21 @@ import {
   Phone,
   User,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Rocket,
+  X,
+  Zap,
+  Heart,
+  UserPlus,
+  Eye,
+  Trash2,
+  Video,
+  MessageCircle,
+  Crown,
+  TrendingUp,
+  ArrowRight
 } from 'lucide-react';
+import logoMro from '@/assets/logo-mro-2.png';
 
 interface TrialSettings {
   mro_master_username: string;
@@ -41,6 +54,7 @@ interface AccessData {
 }
 
 const TesteGratis = () => {
+  const [showForm, setShowForm] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
@@ -50,9 +64,6 @@ const TesteGratis = () => {
   const [accessData, setAccessData] = useState<AccessData | null>(null);
   const [existingTrial, setExistingTrial] = useState<{ tested_at: string } | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
-
-  // Main promotional video (hardcoded for now, can be made configurable)
-  const mainVideoUrl = "https://www.youtube.com/embed/YOUR_VIDEO_ID";
 
   useEffect(() => {
     loadSettings();
@@ -81,8 +92,6 @@ const TesteGratis = () => {
 
   const normalizeInstagram = (input: string): string => {
     let username = input.trim().toLowerCase();
-    
-    // Handle various Instagram URL formats
     const patterns = [
       /instagram\.com\/([^/?#]+)/,
       /^@?([a-zA-Z0-9._]+)$/
@@ -96,27 +105,16 @@ const TesteGratis = () => {
       }
     }
 
-    // Remove @ if present
     username = username.replace(/^@/, '');
-    
-    // Remove any trailing parameters
     username = username.split('?')[0].split('#')[0];
-
     return username;
   };
 
   const formatWhatsapp = (value: string) => {
-    // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    
-    // Format as (XX) XXXXX-XXXX
-    if (digits.length <= 2) {
-      return digits;
-    } else if (digits.length <= 7) {
-      return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    } else if (digits.length <= 11) {
-      return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-    }
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
   };
 
@@ -156,9 +154,7 @@ const TesteGratis = () => {
         }
       });
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
 
       if (!data.success) {
         if (data.alreadyTested) {
@@ -170,7 +166,6 @@ const TesteGratis = () => {
         return;
       }
 
-      // Success!
       setAccessData({
         username: data.username,
         password: data.password,
@@ -178,9 +173,9 @@ const TesteGratis = () => {
       });
 
       toast.success('Teste liberado com sucesso!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
-      toast.error('Erro ao processar registro. Tente novamente.');
+      toast.error(error.message || 'Erro ao processar registro. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -202,6 +197,52 @@ const TesteGratis = () => {
     });
   };
 
+  const features = [
+    {
+      icon: Sparkles,
+      title: 'I.A. MRO (NOVA)',
+      description: 'Personalização completa para o seu nicho, em segundos',
+      items: [
+        'Cria legendas prontas e otimizadas',
+        'Gera biografias profissionais',
+        'Indica melhores horários para postar',
+        'Recomenda hashtags relevantes'
+      ]
+    },
+    {
+      icon: Zap,
+      title: 'Automação Estratégica MRO',
+      description: 'Operações diárias para atrair público real',
+      items: [
+        'Curte fotos relevantes',
+        'Segue perfis estratégicos',
+        'Reage aos Stories com ❤️',
+        'Interage com até 200 pessoas/dia'
+      ]
+    },
+    {
+      icon: Video,
+      title: 'Área de Membros Vitalícia',
+      description: 'Acesso completo a conteúdos exclusivos',
+      items: [
+        'Vídeos estratégicos passo a passo',
+        'Como deixar perfil profissional',
+        'Como agendar postagens',
+        'Estratégias para bombar do zero'
+      ]
+    },
+    {
+      icon: MessageCircle,
+      title: 'Grupo VIP de Suporte',
+      description: 'Networking e suporte especializado',
+      items: [
+        'Acesso ao grupo VIP exclusivo',
+        'Tire dúvidas com especialistas',
+        'Atualizações em primeira mão'
+      ]
+    }
+  ];
+
   if (loadingSettings) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center">
@@ -217,52 +258,255 @@ const TesteGratis = () => {
           <CardContent className="p-8 text-center">
             <AlertTriangle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-2">Teste Indisponível</h2>
-            <p className="text-white/80">O teste grátis está temporariamente desabilitado. Tente novamente mais tarde.</p>
+            <p className="text-white/80">O teste grátis está temporariamente desabilitado.</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
-      {/* Header */}
-      <div className="bg-black/30 backdrop-blur-sm py-4 px-4 border-b border-white/10">
-        <div className="max-w-6xl mx-auto flex items-center justify-center">
-          <div className="bg-black text-white px-4 py-2 rounded-lg font-bold text-2xl tracking-wider">
-            MRO
+  // Success screen - after registration
+  if (accessData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <img src={logoMro} alt="MRO" className="h-14 mx-auto mb-4" />
+            <div className="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold">
+              <CheckCircle2 className="w-6 h-6" />
+              Teste Liberado com Sucesso!
+            </div>
           </div>
+
+          <Card className="bg-white/95 backdrop-blur border-0 shadow-2xl mb-6">
+            <CardContent className="p-6 space-y-6">
+              {/* Expiration Warning */}
+              <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-5 rounded-xl">
+                <div className="flex items-start gap-4">
+                  <Clock className="w-8 h-8 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-xl mb-1">⚠️ ATENÇÃO: Você tem 24 HORAS!</p>
+                    <p className="opacity-90">
+                      Seu teste expira em: <strong>{formatExpirationDate(accessData.expiresAt)}</strong>
+                    </p>
+                    <p className="opacity-90 mt-1">
+                      Após esse período, NÃO conseguirá testar novamente com este Instagram.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Credentials */}
+              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-xl space-y-4">
+                <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-purple-600" />
+                  Seus Dados de Acesso
+                </h3>
+                
+                <div className="grid gap-3">
+                  <div className="bg-white p-4 rounded-lg flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-gray-500 block mb-1">Usuário:</span>
+                      <span className="font-mono font-bold text-lg">{accessData.username}</span>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => copyToClipboard(accessData.username, 'Usuário')}>
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-gray-500 block mb-1">Senha:</span>
+                      <span className="font-mono font-bold text-lg">{accessData.password}</span>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => copyToClipboard(accessData.password, 'Senha')}>
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tutorial Videos Warning */}
+              <div className="bg-blue-50 border-2 border-blue-400 p-5 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <Play className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <p className="font-bold text-blue-800 text-lg mb-2">📺 Assista os Vídeos Tutoriais!</p>
+                    <p className="text-blue-700 mb-3">
+                      Para instalar e utilizar a ferramenta corretamente, assista os vídeos abaixo:
+                    </p>
+                    
+                    {/* Videos Grid */}
+                    <div className="grid md:grid-cols-3 gap-3 mb-4">
+                      {settings?.welcome_video_url && (
+                        <a href={settings.welcome_video_url} target="_blank" rel="noopener noreferrer"
+                          className="bg-white p-3 rounded-lg flex items-center gap-2 hover:bg-blue-100 transition-colors">
+                          <div className="bg-yellow-400 rounded-full p-1">
+                            <Play className="w-4 h-4 text-black" />
+                          </div>
+                          <span className="font-medium text-sm">Bem-vindo</span>
+                        </a>
+                      )}
+                      {settings?.installation_video_url && (
+                        <a href={settings.installation_video_url} target="_blank" rel="noopener noreferrer"
+                          className="bg-white p-3 rounded-lg flex items-center gap-2 hover:bg-blue-100 transition-colors">
+                          <div className="bg-blue-400 rounded-full p-1">
+                            <Download className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="font-medium text-sm">Instalação</span>
+                        </a>
+                      )}
+                      {settings?.usage_video_url && (
+                        <a href={settings.usage_video_url} target="_blank" rel="noopener noreferrer"
+                          className="bg-white p-3 rounded-lg flex items-center gap-2 hover:bg-blue-100 transition-colors">
+                          <div className="bg-green-400 rounded-full p-1">
+                            <Zap className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="font-medium text-sm">Como Usar</span>
+                        </a>
+                      )}
+                    </div>
+
+                    {/* No Support Warning */}
+                    <div className="bg-red-100 border border-red-300 p-3 rounded-lg">
+                      <p className="text-red-700 font-bold text-sm">🚫 NÃO TEMOS SUPORTE PARA TESTES GRÁTIS!</p>
+                      <p className="text-red-600 text-xs mt-1">Para ter suporte, adquira um de nossos planos.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid gap-3">
+                {settings?.download_link && (
+                  <a href={settings.download_link} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:opacity-90 transition-opacity">
+                    <Download className="w-5 h-5" />
+                    Download do Sistema
+                  </a>
+                )}
+                {settings?.group_link && (
+                  <a href={settings.group_link} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-green-500 text-white py-4 px-6 rounded-xl font-bold text-lg hover:opacity-90 transition-opacity">
+                    <MessageCircle className="w-5 h-5" />
+                    Entrar no Grupo VIP
+                  </a>
+                )}
+              </div>
+
+              {/* Support Types */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 p-5 rounded-xl">
+                <h3 className="font-bold text-green-800 text-center mb-4">
+                  💡 Está com dificuldade? Conheça nossos Suportes Premium!
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="bg-orange-500 rounded-lg p-1.5">
+                        <ExternalLink className="w-4 h-4 text-white" />
+                      </div>
+                      <h4 className="font-bold text-orange-700">Suporte AnyDesk</h4>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      <strong>Acesso remoto</strong> - Configuramos tudo no seu PC em tempo real!
+                    </p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="bg-green-500 rounded-lg p-1.5">
+                        <Phone className="w-4 h-4 text-white" />
+                      </div>
+                      <h4 className="font-bold text-green-700">Suporte WhatsApp</h4>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      <strong>Atendimento direto</strong> - Tire dúvidas por mensagens ou áudios!
+                    </p>
+                  </div>
+                </div>
+                <p className="text-center text-green-700 font-semibold mt-3 text-sm">
+                  👆 Ambos inclusos nos planos pagos!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
+    );
+  }
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-            Turbine seu Instagram, <span className="text-yellow-400">sem gastar com anúncios!</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90">
-            <span className="text-green-400">Mais Engajamento</span> • 
-            <span className="text-blue-400"> Mais Clientes</span> • 
-            <span className="text-yellow-400"> Mais Resultados</span>
-            <span className="text-white/80"> No automático!</span>
-          </p>
+  // Already tested screen
+  if (existingTrial) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center p-4">
+        <Card className="max-w-lg w-full bg-white/95 backdrop-blur border-0 shadow-2xl">
+          <CardContent className="p-8 text-center">
+            <img src={logoMro} alt="MRO" className="h-12 mx-auto mb-6" />
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Você já testou!</h2>
+            <p className="text-gray-600 mb-6">
+              Este Instagram já foi utilizado para teste em {formatExpirationDate(existingTrial.tested_at)}.
+            </p>
+            <a 
+              href="https://maisresultadosonline.com.br/instagram-nova"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold px-8 py-4 rounded-xl hover:scale-105 transition-transform"
+            >
+              <Sparkles className="w-5 h-5" />
+              Ver Planos Disponíveis
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Main landing page
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+      {/* Header with Logo */}
+      <header className="py-6 px-4">
+        <div className="max-w-6xl mx-auto flex justify-center">
+          <img src={logoMro} alt="MRO" className="h-12 md:h-16" />
         </div>
+      </header>
 
-        {/* Main Video */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="aspect-video bg-black/50 rounded-2xl overflow-hidden border-4 border-yellow-400/50">
-            <iframe
-              src={mainVideoUrl}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+      {/* Hero Section */}
+      <section className="px-4 py-8 md:py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+            Não gaste com anúncios,<br />
+            <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+              utilize a MRO!
+            </span>
+          </h1>
+          
+          <p className="text-lg md:text-xl text-purple-200 mb-8">
+            <span className="inline-flex items-center gap-1">
+              <TrendingUp className="w-5 h-5" /> Mais Engajamento
+            </span>
+            <span className="mx-2">•</span>
+            <span className="inline-flex items-center gap-1">
+              <Users className="w-5 h-5" /> Mais Clientes
+            </span>
+            <span className="mx-2">•</span>
+            <span className="inline-flex items-center gap-1">
+              <Rocket className="w-5 h-5" /> Mais Resultados
+            </span>
+            <br className="md:hidden" />
+            <span className="text-yellow-400 font-semibold"> No automático!</span>
+          </p>
+
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 inline-block">
+            <p className="text-white text-lg md:text-xl font-medium">
+              ✅ Resultados comprovados em até <span className="text-yellow-400 font-bold">7 horas</span> de uso!
+            </p>
           </div>
         </div>
+      </section>
 
-        {/* Strategy Highlight */}
-        <div className="max-w-2xl mx-auto mb-6">
+      {/* Strategy Highlight - MUITO DESTACADO */}
+      <section className="px-4 mb-8">
+        <div className="max-w-2xl mx-auto">
           <div className="bg-gradient-to-r from-purple-600/40 to-indigo-600/40 border-2 border-purple-400 rounded-2xl p-6 text-center">
             <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-sm mb-4">
               <Sparkles className="w-4 h-4" />
@@ -278,12 +522,14 @@ const TesteGratis = () => {
             </p>
           </div>
         </div>
+      </section>
 
-        {/* Warning about 24h limit - DESTACADO */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-gradient-to-r from-red-600/30 to-orange-600/30 border-2 border-red-400 rounded-2xl p-6 animate-pulse">
+      {/* 24h Warning - MUITO DESTACADO */}
+      <section className="px-4 mb-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-gradient-to-r from-red-600/30 to-orange-600/30 border-2 border-red-400 rounded-2xl p-6">
             <div className="flex items-start gap-4">
-              <div className="bg-red-500 rounded-full p-3 flex-shrink-0">
+              <div className="bg-red-500 rounded-full p-3 flex-shrink-0 animate-pulse">
                 <AlertTriangle className="w-8 h-8 text-white" />
               </div>
               <div>
@@ -297,9 +543,11 @@ const TesteGratis = () => {
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Tutorial Videos Warning */}
-        <div className="max-w-2xl mx-auto mb-8">
+      {/* Tutorial Videos Warning */}
+      <section className="px-4 mb-8">
+        <div className="max-w-2xl mx-auto">
           <div className="bg-blue-600/20 border-2 border-blue-400 rounded-2xl p-6">
             <div className="flex items-start gap-4">
               <div className="bg-blue-500 rounded-full p-3 flex-shrink-0">
@@ -320,15 +568,16 @@ const TesteGratis = () => {
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Support Types Info */}
-        <div className="max-w-3xl mx-auto mb-8">
+      {/* Support Types */}
+      <section className="px-4 mb-8">
+        <div className="max-w-3xl mx-auto">
           <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border-2 border-green-400 rounded-2xl p-6">
             <h3 className="text-xl font-bold text-green-400 text-center mb-6">
               💡 Está com dificuldade? Conheça nossos Suportes Premium!
             </h3>
             <div className="grid md:grid-cols-2 gap-6">
-              {/* AnyDesk Support */}
               <div className="bg-white/10 rounded-xl p-5 border border-white/20">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="bg-orange-500 rounded-lg p-2">
@@ -346,7 +595,6 @@ const TesteGratis = () => {
                 </ul>
               </div>
 
-              {/* WhatsApp Support */}
               <div className="bg-white/10 rounded-xl p-5 border border-white/20">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="bg-green-500 rounded-lg p-2">
@@ -369,253 +617,96 @@ const TesteGratis = () => {
             </p>
           </div>
         </div>
+      </section>
 
-        {/* Already tested message */}
-        {existingTrial && (
-          <div className="max-w-2xl mx-auto mb-8">
-            <Card className="bg-red-500/20 border-red-400/50">
+      {/* CTA Button - LIBERAR TESTE */}
+      <section className="px-4 py-8">
+        <div className="max-w-lg mx-auto text-center">
+          {!showForm ? (
+            <Button 
+              onClick={() => setShowForm(true)}
+              size="lg"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-xl px-12 py-8 rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 animate-pulse"
+            >
+              <Rocket className="w-6 h-6 mr-2" />
+              Liberar Teste Grátis de 24h
+              <ArrowRight className="w-6 h-6 ml-2" />
+            </Button>
+          ) : (
+            <Card className="bg-white/95 backdrop-blur border-0 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
               <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <AlertTriangle className="w-8 h-8 text-red-400 flex-shrink-0" />
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-2">Você já testou!</h3>
-                    <p className="text-white/80 mb-4">
-                      Este Instagram já foi utilizado para teste em {formatExpirationDate(existingTrial.tested_at)}.
-                      Agora você pode adquirir um de nossos planos!
-                    </p>
-                    <a 
-                      href="https://maisresultadosonline.com.br/instagram-nova"
-                      className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold px-6 py-3 rounded-lg hover:scale-105 transition-transform"
-                    >
-                      <Sparkles className="w-5 h-5" />
-                      Ver Planos Disponíveis
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-800">Cadastre-se para testar</h2>
+                  <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Access Granted Section */}
-        {accessData && (
-          <div className="max-w-3xl mx-auto mb-12">
-            <Card className="bg-gradient-to-br from-green-600/30 to-emerald-600/30 border-green-400/50">
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
-                  <h2 className="text-3xl font-bold text-white mb-2">🎉 Teste Liberado!</h2>
-                  <p className="text-white/80">
-                    Você tem até <strong className="text-yellow-400">{formatExpirationDate(accessData.expiresAt)}</strong> para testar o sistema!
-                  </p>
-                </div>
-
-                {/* Credentials */}
-                <div className="bg-black/30 rounded-xl p-6 mb-6">
-                  <h3 className="text-lg font-semibold text-white mb-4 text-center">📋 Seus Dados de Acesso:</h3>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between bg-white/10 rounded-lg p-4">
-                      <div>
-                        <span className="text-white/60 text-sm block">Usuário:</span>
-                        <span className="text-white font-mono text-lg font-bold">{accessData.username}</span>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => copyToClipboard(accessData.username, 'Usuário')}
-                        className="text-yellow-400 hover:text-yellow-300"
-                      >
-                        <Copy className="w-5 h-5" />
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center justify-between bg-white/10 rounded-lg p-4">
-                      <div>
-                        <span className="text-white/60 text-sm block">Senha:</span>
-                        <span className="text-white font-mono text-lg font-bold">{accessData.password}</span>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => copyToClipboard(accessData.password, 'Senha')}
-                        className="text-yellow-400 hover:text-yellow-300"
-                      >
-                        <Copy className="w-5 h-5" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Videos Section */}
-                <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-white text-center">📺 Vídeos Tutoriais</h3>
-                  
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {/* Welcome Video */}
-                    {settings?.welcome_video_url && (
-                      <div className="bg-white/10 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">1º</span>
-                          <span className="text-white font-semibold">Bem-vindo</span>
-                        </div>
-                        <div className="aspect-video bg-black/50 rounded-lg overflow-hidden">
-                          <iframe
-                            src={settings.welcome_video_url}
-                            className="w-full h-full"
-                            allowFullScreen
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Installation Video */}
-                    {settings?.installation_video_url && (
-                      <div className="bg-white/10 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="bg-blue-400 text-black text-xs font-bold px-2 py-1 rounded">2º</span>
-                          <span className="text-white font-semibold">Instalação</span>
-                        </div>
-                        <div className="aspect-video bg-black/50 rounded-lg overflow-hidden">
-                          <iframe
-                            src={settings.installation_video_url}
-                            className="w-full h-full"
-                            allowFullScreen
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Usage Video */}
-                    {settings?.usage_video_url && (
-                      <div className="bg-white/10 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="bg-green-400 text-black text-xs font-bold px-2 py-1 rounded">3º</span>
-                          <span className="text-white font-semibold">Utilização</span>
-                        </div>
-                        <div className="aspect-video bg-black/50 rounded-lg overflow-hidden">
-                          <iframe
-                            src={settings.usage_video_url}
-                            className="w-full h-full"
-                            allowFullScreen
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-                  {settings?.download_link && (
-                    <a 
-                      href={settings.download_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold px-6 py-3 rounded-lg hover:scale-105 transition-transform"
-                    >
-                      <Download className="w-5 h-5" />
-                      Download do Sistema
-                    </a>
-                  )}
-
-                  {settings?.group_link && (
-                    <a 
-                      href={settings.group_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold px-6 py-3 rounded-lg hover:scale-105 transition-transform"
-                    >
-                      <Users className="w-5 h-5" />
-                      Entrar no Grupo
-                    </a>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Registration Form (only show if not registered and not already tested) */}
-        {!accessData && !existingTrial && (
-          <div className="max-w-lg mx-auto">
-            <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <Sparkles className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
-                  <h2 className="text-2xl font-bold text-white">Faça seu cadastro</h2>
-                  <p className="text-white/80">para liberar o teste grátis de 24h</p>
-                </div>
-
+                
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label className="text-white flex items-center gap-2 mb-2">
-                      <User className="w-4 h-4" />
-                      Nome Completo
+                    <Label htmlFor="fullName" className="flex items-center gap-2 text-gray-700">
+                      <User className="w-4 h-4" /> Nome Completo
                     </Label>
                     <Input
-                      type="text"
+                      id="fullName"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Seu nome completo"
-                      className="bg-white/10 border-white/30 text-white placeholder:text-white/50"
+                      className="mt-1"
                       required
                     />
                   </div>
-
+                  
                   <div>
-                    <Label className="text-white flex items-center gap-2 mb-2">
-                      <Mail className="w-4 h-4" />
-                      Email
+                    <Label htmlFor="email" className="flex items-center gap-2 text-gray-700">
+                      <Mail className="w-4 h-4" /> E-mail
                     </Label>
                     <Input
+                      id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu@email.com"
-                      className="bg-white/10 border-white/30 text-white placeholder:text-white/50"
+                      className="mt-1"
                       required
                     />
                   </div>
-
+                  
                   <div>
-                    <Label className="text-white flex items-center gap-2 mb-2">
-                      <Phone className="w-4 h-4" />
-                      WhatsApp
+                    <Label htmlFor="whatsapp" className="flex items-center gap-2 text-gray-700">
+                      <Phone className="w-4 h-4" /> WhatsApp
                     </Label>
                     <Input
-                      type="tel"
+                      id="whatsapp"
                       value={whatsapp}
                       onChange={handleWhatsappChange}
-                      placeholder="(XX) XXXXX-XXXX"
-                      className="bg-white/10 border-white/30 text-white placeholder:text-white/50"
+                      placeholder="(00) 00000-0000"
+                      className="mt-1"
                       required
                     />
                   </div>
-
+                  
                   <div>
-                    <Label className="text-white flex items-center gap-2 mb-2">
-                      <Instagram className="w-4 h-4" />
-                      Instagram
+                    <Label htmlFor="instagram" className="flex items-center gap-2 text-gray-700">
+                      <Instagram className="w-4 h-4" /> Instagram (sem @)
                     </Label>
-                    <Input
-                      type="text"
-                      value={instagramUsername}
-                      onChange={(e) => setInstagramUsername(e.target.value)}
-                      placeholder="@seuperfil ou link do perfil"
-                      className="bg-white/10 border-white/30 text-white placeholder:text-white/50"
-                      required
-                    />
-                    <p className="text-white/60 text-xs mt-1">
-                      Pode ser @usuario, link do perfil ou link compartilhado
-                    </p>
+                    <div className="relative mt-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                      <Input
+                        id="instagram"
+                        value={instagramUsername}
+                        onChange={(e) => setInstagramUsername(e.target.value.replace('@', ''))}
+                        placeholder="seuinstagram"
+                        className="pl-8"
+                        required
+                      />
+                    </div>
                   </div>
-
-                  <Button
-                    type="submit"
+                  
+                  <Button 
+                    type="submit" 
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold py-6 text-lg hover:scale-105 transition-transform"
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-6 text-lg font-bold"
                   >
                     {loading ? (
                       <>
@@ -624,23 +715,136 @@ const TesteGratis = () => {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-5 h-5 mr-2" />
-                        Liberar Meu Teste Grátis!
+                        <Zap className="w-5 h-5 mr-2" />
+                        Liberar Meu Teste Grátis
                       </>
                     )}
                   </Button>
+                  
+                  <p className="text-xs text-gray-500 text-center">
+                    ⚠️ Você só pode testar uma vez por Instagram
+                  </p>
                 </form>
               </CardContent>
             </Card>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="text-center mt-12 text-white/60 text-sm">
-          <p>© {new Date().getFullYear()} MRO - Mais Resultados Online</p>
-          <p className="mt-1">Todos os direitos reservados</p>
+          )}
         </div>
-      </div>
+      </section>
+
+      {/* Value Proposition */}
+      <section className="px-4 py-12 bg-black/20">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">
+            Nossa Proposta
+          </h2>
+          <p className="text-lg md:text-xl text-purple-200 leading-relaxed">
+            Ajudar você a <span className="text-yellow-400 font-bold">vender mais</span>: aumentar o engajamento, 
+            atrair mais clientes e ampliar seu público de forma automática, com nosso método e nossa 
+            ferramenta para o Instagram.
+          </p>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="px-4 py-12 md:py-16">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
+            O que você vai receber <span className="text-yellow-400">✅🚀</span>
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {features.map((feature, index) => (
+              <Card key={index} className="bg-white/10 backdrop-blur border-purple-500/30 hover:bg-white/15 transition-colors">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                      <feature.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-lg">{feature.title}</h3>
+                      <p className="text-purple-300 text-sm">{feature.description}</p>
+                    </div>
+                  </div>
+                  
+                  <ul className="space-y-2">
+                    {feature.items.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-purple-200">
+                        <CheckCircle2 className="w-4 h-4 text-green-400 mt-1 flex-shrink-0" />
+                        <span className="text-sm">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Automation Features */}
+      <section className="px-4 py-12 bg-black/20">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-8">
+            Automações Incluídas
+          </h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { icon: Heart, text: 'Curtir fotos' },
+              { icon: UserPlus, text: 'Seguir perfis' },
+              { icon: Eye, text: 'Ver Stories' },
+              { icon: Heart, text: 'Reagir Stories' },
+              { icon: Trash2, text: 'Remover fakes' },
+              { icon: Users, text: '200 interações/dia' }
+            ].map((item, index) => (
+              <div 
+                key={index}
+                className="bg-white/10 backdrop-blur rounded-xl p-4 flex flex-col items-center text-center gap-2 hover:bg-white/15 transition-colors"
+              >
+                <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-white text-sm font-medium">{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="px-4 py-16">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl p-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+              Pronto para testar gratuitamente?
+            </h2>
+            <p className="text-gray-800 mb-6">
+              Você tem 24 horas para experimentar a ferramenta!
+            </p>
+            
+            {!showForm && (
+              <Button 
+                onClick={() => setShowForm(true)}
+                size="lg"
+                className="bg-gray-900 hover:bg-gray-800 text-white text-lg px-8 py-6 rounded-xl"
+              >
+                <Rocket className="w-5 h-5 mr-2" />
+                Liberar Meu Teste Agora
+              </Button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="px-4 py-8 bg-black/30">
+        <div className="max-w-4xl mx-auto text-center">
+          <img src={logoMro} alt="MRO" className="h-10 mx-auto mb-4 opacity-70" />
+          <p className="text-purple-300 text-sm">
+            © {new Date().getFullYear()} MRO - Mais Resultados Online. Todos os direitos reservados.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
