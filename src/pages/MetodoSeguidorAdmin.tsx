@@ -48,6 +48,7 @@ const MetodoSeguidorAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [adminToken, setAdminToken] = useState<string | null>(null);
   
   const [activeTab, setActiveTab] = useState<Tab>("users");
   
@@ -138,7 +139,8 @@ const MetodoSeguidorAdmin = () => {
   const handleActivateUser = async (userId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
-        body: { action: "activate-user", user_id: userId }
+        body: { action: "activate-user", user_id: userId },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("metodo_admin_token")}` }
       });
       if (error || !data?.success) throw error || new Error("Failed");
       toast.success("Usuário ativado e email enviado!");
@@ -149,7 +151,8 @@ const MetodoSeguidorAdmin = () => {
   const handleResendEmail = async (userId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
-        body: { action: "resend-email", user_id: userId }
+        body: { action: "resend-email", user_id: userId },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("metodo_admin_token")}` }
       });
       if (error || !data?.success) throw error || new Error("Failed");
       toast.success("Email reenviado com sucesso!");
@@ -161,7 +164,8 @@ const MetodoSeguidorAdmin = () => {
     if (!confirm("Tem certeza que deseja excluir este usuário e todos os pedidos relacionados?")) return;
     try {
       const { data, error } = await supabase.functions.invoke("metodo-seguidor-admin-data", {
-        body: { action: "delete-user", user_id: userId }
+        body: { action: "delete-user", user_id: userId },
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("metodo_admin_token")}` }
       });
       if (error || !data?.success) throw error || new Error("Failed");
       toast.success("Usuário excluído!");
@@ -177,21 +181,61 @@ const MetodoSeguidorAdmin = () => {
         body: { email: email.trim(), password: password.trim() }
       });
       if (error || !data?.success) { toast.error("Credenciais inválidas"); return; }
+      
+      // Store token securely in sessionStorage
+      if (data.token) {
+        sessionStorage.setItem("metodo_admin_token", data.token);
+        sessionStorage.setItem("metodo_admin_email", data.admin?.email || email);
+        setAdminToken(data.token);
+      }
+      
       setIsLoggedIn(true);
-      localStorage.setItem("metodo_seguidor_admin", "true");
       toast.success("Login realizado!");
     } catch (error) { toast.error("Erro ao fazer login"); }
     finally { setLoading(false); }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("metodo_seguidor_admin");
+    sessionStorage.removeItem("metodo_admin_token");
+    sessionStorage.removeItem("metodo_admin_email");
+    setAdminToken(null);
     setIsLoggedIn(false);
   };
 
+  // Verify token on mount
   useEffect(() => {
-    const saved = localStorage.getItem("metodo_seguidor_admin");
-    if (saved) setIsLoggedIn(true);
+    const verifyToken = async () => {
+      const savedToken = sessionStorage.getItem("metodo_admin_token");
+      if (!savedToken) {
+        setIsLoggedIn(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke("metodo-seguidor-admin-auth", {
+          body: { action: "verify-token" },
+          headers: { Authorization: `Bearer ${savedToken}` }
+        });
+
+        if (error || !data?.success) {
+          // Token is invalid or expired
+          sessionStorage.removeItem("metodo_admin_token");
+          sessionStorage.removeItem("metodo_admin_email");
+          setIsLoggedIn(false);
+          return;
+        }
+
+        setAdminToken(savedToken);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Token verification failed:", error);
+        sessionStorage.removeItem("metodo_admin_token");
+        sessionStorage.removeItem("metodo_admin_email");
+        setIsLoggedIn(false);
+      }
+    };
+
+    verifyToken();
   }, []);
 
   useEffect(() => {
@@ -204,11 +248,23 @@ const MetodoSeguidorAdmin = () => {
     if (activeTab === "backup") checkLastBackup();
   }, [activeTab, isLoggedIn]);
 
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("metodo_admin_token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   const loadUsers = async () => {
     setLoadingUsers(true);
     try {
-      const { data: usersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", { body: { action: "get-users" } });
-      const { data: ordersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", { body: { action: "get-orders" } });
+      const { data: usersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", { 
+        body: { action: "get-users" },
+        headers: getAuthHeaders()
+      });
+      const { data: ordersData } = await supabase.functions.invoke("metodo-seguidor-admin-data", { 
+        body: { action: "get-orders" },
+        headers: getAuthHeaders()
+      });
       if (usersData?.users) setUsers(usersData.users);
       if (ordersData?.orders) setOrders(ordersData.orders);
     } catch (error) { console.error("Error loading users:", error); }

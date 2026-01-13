@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -49,6 +50,37 @@ const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
   }
 };
 
+// Check password with bcrypt support and auto-upgrade
+const checkPassword = async (
+  supabase: any,
+  tableName: string,
+  userId: string,
+  inputPassword: string,
+  storedPassword: string
+): Promise<boolean> => {
+  if (storedPassword.startsWith("$2")) {
+    // Password is already hashed with bcrypt
+    return await bcrypt.compare(inputPassword, storedPassword);
+  } else {
+    // Legacy plaintext password - check and upgrade
+    const isValid = storedPassword === inputPassword;
+    
+    if (isValid) {
+      // Upgrade to bcrypt hash
+      log("Upgrading password to bcrypt", { tableName, userId });
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(inputPassword, salt);
+      
+      await supabase
+        .from(tableName)
+        .update({ password: hashedPassword })
+        .eq("id", userId);
+    }
+    
+    return isValid;
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -65,19 +97,29 @@ serve(async (req) => {
     log('Request received', { action, email });
 
     if (action === 'login') {
-      // Login user - use ilike for case-insensitive email match
+      // Login user - fetch by email only
       const cleanEmail = email?.toLowerCase()?.trim();
-      const allowPending = body.allowPending === true; // Allow pending users when checking payment
+      const allowPending = body.allowPending === true;
       
       const { data: user, error } = await supabase
         .from('ads_users')
         .select('*')
         .ilike('email', cleanEmail)
-        .eq('password', password)
         .single();
 
       if (error || !user) {
-        log('Login failed', { error });
+        log('Login failed - user not found', { error });
+        return new Response(
+          JSON.stringify({ success: false, error: 'Email ou senha inválidos' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check password with bcrypt support
+      const passwordValid = await checkPassword(supabase, 'ads_users', user.id, password, user.password);
+
+      if (!passwordValid) {
+        log('Login failed - invalid password');
         return new Response(
           JSON.stringify({ success: false, error: 'Email ou senha inválidos' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -110,7 +152,7 @@ serve(async (req) => {
         .eq('user_id', user.id)
         .single();
 
-      // Get balance orders (include infinitepay_link for pending payments)
+      // Get balance orders
       const { data: balanceOrders } = await supabase
         .from('ads_balance_orders')
         .select('id, user_id, amount, leads_quantity, status, paid_at, created_at, infinitepay_link, nsu_order')
@@ -137,16 +179,26 @@ serve(async (req) => {
       );
 
     } else if (action === 'admin-login') {
-      // Admin login
+      // Admin login - fetch by email only
       const { data: admin, error } = await supabase
         .from('ads_admins')
         .select('*')
         .eq('email', email)
-        .eq('password', password)
         .single();
 
       if (error || !admin) {
-        log('Admin login failed', { error });
+        log('Admin login failed - not found', { error });
+        return new Response(
+          JSON.stringify({ success: false, error: 'Credenciais inválidas' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check password with bcrypt support
+      const passwordValid = await checkPassword(supabase, 'ads_admins', admin.id, password, admin.password);
+
+      if (!passwordValid) {
+        log('Admin login failed - invalid password');
         return new Response(
           JSON.stringify({ success: false, error: 'Credenciais inválidas' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -257,8 +309,14 @@ serve(async (req) => {
 
       if (error) throw error;
 
+      // Remove passwords from response
+      const sanitizedUsers = users?.map(user => {
+        const { password, ...rest } = user;
+        return rest;
+      });
+
       return new Response(
-        JSON.stringify({ success: true, users }),
+        JSON.stringify({ success: true, users: sanitizedUsers }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
@@ -498,55 +556,26 @@ serve(async (req) => {
 <tr>
 <td style="padding: 40px 30px;">
 <h1 style="color: #1d4ed8; margin: 0 0 20px 0; font-size: 28px;">Olá, ${user.name}! 🎉</h1>
-<p style="font-size: 18px; color: #333333; margin: 0 0 25px 0; line-height: 1.5;">Temos uma ótima notícia: <strong>seus anúncios estão ativos!</strong></p>
-
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #1d4ed8, #3b82f6); border-radius: 12px; margin-bottom: 25px;">
-<tr>
-<td style="padding: 25px; text-align: center;">
-<p style="margin: 0; font-size: 16px; color: #ffffff;">📅 Anúncios ativos até:</p>
-<p style="margin: 10px 0 0 0; font-size: 32px; font-weight: bold; color: #ffffff;">${endDate}</p>
-</td>
-</tr>
-</table>
-
-${salesPageUrl ? `
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f0f9ff; border-radius: 12px; margin-bottom: 25px; border: 2px solid #1d4ed8;">
-<tr>
-<td style="padding: 20px;">
-<p style="margin: 0 0 8px 0; color: #1d4ed8; font-weight: bold;">🔗 Sua página de vendas:</p>
-<a href="${salesPageUrl}" style="color: #1d4ed8; word-break: break-all; font-size: 16px;">${salesPageUrl}</a>
-</td>
-</tr>
-</table>
-` : ''}
-
-${balanceAmount ? `
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f0fdf4; border-radius: 12px; margin-bottom: 25px; border: 2px solid #16a34a;">
-<tr>
-<td style="padding: 20px; text-align: center;">
-<p style="margin: 0 0 8px 0; color: #16a34a; font-weight: bold;">💰 Saldo investido na campanha:</p>
-<p style="margin: 0; font-size: 28px; font-weight: bold; color: #16a34a;">R$ ${Number(balanceAmount).toFixed(2)}</p>
-</td>
-</tr>
-</table>
-` : ''}
-
-<p style="color: #666666; margin: 0 0 20px 0;">Acesse seu painel para acompanhar os resultados:</p>
-
-<table width="100%" cellpadding="0" cellspacing="0" border="0">
-<tr>
-<td align="center">
-<a href="https://mrodigital.site/anuncios/dash" style="display: inline-block; background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: #ffffff; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">Acessar Painel</a>
-</td>
-</tr>
-</table>
+<p style="color: #333; font-size: 16px; line-height: 1.6;">
+Sua campanha de anúncios foi ativada com sucesso!
+</p>
+<p style="color: #333; font-size: 16px; line-height: 1.6;">
+Sua campanha estará ativa até <strong>${endDate}</strong>.
+</p>
+${salesPageUrl ? `<p style="color: #333; font-size: 16px; line-height: 1.6;">
+Sua página de vendas: <a href="${salesPageUrl}" style="color: #1d4ed8;">${salesPageUrl}</a>
+</p>` : ''}
+${balanceAmount ? `<p style="color: #333; font-size: 16px; line-height: 1.6;">
+Saldo de leads: <strong>${balanceAmount}</strong>
+</p>` : ''}
 </td>
 </tr>
 
 <tr>
-<td style="background-color: #1a1a1a; padding: 25px; text-align: center;">
-<p style="color: #3b82f6; margin: 0 0 8px 0; font-weight: bold; font-size: 14px;">Ads News - Leads no seu WhatsApp</p>
-<p style="color: #888888; margin: 0; font-size: 12px;">© ${year} Ads News - Todos os direitos reservados</p>
+<td style="background-color: #f8fafc; padding: 20px 30px; text-align: center;">
+<p style="color: #666; font-size: 12px; margin: 0;">
+© ${year} Ads News. Todos os direitos reservados.
+</p>
 </td>
 </tr>
 
@@ -557,315 +586,113 @@ ${balanceAmount ? `
 </body>
 </html>`;
 
-          await sendEmailViaSMTP(user.email, '🚀 Seus anúncios estão ATIVOS!', html);
+          await sendEmailViaSMTP(user.email, '🎉 Sua campanha foi ativada!', html);
         }
       }
 
+      log('Ads activated', { userId });
       return new Response(
         JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
-    } else if (action === 'resend-access-email') {
-      // Admin: Resend access email to user
+    } else if (action === 'request-balance') {
+      // User: Request balance top-up
+      const { userId, amount, leadsQuantity } = body;
+
+      // Generate unique NSU
+      const nsuOrder = `BAL${Date.now()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      // Create InfiniPay payment link
+      const infinitePayApiKey = Deno.env.get('INFINITEPAY_API_KEY');
+      let infinitepayLink = null;
+
+      if (infinitePayApiKey) {
+        try {
+          const response = await fetch('https://api.infinitepay.io/v2/checkout', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${infinitePayApiKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              amount: amount * 100, // Convert to cents
+              order_id: nsuOrder,
+              metadata: {
+                type: 'balance',
+                user_id: userId,
+                leads_quantity: leadsQuantity
+              }
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            infinitepayLink = data.payment_url;
+          }
+        } catch (e) {
+          log('InfiniPay error', e);
+        }
+      }
+
+      // Create balance order
+      const { data: order, error } = await supabase
+        .from('ads_balance_orders')
+        .insert({
+          user_id: userId,
+          amount,
+          leads_quantity: leadsQuantity,
+          nsu_order: nsuOrder,
+          infinitepay_link: infinitepayLink,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      log('Balance requested', { userId, amount, leadsQuantity });
+      return new Response(
+        JSON.stringify({ success: true, order }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+
+    } else if (action === 'get-balance-orders') {
+      // Get balance orders for user
       const { userId } = body;
 
-      if (!smtpPassword) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Email nao configurado' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const { data: user } = await supabase
-        .from('ads_users')
-        .select('name, email, password, subscription_end')
-        .eq('id', userId)
-        .single();
-
-      if (!user) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Usuario nao encontrado' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const { data: clientData } = await supabase
-        .from('ads_client_data')
-        .select('sales_page_url')
+      const { data: orders, error } = await supabase
+        .from('ads_balance_orders')
+        .select('*')
         .eq('user_id', userId)
-        .single();
+        .order('created_at', { ascending: false });
 
-      const endDate = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('pt-BR') : 'Nao definida';
-      const year = new Date().getFullYear();
-      const dashboardUrl = 'https://pay.maisresultadosonline.com.br/anuncios/dash';
+      if (error) throw error;
 
-      const salesPageSection = clientData?.sales_page_url ? `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f0f9ff; border-radius: 10px; margin-bottom: 20px;">
-<tr>
-<td style="padding: 15px;">
-<p style="margin: 0 0 10px 0; color: #1d4ed8; font-weight: bold; font-size: 14px;">Sua pagina de vendas:</p>
-<a href="${clientData.sales_page_url}" style="color: #1d4ed8; word-break: break-all; font-size: 14px;">${clientData.sales_page_url}</a>
-</td>
-</tr>
-</table>` : '';
+      return new Response(
+        JSON.stringify({ success: true, orders }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
 
-      const html = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dados de Acesso - Ads News</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333333; background-color: #f4f4f4;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 20px 0;">
-<tr>
-<td align="center">
-<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    } else if (action === 'confirm-balance') {
+      // Admin: Confirm balance payment
+      const { orderId } = body;
 
-<tr>
-<td style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; text-align: center;">
-<img src="https://pay.maisresultadosonline.com.br/ads-news-full.png" alt="Ads News" style="height: 50px; margin-bottom: 15px;">
-<h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;">Seus Dados de Acesso</h1>
-</td>
-</tr>
+      const { error } = await supabase
+        .from('ads_balance_orders')
+        .update({
+          status: 'paid',
+          paid_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
 
-<tr>
-<td style="padding: 30px;">
+      if (error) throw error;
 
-<p style="margin: 0 0 20px 0; font-size: 16px; color: #333333;">Ola <strong>${user.name}</strong>!</p>
-
-<p style="margin: 0 0 20px 0; font-size: 16px; color: #333333;">Aqui estao seus dados de acesso ao painel Ads News:</p>
-
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border: 2px solid #3b82f6; border-radius: 10px; margin-bottom: 25px;">
-<tr>
-<td style="padding: 20px;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0">
-<tr>
-<td style="padding: 10px; background-color: #ffffff; border-radius: 5px;">
-<span style="font-size: 12px; color: #666666; display: block; margin-bottom: 5px;">Email:</span>
-<span style="font-size: 16px; color: #1e40af; font-weight: bold;">${user.email}</span>
-</td>
-</tr>
-<tr><td style="height: 10px;"></td></tr>
-<tr>
-<td style="padding: 10px; background-color: #ffffff; border-radius: 5px;">
-<span style="font-size: 12px; color: #666666; display: block; margin-bottom: 5px;">Senha:</span>
-<span style="font-size: 16px; color: #1e40af; font-weight: bold;">${user.password}</span>
-</td>
-</tr>
-<tr><td style="height: 10px;"></td></tr>
-<tr>
-<td style="padding: 12px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 5px; text-align: center;">
-<span style="font-size: 14px; font-weight: bold; color: #ffffff;">Assinatura ate: ${endDate}</span>
-</td>
-</tr>
-</table>
-</td>
-</tr>
-</table>
-
-${salesPageSection}
-
-<table width="100%" cellpadding="0" cellspacing="0" border="0">
-<tr>
-<td style="text-align: center; padding: 10px 0 25px 0;">
-<a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; font-size: 16px;">Acessar Painel</a>
-</td>
-</tr>
-</table>
-
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fff7ed; border-left: 4px solid #f97316; border-radius: 0 8px 8px 0;">
-<tr>
-<td style="padding: 15px;">
-<p style="margin: 0; color: #9a3412; font-size: 14px;"><strong>Duvidas?</strong> Entre em contato pelo WhatsApp: <a href="https://wa.me/5551920356540" style="color: #9a3412;">+55 51 9203-6540</a></p>
-</td>
-</tr>
-</table>
-
-</td>
-</tr>
-
-<tr>
-<td style="background-color: #1a1a1a; padding: 20px; text-align: center;">
-<p style="color: #3b82f6; margin: 0 0 10px 0; font-weight: bold; font-size: 14px;">Ads News - Leads no seu WhatsApp</p>
-<p style="color: #888888; margin: 0; font-size: 12px;">${year} Ads News - Todos os direitos reservados</p>
-</td>
-</tr>
-
-</table>
-</td>
-</tr>
-</table>
-</body>
-</html>`;
-
-      await sendEmailViaSMTP(user.email, 'Seus dados de acesso - Ads News', html);
-
+      log('Balance confirmed', { orderId });
       return new Response(
         JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
-
-    } else if (action === 'upload-logo') {
-      // Upload logo for client
-      const { userId, logoBase64, fileName } = body;
-
-      // Convert base64 to blob
-      const base64Data = logoBase64.split(',')[1] || logoBase64;
-      const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-      
-      const filePath = `ads-logos/${userId}/${Date.now()}-${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('assets')
-        .upload(filePath, binaryData, {
-          contentType: 'image/png',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('assets')
-        .getPublicUrl(filePath);
-
-      // Update client data with logo URL
-      const { data: existing } = await supabase
-        .from('ads_client_data')
-        .select('id')
-        .eq('user_id', userId)
-        .single();
-
-      if (existing) {
-        await supabase
-          .from('ads_client_data')
-          .update({ logo_url: publicUrl })
-          .eq('user_id', userId);
-      } else {
-        await supabase
-          .from('ads_client_data')
-          .insert({
-            user_id: userId,
-            logo_url: publicUrl
-          });
-      }
-
-      return new Response(
-        JSON.stringify({ success: true, logoUrl: publicUrl }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-
-    } else if (action === 'verify-payment') {
-      // Admin: Manually verify payment via InfiniPay API
-      const { orderId } = body;
-      log('Verifying payment for order', orderId);
-
-      // Get order details
-      const { data: order, error: orderError } = await supabase
-        .from('ads_orders')
-        .select('*')
-        .eq('id', orderId)
-        .single();
-
-      if (orderError || !order) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Pedido não encontrado' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      log('Order found', { nsu: order.nsu_order, email: order.email, status: order.status });
-
-      // Check InfiniPay API for payment status using product name format
-      const productName = `anun_${order.email}`;
-      
-      try {
-        // Try to check payment using InfiniPay API
-        const infinitePayToken = Deno.env.get('INFINITEPAY_TOKEN') || '';
-        
-        if (infinitePayToken) {
-          // If we have token, try direct API check
-          const checkResponse = await fetch('https://api.infinitepay.io/v2/orders', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${infinitePayToken}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (checkResponse.ok) {
-            const ordersData = await checkResponse.json();
-            log('InfiniPay orders response', ordersData);
-            
-            // Look for matching order by product name or NSU
-            const matchingOrder = ordersData?.data?.find((o: { items?: { name?: string }[], nsu?: string, status?: string }) => {
-              const hasMatchingProduct = o.items?.some((item: { name?: string }) => 
-                item.name?.includes(order.email) || item.name?.includes(productName)
-              );
-              const hasMatchingNsu = o.nsu === order.nsu_order;
-              return (hasMatchingProduct || hasMatchingNsu) && 
-                     (o.status === 'approved' || o.status === 'paid' || o.status === 'confirmed');
-            });
-
-            if (matchingOrder) {
-              log('Found paid order in InfiniPay', matchingOrder);
-              
-              // Update order as paid
-              const subscriptionStart = new Date();
-              const subscriptionEnd = new Date();
-              subscriptionEnd.setDate(subscriptionEnd.getDate() + 30);
-
-              await supabase
-                .from('ads_orders')
-                .update({
-                  status: 'paid',
-                  paid_at: new Date().toISOString(),
-                  invoice_slug: matchingOrder.invoice_slug || null,
-                  transaction_nsu: matchingOrder.transaction_nsu || matchingOrder.nsu || null
-                })
-                .eq('id', orderId);
-
-              await supabase
-                .from('ads_users')
-                .update({
-                  status: 'active',
-                  subscription_start: subscriptionStart.toISOString(),
-                  subscription_end: subscriptionEnd.toISOString()
-                })
-                .ilike('email', order.email);
-
-              return new Response(
-                JSON.stringify({ 
-                  success: true, 
-                  paid: true, 
-                  message: 'Pagamento confirmado e usuário ativado!'
-                }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-              );
-            }
-          }
-        }
-
-        // If no token or API check didn't find payment, return not paid
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            paid: false, 
-            message: 'Pagamento ainda não confirmado no InfiniPay'
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-
-      } catch (apiError) {
-        log('Error checking InfiniPay API', apiError);
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: 'Erro ao verificar pagamento na API InfiniPay'
-          }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
 
     } else {
       return new Response(
@@ -876,8 +703,7 @@ ${salesPageSection}
 
   } catch (error: unknown) {
     const errMsg = error instanceof Error ? error.message : String(error);
-    const errStack = error instanceof Error ? error.stack : undefined;
-    log('Error', { message: errMsg, stack: errStack });
+    log('Error', { error: errMsg });
     return new Response(
       JSON.stringify({ success: false, error: errMsg }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
