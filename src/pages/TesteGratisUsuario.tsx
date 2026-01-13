@@ -634,8 +634,8 @@ const TesteGratisUsuario = () => {
 
         {/* Timer Card with WhatsApp Group Button */}
         <Card className={`mb-6 ${isExpired ? 'bg-red-500/20 border-red-500/50' : 'bg-green-500/20 border-green-500/50'}`}>
-          <CardContent className="p-4 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 text-center sm:text-left">
               <Clock className={`w-6 h-6 ${isExpired ? 'text-red-400' : 'text-green-400'}`} />
               <div>
                 <p className={`font-medium ${isExpired ? 'text-red-400' : 'text-green-400'}`}>
