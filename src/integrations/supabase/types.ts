@@ -433,13 +433,16 @@ export type Database = {
           download_link: string | null
           group_link: string | null
           id: string
+          installation_video_thumbnail: string | null
           installation_video_url: string | null
           is_active: boolean | null
           mro_master_password: string
           mro_master_username: string
           trial_duration_hours: number | null
           updated_at: string
+          usage_video_thumbnail: string | null
           usage_video_url: string | null
+          welcome_video_thumbnail: string | null
           welcome_video_url: string | null
         }
         Insert: {
@@ -449,13 +452,16 @@ export type Database = {
           download_link?: string | null
           group_link?: string | null
           id?: string
+          installation_video_thumbnail?: string | null
           installation_video_url?: string | null
           is_active?: boolean | null
           mro_master_password: string
           mro_master_username: string
           trial_duration_hours?: number | null
           updated_at?: string
+          usage_video_thumbnail?: string | null
           usage_video_url?: string | null
+          welcome_video_thumbnail?: string | null
           welcome_video_url?: string | null
         }
         Update: {
@@ -465,13 +471,16 @@ export type Database = {
           download_link?: string | null
           group_link?: string | null
           id?: string
+          installation_video_thumbnail?: string | null
           installation_video_url?: string | null
           is_active?: boolean | null
           mro_master_password?: string
           mro_master_username?: string
           trial_duration_hours?: number | null
           updated_at?: string
+          usage_video_thumbnail?: string | null
           usage_video_url?: string | null
+          welcome_video_thumbnail?: string | null
           welcome_video_url?: string | null
         }
         Relationships: []

@@ -37,6 +37,9 @@ interface TrialSettings {
   welcome_video_url: string | null;
   installation_video_url: string | null;
   usage_video_url: string | null;
+  welcome_video_thumbnail: string | null;
+  installation_video_thumbnail: string | null;
+  usage_video_thumbnail: string | null;
   download_link: string | null;
   group_link: string | null;
   trial_duration_hours: number;
@@ -376,36 +379,84 @@ const TesteGratisAdmin = () => {
                 <div className="space-y-4">
                   <h3 className="text-white font-semibold flex items-center gap-2">
                     <Video className="w-5 h-5 text-blue-400" />
-                    URLs dos Vídeos (embed do YouTube)
+                    URLs dos Vídeos (cole qualquer URL do YouTube)
                   </h3>
+                  <p className="text-gray-400 text-sm">Pode usar youtube.com/watch?v=... ou youtu.be/... - será convertido automaticamente</p>
                   
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <Label className="text-white">1. Boas-vindas</Label>
-                      <Input
-                        value={settings?.welcome_video_url || ''}
-                        onChange={(e) => setSettings(s => s ? { ...s, welcome_video_url: e.target.value } : null)}
-                        placeholder="https://www.youtube.com/embed/..."
-                        className="bg-gray-700 border-gray-600 text-white"
-                      />
+                  <div className="space-y-6">
+                    {/* Video 1 - Welcome */}
+                    <div className="bg-gray-700/50 rounded-lg p-4">
+                      <Label className="text-white text-lg mb-3 block">1. Boas-vindas</Label>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-gray-300 text-sm">URL do Vídeo</Label>
+                          <Input
+                            value={settings?.welcome_video_url || ''}
+                            onChange={(e) => setSettings(s => s ? { ...s, welcome_video_url: e.target.value } : null)}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-gray-300 text-sm">Thumbnail/Capa (URL da imagem)</Label>
+                          <Input
+                            value={settings?.welcome_video_thumbnail || ''}
+                            onChange={(e) => setSettings(s => s ? { ...s, welcome_video_thumbnail: e.target.value } : null)}
+                            placeholder="https://i.imgur.com/..."
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-white">2. Instalação</Label>
-                      <Input
-                        value={settings?.installation_video_url || ''}
-                        onChange={(e) => setSettings(s => s ? { ...s, installation_video_url: e.target.value } : null)}
-                        placeholder="https://www.youtube.com/embed/..."
-                        className="bg-gray-700 border-gray-600 text-white"
-                      />
+
+                    {/* Video 2 - Installation */}
+                    <div className="bg-gray-700/50 rounded-lg p-4">
+                      <Label className="text-white text-lg mb-3 block">2. Instalação</Label>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-gray-300 text-sm">URL do Vídeo</Label>
+                          <Input
+                            value={settings?.installation_video_url || ''}
+                            onChange={(e) => setSettings(s => s ? { ...s, installation_video_url: e.target.value } : null)}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-gray-300 text-sm">Thumbnail/Capa (URL da imagem)</Label>
+                          <Input
+                            value={settings?.installation_video_thumbnail || ''}
+                            onChange={(e) => setSettings(s => s ? { ...s, installation_video_thumbnail: e.target.value } : null)}
+                            placeholder="https://i.imgur.com/..."
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-white">3. Utilização</Label>
-                      <Input
-                        value={settings?.usage_video_url || ''}
-                        onChange={(e) => setSettings(s => s ? { ...s, usage_video_url: e.target.value } : null)}
-                        placeholder="https://www.youtube.com/embed/..."
-                        className="bg-gray-700 border-gray-600 text-white"
-                      />
+
+                    {/* Video 3 - Usage */}
+                    <div className="bg-gray-700/50 rounded-lg p-4">
+                      <Label className="text-white text-lg mb-3 block">3. Utilização</Label>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-gray-300 text-sm">URL do Vídeo</Label>
+                          <Input
+                            value={settings?.usage_video_url || ''}
+                            onChange={(e) => setSettings(s => s ? { ...s, usage_video_url: e.target.value } : null)}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-gray-300 text-sm">Thumbnail/Capa (URL da imagem)</Label>
+                          <Input
+                            value={settings?.usage_video_thumbnail || ''}
+                            onChange={(e) => setSettings(s => s ? { ...s, usage_video_thumbnail: e.target.value } : null)}
+                            placeholder="https://i.imgur.com/..."
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
