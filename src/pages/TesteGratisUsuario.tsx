@@ -413,7 +413,7 @@ const TesteGratisUsuario = () => {
 
             {/* WhatsApp Group */}
             {settings?.group_link && (
-              <Card className="bg-gradient-to-r from-[#25D366]/20 to-green-500/20 border-[#25D366]/30">
+              <Card className="mb-6 bg-gradient-to-r from-[#25D366]/20 to-green-500/20 border-[#25D366]/30">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                     <Users className="w-6 h-6 text-[#25D366]" />
@@ -431,6 +431,47 @@ const TesteGratisUsuario = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Renda Extra Section */}
+            <Card className="mb-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-white text-center mb-2">
+                  💰 Sabia que você pode fazer uma renda extra de mais de{' '}
+                  <span className="text-green-400">5 MIL REAIS</span> com essa ferramenta?
+                </h3>
+                <p className="text-gray-300 text-center mb-4">
+                  Sim, além de utilizar para o seu negócio! Assista o vídeo abaixo:
+                </p>
+                <div className="aspect-video rounded-lg overflow-hidden border border-zinc-700">
+                  <iframe
+                    src="https://www.youtube.com/embed/WQwnAHNvSMU"
+                    title="Renda Extra com MRO"
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Support Notice */}
+            <Card className="bg-zinc-800/50 border-zinc-700">
+              <CardContent className="p-6 text-center">
+                <h3 className="text-lg font-bold text-white mb-2">
+                  💬 Precisa de Ajuda?
+                </h3>
+                <p className="text-gray-400 text-sm mb-3">
+                  Temos suporte <strong className="text-white">Anydesk (acesso remoto)</strong> e{' '}
+                  <strong className="text-white">Suporte WhatsApp</strong>!
+                </p>
+                <p className="text-yellow-400 text-sm font-medium">
+                  ⚠️ O suporte funciona apenas no <strong>plano pago</strong>!
+                </p>
+                <p className="text-gray-500 text-xs mt-3">
+                  Para testes grátis, assista os vídeos tutoriais para instalar e utilizar.
+                </p>
+              </CardContent>
+            </Card>
           </>
         )}
       </div>
