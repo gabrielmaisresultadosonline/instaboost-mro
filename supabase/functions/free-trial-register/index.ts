@@ -261,60 +261,32 @@ Após esse período, você não poderá testar novamente com este Instagram.
 
 <p style="margin:0 0 15px 0;font-size:16px;">Seu teste grátis de 24 horas do <strong>MRO</strong> foi liberado! 🚀</p>
 
+<p style="margin:0 0 15px 0;font-size:16px;">Para acessar sua área de teste e receber suas credenciais, clique no botão abaixo:</p>
+
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;border:2px solid #667eea;border-radius:10px;margin:20px 0;">
 <tr>
-<td style="padding:20px;">
-<h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📋 Seus Dados de Acesso:</h3>
-<table width="100%" cellpadding="0" cellspacing="0">
-<tr>
-<td style="padding:12px;background:#fff;border-radius:5px;margin-bottom:10px;">
-<span style="font-size:12px;color:#666;display:block;">Usuário:</span>
-<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${generatedUsername}</span>
-</td>
-</tr>
-<tr><td style="height:10px;"></td></tr>
-<tr>
-<td style="padding:12px;background:#fff;border-radius:5px;">
-<span style="font-size:12px;color:#666;display:block;">Senha:</span>
-<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${generatedPassword}</span>
-</td>
-</tr>
-<tr><td style="height:10px;"></td></tr>
-<tr>
-<td style="padding:12px;background:#fff;border-radius:5px;">
-<span style="font-size:12px;color:#666;display:block;">Instagram cadastrado:</span>
-<span style="font-size:18px;color:#E1306C;font-family:monospace;font-weight:bold;">@${normalizedIG}</span>
-</td>
-</tr>
-</table>
+<td style="padding:20px;text-align:center;">
+<h3 style="color:#333;margin:0 0 10px 0;font-size:16px;">📱 Acesse com seu Instagram cadastrado:</h3>
+<p style="font-size:24px;color:#E1306C;font-family:monospace;font-weight:bold;margin:0;">@${normalizedIG}</p>
 </td>
 </tr>
 </table>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:15px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:25px 0;">
 <tr>
-<td style="text-align:center;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:8px;">
-<a href="${accessAreaLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:16px;">🔐 Acessar Minha Área de Teste</a>
-<p style="color:#fff;opacity:0.9;margin:8px 0 0 0;font-size:12px;">Acesse com: <strong>@${normalizedIG}</strong></p>
+<td style="text-align:center;">
+<a href="${accessAreaLink}" style="display:inline-block;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;text-decoration:none;padding:18px 50px;border-radius:10px;font-weight:bold;font-size:18px;box-shadow:0 4px 15px rgba(102,126,234,0.4);">🔐 Acessar Minha Área de Teste</a>
 </td>
 </tr>
 </table>
 
-<table width="100%" cellpadding="0" cellspacing="0">
-<tr>
-<td style="text-align:center;padding:15px 0;">
-<a href="${downloadLink}" style="display:inline-block;background:#ffc107;color:#000;text-decoration:none;padding:15px 40px;border-radius:8px;font-weight:bold;font-size:16px;">📥 Download do Sistema</a>
-</td>
-</tr>
-</table>
-
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:15px 0;">
-<tr>
-<td style="text-align:center;padding:15px;background:#25D366;border-radius:8px;">
-<a href="${groupLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:14px;">📱 Entrar no Grupo do WhatsApp</a>
-</td>
-</tr>
-</table>
+<p style="text-align:center;color:#666;font-size:14px;margin:20px 0;">
+Na sua área de teste você receberá:<br>
+✅ Suas credenciais de acesso<br>
+✅ Link para download do sistema<br>
+✅ Vídeos tutoriais de instalação e uso<br>
+✅ Acesso ao grupo de suporte
+</p>
 
 <div style="background:#ffe6e6;border-left:4px solid #ff4444;padding:15px;margin:25px 0;border-radius:0 8px 8px 0;">
 <p style="margin:0;color:#c00;font-size:14px;">
