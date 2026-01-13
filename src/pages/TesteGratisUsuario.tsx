@@ -20,6 +20,31 @@ import {
 } from "lucide-react";
 import logoMro from '@/assets/logo-mro-2.png';
 
+// Helper to convert YouTube URLs to embed format
+const getYouTubeEmbedUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // Already an embed URL
+  if (url.includes('/embed/')) return url;
+  
+  // Extract video ID from various YouTube URL formats
+  let videoId = '';
+  
+  // youtube.com/watch?v=VIDEO_ID
+  const watchMatch = url.match(/[?&]v=([^&]+)/);
+  if (watchMatch) videoId = watchMatch[1];
+  
+  // youtu.be/VIDEO_ID
+  const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+  if (shortMatch) videoId = shortMatch[1];
+  
+  if (videoId) {
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  
+  return url;
+};
+
 const TesteGratisUsuario = () => {
   const [instagramUsername, setInstagramUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -421,7 +446,7 @@ const TesteGratisUsuario = () => {
                 <div className="max-w-lg mx-auto">
                   <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
                     <iframe
-                      src={settings.welcome_video_url}
+                      src={getYouTubeEmbedUrl(settings.welcome_video_url)}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -714,7 +739,7 @@ const TesteGratisUsuario = () => {
                     <h4 className="text-white font-medium mb-3">📥 Como Instalar o MRO</h4>
                     <div className="aspect-video bg-black rounded-lg overflow-hidden">
                       <iframe
-                        src={settings.installation_video_url}
+                        src={getYouTubeEmbedUrl(settings.installation_video_url)}
                         className="w-full h-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
@@ -728,7 +753,7 @@ const TesteGratisUsuario = () => {
                     <h4 className="text-white font-medium mb-3">🚀 Como Usar o MRO</h4>
                     <div className="aspect-video bg-black rounded-lg overflow-hidden">
                       <iframe
-                        src={settings.usage_video_url}
+                        src={getYouTubeEmbedUrl(settings.usage_video_url)}
                         className="w-full h-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
@@ -742,7 +767,7 @@ const TesteGratisUsuario = () => {
                     <h4 className="text-white font-medium mb-3">👋 Boas-vindas</h4>
                     <div className="aspect-video bg-black rounded-lg overflow-hidden">
                       <iframe
-                        src={settings.welcome_video_url}
+                        src={getYouTubeEmbedUrl(settings.welcome_video_url)}
                         className="w-full h-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
