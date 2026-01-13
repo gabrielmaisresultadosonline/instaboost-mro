@@ -422,8 +422,16 @@ const TesteGratis = () => {
       {/* Title + Video Section */}
       <section className="px-4 py-8 md:py-12">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold text-white text-center mb-6">
-            Teste Grátis
+          {/* TESTE GRÁTIS - Blinking Green */}
+          <div className="text-center mb-4">
+            <span className="inline-block bg-green-500 text-white text-lg md:text-2xl font-bold px-6 py-2 rounded-full animate-pulse shadow-[0_0_20px_rgba(34,197,94,0.5)]">
+              🎁 TESTE GRÁTIS
+            </span>
+          </div>
+          
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-6 leading-tight">
+            Não Gaste Com Anúncios,<br />
+            <span className="text-yellow-400">Utilize a MRO!</span>
           </h1>
           
           <div className="aspect-video rounded-xl overflow-hidden border border-zinc-800 shadow-2xl">
