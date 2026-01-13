@@ -344,6 +344,50 @@ const TesteGratisUsuario = () => {
     );
   }
 
+  // Handle paste from clipboard (Ctrl+V)
+  const handlePaste = (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            toast.error("Imagem muito grande! Máximo 5MB.");
+            return;
+          }
+
+          // Create a DataTransfer to set the file input
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          if (fileInputRef.current) {
+            fileInputRef.current.files = dataTransfer.files;
+          }
+
+          // Preview
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            setScreenshotPreview(ev.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+
+          toast.success("Imagem colada! ✅");
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+  };
+
+  // Add paste event listener
+  useEffect(() => {
+    if (needsScreenshot && !userData?.profile_screenshot_url) {
+      document.addEventListener('paste', handlePaste);
+      return () => document.removeEventListener('paste', handlePaste);
+    }
+  }, [needsScreenshot, userData?.profile_screenshot_url]);
+
   // Screenshot Upload Screen
   if (needsScreenshot && !userData?.profile_screenshot_url) {
     return (
@@ -368,6 +412,25 @@ const TesteGratisUsuario = () => {
             </Button>
           </div>
 
+          {/* Welcome Video Above */}
+          {settings?.welcome_video_url && (
+            <Card className="mb-6 bg-zinc-900 border-zinc-700">
+              <CardContent className="p-4">
+                <h4 className="text-white font-medium mb-3 text-center">👋 Vídeo de Boas-vindas</h4>
+                <div className="max-w-md mx-auto">
+                  <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                    <iframe
+                      src={settings.welcome_video_url}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Screenshot Request Card */}
           <Card className="bg-zinc-900 border-yellow-500/50">
             <CardHeader className="text-center">
@@ -387,7 +450,7 @@ const TesteGratisUsuario = () => {
                 </ul>
               </div>
 
-              {/* File Input */}
+              {/* File Input with Paste Support */}
               <div 
                 className="border-2 border-dashed border-zinc-600 rounded-xl p-8 text-center cursor-pointer hover:border-yellow-500/50 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
@@ -412,7 +475,8 @@ const TesteGratisUsuario = () => {
                   <>
                     <Upload className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                     <p className="text-gray-400">Clique aqui para selecionar a imagem</p>
-                    <p className="text-gray-600 text-sm mt-2">PNG, JPG até 5MB</p>
+                    <p className="text-yellow-400 text-sm mt-2">ou use Ctrl+V para colar</p>
+                    <p className="text-gray-600 text-sm mt-1">PNG, JPG até 5MB</p>
                   </>
                 )}
               </div>
