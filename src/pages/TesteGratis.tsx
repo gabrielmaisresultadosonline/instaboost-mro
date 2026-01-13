@@ -261,18 +261,112 @@ const TesteGratis = () => {
           </div>
         </div>
 
-        {/* Warning about 24h limit */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-yellow-500/20 border border-yellow-400/50 rounded-xl p-4 flex items-start gap-3">
-            <Clock className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-yellow-400 font-semibold">⚠️ Atenção: Teste de 24 horas!</p>
-              <p className="text-white/80 text-sm">
-                Você tem apenas <strong className="text-yellow-400">24 horas</strong> para testar o sistema. 
-                Após esse período, não conseguirá testar novamente com este Instagram. 
-                <strong className="text-yellow-400"> Valorize seu teste!</strong>
-              </p>
+        {/* Strategy Highlight */}
+        <div className="max-w-2xl mx-auto mb-6">
+          <div className="bg-gradient-to-r from-purple-600/40 to-indigo-600/40 border-2 border-purple-400 rounded-2xl p-6 text-center">
+            <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-sm mb-4">
+              <Sparkles className="w-4 h-4" />
+              EXCLUSIVO
             </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+              TESTE 1 DAS NOSSAS <span className="text-yellow-400">20+ ESTRATÉGIAS!</span>
+            </h2>
+            <p className="text-white/90">
+              Este teste libera apenas <strong className="text-yellow-400">1 das nossas 20 estratégias</strong>! 
+              Para ter acesso ao plano completo, você precisará adquirir. 
+              <strong className="text-green-400"> Aproveite o teste e garanta o valor promocional após!</strong>
+            </p>
+          </div>
+        </div>
+
+        {/* Warning about 24h limit - DESTACADO */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <div className="bg-gradient-to-r from-red-600/30 to-orange-600/30 border-2 border-red-400 rounded-2xl p-6 animate-pulse">
+            <div className="flex items-start gap-4">
+              <div className="bg-red-500 rounded-full p-3 flex-shrink-0">
+                <AlertTriangle className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-red-400 mb-2">⚠️ ATENÇÃO: Teste de 24 horas!</p>
+                <p className="text-white text-lg mb-3">
+                  Você tem apenas <strong className="text-yellow-400 text-xl">24 HORAS</strong> para testar o sistema. 
+                  Após esse período, <strong className="text-red-400">NÃO conseguirá testar novamente</strong> com este Instagram.
+                </p>
+                <p className="text-yellow-400 font-bold text-xl">🔥 VALORIZE SEU TESTE!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tutorial Videos Warning */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <div className="bg-blue-600/20 border-2 border-blue-400 rounded-2xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-blue-500 rounded-full p-3 flex-shrink-0">
+                <Play className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-blue-400 mb-2">📺 Assista os Vídeos Tutoriais!</p>
+                <p className="text-white/90 mb-3">
+                  Após liberar seu teste, assista os vídeos tutoriais para aprender a <strong className="text-blue-400">instalar</strong> e <strong className="text-blue-400">utilizar</strong> a ferramenta corretamente.
+                </p>
+                <div className="bg-red-500/30 border border-red-400 rounded-lg p-4 mt-3">
+                  <p className="text-red-400 font-bold mb-2">🚫 NÃO TEMOS SUPORTE PARA TESTES GRÁTIS!</p>
+                  <p className="text-white/80 text-sm">
+                    Para ter acesso ao suporte, você precisará adquirir um de nossos planos.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Support Types Info */}
+        <div className="max-w-3xl mx-auto mb-8">
+          <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border-2 border-green-400 rounded-2xl p-6">
+            <h3 className="text-xl font-bold text-green-400 text-center mb-6">
+              💡 Está com dificuldade? Conheça nossos Suportes Premium!
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* AnyDesk Support */}
+              <div className="bg-white/10 rounded-xl p-5 border border-white/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-orange-500 rounded-lg p-2">
+                    <ExternalLink className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="text-lg font-bold text-orange-400">Suporte AnyDesk</h4>
+                </div>
+                <p className="text-white/80 text-sm mb-3">
+                  <strong className="text-white">Acesso Remoto ao seu computador</strong> - Nosso especialista acessa seu PC e configura tudo pra você, em tempo real!
+                </p>
+                <ul className="text-white/70 text-sm space-y-1">
+                  <li>✅ Instalação completa</li>
+                  <li>✅ Configuração personalizada</li>
+                  <li>✅ Resolução imediata de problemas</li>
+                </ul>
+              </div>
+
+              {/* WhatsApp Support */}
+              <div className="bg-white/10 rounded-xl p-5 border border-white/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-green-500 rounded-lg p-2">
+                    <Phone className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="text-lg font-bold text-green-400">Suporte WhatsApp</h4>
+                </div>
+                <p className="text-white/80 text-sm mb-3">
+                  <strong className="text-white">Atendimento via WhatsApp</strong> - Tire dúvidas, receba orientações e soluções por mensagens ou áudios!
+                </p>
+                <ul className="text-white/70 text-sm space-y-1">
+                  <li>✅ Resposta rápida</li>
+                  <li>✅ Orientações passo a passo</li>
+                  <li>✅ Envio de prints e vídeos</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-center text-yellow-400 font-semibold mt-4 text-sm">
+              👆 Ambos os suportes estão inclusos nos nossos planos pagos!
+            </p>
           </div>
         </div>
 
