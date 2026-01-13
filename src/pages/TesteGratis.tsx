@@ -492,30 +492,6 @@ const TesteGratis = () => {
               </div>
             </div>
           </div>
-
-          {/* No Support Warning */}
-          <div className="bg-red-950/50 border border-red-500/50 rounded-xl p-5">
-            <p className="text-red-400 font-bold text-sm mb-2">🚫 NÃO TEMOS SUPORTE PARA TESTES GRÁTIS!</p>
-            <p className="text-gray-400 text-sm">
-              Para ter suporte, adquira um de nossos planos. Temos dois tipos:
-            </p>
-            <div className="grid md:grid-cols-2 gap-3 mt-3">
-              <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-700">
-                <div className="flex items-center gap-2 mb-1">
-                  <ExternalLink className="w-4 h-4 text-orange-400" />
-                  <span className="font-medium text-orange-400 text-sm">Suporte AnyDesk</span>
-                </div>
-                <p className="text-gray-500 text-xs">Acesso remoto - Configuramos tudo no seu PC!</p>
-              </div>
-              <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-700">
-                <div className="flex items-center gap-2 mb-1">
-                  <Phone className="w-4 h-4 text-green-400" />
-                  <span className="font-medium text-green-400 text-sm">Suporte WhatsApp</span>
-                </div>
-                <p className="text-gray-500 text-xs">Atendimento direto por mensagens ou áudios!</p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
