@@ -316,12 +316,12 @@ const TesteGratis = () => {
       {/* Computer/Notebook Warning */}
       <section className="px-4 py-4">
         <div className="max-w-lg mx-auto">
-          <div className="bg-blue-950/80 border-2 border-blue-500 rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-3">
-              <Monitor className="w-8 h-8 text-blue-400 flex-shrink-0" />
+          <div className="bg-zinc-900/60 border border-zinc-700 rounded-lg p-3 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Monitor className="w-5 h-5 text-gray-400 flex-shrink-0" />
               <div>
-                <p className="text-lg font-bold text-blue-400">💻 PRECISA DE UM COMPUTADOR OU NOTEBOOK PARA TESTAR!</p>
-                <p className="text-gray-300 text-sm">A ferramenta funciona apenas no Windows</p>
+                <p className="text-sm text-white">Precisa de um computador ou notebook para testar</p>
+                <p className="text-gray-500 text-xs">A ferramenta funciona no Windows, Mac e Linux</p>
               </div>
             </div>
           </div>
@@ -334,12 +334,12 @@ const TesteGratis = () => {
           <Button 
             onClick={() => setShowForm(true)}
             size="lg"
-            className="relative overflow-hidden bg-emerald-700 hover:bg-emerald-600 text-white text-xl px-12 py-8 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.5)] font-bold w-full md:w-auto group border-2 border-emerald-400/50"
+            className="relative overflow-hidden bg-emerald-700 hover:bg-emerald-600 text-white text-2xl px-16 py-10 rounded-xl shadow-[0_0_40px_rgba(16,185,129,0.6)] font-bold w-full md:w-auto group border-2 border-emerald-400/50"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent animate-shine-fast" />
-            <Rocket className="w-6 h-6 mr-2 relative z-10" />
+            <Rocket className="w-7 h-7 mr-3 relative z-10" />
             <span className="relative z-10">Liberar Teste Grátis de 24h</span>
-            <ArrowRight className="w-6 h-6 ml-2 relative z-10" />
+            <ArrowRight className="w-7 h-7 ml-3 relative z-10" />
           </Button>
         </div>
       </section>
@@ -622,10 +622,10 @@ const TesteGratis = () => {
           <Button 
             onClick={() => setShowForm(true)}
             size="lg"
-            className="relative overflow-hidden bg-emerald-700 hover:bg-emerald-600 text-white text-xl px-12 py-8 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.5)] font-bold group border-2 border-emerald-400/50"
+            className="relative overflow-hidden bg-emerald-700 hover:bg-emerald-600 text-white text-2xl px-16 py-10 rounded-xl shadow-[0_0_40px_rgba(16,185,129,0.6)] font-bold group border-2 border-emerald-400/50"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent animate-shine-fast" />
-            <Rocket className="w-6 h-6 mr-2 relative z-10" />
+            <Rocket className="w-7 h-7 mr-3 relative z-10" />
             <span className="relative z-10">Liberar Meu Teste Agora</span>
           </Button>
         </div>
