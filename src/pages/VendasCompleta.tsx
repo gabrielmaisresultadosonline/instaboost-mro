@@ -466,16 +466,19 @@ const VendasCompleta = () => {
                 UTILIZE A MRO INTELIGENTE
               </span>
             </h2>
+            <p className="relative mt-3 text-sm md:text-base text-gray-400">
+              Instale em seu notebook, macbook ou computador de mesa!
+            </p>
           </div>
 
           {/* Main Video */}
           <div className="mt-10 max-w-4xl mx-auto">
             <div 
-              onClick={() => openVideo("U-WmszcYekA")}
+              onClick={() => openVideo("yFN-F2U9z8w")}
               className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700 hover:border-amber-500/50 transition-all"
             >
               <img 
-                src="https://img.youtube.com/vi/U-WmszcYekA/maxresdefault.jpg" 
+                src="https://img.youtube.com/vi/yFN-F2U9z8w/maxresdefault.jpg" 
                 alt="Video MRO" 
                 className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
               />
