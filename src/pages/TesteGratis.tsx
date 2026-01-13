@@ -26,7 +26,10 @@ import {
   CheckCircle2,
   Video,
   MessageCircle,
-  Play
+  Play,
+  Monitor,
+  Star,
+  Check
 } from 'lucide-react';
 import logoMro from '@/assets/logo-mro-2.png';
 
@@ -310,6 +313,21 @@ const TesteGratis = () => {
         </div>
       </section>
 
+      {/* Computer/Notebook Warning */}
+      <section className="px-4 py-4">
+        <div className="max-w-lg mx-auto">
+          <div className="bg-blue-950/80 border-2 border-blue-500 rounded-xl p-4 text-center">
+            <div className="flex items-center justify-center gap-3">
+              <Monitor className="w-8 h-8 text-blue-400 flex-shrink-0" />
+              <div>
+                <p className="text-lg font-bold text-blue-400">💻 PRECISA DE UM COMPUTADOR OU NOTEBOOK PARA TESTAR!</p>
+                <p className="text-gray-300 text-sm">A ferramenta funciona apenas no Windows</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Button */}
       <section className="px-4 py-6">
         <div className="max-w-lg mx-auto text-center">
@@ -491,6 +509,109 @@ const TesteGratis = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Plans Section */}
+      <section className="px-4 py-12 bg-gradient-to-b from-black to-zinc-950">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <span className="inline-block bg-yellow-400 text-black text-sm font-bold px-4 py-1 rounded-full mb-4">
+              TESTE ANTES DE COMPRAR
+            </span>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+              Depois pode comprar nossos planos
+            </h2>
+            <p className="text-gray-400 text-lg">
+              E tenha acesso completo total a tudo, inclusive nossa <span className="text-yellow-400 font-bold">INTELIGÊNCIA ARTIFICIAL!</span>
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Plano Anual */}
+            <Card className="bg-zinc-900 border-2 border-zinc-700 hover:border-blue-500 transition-colors">
+              <CardContent className="p-6 text-center">
+                <h3 className="text-2xl font-bold text-blue-400 mb-2">Plano Anual</h3>
+                <p className="text-gray-400 text-sm mb-4">Acesso completo por 12 meses</p>
+                
+                <div className="mb-6">
+                  <p className="text-gray-400 text-sm">12x de</p>
+                  <p className="text-5xl font-bold text-blue-400">R$41</p>
+                  <p className="text-gray-400 text-sm">ou à vista PIX <span className="line-through">R$397</span></p>
+                </div>
+                
+                <ul className="text-left space-y-2 mb-6">
+                  {[
+                    'Ferramenta completa para Instagram',
+                    'Acesso a 4 contas simultâneas fixas',
+                    '5 testes todo mês para testar em seus clientes/outras contas',
+                    'Área de membros por 1 ano',
+                    'Vídeos estratégicos passo a passo',
+                    'Grupo VIP no WhatsApp',
+                    'Suporte prioritário'
+                  ].map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-gray-300 text-sm">
+                      <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                
+                <p className="text-gray-500 text-xs mb-4">• Cadastro Afiliado - Comissão de R$97 Por venda</p>
+                
+                <a href="https://maisresultadosonline.com.br/instagram-nova" target="_blank" rel="noopener noreferrer">
+                  <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-6">
+                    GARANTIR PLANO ANUAL
+                  </Button>
+                </a>
+              </CardContent>
+            </Card>
+            
+            {/* Plano Vitalício */}
+            <Card className="bg-zinc-900 border-2 border-yellow-500 relative shadow-[0_0_30px_rgba(250,204,21,0.2)]">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-yellow-500 text-black text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1">
+                  <Star className="w-3 h-3" /> MAIS POPULAR
+                </span>
+              </div>
+              <CardContent className="p-6 text-center">
+                <h3 className="text-2xl font-bold text-yellow-400 mb-2">Plano Vitalício</h3>
+                <p className="text-gray-400 text-sm mb-4">Acesso completo para sempre</p>
+                
+                <div className="mb-6">
+                  <p className="text-gray-400 text-sm">12x de</p>
+                  <p className="text-5xl font-bold text-yellow-400">R$81</p>
+                  <p className="text-gray-400 text-sm">ou à vista PIX <span className="line-through">R$797</span></p>
+                </div>
+                
+                <ul className="text-left space-y-2 mb-6">
+                  {[
+                    'Ferramenta completa para Instagram',
+                    'Acesso a 6 contas simultâneas fixas',
+                    '5 testes todo mês para testar em seus clientes/outras contas',
+                    'Área de membros VITALÍCIA',
+                    'Vídeos estratégicos passo a passo',
+                    'Grupo VIP no WhatsApp',
+                    'Suporte prioritário',
+                    'Atualizações gratuitas para sempre'
+                  ].map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-gray-300 text-sm">
+                      <Check className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                
+                <p className="text-gray-500 text-xs mb-4">• Cadastro Afiliado - Comissão de R$97 Por venda</p>
+                
+                <a href="https://maisresultadosonline.com.br/instagram-nova" target="_blank" rel="noopener noreferrer">
+                  <Button className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-6">
+                    GARANTIR PLANO VITALÍCIO
+                  </Button>
+                </a>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
