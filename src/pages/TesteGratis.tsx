@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { trackLead } from '@/lib/facebookTracking';
 import { 
   Sparkles, 
   Download, 
@@ -169,6 +170,9 @@ const TesteGratis = () => {
         expires_at: data.expiresAt
       };
       localStorage.setItem('testegratis_user', JSON.stringify(userDataForStorage));
+
+      // Track Lead event for Facebook Pixel
+      await trackLead('Teste Grátis - Cadastro');
 
       toast.success('Teste liberado com sucesso! Redirecionando...');
       
