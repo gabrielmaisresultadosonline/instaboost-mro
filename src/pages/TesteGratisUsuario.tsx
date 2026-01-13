@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,7 +14,9 @@ import {
   Lock,
   Users,
   Loader2,
-  CheckCircle
+  CheckCircle,
+  Upload,
+  Camera
 } from "lucide-react";
 import logoMro from '@/assets/logo-mro-2.png';
 
@@ -25,13 +27,16 @@ const TesteGratisUsuario = () => {
   const [userData, setUserData] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [needsScreenshot, setNeedsScreenshot] = useState(false);
+  const [uploadingScreenshot, setUploadingScreenshot] = useState(false);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check for stored session
   useEffect(() => {
     const storedUser = localStorage.getItem('testegratis_user');
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
-      // Verify if still valid
       checkUserAccess(parsed.instagram_username, true);
     }
   }, []);
@@ -99,82 +104,7 @@ const TesteGratisUsuario = () => {
         return;
       }
 
-      // Verify with SquareCloud API using master credentials
-      try {
-        const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-usuario-instagram', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            username: normalizedIG,
-            masterUser: settingsData.mro_master_username,
-            masterPassword: settingsData.mro_master_password
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success && result.registered) {
-          // Instagram exists in SquareCloud - allow access
-          // Check in database for additional info
-          const { data: registration } = await supabase
-            .from('free_trial_registrations')
-            .select('*')
-            .eq('instagram_username', normalizedIG)
-            .single();
-          
-          if (registration) {
-            // Check if expired
-            const now = new Date();
-            const expiresAt = new Date(registration.expires_at);
-            
-            if (now > expiresAt) {
-              if (!silent) {
-                toast.error("Acesso Expirado! ⏰", {
-                  description: `Seu teste de 24h expirou em ${expiresAt.toLocaleString('pt-BR')}. Adquira um plano para continuar usando o MRO!`
-                });
-              }
-              localStorage.removeItem('testegratis_user');
-              setIsLoading(false);
-              return;
-            }
-            
-            // Success - login user with full data
-            setUserData(registration);
-            setIsLoggedIn(true);
-            localStorage.setItem('testegratis_user', JSON.stringify(registration));
-            
-            if (!silent) {
-              toast.success("Bem-vindo(a)! 🎉", {
-                description: `Olá ${registration.full_name}! Seu teste está ativo.`
-              });
-            }
-          } else {
-            // Instagram exists in SquareCloud but not in our DB - create minimal session
-            const minimalData = {
-              instagram_username: normalizedIG,
-              full_name: normalizedIG,
-              generated_username: settingsData.mro_master_username,
-              generated_password: settingsData.mro_master_password,
-              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-            };
-            
-            setUserData(minimalData);
-            setIsLoggedIn(true);
-            localStorage.setItem('testegratis_user', JSON.stringify(minimalData));
-            
-            if (!silent) {
-              toast.success("Bem-vindo(a)! 🎉", {
-                description: `Instagram @${normalizedIG} encontrado!`
-              });
-            }
-          }
-          return;
-        }
-      } catch (apiError) {
-        console.log("API verification failed, falling back to DB check", apiError);
-      }
-
-      // Fallback: Check in database
+      // Check in database first
       const { data: registration, error } = await supabase
         .from('free_trial_registrations')
         .select('*')
@@ -182,6 +112,47 @@ const TesteGratisUsuario = () => {
         .single();
       
       if (error || !registration) {
+        // Try to verify with SquareCloud API using master credentials
+        try {
+          const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-usuario-instagram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              username: normalizedIG,
+              masterUser: settingsData.mro_master_username,
+              masterPassword: settingsData.mro_master_password
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success && result.registered) {
+            // Instagram exists in SquareCloud but not in our DB - create minimal session
+            const minimalData = {
+              instagram_username: normalizedIG,
+              full_name: normalizedIG,
+              generated_username: settingsData.mro_master_username,
+              generated_password: settingsData.mro_master_password,
+              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              profile_screenshot_url: null
+            };
+            
+            setUserData(minimalData);
+            setIsLoggedIn(true);
+            setNeedsScreenshot(true); // Require screenshot
+            localStorage.setItem('testegratis_user', JSON.stringify(minimalData));
+            
+            if (!silent) {
+              toast.success("Instagram encontrado! 🎉", {
+                description: `Por favor, envie um print do seu perfil para liberar o acesso.`
+              });
+            }
+            return;
+          }
+        } catch (apiError) {
+          console.log("API verification failed", apiError);
+        }
+
         if (!silent) {
           toast.error("Instagram não encontrado", {
             description: "Você ainda não fez o teste grátis. Faça seu cadastro primeiro!"
@@ -207,6 +178,11 @@ const TesteGratisUsuario = () => {
         return;
       }
       
+      // Check if needs screenshot
+      if (!registration.profile_screenshot_url) {
+        setNeedsScreenshot(true);
+      }
+      
       // Success - login user
       setUserData(registration);
       setIsLoggedIn(true);
@@ -226,6 +202,76 @@ const TesteGratisUsuario = () => {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, envie uma imagem!");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem muito grande! Máximo 5MB.");
+      return;
+    }
+
+    // Preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setScreenshotPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUploadScreenshot = async () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (!file || !userData) return;
+
+    setUploadingScreenshot(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userData.instagram_username}-${Date.now()}.${fileExt}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('trial-screenshots')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('trial-screenshots')
+        .getPublicUrl(fileName);
+
+      const screenshotUrl = urlData.publicUrl;
+
+      // Update database
+      const { error: updateError } = await supabase
+        .from('free_trial_registrations')
+        .update({ profile_screenshot_url: screenshotUrl })
+        .eq('instagram_username', userData.instagram_username);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      const updatedUserData = { ...userData, profile_screenshot_url: screenshotUrl };
+      setUserData(updatedUserData);
+      setNeedsScreenshot(false);
+      localStorage.setItem('testegratis_user', JSON.stringify(updatedUserData));
+
+      toast.success("Print enviado com sucesso! ✅", {
+        description: "Agora você tem acesso às credenciais."
+      });
+
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast.error("Erro ao enviar print. Tente novamente.");
+    } finally {
+      setUploadingScreenshot(false);
+    }
+  };
+
   const handleLogin = () => {
     checkUserAccess(instagramUsername);
   };
@@ -233,12 +279,14 @@ const TesteGratisUsuario = () => {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUserData(null);
+    setNeedsScreenshot(false);
+    setScreenshotPreview(null);
     localStorage.removeItem('testegratis_user');
     setInstagramUsername("");
     toast.info("Você saiu da área de teste");
   };
 
-  // Login Screen - Black/Gray/White/Yellow theme
+  // Login Screen
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
@@ -296,7 +344,108 @@ const TesteGratisUsuario = () => {
     );
   }
 
-  // Logged in - User Area with Black/Gray/White/Yellow theme
+  // Screenshot Upload Screen
+  if (needsScreenshot && !userData?.profile_screenshot_url) {
+    return (
+      <div className="min-h-screen bg-black p-4">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <img src={logoMro} alt="MRO" className="h-10" />
+              <div>
+                <p className="text-white font-medium">{userData?.full_name}</p>
+                <p className="text-yellow-400 text-sm">@{userData?.instagram_username}</p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="border-red-500/50 text-red-400 hover:bg-red-500/20"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          </div>
+
+          {/* Screenshot Request Card */}
+          <Card className="bg-zinc-900 border-yellow-500/50">
+            <CardHeader className="text-center">
+              <Camera className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+              <CardTitle className="text-2xl text-white">📸 Envie um Print do seu Perfil</CardTitle>
+              <CardDescription className="text-gray-400">
+                Para liberar seu acesso, precisamos de um print do perfil do Instagram que você está utilizando.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-zinc-800 rounded-lg p-4 border border-zinc-700">
+                <p className="text-white font-medium mb-2">📌 O print deve mostrar:</p>
+                <ul className="text-gray-400 text-sm space-y-1">
+                  <li>• Seu nome de usuário (@{userData?.instagram_username})</li>
+                  <li>• Foto de perfil visível</li>
+                  <li>• Número de seguidores/seguindo</li>
+                </ul>
+              </div>
+
+              {/* File Input */}
+              <div 
+                className="border-2 border-dashed border-zinc-600 rounded-xl p-8 text-center cursor-pointer hover:border-yellow-500/50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                {screenshotPreview ? (
+                  <div className="space-y-4">
+                    <img 
+                      src={screenshotPreview} 
+                      alt="Preview" 
+                      className="max-h-64 mx-auto rounded-lg"
+                    />
+                    <p className="text-green-400 text-sm">✅ Imagem selecionada! Clique em "Enviar Print"</p>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                    <p className="text-gray-400">Clique aqui para selecionar a imagem</p>
+                    <p className="text-gray-600 text-sm mt-2">PNG, JPG até 5MB</p>
+                  </>
+                )}
+              </div>
+
+              <Button
+                onClick={handleUploadScreenshot}
+                disabled={!screenshotPreview || uploadingScreenshot}
+                className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-6"
+              >
+                {uploadingScreenshot ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5 mr-2" />
+                    Enviar Print e Liberar Acesso
+                  </>
+                )}
+              </Button>
+
+              <p className="text-gray-500 text-xs text-center">
+                ⚠️ Sem o envio do print, não será possível visualizar as credenciais de acesso.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Logged in - User Area
   const isExpired = userData?.expires_at && new Date() > new Date(userData.expires_at);
 
   return (
@@ -370,6 +519,9 @@ const TesteGratisUsuario = () => {
                   <CheckCircle className="w-5 h-5 text-green-400" />
                   Seus Dados de Acesso
                 </CardTitle>
+                <p className="text-red-500 text-sm font-medium mt-2">
+                  ⚠️ Esse é o acesso que você vai utilizar para acessar a ferramenta no seu Instagram!
+                </p>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-4">
                 <div className="bg-zinc-800 rounded-lg p-4">
@@ -493,24 +645,26 @@ const TesteGratisUsuario = () => {
               </Card>
             )}
 
-            {/* Renda Extra Section */}
+            {/* Renda Extra Section - Smaller Video */}
             <Card className="mb-6 bg-zinc-900 border-green-500/50">
               <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-white text-center mb-2">
+                <h3 className="text-lg font-bold text-white text-center mb-2">
                   💰 Sabia que você pode fazer uma renda extra de<br />
                   <span className="text-green-400">mais de 5 MIL REAIS</span> com essa ferramenta?
                 </h3>
-                <p className="text-gray-300 text-center mb-4">
+                <p className="text-gray-300 text-center text-sm mb-4">
                   Sim, além de utilizar para o seu negócio! Assista o vídeo abaixo:
                 </p>
-                <div className="aspect-video rounded-lg overflow-hidden border border-zinc-700">
-                  <iframe
-                    src="https://www.youtube.com/embed/WQwnAHNvSMU"
-                    title="Renda Extra com MRO"
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                <div className="max-w-md mx-auto">
+                  <div className="aspect-video rounded-lg overflow-hidden border border-zinc-700">
+                    <iframe
+                      src="https://www.youtube.com/embed/WQwnAHNvSMU"
+                      title="Renda Extra com MRO"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

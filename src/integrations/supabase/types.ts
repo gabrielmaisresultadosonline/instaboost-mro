@@ -380,6 +380,7 @@ export type Database = {
           instagram_removed_at: string | null
           instagram_username: string
           mro_master_user: string
+          profile_screenshot_url: string | null
           registered_at: string
           updated_at: string
           whatsapp: string
@@ -398,6 +399,7 @@ export type Database = {
           instagram_removed_at?: string | null
           instagram_username: string
           mro_master_user: string
+          profile_screenshot_url?: string | null
           registered_at?: string
           updated_at?: string
           whatsapp: string
@@ -416,6 +418,7 @@ export type Database = {
           instagram_removed_at?: string | null
           instagram_username?: string
           mro_master_user?: string
+          profile_screenshot_url?: string | null
           registered_at?: string
           updated_at?: string
           whatsapp?: string
