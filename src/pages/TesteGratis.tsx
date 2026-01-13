@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,26 +9,24 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Sparkles, 
-  Play, 
   Download, 
   Users, 
   Clock, 
   AlertTriangle,
-  CheckCircle2,
   Loader2,
   Instagram,
   Mail,
   Phone,
   User,
-  Copy,
   ExternalLink,
   Rocket,
-  Zap,
-  MessageCircle,
-  Crown,
   ArrowRight,
   Lock,
-  Video
+  Zap,
+  CheckCircle2,
+  Video,
+  MessageCircle,
+  Play
 } from 'lucide-react';
 import logoMro from '@/assets/logo-mro-2.png';
 
@@ -43,13 +42,9 @@ interface TrialSettings {
   is_active: boolean;
 }
 
-interface AccessData {
-  username: string;
-  password: string;
-  expiresAt: string;
-}
 
 const TesteGratis = () => {
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -57,7 +52,6 @@ const TesteGratis = () => {
   const [instagramUsername, setInstagramUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<TrialSettings | null>(null);
-  const [accessData, setAccessData] = useState<AccessData | null>(null);
   const [existingTrial, setExistingTrial] = useState<{ tested_at: string } | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
 
@@ -162,14 +156,23 @@ const TesteGratis = () => {
         return;
       }
 
-      setAccessData({
-        username: data.username,
-        password: data.password,
-        expiresAt: data.expiresAt
-      });
+      // Save user data to localStorage for auto-login
+      const userDataForStorage = {
+        instagram_username: normalizedIG,
+        full_name: fullName,
+        email: email,
+        generated_username: data.username,
+        generated_password: data.password,
+        expires_at: data.expiresAt
+      };
+      localStorage.setItem('testegratis_user', JSON.stringify(userDataForStorage));
 
-      setShowForm(false);
-      toast.success('Teste liberado com sucesso!');
+      toast.success('Teste liberado com sucesso! Redirecionando...');
+      
+      // Redirect to user area
+      setTimeout(() => {
+        navigate('/testegratis/usuario');
+      }, 1000);
     } catch (error: any) {
       console.error('Error:', error);
       toast.error(error.message || 'Erro ao processar registro. Tente novamente.');
@@ -212,173 +215,6 @@ const TesteGratis = () => {
             <p className="text-gray-400">O teste grátis está temporariamente desabilitado.</p>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
-
-  // Success screen - after registration
-  if (accessData) {
-    return (
-      <div className="min-h-screen bg-black py-8 px-4">
-        <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <img src={logoMro} alt="MRO" className="h-14 mx-auto mb-4" />
-            <div className="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold">
-              <CheckCircle2 className="w-6 h-6" />
-              Teste Liberado com Sucesso!
-            </div>
-          </div>
-
-          <Card className="bg-zinc-900 border-zinc-800 mb-6">
-            <CardContent className="p-6 space-y-6">
-              {/* Expiration Warning */}
-              <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-5 rounded-xl border-2 border-red-400">
-                <div className="flex items-start gap-4">
-                  <Clock className="w-8 h-8 flex-shrink-0" />
-                  <div>
-                    <p className="font-bold text-xl mb-1">⚠️ ATENÇÃO: Você tem 24 HORAS!</p>
-                    <p className="opacity-90">
-                      Seu teste expira em: <strong>{formatExpirationDate(accessData.expiresAt)}</strong>
-                    </p>
-                    <p className="opacity-90 mt-1">
-                      Após esse período, NÃO conseguirá testar novamente com este Instagram.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Credentials */}
-              <div className="bg-zinc-800 p-6 rounded-xl space-y-4 border border-yellow-500/30">
-                <h3 className="font-bold text-lg text-yellow-400 flex items-center gap-2">
-                  <Crown className="w-5 h-5" />
-                  Seus Dados de Acesso
-                </h3>
-                
-                <div className="grid gap-3">
-                  <div className="bg-zinc-900 p-4 rounded-lg flex items-center justify-between border border-zinc-700">
-                    <div>
-                      <span className="text-xs text-gray-500 block mb-1">Usuário:</span>
-                      <span className="font-mono font-bold text-lg text-white">{accessData.username}</span>
-                    </div>
-                    <Button size="sm" variant="ghost" className="text-yellow-400 hover:text-yellow-300" onClick={() => copyToClipboard(accessData.username, 'Usuário')}>
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="bg-zinc-900 p-4 rounded-lg flex items-center justify-between border border-zinc-700">
-                    <div>
-                      <span className="text-xs text-gray-500 block mb-1">Senha:</span>
-                      <span className="font-mono font-bold text-lg text-white">{accessData.password}</span>
-                    </div>
-                    <Button size="sm" variant="ghost" className="text-yellow-400 hover:text-yellow-300" onClick={() => copyToClipboard(accessData.password, 'Senha')}>
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tutorial Videos Warning */}
-              <div className="bg-zinc-800 border-2 border-yellow-500 p-5 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <Play className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-1" />
-                  <div>
-                    <p className="font-bold text-yellow-400 text-lg mb-2">📺 Assista os Vídeos Tutoriais!</p>
-                    <p className="text-gray-300 mb-3">
-                      Para instalar e utilizar a ferramenta corretamente, assista os vídeos abaixo:
-                    </p>
-                    
-                    <div className="grid md:grid-cols-3 gap-3 mb-4">
-                      {settings?.welcome_video_url && (
-                        <a href={settings.welcome_video_url} target="_blank" rel="noopener noreferrer"
-                          className="bg-zinc-900 p-3 rounded-lg flex items-center gap-2 hover:bg-zinc-700 transition-colors border border-zinc-700">
-                          <div className="bg-yellow-400 rounded-full p-1">
-                            <Play className="w-4 h-4 text-black" />
-                          </div>
-                          <span className="font-medium text-sm text-white">Bem-vindo</span>
-                        </a>
-                      )}
-                      {settings?.installation_video_url && (
-                        <a href={settings.installation_video_url} target="_blank" rel="noopener noreferrer"
-                          className="bg-zinc-900 p-3 rounded-lg flex items-center gap-2 hover:bg-zinc-700 transition-colors border border-zinc-700">
-                          <div className="bg-yellow-400 rounded-full p-1">
-                            <Download className="w-4 h-4 text-black" />
-                          </div>
-                          <span className="font-medium text-sm text-white">Instalação</span>
-                        </a>
-                      )}
-                      {settings?.usage_video_url && (
-                        <a href={settings.usage_video_url} target="_blank" rel="noopener noreferrer"
-                          className="bg-zinc-900 p-3 rounded-lg flex items-center gap-2 hover:bg-zinc-700 transition-colors border border-zinc-700">
-                          <div className="bg-yellow-400 rounded-full p-1">
-                            <Zap className="w-4 h-4 text-black" />
-                          </div>
-                          <span className="font-medium text-sm text-white">Como Usar</span>
-                        </a>
-                      )}
-                    </div>
-
-                    <div className="bg-red-900/50 border-2 border-red-500 p-3 rounded-lg">
-                      <p className="text-red-400 font-bold text-sm">🚫 NÃO TEMOS SUPORTE PARA TESTES GRÁTIS!</p>
-                      <p className="text-red-300 text-xs mt-1">Para ter suporte, adquira um de nossos planos.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid gap-3">
-                {settings?.download_link && (
-                  <a href={settings.download_link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 bg-yellow-400 text-black py-4 px-6 rounded-xl font-bold text-lg hover:bg-yellow-300 transition-colors">
-                    <Download className="w-5 h-5" />
-                    Download do Sistema
-                  </a>
-                )}
-                {settings?.group_link && (
-                  <a href={settings.group_link} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 bg-green-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:bg-green-500 transition-colors">
-                    <MessageCircle className="w-5 h-5" />
-                    Entrar no Grupo VIP
-                  </a>
-                )}
-              </div>
-
-              {/* Support Types */}
-              <div className="bg-zinc-800 border border-zinc-700 p-5 rounded-xl">
-                <h3 className="font-bold text-yellow-400 text-center mb-4">
-                  💡 Está com dificuldade? Conheça nossos Suportes Premium!
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-zinc-900 p-4 rounded-lg border border-zinc-700">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="bg-orange-500 rounded-lg p-1.5">
-                        <ExternalLink className="w-4 h-4 text-white" />
-                      </div>
-                      <h4 className="font-bold text-orange-400">Suporte AnyDesk</h4>
-                    </div>
-                    <p className="text-gray-400 text-sm">
-                      <strong className="text-white">Acesso remoto</strong> - Configuramos tudo no seu PC em tempo real!
-                    </p>
-                  </div>
-                  <div className="bg-zinc-900 p-4 rounded-lg border border-zinc-700">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="bg-green-500 rounded-lg p-1.5">
-                        <Phone className="w-4 h-4 text-white" />
-                      </div>
-                      <h4 className="font-bold text-green-400">Suporte WhatsApp</h4>
-                    </div>
-                    <p className="text-gray-400 text-sm">
-                      <strong className="text-white">Atendimento direto</strong> - Tire dúvidas por mensagens ou áudios!
-                    </p>
-                  </div>
-                </div>
-                <p className="text-center text-yellow-400 font-semibold mt-3 text-sm">
-                  👆 Ambos inclusos nos planos pagos!
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     );
   }
