@@ -684,8 +684,93 @@ const TesteGratisUsuario = () => {
           </Card>
         ) : (
           <>
-            {/* Access Data */}
-            <Card className="mb-6 bg-zinc-900 border-zinc-700">
+            {/* Video 1 - Welcome (Boas-vindas) - ALWAYS FIRST after timer */}
+            {settings?.welcome_video_url && (
+              <Card className="mb-8 bg-zinc-900 border-yellow-500/50">
+                <CardContent className="p-6">
+                  <h4 className="text-2xl text-white font-bold mb-2 text-center">👋 Boas-vindas</h4>
+                  <p className="text-gray-400 text-center mb-4">Assista este vídeo primeiro!</p>
+                  <div className="max-w-lg mx-auto">
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
+                      <iframe
+                        src={getYouTubeEmbedUrl(settings.welcome_video_url)}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Video 2 - Installation */}
+            {settings?.installation_video_url && (
+              <Card className="mb-8 bg-zinc-900 border-zinc-700">
+                <CardContent className="p-6">
+                  <h4 className="text-2xl text-white font-bold mb-2 text-center">📥 Como Instalar o MRO</h4>
+                  <p className="text-gray-400 text-center mb-4">Siga o passo a passo para instalar</p>
+                  <div className="max-w-lg mx-auto">
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
+                      <iframe
+                        src={getYouTubeEmbedUrl(settings.installation_video_url)}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Download Button after Installation Video */}
+            <Card className="mb-8 bg-zinc-900 border-yellow-500/50">
+              <CardContent className="p-6">
+                <h4 className="text-2xl text-white font-bold mb-3 flex items-center justify-center gap-2">
+                  <Download className="w-6 h-6 text-yellow-400" />
+                  Baixar o Sistema
+                </h4>
+                <p className="text-gray-300 mb-4 text-center">
+                  Baixe o sistema MRO para Windows e use com suas credenciais.
+                </p>
+                {settings?.download_link ? (
+                  <a href={settings.download_link} target="_blank" rel="noopener noreferrer">
+                    <Button size="lg" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold">
+                      <Download className="w-5 h-5 mr-2" />
+                      Baixar MRO para Windows
+                    </Button>
+                  </a>
+                ) : (
+                  <Button size="lg" className="w-full bg-gray-500 cursor-not-allowed" disabled>
+                    Link de download não disponível
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+                
+            {/* Video 3 - Usage */}
+            {settings?.usage_video_url && (
+              <Card className="mb-8 bg-zinc-900 border-zinc-700">
+                <CardContent className="p-6">
+                  <h4 className="text-2xl text-white font-bold mb-2 text-center">🚀 Como Usar o MRO</h4>
+                  <p className="text-gray-400 text-center mb-4">Aprenda a utilizar todas as funcionalidades</p>
+                  <div className="max-w-lg mx-auto">
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
+                      <iframe
+                        src={getYouTubeEmbedUrl(settings.usage_video_url)}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Access Data - After Usage Video */}
+            <Card className="mb-8 bg-zinc-900 border-green-500/50">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-400" />
@@ -704,102 +789,6 @@ const TesteGratisUsuario = () => {
                   <p className="text-gray-400 text-sm mb-1">Senha</p>
                   <p className="text-yellow-400 font-mono text-lg font-bold">{userData?.generated_password}</p>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Videos Section */}
-            <Card className="mb-6 bg-zinc-900 border-zinc-700">
-              <CardHeader>
-                <CardTitle className="text-2xl text-white flex items-center gap-2">
-                  <PlayCircle className="w-6 h-6 text-yellow-400" />
-                  Vídeos Tutoriais
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Assista os vídeos abaixo para aprender a instalar e usar o MRO
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Video 1 - Welcome (Boas-vindas) - ALWAYS FIRST */}
-                {settings?.welcome_video_url && (
-                  <div className="bg-zinc-800 rounded-lg p-4">
-                    <h4 className="text-xl text-white font-bold mb-4">👋 1. Boas-vindas</h4>
-                    <div className="max-w-lg mx-auto">
-                      <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
-                        <iframe
-                          src={getYouTubeEmbedUrl(settings.welcome_video_url)}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Video 2 - Installation */}
-                {settings?.installation_video_url && (
-                  <div className="bg-zinc-800 rounded-lg p-4">
-                    <h4 className="text-xl text-white font-bold mb-4">📥 2. Como Instalar o MRO</h4>
-                    <div className="max-w-lg mx-auto">
-                      <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
-                        <iframe
-                          src={getYouTubeEmbedUrl(settings.installation_video_url)}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Download Button after Installation Video */}
-                <div className="bg-zinc-800 rounded-lg p-6 border-2 border-yellow-500/50">
-                  <h4 className="text-xl text-white font-bold mb-3 flex items-center gap-2">
-                    <Download className="w-6 h-6 text-yellow-400" />
-                    Baixar o Sistema
-                  </h4>
-                  <p className="text-gray-300 mb-4">
-                    Baixe o sistema MRO para Windows e use com suas credenciais acima.
-                  </p>
-                  {settings?.download_link ? (
-                    <a href={settings.download_link} target="_blank" rel="noopener noreferrer">
-                      <Button size="lg" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold">
-                        <Download className="w-5 h-5 mr-2" />
-                        Baixar MRO para Windows
-                      </Button>
-                    </a>
-                  ) : (
-                    <Button size="lg" className="w-full bg-gray-500 cursor-not-allowed" disabled>
-                      Link de download não disponível
-                    </Button>
-                  )}
-                </div>
-                
-                {/* Video 3 - Usage */}
-                {settings?.usage_video_url && (
-                  <div className="bg-zinc-800 rounded-lg p-4">
-                    <h4 className="text-xl text-white font-bold mb-4">🚀 3. Como Usar o MRO</h4>
-                    <div className="max-w-lg mx-auto">
-                      <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
-                        <iframe
-                          src={getYouTubeEmbedUrl(settings.usage_video_url)}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {!settings?.installation_video_url && !settings?.usage_video_url && !settings?.welcome_video_url && (
-                  <div className="text-center py-8 text-gray-500">
-                    <PlayCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum vídeo tutorial disponível ainda.</p>
-                    <p className="text-sm">O administrador pode adicionar vídeos no painel.</p>
-                  </div>
-                )}
               </CardContent>
             </Card>
 

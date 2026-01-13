@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +27,10 @@ import {
   Phone,
   CheckCircle,
   XCircle,
-  Play
+  Play,
+  Upload,
+  Image,
+  X
 } from 'lucide-react';
 
 interface TrialSettings {
@@ -75,6 +78,80 @@ const TesteGratisAdmin = () => {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState<string | null>(null);
+  
+  // Refs for file inputs
+  const welcomeThumbRef = useRef<HTMLInputElement>(null);
+  const installThumbRef = useRef<HTMLInputElement>(null);
+  const usageThumbRef = useRef<HTMLInputElement>(null);
+
+  // Handle thumbnail upload (file or paste)
+  const handleThumbnailUpload = async (file: File, field: 'welcome_video_thumbnail' | 'installation_video_thumbnail' | 'usage_video_thumbnail') => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, envie uma imagem!');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem muito grande! Máximo 5MB.');
+      return;
+    }
+
+    setUploadingThumbnail(field);
+
+    try {
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const fileName = `thumb-${field}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('trial-screenshots')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('trial-screenshots')
+        .getPublicUrl(fileName);
+
+      setSettings(s => s ? { ...s, [field]: urlData.publicUrl } : null);
+      toast.success('Thumbnail enviada com sucesso!');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Erro ao enviar thumbnail');
+    } finally {
+      setUploadingThumbnail(null);
+    }
+  };
+
+  // Handle paste for thumbnails
+  const handlePaste = (e: React.ClipboardEvent, field: 'welcome_video_thumbnail' | 'installation_video_thumbnail' | 'usage_video_thumbnail') => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          handleThumbnailUpload(file, field);
+          return;
+        }
+      }
+    }
+  };
+
+  // Handle file select
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, field: 'welcome_video_thumbnail' | 'installation_video_thumbnail' | 'usage_video_thumbnail') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleThumbnailUpload(file, field);
+    }
+  };
+
+  // Clear thumbnail
+  const clearThumbnail = (field: 'welcome_video_thumbnail' | 'installation_video_thumbnail' | 'usage_video_thumbnail') => {
+    setSettings(s => s ? { ...s, [field]: null } : null);
+  };
 
   const handleAdminLogin = async () => {
     if (!adminEmail || !adminPassword) {
@@ -162,6 +239,9 @@ const TesteGratisAdmin = () => {
           welcome_video_url: settings.welcome_video_url,
           installation_video_url: settings.installation_video_url,
           usage_video_url: settings.usage_video_url,
+          welcome_video_thumbnail: settings.welcome_video_thumbnail,
+          installation_video_thumbnail: settings.installation_video_thumbnail,
+          usage_video_thumbnail: settings.usage_video_thumbnail,
           download_link: settings.download_link,
           group_link: settings.group_link,
           trial_duration_hours: settings.trial_duration_hours,
@@ -387,7 +467,7 @@ const TesteGratisAdmin = () => {
                     {/* Video 1 - Welcome */}
                     <div className="bg-gray-700/50 rounded-lg p-4">
                       <Label className="text-white text-lg mb-3 block">1. Boas-vindas</Label>
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-4">
                         <div>
                           <Label className="text-gray-300 text-sm">URL do Vídeo</Label>
                           <Input
@@ -398,13 +478,58 @@ const TesteGratisAdmin = () => {
                           />
                         </div>
                         <div>
-                          <Label className="text-gray-300 text-sm">Thumbnail/Capa (URL da imagem)</Label>
-                          <Input
-                            value={settings?.welcome_video_thumbnail || ''}
-                            onChange={(e) => setSettings(s => s ? { ...s, welcome_video_thumbnail: e.target.value } : null)}
-                            placeholder="https://i.imgur.com/..."
-                            className="bg-gray-700 border-gray-600 text-white"
-                          />
+                          <Label className="text-gray-300 text-sm flex items-center gap-2">
+                            <Image className="w-4 h-4" />
+                            Thumbnail/Capa
+                          </Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              value={settings?.welcome_video_thumbnail || ''}
+                              onChange={(e) => setSettings(s => s ? { ...s, welcome_video_thumbnail: e.target.value } : null)}
+                              onPaste={(e) => handlePaste(e, 'welcome_video_thumbnail')}
+                              placeholder="Cole URL, Ctrl+V imagem ou faça upload"
+                              className="bg-gray-700 border-gray-600 text-white flex-1"
+                            />
+                            <input
+                              ref={welcomeThumbRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileSelect(e, 'welcome_video_thumbnail')}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => welcomeThumbRef.current?.click()}
+                              disabled={uploadingThumbnail === 'welcome_video_thumbnail'}
+                              className="border-gray-600"
+                            >
+                              {uploadingThumbnail === 'welcome_video_thumbnail' ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Upload className="w-4 h-4" />
+                              )}
+                            </Button>
+                            {settings?.welcome_video_thumbnail && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => clearThumbnail('welcome_video_thumbnail')}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                          {settings?.welcome_video_thumbnail && (
+                            <img 
+                              src={settings.welcome_video_thumbnail} 
+                              alt="Thumbnail preview" 
+                              className="mt-2 h-20 rounded border border-gray-600"
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -412,7 +537,7 @@ const TesteGratisAdmin = () => {
                     {/* Video 2 - Installation */}
                     <div className="bg-gray-700/50 rounded-lg p-4">
                       <Label className="text-white text-lg mb-3 block">2. Instalação</Label>
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-4">
                         <div>
                           <Label className="text-gray-300 text-sm">URL do Vídeo</Label>
                           <Input
@@ -423,13 +548,58 @@ const TesteGratisAdmin = () => {
                           />
                         </div>
                         <div>
-                          <Label className="text-gray-300 text-sm">Thumbnail/Capa (URL da imagem)</Label>
-                          <Input
-                            value={settings?.installation_video_thumbnail || ''}
-                            onChange={(e) => setSettings(s => s ? { ...s, installation_video_thumbnail: e.target.value } : null)}
-                            placeholder="https://i.imgur.com/..."
-                            className="bg-gray-700 border-gray-600 text-white"
-                          />
+                          <Label className="text-gray-300 text-sm flex items-center gap-2">
+                            <Image className="w-4 h-4" />
+                            Thumbnail/Capa
+                          </Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              value={settings?.installation_video_thumbnail || ''}
+                              onChange={(e) => setSettings(s => s ? { ...s, installation_video_thumbnail: e.target.value } : null)}
+                              onPaste={(e) => handlePaste(e, 'installation_video_thumbnail')}
+                              placeholder="Cole URL, Ctrl+V imagem ou faça upload"
+                              className="bg-gray-700 border-gray-600 text-white flex-1"
+                            />
+                            <input
+                              ref={installThumbRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileSelect(e, 'installation_video_thumbnail')}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => installThumbRef.current?.click()}
+                              disabled={uploadingThumbnail === 'installation_video_thumbnail'}
+                              className="border-gray-600"
+                            >
+                              {uploadingThumbnail === 'installation_video_thumbnail' ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Upload className="w-4 h-4" />
+                              )}
+                            </Button>
+                            {settings?.installation_video_thumbnail && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => clearThumbnail('installation_video_thumbnail')}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                          {settings?.installation_video_thumbnail && (
+                            <img 
+                              src={settings.installation_video_thumbnail} 
+                              alt="Thumbnail preview" 
+                              className="mt-2 h-20 rounded border border-gray-600"
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -437,7 +607,7 @@ const TesteGratisAdmin = () => {
                     {/* Video 3 - Usage */}
                     <div className="bg-gray-700/50 rounded-lg p-4">
                       <Label className="text-white text-lg mb-3 block">3. Utilização</Label>
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-4">
                         <div>
                           <Label className="text-gray-300 text-sm">URL do Vídeo</Label>
                           <Input
@@ -448,13 +618,58 @@ const TesteGratisAdmin = () => {
                           />
                         </div>
                         <div>
-                          <Label className="text-gray-300 text-sm">Thumbnail/Capa (URL da imagem)</Label>
-                          <Input
-                            value={settings?.usage_video_thumbnail || ''}
-                            onChange={(e) => setSettings(s => s ? { ...s, usage_video_thumbnail: e.target.value } : null)}
-                            placeholder="https://i.imgur.com/..."
-                            className="bg-gray-700 border-gray-600 text-white"
-                          />
+                          <Label className="text-gray-300 text-sm flex items-center gap-2">
+                            <Image className="w-4 h-4" />
+                            Thumbnail/Capa
+                          </Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              value={settings?.usage_video_thumbnail || ''}
+                              onChange={(e) => setSettings(s => s ? { ...s, usage_video_thumbnail: e.target.value } : null)}
+                              onPaste={(e) => handlePaste(e, 'usage_video_thumbnail')}
+                              placeholder="Cole URL, Ctrl+V imagem ou faça upload"
+                              className="bg-gray-700 border-gray-600 text-white flex-1"
+                            />
+                            <input
+                              ref={usageThumbRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileSelect(e, 'usage_video_thumbnail')}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => usageThumbRef.current?.click()}
+                              disabled={uploadingThumbnail === 'usage_video_thumbnail'}
+                              className="border-gray-600"
+                            >
+                              {uploadingThumbnail === 'usage_video_thumbnail' ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Upload className="w-4 h-4" />
+                              )}
+                            </Button>
+                            {settings?.usage_video_thumbnail && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => clearThumbnail('usage_video_thumbnail')}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                          {settings?.usage_video_thumbnail && (
+                            <img 
+                              src={settings.usage_video_thumbnail} 
+                              alt="Thumbnail preview" 
+                              className="mt-2 h-20 rounded border border-gray-600"
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
