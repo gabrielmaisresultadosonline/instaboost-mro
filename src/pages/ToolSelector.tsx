@@ -75,18 +75,6 @@ const ToolSelector = () => {
       badge: 'GESTÃO',
       salesPath: '/gestaomensal'
     },
-    {
-      id: 'membros',
-      name: 'Crie sua Área de Membros',
-      subtitle: 'SEM TAXA + RECEBIMENTO NA HORA',
-      description: 'Crie a sua agora mesmo!',
-      icon: CreditCard,
-      color: 'from-blue-500 to-cyan-600',
-      hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
-      borderColor: 'border-blue-500/30',
-      badge: 'NOVO',
-      salesPath: 'https://acessar.click/'
-    }
   ];
 
   const handleSalesClick = (path: string, toolName: string) => {
