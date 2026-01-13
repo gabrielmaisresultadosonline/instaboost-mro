@@ -732,13 +732,13 @@ const TesteGratisUsuario = () => {
                   Baixar o Sistema
                 </h4>
                 <p className="text-gray-300 mb-4 text-center">
-                  Baixe o sistema MRO para Windows e use com suas credenciais.
+                  Baixe o sistema MRO (arquivo ZIP / extensão) para <span className="text-yellow-400 font-semibold">Windows</span>, <span className="text-yellow-400 font-semibold">Mac</span> e <span className="text-yellow-400 font-semibold">Linux</span> e use com suas credenciais.
                 </p>
                 {settings?.download_link ? (
                   <a href={settings.download_link} target="_blank" rel="noopener noreferrer">
                     <Button size="lg" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold">
                       <Download className="w-5 h-5 mr-2" />
-                      Baixar MRO para Windows
+                      Baixar MRO para Windows, Mac e Linux
                     </Button>
                   </a>
                 ) : (
