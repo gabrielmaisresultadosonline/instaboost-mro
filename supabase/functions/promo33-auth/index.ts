@@ -1,9 +1,46 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Check password with bcrypt support and auto-upgrade
+const checkPassword = async (
+  supabase: any,
+  userId: string,
+  inputPassword: string,
+  storedPassword: string
+): Promise<boolean> => {
+  if (storedPassword.startsWith("$2")) {
+    // Password is already hashed with bcrypt
+    return await bcrypt.compare(inputPassword, storedPassword);
+  } else {
+    // Legacy plaintext password - check and upgrade
+    const isValid = storedPassword === inputPassword;
+    
+    if (isValid) {
+      // Upgrade to bcrypt hash
+      console.log(`[promo33-auth] Upgrading user password to bcrypt: ${userId}`);
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(inputPassword, salt);
+      
+      await supabase
+        .from("promo33_users")
+        .update({ password: hashedPassword })
+        .eq("id", userId);
+    }
+    
+    return isValid;
+  }
+};
+
+// Hash password for new users
+const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
 };
 
 serve(async (req) => {
@@ -37,12 +74,15 @@ serve(async (req) => {
           );
         }
 
-        // Create new user
+        // Hash password for new user
+        const hashedPassword = await hashPassword(password);
+
+        // Create new user with hashed password
         const { data: newUser, error: createError } = await supabase
           .from('promo33_users')
           .insert({
             email: email.toLowerCase(),
-            password,
+            password: hashedPassword,
             name,
             phone,
             subscription_status: 'pending'
@@ -55,21 +95,34 @@ serve(async (req) => {
           throw createError;
         }
 
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = newUser;
+
         return new Response(
-          JSON.stringify({ success: true, user: newUser }),
+          JSON.stringify({ success: true, user: userWithoutPassword }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       case 'login': {
+        // Fetch user by email only
         const { data: user, error: loginError } = await supabase
           .from('promo33_users')
           .select('*')
           .eq('email', email.toLowerCase())
-          .eq('password', password)
           .maybeSingle();
 
         if (loginError || !user) {
+          return new Response(
+            JSON.stringify({ success: false, message: 'Email ou senha incorretos' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Check password with bcrypt support
+        const passwordValid = await checkPassword(supabase, user.id, password, user.password);
+
+        if (!passwordValid) {
           return new Response(
             JSON.stringify({ success: false, message: 'Email ou senha incorretos' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -88,8 +141,11 @@ serve(async (req) => {
           }
         }
 
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
+
         return new Response(
-          JSON.stringify({ success: true, user }),
+          JSON.stringify({ success: true, user: userWithoutPassword }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -120,8 +176,11 @@ serve(async (req) => {
           }
         }
 
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
+
         return new Response(
-          JSON.stringify({ success: true, user }),
+          JSON.stringify({ success: true, user: userWithoutPassword }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -146,8 +205,11 @@ serve(async (req) => {
           throw updateError;
         }
 
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
+
         return new Response(
-          JSON.stringify({ success: true, user }),
+          JSON.stringify({ success: true, user: userWithoutPassword }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -168,8 +230,11 @@ serve(async (req) => {
           throw updateError;
         }
 
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
+
         return new Response(
-          JSON.stringify({ success: true, user }),
+          JSON.stringify({ success: true, user: userWithoutPassword }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

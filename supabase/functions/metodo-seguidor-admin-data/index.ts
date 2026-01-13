@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { verify } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,47 @@ const corsHeaders = {
 const log = (step: string, details?: unknown) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] [METODO-SEGUIDOR-ADMIN-DATA] ${step}`, details ? JSON.stringify(details) : "");
+};
+
+// Get JWT signing key
+const getJwtKey = async () => {
+  const jwtSecret = Deno.env.get("ADMIN_JWT_SECRET") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!jwtSecret) {
+    throw new Error("JWT secret not configured");
+  }
+  return await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(jwtSecret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"]
+  );
+};
+
+// Verify admin JWT token
+const verifyAdminToken = async (authHeader: string | null): Promise<{ valid: boolean; adminId?: string; email?: string }> => {
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { valid: false };
+  }
+
+  try {
+    const token = authHeader.substring(7);
+    const key = await getJwtKey();
+    const payload = await verify(token, key);
+    
+    if (!payload.admin_id || !payload.email) {
+      return { valid: false };
+    }
+
+    return { 
+      valid: true, 
+      adminId: payload.admin_id as string, 
+      email: payload.email as string 
+    };
+  } catch (error) {
+    log("Token verification failed", { error: error instanceof Error ? error.message : String(error) });
+    return { valid: false };
+  }
 };
 
 // Send email via SMTP
@@ -113,6 +155,20 @@ serve(async (req) => {
       throw new Error("Missing Supabase configuration");
     }
 
+    // Verify admin token for all requests
+    const authHeader = req.headers.get("Authorization");
+    const tokenResult = await verifyAdminToken(authHeader);
+
+    if (!tokenResult.valid) {
+      log("Unauthorized request - invalid or missing token");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - valid admin token required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    log("Authenticated admin request", { adminId: tokenResult.adminId, email: tokenResult.email });
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false },
     });
@@ -129,8 +185,14 @@ serve(async (req) => {
 
       if (error) throw error;
 
+      // Remove password from response for security
+      const sanitizedUsers = users?.map(user => {
+        const { password, ...rest } = user;
+        return rest;
+      });
+
       return new Response(
-        JSON.stringify({ success: true, users }),
+        JSON.stringify({ success: true, users: sanitizedUsers }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -210,7 +272,7 @@ serve(async (req) => {
         }
       }
 
-      log("User activated", { user_id });
+      log("User activated", { user_id, by_admin: tokenResult.email });
 
       return new Response(
         JSON.stringify({ success: true }),
@@ -249,7 +311,7 @@ serve(async (req) => {
           .eq("id", user_id);
       }
 
-      log("Email resent", { user_id, success: emailSent });
+      log("Email resent", { user_id, success: emailSent, by_admin: tokenResult.email });
 
       return new Response(
         JSON.stringify({ success: emailSent }),
@@ -280,7 +342,7 @@ serve(async (req) => {
 
       if (error) throw error;
 
-      log("User deleted", { user_id });
+      log("User deleted", { user_id, by_admin: tokenResult.email });
 
       return new Response(
         JSON.stringify({ success: true }),
