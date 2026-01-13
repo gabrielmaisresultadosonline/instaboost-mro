@@ -471,22 +471,16 @@ const VendasCompleta = () => {
             </p>
           </div>
 
-          {/* Main Video */}
+          {/* Main Video - Embedded */}
           <div className="mt-10 max-w-4xl mx-auto">
-            <div 
-              onClick={() => openVideo("yFN-F2U9z8w")}
-              className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700 hover:border-amber-500/50 transition-all"
-            >
-              <img 
-                src="https://img.youtube.com/vi/yFN-F2U9z8w/maxresdefault.jpg" 
-                alt="Video MRO" 
-                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
+              <iframe
+                src="https://www.youtube.com/embed/yFN-F2U9z8w?rel=0"
+                title="Video MRO"
+                className="w-full aspect-video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
               />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
-                  <Play className="w-10 h-10 text-white ml-1" fill="white" />
-                </div>
-              </div>
             </div>
           </div>
 
