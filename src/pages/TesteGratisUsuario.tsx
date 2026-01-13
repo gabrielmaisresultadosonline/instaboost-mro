@@ -388,11 +388,11 @@ const TesteGratisUsuario = () => {
     }
   }, [needsScreenshot, userData?.profile_screenshot_url]);
 
-  // Screenshot Upload Screen
+  // Screenshot Upload Screen - shows all content but faded until screenshot is uploaded
   if (needsScreenshot && !userData?.profile_screenshot_url) {
     return (
       <div className="min-h-screen bg-black p-4">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
@@ -412,13 +412,14 @@ const TesteGratisUsuario = () => {
             </Button>
           </div>
 
-          {/* Welcome Video Above */}
+          {/* Welcome Video - Full Color */}
           {settings?.welcome_video_url && (
-            <Card className="mb-6 bg-zinc-900 border-zinc-700">
-              <CardContent className="p-4">
-                <h4 className="text-white font-medium mb-3 text-center">👋 Vídeo de Boas-vindas</h4>
-                <div className="max-w-md mx-auto">
-                  <div className="aspect-video bg-black rounded-lg overflow-hidden">
+            <Card className="mb-6 bg-zinc-900 border-yellow-500/50">
+              <CardContent className="p-6">
+                <h4 className="text-xl text-white font-bold mb-2 text-center">👋 Seja Bem-vindo!</h4>
+                <p className="text-yellow-400 text-center mb-4">Assista o vídeo abaixo para começar</p>
+                <div className="max-w-lg mx-auto">
+                  <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
                     <iframe
                       src={settings.welcome_video_url}
                       className="w-full h-full"
@@ -431,8 +432,8 @@ const TesteGratisUsuario = () => {
             </Card>
           )}
 
-          {/* Screenshot Request Card */}
-          <Card className="bg-zinc-900 border-yellow-500/50">
+          {/* Screenshot Request Card - Highlighted */}
+          <Card className="mb-6 bg-zinc-900 border-yellow-500 border-2 shadow-lg shadow-yellow-500/20">
             <CardHeader className="text-center">
               <Camera className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
               <CardTitle className="text-2xl text-white">📸 Envie um Print do seu Perfil</CardTitle>
@@ -504,6 +505,78 @@ const TesteGratisUsuario = () => {
               </p>
             </CardContent>
           </Card>
+
+          {/* Content below - Faded/Greyed out until screenshot is uploaded */}
+          <div className="opacity-40 pointer-events-none select-none">
+            <div className="relative">
+              <div className="absolute inset-0 bg-black/50 z-10 rounded-lg flex items-center justify-center">
+                <div className="bg-zinc-800 px-4 py-2 rounded-full border border-zinc-600">
+                  <p className="text-gray-400 text-sm flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    Envie o print acima para liberar
+                  </p>
+                </div>
+              </div>
+              
+              {/* Access Data - Locked */}
+              <Card className="mb-6 bg-zinc-900 border-zinc-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-gray-500" />
+                    Seus Dados de Acesso
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-zinc-800 rounded-lg p-4">
+                    <p className="text-gray-400 text-sm mb-1">Usuário</p>
+                    <p className="text-gray-500 font-mono text-lg font-bold">••••••••</p>
+                  </div>
+                  <div className="bg-zinc-800 rounded-lg p-4">
+                    <p className="text-gray-400 text-sm mb-1">Senha</p>
+                    <p className="text-gray-500 font-mono text-lg font-bold">••••••••</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Download Section - Locked */}
+              <Card className="mb-6 bg-zinc-900 border-zinc-700">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-gray-500 mb-4 flex items-center gap-2">
+                    <Download className="w-6 h-6 text-gray-600" />
+                    Download do Sistema
+                  </h3>
+                  <Button size="lg" className="w-full bg-gray-700 cursor-not-allowed" disabled>
+                    <Download className="w-5 h-5 mr-2" />
+                    Baixar MRO para Windows
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Videos Section - Locked */}
+              <Card className="mb-6 bg-zinc-900 border-zinc-700">
+                <CardHeader>
+                  <CardTitle className="text-gray-500 flex items-center gap-2">
+                    <PlayCircle className="w-5 h-5 text-gray-600" />
+                    Vídeos Tutoriais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-zinc-800 rounded-lg p-4">
+                    <h4 className="text-gray-500 font-medium mb-3">📥 Como Instalar o MRO</h4>
+                    <div className="aspect-video bg-zinc-700 rounded-lg flex items-center justify-center">
+                      <PlayCircle className="w-16 h-16 text-gray-600" />
+                    </div>
+                  </div>
+                  <div className="bg-zinc-800 rounded-lg p-4">
+                    <h4 className="text-gray-500 font-medium mb-3">🚀 Como Usar o MRO</h4>
+                    <div className="aspect-video bg-zinc-700 rounded-lg flex items-center justify-center">
+                      <PlayCircle className="w-16 h-16 text-gray-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     );
