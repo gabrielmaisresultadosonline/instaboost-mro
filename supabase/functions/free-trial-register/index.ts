@@ -230,6 +230,7 @@ serve(async (req) => {
         const downloadLink = settings.download_link || '#';
         const groupLink = settings.group_link || '#';
         const expiresAtFormatted = expiresAt.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        const accessAreaLink = `https://maisresultadosonline.com.br/testegratis/usuario`;
 
         const htmlContent = `<!DOCTYPE html>
 <html>
@@ -290,10 +291,19 @@ Após esse período, você não poderá testar novamente com este Instagram.
 </tr>
 </table>
 
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:15px;">
+<tr>
+<td style="text-align:center;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:8px;">
+<a href="${accessAreaLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:16px;">🔐 Acessar Minha Área de Teste</a>
+<p style="color:#fff;opacity:0.9;margin:8px 0 0 0;font-size:12px;">Acesse com: <strong>@${normalizedIG}</strong></p>
+</td>
+</tr>
+</table>
+
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td style="text-align:center;padding:15px 0;">
-<a href="${downloadLink}" style="display:inline-block;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:8px;font-weight:bold;font-size:16px;">📥 Download do Sistema</a>
+<a href="${downloadLink}" style="display:inline-block;background:#ffc107;color:#000;text-decoration:none;padding:15px 40px;border-radius:8px;font-weight:bold;font-size:16px;">📥 Download do Sistema</a>
 </td>
 </tr>
 </table>
