@@ -525,8 +525,8 @@ const TesteGratis = () => {
         <div className="max-w-3xl mx-auto">
           <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl p-6 mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-white text-center mb-2">
-              💰 Sabia que você pode fazer uma renda extra de mais de{' '}
-              <span className="text-green-400">5 MIL REAIS</span> com essa ferramenta?
+              💰 Sabia que você pode fazer uma renda extra de<br />
+              <span className="text-green-400">mais de 5 MIL REAIS</span> com essa ferramenta?
             </h2>
             <p className="text-gray-300 text-center mb-6">
               Sim, além de utilizar para o seu negócio! Assista o vídeo abaixo:
