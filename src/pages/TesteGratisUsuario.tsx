@@ -646,18 +646,18 @@ const TesteGratisUsuario = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               {settings?.group_link && !isExpired && (
-                <a href={settings.group_link} target="_blank" rel="noopener noreferrer">
-                  <Button className="bg-[#25D366] hover:bg-[#20BA5C] text-white font-bold">
-                    <Users className="w-4 h-4 mr-2" />
-                    Grupo WhatsApp
+                <a href={settings.group_link} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                  <Button className="w-full bg-[#25D366] hover:bg-[#20BA5C] text-white font-bold text-sm sm:text-base px-3 sm:px-4 py-2">
+                    <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span>Grupo WhatsApp</span>
                   </Button>
                 </a>
               )}
               {isExpired && (
-                <a href="/instagram-nova">
-                  <Button className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold">
+                <a href="/instagram-nova" className="w-full sm:w-auto">
+                  <Button className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm sm:text-base px-3 sm:px-4 py-2">
                     Adquirir Plano
                   </Button>
                 </a>
@@ -735,14 +735,14 @@ const TesteGratisUsuario = () => {
                   Baixe o sistema MRO (arquivo ZIP / extensão) para <span className="text-yellow-400 font-semibold">Windows</span>, <span className="text-yellow-400 font-semibold">Mac</span> e <span className="text-yellow-400 font-semibold">Linux</span> e use com suas credenciais.
                 </p>
                 {settings?.download_link ? (
-                  <a href={settings.download_link} target="_blank" rel="noopener noreferrer">
-                    <Button size="lg" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold">
-                      <Download className="w-5 h-5 mr-2" />
-                      Baixar MRO para Windows, Mac e Linux
+                  <a href={settings.download_link} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button size="lg" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-4 h-auto whitespace-normal text-center">
+                      <Download className="w-5 h-5 mr-2 flex-shrink-0" />
+                      <span className="text-sm sm:text-base">Baixar MRO para Windows, Mac e Linux</span>
                     </Button>
                   </a>
                 ) : (
-                  <Button size="lg" className="w-full bg-gray-500 cursor-not-allowed" disabled>
+                  <Button size="lg" className="w-full bg-gray-500 cursor-not-allowed py-4 h-auto whitespace-normal" disabled>
                     Link de download não disponível
                   </Button>
                 )}
