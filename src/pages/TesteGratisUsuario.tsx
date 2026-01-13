@@ -707,7 +707,7 @@ const TesteGratisUsuario = () => {
               </CardContent>
             </Card>
 
-            {/* Videos Section with Download after video 2 */}
+            {/* Videos Section */}
             <Card className="mb-6 bg-zinc-900 border-zinc-700">
               <CardHeader>
                 <CardTitle className="text-2xl text-white flex items-center gap-2">
@@ -719,10 +719,27 @@ const TesteGratisUsuario = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Video 1 - Installation */}
+                {/* Video 1 - Welcome (Boas-vindas) - ALWAYS FIRST */}
+                {settings?.welcome_video_url && (
+                  <div className="bg-zinc-800 rounded-lg p-4">
+                    <h4 className="text-xl text-white font-bold mb-4">👋 1. Boas-vindas</h4>
+                    <div className="max-w-lg mx-auto">
+                      <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
+                        <iframe
+                          src={getYouTubeEmbedUrl(settings.welcome_video_url)}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Video 2 - Installation */}
                 {settings?.installation_video_url && (
                   <div className="bg-zinc-800 rounded-lg p-4">
-                    <h4 className="text-xl text-white font-bold mb-4">📥 1. Como Instalar o MRO</h4>
+                    <h4 className="text-xl text-white font-bold mb-4">📥 2. Como Instalar o MRO</h4>
                     <div className="max-w-lg mx-auto">
                       <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
                         <iframe
@@ -735,25 +752,8 @@ const TesteGratisUsuario = () => {
                     </div>
                   </div>
                 )}
-                
-                {/* Video 2 - Usage */}
-                {settings?.usage_video_url && (
-                  <div className="bg-zinc-800 rounded-lg p-4">
-                    <h4 className="text-xl text-white font-bold mb-4">🚀 2. Como Usar o MRO</h4>
-                    <div className="max-w-lg mx-auto">
-                      <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
-                        <iframe
-                          src={getYouTubeEmbedUrl(settings.usage_video_url)}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
 
-                {/* Download Button after Video 2 */}
+                {/* Download Button after Installation Video */}
                 <div className="bg-zinc-800 rounded-lg p-6 border-2 border-yellow-500/50">
                   <h4 className="text-xl text-white font-bold mb-3 flex items-center gap-2">
                     <Download className="w-6 h-6 text-yellow-400" />
@@ -776,14 +776,14 @@ const TesteGratisUsuario = () => {
                   )}
                 </div>
                 
-                {/* Video 3 - Welcome */}
-                {settings?.welcome_video_url && (
+                {/* Video 3 - Usage */}
+                {settings?.usage_video_url && (
                   <div className="bg-zinc-800 rounded-lg p-4">
-                    <h4 className="text-xl text-white font-bold mb-4">👋 3. Boas-vindas</h4>
+                    <h4 className="text-xl text-white font-bold mb-4">🚀 3. Como Usar o MRO</h4>
                     <div className="max-w-lg mx-auto">
                       <div className="aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700">
                         <iframe
-                          src={getYouTubeEmbedUrl(settings.welcome_video_url)}
+                          src={getYouTubeEmbedUrl(settings.usage_video_url)}
                           className="w-full h-full"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
