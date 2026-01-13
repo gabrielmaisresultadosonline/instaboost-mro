@@ -58,6 +58,7 @@ interface Registration {
   instagram_removed: boolean;
   instagram_removed_at: string | null;
   expiration_email_sent: boolean;
+  profile_screenshot_url: string | null;
 }
 
 const TesteGratisAdmin = () => {
@@ -505,6 +506,7 @@ const TesteGratisAdmin = () => {
                     <Table>
                       <TableHeader>
                         <TableRow className="border-gray-700">
+                          <TableHead className="text-gray-400">Print</TableHead>
                           <TableHead className="text-gray-400">Nome</TableHead>
                           <TableHead className="text-gray-400">Email</TableHead>
                           <TableHead className="text-gray-400">WhatsApp</TableHead>
@@ -520,6 +522,26 @@ const TesteGratisAdmin = () => {
                           const status = getStatus(reg);
                           return (
                             <TableRow key={reg.id} className="border-gray-700">
+                              <TableCell>
+                                {reg.profile_screenshot_url ? (
+                                  <a 
+                                    href={reg.profile_screenshot_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="block"
+                                  >
+                                    <img 
+                                      src={reg.profile_screenshot_url} 
+                                      alt={`Print @${reg.instagram_username}`}
+                                      className="w-12 h-12 rounded object-cover border border-gray-600 hover:border-yellow-500 transition-colors cursor-pointer"
+                                    />
+                                  </a>
+                                ) : (
+                                  <div className="w-12 h-12 rounded bg-gray-700 flex items-center justify-center">
+                                    <XCircle className="w-5 h-5 text-gray-500" />
+                                  </div>
+                                )}
+                              </TableCell>
                               <TableCell className="text-white font-medium">{reg.full_name}</TableCell>
                               <TableCell className="text-gray-300">
                                 <div className="flex items-center gap-1">
