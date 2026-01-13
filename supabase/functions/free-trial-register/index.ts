@@ -38,8 +38,16 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Normalize Instagram username
-    const normalizedIG = instagramUsername.toLowerCase().replace(/^@/, '');
+    // Normalize Instagram username (remove @ and lowercase)
+    const normalizedIG = instagramUsername.toLowerCase().replace(/^@/, '').trim();
+
+    // Validate Instagram format
+    if (normalizedIG.length < 1 || !/^[a-zA-Z0-9._]+$/.test(normalizedIG)) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Nome de Instagram inválido. Use apenas letras, números, pontos e underlines.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
 
     // Check if this Instagram was already used for trial
     const { data: existingTrial } = await supabase
@@ -71,7 +79,7 @@ serve(async (req) => {
     if (settingsError || !settings) {
       log("Settings not found", { error: settingsError });
       return new Response(
-        JSON.stringify({ success: false, message: 'Configurações do teste não encontradas' }),
+        JSON.stringify({ success: false, message: 'Configurações do teste não encontradas. Configure o admin primeiro.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
@@ -87,12 +95,19 @@ serve(async (req) => {
     const mroPassword = settings.mro_master_password;
     const trialHours = settings.trial_duration_hours || 24;
 
-    // Generate unique username and password for this trial
-    const timestamp = Date.now().toString(36);
-    const generatedUsername = mroUsername; // Use master username
-    const generatedPassword = mroPassword; // Use master password
+    if (!mroUsername || !mroPassword) {
+      log("MRO credentials not configured");
+      return new Response(
+        JSON.stringify({ success: false, message: 'Credenciais MRO não configuradas. Entre em contato com o suporte.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
 
-    // Calculate expiration (24 hours from now)
+    // Generate username and password for this trial
+    const generatedUsername = mroUsername;
+    const generatedPassword = mroPassword;
+
+    // Calculate expiration
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + trialHours);
 
@@ -100,28 +115,60 @@ serve(async (req) => {
     log("Adding Instagram to MRO account", { mroUsername, instagram: normalizedIG });
     
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const addIgResponse = await fetch(`${SQUARE_API_URL}/adicionar-instagram`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
           userName: mroUsername,
           igInstagram: normalizedIG
-        })
+        }),
+        signal: controller.signal
       });
 
-      const addIgResult = await addIgResponse.json();
-      log("Add IG result", addIgResult);
+      clearTimeout(timeoutId);
+
+      log("API Response Status", { status: addIgResponse.status, statusText: addIgResponse.statusText });
+
+      const responseText = await addIgResponse.text();
+      log("API Response Body", { body: responseText });
+
+      let addIgResult;
+      try {
+        addIgResult = JSON.parse(responseText);
+      } catch (parseError) {
+        log("Failed to parse API response", { error: parseError, responseText });
+        return new Response(
+          JSON.stringify({ success: false, message: 'Resposta inválida do servidor de automação. Tente novamente.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
 
       if (!addIgResult.success) {
+        log("API returned error", addIgResult);
         return new Response(
-          JSON.stringify({ success: false, message: addIgResult.message || 'Erro ao adicionar Instagram' }),
+          JSON.stringify({ success: false, message: addIgResult.message || 'Erro ao adicionar Instagram na plataforma' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-    } catch (apiError) {
-      log("API Error", { error: apiError });
+    } catch (apiError: any) {
+      log("API Error", { 
+        error: apiError.message || apiError,
+        name: apiError.name,
+        cause: apiError.cause
+      });
+      
+      const errorMessage = apiError.name === 'AbortError' 
+        ? 'Tempo limite excedido. O servidor de automação está demorando para responder.'
+        : 'Erro ao conectar com o servidor de automação. Verifique se está online.';
+      
       return new Response(
-        JSON.stringify({ success: false, message: 'Erro ao conectar com o servidor de automação' }),
+        JSON.stringify({ success: false, message: errorMessage }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
@@ -159,7 +206,7 @@ serve(async (req) => {
       }
       
       return new Response(
-        JSON.stringify({ success: false, message: 'Erro ao salvar registro' }),
+        JSON.stringify({ success: false, message: 'Erro ao salvar registro. Tente novamente.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
@@ -308,6 +355,11 @@ Valorize suas 24 horas de teste! Após esse período, adquira um de nossos plano
         username: generatedUsername,
         password: generatedPassword,
         expiresAt: expiresAt.toISOString(),
+        downloadLink: settings.download_link || null,
+        groupLink: settings.group_link || null,
+        welcomeVideoUrl: settings.welcome_video_url || null,
+        installationVideoUrl: settings.installation_video_url || null,
+        usageVideoUrl: settings.usage_video_url || null,
         message: 'Teste liberado com sucesso!'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
