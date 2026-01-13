@@ -544,6 +544,52 @@ const TesteGratis = () => {
         </div>
       </footer>
 
+      {/* Renda Extra Section */}
+      <section className="px-4 py-8 md:py-12">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl p-6 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-white text-center mb-2">
+              💰 Sabia que você pode fazer uma renda extra de mais de{' '}
+              <span className="text-green-400">5 MIL REAIS</span> com essa ferramenta?
+            </h2>
+            <p className="text-gray-300 text-center mb-6">
+              Sim, além de utilizar para o seu negócio! Assista o vídeo abaixo:
+            </p>
+            <div className="aspect-video rounded-xl overflow-hidden border border-zinc-700">
+              <iframe
+                src="https://www.youtube.com/embed/WQwnAHNvSMU"
+                title="Renda Extra com MRO"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Support Notice */}
+      <section className="px-4 py-6 pb-12">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-zinc-900/80 border border-zinc-700 rounded-xl p-5 text-center">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center justify-center gap-2">
+              <MessageCircle className="w-5 h-5 text-purple-400" />
+              Precisa de Ajuda?
+            </h3>
+            <p className="text-gray-400 text-sm mb-3">
+              Temos suporte <strong className="text-white">Anydesk (acesso remoto)</strong> e{' '}
+              <strong className="text-white">Suporte WhatsApp</strong>!
+            </p>
+            <p className="text-yellow-400 text-sm font-medium">
+              ⚠️ O suporte funciona apenas no <strong>plano pago</strong>!
+            </p>
+            <p className="text-gray-500 text-xs mt-3">
+              Para testes grátis, assista os vídeos tutoriais para instalar e utilizar.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Modal/Popup Form */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
