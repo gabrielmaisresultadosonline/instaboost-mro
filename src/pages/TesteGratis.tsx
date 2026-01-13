@@ -561,7 +561,7 @@ const TesteGratis = () => {
                 <p className="text-gray-500 text-xs mb-4">• Cadastro Afiliado - Comissão de R$97 Por venda</p>
                 
                 <a href="https://maisresultadosonline.com.br/instagram-nova" target="_blank" rel="noopener noreferrer">
-                  <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-6">
+                  <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 text-sm">
                     GARANTIR PLANO ANUAL
                   </Button>
                 </a>
@@ -606,7 +606,7 @@ const TesteGratis = () => {
                 <p className="text-gray-500 text-xs mb-4">• Cadastro Afiliado - Comissão de R$97 Por venda</p>
                 
                 <a href="https://maisresultadosonline.com.br/instagram-nova" target="_blank" rel="noopener noreferrer">
-                  <Button className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-6">
+                  <Button className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 text-sm">
                     GARANTIR PLANO VITALÍCIO
                   </Button>
                 </a>
