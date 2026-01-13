@@ -23,14 +23,8 @@ import {
   Rocket,
   X,
   Zap,
-  Heart,
-  UserPlus,
-  Eye,
-  Trash2,
-  Video,
   MessageCircle,
   Crown,
-  TrendingUp,
   ArrowRight,
   Lock
 } from 'lucide-react';
@@ -415,183 +409,68 @@ const TesteGratis = () => {
     );
   }
 
-  // Main landing page
+  // Main landing page - CLEAN & SERIOUS
   return (
     <div className="min-h-screen bg-black">
-      {/* Header with Logo */}
-      <header className="py-6 px-4 border-b border-zinc-800">
-        <div className="max-w-6xl mx-auto flex justify-center">
-          <img src={logoMro} alt="MRO" className="h-12 md:h-16" />
+      {/* Header */}
+      <header className="py-4 px-4 border-b border-zinc-800/50">
+        <div className="max-w-4xl mx-auto flex justify-center">
+          <img src={logoMro} alt="MRO" className="h-10 md:h-12" />
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="px-4 py-8 md:py-12 bg-gradient-to-b from-zinc-900 to-black">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-            Não gaste com anúncios,<br />
-            <span className="text-yellow-400">
-              utilize a MRO!
-            </span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-gray-400 mb-8">
-            <span className="inline-flex items-center gap-1 text-white">
-              <TrendingUp className="w-5 h-5 text-yellow-400" /> Mais Engajamento
-            </span>
-            <span className="mx-2 text-zinc-600">•</span>
-            <span className="inline-flex items-center gap-1 text-white">
-              <Users className="w-5 h-5 text-yellow-400" /> Mais Clientes
-            </span>
-            <span className="mx-2 text-zinc-600">•</span>
-            <span className="inline-flex items-center gap-1 text-white">
-              <Rocket className="w-5 h-5 text-yellow-400" /> Mais Resultados
-            </span>
-            <br className="md:hidden" />
-            <span className="text-yellow-400 font-semibold"> No automático!</span>
-          </p>
-
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 mb-8 inline-block">
-            <p className="text-white text-lg md:text-xl font-medium">
-              ✅ Resultados comprovados em até <span className="text-yellow-400 font-bold">7 horas</span> de uso!
-            </p>
+      {/* Main Video Section */}
+      <section className="px-4 py-8 md:py-12">
+        <div className="max-w-3xl mx-auto">
+          <div className="aspect-video rounded-xl overflow-hidden border border-zinc-800 shadow-2xl">
+            <iframe
+              src="https://www.youtube.com/embed/U-WmszcYekA"
+              title="Apresentação MRO"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
           </div>
         </div>
       </section>
 
-      {/* 24h Warning - MUITO DESTACADO */}
-      <section className="px-4 mb-8">
+      {/* Strategy Highlight */}
+      <section className="px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-red-950 border-4 border-red-500 rounded-2xl p-6 shadow-[0_0_30px_rgba(239,68,68,0.3)]">
-            <div className="flex items-start gap-4">
-              <div className="bg-red-600 rounded-full p-3 flex-shrink-0 animate-pulse">
-                <AlertTriangle className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl md:text-3xl font-bold text-red-400 mb-2">⚠️ ATENÇÃO: Teste de 24 horas!</p>
-                <p className="text-white text-lg mb-3">
-                  Você tem apenas <strong className="text-yellow-400 text-xl">24 HORAS</strong> para testar o sistema. 
-                  Após esse período, <strong className="text-red-400">NÃO conseguirá testar novamente</strong> com este Instagram.
-                </p>
-                <p className="text-yellow-400 font-bold text-xl">🔥 VALORIZE SEU TESTE!</p>
-              </div>
+          <div className="bg-zinc-900 border border-yellow-500/50 rounded-xl p-6 text-center">
+            <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-3 py-1 rounded-full font-bold text-xs mb-3">
+              <Sparkles className="w-3 h-3" />
+              TESTE GRATUITO
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Strategy Highlight - MUITO DESTACADO */}
-      <section className="px-4 mb-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-zinc-900 border-2 border-yellow-500 rounded-2xl p-6 text-center">
-            <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-sm mb-4">
-              <Sparkles className="w-4 h-4" />
-              EXCLUSIVO
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+            <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
               TESTE 1 DAS NOSSAS <span className="text-yellow-400">20+ ESTRATÉGIAS!</span>
             </h2>
-            <p className="text-gray-400">
-              Este teste libera apenas <strong className="text-yellow-400">1 das nossas 20 estratégias</strong>! 
-              Para ter acesso ao plano completo, você precisará adquirir. 
-              <strong className="text-green-400"> Aproveite o teste e garanta o valor promocional após!</strong>
+            <p className="text-gray-400 text-sm">
+              Este teste libera apenas <strong className="text-yellow-400">1 estratégia</strong>. 
+              Para acesso completo, adquira um plano.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Tutorial Videos Warning */}
-      <section className="px-4 mb-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-zinc-900 border-2 border-yellow-500/50 rounded-2xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="bg-yellow-400 rounded-full p-3 flex-shrink-0">
-                <Play className="w-6 h-6 text-black" />
-              </div>
-              <div>
-                <p className="text-xl font-bold text-yellow-400 mb-2">📺 Assista os Vídeos Tutoriais!</p>
-                <p className="text-gray-400 mb-3">
-                  Após liberar seu teste, assista os vídeos tutoriais para aprender a <strong className="text-white">instalar</strong> e <strong className="text-white">utilizar</strong> a ferramenta corretamente.
-                </p>
-                <div className="bg-red-950 border-2 border-red-500 rounded-lg p-4 mt-3">
-                  <p className="text-red-400 font-bold mb-2">🚫 NÃO TEMOS SUPORTE PARA TESTES GRÁTIS!</p>
-                  <p className="text-gray-400 text-sm">
-                    Para ter acesso ao suporte, você precisará adquirir um de nossos planos.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Support Types */}
-      <section className="px-4 mb-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6">
-            <h3 className="text-xl font-bold text-yellow-400 text-center mb-6">
-              💡 Está com dificuldade? Conheça nossos Suportes Premium!
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-zinc-800 rounded-xl p-5 border border-zinc-700">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-orange-500 rounded-lg p-2">
-                    <ExternalLink className="w-6 h-6 text-white" />
-                  </div>
-                  <h4 className="text-lg font-bold text-orange-400">Suporte AnyDesk</h4>
-                </div>
-                <p className="text-gray-400 text-sm mb-3">
-                  <strong className="text-white">Acesso Remoto ao seu computador</strong> - Nosso especialista acessa seu PC e configura tudo pra você, em tempo real!
-                </p>
-                <ul className="text-gray-500 text-sm space-y-1">
-                  <li>✅ Instalação completa</li>
-                  <li>✅ Configuração personalizada</li>
-                  <li>✅ Resolução imediata de problemas</li>
-                </ul>
-              </div>
-
-              <div className="bg-zinc-800 rounded-xl p-5 border border-zinc-700">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-green-500 rounded-lg p-2">
-                    <Phone className="w-6 h-6 text-white" />
-                  </div>
-                  <h4 className="text-lg font-bold text-green-400">Suporte WhatsApp</h4>
-                </div>
-                <p className="text-gray-400 text-sm mb-3">
-                  <strong className="text-white">Atendimento via WhatsApp</strong> - Tire dúvidas, receba orientações e soluções por mensagens ou áudios!
-                </p>
-                <ul className="text-gray-500 text-sm space-y-1">
-                  <li>✅ Resposta rápida</li>
-                  <li>✅ Orientações passo a passo</li>
-                  <li>✅ Envio de prints e vídeos</li>
-                </ul>
-              </div>
-            </div>
-            <p className="text-center text-yellow-400 font-semibold mt-4 text-sm">
-              👆 Ambos os suportes estão inclusos nos nossos planos pagos!
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Button - LIBERAR TESTE */}
-      <section className="px-4 py-8">
+      {/* CTA Button */}
+      <section className="px-4 py-6">
         <div className="max-w-lg mx-auto text-center">
           {!showForm ? (
             <Button 
               onClick={() => setShowForm(true)}
               size="lg"
-              className="bg-yellow-400 hover:bg-yellow-300 text-black text-xl px-12 py-8 rounded-2xl shadow-[0_0_30px_rgba(250,204,21,0.4)] transform hover:scale-105 transition-all duration-300 font-bold"
+              className="bg-yellow-400 hover:bg-yellow-300 text-black text-lg px-10 py-7 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.3)] font-bold w-full md:w-auto"
             >
-              <Rocket className="w-6 h-6 mr-2" />
+              <Rocket className="w-5 h-5 mr-2" />
               Liberar Teste Grátis de 24h
-              <ArrowRight className="w-6 h-6 ml-2" />
+              <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           ) : (
             <Card className="bg-zinc-900 border-zinc-700 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white">Cadastre-se para testar</h2>
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-lg font-bold text-white">Cadastre-se para testar</h2>
                   <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-300">
                     <X className="w-5 h-5" />
                   </button>
@@ -599,7 +478,7 @@ const TesteGratis = () => {
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="fullName" className="flex items-center gap-2 text-gray-300">
+                    <Label htmlFor="fullName" className="flex items-center gap-2 text-gray-300 text-sm">
                       <User className="w-4 h-4" /> Nome Completo
                     </Label>
                     <Input
@@ -613,7 +492,7 @@ const TesteGratis = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="email" className="flex items-center gap-2 text-gray-300">
+                    <Label htmlFor="email" className="flex items-center gap-2 text-gray-300 text-sm">
                       <Mail className="w-4 h-4" /> E-mail
                     </Label>
                     <Input
@@ -628,7 +507,7 @@ const TesteGratis = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="whatsapp" className="flex items-center gap-2 text-gray-300">
+                    <Label htmlFor="whatsapp" className="flex items-center gap-2 text-gray-300 text-sm">
                       <Phone className="w-4 h-4" /> WhatsApp
                     </Label>
                     <Input
@@ -642,7 +521,7 @@ const TesteGratis = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="instagram" className="flex items-center gap-2 text-gray-300">
+                    <Label htmlFor="instagram" className="flex items-center gap-2 text-gray-300 text-sm">
                       <Instagram className="w-4 h-4" /> Instagram (sem @)
                     </Label>
                     <div className="relative mt-1">
@@ -661,7 +540,7 @@ const TesteGratis = () => {
                   <Button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full bg-yellow-400 hover:bg-yellow-300 text-black py-6 text-lg font-bold"
+                    className="w-full bg-yellow-400 hover:bg-yellow-300 text-black py-6 text-base font-bold"
                   >
                     {loading ? (
                       <>
@@ -686,224 +565,159 @@ const TesteGratis = () => {
         </div>
       </section>
 
-      {/* Value Proposition */}
-      <section className="px-4 py-12 bg-zinc-900">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">
-            Nossa Proposta
-          </h2>
-          <p className="text-lg md:text-xl text-gray-400 leading-relaxed">
-            Ajudar você a <span className="text-yellow-400 font-bold">vender mais</span>: aumentar o engajamento, 
-            atrair mais clientes e ampliar seu público de forma automática, com nosso método e nossa 
-            ferramenta para o Instagram.
-          </p>
-        </div>
-      </section>
-
-      {/* Features Section - ONLY "Segue perfis estratégicos" highlighted */}
-      <section className="px-4 py-12 md:py-16">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
-            O que você vai receber <span className="text-yellow-400">✅🚀</span>
-          </h2>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* I.A. MRO - SEM COR (bloqueado) */}
-            <Card className="bg-zinc-900/50 border-zinc-800 opacity-60">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-gray-500" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-gray-500 text-lg">I.A. MRO (NOVA)</h3>
-                      <Lock className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <p className="text-gray-600 text-sm">Personalização completa para o seu nicho</p>
-                  </div>
-                </div>
-                
-                <ul className="space-y-2">
-                  {['Cria legendas prontas e otimizadas', 'Gera biografias profissionais', 'Indica melhores horários para postar', 'Recomenda hashtags relevantes'].map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-gray-600">
-                      <Lock className="w-4 h-4 mt-1 flex-shrink-0" />
-                      <span className="text-sm">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-xs text-gray-600 mt-4 text-center">🔒 Disponível no plano completo</p>
-              </CardContent>
-            </Card>
-
-            {/* Automação Estratégica MRO - COM COR (liberado) */}
-            <Card className="bg-zinc-900 border-2 border-yellow-500 shadow-[0_0_20px_rgba(250,204,21,0.2)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-black" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-yellow-400 text-lg">Automação Estratégica MRO</h3>
-                      <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">LIBERADO</span>
-                    </div>
-                    <p className="text-gray-300 text-sm">Operações diárias para atrair público real</p>
-                  </div>
-                </div>
-                
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2 text-gray-500">
-                    <Lock className="w-4 h-4 mt-1 flex-shrink-0" />
-                    <span className="text-sm">Curte fotos relevantes</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-yellow-400 bg-yellow-400/10 p-2 rounded-lg border border-yellow-500">
-                    <CheckCircle2 className="w-4 h-4 mt-1 flex-shrink-0 text-green-400" />
-                    <span className="text-sm font-bold">Segue perfis estratégicos ✅</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-gray-500">
-                    <Lock className="w-4 h-4 mt-1 flex-shrink-0" />
-                    <span className="text-sm">Reage aos Stories com ❤️</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-gray-500">
-                    <Lock className="w-4 h-4 mt-1 flex-shrink-0" />
-                    <span className="text-sm">Interage com até 200 pessoas/dia</span>
-                  </li>
-                </ul>
-                <p className="text-xs text-green-400 mt-4 text-center font-bold">✅ Esta estratégia está liberada no teste!</p>
-              </CardContent>
-            </Card>
-
-            {/* Área de Membros - SEM COR (bloqueado) */}
-            <Card className="bg-zinc-900/50 border-zinc-800 opacity-60">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center">
-                    <Video className="w-6 h-6 text-gray-500" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-gray-500 text-lg">Área de Membros Vitalícia</h3>
-                      <Lock className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <p className="text-gray-600 text-sm">Acesso completo a conteúdos exclusivos</p>
-                  </div>
-                </div>
-                
-                <ul className="space-y-2">
-                  {['Vídeos estratégicos passo a passo', 'Como deixar perfil profissional', 'Como agendar postagens', 'Estratégias para bombar do zero'].map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-gray-600">
-                      <Lock className="w-4 h-4 mt-1 flex-shrink-0" />
-                      <span className="text-sm">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-xs text-gray-600 mt-4 text-center">🔒 Disponível no plano completo</p>
-              </CardContent>
-            </Card>
-
-            {/* Grupo VIP - SEM COR (bloqueado) */}
-            <Card className="bg-zinc-900/50 border-zinc-800 opacity-60">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center">
-                    <MessageCircle className="w-6 h-6 text-gray-500" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-gray-500 text-lg">Grupo VIP de Suporte</h3>
-                      <Lock className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <p className="text-gray-600 text-sm">Networking e suporte especializado</p>
-                  </div>
-                </div>
-                
-                <ul className="space-y-2">
-                  {['Acesso ao grupo VIP exclusivo', 'Tire dúvidas com especialistas', 'Atualizações em primeira mão'].map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-gray-600">
-                      <Lock className="w-4 h-4 mt-1 flex-shrink-0" />
-                      <span className="text-sm">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-xs text-gray-600 mt-4 text-center">🔒 Disponível no plano completo</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Automation Features */}
-      <section className="px-4 py-12 bg-zinc-900">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-8">
-            Automações Incluídas <span className="text-gray-500 text-lg">(Plano Completo)</span>
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { icon: Heart, text: 'Curtir fotos', locked: true },
-              { icon: UserPlus, text: 'Seguir perfis', locked: false },
-              { icon: Eye, text: 'Ver Stories', locked: true },
-              { icon: Heart, text: 'Reagir Stories', locked: true },
-              { icon: Trash2, text: 'Remover fakes', locked: true },
-              { icon: Users, text: '200 interações/dia', locked: true }
-            ].map((item, index) => (
-              <div 
-                key={index}
-                className={`rounded-xl p-4 flex flex-col items-center text-center gap-2 transition-colors ${
-                  item.locked 
-                    ? 'bg-zinc-800/50 border border-zinc-700 opacity-50' 
-                    : 'bg-yellow-400/10 border-2 border-yellow-500'
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  item.locked ? 'bg-zinc-700' : 'bg-yellow-400'
-                }`}>
-                  <item.icon className={`w-5 h-5 ${item.locked ? 'text-gray-500' : 'text-black'}`} />
-                </div>
-                <span className={`text-sm font-medium ${item.locked ? 'text-gray-500' : 'text-yellow-400'}`}>
-                  {item.text}
-                </span>
-                {!item.locked && <span className="text-xs text-green-400 font-bold">✅ LIBERADO</span>}
-                {item.locked && <Lock className="w-3 h-3 text-gray-600" />}
+      {/* 24h Warning */}
+      <section className="px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-red-950/80 border-2 border-red-500 rounded-xl p-5">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-lg font-bold text-red-400 mb-1">⚠️ ATENÇÃO: Teste de 24 horas!</p>
+                <p className="text-gray-300 text-sm">
+                  Você tem apenas <strong className="text-yellow-400">24 HORAS</strong> para testar. 
+                  Após esse período, <strong className="text-red-400">não poderá testar novamente</strong> com este Instagram.
+                </p>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="px-4 py-16">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="bg-zinc-900 border-2 border-yellow-500 rounded-2xl p-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              Pronto para testar gratuitamente?
-            </h2>
-            <p className="text-gray-400 mb-6">
-              Você tem 24 horas para experimentar a ferramenta!
+      {/* What's Available - Clean */}
+      <section className="px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-xl font-bold text-white text-center mb-6">
+            O que você vai receber
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Blocked Items */}
+            <Card className="bg-zinc-900/40 border-zinc-800 opacity-50">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-gray-500">I.A. MRO (NOVA)</h3>
+                      <Lock className="w-3 h-3 text-gray-600" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">🔒 Disponível no plano completo</p>
+              </CardContent>
+            </Card>
+
+            {/* Available - Highlighted */}
+            <Card className="bg-zinc-900 border-2 border-yellow-500 shadow-[0_0_15px_rgba(250,204,21,0.15)]">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-black" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-yellow-400">Automação Estratégica MRO</h3>
+                      <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded font-bold">LIBERADO</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-yellow-400/10 p-3 rounded-lg border border-yellow-500/50">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    <span className="text-yellow-400 text-sm font-medium">Segue perfis estratégicos</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Blocked Items */}
+            <Card className="bg-zinc-900/40 border-zinc-800 opacity-50">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-gray-500">Área de Membros</h3>
+                      <Lock className="w-3 h-3 text-gray-600" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">🔒 Disponível no plano completo</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-900/40 border-zinc-800 opacity-50">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-gray-500">Grupo VIP de Suporte</h3>
+                      <Lock className="w-3 h-3 text-gray-600" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">🔒 Disponível no plano completo</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Tutorial & Support Info */}
+      <section className="px-4 py-8">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {/* Tutorial Info */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="flex items-start gap-3">
+              <Play className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-yellow-400 mb-1">📺 Assista os Vídeos Tutoriais</p>
+                <p className="text-gray-400 text-sm">
+                  Após liberar seu teste, assista os vídeos para aprender a instalar e utilizar a ferramenta.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* No Support Warning */}
+          <div className="bg-red-950/50 border border-red-500/50 rounded-xl p-5">
+            <p className="text-red-400 font-bold text-sm mb-2">🚫 NÃO TEMOS SUPORTE PARA TESTES GRÁTIS!</p>
+            <p className="text-gray-400 text-sm">
+              Para ter suporte, adquira um de nossos planos. Temos dois tipos:
             </p>
-            
-            {!showForm && (
-              <Button 
-                onClick={() => setShowForm(true)}
-                size="lg"
-                className="bg-yellow-400 hover:bg-yellow-300 text-black text-lg px-8 py-6 rounded-xl font-bold"
-              >
-                <Rocket className="w-5 h-5 mr-2" />
-                Liberar Meu Teste Agora
-              </Button>
-            )}
+            <div className="grid md:grid-cols-2 gap-3 mt-3">
+              <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-700">
+                <div className="flex items-center gap-2 mb-1">
+                  <ExternalLink className="w-4 h-4 text-orange-400" />
+                  <span className="font-medium text-orange-400 text-sm">Suporte AnyDesk</span>
+                </div>
+                <p className="text-gray-500 text-xs">Acesso remoto - Configuramos tudo no seu PC!</p>
+              </div>
+              <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-700">
+                <div className="flex items-center gap-2 mb-1">
+                  <Phone className="w-4 h-4 text-green-400" />
+                  <span className="font-medium text-green-400 text-sm">Suporte WhatsApp</span>
+                </div>
+                <p className="text-gray-500 text-xs">Atendimento direto por mensagens ou áudios!</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="px-4 py-8 bg-zinc-900 border-t border-zinc-800">
+      <footer className="px-4 py-6 border-t border-zinc-800/50">
         <div className="max-w-4xl mx-auto text-center">
-          <img src={logoMro} alt="MRO" className="h-10 mx-auto mb-4 opacity-70" />
-          <p className="text-gray-500 text-sm">
-            © {new Date().getFullYear()} MRO - Mais Resultados Online. Todos os direitos reservados.
+          <img src={logoMro} alt="MRO" className="h-8 mx-auto mb-3 opacity-50" />
+          <p className="text-gray-600 text-xs">
+            © {new Date().getFullYear()} MRO - Mais Resultados Online
           </p>
         </div>
       </footer>
