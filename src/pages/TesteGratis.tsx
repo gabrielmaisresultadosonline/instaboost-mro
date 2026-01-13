@@ -414,8 +414,17 @@ const TesteGratis = () => {
     <div className="min-h-screen bg-black">
       {/* Header */}
       <header className="py-4 px-4 border-b border-zinc-800/50">
-        <div className="max-w-4xl mx-auto flex justify-center">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
           <img src={logoMro} alt="MRO" className="h-10 md:h-12" />
+          <a href="/testegratis/usuario">
+            <Button 
+              variant="outline" 
+              className="border-purple-500 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300"
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              Acessar Meu Teste
+            </Button>
+          </a>
         </div>
       </header>
 

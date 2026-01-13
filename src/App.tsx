@@ -51,6 +51,7 @@ import BemVindoMembroVip from "./pages/BemVindoMembroVip";
 import VendasCompletaPro from "./pages/VendasCompletaPro";
 import TesteGratis from "./pages/TesteGratis";
 import TesteGratisAdmin from "./pages/TesteGratisAdmin";
+import TesteGratisUsuario from "./pages/TesteGratisUsuario";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,7 @@ const App = () => (
           <Route path="/instagram-nova-pro" element={<VendasCompletaPro />} />
           <Route path="/testegratis" element={<TesteGratis />} />
           <Route path="/testegratis/admin" element={<TesteGratisAdmin />} />
+          <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
