@@ -770,9 +770,9 @@ const TesteGratis = () => {
                 <Input
                   id="instagram"
                   value={instagramUsername}
-                  onChange={(e) => setInstagramUsername(e.target.value.replace('@', ''))}
+                  onChange={(e) => setInstagramUsername(e.target.value.replace('@', '').toLowerCase())}
                   placeholder="seuinstagram"
-                  className="pl-8 bg-zinc-800 border-zinc-700 text-white placeholder:text-gray-500"
+                  className="pl-8 bg-zinc-800 border-zinc-700 text-white placeholder:text-gray-500 lowercase"
                   required
                 />
               </div>
