@@ -272,6 +272,50 @@ const TesteGratisUsuario = () => {
     }
   };
 
+  // Handle paste from clipboard (Ctrl+V)
+  const handlePaste = (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            toast.error("Imagem muito grande! Máximo 5MB.");
+            return;
+          }
+
+          // Create a DataTransfer to set the file input
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          if (fileInputRef.current) {
+            fileInputRef.current.files = dataTransfer.files;
+          }
+
+          // Preview
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            setScreenshotPreview(ev.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+
+          toast.success("Imagem colada! ✅");
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+  };
+
+  // Add paste event listener - must be before early returns
+  useEffect(() => {
+    if (needsScreenshot && !userData?.profile_screenshot_url) {
+      document.addEventListener('paste', handlePaste);
+      return () => document.removeEventListener('paste', handlePaste);
+    }
+  }, [needsScreenshot, userData?.profile_screenshot_url]);
+
   const handleLogin = () => {
     checkUserAccess(instagramUsername);
   };
@@ -343,50 +387,6 @@ const TesteGratisUsuario = () => {
       </div>
     );
   }
-
-  // Handle paste from clipboard (Ctrl+V)
-  const handlePaste = (e: ClipboardEvent) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith('image/')) {
-        const file = items[i].getAsFile();
-        if (file) {
-          if (file.size > 5 * 1024 * 1024) {
-            toast.error("Imagem muito grande! Máximo 5MB.");
-            return;
-          }
-
-          // Create a DataTransfer to set the file input
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          if (fileInputRef.current) {
-            fileInputRef.current.files = dataTransfer.files;
-          }
-
-          // Preview
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            setScreenshotPreview(ev.target?.result as string);
-          };
-          reader.readAsDataURL(file);
-
-          toast.success("Imagem colada! ✅");
-          e.preventDefault();
-          return;
-        }
-      }
-    }
-  };
-
-  // Add paste event listener
-  useEffect(() => {
-    if (needsScreenshot && !userData?.profile_screenshot_url) {
-      document.addEventListener('paste', handlePaste);
-      return () => document.removeEventListener('paste', handlePaste);
-    }
-  }, [needsScreenshot, userData?.profile_screenshot_url]);
 
   // Screenshot Upload Screen - shows all content but faded until screenshot is uploaded
   if (needsScreenshot && !userData?.profile_screenshot_url) {
