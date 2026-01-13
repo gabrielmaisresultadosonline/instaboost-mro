@@ -16,6 +16,7 @@ import {
   Loader2,
   CheckCircle
 } from "lucide-react";
+import logoMro from '@/assets/logo-mro-2.png';
 
 const TesteGratisUsuario = () => {
   const [instagramUsername, setInstagramUsername] = useState("");
@@ -85,7 +86,95 @@ const TesteGratisUsuario = () => {
     setIsLoading(true);
     
     try {
-      // Check in database first
+      // First load settings to get master credentials
+      const { data: settingsData } = await supabase
+        .from('free_trial_settings')
+        .select('mro_master_username, mro_master_password')
+        .limit(1)
+        .single();
+
+      if (!settingsData?.mro_master_username || !settingsData?.mro_master_password) {
+        if (!silent) toast.error("Configuração do sistema incompleta");
+        setIsLoading(false);
+        return;
+      }
+
+      // Verify with SquareCloud API using master credentials
+      try {
+        const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-usuario-instagram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            username: normalizedIG,
+            masterUser: settingsData.mro_master_username,
+            masterPassword: settingsData.mro_master_password
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.registered) {
+          // Instagram exists in SquareCloud - allow access
+          // Check in database for additional info
+          const { data: registration } = await supabase
+            .from('free_trial_registrations')
+            .select('*')
+            .eq('instagram_username', normalizedIG)
+            .single();
+          
+          if (registration) {
+            // Check if expired
+            const now = new Date();
+            const expiresAt = new Date(registration.expires_at);
+            
+            if (now > expiresAt) {
+              if (!silent) {
+                toast.error("Acesso Expirado! ⏰", {
+                  description: `Seu teste de 24h expirou em ${expiresAt.toLocaleString('pt-BR')}. Adquira um plano para continuar usando o MRO!`
+                });
+              }
+              localStorage.removeItem('testegratis_user');
+              setIsLoading(false);
+              return;
+            }
+            
+            // Success - login user with full data
+            setUserData(registration);
+            setIsLoggedIn(true);
+            localStorage.setItem('testegratis_user', JSON.stringify(registration));
+            
+            if (!silent) {
+              toast.success("Bem-vindo(a)! 🎉", {
+                description: `Olá ${registration.full_name}! Seu teste está ativo.`
+              });
+            }
+          } else {
+            // Instagram exists in SquareCloud but not in our DB - create minimal session
+            const minimalData = {
+              instagram_username: normalizedIG,
+              full_name: normalizedIG,
+              generated_username: settingsData.mro_master_username,
+              generated_password: settingsData.mro_master_password,
+              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            };
+            
+            setUserData(minimalData);
+            setIsLoggedIn(true);
+            localStorage.setItem('testegratis_user', JSON.stringify(minimalData));
+            
+            if (!silent) {
+              toast.success("Bem-vindo(a)! 🎉", {
+                description: `Instagram @${normalizedIG} encontrado!`
+              });
+            }
+          }
+          return;
+        }
+      } catch (apiError) {
+        console.log("API verification failed, falling back to DB check", apiError);
+      }
+
+      // Fallback: Check in database
       const { data: registration, error } = await supabase
         .from('free_trial_registrations')
         .select('*')
@@ -116,30 +205,6 @@ const TesteGratisUsuario = () => {
         localStorage.removeItem('testegratis_user');
         setIsLoading(false);
         return;
-      }
-      
-      // Verify with SquareCloud API that Instagram is registered
-      try {
-        const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-usuario-instagram', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: normalizedIG })
-        });
-        
-        const result = await response.json();
-        
-        if (!result.success || !result.registered) {
-          if (!silent) {
-            toast.error("Instagram não está ativo na plataforma", {
-              description: "Seu Instagram pode ter sido removido. Entre em contato com o suporte."
-            });
-          }
-          setIsLoading(false);
-          return;
-        }
-      } catch (apiError) {
-        console.log("API verification failed, continuing with DB data", apiError);
-        // Continue anyway if API is down
       }
       
       // Success - login user
@@ -173,15 +238,13 @@ const TesteGratisUsuario = () => {
     toast.info("Você saiu da área de teste");
   };
 
-  // Login Screen
+  // Login Screen - Black/Gray/White/Yellow theme
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-black/40 backdrop-blur-xl border-purple-500/30">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-zinc-900 border-zinc-700">
           <CardHeader className="text-center">
-            <div className="mx-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg text-2xl font-bold mb-4">
-              MRO
-            </div>
+            <img src={logoMro} alt="MRO" className="h-12 mx-auto mb-4" />
             <CardTitle className="text-2xl text-white">Área do Teste Grátis</CardTitle>
             <CardDescription className="text-gray-400">
               Acesse com seu Instagram cadastrado
@@ -189,13 +252,13 @@ const TesteGratisUsuario = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="relative">
-              <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400" />
+              <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
               <Input
                 type="text"
                 placeholder="@seu.instagram"
                 value={instagramUsername}
                 onChange={(e) => setInstagramUsername(e.target.value)}
-                className="pl-10 bg-white/10 border-purple-500/30 text-white placeholder:text-gray-500"
+                className="pl-10 bg-zinc-800 border-zinc-600 text-white placeholder:text-gray-500"
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
               />
             </div>
@@ -203,7 +266,7 @@ const TesteGratisUsuario = () => {
             <Button
               onClick={handleLogin}
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-6"
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-6"
             >
               {isLoading ? (
                 <>
@@ -222,7 +285,7 @@ const TesteGratisUsuario = () => {
               <p className="text-gray-500 text-sm mb-2">Ainda não fez o teste?</p>
               <a 
                 href="/testegratis" 
-                className="text-purple-400 hover:text-purple-300 font-medium"
+                className="text-yellow-400 hover:text-yellow-300 font-medium"
               >
                 Faça seu cadastro grátis →
               </a>
@@ -233,21 +296,19 @@ const TesteGratisUsuario = () => {
     );
   }
 
-  // Logged in - User Area
+  // Logged in - User Area with Black/Gray/White/Yellow theme
   const isExpired = userData?.expires_at && new Date() > new Date(userData.expires_at);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4">
+    <div className="min-h-screen bg-black p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-lg text-xl font-bold">
-              MRO
-            </div>
+            <img src={logoMro} alt="MRO" className="h-10" />
             <div>
               <p className="text-white font-medium">{userData?.full_name}</p>
-              <p className="text-purple-300 text-sm">@{userData?.instagram_username}</p>
+              <p className="text-yellow-400 text-sm">@{userData?.instagram_username}</p>
             </div>
           </div>
           <Button 
@@ -276,7 +337,7 @@ const TesteGratisUsuario = () => {
             </div>
             {isExpired && (
               <a href="/instagram-nova">
-                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                <Button className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold">
                   Adquirir Plano
                 </Button>
               </a>
@@ -285,7 +346,7 @@ const TesteGratisUsuario = () => {
         </Card>
 
         {isExpired ? (
-          <Card className="bg-black/40 border-purple-500/30">
+          <Card className="bg-zinc-900 border-zinc-700">
             <CardContent className="p-8 text-center">
               <AlertTriangle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-white mb-2">Seu Teste Expirou!</h2>
@@ -294,7 +355,7 @@ const TesteGratisUsuario = () => {
                 crescer seu Instagram no automático, adquira um de nossos planos.
               </p>
               <a href="/instagram-nova">
-                <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                <Button size="lg" className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold">
                   Ver Planos Disponíveis
                 </Button>
               </a>
@@ -303,7 +364,7 @@ const TesteGratisUsuario = () => {
         ) : (
           <>
             {/* Access Data */}
-            <Card className="mb-6 bg-black/40 border-purple-500/30">
+            <Card className="mb-6 bg-zinc-900 border-zinc-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-400" />
@@ -311,22 +372,22 @@ const TesteGratisUsuario = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-4">
-                <div className="bg-white/5 rounded-lg p-4">
+                <div className="bg-zinc-800 rounded-lg p-4">
                   <p className="text-gray-400 text-sm mb-1">Usuário</p>
-                  <p className="text-white font-mono text-lg font-bold">{userData?.generated_username}</p>
+                  <p className="text-yellow-400 font-mono text-lg font-bold">{userData?.generated_username}</p>
                 </div>
-                <div className="bg-white/5 rounded-lg p-4">
+                <div className="bg-zinc-800 rounded-lg p-4">
                   <p className="text-gray-400 text-sm mb-1">Senha</p>
-                  <p className="text-white font-mono text-lg font-bold">{userData?.generated_password}</p>
+                  <p className="text-yellow-400 font-mono text-lg font-bold">{userData?.generated_password}</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Download Section */}
-            <Card className="mb-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30">
+            <Card className="mb-6 bg-zinc-900 border-yellow-500/50">
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <Download className="w-6 h-6 text-green-400" />
+                  <Download className="w-6 h-6 text-yellow-400" />
                   Download do Sistema
                 </h3>
                 <p className="text-gray-300 mb-4">
@@ -334,7 +395,7 @@ const TesteGratisUsuario = () => {
                 </p>
                 {settings?.download_link ? (
                   <a href={settings.download_link} target="_blank" rel="noopener noreferrer">
-                    <Button size="lg" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold">
+                    <Button size="lg" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold">
                       <Download className="w-5 h-5 mr-2" />
                       Baixar MRO para Windows
                     </Button>
@@ -348,10 +409,10 @@ const TesteGratisUsuario = () => {
             </Card>
 
             {/* Videos Section */}
-            <Card className="mb-6 bg-black/40 border-purple-500/30">
+            <Card className="mb-6 bg-zinc-900 border-zinc-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <PlayCircle className="w-5 h-5 text-purple-400" />
+                  <PlayCircle className="w-5 h-5 text-yellow-400" />
                   Vídeos Tutoriais
                 </CardTitle>
                 <CardDescription className="text-gray-400">
@@ -360,7 +421,7 @@ const TesteGratisUsuario = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {settings?.installation_video_url && (
-                  <div className="bg-white/5 rounded-lg p-4">
+                  <div className="bg-zinc-800 rounded-lg p-4">
                     <h4 className="text-white font-medium mb-3">📥 Como Instalar o MRO</h4>
                     <div className="aspect-video bg-black rounded-lg overflow-hidden">
                       <iframe
@@ -374,7 +435,7 @@ const TesteGratisUsuario = () => {
                 )}
                 
                 {settings?.usage_video_url && (
-                  <div className="bg-white/5 rounded-lg p-4">
+                  <div className="bg-zinc-800 rounded-lg p-4">
                     <h4 className="text-white font-medium mb-3">🚀 Como Usar o MRO</h4>
                     <div className="aspect-video bg-black rounded-lg overflow-hidden">
                       <iframe
@@ -388,7 +449,7 @@ const TesteGratisUsuario = () => {
                 )}
                 
                 {settings?.welcome_video_url && (
-                  <div className="bg-white/5 rounded-lg p-4">
+                  <div className="bg-zinc-800 rounded-lg p-4">
                     <h4 className="text-white font-medium mb-3">👋 Boas-vindas</h4>
                     <div className="aspect-video bg-black rounded-lg overflow-hidden">
                       <iframe
@@ -413,7 +474,7 @@ const TesteGratisUsuario = () => {
 
             {/* WhatsApp Group */}
             {settings?.group_link && (
-              <Card className="mb-6 bg-gradient-to-r from-[#25D366]/20 to-green-500/20 border-[#25D366]/30">
+              <Card className="mb-6 bg-zinc-900 border-[#25D366]/50">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                     <Users className="w-6 h-6 text-[#25D366]" />
@@ -433,11 +494,11 @@ const TesteGratisUsuario = () => {
             )}
 
             {/* Renda Extra Section */}
-            <Card className="mb-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50">
+            <Card className="mb-6 bg-zinc-900 border-green-500/50">
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold text-white text-center mb-2">
-                  💰 Sabia que você pode fazer uma renda extra de mais de{' '}
-                  <span className="text-green-400">5 MIL REAIS</span> com essa ferramenta?
+                  💰 Sabia que você pode fazer uma renda extra de<br />
+                  <span className="text-green-400">mais de 5 MIL REAIS</span> com essa ferramenta?
                 </h3>
                 <p className="text-gray-300 text-center mb-4">
                   Sim, além de utilizar para o seu negócio! Assista o vídeo abaixo:
@@ -455,7 +516,7 @@ const TesteGratisUsuario = () => {
             </Card>
 
             {/* Support Notice */}
-            <Card className="bg-zinc-800/50 border-zinc-700">
+            <Card className="bg-zinc-800 border-zinc-700">
               <CardContent className="p-6 text-center">
                 <h3 className="text-lg font-bold text-white mb-2">
                   💬 Precisa de Ajuda?
