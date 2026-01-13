@@ -334,12 +334,12 @@ const TesteGratis = () => {
           <Button 
             onClick={() => setShowForm(true)}
             size="lg"
-            className="relative overflow-hidden bg-yellow-400 hover:bg-yellow-300 text-black text-lg px-10 py-7 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.3)] font-bold w-full md:w-auto group"
+            className="relative overflow-hidden bg-emerald-700 hover:bg-emerald-600 text-white text-xl px-12 py-8 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.5)] font-bold w-full md:w-auto group border-2 border-emerald-400/50"
           >
-            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full animate-shine" />
-            <Rocket className="w-5 h-5 mr-2 relative z-10" />
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent animate-shine-fast" />
+            <Rocket className="w-6 h-6 mr-2 relative z-10" />
             <span className="relative z-10">Liberar Teste Grátis de 24h</span>
-            <ArrowRight className="w-5 h-5 ml-2 relative z-10" />
+            <ArrowRight className="w-6 h-6 ml-2 relative z-10" />
           </Button>
         </div>
       </section>
@@ -622,10 +622,10 @@ const TesteGratis = () => {
           <Button 
             onClick={() => setShowForm(true)}
             size="lg"
-            className="relative overflow-hidden bg-yellow-400 hover:bg-yellow-300 text-black text-lg px-10 py-7 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.3)] font-bold group"
+            className="relative overflow-hidden bg-emerald-700 hover:bg-emerald-600 text-white text-xl px-12 py-8 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.5)] font-bold group border-2 border-emerald-400/50"
           >
-            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full animate-shine" />
-            <Rocket className="w-5 h-5 mr-2 relative z-10" />
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent animate-shine-fast" />
+            <Rocket className="w-6 h-6 mr-2 relative z-10" />
             <span className="relative z-10">Liberar Meu Teste Agora</span>
           </Button>
         </div>
@@ -760,17 +760,18 @@ const TesteGratis = () => {
             <Button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-yellow-400 hover:bg-yellow-300 text-black py-6 text-base font-bold"
+              className="relative overflow-hidden w-full bg-emerald-700 hover:bg-emerald-600 text-white py-7 text-lg font-bold border-2 border-emerald-400/50 shadow-[0_0_25px_rgba(16,185,129,0.4)]"
             >
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent animate-shine-fast" />
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Processando...
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin relative z-10" />
+                  <span className="relative z-10">Processando...</span>
                 </>
               ) : (
                 <>
-                  <Zap className="w-5 h-5 mr-2" />
-                  Liberar Meu Teste Grátis
+                  <Zap className="w-6 h-6 mr-2 relative z-10" />
+                  <span className="relative z-10">Liberar Meu Teste Grátis</span>
                 </>
               )}
             </Button>
