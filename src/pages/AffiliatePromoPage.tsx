@@ -455,21 +455,18 @@ const AffiliatePromoPage = () => {
             </p>
           </div>
 
-          {/* Main Video */}
+          {/* Main Video - Embedded Player */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
-            <div 
-              onClick={() => openVideo("yFN-F2U9z8w")}
-              className="relative rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-green-500/30 hover:border-green-500/60 transition-all"
-            >
-              <img 
-                src="https://img.youtube.com/vi/yFN-F2U9z8w/maxresdefault.jpg" 
-                alt="Video MRO" 
-                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
-                  <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" fill="white" />
-                </div>
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
+              <div className="aspect-video">
+                <iframe
+                  src="https://www.youtube.com/embed/yFN-F2U9z8w?rel=0&modestbranding=1"
+                  title="Video MRO"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  allowFullScreen
+                />
               </div>
             </div>
           </div>
