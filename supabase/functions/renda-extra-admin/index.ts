@@ -127,6 +127,21 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Reset analytics action
+    if (action === "resetAnalytics") {
+      const { error } = await supabase
+        .from("renda_extra_analytics")
+        .delete()
+        .not("id", "is", null);
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true, message: "Analytics zerado com sucesso" }),
+        { headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: "Invalid action" }),
       { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
