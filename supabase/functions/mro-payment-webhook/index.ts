@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -280,6 +281,12 @@ serve(async (req) => {
   try {
     log("Received webhook request");
 
+    // Verify webhook signature for security
+    const verification = await verifyInfinitePayWebhook(req, corsHeaders, "MRO-PAYMENT-WEBHOOK");
+    if (!verification.verified) {
+      return verification.response;
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -291,17 +298,17 @@ serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    const payload = await req.json();
+    const payload = verification.body;
     log("Webhook payload", payload);
 
     // Suportar chamada manual do admin (manual_approve)
     const manualApprove = payload.manual_approve === true;
     const resendEmailOnly = payload.resend_email_only === true;
-    const orderId = payload.order_id;
+    const orderId = payload.order_id as string | undefined;
 
     // Extrair dados do webhook InfiniPay
-    const orderNsu = payload.order_nsu;
-    const items = payload.items || [];
+    const orderNsu = payload.order_nsu as string | undefined;
+    const items = (payload.items || []) as Array<{ description?: string; name?: string }>;
 
     if (!orderNsu && !orderId) {
       log("No order_nsu or order_id in payload");

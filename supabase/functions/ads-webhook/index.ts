@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -247,63 +248,67 @@ serve(async (req) => {
   }
 
   try {
+    // Verify webhook signature for security
+    const verification = await verifyInfinitePayWebhook(req, corsHeaders, "ADS-WEBHOOK");
+    if (!verification.verified) {
+      return verification.response;
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const payload = await req.json();
+    const payload = verification.body;
     log('Webhook received - FULL PAYLOAD', payload);
 
     // Extract payment info from InfiniPay webhook - support multiple formats
-    const {
-      status,
-      nsu,
-      order_nsu,
-      amount,
-      paid_amount,
-      receipt_url,
-      transaction_nsu,
-      invoice_slug,
-      items,
-      payment_status,
-      transaction_status,
-      payment,
-      transaction,
-      data,
-    } = payload;
+    const status = payload.status as string | undefined;
+    const nsu = payload.nsu as string | undefined;
+    const order_nsu = payload.order_nsu as string | undefined;
+    const amount = payload.amount as number | undefined;
+    const paid_amount = payload.paid_amount as number | undefined;
+    const receipt_url = payload.receipt_url as string | undefined;
+    const transaction_nsu = payload.transaction_nsu as string | undefined;
+    const invoice_slug = payload.invoice_slug as string | undefined;
+    const items = payload.items as Array<{ name?: string; description?: string; product_name?: string }> | undefined;
+    const payment_status = payload.payment_status as string | undefined;
+    const transaction_status = payload.transaction_status as string | undefined;
+    const payment = payload.payment as Record<string, unknown> | undefined;
+    const transaction = payload.transaction as Record<string, unknown> | undefined;
+    const data = payload.data as Record<string, unknown> | undefined;
 
     // Try to get nested data
-    const nestedStatus = payment?.status || transaction?.status || data?.status;
-    const nestedNsu = payment?.nsu || transaction?.nsu || data?.nsu || data?.order_nsu;
-    const nestedItems = payment?.items || transaction?.items || data?.items;
+    const nestedStatus = (payment?.status || transaction?.status || data?.status) as string | undefined;
+    const nestedNsu = (payment?.nsu || transaction?.nsu || data?.nsu || data?.order_nsu) as string | undefined;
+    const nestedItems = (payment?.items || transaction?.items || data?.items) as Array<{ name?: string; description?: string; product_name?: string }> | undefined;
 
     // Evidence-based fields
     const totalAmount =
       typeof amount === "number"
         ? amount
         : typeof data?.amount === "number"
-          ? data.amount
+          ? data.amount as number
           : undefined;
 
     const paidAmount =
       typeof paid_amount === "number"
         ? paid_amount
         : typeof data?.paid_amount === "number"
-          ? data.paid_amount
+          ? data.paid_amount as number
           : undefined;
 
     const receiptUrl =
       typeof receipt_url === "string"
         ? receipt_url
         : typeof data?.receipt_url === "string"
-          ? data.receipt_url
+          ? data.receipt_url as string
           : undefined;
 
     const transactionNsu =
       typeof transaction_nsu === "string"
         ? transaction_nsu
         : typeof data?.transaction_nsu === "string"
-          ? data.transaction_nsu
+          ? data.transaction_nsu as string
           : undefined;
 
     // Check if payment is confirmed
@@ -521,7 +526,7 @@ serve(async (req) => {
         .update({
           status: 'paid',
           paid_at: new Date().toISOString(),
-          invoice_slug: invoice_slug || data?.invoice_slug || null,
+          invoice_slug: (invoice_slug || data?.invoice_slug || null) as string | null,
           transaction_nsu: transactionNsu || null
         })
         .eq('id', order.id);
