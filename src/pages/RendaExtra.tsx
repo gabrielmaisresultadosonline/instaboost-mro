@@ -215,7 +215,7 @@ const RendaExtra = () => {
           <div className="mt-8">
             <Button 
               onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-green-500/20 hover:scale-105 transition-all duration-300 group"
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
             >
               Participar Grátis!
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -244,7 +244,7 @@ const RendaExtra = () => {
             <>
               <Button 
                 onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-green-500/20 hover:scale-105 transition-all duration-300 group mb-8"
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group mb-8"
               >
                 Participar Agora!
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -415,6 +415,19 @@ const RendaExtra = () => {
               <span className="text-orange-200 text-sm font-medium">Computador de Mesa</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Final CTA Button */}
+      <section className="py-12 px-4">
+        <div className="max-w-xl mx-auto text-center">
+          <Button 
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
+          >
+            Participar Grátis!
+            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
         </div>
       </section>
 
