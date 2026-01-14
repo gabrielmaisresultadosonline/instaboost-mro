@@ -419,6 +419,13 @@ const RendaExtra = () => {
 
         {/* Hero Content */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
+          {/* GRÁTIS Badge */}
+          <div className="mb-4">
+            <span className="bg-red-500 text-white font-bold text-sm sm:text-base px-6 py-2 rounded-full shadow-lg shadow-red-500/30">
+              GRÁTIS
+            </span>
+          </div>
+
           {/* Hero Image */}
           <div className="w-full max-w-md mx-auto">
             <img 
@@ -444,8 +451,8 @@ const RendaExtra = () => {
           </div>
 
           {/* Description */}
-          <div className="text-center mt-6 max-w-lg mx-auto px-4">
-            <p className="text-sm sm:text-base md:text-lg text-gray-400">
+          <div className="text-center mt-6 max-w-xs sm:max-w-lg mx-auto px-2">
+            <p className="text-xs sm:text-base md:text-lg text-gray-400 leading-relaxed">
               Utilize no seu horário, em <span className="text-green-400 font-medium">qualquer lugar do mundo</span>!
               <br />
               Extremamente uma <span className="text-yellow-400 font-medium">liberdade financeira</span>!
