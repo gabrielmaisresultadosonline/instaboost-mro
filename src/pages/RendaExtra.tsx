@@ -168,12 +168,16 @@ const RendaExtra = () => {
             
             {/* Title Overlapping Bottom of Image */}
             <div className="absolute -bottom-4 left-0 right-0 text-center">
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-none" style={{ textShadow: '0 8px 32px rgba(0, 0, 0, 0.9), 0 4px 16px rgba(0, 0, 0, 0.8), 0 0 60px rgba(0, 0, 0, 0.6)' }}>
-                <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
+              {/* Shadow layer behind */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-full h-32 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/80 to-transparent blur-xl" />
+              </div>
+              <h1 className="relative text-5xl md:text-7xl lg:text-8xl font-black leading-none">
+                <span className="text-gold-shimmer">
                   5 a 10
                 </span>
                 <br />
-                <span className="text-green-400 uppercase tracking-tight">MIL MENSAL</span>
+                <span className="text-green-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
               </h1>
             </div>
           </div>

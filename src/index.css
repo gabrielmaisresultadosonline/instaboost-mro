@@ -193,3 +193,31 @@
 .animate-shine {
   animation: shine 2s infinite;
 }
+
+/* Gold shimmer animation for text */
+@keyframes gold-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.text-gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    #b8860b 0%,
+    #ffd700 20%,
+    #ffed4e 35%,
+    #ffffff 50%,
+    #ffed4e 65%,
+    #ffd700 80%,
+    #b8860b 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gold-shimmer 3s linear infinite;
+}
