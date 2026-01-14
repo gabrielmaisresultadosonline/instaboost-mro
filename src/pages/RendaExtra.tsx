@@ -173,20 +173,21 @@ const RendaExtra = () => {
                 <div className="w-full h-32 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/80 to-transparent blur-xl" />
               </div>
               <h1 className="relative text-5xl md:text-7xl lg:text-8xl font-black leading-none">
-                <span className="text-gold-shimmer">
+                <span className="text-gold-shimmer" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9)) drop-shadow(0 8px 40px rgba(0, 0, 0, 0.7))' }}>
                   5 a 10
                 </span>
                 <br />
                 <span className="text-green-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
               </h1>
+              {/* Subtitle right below */}
+              <h2 className="relative text-xl md:text-2xl lg:text-3xl font-semibold text-white mt-2">
+                utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
+              </h2>
             </div>
           </div>
 
-          {/* Subtitle */}
-          <div className="text-center mt-16 space-y-4 max-w-2xl mx-auto">
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-semibold text-white">
-              utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
-            </h2>
+          {/* Description */}
+          <div className="text-center mt-12 max-w-2xl mx-auto">
             <p className="text-base md:text-lg text-gray-400">
               Utilize no seu horário, em <span className="text-green-400 font-medium">qualquer lugar do mundo</span>!
               <br />
