@@ -427,8 +427,8 @@ const RendaExtra = () => {
               className="w-full drop-shadow-2xl"
             />
             
-            {/* Title Overlapping Bottom of Image */}
-            <div className="absolute -bottom-4 left-0 right-0 text-center">
+            {/* Title Below Image */}
+            <div className="absolute -bottom-16 sm:-bottom-20 left-0 right-0 text-center">
               {/* Shadow layer behind */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-full h-32 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/80 to-transparent blur-xl" />
