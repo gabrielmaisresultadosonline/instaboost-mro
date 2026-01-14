@@ -7,12 +7,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/renda-extra-hero.png";
-import notebookImage from "@/assets/mro-notebook.jpg";
 import logoMro from "@/assets/logo-mro-white.png";
-import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2 } from "lucide-react";
+import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2, X } from "lucide-react";
 
 const RendaExtra = () => {
   const [showForm, setShowForm] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [groupLink, setGroupLink] = useState("");
@@ -26,9 +26,22 @@ const RendaExtra = () => {
     instagramUsername: ""
   });
 
+  const totalSteps = 7;
+
   useEffect(() => {
     trackVisit();
   }, []);
+
+  useEffect(() => {
+    if (showForm) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showForm]);
 
   const trackVisit = async () => {
     try {
@@ -44,10 +57,27 @@ const RendaExtra = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.nomeCompleto || !formData.email || !formData.whatsapp || !formData.mediaSalarial || !formData.tipoComputador) {
+  const canProceed = () => {
+    switch (currentStep) {
+      case 0: return formData.nomeCompleto.trim() !== "";
+      case 1: return formData.email.trim() !== "" && formData.email.includes("@");
+      case 2: return formData.whatsapp.trim() !== "";
+      case 3: return true; // checkbox is optional
+      case 4: return formData.mediaSalarial !== "";
+      case 5: return formData.tipoComputador !== "";
+      case 6: return formData.instagramUsername.trim() !== "";
+      default: return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (canProceed() && currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.nomeCompleto || !formData.email || !formData.whatsapp || !formData.mediaSalarial || !formData.tipoComputador || !formData.instagramUsername) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -131,7 +161,238 @@ const RendaExtra = () => {
     );
   }
 
+  const renderQuizStep = () => {
+    const stepContent = [
+      // Step 0 - Nome
+      <div key="nome" className="space-y-4 animate-fade-in">
+        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+          Qual é o seu nome completo?
+        </h3>
+        <Input
+          value={formData.nomeCompleto}
+          onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
+          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+          placeholder="Digite seu nome completo"
+          autoFocus
+        />
+      </div>,
+      // Step 1 - Email
+      <div key="email" className="space-y-4 animate-fade-in">
+        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+          Qual é o seu melhor email?
+        </h3>
+        <Input
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+          placeholder="seu@email.com"
+          autoFocus
+        />
+      </div>,
+      // Step 2 - WhatsApp
+      <div key="whatsapp" className="space-y-4 animate-fade-in">
+        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+          Qual é o seu WhatsApp?
+        </h3>
+        <Input
+          value={formData.whatsapp}
+          onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+          placeholder="(00) 00000-0000"
+          autoFocus
+        />
+      </div>,
+      // Step 3 - Trabalha
+      <div key="trabalha" className="space-y-4 animate-fade-in">
+        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+          Você trabalha atualmente?
+        </h3>
+        <div className="flex flex-col gap-4">
+          <Button
+            type="button"
+            onClick={() => {
+              setFormData({ ...formData, trabalhaAtualmente: true });
+              setCurrentStep(currentStep + 1);
+            }}
+            className="w-full bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/50 text-white font-semibold text-lg py-6 rounded-xl transition-all"
+          >
+            Sim, trabalho
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              setFormData({ ...formData, trabalhaAtualmente: false });
+              setCurrentStep(currentStep + 1);
+            }}
+            className="w-full bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/50 text-white font-semibold text-lg py-6 rounded-xl transition-all"
+          >
+            Não, estou buscando oportunidades
+          </Button>
+        </div>
+      </div>,
+      // Step 4 - Media Salarial
+      <div key="salario" className="space-y-4 animate-fade-in">
+        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+          Qual sua média salarial atual?
+        </h3>
+        <div className="flex flex-col gap-3">
+          {[
+            { value: "menos_5k", label: "Menos de R$ 5.000" },
+            { value: "5k_10k", label: "Entre R$ 5.000 e R$ 10.000" },
+            { value: "mais_10k", label: "Mais de R$ 10.000" }
+          ].map((option) => (
+            <Button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, mediaSalarial: option.value });
+                setCurrentStep(currentStep + 1);
+              }}
+              className={`w-full border text-white font-semibold text-lg py-6 rounded-xl transition-all ${
+                formData.mediaSalarial === option.value 
+                  ? "bg-red-500/30 border-red-500" 
+                  : "bg-white/5 border-white/10 hover:bg-red-500/20 hover:border-red-500/50"
+              }`}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
+      </div>,
+      // Step 5 - Computador
+      <div key="computador" className="space-y-4 animate-fade-in">
+        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+          Você possui computador?
+        </h3>
+        <div className="flex flex-col gap-3">
+          {[
+            { value: "computador", label: "Computador de Mesa", icon: Monitor },
+            { value: "notebook", label: "Notebook", icon: Laptop },
+            { value: "macbook", label: "MacBook", icon: Laptop },
+            { value: "nenhum", label: "Nenhum", icon: X }
+          ].map((option) => (
+            <Button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, tipoComputador: option.value });
+                setCurrentStep(currentStep + 1);
+              }}
+              className={`w-full border text-white font-semibold text-lg py-6 rounded-xl transition-all flex items-center justify-center gap-3 ${
+                formData.tipoComputador === option.value 
+                  ? "bg-red-500/30 border-red-500" 
+                  : "bg-white/5 border-white/10 hover:bg-red-500/20 hover:border-red-500/50"
+              }`}
+            >
+              <option.icon className="w-5 h-5" />
+              {option.label}
+            </Button>
+          ))}
+        </div>
+      </div>,
+      // Step 6 - Instagram
+      <div key="instagram" className="space-y-4 animate-fade-in">
+        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+          Qual é o seu Instagram?
+        </h3>
+        <Input
+          value={formData.instagramUsername}
+          onChange={(e) => setFormData({ ...formData, instagramUsername: e.target.value })}
+          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+          placeholder="@seuperfil"
+          autoFocus
+        />
+      </div>
+    ];
+
+    return stepContent[currentStep];
+  };
+
   return (
+    <>
+      {/* Quiz Popup Modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-lg bg-gradient-to-br from-[#151a2e] to-[#0d1020] rounded-3xl p-6 md:p-10 border border-white/10 shadow-2xl animate-fade-in">
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setShowForm(false);
+                setCurrentStep(0);
+              }}
+              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/50 transition-all"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex justify-between text-xs text-gray-500 mb-2">
+                <span>Pergunta {currentStep + 1} de {totalSteps}</span>
+                <span>{Math.round(((currentStep + 1) / totalSteps) * 100)}%</span>
+              </div>
+              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-500"
+                  style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Quiz Content */}
+            <div className="min-h-[200px] flex flex-col justify-center">
+              {renderQuizStep()}
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="mt-8 flex gap-3">
+              {currentStep > 0 && currentStep !== 3 && currentStep !== 4 && currentStep !== 5 && (
+                <Button
+                  type="button"
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold py-5 rounded-xl"
+                >
+                  Voltar
+                </Button>
+              )}
+              {currentStep !== 3 && currentStep !== 4 && currentStep !== 5 && (
+                currentStep === totalSteps - 1 ? (
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={!canProceed() || loading}
+                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-5 rounded-xl disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Cadastrando...
+                      </>
+                    ) : (
+                      <>
+                        Participar do Grupo
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-5 rounded-xl disabled:opacity-50"
+                  >
+                    Próximo
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     <div className="min-h-screen bg-[#0a0f1a] overflow-x-hidden">
       {/* Hero Section with Image Background */}
       <section className="relative min-h-[90vh] flex flex-col">
@@ -240,153 +501,20 @@ const RendaExtra = () => {
       {/* CTA Section */}
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          {!showForm ? (
-            <>
-              <Button 
-                onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group mb-8"
-              >
-                Participar Agora!
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              
-              <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
-                Aprenda Grátis!
-              </h2>
-              <p className="text-gray-500 text-base">
-                Lançamento: <span className="text-yellow-400 font-semibold">21 de Janeiro de 2026</span>
-              </p>
-            </>
-          ) : (
-            <div className="mt-6 max-w-md mx-auto bg-gradient-to-br from-[#151a2e] to-[#0d1020] rounded-2xl p-6 md:p-8 border border-white/5 shadow-2xl animate-fade-in">
-              <h3 className="text-xl font-bold text-white mb-5">Pré-Cadastro</h3>
-              
-              <form onSubmit={handleSubmit} className="space-y-4 text-left">
-                <div>
-                  <Label htmlFor="nomeCompleto" className="text-gray-400 text-sm">Nome Completo *</Label>
-                  <Input
-                    id="nomeCompleto"
-                    value={formData.nomeCompleto}
-                    onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
-                    className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-green-500/50"
-                    placeholder="Seu nome completo"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="email" className="text-gray-400 text-sm">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-green-500/50"
-                    placeholder="seu@email.com"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="whatsapp" className="text-gray-400 text-sm">WhatsApp *</Label>
-                  <Input
-                    id="whatsapp"
-                    value={formData.whatsapp}
-                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                    className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-green-500/50"
-                    placeholder="(00) 00000-0000"
-                    required
-                  />
-                </div>
-
-                <div className="flex items-center space-x-3 py-1">
-                  <Checkbox
-                    id="trabalhaAtualmente"
-                    checked={formData.trabalhaAtualmente}
-                    onCheckedChange={(checked) => setFormData({ ...formData, trabalhaAtualmente: !!checked })}
-                    className="border-white/20 data-[state=checked]:bg-green-500"
-                  />
-                  <Label htmlFor="trabalhaAtualmente" className="text-gray-400 text-sm">
-                    Trabalha atualmente?
-                  </Label>
-                </div>
-
-                <div>
-                  <Label className="text-gray-400 text-sm">Média salarial? *</Label>
-                  <RadioGroup
-                    value={formData.mediaSalarial}
-                    onValueChange={(value) => setFormData({ ...formData, mediaSalarial: value })}
-                    className="mt-2 space-y-2"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="menos_5k" id="menos_5k" className="border-white/20 text-green-500" />
-                      <Label htmlFor="menos_5k" className="text-gray-400 text-sm">Menos de R$ 5.000</Label>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="5k_10k" id="5k_10k" className="border-white/20 text-green-500" />
-                      <Label htmlFor="5k_10k" className="text-gray-400 text-sm">Entre R$ 5.000 e R$ 10.000</Label>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="mais_10k" id="mais_10k" className="border-white/20 text-green-500" />
-                      <Label htmlFor="mais_10k" className="text-gray-400 text-sm">Mais de R$ 10.000</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label className="text-gray-400 text-sm">Possui computador? *</Label>
-                  <RadioGroup
-                    value={formData.tipoComputador}
-                    onValueChange={(value) => setFormData({ ...formData, tipoComputador: value })}
-                    className="mt-2 space-y-2"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="computador" id="computador" className="border-white/20 text-green-500" />
-                      <Label htmlFor="computador" className="text-gray-400 text-sm">Computador de Mesa</Label>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="notebook" id="notebook" className="border-white/20 text-green-500" />
-                      <Label htmlFor="notebook" className="text-gray-400 text-sm">Notebook</Label>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="macbook" id="macbook" className="border-white/20 text-green-500" />
-                      <Label htmlFor="macbook" className="text-gray-400 text-sm">MacBook</Label>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="nenhum" id="nenhum" className="border-white/20 text-green-500" />
-                      <Label htmlFor="nenhum" className="text-gray-400 text-sm">Nenhum</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label htmlFor="instagram" className="text-gray-400 text-sm">Instagram (opcional)</Label>
-                  <Input
-                    id="instagram"
-                    value={formData.instagramUsername}
-                    onChange={(e) => setFormData({ ...formData, instagramUsername: e.target.value })}
-                    className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-green-500/50"
-                    placeholder="@seuperfil"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base py-5 rounded-xl shadow-xl mt-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Cadastrando...
-                    </>
-                  ) : (
-                    "Participar do Grupo"
-                  )}
-                </Button>
-              </form>
-            </div>
-          )}
+          <Button 
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group mb-8"
+          >
+            Participar Agora!
+            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+          
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
+            Aprenda Grátis!
+          </h2>
+          <p className="text-gray-500 text-base">
+            Lançamento: <span className="text-yellow-400 font-semibold">21 de Janeiro de 2026</span>
+          </p>
         </div>
       </section>
 
@@ -438,6 +566,7 @@ const RendaExtra = () => {
         </p>
       </footer>
     </div>
+    </>
   );
 };
 
