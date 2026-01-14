@@ -210,6 +210,17 @@ const RendaExtra = () => {
               <span className="text-gray-300 text-sm font-medium">Renda Extra</span>
             </div>
           </div>
+
+          {/* CTA Button in Hero */}
+          <div className="mt-8">
+            <Button 
+              onClick={() => setShowForm(true)}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-green-500/20 hover:scale-105 transition-all duration-300 group"
+            >
+              Participar Grátis!
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
         </div>
       </section>
 
