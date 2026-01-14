@@ -417,70 +417,74 @@ const RendaExtra = () => {
           </div>
         </div>
 
-        {/* Hero Content with Overlapping Title */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 -mt-4">
-          {/* Hero Image with Title Overlay */}
-          <div className="relative w-full max-w-xl mx-auto">
-            <img 
-              src={heroImage} 
-              alt="Resultados MRO" 
-              className="w-full max-w-md mx-auto drop-shadow-2xl"
-            />
-            
-            {/* Title Overlapping Bottom of Image */}
-            <div className="absolute -bottom-4 left-0 right-0 text-center">
-              {/* Shadow layer behind */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-full h-32 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/80 to-transparent blur-xl" />
+        {/* Hero Content - Side by Side on Large Screens */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 mt-4">
+          {/* Container with max width for large screens */}
+          <div className="w-full max-w-5xl mx-auto">
+            {/* Mobile: Stacked | Desktop: Side by Side */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-center lg:gap-8 xl:gap-12">
+              
+              {/* Hero Image */}
+              <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-sm xl:max-w-md mx-auto lg:mx-0 flex-shrink-0">
+                <img 
+                  src={heroImage} 
+                  alt="Resultados MRO" 
+                  className="w-full drop-shadow-2xl"
+                />
               </div>
-              <h1 className="relative text-5xl md:text-7xl lg:text-8xl font-black leading-none">
-                <span className="text-gold-shimmer" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9)) drop-shadow(0 8px 40px rgba(0, 0, 0, 0.7))' }}>
-                  5 a 10
-                </span>
-                <br />
-                <span className="text-green-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
-              </h1>
-              {/* Subtitle right below */}
-              <h2 className="relative text-xl md:text-2xl lg:text-3xl font-semibold text-white mt-2">
-                utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
-              </h2>
-            </div>
-          </div>
+              
+              {/* Text Content */}
+              <div className="text-center lg:text-left mt-6 lg:mt-0 flex-shrink-0">
+                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-6xl xl:text-7xl font-black leading-none">
+                  <span className="text-gold-shimmer" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9)) drop-shadow(0 8px 40px rgba(0, 0, 0, 0.7))' }}>
+                    5 a 10
+                  </span>
+                  <br />
+                  <span className="text-green-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
+                </h1>
+                
+                {/* Subtitle */}
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mt-3">
+                  utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
+                </h2>
 
-          {/* Description */}
-          <div className="text-center mt-12 max-w-2xl mx-auto">
-            <p className="text-base md:text-lg text-gray-400">
-              Utilize no seu horário, em <span className="text-green-400 font-medium">qualquer lugar do mundo</span>!
-              <br />
-              Extremamente uma <span className="text-yellow-400 font-medium">liberdade financeira</span>!
-            </p>
-          </div>
+                {/* Description */}
+                <div className="mt-6 max-w-md mx-auto lg:mx-0">
+                  <p className="text-sm md:text-base text-gray-400">
+                    Utilize no seu horário, em <span className="text-green-400 font-medium">qualquer lugar do mundo</span>!
+                    <br />
+                    Extremamente uma <span className="text-yellow-400 font-medium">liberdade financeira</span>!
+                  </p>
+                </div>
 
-          {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-green-500/30 transition-colors">
-              <Clock className="w-4 h-4 text-green-400" />
-              <span className="text-gray-300 text-sm font-medium">Seu Horário</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-yellow-500/30 transition-colors">
-              <MapPin className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-300 text-sm font-medium">Qualquer Lugar</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/10 hover:border-emerald-500/30 transition-colors">
-              <DollarSign className="w-4 h-4 text-emerald-400" />
-              <span className="text-gray-300 text-sm font-medium">Renda Extra</span>
-            </div>
-          </div>
+                {/* Feature Pills */}
+                <div className="flex flex-wrap justify-center lg:justify-start gap-2 mt-6">
+                  <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-full border border-white/10 hover:border-green-500/30 transition-colors">
+                    <Clock className="w-4 h-4 text-green-400" />
+                    <span className="text-gray-300 text-xs font-medium">Seu Horário</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-full border border-white/10 hover:border-yellow-500/30 transition-colors">
+                    <MapPin className="w-4 h-4 text-yellow-400" />
+                    <span className="text-gray-300 text-xs font-medium">Qualquer Lugar</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 py-2 rounded-full border border-white/10 hover:border-emerald-500/30 transition-colors">
+                    <DollarSign className="w-4 h-4 text-emerald-400" />
+                    <span className="text-gray-300 text-xs font-medium">Renda Extra</span>
+                  </div>
+                </div>
 
-          {/* CTA Button in Hero */}
-          <div className="mt-8">
-            <Button 
-              onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
-            >
-              Participar Grátis!
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+                {/* CTA Button */}
+                <div className="mt-8 flex justify-center lg:justify-start">
+                  <Button 
+                    onClick={() => setShowForm(true)}
+                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-base md:text-lg px-8 py-5 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
+                  >
+                    Participar Grátis!
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
