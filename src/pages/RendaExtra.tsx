@@ -255,21 +255,23 @@ const RendaExtra = () => {
       {/* CTA Section */}
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
-            Aprenda Grátis!
-          </h2>
-          <p className="text-gray-500 text-base mb-8">
-            Lançamento: <span className="text-yellow-400 font-semibold">21 de Janeiro de 2026</span>
-          </p>
-
           {!showForm ? (
-            <Button 
-              onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-green-500/20 hover:scale-105 transition-all duration-300 group"
-            >
-              Participar Agora!
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <>
+              <Button 
+                onClick={() => setShowForm(true)}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-green-500/20 hover:scale-105 transition-all duration-300 group mb-8"
+              >
+                Participar Agora!
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              
+              <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
+                Aprenda Grátis!
+              </h2>
+              <p className="text-gray-500 text-base">
+                Lançamento: <span className="text-yellow-400 font-semibold">21 de Janeiro de 2026</span>
+              </p>
+            </>
           ) : (
             <div className="mt-6 max-w-md mx-auto bg-gradient-to-br from-[#151a2e] to-[#0d1020] rounded-2xl p-6 md:p-8 border border-white/5 shadow-2xl animate-fade-in">
               <h3 className="text-xl font-bold text-white mb-5">Pré-Cadastro</h3>
