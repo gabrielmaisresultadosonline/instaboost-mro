@@ -213,33 +213,6 @@ const RendaExtra = () => {
         </div>
       </section>
 
-      {/* Not a Course Section */}
-      <section className="py-12 px-4">
-        <div className="max-w-xl mx-auto">
-          <div className="bg-gradient-to-br from-[#1a1f35] to-[#0f1525] rounded-2xl p-6 md:p-8 border border-blue-500/10 text-center">
-            <Sparkles className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-            <p className="text-lg md:text-xl font-semibold text-white">
-              Isso <span className="text-yellow-400">NÃO É</span> um curso!
-            </p>
-            <p className="text-gray-400 mt-2">
-              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5k mensal!
-            </p>
-          </div>
-
-          {/* Requirements */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
-            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2.5 rounded-xl">
-              <Laptop className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-200 text-sm font-medium">Precisa de Notebook</span>
-            </div>
-            <span className="text-gray-600 text-sm">ou</span>
-            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2.5 rounded-xl">
-              <Monitor className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-200 text-sm font-medium">Computador de Mesa</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Text Section */}
       <section className="py-12 px-4">
@@ -403,6 +376,34 @@ const RendaExtra = () => {
               </form>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Not a Course Section - moved to end */}
+      <section className="py-12 px-4">
+        <div className="max-w-xl mx-auto">
+          <div className="bg-gradient-to-br from-[#1a1f35] to-[#0f1525] rounded-2xl p-6 md:p-8 border border-blue-500/10 text-center">
+            <Sparkles className="w-8 h-8 text-blue-400 mx-auto mb-4" />
+            <p className="text-lg md:text-xl font-semibold text-white">
+              Isso <span className="text-yellow-400">NÃO É</span> um curso!
+            </p>
+            <p className="text-gray-400 mt-2">
+              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5k mensal!
+            </p>
+          </div>
+
+          {/* Requirements */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2.5 rounded-xl">
+              <Laptop className="w-5 h-5 text-orange-400" />
+              <span className="text-orange-200 text-sm font-medium">Precisa de Notebook</span>
+            </div>
+            <span className="text-gray-600 text-sm">ou</span>
+            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2.5 rounded-xl">
+              <Monitor className="w-5 h-5 text-orange-400" />
+              <span className="text-orange-200 text-sm font-medium">Computador de Mesa</span>
+            </div>
+          </div>
         </div>
       </section>
 
