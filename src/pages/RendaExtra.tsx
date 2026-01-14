@@ -417,38 +417,34 @@ const RendaExtra = () => {
           </div>
         </div>
 
-        {/* Hero Content with Overlapping Title */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 -mt-4">
-          {/* Hero Image with Title Overlay - Constrained width for all screens */}
-          <div className="relative w-full max-w-md mx-auto">
+        {/* Hero Content */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
+          {/* Hero Image */}
+          <div className="w-full max-w-md mx-auto">
             <img 
               src={heroImage} 
               alt="Resultados MRO" 
               className="w-full drop-shadow-2xl"
             />
-            
-            {/* Title Below Image */}
-            <div className="absolute -bottom-16 sm:-bottom-20 left-0 right-0 text-center">
-              {/* Shadow layer behind */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-full h-32 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/80 to-transparent blur-xl" />
-              </div>
-              <h1 className="relative text-5xl sm:text-6xl md:text-7xl font-black leading-none">
-                <span className="text-gold-shimmer" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9)) drop-shadow(0 8px 40px rgba(0, 0, 0, 0.7))' }}>
-                  5 a 10
-                </span>
-                <br />
-                <span className="text-green-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
-              </h1>
-              {/* Subtitle right below */}
-              <h2 className="relative text-lg sm:text-xl md:text-2xl font-semibold text-white mt-2">
-                utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
-              </h2>
-            </div>
+          </div>
+          
+          {/* Title Below Image */}
+          <div className="text-center mt-2">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black leading-none">
+              <span className="text-gold-shimmer" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9)) drop-shadow(0 8px 40px rgba(0, 0, 0, 0.7))' }}>
+                5 a 10
+              </span>
+              <br />
+              <span className="text-green-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
+            </h1>
+            {/* Subtitle */}
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mt-2">
+              utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
+            </h2>
           </div>
 
           {/* Description */}
-          <div className="text-center mt-10 max-w-lg mx-auto px-4">
+          <div className="text-center mt-6 max-w-lg mx-auto px-4">
             <p className="text-sm sm:text-base md:text-lg text-gray-400">
               Utilize no seu horário, em <span className="text-green-400 font-medium">qualquer lugar do mundo</span>!
               <br />
