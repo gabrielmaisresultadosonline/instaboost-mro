@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
-  CheckCircle, XCircle, Loader2, Calendar, Link2, Search
+  CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2
 } from "lucide-react";
 
 interface Lead {
@@ -144,6 +144,28 @@ const RendaExtraAdmin = () => {
     }
   };
 
+  const resetAnalytics = async () => {
+    if (!confirm("Tem certeza que deseja zerar todas as visitas? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await supabase.functions.invoke("renda-extra-admin", {
+        body: { action: "resetAnalytics" }
+      });
+
+      if (response.error) throw response.error;
+
+      toast({ title: "Visitas zeradas com sucesso!" });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Erro ao zerar visitas", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredLeads = leads.filter(lead => 
     lead.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -223,6 +245,18 @@ const RendaExtraAdmin = () => {
         </div>
 
         {/* Analytics Cards */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-white">Estatísticas</h2>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={resetAnalytics} 
+            disabled={loading}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Zerar Visitas
+          </Button>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-gray-800/50 border-gray-700">
             <CardContent className="p-4 flex items-center gap-4">
