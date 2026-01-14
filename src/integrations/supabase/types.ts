@@ -1112,6 +1112,155 @@ export type Database = {
         }
         Relationships: []
       }
+      renda_extra_analytics: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          event_type: string
+          id: string
+          referrer: string | null
+          source_url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          event_type: string
+          id?: string
+          referrer?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          event_type?: string
+          id?: string
+          referrer?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      renda_extra_email_logs: {
+        Row: {
+          created_at: string
+          email_to: string
+          email_type: string
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_to: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_to?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renda_extra_email_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "renda_extra_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      renda_extra_leads: {
+        Row: {
+          created_at: string
+          email: string
+          email_confirmacao_enviado: boolean | null
+          email_confirmacao_enviado_at: string | null
+          email_lembrete_enviado: boolean | null
+          email_lembrete_enviado_at: string | null
+          id: string
+          instagram_username: string | null
+          media_salarial: string
+          nome_completo: string
+          tipo_computador: string
+          trabalha_atualmente: boolean | null
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          email_lembrete_enviado?: boolean | null
+          email_lembrete_enviado_at?: string | null
+          id?: string
+          instagram_username?: string | null
+          media_salarial: string
+          nome_completo: string
+          tipo_computador: string
+          trabalha_atualmente?: boolean | null
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          email_lembrete_enviado?: boolean | null
+          email_lembrete_enviado_at?: string | null
+          id?: string
+          instagram_username?: string | null
+          media_salarial?: string
+          nome_completo?: string
+          tipo_computador?: string
+          trabalha_atualmente?: boolean | null
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      renda_extra_settings: {
+        Row: {
+          admin_email: string | null
+          admin_password: string | null
+          created_at: string
+          id: string
+          launch_date: string | null
+          updated_at: string
+          whatsapp_group_link: string | null
+        }
+        Insert: {
+          admin_email?: string | null
+          admin_password?: string | null
+          created_at?: string
+          id?: string
+          launch_date?: string | null
+          updated_at?: string
+          whatsapp_group_link?: string | null
+        }
+        Update: {
+          admin_email?: string | null
+          admin_password?: string | null
+          created_at?: string
+          id?: string
+          launch_date?: string | null
+          updated_at?: string
+          whatsapp_group_link?: string | null
+        }
+        Relationships: []
+      }
       squarecloud_user_profiles: {
         Row: {
           created_at: string | null

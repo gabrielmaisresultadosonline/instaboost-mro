@@ -52,6 +52,8 @@ import VendasCompletaPro from "./pages/VendasCompletaPro";
 import TesteGratis from "./pages/TesteGratis";
 import TesteGratisAdmin from "./pages/TesteGratisAdmin";
 import TesteGratisUsuario from "./pages/TesteGratisUsuario";
+import RendaExtra from "./pages/RendaExtra";
+import RendaExtraAdmin from "./pages/RendaExtraAdmin";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +114,8 @@ const App = () => (
           <Route path="/testegratis" element={<TesteGratis />} />
           <Route path="/testegratis/admin" element={<TesteGratisAdmin />} />
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
+          <Route path="/rendaextra" element={<RendaExtra />} />
+          <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
