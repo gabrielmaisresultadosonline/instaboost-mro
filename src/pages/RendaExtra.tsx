@@ -236,24 +236,15 @@ const RendaExtra = () => {
         </div>
       </section>
 
-      {/* Notebook Section */}
+      {/* Text Section */}
       <section className="py-12 px-4">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10">
-          <div className="flex-1 order-2 md:order-1">
-            <img 
-              src={notebookImage} 
-              alt="MRO no Notebook" 
-              className="w-full max-w-sm mx-auto rounded-2xl shadow-2xl shadow-black/50"
-            />
-          </div>
-          <div className="flex-1 text-center md:text-left order-1 md:order-2">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              Aprenda a nova onda do mercado <span className="text-green-400">grátis</span>!
-            </h3>
-            <p className="text-gray-400 text-base mb-4">
-              Faça o cadastro e participe do grupo de lançamento grátis para entender melhor!
-            </p>
-          </div>
+        <div className="max-w-2xl mx-auto text-center">
+          <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
+            Aprenda a nova onda do mercado <span className="text-green-400">grátis</span>!
+          </h3>
+          <p className="text-gray-400 text-base">
+            Faça o cadastro e participe do grupo de lançamento grátis para entender melhor!
+          </p>
         </div>
       </section>
 
