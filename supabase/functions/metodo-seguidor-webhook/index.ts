@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -177,6 +178,12 @@ serve(async (req) => {
   try {
     log("Webhook received");
 
+    // Verify webhook signature for security
+    const verification = await verifyInfinitePayWebhook(req, corsHeaders, "METODO-SEGUIDOR-WEBHOOK");
+    if (!verification.verified) {
+      return verification.response;
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -188,14 +195,15 @@ serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    const body = await req.json();
+    const body = verification.body;
     log("Webhook body", body);
 
-    // Extract payment info from webhook
-    const orderNsu = body.order_nsu || body.orderNsu || body.nsu || body.metadata?.order_nsu;
-    const paymentStatus = body.status || body.payment_status;
-    const invoiceSlug = body.invoice_slug || body.slug || body.invoiceSlug;
-    const transactionNsu = body.transaction_nsu || body.transactionNsu;
+    // Extract payment info from webhook with proper typing
+    const metadata = body.metadata as Record<string, unknown> | undefined;
+    const orderNsu = (body.order_nsu || body.orderNsu || body.nsu || metadata?.order_nsu) as string | undefined;
+    const paymentStatus = (body.status || body.payment_status) as string | undefined;
+    const invoiceSlug = (body.invoice_slug || body.slug || body.invoiceSlug) as string | undefined;
+    const transactionNsu = (body.transaction_nsu || body.transactionNsu) as string | undefined;
 
     // Candidate: InfinitePay envia webhook quando o pagamento é aprovado; alguns payloads não trazem "status"
     const paidCandidate =
@@ -207,8 +215,9 @@ serve(async (req) => {
     // Try to get email from items/description
     let emailFromDescription: string | null = null;
 
-    if (body.items && Array.isArray(body.items)) {
-      for (const item of body.items) {
+    const items = body.items as Array<{ description?: string; name?: string }> | undefined;
+    if (items && Array.isArray(items)) {
+      for (const item of items) {
         const desc = item.description || item.name;
         if (desc && desc.includes("MTSEG_")) {
           emailFromDescription = extractEmailFromDescription(desc);
@@ -222,11 +231,12 @@ serve(async (req) => {
 
     // Also check body.description directly
     if (!emailFromDescription && body.description) {
-      emailFromDescription = extractEmailFromDescription(body.description);
+      emailFromDescription = extractEmailFromDescription(body.description as string);
     }
 
     // Also check customer email
-    const customerEmail = body.customer?.email || body.email;
+    const customer = body.customer as Record<string, unknown> | undefined;
+    const customerEmail = (customer?.email || body.email) as string | undefined;
 
     log("Payment info extracted", {
       orderNsu,

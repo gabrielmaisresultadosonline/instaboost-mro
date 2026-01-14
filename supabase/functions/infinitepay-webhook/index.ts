@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,6 +95,12 @@ serve(async (req) => {
   try {
     log("Webhook received", { method: req.method });
 
+    // Verify webhook signature for security
+    const verification = await verifyInfinitePayWebhook(req, corsHeaders, "INFINITEPAY-WEBHOOK");
+    if (!verification.verified) {
+      return verification.response;
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -106,19 +113,17 @@ serve(async (req) => {
     });
 
     // Parse the webhook payload from InfiniPay
-    const body = await req.json();
+    const body = verification.body;
     log("Webhook payload", body);
 
-    const {
-      order_nsu,
-      transaction_nsu,
-      invoice_slug,
-      amount,
-      paid_amount,
-      capture_method,
-      receipt_url,
-      items
-    } = body;
+    const order_nsu = body.order_nsu as string | undefined;
+    const transaction_nsu = body.transaction_nsu as string | undefined;
+    const invoice_slug = body.invoice_slug as string | undefined;
+    const amount = body.amount as number | undefined;
+    const paid_amount = body.paid_amount as number | undefined;
+    const capture_method = body.capture_method as string | undefined;
+    const receipt_url = body.receipt_url as string | undefined;
+    const items = body.items as Array<{ description?: string; name?: string }> | undefined;
 
     // Extrair informações do nome do produto
     let email: string | null = null;
@@ -181,7 +186,7 @@ serve(async (req) => {
     });
 
     // Se é um pedido MRO, processar na tabela mro_orders
-    if (isMROOrder || (order_nsu && order_nsu.startsWith("MROIG"))) {
+    if (isMROOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("MROIG"))) {
       log("Processing as MRO order");
       
       let mroOrder = null;
@@ -325,12 +330,12 @@ serve(async (req) => {
         // Salvar log de webhook não encontrado
         await saveWebhookLog(supabase, {
           event_type: "mro_order_not_found",
-          order_nsu,
-          transaction_nsu,
+          order_nsu: order_nsu || null,
+          transaction_nsu: transaction_nsu || null,
           email,
           username,
           affiliate_id: affiliateId,
-          amount: paid_amount || amount,
+          amount: (paid_amount || amount) as number | null | undefined,
           status: "not_found",
           payload: body,
           result_message: "No pending MRO order found",
@@ -373,12 +378,12 @@ serve(async (req) => {
       // Salvar log de sucesso
       await saveWebhookLog(supabase, {
         event_type: "mro_payment_confirmed",
-        order_nsu,
-        transaction_nsu,
+        order_nsu: order_nsu || null,
+        transaction_nsu: transaction_nsu || null,
         email: mroOrder.email,
         username: mroOrder.username,
         affiliate_id: affiliateId,
-        amount: paid_amount || amount,
+        amount: (paid_amount || amount) as number | null | undefined,
         status: "success",
         payload: body,
         result_message: `MRO order ${mroOrder.id} marked as PAID`,
