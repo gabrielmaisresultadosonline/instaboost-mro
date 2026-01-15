@@ -26,7 +26,14 @@ const RendaExtra = () => {
     instagramUsername: ""
   });
 
-  const totalSteps = 7;
+  const [showNoComputerWarning, setShowNoComputerWarning] = useState(false);
+  const [canProceedAfterWarning, setCanProceedAfterWarning] = useState(false);
+
+  // Steps are dynamic now - if user doesn't work, skip salary question
+  const getEffectiveTotalSteps = () => {
+    // 0-nome, 1-email, 2-whatsapp, 3-trabalha, 4-salario (skip if not working), 5-computador, 6-instagram
+    return formData.trabalhaAtualmente ? 7 : 6;
+  };
 
   useEffect(() => {
     trackVisit();
@@ -57,12 +64,32 @@ const RendaExtra = () => {
     }
   };
 
+  // Effect to handle the 5 second delay for "nenhum" computer option
+  useEffect(() => {
+    if (showNoComputerWarning) {
+      setCanProceedAfterWarning(false);
+      const timer = setTimeout(() => {
+        setCanProceedAfterWarning(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNoComputerWarning]);
+
+  // Map current step to actual form step considering skipped salary question
+  const getActualStep = (step: number) => {
+    if (!formData.trabalhaAtualmente && step >= 4) {
+      return step + 1; // Skip salary step
+    }
+    return step;
+  };
+
   const canProceed = () => {
-    switch (currentStep) {
+    const actualStep = getActualStep(currentStep);
+    switch (actualStep) {
       case 0: return formData.nomeCompleto.trim() !== "";
       case 1: return formData.email.trim() !== "" && formData.email.includes("@");
       case 2: return formData.whatsapp.trim() !== "";
-      case 3: return true; // checkbox is optional
+      case 3: return true; // trabalha question - handled by buttons
       case 4: return formData.mediaSalarial !== "";
       case 5: return formData.tipoComputador !== "";
       case 6: return formData.instagramUsername.trim() !== "";
@@ -71,9 +98,24 @@ const RendaExtra = () => {
   };
 
   const handleNext = () => {
-    if (canProceed() && currentStep < totalSteps - 1) {
+    if (canProceed() && currentStep < getEffectiveTotalSteps() - 1) {
       setCurrentStep(currentStep + 1);
     }
+  };
+
+  const handleComputerSelect = (value: string) => {
+    setFormData({ ...formData, tipoComputador: value });
+    if (value === "nenhum") {
+      setShowNoComputerWarning(true);
+    } else {
+      setShowNoComputerWarning(false);
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleProceedWithoutComputer = () => {
+    setShowNoComputerWarning(false);
+    setCurrentStep(currentStep + 1);
   };
 
   const handleSubmit = async () => {
@@ -222,7 +264,8 @@ const RendaExtra = () => {
           <Button
             type="button"
             onClick={() => {
-              setFormData({ ...formData, trabalhaAtualmente: false });
+              setFormData({ ...formData, trabalhaAtualmente: false, mediaSalarial: "nao_trabalha" });
+              // Skip salary question - go directly to computer step
               setCurrentStep(currentStep + 1);
             }}
             className="w-full bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/50 text-white font-semibold text-lg py-6 rounded-xl transition-all"
@@ -262,34 +305,62 @@ const RendaExtra = () => {
       </div>,
       // Step 5 - Computador
       <div key="computador" className="space-y-4 animate-fade-in">
-        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
-          Você possui computador?
-        </h3>
-        <div className="flex flex-col gap-3">
-          {[
-            { value: "computador", label: "Computador de Mesa", icon: Monitor },
-            { value: "notebook", label: "Notebook", icon: Laptop },
-            { value: "macbook", label: "MacBook", icon: Laptop },
-            { value: "nenhum", label: "Nenhum", icon: X }
-          ].map((option) => (
+        {!showNoComputerWarning ? (
+          <>
+            <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+              Você possui computador?
+            </h3>
+            <div className="flex flex-col gap-3">
+              {[
+                { value: "computador", label: "Computador de Mesa", icon: Monitor },
+                { value: "notebook", label: "Notebook", icon: Laptop },
+                { value: "macbook", label: "MacBook", icon: Laptop },
+                { value: "nenhum", label: "Nenhum", icon: X }
+              ].map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleComputerSelect(option.value)}
+                  className={`w-full border text-white font-semibold text-lg py-6 rounded-xl transition-all flex items-center justify-center gap-3 ${
+                    formData.tipoComputador === option.value 
+                      ? "bg-red-500/30 border-red-500" 
+                      : "bg-white/5 border-white/10 hover:bg-red-500/20 hover:border-red-500/50"
+                  }`}
+                >
+                  <option.icon className="w-5 h-5" />
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="space-y-6 animate-fade-in">
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 text-center">
+              <div className="text-yellow-400 text-5xl mb-4">⚠️</div>
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-4">
+                Atenção!
+              </h3>
+              <p className="text-gray-300 text-base md:text-lg leading-relaxed">
+                Você <span className="text-yellow-400 font-bold">vai precisar</span> de um <span className="text-white font-semibold">Notebook</span>, <span className="text-white font-semibold">Computador</span> ou <span className="text-white font-semibold">MacBook</span> para rodar o sistema e fazer o método!
+              </p>
+              <p className="text-gray-400 text-sm mt-4">
+                Sem um computador, você <span className="text-red-400 font-semibold">não vai conseguir rodar</span> o sistema.
+              </p>
+            </div>
             <Button
-              key={option.value}
               type="button"
-              onClick={() => {
-                setFormData({ ...formData, tipoComputador: option.value });
-                setCurrentStep(currentStep + 1);
-              }}
-              className={`w-full border text-white font-semibold text-lg py-6 rounded-xl transition-all flex items-center justify-center gap-3 ${
-                formData.tipoComputador === option.value 
-                  ? "bg-red-500/30 border-red-500" 
-                  : "bg-white/5 border-white/10 hover:bg-red-500/20 hover:border-red-500/50"
+              onClick={handleProceedWithoutComputer}
+              disabled={!canProceedAfterWarning}
+              className={`w-full font-semibold text-lg py-6 rounded-xl transition-all ${
+                canProceedAfterWarning 
+                  ? "bg-red-500 hover:bg-red-600 text-white" 
+                  : "bg-gray-600 text-gray-400 cursor-not-allowed"
               }`}
             >
-              <option.icon className="w-5 h-5" />
-              {option.label}
+              {canProceedAfterWarning ? "Avançar mesmo assim" : "Aguarde 5 segundos para continuar..."}
             </Button>
-          ))}
-        </div>
+          </div>
+        )}
       </div>,
       // Step 6 - Instagram
       <div key="instagram" className="space-y-4 animate-fade-in">
@@ -329,13 +400,13 @@ const RendaExtra = () => {
             {/* Progress Bar */}
             <div className="mb-8">
               <div className="flex justify-between text-xs text-gray-500 mb-2">
-                <span>Pergunta {currentStep + 1} de {totalSteps}</span>
-                <span>{Math.round(((currentStep + 1) / totalSteps) * 100)}%</span>
+                <span>Pergunta {currentStep + 1} de {getEffectiveTotalSteps()}</span>
+                <span>{Math.round(((currentStep + 1) / getEffectiveTotalSteps()) * 100)}%</span>
               </div>
               <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-500"
-                  style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+                  style={{ width: `${((currentStep + 1) / getEffectiveTotalSteps()) * 100}%` }}
                 />
               </div>
             </div>
@@ -357,7 +428,7 @@ const RendaExtra = () => {
                 </Button>
               )}
               {currentStep !== 3 && currentStep !== 4 && currentStep !== 5 && (
-                currentStep === totalSteps - 1 ? (
+                currentStep === getEffectiveTotalSteps() - 1 ? (
                   <Button
                     type="button"
                     onClick={handleSubmit}
