@@ -532,11 +532,34 @@ export const updateProfile = (profile: InstagramProfile): void => {
   }
 };
 
-export const updateAnalysis = (analysis: ProfileAnalysis): void => {
+export const updateAnalysis = (analysis: ProfileAnalysis, clearStrategies: boolean = false): void => {
   const session = getSession();
   const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
   if (activeProfile) {
     activeProfile.analysis = analysis;
+    activeProfile.lastUpdated = new Date().toISOString();
+    
+    // When admin reanalyzes with new niche, clear old strategies so they regenerate with correct niche
+    if (clearStrategies) {
+      console.log(`🔄 Clearing strategies for reanalysis - new niche: ${analysis.niche}`);
+      activeProfile.strategies = [];
+      activeProfile.strategyGenerationDates = {};
+      activeProfile.lastStrategyGeneratedAt = undefined;
+    }
+    
+    saveSession(session);
+  }
+};
+
+// Clear all strategies for current active profile (used when niche is reanalyzed)
+export const clearStrategies = (): void => {
+  const session = getSession();
+  const activeProfile = session.profiles.find(p => p.id === session.activeProfileId);
+  if (activeProfile) {
+    console.log(`🗑️ Clearing all strategies for @${activeProfile.profile.username}`);
+    activeProfile.strategies = [];
+    activeProfile.strategyGenerationDates = {};
+    activeProfile.lastStrategyGeneratedAt = undefined;
     activeProfile.lastUpdated = new Date().toISOString();
     saveSession(session);
   }
