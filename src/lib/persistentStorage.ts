@@ -485,7 +485,6 @@ export const persistProfileData = async (
   
   console.log(`💾 Perfil @${normalizedIG} salvo permanentemente no servidor`);
 };
-
 // Update profile in persistent storage
 export const updatePersistedProfile = async (
   loggedInUsername: string,
@@ -510,6 +509,38 @@ export const updatePersistedProfile = async (
   
   saveLocalCache(userData);
   await saveUserDataToServer(userData);
+};
+
+// Clear strategy dates from persistent storage (for admin reanalysis)
+// This allows strategies to be regenerated immediately with the new niche
+export const clearPersistedStrategyDates = async (
+  loggedInUsername: string,
+  igUsername: string
+): Promise<void> => {
+  const normalizedIG = igUsername.toLowerCase();
+  const userData = getCurrentUserData();
+  
+  if (!userData || !userData.profiles[normalizedIG]) {
+    console.warn(`Perfil @${igUsername} não encontrado para limpar datas`);
+    return;
+  }
+  
+  console.log(`🔄 Limpando datas de estratégias do cloud para @${igUsername}`);
+  
+  const now = new Date().toISOString();
+  userData.profiles[normalizedIG] = {
+    ...userData.profiles[normalizedIG],
+    strategies: [], // Clear old strategies
+    strategyGenerationDates: {}, // Clear all generation dates - allows immediate regeneration
+    lastStrategyGeneratedAt: undefined, // Clear legacy date too
+    lastUpdated: now
+  };
+  userData.lastSyncedAt = now;
+  
+  saveLocalCache(userData);
+  await saveUserDataToServer(userData);
+  
+  console.log(`✅ Datas de estratégias limpas do cloud para @${igUsername}`);
 };
 
 // Sync persistent storage with session storage

@@ -18,7 +18,7 @@ import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAl
 import { getCurrentUser, logoutUser } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess, canUseCreatives } from '@/types/user';
 import { getSession, updateAnalysis, clearStrategies } from '@/lib/storage';
-import { syncSessionToPersistent, persistProfileData } from '@/lib/persistentStorage';
+import { syncSessionToPersistent, persistProfileData, clearPersistedStrategyDates } from '@/lib/persistentStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -92,13 +92,17 @@ export const UserHeader = ({ onLogout, onReanalysisComplete }: UserHeaderProps) 
       }
 
       if (data && data.analysis) {
-        // Clear old strategies since they were generated with old niche
+        // Clear old strategies from local session
         clearStrategies();
         
         // Update the analysis in session (with clearStrategies=true as backup)
         updateAnalysis(data.analysis, true);
         
-        // Persist to cloud
+        // CRITICAL: Clear strategy dates from cloud FIRST before persisting
+        // This allows immediate regeneration of strategies with new niche
+        await clearPersistedStrategyDates(user.username, activeProfile.profile.username);
+        
+        // Persist updated profile and analysis to cloud
         await persistProfileData(
           user.username, 
           activeProfile.profile.username, 
