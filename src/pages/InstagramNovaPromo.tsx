@@ -153,9 +153,9 @@ const InstagramNovaPromo = () => {
     trackPageView('Sales Page - Instagram MRO Promo');
   }, []);
 
-  // Countdown de 8 horas baseado no localStorage
+  // Countdown de 8 horas baseado no localStorage - EXPIRA DE VERDADE
   useEffect(() => {
-    const PROMO_KEY = 'mro_promo_start_time';
+    const PROMO_KEY = 'instagram_nova_promo_start_time_v2';
     let promoStartTime = localStorage.getItem(PROMO_KEY);
     
     if (!promoStartTime) {
@@ -166,9 +166,16 @@ const InstagramNovaPromo = () => {
     const startTime = parseInt(promoStartTime);
     const promoEndTime = startTime + (8 * 60 * 60 * 1000); // 8 horas em milissegundos
     
+    // Verificar imediatamente se já expirou
+    const now = Date.now();
+    if (now >= promoEndTime) {
+      setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
+      return; // Não criar intervalo se já expirou
+    }
+    
     const updateCountdown = () => {
-      const now = Date.now();
-      const diff = promoEndTime - now;
+      const currentTime = Date.now();
+      const diff = promoEndTime - currentTime;
       
       if (diff <= 0) {
         setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
