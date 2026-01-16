@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess, canUseCreatives } from '@/types/user';
-import { getSession, updateAnalysis } from '@/lib/storage';
+import { getSession, updateAnalysis, clearStrategies } from '@/lib/storage';
 import { syncSessionToPersistent, persistProfileData } from '@/lib/persistentStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -92,8 +92,11 @@ export const UserHeader = ({ onLogout, onReanalysisComplete }: UserHeaderProps) 
       }
 
       if (data && data.analysis) {
-        // Update the analysis in session
-        updateAnalysis(data.analysis);
+        // Clear old strategies since they were generated with old niche
+        clearStrategies();
+        
+        // Update the analysis in session (with clearStrategies=true as backup)
+        updateAnalysis(data.analysis, true);
         
         // Persist to cloud
         await persistProfileData(
