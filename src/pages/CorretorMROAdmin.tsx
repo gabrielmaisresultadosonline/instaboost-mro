@@ -12,8 +12,9 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Settings, Users, Bell, Plus, Trash2, Edit, Eye, EyeOff, 
-  RefreshCw, LogOut, Check, X, Calendar, Mail, Key, Image, Video
+  RefreshCw, LogOut, Check, X, Calendar, Mail, Key, Image, Video, FileText
 } from 'lucide-react';
+import CorretorAPIDocumentation from '@/components/admin/CorretorAPIDocumentation';
 
 interface CorretorUser {
   id: string;
@@ -383,6 +384,10 @@ const CorretorMROAdmin: React.FC = () => {
             <TabsTrigger value="announcements">
               <Bell className="w-4 h-4 mr-2" />
               Avisos
+            </TabsTrigger>
+            <TabsTrigger value="docs">
+              <FileText className="w-4 h-4 mr-2" />
+              Documentação API
             </TabsTrigger>
           </TabsList>
 
@@ -781,6 +786,11 @@ const CorretorMROAdmin: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* DOCUMENTAÇÃO API */}
+          <TabsContent value="docs">
+            <CorretorAPIDocumentation />
           </TabsContent>
         </Tabs>
       </div>
