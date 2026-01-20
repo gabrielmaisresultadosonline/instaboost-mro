@@ -290,6 +290,150 @@ export type Database = {
         }
         Relationships: []
       }
+      corretor_announcement_views: {
+        Row: {
+          announcement_id: string
+          id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          announcement_id: string
+          id?: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          announcement_id?: string
+          id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corretor_announcement_views_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "corretor_announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corretor_announcement_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "corretor_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      corretor_announcements: {
+        Row: {
+          content: string | null
+          created_at: string
+          display_duration: number | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_blocking: boolean | null
+          start_date: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          display_duration?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_blocking?: boolean | null
+          start_date?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          display_duration?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_blocking?: boolean | null
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      corretor_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      corretor_users: {
+        Row: {
+          created_at: string
+          days_remaining: number
+          email: string
+          id: string
+          last_access: string | null
+          name: string | null
+          status: string
+          subscription_end: string | null
+          subscription_start: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_remaining?: number
+          email: string
+          id?: string
+          last_access?: string | null
+          name?: string | null
+          status?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_remaining?: number
+          email?: string
+          id?: string
+          last_access?: string | null
+          name?: string | null
+          status?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       created_accesses: {
         Row: {
           access_type: string

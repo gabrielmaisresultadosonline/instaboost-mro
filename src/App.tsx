@@ -54,6 +54,8 @@ import TesteGratisAdmin from "./pages/TesteGratisAdmin";
 import TesteGratisUsuario from "./pages/TesteGratisUsuario";
 import RendaExtra from "./pages/RendaExtra";
 import RendaExtraAdmin from "./pages/RendaExtraAdmin";
+import CorretorMRO from "./pages/CorretorMRO";
+import CorretorMROAdmin from "./pages/CorretorMROAdmin";
 
 const queryClient = new QueryClient();
 
@@ -116,6 +118,8 @@ const App = () => (
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
           <Route path="/rendaextra" element={<RendaExtra />} />
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
+          <Route path="/corretormro" element={<CorretorMRO />} />
+          <Route path="/corretormro/admin" element={<CorretorMROAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
