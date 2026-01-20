@@ -22,6 +22,7 @@ interface CorretorUser {
   name: string | null;
   status: string;
   days_remaining: number;
+  corrections_count: number;
   subscription_start: string | null;
   subscription_end: string | null;
   last_access: string | null;
@@ -437,6 +438,36 @@ const CorretorMROAdmin: React.FC = () => {
 
           {/* USUÁRIOS */}
           <TabsContent value="users">
+            {/* Stats summary */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <p className="text-gray-400 text-sm">Total Usuários</p>
+                  <p className="text-2xl font-bold text-white">{users.length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <p className="text-gray-400 text-sm">Usuários Ativos</p>
+                  <p className="text-2xl font-bold text-green-400">{users.filter(u => u.status === 'active').length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <p className="text-gray-400 text-sm">Total Correções</p>
+                  <p className="text-2xl font-bold text-blue-400">{users.reduce((sum, u) => sum + (u.corrections_count || 0), 0)}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <p className="text-gray-400 text-sm">Média por Usuário</p>
+                  <p className="text-2xl font-bold text-purple-400">
+                    {users.length > 0 ? Math.round(users.reduce((sum, u) => sum + (u.corrections_count || 0), 0) / users.length) : 0}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-white flex items-center gap-2">
@@ -510,10 +541,11 @@ const CorretorMROAdmin: React.FC = () => {
                           </Badge>
                         </div>
                         {user.name && <p className="text-gray-400 text-sm">{user.name}</p>}
-                        <p className="text-gray-500 text-xs">
-                          {user.days_remaining} dias restantes
-                          {user.last_access && ` • Último acesso: ${new Date(user.last_access).toLocaleString('pt-BR')}`}
-                        </p>
+                        <div className="flex items-center gap-3 text-gray-500 text-xs">
+                          <span className="text-blue-400 font-medium">{user.corrections_count || 0} correções</span>
+                          <span>{user.days_remaining} dias restantes</span>
+                          {user.last_access && <span>Último acesso: {new Date(user.last_access).toLocaleString('pt-BR')}</span>}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button 
