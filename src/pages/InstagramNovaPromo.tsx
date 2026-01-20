@@ -127,13 +127,9 @@ const InstagramNovaPromo = () => {
         return;
       }
 
-      // Abrir link de pagamento diretamente
-      window.open(checkData.payment_link, "_blank");
-      
-      // Fechar modal
-      setShowCheckoutModal(false);
-      
-      toast.success("Checkout criado! Complete o pagamento na nova aba.");
+      // Redirecionar diretamente para o checkout (funciona melhor no mobile)
+      // Usar location.href ao invés de window.open para evitar bloqueio de popup
+      window.location.href = checkData.payment_link;
       
       // Resetar form
       setEmail("");
@@ -153,32 +149,19 @@ const InstagramNovaPromo = () => {
     trackPageView('Sales Page - Instagram MRO Promo');
   }, []);
 
-  // Countdown de 8 horas baseado no localStorage - EXPIRA DE VERDADE
+  // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
   useEffect(() => {
-    const PROMO_KEY = 'instagram_nova_promo_start_time_v2';
-    let promoStartTime = localStorage.getItem(PROMO_KEY);
-    
-    if (!promoStartTime) {
-      promoStartTime = Date.now().toString();
-      localStorage.setItem(PROMO_KEY, promoStartTime);
-    }
-    
-    const startTime = parseInt(promoStartTime);
-    const promoEndTime = startTime + (8 * 60 * 60 * 1000); // 8 horas em milissegundos
-    
-    // Verificar imediatamente se já expirou
-    const now = Date.now();
-    if (now >= promoEndTime) {
-      setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
-      return; // Não criar intervalo se já expirou
-    }
+    // Definir tempo de promoção como 7 horas a partir de AGORA (a cada visita)
+    const PROMO_DURATION = 7 * 60 * 60 * 1000; // 7 horas em milissegundos
+    const promoEndTime = Date.now() + PROMO_DURATION;
     
     const updateCountdown = () => {
       const currentTime = Date.now();
       const diff = promoEndTime - currentTime;
       
+      // Nunca expira - se chegar a 0, mostra 0:0:0 mas não marca como expirado
       if (diff <= 0) {
-        setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: true });
+        setPromoTimeLeft({ hours: 0, minutes: 0, seconds: 0, expired: false });
         return;
       }
       
