@@ -371,6 +371,38 @@ export type Database = {
         }
         Relationships: []
       }
+      corretor_corrections_log: {
+        Row: {
+          correction_type: string | null
+          created_at: string
+          id: string
+          text_length: number | null
+          user_id: string
+        }
+        Insert: {
+          correction_type?: string | null
+          created_at?: string
+          id?: string
+          text_length?: number | null
+          user_id: string
+        }
+        Update: {
+          correction_type?: string | null
+          created_at?: string
+          id?: string
+          text_length?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corretor_corrections_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "corretor_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       corretor_settings: {
         Row: {
           created_at: string
@@ -397,6 +429,7 @@ export type Database = {
       }
       corretor_users: {
         Row: {
+          corrections_count: number | null
           created_at: string
           days_remaining: number
           email: string
@@ -409,6 +442,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          corrections_count?: number | null
           created_at?: string
           days_remaining?: number
           email: string
@@ -421,6 +455,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          corrections_count?: number | null
           created_at?: string
           days_remaining?: number
           email?: string
