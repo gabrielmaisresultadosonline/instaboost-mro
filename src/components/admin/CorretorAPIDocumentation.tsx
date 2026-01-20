@@ -15,7 +15,7 @@ const CorretorAPIDocumentation: React.FC = () => {
       name: 'Verificar Usuário',
       action: 'verify_user',
       method: 'POST',
-      description: 'Verifica se um usuário existe e está ativo. Retorna o status, dias restantes e informações do usuário.',
+      description: 'Verifica se um usuário existe e está ativo. Retorna o status, dias restantes, contagem de correções e informações do usuário.',
       body: {
         action: 'verify_user',
         email: 'usuario@email.com'
@@ -28,12 +28,16 @@ const CorretorAPIDocumentation: React.FC = () => {
           name: 'Nome do Usuário',
           status: 'active',
           days_remaining: 25,
-          subscription_end: '2026-02-20T00:00:00Z'
+          is_active: true,
+          needs_payment: false,
+          corrections_count: 150,
+          corrections_last_30_days: 45
         }
       },
       errorResponse: {
         success: false,
-        message: 'Usuário não encontrado ou inativo'
+        error: 'Usuário não encontrado',
+        needs_payment: true
       }
     },
     {
@@ -51,7 +55,43 @@ const CorretorAPIDocumentation: React.FC = () => {
       },
       errorResponse: {
         success: false,
-        message: 'Usuário não autorizado ou API não configurada'
+        error: 'Usuário não autorizado ou API não configurada'
+      }
+    },
+    {
+      name: 'Registrar Correção',
+      action: 'log_correction',
+      method: 'POST',
+      description: 'Registra uma correção feita pelo usuário. Chame após cada correção de texto para contabilizar o uso.',
+      body: {
+        action: 'log_correction',
+        user_id: 'uuid-do-usuario',
+        text_length: 500,
+        correction_type: 'text'
+      },
+      response: {
+        success: true,
+        corrections_count: 151
+      }
+    },
+    {
+      name: 'Obter Estatísticas do Usuário',
+      action: 'get_user_stats',
+      method: 'POST',
+      description: 'Retorna estatísticas detalhadas de uso do usuário: correções totais, últimos 30 dias, hoje e status.',
+      body: {
+        action: 'get_user_stats',
+        user_id: 'uuid-do-usuario'
+      },
+      response: {
+        success: true,
+        stats: {
+          total_corrections: 150,
+          corrections_last_30_days: 45,
+          corrections_today: 5,
+          days_remaining: 25,
+          status: 'active'
+        }
       }
     },
     {
@@ -158,9 +198,11 @@ async function verifyUser(email) {
   if (data.success) {
     console.log('Usuário ativo:', data.user);
     console.log('Dias restantes:', data.user.days_remaining);
+    console.log('Correções feitas:', data.user.corrections_count);
+    console.log('Correções últimos 30 dias:', data.user.corrections_last_30_days);
     return data.user;
   } else {
-    console.log('Acesso negado:', data.message);
+    console.log('Acesso negado:', data.error);
     return null;
   }
 }
@@ -180,6 +222,48 @@ async function getApiKey(email) {
   
   const data = await response.json();
   return data.success ? data.api_key : null;
+}
+
+// JavaScript/TypeScript - Registrar correção
+async function logCorrection(userId, textLength) {
+  const response = await fetch('${BASE_URL}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      action: 'log_correction',
+      user_id: userId,
+      text_length: textLength,
+      correction_type: 'text'
+    })
+  });
+  
+  const data = await response.json();
+  return data.corrections_count; // Retorna total atualizado
+}
+
+// JavaScript/TypeScript - Obter estatísticas
+async function getUserStats(userId) {
+  const response = await fetch('${BASE_URL}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      action: 'get_user_stats',
+      user_id: userId
+    })
+  });
+  
+  const data = await response.json();
+  if (data.success) {
+    console.log('Total de correções:', data.stats.total_corrections);
+    console.log('Correções nos últimos 30 dias:', data.stats.corrections_last_30_days);
+    console.log('Correções hoje:', data.stats.corrections_today);
+    return data.stats;
+  }
+  return null;
 }
 
 // JavaScript/TypeScript - Obter avisos não lidos
@@ -221,18 +305,23 @@ async function markAnnouncementViewed(userId, announcementId) {
 1. Ao abrir a extensão:
    - Solicitar e-mail do usuário
    - Chamar verify_user para verificar acesso
+   - Exibir days_remaining e corrections_count na interface
    
 2. Se usuário ativo (days_remaining > 0):
    - Salvar user_id e email localmente
    - Chamar get_api_key para obter a chave da API
    - Chamar get_announcements para verificar avisos pendentes
    
-3. Mostrar avisos (se houver):
+3. Após cada correção de texto:
+   - Chamar log_correction com user_id e tamanho do texto
+   - Atualizar o contador na interface com o retorno
+   
+4. Mostrar avisos (se houver):
    - Se is_blocking = true, bloquear interação até fechar
    - Respeitar display_duration (tempo em segundos)
    - Ao fechar, chamar mark_viewed
    
-4. Se usuário inativo/expirado:
+5. Se usuário inativo/expirado (needs_payment = true):
    - Mostrar mensagem para renovar assinatura
    - Redirecionar para página de pagamento
 
@@ -341,7 +430,7 @@ async function markAnnouncementViewed(userId, announcementId) {
             <span className="text-white font-medium">Exemplo de Uso (JavaScript)</span>
           </div>
           <pre className="text-gray-300 text-xs bg-gray-950 p-3 rounded overflow-x-auto">
-{`// Verificar usuário na extensão
+{`// Verificar usuário e obter estatísticas
 async function checkUserAccess(email) {
   try {
     const response = await fetch('${BASE_URL}', {
@@ -352,29 +441,37 @@ async function checkUserAccess(email) {
     
     const data = await response.json();
     
-    if (data.success && data.user.status === 'active') {
+    if (data.success && data.user.is_active) {
       // Usuário ativo - salvar dados
       localStorage.setItem('corretor_user', JSON.stringify(data.user));
       
-      // Buscar API key
-      const apiRes = await fetch('${BASE_URL}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get_api_key', email })
-      });
-      const apiData = await apiRes.json();
-      
-      if (apiData.success) {
-        localStorage.setItem('openai_api_key', apiData.api_key);
-      }
+      // Exibir estatísticas na UI
+      console.log('Correções totais:', data.user.corrections_count);
+      console.log('Correções últimos 30 dias:', data.user.corrections_last_30_days);
       
       return { success: true, user: data.user };
     }
     
-    return { success: false, message: data.message || 'Acesso negado' };
+    return { success: false, needs_payment: true };
   } catch (error) {
     return { success: false, message: 'Erro de conexão' };
   }
+}
+
+// Registrar correção após usar o corretor
+async function afterCorrection(userId, textLength) {
+  const response = await fetch('${BASE_URL}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      action: 'log_correction', 
+      user_id: userId,
+      text_length: textLength 
+    })
+  });
+  const data = await response.json();
+  // Atualizar contador na UI
+  updateCorrectionCount(data.corrections_count);
 }`}
           </pre>
         </div>
@@ -386,8 +483,10 @@ async function checkUserAccess(email) {
             <li>Ao abrir a extensão → Pedir e-mail → <code className="text-blue-400">verify_user</code></li>
             <li>Se ativo → Buscar API → <code className="text-blue-400">get_api_key</code></li>
             <li>Verificar avisos → <code className="text-blue-400">get_announcements</code></li>
+            <li><strong className="text-yellow-400">Após cada correção</strong> → <code className="text-blue-400">log_correction</code></li>
             <li>Ao fechar aviso → <code className="text-blue-400">mark_viewed</code></li>
-            <li>Se <code className="text-red-400">days_remaining = 0</code> → Mostrar tela de pagamento</li>
+            <li>Para estatísticas detalhadas → <code className="text-blue-400">get_user_stats</code></li>
+            <li>Se <code className="text-red-400">needs_payment = true</code> → Mostrar tela de pagamento</li>
           </ol>
         </div>
       </CardContent>
