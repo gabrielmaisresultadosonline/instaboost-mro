@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Check, Sparkles, Zap, Shield, Clock, Star, Loader2 } from 'lucide-react';
+import { Check, Sparkles, Zap, Shield, Clock, Star, Loader2, LogIn, Download, Play, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type Language = 'pt' | 'en';
 
@@ -59,6 +60,29 @@ const translations = {
     orderExpired: 'Pedido expirado. Gere um novo link.',
     waitingPayment: 'Aguardando confirmação de pagamento...',
     checkError: 'Erro ao verificar pagamento',
+    // Access modal translations
+    accessButton: 'Acessar',
+    accessTitle: 'Acessar Minha Conta',
+    accessEmail: 'Digite seu e-mail de cadastro',
+    accessCheck: 'Verificar Acesso',
+    accessActive: 'Acesso Ativo',
+    accessExpired: 'Acesso Expirado',
+    accessNotFound: 'Acesso não encontrado',
+    daysRemaining: 'dias restantes',
+    downloadExtension: 'Baixar Extensão MRO',
+    watchTutorial: 'Assistir Tutorial',
+    renewNow: 'Renovar Agora',
+    tutorialSoon: 'Tutorial em breve!',
+    accessUntil: 'Acesso até:',
+    yourAccess: 'Seu Acesso',
+    noAccessMessage: 'Você não possui acesso ativo. Faça a compra para liberar.',
+    expiredMessage: 'Seu acesso expirou. Renove agora para continuar usando.',
+    buyNow: 'Comprar Agora',
+    close: 'Fechar',
+    checkingAccess: 'Verificando...',
+    status: 'Status:',
+    active: 'Ativo',
+    expired: 'Expirado',
   },
   en: {
     extensionWithAI: 'AI Extension',
@@ -110,8 +134,40 @@ const translations = {
     orderExpired: 'Order expired. Generate a new link.',
     waitingPayment: 'Waiting for payment confirmation...',
     checkError: 'Error checking payment',
+    // Access modal translations
+    accessButton: 'Access',
+    accessTitle: 'Access My Account',
+    accessEmail: 'Enter your registered email',
+    accessCheck: 'Check Access',
+    accessActive: 'Access Active',
+    accessExpired: 'Access Expired',
+    accessNotFound: 'Access not found',
+    daysRemaining: 'days remaining',
+    downloadExtension: 'Download MRO Extension',
+    watchTutorial: 'Watch Tutorial',
+    renewNow: 'Renew Now',
+    tutorialSoon: 'Tutorial coming soon!',
+    accessUntil: 'Access until:',
+    yourAccess: 'Your Access',
+    noAccessMessage: 'You do not have active access. Make a purchase to unlock.',
+    expiredMessage: 'Your access has expired. Renew now to continue using.',
+    buyNow: 'Buy Now',
+    close: 'Close',
+    checkingAccess: 'Checking...',
+    status: 'Status:',
+    active: 'Active',
+    expired: 'Expired',
   }
 };
+
+interface UserAccess {
+  email: string;
+  name: string | null;
+  status: string;
+  days_remaining: number;
+  subscription_start: string | null;
+  subscription_end: string | null;
+}
 
 const CorretorMRO: React.FC = () => {
   const [language, setLanguage] = useState<Language>('pt');
@@ -126,6 +182,13 @@ const CorretorMRO: React.FC = () => {
   const [nsuOrder, setNsuOrder] = useState('');
   const [paymentLink, setPaymentLink] = useState('');
   const [checkingPayment, setCheckingPayment] = useState(false);
+
+  // Access modal state
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
+  const [accessEmail, setAccessEmail] = useState('');
+  const [checkingAccess, setCheckingAccess] = useState(false);
+  const [userAccess, setUserAccess] = useState<UserAccess | null>(null);
+  const [accessChecked, setAccessChecked] = useState(false);
 
   const t = translations[language];
 
@@ -181,9 +244,7 @@ const CorretorMRO: React.FC = () => {
   }, [paymentCreated, nsuOrder, email, t.paymentConfirmed]);
 
   const formatPhone = (value: string) => {
-    // Remove tudo que não for número
     const numbers = value.replace(/\D/g, '');
-    // Limita a 11 dígitos
     return numbers.slice(0, 11);
   };
 
@@ -204,7 +265,6 @@ const CorretorMRO: React.FC = () => {
       return;
     }
 
-    // Validar celular - mínimo 10 dígitos (DDD + número)
     const cleanPhone = phone.replace(/\D/g, '');
     if (cleanPhone.length < 10) {
       toast.error(t.validPhone);
@@ -273,6 +333,75 @@ const CorretorMRO: React.FC = () => {
     }
   };
 
+  // Access modal functions
+  const handleOpenAccessModal = () => {
+    setAccessModalOpen(true);
+    setAccessEmail('');
+    setUserAccess(null);
+    setAccessChecked(false);
+  };
+
+  const handleCheckAccess = async () => {
+    if (!accessEmail || !accessEmail.includes('@')) {
+      toast.error(t.validEmail);
+      return;
+    }
+
+    setCheckingAccess(true);
+    try {
+      const { data, error } = await supabase
+        .from('corretor_users')
+        .select('*')
+        .eq('email', accessEmail.trim().toLowerCase())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      setAccessChecked(true);
+
+      if (data) {
+        setUserAccess({
+          email: data.email,
+          name: data.name,
+          status: data.status,
+          days_remaining: data.days_remaining,
+          subscription_start: data.subscription_start,
+          subscription_end: data.subscription_end,
+        });
+      } else {
+        setUserAccess(null);
+      }
+    } catch (err) {
+      console.error('Erro ao verificar acesso:', err);
+      toast.error(t.checkError);
+    } finally {
+      setCheckingAccess(false);
+    }
+  };
+
+  const handleRenewFromModal = () => {
+    setAccessModalOpen(false);
+    setEmail(accessEmail);
+    // Scroll to checkout form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDownloadExtension = () => {
+    // TODO: Link para download da extensão
+    toast.info(language === 'pt' ? 'Link de download em breve!' : 'Download link coming soon!');
+  };
+
+  const handleWatchTutorial = () => {
+    toast.info(t.tutorialSoon);
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString(language === 'pt' ? 'pt-BR' : 'en-US');
+  };
+
+  const isAccessActive = userAccess && userAccess.status === 'active' && userAccess.days_remaining > 0;
+
   const featureIcons = [Sparkles, Zap, Shield, Clock];
 
   return (
@@ -286,6 +415,16 @@ const CorretorMRO: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Access Button */}
+            <Button
+              onClick={handleOpenAccessModal}
+              variant="ghost"
+              className="text-white hover:bg-white/20 flex items-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="hidden sm:inline">{t.accessButton}</span>
+            </Button>
+
             {/* Language Toggle */}
             <div className="flex items-center gap-2 bg-white/10 rounded-full p-1">
               <button
@@ -512,6 +651,150 @@ const CorretorMRO: React.FC = () => {
           <p>{t.footer}</p>
         </footer>
       </main>
+
+      {/* Access Modal */}
+      <Dialog open={accessModalOpen} onOpenChange={setAccessModalOpen}>
+        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <LogIn className="w-5 h-5 text-blue-400" />
+              {t.accessTitle}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {!accessChecked ? (
+              <>
+                <div>
+                  <Input
+                    type="email"
+                    placeholder={t.accessEmail}
+                    value={accessEmail}
+                    onChange={(e) => setAccessEmail(e.target.value)}
+                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                    onKeyDown={(e) => e.key === 'Enter' && handleCheckAccess()}
+                  />
+                </div>
+
+                <Button
+                  onClick={handleCheckAccess}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  disabled={checkingAccess}
+                >
+                  {checkingAccess ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      {t.checkingAccess}
+                    </>
+                  ) : (
+                    t.accessCheck
+                  )}
+                </Button>
+              </>
+            ) : userAccess ? (
+              <div className="space-y-4">
+                {/* Status Card */}
+                <div className={`p-4 rounded-lg ${isAccessActive ? 'bg-green-900/30 border border-green-500/30' : 'bg-red-900/30 border border-red-500/30'}`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    {isAccessActive ? (
+                      <CheckCircle className="w-8 h-8 text-green-400" />
+                    ) : (
+                      <AlertCircle className="w-8 h-8 text-red-400" />
+                    )}
+                    <div>
+                      <h4 className={`font-bold text-lg ${isAccessActive ? 'text-green-400' : 'text-red-400'}`}>
+                        {isAccessActive ? t.accessActive : t.accessExpired}
+                      </h4>
+                      <p className="text-gray-400 text-sm">{accessEmail}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-400">{t.status}</p>
+                      <p className={`font-medium ${isAccessActive ? 'text-green-400' : 'text-red-400'}`}>
+                        {isAccessActive ? t.active : t.expired}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">{t.daysRemaining}</p>
+                      <p className="font-medium text-white">{userAccess.days_remaining} {t.daysRemaining}</p>
+                    </div>
+                    {userAccess.subscription_end && (
+                      <div className="col-span-2">
+                        <p className="text-gray-400">{t.accessUntil}</p>
+                        <p className="font-medium text-white">{formatDate(userAccess.subscription_end)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {isAccessActive ? (
+                  <div className="space-y-3">
+                    <Button
+                      onClick={handleDownloadExtension}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 py-5"
+                    >
+                      <Download className="w-5 h-5 mr-2" />
+                      {t.downloadExtension}
+                    </Button>
+
+                    <Button
+                      onClick={handleWatchTutorial}
+                      variant="outline"
+                      className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 py-5"
+                    >
+                      <Play className="w-5 h-5 mr-2" />
+                      {t.watchTutorial}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-gray-400 text-sm text-center">
+                      {t.expiredMessage}
+                    </p>
+                    <Button
+                      onClick={handleRenewFromModal}
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 py-5"
+                    >
+                      {t.renewNow}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-yellow-900/30 border border-yellow-500/30 text-center">
+                  <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
+                  <h4 className="font-bold text-yellow-400 mb-2">{t.accessNotFound}</h4>
+                  <p className="text-gray-400 text-sm">{t.noAccessMessage}</p>
+                </div>
+
+                <Button
+                  onClick={handleRenewFromModal}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 py-5"
+                >
+                  {t.buyNow}
+                </Button>
+              </div>
+            )}
+
+            {accessChecked && (
+              <Button
+                onClick={() => {
+                  setAccessChecked(false);
+                  setUserAccess(null);
+                  setAccessEmail('');
+                }}
+                variant="ghost"
+                className="w-full text-gray-400 hover:text-white"
+              >
+                ← {language === 'pt' ? 'Verificar outro e-mail' : 'Check another email'}
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
