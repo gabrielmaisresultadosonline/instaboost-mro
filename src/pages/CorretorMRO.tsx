@@ -2,14 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Check, Sparkles, Zap, Shield, Clock, Star } from 'lucide-react';
+import { Check, Sparkles, Zap, Shield, Clock, Star, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 const CorretorMRO: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  
+  // Estado após criar pagamento
+  const [paymentCreated, setPaymentCreated] = useState(false);
+  const [nsuOrder, setNsuOrder] = useState('');
+  const [paymentLink, setPaymentLink] = useState('');
+  const [checkingPayment, setCheckingPayment] = useState(false);
 
   // Countdown de 7 horas - sempre reinicia quando entra na página
   useEffect(() => {
@@ -37,6 +45,32 @@ const CorretorMRO: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Verificação automática de pagamento a cada 5 segundos quando estiver aguardando
+  useEffect(() => {
+    if (!paymentCreated || !nsuOrder) return;
+
+    const checkPayment = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('check-corretor-payment', {
+          body: { nsu_order: nsuOrder }
+        });
+
+        if (error) throw error;
+
+        if (data?.paid) {
+          toast.success('Pagamento confirmado! Redirecionando...');
+          // Redirecionar para página de obrigado
+          window.location.href = `/corretormro/obrigado?email=${encodeURIComponent(email)}&nsu=${nsuOrder}`;
+        }
+      } catch (err) {
+        console.error('Erro ao verificar pagamento:', err);
+      }
+    };
+
+    const interval = setInterval(checkPayment, 5000);
+    return () => clearInterval(interval);
+  }, [paymentCreated, nsuOrder, email]);
+
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -45,17 +79,29 @@ const CorretorMRO: React.FC = () => {
       return;
     }
 
+    if (!name || name.trim().length < 2) {
+      toast.error('Digite seu nome');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('corretor-checkout', {
-        body: { email }
+        body: { 
+          email: email.trim().toLowerCase(),
+          name: name.trim(),
+          phone: phone.replace(/\D/g, '')
+        }
       });
 
       if (error) throw error;
 
       if (data?.payment_link) {
-        window.location.href = data.payment_link;
+        setPaymentCreated(true);
+        setNsuOrder(data.nsu_order);
+        setPaymentLink(data.payment_link);
+        toast.success('Link de pagamento gerado!');
       } else {
         toast.error('Erro ao criar checkout');
       }
@@ -64,6 +110,39 @@ const CorretorMRO: React.FC = () => {
       toast.error('Erro ao processar. Tente novamente.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenPayment = () => {
+    if (paymentLink) {
+      window.open(paymentLink, '_blank');
+    }
+  };
+
+  const handleCheckPaymentManual = async () => {
+    if (!nsuOrder) return;
+
+    setCheckingPayment(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-corretor-payment', {
+        body: { nsu_order: nsuOrder }
+      });
+
+      if (error) throw error;
+
+      if (data?.paid) {
+        toast.success('Pagamento confirmado!');
+        window.location.href = `/corretormro/obrigado?email=${encodeURIComponent(email)}&nsu=${nsuOrder}`;
+      } else if (data?.status === 'expired') {
+        toast.error('Pedido expirado. Gere um novo link.');
+        setPaymentCreated(false);
+      } else {
+        toast.info('Aguardando confirmação de pagamento...');
+      }
+    } catch (err) {
+      toast.error('Erro ao verificar pagamento');
+    } finally {
+      setCheckingPayment(false);
     }
   };
 
@@ -147,39 +226,113 @@ const CorretorMRO: React.FC = () => {
         {/* Formulário de checkout */}
         <Card className="bg-gray-800/80 border-gray-700 max-w-md mx-auto">
           <CardContent className="p-6">
-            <h3 className="text-xl font-bold text-white text-center mb-4">
-              Comece Agora
-            </h3>
-            
-            <form onSubmit={handleCheckout} className="space-y-4">
-              <div>
-                <Input
-                  type="email"
-                  placeholder="Seu melhor e-mail"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
-                  required
-                />
-              </div>
+            {!paymentCreated ? (
+              <>
+                <h3 className="text-xl font-bold text-white text-center mb-4">
+                  Comece Agora
+                </h3>
+                
+                <form onSubmit={handleCheckout} className="space-y-4">
+                  <div>
+                    <Input
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                      required
+                    />
+                  </div>
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-6 text-lg font-bold"
-                disabled={loading}
-              >
-                {loading ? 'Processando...' : 'QUERO CORRIGIR MEUS TEXTOS →'}
-              </Button>
-            </form>
+                  <div>
+                    <Input
+                      type="email"
+                      placeholder="Seu melhor e-mail"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                      required
+                    />
+                  </div>
 
-            <div className="mt-4 space-y-2">
-              {['Acesso imediato após pagamento', 'Suporte via WhatsApp', 'Garantia de 7 dias'].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-gray-300 text-sm">
-                  <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                  <span>{item}</span>
+                  <div>
+                    <Input
+                      type="tel"
+                      placeholder="Celular (opcional)"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-6 text-lg font-bold"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        Processando...
+                      </>
+                    ) : (
+                      'QUERO CORRIGIR MEUS TEXTOS →'
+                    )}
+                  </Button>
+                </form>
+
+                <div className="mt-4 space-y-2">
+                  {['Acesso imediato após pagamento', 'Suporte via WhatsApp', 'Garantia de 7 dias'].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-gray-300 text-sm">
+                      <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl font-bold text-white text-center mb-4">
+                  🎉 Link Gerado!
+                </h3>
+                
+                <div className="bg-gray-900 p-4 rounded-lg mb-4">
+                  <p className="text-gray-400 text-sm mb-1">E-mail:</p>
+                  <p className="text-white font-medium">{email}</p>
+                  <p className="text-gray-400 text-sm mt-3 mb-1">Pedido:</p>
+                  <p className="text-blue-400 font-mono text-sm">{nsuOrder}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={handleOpenPayment}
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-6 text-lg font-bold"
+                  >
+                    💳 PAGAR AGORA
+                  </Button>
+
+                  <Button
+                    onClick={handleCheckPaymentManual}
+                    variant="outline"
+                    className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+                    disabled={checkingPayment}
+                  >
+                    {checkingPayment ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Verificando...
+                      </>
+                    ) : (
+                      'JÁ PAGUEI - VERIFICAR'
+                    )}
+                  </Button>
+                </div>
+
+                <p className="text-gray-500 text-xs text-center mt-4">
+                  A verificação é automática. Aguarde alguns segundos após o pagamento.
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 

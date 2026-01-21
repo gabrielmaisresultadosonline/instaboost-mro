@@ -56,6 +56,7 @@ import RendaExtra from "./pages/RendaExtra";
 import RendaExtraAdmin from "./pages/RendaExtraAdmin";
 import CorretorMRO from "./pages/CorretorMRO";
 import CorretorMROAdmin from "./pages/CorretorMROAdmin";
+import CorretorMROObrigado from "./pages/CorretorMROObrigado";
 
 const queryClient = new QueryClient();
 
@@ -120,6 +121,7 @@ const App = () => (
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
           <Route path="/corretormro" element={<CorretorMRO />} />
           <Route path="/corretormro/admin" element={<CorretorMROAdmin />} />
+          <Route path="/corretormro/obrigado" element={<CorretorMROObrigado />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
