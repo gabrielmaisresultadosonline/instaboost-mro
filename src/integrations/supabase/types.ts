@@ -403,6 +403,57 @@ export type Database = {
           },
         ]
       }
+      corretor_orders: {
+        Row: {
+          access_created: boolean | null
+          amount: number
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          name: string | null
+          nsu_order: string
+          paid_at: string | null
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_created?: boolean | null
+          amount?: number
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          name?: string | null
+          nsu_order: string
+          paid_at?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_created?: boolean | null
+          amount?: number
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          name?: string | null
+          nsu_order?: string
+          paid_at?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       corretor_settings: {
         Row: {
           created_at: string

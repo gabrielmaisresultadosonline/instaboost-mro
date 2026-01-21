@@ -12,7 +12,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Settings, Users, Bell, Plus, Trash2, Edit, Eye, EyeOff, 
-  RefreshCw, LogOut, Check, X, Calendar, Mail, Key, Image, Video, FileText
+  RefreshCw, LogOut, Check, X, Calendar, Mail, Key, Image, Video, FileText,
+  ShoppingCart, CreditCard, Clock, CheckCircle, XCircle
 } from 'lucide-react';
 import CorretorAPIDocumentation from '@/components/admin/CorretorAPIDocumentation';
 
@@ -42,6 +43,22 @@ interface Announcement {
   end_date: string | null;
   created_at: string;
   views?: number;
+}
+
+interface CorretorOrder {
+  id: string;
+  email: string;
+  name: string | null;
+  phone: string | null;
+  amount: number;
+  nsu_order: string;
+  status: string;
+  infinitepay_link: string | null;
+  expired_at: string | null;
+  paid_at: string | null;
+  access_created: boolean;
+  email_sent: boolean;
+  created_at: string;
 }
 
 const CorretorMROAdmin: React.FC = () => {
@@ -78,6 +95,10 @@ const CorretorMROAdmin: React.FC = () => {
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
   const [announcementViews, setAnnouncementViews] = useState<Record<string, { user_email: string; viewed_at: string }[]>>({});
 
+  // Orders
+  const [orders, setOrders] = useState<CorretorOrder[]>([]);
+  const [orderSearch, setOrderSearch] = useState('');
+
   // Verificar autenticação
   const handleLogin = async () => {
     setLoading(true);
@@ -105,7 +126,7 @@ const CorretorMROAdmin: React.FC = () => {
   };
 
   const loadData = async () => {
-    await Promise.all([loadSettings(), loadUsers(), loadAnnouncements()]);
+    await Promise.all([loadSettings(), loadUsers(), loadAnnouncements(), loadOrders()]);
   };
 
   const loadSettings = async () => {
@@ -155,6 +176,38 @@ const CorretorMROAdmin: React.FC = () => {
       setAnnouncementViews(viewsMap);
     }
   };
+
+  const loadOrders = async () => {
+    const { data } = await supabase
+      .from('corretor_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (data) setOrders(data as CorretorOrder[]);
+  };
+
+  const markOrderPaid = async (orderId: string) => {
+    await supabase
+      .from('corretor_orders')
+      .update({ status: 'paid', paid_at: new Date().toISOString() })
+      .eq('id', orderId);
+    
+    // Trigger webhook para criar acesso
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      await supabase.functions.invoke('corretor-webhook', {
+        body: { order_nsu: order.nsu_order, paid: true }
+      });
+    }
+    
+    toast.success('Pedido marcado como pago!');
+    loadOrders();
+  };
+
+  const filteredOrders = orders.filter(o => 
+    o.email.toLowerCase().includes(orderSearch.toLowerCase()) ||
+    o.nsu_order.toLowerCase().includes(orderSearch.toLowerCase())
+  );
 
   const saveSettings = async () => {
     setSavingSettings(true);
@@ -372,8 +425,12 @@ const CorretorMROAdmin: React.FC = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="settings" className="space-y-6">
+        <Tabs defaultValue="orders" className="space-y-6">
           <TabsList className="bg-gray-800">
+            <TabsTrigger value="orders">
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Pedidos
+            </TabsTrigger>
             <TabsTrigger value="settings">
               <Key className="w-4 h-4 mr-2" />
               Configurações
@@ -391,6 +448,101 @@ const CorretorMROAdmin: React.FC = () => {
               Documentação API
             </TabsTrigger>
           </TabsList>
+
+          {/* PEDIDOS */}
+          <TabsContent value="orders">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <p className="text-gray-400 text-sm">Total Pedidos</p>
+                  <p className="text-2xl font-bold text-white">{orders.length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <p className="text-gray-400 text-sm">Pendentes</p>
+                  <p className="text-2xl font-bold text-yellow-400">{orders.filter(o => o.status === 'pending').length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <p className="text-gray-400 text-sm">Pagos</p>
+                  <p className="text-2xl font-bold text-green-400">{orders.filter(o => o.status === 'paid' || o.status === 'completed').length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <p className="text-gray-400 text-sm">Faturamento</p>
+                  <p className="text-2xl font-bold text-blue-400">
+                    R$ {orders.filter(o => o.status === 'paid' || o.status === 'completed').reduce((sum, o) => sum + Number(o.amount), 0).toFixed(2)}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-white flex items-center gap-2">
+                  <CreditCard className="w-5 h-5" />
+                  Pedidos ({orders.length})
+                </CardTitle>
+                <Button onClick={loadOrders} variant="outline" size="sm">
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Input
+                  placeholder="Buscar por e-mail ou NSU..."
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  className="bg-gray-700 border-gray-600 text-white mb-4"
+                />
+
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                  {filteredOrders.map((order) => (
+                    <div key={order.id} className="flex items-center justify-between bg-gray-900 p-3 rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-medium">{order.email}</span>
+                          <Badge variant={
+                            order.status === 'completed' ? 'default' : 
+                            order.status === 'paid' ? 'default' : 
+                            order.status === 'expired' ? 'destructive' : 'secondary'
+                          } className={order.status === 'completed' || order.status === 'paid' ? 'bg-green-600' : ''}>
+                            {order.status === 'completed' ? 'Completo' : 
+                             order.status === 'paid' ? 'Pago' : 
+                             order.status === 'expired' ? 'Expirado' : 'Pendente'}
+                          </Badge>
+                          {order.access_created && <CheckCircle className="w-4 h-4 text-green-400" />}
+                        </div>
+                        {order.name && <p className="text-gray-400 text-sm">{order.name}</p>}
+                        <div className="flex items-center gap-3 text-gray-500 text-xs mt-1">
+                          <span className="text-blue-400 font-mono">{order.nsu_order}</span>
+                          <span>R$ {Number(order.amount).toFixed(2)}</span>
+                          <span>{new Date(order.created_at).toLocaleString('pt-BR')}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {order.status === 'pending' && (
+                          <Button size="sm" onClick={() => markOrderPaid(order.id)} className="bg-green-600 hover:bg-green-700">
+                            <Check className="w-4 h-4 mr-1" /> Pago
+                          </Button>
+                        )}
+                        {order.infinitepay_link && (
+                          <Button size="sm" variant="ghost" onClick={() => window.open(order.infinitepay_link!, '_blank')}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {filteredOrders.length === 0 && (
+                    <p className="text-gray-500 text-center py-8">Nenhum pedido encontrado</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* CONFIGURAÇÕES */}
           <TabsContent value="settings">

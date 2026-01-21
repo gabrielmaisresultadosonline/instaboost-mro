@@ -205,3 +205,9 @@ verify_jwt = false
 
 [functions.corretor-checkout]
 verify_jwt = false
+
+[functions.corretor-webhook]
+verify_jwt = false
+
+[functions.check-corretor-payment]
+verify_jwt = false
