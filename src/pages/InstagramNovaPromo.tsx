@@ -42,6 +42,7 @@ import logoMro from "@/assets/logo-mro.png";
 const InstagramNovaPromo = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
+  const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
   
   // Countdown para promoção - 8 horas a partir do primeiro acesso
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
@@ -294,22 +295,33 @@ const InstagramNovaPromo = () => {
             </div>
           </div>
 
-          {/* Main Video */}
+          {/* Main Video - Inline Player */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
-            <div 
-              onClick={() => openVideo("yFN-F2U9z8w")}
-              className="relative rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-green-500/30 hover:border-green-500/60 transition-all"
-            >
-              <img 
-                src="https://img.youtube.com/vi/yFN-F2U9z8w/maxresdefault.jpg" 
-                alt="Video MRO" 
-                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
-                  <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" fill="white" />
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
+              {isMainVideoPlaying ? (
+                <iframe 
+                  src="https://www.youtube.com/embed/yFN-F2U9z8w?autoplay=1&rel=0" 
+                  className="w-full aspect-video" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen 
+                />
+              ) : (
+                <div 
+                  onClick={() => setIsMainVideoPlaying(true)}
+                  className="relative cursor-pointer group"
+                >
+                  <img 
+                    src="https://img.youtube.com/vi/yFN-F2U9z8w/maxresdefault.jpg" 
+                    alt="Video MRO" 
+                    className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-red-500/50">
+                      <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" fill="white" />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
