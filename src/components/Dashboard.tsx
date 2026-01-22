@@ -206,21 +206,11 @@ export const Dashboard = ({
 
           {/* Mobile Header (< md) */}
           <div className="flex md:hidden flex-col gap-2">
-            {/* Linha 1: Logo + MRO */}
+            {/* Linha 1: Logo + Tutorial + Conta + User */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Logo size="sm" />
-                <Button
-                  onClick={() => navigate('/mro-ferramenta')}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1.5 h-8 rounded-full"
-                  data-tutorial="mro-button"
-                >
-                  <Wrench className="w-3 h-3 mr-1" />
-                  FERRAMENTA MRO
-                </Button>
-              </div>
+              <Logo size="sm" />
               
-              <div className="flex items-center gap-1" data-tutorial="user-menu">
+              <div className="flex items-center gap-1.5" data-tutorial="user-menu">
                 <TutorialButton
                   onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
                   onShowList={() => tutorial.startListView(dashboardTutorial)}
@@ -241,7 +231,19 @@ export const Dashboard = ({
               </div>
             </div>
 
-            {/* Linha 2: Tabs com scroll horizontal */}
+            {/* Linha 2: Botão FERRAMENTA MRO centralizado */}
+            <div className="flex justify-center">
+              <Button
+                onClick={() => navigate('/mro-ferramenta')}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-4 py-2 h-9 rounded-full w-full max-w-xs"
+                data-tutorial="mro-button"
+              >
+                <Wrench className="w-4 h-4 mr-2" />
+                FERRAMENTA MRO
+              </Button>
+            </div>
+
+            {/* Linha 3: Tabs com scroll horizontal */}
             <nav className="flex items-center gap-1 overflow-x-auto pb-1 -mx-2 px-2">
               {tabs.map((tab) => (
                 <button
