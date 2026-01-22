@@ -578,6 +578,21 @@ const Index = () => {
     setShowDashboard(false);
   };
 
+  // Navega para área de membros SEM sincronizar automaticamente
+  const handleEnterMemberArea = () => {
+    const updatedSession = getSession();
+    setSession(updatedSession);
+    
+    if (updatedSession.profiles.length > 0) {
+      setShowDashboard(true);
+      setHasRegisteredProfiles(true);
+    } else {
+      // Se não tem perfis na sessão, apenas mostra o dashboard vazio
+      setShowDashboard(true);
+      setHasRegisteredProfiles(true);
+    }
+  };
+
   const handleRetrySync = () => {
     setAgeRestrictionProfile(null);
     setPrivateProfile(null);
@@ -624,6 +639,7 @@ const Index = () => {
         <ProfileRegistration 
           onProfileRegistered={handleProfileRegistered}
           onSyncComplete={handleSyncComplete}
+          onEnterMemberArea={handleEnterMemberArea}
           onLogout={handleLogout}
         />
         {ageRestrictionDialogElement}
@@ -669,6 +685,7 @@ const Index = () => {
       <ProfileRegistration 
         onProfileRegistered={handleProfileRegistered}
         onSyncComplete={handleSyncComplete}
+        onEnterMemberArea={handleEnterMemberArea}
         onLogout={handleLogout}
       />
       {ageRestrictionDialogElement}

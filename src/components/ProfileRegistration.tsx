@@ -56,10 +56,11 @@ import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 interface ProfileRegistrationProps {
   onProfileRegistered: (profile: InstagramProfile, analysis: ProfileAnalysis) => void;
   onSyncComplete: (instagrams: string[]) => void;
+  onEnterMemberArea?: () => void;
   onLogout?: () => void;
 }
 
-export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLogout }: ProfileRegistrationProps) => {
+export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnterMemberArea, onLogout }: ProfileRegistrationProps) => {
   const [instagramInput, setInstagramInput] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -733,13 +734,16 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                {/* Área de Membros Button */}
+                {/* Área de Membros Button - vai para o dashboard SEM sincronizar */}
                 <Button
                   variant={registeredIGs.length > 0 ? "default" : "outline"}
                   size="sm"
                   onClick={() => {
                     if (registeredIGs.length > 0) {
-                      onSyncComplete(registeredIGs);
+                      // Navega para área de membros SEM sincronizar automaticamente
+                      if (onEnterMemberArea) {
+                        onEnterMemberArea();
+                      }
                     } else {
                       toast({
                         title: 'Nenhum perfil cadastrado',
