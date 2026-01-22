@@ -123,11 +123,11 @@ export const Dashboard = ({
               <Logo size="sm" />
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2 h-9 rounded-full"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-5 py-2 h-10 rounded-full"
                 data-tutorial="mro-button"
               >
                 <Wrench className="w-4 h-4 mr-2" />
-                MRO
+                FERRAMENTA MRO
               </Button>
             </div>
 
@@ -212,11 +212,11 @@ export const Dashboard = ({
                 <Logo size="sm" />
                 <Button
                   onClick={() => navigate('/mro-ferramenta')}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2 h-9 rounded-full"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-5 py-2 h-10 rounded-full"
                   data-tutorial="mro-button"
                 >
                   <Wrench className="w-4 h-4 mr-2" />
-                  MRO
+                  FERRAMENTA MRO
                 </Button>
               </div>
               
