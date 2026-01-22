@@ -243,11 +243,14 @@ const InstagramNovaPromo = () => {
             </div>
             
             <div className="mt-4 mb-6">
-              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                Desconto Encerrado!
+              <AlertTriangle className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 mx-auto mb-3 sm:mb-4" />
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 px-2">
+                Que pena, você perdeu nosso desconto!
               </h2>
-              <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-red-400 mb-3 sm:mb-4">
+                Desconto Encerrado!
+              </h3>
+              <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed px-2">
                 Aguarde um próximo desconto ou siga para página oficial para adquirir o plano hoje
               </p>
             </div>
