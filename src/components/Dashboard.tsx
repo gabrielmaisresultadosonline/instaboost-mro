@@ -204,38 +204,18 @@ export const Dashboard = ({
             </div>
           </div>
 
-          {/* Mobile Header (< md) */}
+          {/* Mobile Header (< md) - 4 linhas */}
           <div className="flex md:hidden flex-col gap-2">
-            {/* Linha 1: Logo + Tutorial + Conta + User */}
-            <div className="flex items-center justify-between">
+            {/* Linha 1: Logo centralizada sozinha */}
+            <div className="flex justify-center">
               <Logo size="sm" />
-              
-              <div className="flex items-center gap-1.5" data-tutorial="user-menu">
-                <TutorialButton
-                  onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
-                  onShowList={() => tutorial.startListView(dashboardTutorial)}
-                  variant="outline"
-                  size="sm"
-                />
-                <div data-tutorial="profile-selector">
-                  <ProfileSelector
-                    profiles={session.profiles}
-                    activeProfileId={session.activeProfileId}
-                    onSelectProfile={onSelectProfile}
-                    onAddProfile={onNavigateToRegister}
-                    onRemoveProfile={onRemoveProfile}
-                    isLoading={isLoading}
-                  />
-                </div>
-                {onLogout && <UserHeader onLogout={onLogout} />}
-              </div>
             </div>
 
-            {/* Linha 2: Botão FERRAMENTA MRO centralizado */}
+            {/* Linha 2: FERRAMENTA MRO centralizado */}
             <div className="flex justify-center">
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-4 py-2 h-9 rounded-full w-full max-w-xs"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-6 py-2 h-10 rounded-full"
                 data-tutorial="mro-button"
               >
                 <Wrench className="w-4 h-4 mr-2" />
@@ -243,8 +223,29 @@ export const Dashboard = ({
               </Button>
             </div>
 
-            {/* Linha 3: Tabs com scroll horizontal */}
-            <nav className="flex items-center gap-1 overflow-x-auto pb-1 -mx-2 px-2">
+            {/* Linha 3: Tutorial + Conta + User */}
+            <div className="flex items-center justify-center gap-2" data-tutorial="user-menu">
+              <TutorialButton
+                onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
+                onShowList={() => tutorial.startListView(dashboardTutorial)}
+                variant="outline"
+                size="sm"
+              />
+              <div data-tutorial="profile-selector">
+                <ProfileSelector
+                  profiles={session.profiles}
+                  activeProfileId={session.activeProfileId}
+                  onSelectProfile={onSelectProfile}
+                  onAddProfile={onNavigateToRegister}
+                  onRemoveProfile={onRemoveProfile}
+                  isLoading={isLoading}
+                />
+              </div>
+              {onLogout && <UserHeader onLogout={onLogout} />}
+            </div>
+
+            {/* Linha 4: Tabs com scroll horizontal */}
+            <nav className="flex items-center justify-center gap-1 overflow-x-auto pb-1">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
