@@ -116,66 +116,35 @@ export const Dashboard = ({
       <header className="sticky top-0 z-40 glass-card border-b border-border">
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           {/* Desktop/Tablet Header */}
-          <div className="hidden md:flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 lg:gap-4 min-w-0 flex-1">
+          <div className="hidden md:flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 lg:gap-4 min-w-0 flex-shrink-0">
               <Logo size="sm" />
               {/* Botão Ferramenta MRO */}
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow text-xs lg:text-sm px-2 lg:px-4 flex-shrink-0"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow text-xs lg:text-sm px-3 lg:px-4"
                 data-tutorial="mro-button"
               >
                 <Wrench className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
                 <span className="hidden lg:inline">Ferramenta MRO</span>
                 <span className="lg:hidden">MRO</span>
               </Button>
-              <div className="hidden lg:block min-w-0" data-tutorial="profile-selector">
-                <ProfileSelector
-                  profiles={session.profiles}
-                  activeProfileId={session.activeProfileId}
-                  onSelectProfile={onSelectProfile}
-                  onAddProfile={onNavigateToRegister}
-                  onRemoveProfile={onRemoveProfile}
-                  isLoading={isLoading}
-                />
-              </div>
             </div>
 
-            {/* Tabs - Desktop */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    if (tab.locked) {
-                      import('sonner').then(({ toast }) => {
-                        toast.error('Envie um print do perfil primeiro na aba "Perfil"');
-                      });
-                      return;
-                    }
-                    setActiveTab(tab.id as Tab);
-                  }}
-                  data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
-                  className={`flex items-center gap-1 xl:gap-2 px-2 xl:px-4 py-2 rounded-lg transition-all duration-300 text-xs xl:text-sm ${
-                    tab.locked
-                      ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
-                      : activeTab === tab.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  {tab.locked ? <Lock className="w-3 h-3 xl:w-4 xl:h-4" /> : tab.icon}
-                  <span className="hidden xl:inline">{tab.label}</span>
-                  {tab.id === 'strategies' && activeProfile.strategies.length > 0 && (
-                    <span className="ml-1 w-4 h-4 xl:w-5 xl:h-5 rounded-full bg-primary-foreground/20 text-xs flex items-center justify-center">
-                      {activeProfile.strategies.length}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </nav>
+            {/* Profile Selector - Center */}
+            <div className="hidden lg:flex items-center justify-center flex-1 min-w-0 px-4" data-tutorial="profile-selector">
+              <ProfileSelector
+                profiles={session.profiles}
+                activeProfileId={session.activeProfileId}
+                onSelectProfile={onSelectProfile}
+                onAddProfile={onNavigateToRegister}
+                onRemoveProfile={onRemoveProfile}
+                isLoading={isLoading}
+              />
+            </div>
 
-            <div className="flex items-center gap-1 md:gap-2" data-tutorial="user-menu">
+            {/* Right side - Tutorial + User */}
+            <div className="flex items-center gap-2 flex-shrink-0" data-tutorial="user-menu">
               {/* Tutorial Button */}
               <TutorialButton
                 onStartInteractive={() => {
@@ -197,6 +166,42 @@ export const Dashboard = ({
               />
               {onLogout && <UserHeader onLogout={onLogout} />}
             </div>
+          </div>
+
+          {/* Tabs Row - Desktop (separate line for better alignment) */}
+          <div className="hidden lg:flex items-center justify-center mt-2 pt-2 border-t border-border/50">
+            <nav className="flex items-center gap-1 xl:gap-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (tab.locked) {
+                      import('sonner').then(({ toast }) => {
+                        toast.error('Envie um print do perfil primeiro na aba "Perfil"');
+                      });
+                      return;
+                    }
+                    setActiveTab(tab.id as Tab);
+                  }}
+                  data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
+                  className={`flex items-center gap-1 xl:gap-2 px-3 xl:px-4 py-2 rounded-lg transition-all duration-300 text-xs xl:text-sm ${
+                    tab.locked
+                      ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                      : activeTab === tab.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  {tab.locked ? <Lock className="w-3 h-3 xl:w-4 xl:h-4" /> : tab.icon}
+                  <span>{tab.label}</span>
+                  {tab.id === 'strategies' && activeProfile.strategies.length > 0 && (
+                    <span className="ml-1 w-4 h-4 xl:w-5 xl:h-5 rounded-full bg-primary-foreground/20 text-xs flex items-center justify-center">
+                      {activeProfile.strategies.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
           </div>
 
           {/* Mobile Header - Layout Vertical */}
