@@ -116,33 +116,57 @@ export const Dashboard = ({
       <header className="sticky top-0 z-40 glass-card border-b border-border">
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           {/* Desktop/Tablet Header */}
-          <div className="hidden md:flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 lg:gap-4 min-w-0 flex-1">
-              <Logo size="sm" />
-              {/* Botão Ferramenta MRO */}
-              <Button
-                onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold shadow-lg shadow-yellow-500/30 animate-pulse-slow text-xs lg:text-sm px-2 lg:px-4 flex-shrink-0"
-                data-tutorial="mro-button"
-              >
-                <Wrench className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                <span className="hidden lg:inline">Ferramenta MRO</span>
-                <span className="lg:hidden">MRO</span>
-              </Button>
-              <div className="hidden lg:block min-w-0" data-tutorial="profile-selector">
-                <ProfileSelector
-                  profiles={session.profiles}
-                  activeProfileId={session.activeProfileId}
-                  onSelectProfile={onSelectProfile}
-                  onAddProfile={onNavigateToRegister}
-                  onRemoveProfile={onRemoveProfile}
-                  isLoading={isLoading}
-                />
-              </div>
+          <div className="hidden md:flex items-center gap-2 lg:gap-3">
+            {/* Logo */}
+            <Logo size="sm" />
+            
+            {/* Botão FERRAMENTAS MRO */}
+            <Button
+              onClick={() => navigate('/mro-ferramenta')}
+              className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1.5 h-8"
+              data-tutorial="mro-button"
+            >
+              <Wrench className="w-3 h-3 mr-1" />
+              FERRAMENTAS MRO
+            </Button>
+            
+            {/* Botão CLIENTES */}
+            <Button
+              variant="outline"
+              className="bg-secondary hover:bg-secondary/80 text-xs px-3 py-1.5 h-8"
+              data-tutorial="profile-selector"
+              onClick={() => {
+                const selector = document.querySelector('[data-tutorial="profile-selector-dropdown"]');
+                if (selector) (selector as HTMLButtonElement).click();
+              }}
+            >
+              CLIENTES
+            </Button>
+            
+            {/* Profile Selector Hidden Trigger */}
+            <div className="hidden" data-tutorial="profile-selector-dropdown">
+              <ProfileSelector
+                profiles={session.profiles}
+                activeProfileId={session.activeProfileId}
+                onSelectProfile={onSelectProfile}
+                onAddProfile={onNavigateToRegister}
+                onRemoveProfile={onRemoveProfile}
+                isLoading={isLoading}
+              />
             </div>
+            
+            {/* Botão MATI */}
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-3 py-1.5 h-8"
+            >
+              MATI
+            </Button>
 
-            {/* Tabs - Desktop */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+            {/* Separator */}
+            <div className="w-px h-6 bg-border mx-1" />
+
+            {/* Tabs Inline */}
+            <nav className="flex items-center gap-1">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -156,7 +180,7 @@ export const Dashboard = ({
                     setActiveTab(tab.id as Tab);
                   }}
                   data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
-                  className={`flex items-center gap-1 xl:gap-2 px-2 xl:px-4 py-2 rounded-lg transition-all duration-300 text-xs xl:text-sm ${
+                  className={`flex items-center gap-1 px-2 lg:px-3 py-1.5 rounded-lg transition-all duration-300 text-xs whitespace-nowrap ${
                     tab.locked
                       ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
                       : activeTab === tab.id
@@ -164,10 +188,10 @@ export const Dashboard = ({
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >
-                  {tab.locked ? <Lock className="w-3 h-3 xl:w-4 xl:h-4" /> : tab.icon}
-                  <span className="hidden xl:inline">{tab.label}</span>
+                  {tab.locked ? <Lock className="w-3 h-3" /> : tab.icon}
+                  <span className="hidden lg:inline">{tab.label}</span>
                   {tab.id === 'strategies' && activeProfile.strategies.length > 0 && (
-                    <span className="ml-1 w-4 h-4 xl:w-5 xl:h-5 rounded-full bg-primary-foreground/20 text-xs flex items-center justify-center">
+                    <span className="ml-1 w-4 h-4 rounded-full bg-primary-foreground/20 text-[10px] flex items-center justify-center">
                       {activeProfile.strategies.length}
                     </span>
                   )}
@@ -175,8 +199,11 @@ export const Dashboard = ({
               ))}
             </nav>
 
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Right side buttons */}
             <div className="flex items-center gap-2" data-tutorial="user-menu">
-              {/* Tutorial Button */}
               <TutorialButton
                 onStartInteractive={() => {
                   if (activeTab === 'strategies') {
