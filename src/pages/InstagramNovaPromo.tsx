@@ -44,6 +44,9 @@ const InstagramNovaPromo = () => {
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
   
+  // Popup de desconto encerrado
+  const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(true);
+  
   // Countdown para promoção - 8 horas a partir do primeiro acesso
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
   const pricingRef = useRef<HTMLDivElement>(null);
@@ -229,6 +232,43 @@ const InstagramNovaPromo = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Popup Desconto Encerrado */}
+      {showDiscountEndedPopup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <div className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-sm">
+                ⚠️ AVISO
+              </div>
+            </div>
+            
+            <div className="mt-4 mb-6">
+              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                Desconto Encerrado!
+              </h2>
+              <p className="text-gray-300 text-base sm:text-lg leading-relaxed">
+                Aguarde um próximo desconto ou siga para página oficial para adquirir o plano hoje
+              </p>
+            </div>
+            
+            <Button 
+              onClick={() => window.location.href = '/instagram-nova'}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg py-5 rounded-xl shadow-lg shadow-green-500/30"
+            >
+              Acessar Página <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+            
+            <button 
+              onClick={() => setShowDiscountEndedPopup(false)}
+              className="mt-4 text-gray-400 hover:text-white text-sm underline"
+            >
+              Continuar na página mesmo assim
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Urgency Banner */}
       <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2 px-2">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
