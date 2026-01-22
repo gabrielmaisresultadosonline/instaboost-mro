@@ -258,13 +258,6 @@ const InstagramNovaPromo = () => {
             >
               Acessar Página <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            
-            <button 
-              onClick={() => setShowDiscountEndedPopup(false)}
-              className="mt-4 text-gray-400 hover:text-white text-sm underline"
-            >
-              Continuar na página mesmo assim
-            </button>
           </div>
         </div>
       )}
