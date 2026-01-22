@@ -21,7 +21,8 @@ import {
   RefreshCw, 
   UserPlus,
   Download,
-  Camera
+  Camera,
+  LayoutDashboard
 } from 'lucide-react';
 import { InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import { normalizeInstagramUsername } from '@/types/user';
@@ -731,7 +732,27 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onLog
                   Cadastre ou sincronize seus perfis do Instagram
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Área de Membros Button */}
+                <Button
+                  variant={registeredIGs.length > 0 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    if (registeredIGs.length > 0) {
+                      onSyncComplete(registeredIGs);
+                    } else {
+                      toast({
+                        title: 'Nenhum perfil cadastrado',
+                        description: 'Cadastre um perfil para acessar a análise completa',
+                        variant: 'default'
+                      });
+                    }
+                  }}
+                  className={registeredIGs.length > 0 ? "bg-primary hover:bg-primary/90" : ""}
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-1" />
+                  Área de Membros
+                </Button>
                 {/* Video Tutorial Button */}
                 <VideoTutorialButton
                   youtubeUrl="https://youtu.be/zsLE_Kc11fM"
