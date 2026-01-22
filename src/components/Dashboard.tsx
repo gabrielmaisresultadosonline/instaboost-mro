@@ -117,73 +117,70 @@ export const Dashboard = ({
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           {/* Desktop/Tablet Header */}
           {/* Desktop Header (lg+) */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* Logo */}
-            <Logo size="sm" />
-            
-            {/* Botão FERRAMENTAS MRO */}
-            <Button
-              onClick={() => navigate('/mro-ferramenta')}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1.5 h-8"
-              data-tutorial="mro-button"
-            >
-              <Wrench className="w-3 h-3 mr-1" />
-              FERRAMENTAS MRO
-            </Button>
-            
-            {/* Profile Selector */}
-            <div data-tutorial="profile-selector">
-              <ProfileSelector
-                profiles={session.profiles}
-                activeProfileId={session.activeProfileId}
-                onSelectProfile={onSelectProfile}
-                onAddProfile={onNavigateToRegister}
-                onRemoveProfile={onRemoveProfile}
-                isLoading={isLoading}
-              />
+          <div className="hidden lg:flex items-center justify-between">
+            {/* Left: Logo + MRO Button */}
+            <div className="flex items-center gap-2">
+              <Logo size="sm" />
+              <Button
+                onClick={() => navigate('/mro-ferramenta')}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2 h-9 rounded-full"
+                data-tutorial="mro-button"
+              >
+                <Wrench className="w-4 h-4 mr-2" />
+                MRO
+              </Button>
             </div>
 
-            {/* Separator */}
-            <div className="w-px h-6 bg-border mx-1" />
+            {/* Center: Profile Selector + Tabs */}
+            <div className="flex items-center gap-3">
+              {/* Profile Selector */}
+              <div data-tutorial="profile-selector">
+                <ProfileSelector
+                  profiles={session.profiles}
+                  activeProfileId={session.activeProfileId}
+                  onSelectProfile={onSelectProfile}
+                  onAddProfile={onNavigateToRegister}
+                  onRemoveProfile={onRemoveProfile}
+                  isLoading={isLoading}
+                />
+              </div>
 
-            {/* Tabs Inline */}
-            <nav className="flex items-center gap-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    if (tab.locked) {
-                      import('sonner').then(({ toast }) => {
-                        toast.error('Envie um print do perfil primeiro na aba "Perfil"');
-                      });
-                      return;
-                    }
-                    setActiveTab(tab.id as Tab);
-                  }}
-                  data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs whitespace-nowrap ${
-                    tab.locked
-                      ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
-                      : activeTab === tab.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  {tab.locked ? <Lock className="w-3 h-3" /> : tab.icon}
-                  <span>{tab.label}</span>
-                  {tab.id === 'strategies' && activeProfile.strategies.length > 0 && (
-                    <span className="ml-1 w-4 h-4 rounded-full bg-primary-foreground/20 text-[10px] flex items-center justify-center">
-                      {activeProfile.strategies.length}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </nav>
+              {/* Tabs Inline */}
+              <nav className="flex items-center gap-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      if (tab.locked) {
+                        import('sonner').then(({ toast }) => {
+                          toast.error('Envie um print do perfil primeiro na aba "Perfil"');
+                        });
+                        return;
+                      }
+                      setActiveTab(tab.id as Tab);
+                    }}
+                    data-tutorial={`tab-${tab.id === 'profile' ? 'perfil' : tab.id === 'analysis' ? 'analise' : tab.id === 'strategies' ? 'estrategias' : tab.id === 'creatives' ? 'criativos' : 'crescimento'}`}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs whitespace-nowrap ${
+                      tab.locked
+                        ? 'text-muted-foreground/50 cursor-not-allowed opacity-60'
+                        : activeTab === tab.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    }`}
+                  >
+                    {tab.locked ? <Lock className="w-3 h-3" /> : tab.icon}
+                    <span>{tab.label}</span>
+                    {tab.id === 'strategies' && activeProfile.strategies.length > 0 && (
+                      <span className="ml-1 w-4 h-4 rounded-full bg-primary-foreground/20 text-[10px] flex items-center justify-center">
+                        {activeProfile.strategies.length}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
-            {/* Spacer */}
-            <div className="flex-1" />
-
-            {/* Right side buttons */}
+            {/* Right: Tutorial + User */}
             <div className="flex items-center gap-2" data-tutorial="user-menu">
               <TutorialButton
                 onStartInteractive={() => {
@@ -207,18 +204,18 @@ export const Dashboard = ({
             </div>
           </div>
 
-          {/* Tablet Header (md-lg) - Layout em duas linhas centralizado */}
+          {/* Tablet Header (md-lg) - Layout em linhas centralizadas */}
           <div className="hidden md:flex lg:hidden flex-col gap-2">
-            {/* Linha 1: Logo + Botões + User */}
+            {/* Linha 1: Logo + MRO | Tutorial + ProfileSelector + User */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Logo size="sm" />
                 <Button
                   onClick={() => navigate('/mro-ferramenta')}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs px-3 py-1.5 h-8"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2 h-9 rounded-full"
                   data-tutorial="mro-button"
                 >
-                  <Wrench className="w-3 h-3 mr-1" />
+                  <Wrench className="w-4 h-4 mr-2" />
                   MRO
                 </Button>
               </div>
@@ -230,23 +227,21 @@ export const Dashboard = ({
                   variant="outline"
                   size="sm"
                 />
+                <div data-tutorial="profile-selector">
+                  <ProfileSelector
+                    profiles={session.profiles}
+                    activeProfileId={session.activeProfileId}
+                    onSelectProfile={onSelectProfile}
+                    onAddProfile={onNavigateToRegister}
+                    onRemoveProfile={onRemoveProfile}
+                    isLoading={isLoading}
+                  />
+                </div>
                 {onLogout && <UserHeader onLogout={onLogout} />}
               </div>
             </div>
-            
-            {/* Linha 2: Profile Selector centralizado */}
-            <div className="flex justify-center" data-tutorial="profile-selector">
-              <ProfileSelector
-                profiles={session.profiles}
-                activeProfileId={session.activeProfileId}
-                onSelectProfile={onSelectProfile}
-                onAddProfile={onNavigateToRegister}
-                onRemoveProfile={onRemoveProfile}
-                isLoading={isLoading}
-              />
-            </div>
 
-            {/* Linha 3: Tabs centralizadas */}
+            {/* Linha 2: Tabs centralizadas */}
             <nav className="flex items-center justify-center gap-1 overflow-x-auto pb-1">
               {tabs.map((tab) => (
                 <button
