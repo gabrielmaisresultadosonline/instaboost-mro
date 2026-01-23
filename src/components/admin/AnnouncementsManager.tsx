@@ -9,8 +9,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   Bell, Plus, Trash2, Save, Eye, EyeOff, 
   Upload, X, AlertTriangle, Image as ImageIcon,
-  Link as LinkIcon, Users, Clock, RefreshCw, Youtube
+  Link as LinkIcon, Users, Clock, RefreshCw, Youtube,
+  Chrome, FileText, ExternalLink
 } from 'lucide-react';
+import ExtensionAnnouncementDocs from './ExtensionAnnouncementDocs';
 
 export interface Announcement {
   id: string;
@@ -25,7 +27,14 @@ export interface Announcement {
   createdAt: string;
   updatedAt: string;
   viewCount?: number;
-  targetArea?: 'all' | 'instagram' | 'zapmro';
+  targetArea?: 'all' | 'instagram' | 'zapmro' | 'extension';
+  // Extension-specific fields
+  delaySeconds?: number;
+  frequencyType?: 'once' | 'times_per_day' | 'times_per_hours';
+  frequencyValue?: number;
+  frequencyHours?: number;
+  buttonText?: string;
+  buttonUrl?: string;
 }
 
 interface AnnouncementsData {
@@ -45,6 +54,8 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const [isUploading, setIsUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [thumbnailMode, setThumbnailMode] = useState<'url' | 'file' | 'paste'>('url');
+  const [showExtensionDocs, setShowExtensionDocs] = useState(false);
+  const [showDocsForAnnouncement, setShowDocsForAnnouncement] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
   
@@ -58,7 +69,13 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
     forceRead: false,
     forceReadSeconds: 5,
     maxViews: 1,
-    targetArea: filterArea || 'all'
+    targetArea: filterArea || 'all',
+    delaySeconds: 0,
+    frequencyType: 'once',
+    frequencyValue: 1,
+    frequencyHours: 1,
+    buttonText: '',
+    buttonUrl: ''
   });
 
   useEffect(() => {
@@ -96,21 +113,55 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const saveAnnouncements = async (data: Announcement[]) => {
     setIsSaving(true);
     try {
-      const payload: AnnouncementsData = {
-        announcements: data,
+      // Separate extension announcements from regular announcements
+      const extensionAnnouncements = data.filter(a => a.targetArea === 'extension');
+      const regularAnnouncements = data.filter(a => a.targetArea !== 'extension');
+
+      // Save regular announcements
+      const regularPayload: AnnouncementsData = {
+        announcements: regularAnnouncements,
         lastUpdated: new Date().toISOString()
       };
 
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const regularBlob = new Blob([JSON.stringify(regularPayload, null, 2)], { type: 'application/json' });
       
-      const { error } = await supabase.storage
+      const { error: regularError } = await supabase.storage
         .from('user-data')
-        .upload('admin/announcements.json', blob, { 
+        .upload('admin/announcements.json', regularBlob, { 
           upsert: true,
           contentType: 'application/json'
         });
 
-      if (error) throw error;
+      if (regularError) throw regularError;
+
+      // Save extension announcements to separate file
+      const extensionPayload = {
+        announcements: extensionAnnouncements.map(a => ({
+          id: a.id,
+          title: a.title,
+          content: a.content,
+          thumbnailUrl: a.thumbnailUrl,
+          buttonText: a.buttonText,
+          buttonUrl: a.buttonUrl,
+          isActive: a.isActive,
+          delaySeconds: a.delaySeconds || 0,
+          frequencyType: a.frequencyType || 'once',
+          frequencyValue: a.frequencyValue || 1,
+          frequencyHours: a.frequencyHours || 1,
+          createdAt: a.createdAt,
+          updatedAt: a.updatedAt
+        })),
+        lastUpdated: new Date().toISOString()
+      };
+
+      const extensionBlob = new Blob([JSON.stringify(extensionPayload, null, 2)], { type: 'application/json' });
+      
+      await supabase.storage
+        .from('user-data')
+        .upload('admin/extension-announcements.json', extensionBlob, { 
+          upsert: true,
+          contentType: 'application/json'
+        });
 
       toast({ title: 'Avisos salvos!', description: 'Alterações publicadas para usuários' });
       console.log('📢 Avisos salvos com sucesso');
@@ -211,7 +262,13 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
       forceRead: false,
       forceReadSeconds: 5,
       maxViews: 1,
-      targetArea: filterArea || 'all'
+      targetArea: filterArea || 'all',
+      delaySeconds: 0,
+      frequencyType: 'once',
+      frequencyValue: 1,
+      frequencyHours: 1,
+      buttonText: '',
+      buttonUrl: ''
     });
   };
 
@@ -227,7 +284,13 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
       forceRead: announcement.forceRead,
       forceReadSeconds: announcement.forceReadSeconds || 5,
       maxViews: announcement.maxViews,
-      targetArea: announcement.targetArea || 'all'
+      targetArea: announcement.targetArea || 'all',
+      delaySeconds: announcement.delaySeconds || 0,
+      frequencyType: announcement.frequencyType || 'once',
+      frequencyValue: announcement.frequencyValue || 1,
+      frequencyHours: announcement.frequencyHours || 1,
+      buttonText: announcement.buttonText || '',
+      buttonUrl: announcement.buttonUrl || ''
     });
   };
 
@@ -251,6 +314,12 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
         forceReadSeconds: formData.forceReadSeconds ?? 5,
         maxViews: formData.maxViews ?? 1,
         targetArea: formData.targetArea || 'all',
+        delaySeconds: formData.delaySeconds || 0,
+        frequencyType: formData.frequencyType || 'once',
+        frequencyValue: formData.frequencyValue || 1,
+        frequencyHours: formData.frequencyHours || 1,
+        buttonText: formData.buttonText || undefined,
+        buttonUrl: formData.buttonUrl || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         viewCount: 0
@@ -270,6 +339,12 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
               forceReadSeconds: formData.forceReadSeconds ?? 5,
               maxViews: formData.maxViews ?? 1,
               targetArea: formData.targetArea || 'all',
+              delaySeconds: formData.delaySeconds || 0,
+              frequencyType: formData.frequencyType || 'once',
+              frequencyValue: formData.frequencyValue || 1,
+              frequencyHours: formData.frequencyHours || 1,
+              buttonText: formData.buttonText || undefined,
+              buttonUrl: formData.buttonUrl || undefined,
               updatedAt: new Date().toISOString()
             }
           : a
@@ -330,10 +405,19 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             ({announcements.filter(a => a.isActive).length} ativos)
           </span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowExtensionDocs(true)} 
+            className="gap-2 text-purple-400 border-purple-400/30 hover:bg-purple-500/10"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Docs Extensão</span>
+          </Button>
           <Button variant="outline" onClick={loadAnnouncements} className="gap-2">
             <RefreshCw className="w-4 h-4" />
-            Atualizar
+            <span className="hidden sm:inline">Atualizar</span>
           </Button>
           <Button onClick={handleAddNew} className="gap-2">
             <Plus className="w-4 h-4" />
@@ -562,57 +646,198 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                   <option value="all">Todas as áreas</option>
                   <option value="instagram">Apenas Instagram (MRO)</option>
                   <option value="zapmro">Apenas ZAPMRO</option>
+                  <option value="extension">🧩 Extensão Chrome (Externa)</option>
                 </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={formData.isActive ?? true}
-                    onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                  />
-                  <Label>Aviso Ativo</Label>
+            {/* Extension-specific settings */}
+            {formData.targetArea === 'extension' && (
+              <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Chrome className="w-5 h-5 text-purple-400" />
+                  <h4 className="font-bold text-purple-300">Configurações da Extensão</h4>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={formData.forceRead ?? false}
-                    onCheckedChange={(checked) => setFormData({ ...formData, forceRead: checked })}
-                  />
+                {/* Delay before showing */}
+                <div>
+                  <Label htmlFor="delaySeconds" className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-400" />
+                    Delay antes de exibir (segundos)
+                  </Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="delaySeconds"
+                      type="number"
+                      min={0}
+                      max={300}
+                      value={formData.delaySeconds || 0}
+                      onChange={(e) => setFormData({ ...formData, delaySeconds: Math.max(0, Number(e.target.value)) })}
+                      className="w-24 bg-secondary"
+                    />
+                    <span className="text-sm text-muted-foreground">segundos (0 = imediato)</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Aguarda X segundos após a página carregar para exibir o aviso
+                  </p>
+                </div>
+
+                {/* Frequency settings */}
+                <div>
+                  <Label htmlFor="frequencyType">Frequência de exibição</Label>
+                  <select
+                    id="frequencyType"
+                    value={formData.frequencyType || 'once'}
+                    onChange={(e) => setFormData({ ...formData, frequencyType: e.target.value as any })}
+                    className="w-full mt-1 bg-secondary border border-border rounded-md px-3 py-2"
+                  >
+                    <option value="once">Exibir apenas 1 vez (total)</option>
+                    <option value="times_per_day">X vezes por dia</option>
+                    <option value="times_per_hours">X vezes a cada Y horas</option>
+                  </select>
+                </div>
+
+                {formData.frequencyType === 'times_per_day' && (
                   <div>
-                    <Label className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-yellow-500" />
-                      Forçar Leitura (Temporizador)
-                    </Label>
+                    <Label>Quantas vezes por dia</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={formData.frequencyValue || 1}
+                        onChange={(e) => setFormData({ ...formData, frequencyValue: Math.max(1, Number(e.target.value)) })}
+                        className="w-20 bg-secondary"
+                      />
+                      <span className="text-sm text-muted-foreground">vez(es) por dia</span>
+                    </div>
+                  </div>
+                )}
+
+                {formData.frequencyType === 'times_per_hours' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Quantas vezes</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={formData.frequencyValue || 1}
+                          onChange={(e) => setFormData({ ...formData, frequencyValue: Math.max(1, Number(e.target.value)) })}
+                          className="w-20 bg-secondary"
+                        />
+                        <span className="text-sm text-muted-foreground">vez(es)</span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>A cada quantas horas</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={24}
+                          value={formData.frequencyHours || 1}
+                          onChange={(e) => setFormData({ ...formData, frequencyHours: Math.max(1, Number(e.target.value)) })}
+                          className="w-20 bg-secondary"
+                        />
+                        <span className="text-sm text-muted-foreground">hora(s)</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Button CTA for extension */}
+                <div className="space-y-3 pt-2 border-t border-purple-500/20">
+                  <Label className="flex items-center gap-2">
+                    <ExternalLink className="w-4 h-4 text-blue-400" />
+                    Botão de Ação (opcional)
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Input
+                        placeholder="Texto do botão"
+                        value={formData.buttonText || ''}
+                        onChange={(e) => setFormData({ ...formData, buttonText: e.target.value })}
+                        className="bg-secondary"
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        placeholder="URL do botão"
+                        value={formData.buttonUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, buttonUrl: e.target.value })}
+                        className="bg-secondary"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Timer seconds when force read is enabled */}
-            {formData.forceRead && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                <Label htmlFor="forceReadSeconds" className="flex items-center gap-2 text-yellow-300">
-                  <Clock className="w-4 h-4" />
-                  Segundos para aguardar antes de poder fechar
-                </Label>
-                <div className="flex items-center gap-3 mt-2">
-                  <Input
-                    id="forceReadSeconds"
-                    type="number"
-                    min={1}
-                    max={60}
-                    value={formData.forceReadSeconds || 5}
-                    onChange={(e) => setFormData({ ...formData, forceReadSeconds: Math.min(60, Math.max(1, Number(e.target.value))) })}
-                    className="w-24 bg-secondary"
-                  />
-                  <span className="text-sm text-muted-foreground">segundos (1-60)</span>
+            {/* Regular announcement settings (non-extension) */}
+            {formData.targetArea !== 'extension' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={formData.isActive ?? true}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                      />
+                      <Label>Aviso Ativo</Label>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={formData.forceRead ?? false}
+                        onCheckedChange={(checked) => setFormData({ ...formData, forceRead: checked })}
+                      />
+                      <div>
+                        <Label className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-yellow-500" />
+                          Forçar Leitura (Temporizador)
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-yellow-400/70 mt-2">
-                  O usuário não poderá fechar o aviso até o tempo acabar
-                </p>
+
+                {/* Timer seconds when force read is enabled */}
+                {formData.forceRead && (
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                    <Label htmlFor="forceReadSeconds" className="flex items-center gap-2 text-yellow-300">
+                      <Clock className="w-4 h-4" />
+                      Segundos para aguardar antes de poder fechar
+                    </Label>
+                    <div className="flex items-center gap-3 mt-2">
+                      <Input
+                        id="forceReadSeconds"
+                        type="number"
+                        min={1}
+                        max={60}
+                        value={formData.forceReadSeconds || 5}
+                        onChange={(e) => setFormData({ ...formData, forceReadSeconds: Math.min(60, Math.max(1, Number(e.target.value))) })}
+                        className="w-24 bg-secondary"
+                      />
+                      <span className="text-sm text-muted-foreground">segundos (1-60)</span>
+                    </div>
+                    <p className="text-xs text-yellow-400/70 mt-2">
+                      O usuário não poderá fechar o aviso até o tempo acabar
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Extension active toggle */}
+            {formData.targetArea === 'extension' && (
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={formData.isActive ?? true}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                />
+                <Label>Aviso Ativo</Label>
               </div>
             )}
           </div>
@@ -672,14 +897,25 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                       ? 'bg-pink-500/20 text-pink-400' 
                       : announcement.targetArea === 'zapmro'
                       ? 'bg-green-500/20 text-green-400'
-                      : 'bg-purple-500/20 text-purple-400'
+                      : announcement.targetArea === 'extension'
+                      ? 'bg-purple-500/20 text-purple-400'
+                      : 'bg-gray-500/20 text-gray-400'
                   }`}>
                     {announcement.targetArea === 'instagram' 
                       ? '📸 Instagram' 
                       : announcement.targetArea === 'zapmro'
                       ? '💬 ZAPMRO'
+                      : announcement.targetArea === 'extension'
+                      ? '🧩 Extensão'
                       : '🌐 Todas'}
                   </span>
+                  {/* Extension delay badge */}
+                  {announcement.targetArea === 'extension' && announcement.delaySeconds && announcement.delaySeconds > 0 && (
+                    <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {announcement.delaySeconds}s delay
+                    </span>
+                  )}
                   {/* View count badge */}
                   <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded flex items-center gap-1">
                     <Users className="w-3 h-3" />
@@ -691,10 +927,31 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Criado: {new Date(announcement.createdAt).toLocaleDateString('pt-BR')}
+                  {announcement.targetArea === 'extension' && announcement.frequencyType && (
+                    <span className="ml-2 text-purple-400">
+                      • {announcement.frequencyType === 'once' 
+                        ? '1x total' 
+                        : announcement.frequencyType === 'times_per_day'
+                        ? `${announcement.frequencyValue}x/dia`
+                        : `${announcement.frequencyValue}x a cada ${announcement.frequencyHours}h`}
+                    </span>
+                  )}
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Docs button for extension announcements */}
+                {announcement.targetArea === 'extension' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowDocsForAnnouncement(announcement.id)}
+                    title="Ver documentação da API"
+                    className="text-purple-400 hover:text-purple-300"
+                  >
+                    <FileText className="w-4 h-4" />
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -736,6 +993,16 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           ))
         )}
       </div>
+
+      {/* Extension Docs Modal */}
+      <ExtensionAnnouncementDocs 
+        isOpen={showExtensionDocs || showDocsForAnnouncement !== null}
+        onClose={() => {
+          setShowExtensionDocs(false);
+          setShowDocsForAnnouncement(null);
+        }}
+        announcementId={showDocsForAnnouncement || undefined}
+      />
     </div>
   );
 };
