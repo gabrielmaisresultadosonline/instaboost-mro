@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { Play, Download, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Link2, Gift, LayoutList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { LoginPage } from '@/components/LoginPage';
+import { getUserSession } from '@/lib/userStorage';
 
 // Color mapping for modules
 const moduleColorClasses: Record<ModuleColor, { border: string; bg: string; accent: string }> = {
@@ -26,9 +28,23 @@ const MROFerramenta = () => {
   const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // Load modules from cloud on mount
+  // Check authentication on mount
   useEffect(() => {
+    const checkAuth = () => {
+      const session = getUserSession();
+      setIsAuthenticated(session.isAuthenticated);
+      setCheckingAuth(false);
+    };
+    checkAuth();
+  }, []);
+
+  // Load modules from cloud on mount (only if authenticated)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
     const loadModules = async () => {
       setIsLoading(true);
       console.log('[MROFerramenta] Starting to load modules...');
@@ -65,7 +81,26 @@ const MROFerramenta = () => {
     };
 
     loadModules();
-  }, []);
+  }, [isAuthenticated]);
+
+  // Handle successful login
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
 
   const welcomeVideo = settings?.welcomeVideo;
 
