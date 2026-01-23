@@ -85,23 +85,48 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const loadAnnouncements = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.storage
+      let allAnnouncements: Announcement[] = [];
+
+      // Load regular announcements
+      const { data: regularData, error: regularError } = await supabase.storage
         .from('user-data')
         .download('admin/announcements.json');
       
-      if (error) {
-        if (error.message.includes('not found')) {
-          console.log('📢 Nenhum aviso encontrado, iniciando vazio');
-          setAnnouncements([]);
-        } else {
-          throw error;
+      if (regularError) {
+        if (!regularError.message.includes('not found')) {
+          console.error('Erro ao carregar avisos regulares:', regularError);
         }
       } else {
-        const text = await data.text();
+        const text = await regularData.text();
         const parsed: AnnouncementsData = JSON.parse(text);
-        setAnnouncements(parsed.announcements || []);
-        console.log(`📢 ${parsed.announcements?.length || 0} avisos carregados`);
+        allAnnouncements = [...(parsed.announcements || [])];
       }
+
+      // Load extension announcements
+      const { data: extensionData, error: extensionError } = await supabase.storage
+        .from('user-data')
+        .download('admin/extension-announcements.json');
+      
+      if (extensionError) {
+        if (!extensionError.message.includes('not found')) {
+          console.error('Erro ao carregar avisos da extensão:', extensionError);
+        }
+      } else {
+        const text = await extensionData.text();
+        const parsed = JSON.parse(text);
+        const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
+          ...a,
+          targetArea: 'extension' as const,
+          forceRead: false,
+          forceReadSeconds: 5,
+          maxViews: 1,
+          viewCount: 0
+        }));
+        allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
+      }
+
+      setAnnouncements(allAnnouncements);
+      console.log(`📢 ${allAnnouncements.length} avisos carregados (regulares + extensão)`);
     } catch (error) {
       console.error('Erro ao carregar avisos:', error);
       setAnnouncements([]);
