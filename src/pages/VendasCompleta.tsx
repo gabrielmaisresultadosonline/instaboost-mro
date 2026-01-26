@@ -242,18 +242,9 @@ const VendasCompleta = () => {
         return;
       }
 
-      // Abrir link de pagamento diretamente
-      window.open(checkData.payment_link, "_blank");
-      
-      // Fechar modal
-      setShowCheckoutModal(false);
-      
-      toast.success("Checkout criado! Complete o pagamento na nova aba.");
-      
-      // Resetar form
-      setEmail("");
-      setUsername("");
-      setPhone("");
+      // Redirecionar diretamente para o checkout (funciona melhor no mobile)
+      // Usar location.href ao invés de window.open para evitar bloqueio de popup
+      window.location.href = checkData.payment_link;
 
     } catch (error) {
       console.error("Error:", error);
