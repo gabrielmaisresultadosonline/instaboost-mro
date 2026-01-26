@@ -27,6 +27,7 @@ import Ligacao from "./pages/Ligacao";
 import Obrigado from "./pages/Obrigado";
 import ObrigadoZapmro from "./pages/ObrigadoZapmro";
 import ZapMROVendas from "./pages/ZapMROVendas";
+import ZapMROVendasProm from "./pages/ZapMROVendasProm";
 import ZapmroVendasAdmin from "./pages/ZapmroVendasAdmin";
 import Promo33 from "./pages/Promo33";
 import Promo33Dashboard from "./pages/Promo33Dashboard";
@@ -73,6 +74,7 @@ const App = () => (
           <Route path="/instagram" element={<Index />} />
           <Route path="/zapmro" element={<ZapMRO />} />
           <Route path="/zapmro/vendas" element={<ZapMROVendas />} />
+          <Route path="/zapmro/vendas/prom" element={<ZapMROVendasProm />} />
           <Route path="/zapmro/vendas/admin" element={<ZapmroVendasAdmin />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
