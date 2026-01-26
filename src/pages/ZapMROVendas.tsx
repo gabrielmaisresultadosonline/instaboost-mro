@@ -430,72 +430,76 @@ const ZapMROVendas = () => {
       </section>
 
       {/* Pricing Section */}
-      <section ref={pricingRef} className="py-20 px-4 relative">
+      <section ref={pricingRef} className="py-12 md:py-20 px-4 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-green-500/5 to-transparent" />
         
         <div className="max-w-4xl mx-auto relative z-10">
-          {/* Timer */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-4 bg-red-500/10 border border-red-500/30 rounded-full px-6 py-3">
-              <Clock className="w-5 h-5 text-red-400" />
-              <span className="text-red-400 font-bold">OFERTA EXPIRA EM:</span>
-              <div className="flex items-center gap-2 font-mono text-2xl font-bold">
-                <span className="bg-red-500/20 px-3 py-1 rounded">{String(timeLeft.hours).padStart(2, '0')}</span>
+          {/* Timer - Responsivo */}
+          <div className="text-center mb-6 md:mb-8">
+            <div className="inline-flex flex-col sm:flex-row items-center gap-2 sm:gap-4 bg-red-500/10 border border-red-500/30 rounded-2xl sm:rounded-full px-4 sm:px-6 py-3">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
+                <span className="text-red-400 font-bold text-sm sm:text-base">OFERTA EXPIRA EM:</span>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2 font-mono text-xl sm:text-2xl font-bold">
+                <span className="bg-red-500/20 px-2 sm:px-3 py-1 rounded">{String(timeLeft.hours).padStart(2, '0')}</span>
                 <span className="text-red-400">:</span>
-                <span className="bg-red-500/20 px-3 py-1 rounded">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                <span className="bg-red-500/20 px-2 sm:px-3 py-1 rounded">{String(timeLeft.minutes).padStart(2, '0')}</span>
                 <span className="text-red-400">:</span>
-                <span className="bg-red-500/20 px-3 py-1 rounded">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                <span className="bg-red-500/20 px-2 sm:px-3 py-1 rounded">{String(timeLeft.seconds).padStart(2, '0')}</span>
               </div>
             </div>
           </div>
 
-          <div className="text-center mb-10">
-            <span className="text-green-400 font-bold text-lg">PLANO ÚNICO</span>
-            <h2 className="text-4xl md:text-5xl font-bold mt-2">PLANO ANUAL s/JUROS</h2>
+          <div className="text-center mb-6 md:mb-10">
+            <span className="text-green-400 font-bold text-base md:text-lg">PLANO ÚNICO</span>
+            <h2 className="text-3xl md:text-5xl font-bold mt-2">PLANO ANUAL</h2>
           </div>
 
-          {/* Price Card */}
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/50 rounded-3xl p-8 md:p-12 shadow-2xl shadow-green-500/20">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
+          {/* Price Card - Responsivo */}
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-500/50 rounded-2xl md:rounded-3xl p-5 sm:p-8 md:p-12 shadow-2xl shadow-green-500/20">
+            <div className="flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8">
+              {/* Features - aparece primeiro no mobile */}
+              <div className="space-y-3 md:space-y-4 order-2 md:order-1">
                 {planFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-4 h-4 text-white" />
+                  <div key={i} className="flex items-center gap-2 md:gap-3">
+                    <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 md:w-4 md:h-4 text-white" />
                     </div>
-                    <span className="text-gray-300">{feature}</span>
+                    <span className="text-gray-300 text-sm md:text-base">{feature}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex flex-col items-center justify-center text-center">
-                <p className="text-gray-500 text-sm mb-4">ou R$397 à vista</p>
+              {/* Preço - aparece segundo no mobile */}
+              <div className="flex flex-col items-center justify-center text-center order-1 md:order-2">
+                <p className="text-gray-500 text-xs sm:text-sm mb-2 md:mb-4">ou R$397 à vista</p>
                 
-                <div className="mb-2">
-                  <span className="text-2xl text-gray-400">12x de</span>
+                <div className="mb-1 md:mb-2">
+                  <span className="text-lg sm:text-2xl text-gray-400">12x de</span>
                 </div>
-                <div className="text-7xl md:text-8xl font-black text-green-400 mb-1">
+                <div className="text-5xl sm:text-7xl md:text-8xl font-black text-green-400 mb-1">
                   R$41
                 </div>
-                <p className="text-xl text-gray-300 font-medium mb-6">por mês</p>
+                <p className="text-base sm:text-xl text-gray-300 font-medium mb-4 md:mb-6">por mês</p>
 
                 <Button 
                   size="lg"
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base sm:text-xl py-5 sm:py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
                   onClick={() => openCheckout("annual")}
                 >
                   GARANTIR MEU ACESSO AGORA
                 </Button>
 
-                <p className="text-sm text-gray-500 mt-4 flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
+                <p className="text-xs sm:text-sm text-gray-500 mt-3 md:mt-4 flex items-center gap-2">
+                  <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
                   Pagamento 100% seguro
                 </p>
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-gray-700 text-center">
-              <p className="text-green-400 font-medium">
+            <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-gray-700 text-center">
+              <p className="text-green-400 font-medium text-sm md:text-base">
                 ⚡ Acesso imediato: após o pagamento, você recebe seu acesso automaticamente no e-mail
               </p>
             </div>
