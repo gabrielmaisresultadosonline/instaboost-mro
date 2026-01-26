@@ -595,60 +595,61 @@ const ZapMROVendas = () => {
 
       {/* Checkout Modal */}
       <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-md">
+        <DialogContent className="bg-gray-900 border-gray-800 text-white w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl">
+            <DialogTitle className="text-center text-lg sm:text-xl">
               <span className="text-green-400">ZAPMRO</span> - Finalizar Compra
             </DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleCheckout} className="space-y-4 mt-4">
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-400">Plano Selecionado</p>
-              <p className="text-2xl font-bold text-green-400">
+          <form onSubmit={handleCheckout} className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 sm:p-4 text-center">
+              <p className="text-xs sm:text-sm text-gray-400">Plano Selecionado</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-400">
                 {PLANS[selectedPlan].name} - R$ {PLANS[selectedPlan].price.toFixed(2)}
               </p>
+              <p className="text-xs text-gray-500 mt-1">ou 12x de R${(PLANS[selectedPlan].price / 12).toFixed(0)}</p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <div>
-                <label className="text-sm text-gray-400 flex items-center gap-2 mb-1">
-                  <Mail className="w-4 h-4" /> Email
+                <label className="text-xs sm:text-sm text-gray-400 flex items-center gap-2 mb-1">
+                  <Mail className="w-3 h-3 sm:w-4 sm:h-4" /> Email
                 </label>
                 <Input
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white"
+                  className="bg-gray-800 border-gray-700 text-white h-10 sm:h-11 text-sm sm:text-base"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-sm text-gray-400 flex items-center gap-2 mb-1">
-                  <Phone className="w-4 h-4" /> Celular com DDD
+                <label className="text-xs sm:text-sm text-gray-400 flex items-center gap-2 mb-1">
+                  <Phone className="w-3 h-3 sm:w-4 sm:h-4" /> Celular com DDD
                 </label>
                 <Input
                   type="tel"
                   placeholder="(00) 00000-0000"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white"
+                  className="bg-gray-800 border-gray-700 text-white h-10 sm:h-11 text-sm sm:text-base"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-sm text-gray-400 flex items-center gap-2 mb-1">
-                  <User className="w-4 h-4" /> Usuário (será sua senha também)
+                <label className="text-xs sm:text-sm text-gray-400 flex items-center gap-2 mb-1">
+                  <User className="w-3 h-3 sm:w-4 sm:h-4" /> Usuário (será sua senha também)
                 </label>
                 <Input
                   type="text"
                   placeholder="seuusuario"
                   value={username}
                   onChange={(e) => validateUsername(e.target.value)}
-                  className={`bg-gray-800 border-gray-700 text-white ${usernameError ? "border-red-500" : ""}`}
+                  className={`bg-gray-800 border-gray-700 text-white h-10 sm:h-11 text-sm sm:text-base ${usernameError ? "border-red-500" : ""}`}
                   required
                 />
                 {usernameError && (
@@ -660,7 +661,7 @@ const ZapMROVendas = () => {
 
             <Button 
               type="submit"
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 text-lg"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-5 sm:py-6 text-base sm:text-lg"
               disabled={loading}
             >
               {loading ? (
