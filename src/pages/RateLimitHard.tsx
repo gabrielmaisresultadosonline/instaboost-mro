@@ -1,9 +1,6 @@
-import { AlertTriangle, Clock, Shield, ArrowLeft, Pause } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { AlertTriangle, Clock, Shield } from "lucide-react";
 
 const RateLimitHard = () => {
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
@@ -93,27 +90,10 @@ const RateLimitHard = () => {
           <p className="text-gray-400 text-sm mt-1">Isso é normal, não se preocupe!</p>
         </div>
 
-        {/* Actions */}
+        {/* Info Section */}
         <div className="bg-gray-900/50 rounded-xl p-5 border border-gray-700">
           <h3 className="text-white font-semibold text-center mb-4">O que fazer agora?</h3>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              onClick={() => navigate(-1)}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-6"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Voltar e Aguardar
-            </Button>
-            <Button
-              onClick={() => navigate(-1)}
-              variant="outline"
-              className="flex-1 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 py-6"
-            >
-              <Pause className="w-5 h-5 mr-2" />
-              Parar e Voltar Amanhã
-            </Button>
-          </div>
-          <p className="text-gray-500 text-xs text-center mt-4">
+          <p className="text-gray-300 text-center">
             Volte para a ferramenta e aguarde, ou pare o sistema e volte amanhã.
           </p>
         </div>
