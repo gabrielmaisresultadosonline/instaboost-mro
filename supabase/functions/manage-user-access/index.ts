@@ -209,42 +209,45 @@ async function sendAccessEmail(
   }
 }
 
-// Create user in WhatsApp API
+// Create user in WhatsApp API (ZAPMRO)
 async function createWhatsAppUser(username: string, password: string, accessType: string): Promise<boolean> {
   try {
-    // First login as admin
-    const loginResponse = await fetch(`${WHATSAPP_API_URL}/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ username: 'MRO', password: 'Ga145523@' }),
-    });
+    // API pública do ZAPMRO com autenticação Bearer
+    const apiUrl = `${WHATSAPP_API_URL}/public/api/users`;
+    
+    logStep("Creating WhatsApp user", { username, accessType, apiUrl });
 
-    if (!loginResponse.ok) {
-      logStep("WhatsApp admin login failed");
-      return false;
-    }
-
-    // Get cookies from login response
-    const cookies = loginResponse.headers.get('set-cookie') || '';
-
-    // Create user
-    const createResponse = await fetch(`${WHATSAPP_API_URL}/admin/api/users`, {
+    const createResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': cookies,
+        'Authorization': 'Bearer secreta123',
       },
       body: JSON.stringify({
         username,
         password,
-        access_type: accessType,
-        expiry_date: accessType === 'annual' ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined,
+        access_type: accessType, // 'lifetime' ou 'annual'
       }),
     });
 
-    const result = await createResponse.json();
-    logStep("WhatsApp user creation result", result);
-    return createResponse.ok;
+    const responseText = await createResponse.text();
+    logStep("WhatsApp API response", { status: createResponse.status, body: responseText });
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      logStep("WhatsApp API returned non-JSON response", { responseText });
+      return createResponse.ok;
+    }
+
+    if (!createResponse.ok) {
+      logStep("WhatsApp user creation failed", { status: createResponse.status, result });
+      return false;
+    }
+
+    logStep("WhatsApp user created successfully", result);
+    return true;
   } catch (error: any) {
     logStep("Error creating WhatsApp user", { error: error?.message || String(error) });
     return false;
