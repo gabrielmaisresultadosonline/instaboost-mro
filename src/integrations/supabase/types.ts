@@ -1632,6 +1632,63 @@ export type Database = {
         }
         Relationships: []
       }
+      zapmro_orders: {
+        Row: {
+          amount: number
+          api_created: boolean | null
+          completed_at: string | null
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          nsu_order: string
+          paid_at: string | null
+          phone: string | null
+          plan_type: string
+          status: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          amount?: number
+          api_created?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          nsu_order: string
+          paid_at?: string | null
+          phone?: string | null
+          plan_type?: string
+          status?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          amount?: number
+          api_created?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          nsu_order?: string
+          paid_at?: string | null
+          phone?: string | null
+          plan_type?: string
+          status?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       zapmro_users: {
         Row: {
           created_at: string

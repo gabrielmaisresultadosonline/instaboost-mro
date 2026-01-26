@@ -2,10 +2,20 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   MessageCircle, Check, Shield, Zap, Users, Clock, Send, 
   Gift, Play, ChevronDown, Star, Phone, Bot, AudioLines,
-  Calendar, Sparkles, Lock, RefreshCw, ArrowRight, X
+  Calendar, Sparkles, Lock, RefreshCw, ArrowRight, X,
+  Loader2, Mail, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { trackPageView, trackInitiateCheckout } from '@/lib/facebookTracking';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+const PLANS = {
+  annual: { name: "Anual", price: 397.00, days: 365, description: "Acesso por 1 ano" },
+  lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
+};
 
 const ZapMROVendas = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -13,6 +23,15 @@ const ZapMROVendas = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
+
+  // Checkout modal state
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Track PageView on mount
   useEffect(() => {
@@ -30,6 +49,98 @@ const ZapMROVendas = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Validar username: apenas letras minúsculas
+  const validateUsername = (value: string) => {
+    const cleaned = value.toLowerCase().replace(/[^a-z]/g, "");
+    setUsername(cleaned);
+
+    if (value !== cleaned) {
+      setUsernameError("Apenas letras minúsculas, sem espaços ou números");
+      return;
+    } else if (cleaned.length < 4) {
+      setUsernameError("Mínimo de 4 caracteres");
+      return;
+    } else if (cleaned.length > 20) {
+      setUsernameError("Máximo de 20 caracteres");
+      return;
+    }
+
+    setUsernameError("");
+  };
+
+  // Criar checkout
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast.error("Por favor, insira um email válido");
+      return;
+    }
+
+    if (!phone || phone.replace(/\D/g, "").length < 10) {
+      toast.error("Por favor, insira um celular válido com DDD");
+      return;
+    }
+
+    if (!username || username.length < 4) {
+      toast.error("Nome de usuário deve ter no mínimo 4 caracteres");
+      return;
+    }
+
+    if (usernameError) {
+      toast.error(usernameError);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const plan = PLANS[selectedPlan];
+      
+      const { data: checkData, error: checkError } = await supabase.functions.invoke("create-zapmro-checkout", {
+        body: { 
+          email: email.toLowerCase().trim(),
+          username: username.toLowerCase().trim(),
+          phone: phone.replace(/\D/g, "").trim(),
+          planType: selectedPlan,
+          amount: plan.price,
+          checkUserExists: true
+        }
+      });
+
+      if (checkError) {
+        console.error("Error creating checkout:", checkError);
+        toast.error("Erro ao criar link de pagamento. Tente novamente.");
+        return;
+      }
+
+      if (checkData.userExists) {
+        toast.error("Este nome de usuário já está em uso. Escolha outro.");
+        setUsernameError("Usuário já existe, escolha outro");
+        return;
+      }
+
+      if (!checkData.success) {
+        toast.error(checkData.error || "Erro ao criar pagamento");
+        return;
+      }
+
+      trackInitiateCheckout('ZAPMRO ' + plan.name, plan.price);
+      window.location.href = checkData.payment_link;
+
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Erro ao processar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openCheckout = (plan: "annual" | "lifetime") => {
+    setSelectedPlan(plan);
+    setShowCheckoutModal(true);
+  };
 
   const features = [
     { icon: Bot, title: 'Atendimento Automático', desc: 'Simule mais de 10 atendentes simultaneamente' },
@@ -371,10 +482,7 @@ const ZapMROVendas = () => {
                 <Button 
                   size="lg"
                   className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
-                  onClick={() => {
-                    trackInitiateCheckout('ZAPMRO Anual', 397);
-                    window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"ZAPMRO+ANUAL","price":39700,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigadozapmro', '_blank');
-                  }}
+                  onClick={() => openCheckout("annual")}
                 >
                   GARANTIR MEU ACESSO AGORA
                 </Button>
@@ -438,10 +546,7 @@ const ZapMROVendas = () => {
           <Button 
             size="lg"
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl px-12 py-8 rounded-xl shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all hover:scale-105"
-            onClick={() => {
-              trackInitiateCheckout('ZAPMRO Anual', 397);
-              window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"ZAPMRO+ANUAL","price":39700,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigadozapmro', '_blank');
-            }}
+            onClick={() => openCheckout("annual")}
           >
             GARANTIR MEU ACESSO AGORA <ArrowRight className="ml-2 w-6 h-6" />
           </Button>
@@ -484,28 +589,89 @@ const ZapMROVendas = () => {
         </div>
       )}
 
-      {/* Bonus Video Modal */}
-      {showBonusVideo && (
-        <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowBonusVideo(false)}
-        >
-          <button 
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-            onClick={() => setShowBonusVideo(false)}
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <div className="w-full max-w-5xl aspect-video" onClick={e => e.stopPropagation()}>
-            <iframe
-              src="https://www.youtube.com/embed/vfPr84KoMGM?autoplay=1"
-              className="w-full h-full rounded-xl"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
+      {/* Checkout Modal */}
+      <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl">
+              <span className="text-green-400">ZAPMRO</span> - Finalizar Compra
+            </DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleCheckout} className="space-y-4 mt-4">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
+              <p className="text-sm text-gray-400">Plano Selecionado</p>
+              <p className="text-2xl font-bold text-green-400">
+                {PLANS[selectedPlan].name} - R$ {PLANS[selectedPlan].price.toFixed(2)}
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-400 flex items-center gap-2 mb-1">
+                  <Mail className="w-4 h-4" /> Email
+                </label>
+                <Input
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 flex items-center gap-2 mb-1">
+                  <Phone className="w-4 h-4" /> Celular com DDD
+                </label>
+                <Input
+                  type="tel"
+                  placeholder="(00) 00000-0000"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 flex items-center gap-2 mb-1">
+                  <User className="w-4 h-4" /> Usuário (será sua senha também)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="seuusuario"
+                  value={username}
+                  onChange={(e) => validateUsername(e.target.value)}
+                  className={`bg-gray-800 border-gray-700 text-white ${usernameError ? "border-red-500" : ""}`}
+                  required
+                />
+                {usernameError && (
+                  <p className="text-red-400 text-xs mt-1">{usernameError}</p>
+                )}
+                <p className="text-gray-500 text-xs mt-1">Apenas letras minúsculas, sem espaços</p>
+              </div>
+            </div>
+
+            <Button 
+              type="submit"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 text-lg"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="animate-spin mr-2" />
+              ) : (
+                "PAGAR AGORA"
+              )}
+            </Button>
+
+            <p className="text-center text-xs text-gray-500">
+              Pagamento seguro via InfiniPay
+            </p>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* CSS for scroll animation */}
       <style>{`
