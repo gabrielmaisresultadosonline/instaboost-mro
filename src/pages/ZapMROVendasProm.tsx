@@ -1,13 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   MessageCircle, Check, Shield, Zap, Users, Clock, Send, 
   Gift, Play, ChevronDown, Star, Phone, Bot, AudioLines,
   Calendar, Sparkles, Lock, RefreshCw, ArrowRight, X,
-  Loader2, Mail, User, Percent
+  Loader2, Mail, User, Percent, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { trackPageView, trackInitiateCheckout } from '@/lib/facebookTracking';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,9 +25,14 @@ const PLANS = {
   annual: { name: "Anual Promo", price: 300.00, days: 365, description: "Acesso por 1 ano" },
 };
 
+// Data de expiração: 27/01/2026 às 20:00 (horário de Brasília)
+const EXPIRATION_DATE = new Date('2026-01-27T23:00:00.000Z'); // 20:00 BRT = 23:00 UTC
+
 const ZapMROVendasProm = () => {
+  const navigate = useNavigate();
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const [timeLeft, setTimeLeft] = useState({ hours: 7, minutes: 59, seconds: 59 });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isExpired, setIsExpired] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
 
@@ -35,15 +49,28 @@ const ZapMROVendasProm = () => {
     trackPageView('Sales Page - ZAPMRO WhatsApp Promo');
   }, []);
 
+  // Timer de contagem regressiva até a data de expiração
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return { hours: 7, minutes: 59, seconds: 59 };
-      });
-    }, 1000);
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const difference = EXPIRATION_DATE.getTime() - now.getTime();
+
+      if (difference <= 0) {
+        setIsExpired(true);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft({ days, hours, minutes, seconds });
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -135,7 +162,12 @@ const ZapMROVendasProm = () => {
   };
 
   const openCheckout = () => {
+    if (isExpired) return; // Bloqueia checkout se expirado
     setShowCheckoutModal(true);
+  };
+
+  const handleGoToOfficialPage = () => {
+    navigate('/zapmro/vendas');
   };
 
   const features = [
@@ -449,6 +481,12 @@ const ZapMROVendasProm = () => {
                 <span className="text-red-400 font-bold text-sm sm:text-base">DESCONTO EXPIRA EM:</span>
               </div>
               <div className="flex items-center gap-1 sm:gap-2 font-mono text-xl sm:text-2xl font-bold">
+                {timeLeft.days > 0 && (
+                  <>
+                    <span className="bg-red-500/20 px-2 sm:px-3 py-1 rounded">{String(timeLeft.days).padStart(2, '0')}</span>
+                    <span className="text-red-400 text-xs sm:text-sm">d</span>
+                  </>
+                )}
                 <span className="bg-red-500/20 px-2 sm:px-3 py-1 rounded">{String(timeLeft.hours).padStart(2, '0')}</span>
                 <span className="text-red-400">:</span>
                 <span className="bg-red-500/20 px-2 sm:px-3 py-1 rounded">{String(timeLeft.minutes).padStart(2, '0')}</span>
@@ -696,6 +734,40 @@ const ZapMROVendasProm = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Popup de Desconto Expirado - Bloqueante */}
+      <AlertDialog open={isExpired}>
+        <AlertDialogContent className="bg-gray-900 border-2 border-red-500/50 text-white max-w-md mx-auto">
+          <AlertDialogHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-red-400" />
+            </div>
+            <AlertDialogTitle className="text-2xl font-bold text-center">
+              Que pena, você perdeu nosso desconto!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400 text-center mt-4 space-y-3">
+              <p className="text-lg">
+                <span className="text-red-400 font-bold">Desconto Encerrado!</span>
+              </p>
+              <p>
+                A promoção especial com economia de R$97 já expirou.
+              </p>
+              <p>
+                Mas não se preocupe! Você ainda pode adquirir o ZAPMRO pelo preço atual em nossa página oficial.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <Button 
+              onClick={handleGoToOfficialPage}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 text-lg"
+            >
+              <ArrowRight className="mr-2 w-5 h-5" />
+              Acessar Página Oficial
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* CSS for scroll animation */}
       <style>{`
