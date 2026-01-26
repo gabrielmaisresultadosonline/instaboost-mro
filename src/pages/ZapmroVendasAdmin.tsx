@@ -20,7 +20,7 @@ import {
 
 const ADMIN_EMAIL = "mro@gmail.com";
 const ADMIN_PASSWORD = "Ga145523@";
-const MEMBER_LINK = "https://maisresultadosonline.com.br/zapmro";
+const MEMBER_LINK = "https://maisresultadosonline.com.br/areademembros";
 const GROUP_LINK = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
 
 interface ZapmroOrder {
@@ -126,6 +126,72 @@ export default function ZapmroVendasAdmin() {
     }
   }, [isAuthenticated]);
 
+  // Verificar pagamentos pendentes ativamente (igual ao instagram-nova)
+  const checkPendingPayments = async () => {
+    try {
+      const now = new Date();
+      const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+      const currentOrders = ordersRef.current;
+      
+      // Filtrar pedidos pendentes criados nos últimos 15 minutos
+      const recentPendingOrders = currentOrders.filter(o => {
+        if (o.status !== "pending") return false;
+        const createdAt = new Date(o.created_at);
+        return createdAt >= fifteenMinutesAgo;
+      });
+      
+      if (recentPendingOrders.length === 0) {
+        setLastAutoCheck(new Date());
+        // Recarregar a cada 30 segundos se não há pedidos recentes
+        const timeSinceLastLoad = localStorage.getItem("zapmro_last_load_time");
+        if (!timeSinceLastLoad || Date.now() - parseInt(timeSinceLastLoad) > 30000) {
+          loadOrders();
+          localStorage.setItem("zapmro_last_load_time", Date.now().toString());
+        }
+        return;
+      }
+
+      console.log(`[ZAPMRO-AUTO-CHECK] Verificando ${recentPendingOrders.length} pedidos pendentes (últimos 15min)...`);
+      
+      for (const order of recentPendingOrders) {
+        // Verificar se expirou
+        if (order.expired_at) {
+          const expiredAt = new Date(order.expired_at);
+          if (new Date() > expiredAt) {
+            console.log(`[ZAPMRO-AUTO-CHECK] Pedido ${order.nsu_order} expirado`);
+            continue;
+          }
+        }
+
+        // Calcular tempo desde criação
+        const createdAt = new Date(order.created_at);
+        const minutesSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / 60000);
+        console.log(`[ZAPMRO-AUTO-CHECK] Verificando ${order.nsu_order} (${order.username}) - ${minutesSinceCreation}min desde criação`);
+
+        // Verificar pagamento via API
+        try {
+          const { data } = await supabase.functions.invoke("check-zapmro-payment", {
+            body: { nsu_order: order.nsu_order }
+          });
+
+          if (data?.status === "completed" || data?.status === "paid") {
+            console.log(`[ZAPMRO-AUTO-CHECK] ✅ Pagamento confirmado para ${order.nsu_order}`);
+            toast.success(`Pagamento confirmado: ${order.username}`);
+          } else {
+            console.log(`[ZAPMRO-AUTO-CHECK] ⏳ Aguardando pagamento: ${order.nsu_order}`);
+          }
+        } catch (e) {
+          console.error(`[ZAPMRO-AUTO-CHECK] Erro ao verificar ${order.nsu_order}:`, e);
+        }
+      }
+
+      setLastAutoCheck(new Date());
+      loadOrders();
+    } catch (error) {
+      console.error("[ZAPMRO-AUTO-CHECK] Erro na verificação automática:", error);
+    }
+  };
+
   // Auto-check every 30 seconds
   useEffect(() => {
     if (!isAuthenticated || !autoCheckEnabled) {
@@ -136,9 +202,11 @@ export default function ZapmroVendasAdmin() {
       return;
     }
 
+    // Executar imediatamente ao ativar
+    checkPendingPayments();
+
     autoCheckIntervalRef.current = setInterval(() => {
-      loadOrders();
-      setLastAutoCheck(new Date());
+      checkPendingPayments();
     }, 30000);
 
     return () => {

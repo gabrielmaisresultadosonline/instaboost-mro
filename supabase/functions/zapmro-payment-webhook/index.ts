@@ -90,7 +90,7 @@ async function sendAccessEmail(
       },
     });
 
-    const memberAreaUrl = "https://maisresultadosonline.com.br";
+    const memberAreaUrl = "https://maisresultadosonline.com.br/areademembros";
     const whatsappGroupLink = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
     const planLabel = planType === "lifetime" ? "Vitalício" : "Anual";
 
