@@ -147,7 +147,7 @@ serve(async (req) => {
     if (!infinitepayResponse.ok) {
       log("InfiniPay API error, using fallback link", infinitepayData);
       
-      // Fallback: link manual
+      // Fallback: link manual com formato lenc (igual instagram-nova)
       const itemData = [{
         name: productDescription,
         price: priceInCents,
@@ -156,8 +156,20 @@ serve(async (req) => {
       const itemsEncoded = encodeURIComponent(JSON.stringify(itemData));
       paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsEncoded}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}`;
     } else {
-      paymentLink = infinitepayData.checkout_url || infinitepayData.link || infinitepayData.url;
+      // InfiniPay retorna { url: "https://checkout.infinitepay.io/..." }
+      paymentLink = infinitepayData.url || infinitepayData.checkout_url || infinitepayData.link;
       log("Payment link created via API", { paymentLink, orderNsu });
+    }
+
+    if (!paymentLink) {
+      log("No payment link found in response, using fallback");
+      const itemData = [{
+        name: productDescription,
+        price: priceInCents,
+        quantity: 1
+      }];
+      const itemsEncoded = encodeURIComponent(JSON.stringify(itemData));
+      paymentLink = `https://checkout.infinitepay.io/${INFINITEPAY_HANDLE}?items=${itemsEncoded}&redirect_url=${encodeURIComponent(redirectUrl)}`;
     }
 
     // Salvar pedido no banco (expira em 30 minutos)
