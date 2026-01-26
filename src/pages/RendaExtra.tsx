@@ -204,180 +204,214 @@ const RendaExtra = () => {
   }
 
   const renderQuizStep = () => {
-    const stepContent = [
-      // Step 0 - Nome
-      <div key="nome" className="space-y-4 animate-fade-in">
-        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
-          Qual é o seu nome completo?
-        </h3>
-        <Input
-          value={formData.nomeCompleto}
-          onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
-          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
-          placeholder="Digite seu nome completo"
-          autoFocus
-        />
-      </div>,
-      // Step 1 - Email
-      <div key="email" className="space-y-4 animate-fade-in">
-        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
-          Qual é o seu melhor email?
-        </h3>
-        <Input
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
-          placeholder="seu@email.com"
-          autoFocus
-        />
-      </div>,
-      // Step 2 - WhatsApp
-      <div key="whatsapp" className="space-y-4 animate-fade-in">
-        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
-          Qual é o seu WhatsApp?
-        </h3>
-        <Input
-          value={formData.whatsapp}
-          onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
-          placeholder="(00) 00000-0000"
-          autoFocus
-        />
-      </div>,
-      // Step 3 - Trabalha
-      <div key="trabalha" className="space-y-4 animate-fade-in">
-        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
-          Você trabalha atualmente?
-        </h3>
-        <div className="flex flex-col gap-4">
-          <Button
-            type="button"
-            onClick={() => {
-              setFormData({ ...formData, trabalhaAtualmente: true });
-              setCurrentStep(currentStep + 1);
-            }}
-            className="w-full bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/50 text-white font-semibold text-lg py-6 rounded-xl transition-all"
-          >
-            Sim, trabalho
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              setFormData({ ...formData, trabalhaAtualmente: false, mediaSalarial: "nao_trabalha" });
-              // Skip salary question - go directly to computer step
-              setCurrentStep(currentStep + 1);
-            }}
-            className="w-full bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/50 text-white font-semibold text-lg py-6 rounded-xl transition-all"
-          >
-            Não, estou buscando oportunidades
-          </Button>
+    const actualStep = getActualStep(currentStep);
+    
+    // Step 0 - Nome
+    if (actualStep === 0) {
+      return (
+        <div key="nome" className="space-y-4 animate-fade-in">
+          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+            Qual é o seu nome completo?
+          </h3>
+          <Input
+            value={formData.nomeCompleto}
+            onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
+            className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+            placeholder="Digite seu nome completo"
+            autoFocus
+          />
         </div>
-      </div>,
-      // Step 4 - Media Salarial
-      <div key="salario" className="space-y-4 animate-fade-in">
-        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
-          Qual sua média salarial atual?
-        </h3>
-        <div className="flex flex-col gap-3">
-          {[
-            { value: "menos_5k", label: "Menos de R$ 5.000" },
-            { value: "5k_10k", label: "Entre R$ 5.000 e R$ 10.000" },
-            { value: "mais_10k", label: "Mais de R$ 10.000" }
-          ].map((option) => (
+      );
+    }
+    
+    // Step 1 - Email
+    if (actualStep === 1) {
+      return (
+        <div key="email" className="space-y-4 animate-fade-in">
+          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+            Qual é o seu melhor email?
+          </h3>
+          <Input
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+            placeholder="seu@email.com"
+            autoFocus
+          />
+        </div>
+      );
+    }
+    
+    // Step 2 - WhatsApp
+    if (actualStep === 2) {
+      return (
+        <div key="whatsapp" className="space-y-4 animate-fade-in">
+          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+            Qual é o seu WhatsApp?
+          </h3>
+          <Input
+            value={formData.whatsapp}
+            onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+            className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+            placeholder="(00) 00000-0000"
+            autoFocus
+          />
+        </div>
+      );
+    }
+    
+    // Step 3 - Trabalha
+    if (actualStep === 3) {
+      return (
+        <div key="trabalha" className="space-y-4 animate-fade-in">
+          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+            Você trabalha atualmente?
+          </h3>
+          <div className="flex flex-col gap-4">
             <Button
-              key={option.value}
               type="button"
               onClick={() => {
-                setFormData({ ...formData, mediaSalarial: option.value });
+                setFormData({ ...formData, trabalhaAtualmente: true });
                 setCurrentStep(currentStep + 1);
               }}
-              className={`w-full border text-white font-semibold text-lg py-6 rounded-xl transition-all ${
-                formData.mediaSalarial === option.value 
-                  ? "bg-red-500/30 border-red-500" 
-                  : "bg-white/5 border-white/10 hover:bg-red-500/20 hover:border-red-500/50"
-              }`}
+              className="w-full bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/50 text-white font-semibold text-lg py-6 rounded-xl transition-all"
             >
-              {option.label}
+              Sim, trabalho
             </Button>
-          ))}
-        </div>
-      </div>,
-      // Step 5 - Computador
-      <div key="computador" className="space-y-4 animate-fade-in">
-        {!showNoComputerWarning ? (
-          <>
-            <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
-              Você possui computador?
-            </h3>
-            <div className="flex flex-col gap-3">
-              {[
-                { value: "computador", label: "Computador de Mesa", icon: Monitor },
-                { value: "notebook", label: "Notebook", icon: Laptop },
-                { value: "macbook", label: "MacBook", icon: Laptop },
-                { value: "nenhum", label: "Nenhum", icon: X }
-              ].map((option) => (
-                <Button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleComputerSelect(option.value)}
-                  className={`w-full border text-white font-semibold text-lg py-6 rounded-xl transition-all flex items-center justify-center gap-3 ${
-                    formData.tipoComputador === option.value 
-                      ? "bg-red-500/30 border-red-500" 
-                      : "bg-white/5 border-white/10 hover:bg-red-500/20 hover:border-red-500/50"
-                  }`}
-                >
-                  <option.icon className="w-5 h-5" />
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="space-y-6 animate-fade-in">
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 text-center">
-              <div className="text-yellow-400 text-5xl mb-4">⚠️</div>
-              <h3 className="text-xl md:text-2xl font-bold text-white mb-4">
-                Atenção!
-              </h3>
-              <p className="text-gray-300 text-base md:text-lg leading-relaxed">
-                Você <span className="text-yellow-400 font-bold">vai precisar</span> de um <span className="text-white font-semibold">Notebook</span>, <span className="text-white font-semibold">Computador</span> ou <span className="text-white font-semibold">MacBook</span> para rodar o sistema e fazer o método!
-              </p>
-              <p className="text-gray-400 text-sm mt-4">
-                Sem um computador, você <span className="text-red-400 font-semibold">não vai conseguir rodar</span> o sistema.
-              </p>
-            </div>
             <Button
               type="button"
-              onClick={handleProceedWithoutComputer}
-              disabled={!canProceedAfterWarning}
-              className={`w-full font-semibold text-lg py-6 rounded-xl transition-all ${
-                canProceedAfterWarning 
-                  ? "bg-red-500 hover:bg-red-600 text-white" 
-                  : "bg-gray-600 text-gray-400 cursor-not-allowed"
-              }`}
+              onClick={() => {
+                setFormData({ ...formData, trabalhaAtualmente: false, mediaSalarial: "nao_trabalha" });
+                // Skip salary question - go directly to computer step
+                setCurrentStep(currentStep + 1);
+              }}
+              className="w-full bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/50 text-white font-semibold text-lg py-6 rounded-xl transition-all"
             >
-              {canProceedAfterWarning ? "Avançar mesmo assim" : "Aguarde 5 segundos para continuar..."}
+              Não, estou buscando oportunidades
             </Button>
           </div>
-        )}
-      </div>,
-      // Step 6 - Instagram
-      <div key="instagram" className="space-y-4 animate-fade-in">
-        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
-          Qual é o seu Instagram?
-        </h3>
-        <Input
-          value={formData.instagramUsername}
-          onChange={(e) => setFormData({ ...formData, instagramUsername: e.target.value })}
-          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
-          placeholder="@seuperfil"
-          autoFocus
-        />
-      </div>
-    ];
-
-    return stepContent[currentStep];
+        </div>
+      );
+    }
+    
+    // Step 4 - Media Salarial (only if trabalhaAtualmente is true)
+    if (actualStep === 4) {
+      return (
+        <div key="salario" className="space-y-4 animate-fade-in">
+          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+            Qual sua média salarial atual?
+          </h3>
+          <div className="flex flex-col gap-3">
+            {[
+              { value: "menos_5k", label: "Menos de R$ 5.000" },
+              { value: "5k_10k", label: "Entre R$ 5.000 e R$ 10.000" },
+              { value: "mais_10k", label: "Mais de R$ 10.000" }
+            ].map((option) => (
+              <Button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  setFormData({ ...formData, mediaSalarial: option.value });
+                  setCurrentStep(currentStep + 1);
+                }}
+                className={`w-full border text-white font-semibold text-lg py-6 rounded-xl transition-all ${
+                  formData.mediaSalarial === option.value 
+                    ? "bg-red-500/30 border-red-500" 
+                    : "bg-white/5 border-white/10 hover:bg-red-500/20 hover:border-red-500/50"
+                }`}
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    // Step 5 - Computador
+    if (actualStep === 5) {
+      return (
+        <div key="computador" className="space-y-4 animate-fade-in">
+          {!showNoComputerWarning ? (
+            <>
+              <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+                Você possui computador?
+              </h3>
+              <div className="flex flex-col gap-3">
+                {[
+                  { value: "computador", label: "Computador de Mesa", icon: Monitor },
+                  { value: "notebook", label: "Notebook", icon: Laptop },
+                  { value: "macbook", label: "MacBook", icon: Laptop },
+                  { value: "nenhum", label: "Nenhum", icon: X }
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleComputerSelect(option.value)}
+                    className={`w-full border text-white font-semibold text-lg py-6 rounded-xl transition-all flex items-center justify-center gap-3 ${
+                      formData.tipoComputador === option.value 
+                        ? "bg-red-500/30 border-red-500" 
+                        : "bg-white/5 border-white/10 hover:bg-red-500/20 hover:border-red-500/50"
+                    }`}
+                  >
+                    <option.icon className="w-5 h-5" />
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="space-y-6 animate-fade-in">
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 text-center">
+                <div className="text-yellow-400 text-5xl mb-4">⚠️</div>
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-4">
+                  Atenção!
+                </h3>
+                <p className="text-gray-300 text-base md:text-lg leading-relaxed">
+                  Você <span className="text-yellow-400 font-bold">vai precisar</span> de um <span className="text-white font-semibold">Notebook</span>, <span className="text-white font-semibold">Computador</span> ou <span className="text-white font-semibold">MacBook</span> para rodar o sistema e fazer o método!
+                </p>
+                <p className="text-gray-400 text-sm mt-4">
+                  Sem um computador, você <span className="text-red-400 font-semibold">não vai conseguir rodar</span> o sistema.
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleProceedWithoutComputer}
+                disabled={!canProceedAfterWarning}
+                className={`w-full font-semibold text-lg py-6 rounded-xl transition-all ${
+                  canProceedAfterWarning 
+                    ? "bg-red-500 hover:bg-red-600 text-white" 
+                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {canProceedAfterWarning ? "Avançar mesmo assim" : "Aguarde 5 segundos para continuar..."}
+              </Button>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // Step 6 - Instagram
+    if (actualStep === 6) {
+      return (
+        <div key="instagram" className="space-y-4 animate-fade-in">
+          <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+            Qual é o seu Instagram?
+          </h3>
+          <Input
+            value={formData.instagramUsername}
+            onChange={(e) => setFormData({ ...formData, instagramUsername: e.target.value })}
+            className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+            placeholder="@seuperfil"
+            autoFocus
+          />
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   return (
@@ -417,49 +451,65 @@ const RendaExtra = () => {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="mt-8 flex gap-3">
-              {currentStep > 0 && currentStep !== 3 && currentStep !== 4 && currentStep !== 5 && (
-                <Button
-                  type="button"
-                  onClick={() => setCurrentStep(currentStep - 1)}
-                  className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold py-5 rounded-xl"
-                >
-                  Voltar
-                </Button>
-              )}
-              {currentStep !== 3 && currentStep !== 4 && currentStep !== 5 && (
-                currentStep === getEffectiveTotalSteps() - 1 ? (
-                  <Button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={!canProceed() || loading}
-                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-5 rounded-xl disabled:opacity-50"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Cadastrando...
-                      </>
-                    ) : (
-                      <>
-                        Participar do Grupo
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={!canProceed()}
-                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-5 rounded-xl disabled:opacity-50"
-                  >
-                    Próximo
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                )
-              )}
-            </div>
+            {(() => {
+              const actualStep = getActualStep(currentStep);
+              const isAutoAdvanceStep = actualStep === 3 || actualStep === 4 || actualStep === 5;
+              const isLastStep = currentStep === getEffectiveTotalSteps() - 1;
+              
+              if (isAutoAdvanceStep) return null;
+              
+              return (
+                <div className="mt-8 flex gap-3">
+                  {currentStep > 0 && (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        // Handle going back correctly
+                        if (!formData.trabalhaAtualmente && actualStep === 5) {
+                          // If user doesn't work and is on computer step, go back to trabalha step
+                          setCurrentStep(3);
+                        } else {
+                          setCurrentStep(currentStep - 1);
+                        }
+                      }}
+                      className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold py-5 rounded-xl"
+                    >
+                      Voltar
+                    </Button>
+                  )}
+                  {isLastStep ? (
+                    <Button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={!canProceed() || loading}
+                      className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-5 rounded-xl disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Cadastrando...
+                        </>
+                      ) : (
+                        <>
+                          Participar do Grupo
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={!canProceed()}
+                      className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-5 rounded-xl disabled:opacity-50"
+                    >
+                      Próximo
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
