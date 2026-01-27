@@ -1,4 +1,5 @@
 import { AlertTriangle, Clock, Shield } from "lucide-react";
+import instagramRateLimitImage from "@/assets/instagram-rate-limit.png";
 
 const RateLimitHard = () => {
 
@@ -17,9 +18,20 @@ const RateLimitHard = () => {
           Você tomou um limite do Instagram!
         </h1>
 
-        <p className="text-center text-yellow-400 text-lg mb-8">
+        <p className="text-center text-yellow-400 text-lg mb-6">
           Não tem problema! Nossa ferramenta vai aguardar 1 hora e vai tentar novamente automaticamente.
         </p>
+
+        {/* Instagram Rate Limit Screenshot */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-black rounded-2xl p-4 shadow-xl border border-gray-700">
+            <img 
+              src={instagramRateLimitImage} 
+              alt="Mensagem de limite do Instagram" 
+              className="max-w-[280px] w-full rounded-xl"
+            />
+          </div>
+        </div>
 
         {/* Main Explanation */}
         <div className="bg-gray-900/50 rounded-xl p-5 mb-6 border border-gray-700">
