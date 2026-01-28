@@ -15,8 +15,8 @@ const log = (step: string, details?: unknown) => {
   console.log(`[${timestamp}] [VERIFY-PENDING-PAYMENTS] ${step}${detailsStr}`);
 };
 
-// Verificar pagamento via API InfiniPay
-async function checkPaymentStatus(orderNsu: string): Promise<{ paid: boolean; data?: any }> {
+// Verificar pagamento via API InfiniPay usando order_nsu
+async function checkPaymentByOrderNsu(orderNsu: string): Promise<{ paid: boolean; data?: any }> {
   try {
     const response = await fetch(
       "https://api.infinitepay.io/invoices/public/checkout/payment_check",
@@ -36,9 +36,63 @@ async function checkPaymentStatus(orderNsu: string): Promise<{ paid: boolean; da
     }
     return { paid: false };
   } catch (error) {
-    log("Error checking payment", { orderNsu, error: String(error) });
+    log("Error checking payment by order_nsu", { orderNsu, error: String(error) });
     return { paid: false };
   }
+}
+
+// Verificar pagamento via API InfiniPay usando email no nome do produto
+async function checkPaymentByProductEmail(email: string, productPrefix: string): Promise<{ paid: boolean; data?: any }> {
+  try {
+    // O nome do produto segue o padrão: PREFIX_email (ex: MROIG_teste@email.com, ZAPMRO_teste@email.com)
+    const productName = `${productPrefix}_${email}`;
+    
+    log("Checking payment by product name", { productName });
+    
+    const response = await fetch(
+      "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          handle: INFINITEPAY_HANDLE,
+          product_name: productName,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      log("Payment check by product response", { productName, paid: data.paid });
+      return { paid: data.paid === true, data };
+    }
+    return { paid: false };
+  } catch (error) {
+    log("Error checking payment by product", { email, productPrefix, error: String(error) });
+    return { paid: false };
+  }
+}
+
+// Verificar pagamento - tenta primeiro por order_nsu, depois pelo email no nome do produto
+async function checkPaymentStatus(orderNsu: string, email?: string, productPrefix?: string): Promise<{ paid: boolean; data?: any }> {
+  // Primeiro tenta pelo order_nsu
+  const resultByNsu = await checkPaymentByOrderNsu(orderNsu);
+  if (resultByNsu.paid) {
+    log("Payment confirmed via order_nsu", { orderNsu });
+    return resultByNsu;
+  }
+
+  // Se não encontrou e tem email, tenta pelo nome do produto (email)
+  if (email && productPrefix) {
+    log("Trying fallback - check by product email", { email, productPrefix });
+    const resultByEmail = await checkPaymentByProductEmail(email, productPrefix);
+    if (resultByEmail.paid) {
+      log("Payment confirmed via product email", { email, productPrefix });
+      return resultByEmail;
+    }
+  }
+
+  return { paid: false };
 }
 
 serve(async (req) => {
@@ -111,11 +165,19 @@ serve(async (req) => {
 
         results.verified++;
 
-        // Verificar pagamento na InfiniPay
-        const { paid, data: paymentData } = await checkPaymentStatus(orderNsu);
+        // Determinar o prefixo do produto baseado na tabela
+        let productPrefix: string | undefined;
+        if (table.name === "mro_orders") productPrefix = "MROIG";
+        else if (table.name === "zapmro_orders") productPrefix = "ZAPMRO";
+        else if (table.name === "corretor_orders") productPrefix = "CORRETOR";
+        else if (table.name === "metodo_seguidor_orders") productPrefix = "MTSEG";
+        else if (table.name === "ads_orders") productPrefix = "ADS";
+
+        // Verificar pagamento na InfiniPay (por order_nsu e fallback por email no produto)
+        const { paid, data: paymentData } = await checkPaymentStatus(orderNsu, order.email, productPrefix);
 
         if (paid) {
-          log(`Payment CONFIRMED for ${orderNsu}`, { table: table.name, orderId: order.id });
+          log(`Payment CONFIRMED for ${orderNsu}`, { table: table.name, orderId: order.id, email: order.email });
 
           // Marcar como pago
           const { error: updateError } = await supabase
