@@ -1155,11 +1155,13 @@ export type Database = {
           expired_at: string | null
           id: string
           infinitepay_link: string | null
+          invoice_slug: string | null
           nsu_order: string
           paid_at: string | null
           phone: string | null
           plan_type: string
           status: string
+          transaction_nsu: string | null
           updated_at: string
           username: string
         }
@@ -1173,11 +1175,13 @@ export type Database = {
           expired_at?: string | null
           id?: string
           infinitepay_link?: string | null
+          invoice_slug?: string | null
           nsu_order: string
           paid_at?: string | null
           phone?: string | null
           plan_type?: string
           status?: string
+          transaction_nsu?: string | null
           updated_at?: string
           username: string
         }
@@ -1191,11 +1195,13 @@ export type Database = {
           expired_at?: string | null
           id?: string
           infinitepay_link?: string | null
+          invoice_slug?: string | null
           nsu_order?: string
           paid_at?: string | null
           phone?: string | null
           plan_type?: string
           status?: string
+          transaction_nsu?: string | null
           updated_at?: string
           username?: string
         }
