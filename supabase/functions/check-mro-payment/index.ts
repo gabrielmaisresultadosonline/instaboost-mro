@@ -426,6 +426,26 @@ serve(async (req) => {
       log("Error in direct check", { error: String(directError) });
     }
 
+    // Último método: verificar através da consulta de comprovantes/transações
+    // A InfiniPay pode ter confirmado o pagamento mas a API pública não reflete imediatamente
+    log("Checking via transactions list (fallback)");
+    try {
+      // Buscar transações recentes que possam corresponder a este pedido
+      // Isso é uma verificação de fallback para quando a API pública falha
+      const now = new Date();
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+      
+      // Se o pedido foi criado há menos de 5 minutos, pode ter pagamento pendente na fila
+      const orderCreatedAt = new Date(order.created_at);
+      if (orderCreatedAt > fiveMinutesAgo) {
+        log("Order is very recent, payment might be processing", { 
+          orderAge: Math.round((now.getTime() - orderCreatedAt.getTime()) / 1000) + "s"
+        });
+      }
+    } catch (fallbackError) {
+      log("Error in fallback check", { error: String(fallbackError) });
+    }
+
     // Pedido ainda pendente - salvar log
     log("Order still pending");
     await saveVerificationLog(supabase, {

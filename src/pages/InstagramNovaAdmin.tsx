@@ -772,40 +772,41 @@ export default function InstagramNovaAdmin() {
     }
   };
 
-  // Verificar pagamentos pendentes automaticamente (apenas pedidos dos últimos 15 min)
+  // Verificar pagamentos pendentes automaticamente (apenas pedidos dos últimos 30 min)
   const checkPendingPayments = async () => {
     try {
       const now = new Date();
-      const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+      const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
       const currentOrders = ordersRef.current;
       
-      // Filtrar pedidos pendentes criados nos últimos 15 minutos
+      // Filtrar pedidos pendentes criados nos últimos 30 minutos
       const recentPendingOrders = currentOrders.filter(o => {
         if (o.status !== "pending") return false;
         const createdAt = new Date(o.created_at);
-        return createdAt >= fifteenMinutesAgo;
+        return createdAt >= thirtyMinutesAgo;
       });
       
       if (recentPendingOrders.length === 0) {
         setLastAutoCheck(new Date());
-        // Recarregar a cada 30 segundos se não há pedidos recentes
+        // Recarregar a cada 15 segundos se não há pedidos recentes
         const timeSinceLastLoad = localStorage.getItem("mro_last_load_time");
-        if (!timeSinceLastLoad || Date.now() - parseInt(timeSinceLastLoad) > 30000) {
+        if (!timeSinceLastLoad || Date.now() - parseInt(timeSinceLastLoad) > 15000) {
           loadOrders();
           localStorage.setItem("mro_last_load_time", Date.now().toString());
         }
         return;
       }
 
-      console.log(`[AUTO-CHECK] Verificando ${recentPendingOrders.length} pedidos pendentes (últimos 15min)...`);
+      console.log(`[AUTO-CHECK] Verificando ${recentPendingOrders.length} pedidos pendentes (últimos 30min)...`);
       
-      for (const order of recentPendingOrders) {
+      // Verificar todos os pedidos pendentes em paralelo para maior velocidade
+      const checkPromises = recentPendingOrders.map(async (order) => {
         // Verificar se expirou
         if (order.expired_at) {
           const expiredAt = new Date(order.expired_at);
           if (new Date() > expiredAt) {
             console.log(`[AUTO-CHECK] Pedido ${order.nsu_order} expirado`);
-            continue;
+            return null;
           }
         }
 
@@ -822,13 +823,25 @@ export default function InstagramNovaAdmin() {
 
           if (data?.status === "completed" || data?.status === "paid") {
             console.log(`[AUTO-CHECK] ✅ Pagamento confirmado para ${order.nsu_order}`);
-            toast.success(`Pagamento confirmado: ${order.username}`);
+            return { order, status: data.status };
           } else {
             console.log(`[AUTO-CHECK] ⏳ Aguardando pagamento: ${order.nsu_order}`);
           }
         } catch (e) {
           console.error(`[AUTO-CHECK] Erro ao verificar ${order.nsu_order}:`, e);
         }
+        return null;
+      });
+
+      const results = await Promise.all(checkPromises);
+      const confirmedPayments = results.filter(r => r !== null);
+      
+      if (confirmedPayments.length > 0) {
+        confirmedPayments.forEach(result => {
+          if (result) {
+            toast.success(`Pagamento confirmado: ${result.order.username}`);
+          }
+        });
       }
 
       setLastAutoCheck(new Date());
