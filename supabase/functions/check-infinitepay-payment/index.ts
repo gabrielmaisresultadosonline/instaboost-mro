@@ -13,8 +13,8 @@ const log = (step: string, details?: unknown) => {
   console.log(`[CHECK-INFINITEPAY] ${step}${detailsStr}`);
 };
 
-// Verificar pagamento via API InfiniPay (só precisa do order_nsu)
-async function checkPaymentWithAPI(orderNsu: string, transactionNsu?: string, slug?: string): Promise<{ paid: boolean; data?: any }> {
+// Verificar pagamento via API InfiniPay usando order_nsu
+async function checkPaymentByOrderNsu(orderNsu: string, transactionNsu?: string, slug?: string): Promise<{ paid: boolean; data?: any }> {
   try {
     const payload: any = {
       handle: HANDLE,
@@ -36,7 +36,7 @@ async function checkPaymentWithAPI(orderNsu: string, transactionNsu?: string, sl
 
     if (response.ok) {
       const data = await response.json();
-      log("InfiniPay API response", data);
+      log("InfiniPay API response by order_nsu", data);
       return { paid: data.paid === true, data };
     }
     
@@ -46,6 +46,66 @@ async function checkPaymentWithAPI(orderNsu: string, transactionNsu?: string, sl
     log("Error calling InfiniPay API", { error: String(error) });
     return { paid: false };
   }
+}
+
+// Verificar pagamento via API InfiniPay usando email no nome do produto
+async function checkPaymentByProductEmail(email: string, productPrefix: string): Promise<{ paid: boolean; data?: any }> {
+  try {
+    // O nome do produto segue o padrão: PREFIX_email (ex: MROIG_teste@email.com)
+    const productName = `${productPrefix}_${email}`;
+    
+    log("Checking payment by product name", { productName });
+    
+    const response = await fetch(
+      "https://api.infinitepay.io/invoices/public/checkout/payment_check",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          handle: HANDLE,
+          product_name: productName,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      log("InfiniPay API response by product", { productName, paid: data.paid });
+      return { paid: data.paid === true, data };
+    }
+    return { paid: false };
+  } catch (error) {
+    log("Error checking payment by product", { email, productPrefix, error: String(error) });
+    return { paid: false };
+  }
+}
+
+// Verificar pagamento - tenta primeiro por order_nsu, depois pelo email no nome do produto
+async function checkPaymentWithAPI(
+  orderNsu: string, 
+  transactionNsu?: string, 
+  slug?: string,
+  email?: string,
+  productPrefix?: string
+): Promise<{ paid: boolean; data?: any }> {
+  // Primeiro tenta pelo order_nsu
+  const resultByNsu = await checkPaymentByOrderNsu(orderNsu, transactionNsu, slug);
+  if (resultByNsu.paid) {
+    log("Payment confirmed via order_nsu", { orderNsu });
+    return resultByNsu;
+  }
+
+  // Se não encontrou e tem email, tenta pelo nome do produto (email)
+  if (email && productPrefix) {
+    log("Trying fallback - check by product email", { email, productPrefix });
+    const resultByEmail = await checkPaymentByProductEmail(email, productPrefix);
+    if (resultByEmail.paid) {
+      log("Payment confirmed via product email", { email, productPrefix });
+      return resultByEmail;
+    }
+  }
+
+  return { paid: false };
 }
 
 serve(async (req) => {
@@ -66,7 +126,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { order_nsu, transaction_nsu, slug, table } = body;
+    const { order_nsu, transaction_nsu, slug, table, email, product_prefix } = body;
 
     // Se não tiver order_nsu, buscar pedidos pendentes recentes
     if (!order_nsu) {
@@ -74,6 +134,16 @@ serve(async (req) => {
       
       const tableName = table || "mro_orders";
       const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      
+      // Determinar o prefixo do produto baseado na tabela
+      let prefix = product_prefix;
+      if (!prefix) {
+        if (tableName === "mro_orders") prefix = "MROIG";
+        else if (tableName === "zapmro_orders") prefix = "ZAPMRO";
+        else if (tableName === "corretor_orders") prefix = "CORRETOR";
+        else if (tableName === "metodo_seguidor_orders") prefix = "MTSEG";
+        else if (tableName === "ads_orders") prefix = "ADS";
+      }
       
       const { data: pendingOrders, error: fetchError } = await supabase
         .from(tableName)
@@ -93,10 +163,16 @@ serve(async (req) => {
       // Verificar cada pedido pendente
       for (const order of pendingOrders) {
         const orderNsu = order.nsu_order;
-        const { paid, data: paymentData } = await checkPaymentWithAPI(orderNsu);
+        const { paid, data: paymentData } = await checkPaymentWithAPI(
+          orderNsu, 
+          undefined, 
+          undefined, 
+          order.email, 
+          prefix
+        );
 
         if (paid) {
-          log("Payment confirmed for pending order", { orderNsu, orderId: order.id });
+          log("Payment confirmed for pending order", { orderNsu, orderId: order.id, email: order.email });
 
           await supabase
             .from(tableName)
@@ -113,6 +189,7 @@ serve(async (req) => {
               paid: true,
               order_id: order.id,
               order_nsu: orderNsu,
+              email: order.email,
               amount: paymentData?.amount,
               paid_amount: paymentData?.paid_amount,
               capture_method: paymentData?.capture_method,
@@ -128,10 +205,16 @@ serve(async (req) => {
       );
     }
 
-    log("Checking specific payment", { order_nsu, transaction_nsu, slug });
+    log("Checking specific payment", { order_nsu, transaction_nsu, slug, email, product_prefix });
 
-    // Verificar pagamento específico
-    const { paid, data: paymentData } = await checkPaymentWithAPI(order_nsu, transaction_nsu, slug);
+    // Verificar pagamento específico (por order_nsu e fallback por email no produto)
+    const { paid, data: paymentData } = await checkPaymentWithAPI(
+      order_nsu, 
+      transaction_nsu, 
+      slug, 
+      email, 
+      product_prefix
+    );
 
     if (paid) {
       // Atualizar na tabela correspondente
