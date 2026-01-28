@@ -41,13 +41,28 @@ async function checkPaymentByOrderNsu(orderNsu: string): Promise<{ paid: boolean
   }
 }
 
+// Extrair email real (afiliados usam formato "affiliateId:realEmail")
+function extractRealEmail(email: string): { realEmail: string; affiliateId?: string } {
+  if (email.includes(':')) {
+    const parts = email.split(':');
+    return { 
+      affiliateId: parts[0], 
+      realEmail: parts.slice(1).join(':') // suporta emails com : no meio
+    };
+  }
+  return { realEmail: email };
+}
+
 // Verificar pagamento via API InfiniPay usando email no nome do produto
 async function checkPaymentByProductEmail(email: string, productPrefix: string): Promise<{ paid: boolean; data?: any }> {
   try {
-    // O nome do produto segue o padrão: PREFIX_email (ex: MROIG_teste@email.com, ZAPMRO_teste@email.com)
-    const productName = `${productPrefix}_${email}`;
+    // Extrair email real (afiliados usam formato "affiliateId:realEmail")
+    const { realEmail, affiliateId } = extractRealEmail(email);
     
-    log("Checking payment by product name", { productName });
+    // O nome do produto segue o padrão: PREFIX_email (ex: MROIG_teste@email.com, ZAPMRO_teste@email.com)
+    const productName = `${productPrefix}_${realEmail}`;
+    
+    log("Checking payment by product name", { productName, originalEmail: email, realEmail, affiliateId });
     
     const response = await fetch(
       "https://api.infinitepay.io/invoices/public/checkout/payment_check",
@@ -63,7 +78,7 @@ async function checkPaymentByProductEmail(email: string, productPrefix: string):
 
     if (response.ok) {
       const data = await response.json();
-      log("Payment check by product response", { productName, paid: data.paid });
+      log("Payment check by product response", { productName, paid: data.paid, affiliateId });
       return { paid: data.paid === true, data };
     }
     return { paid: false };
@@ -82,12 +97,13 @@ async function checkPaymentStatus(orderNsu: string, email?: string, productPrefi
     return resultByNsu;
   }
 
-  // Se não encontrou e tem email, tenta pelo nome do produto (email)
+  // Se não encontrou e tem email, tenta pelo nome do produto (email real, sem prefixo de afiliado)
   if (email && productPrefix) {
-    log("Trying fallback - check by product email", { email, productPrefix });
+    const { realEmail, affiliateId } = extractRealEmail(email);
+    log("Trying fallback - check by product email", { realEmail, affiliateId, productPrefix });
     const resultByEmail = await checkPaymentByProductEmail(email, productPrefix);
     if (resultByEmail.paid) {
-      log("Payment confirmed via product email", { email, productPrefix });
+      log("Payment confirmed via product email", { realEmail, affiliateId, productPrefix });
       return resultByEmail;
     }
   }
