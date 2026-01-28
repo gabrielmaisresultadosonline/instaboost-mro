@@ -89,6 +89,8 @@ serve(async (req) => {
     const redirectUrl = `https://maisresultadosonline.com.br/mroobrigado`;
     
     // Webhook URL para receber notificação automática de pagamento
+    // IMPORTANTE: A API pública da InfiniPay NÃO suporta webhook_url de forma confiável
+    // O sistema usa polling via check-mro-payment para verificar pagamentos
     const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
 
     log("Preparing InfiniPay API request", { 
