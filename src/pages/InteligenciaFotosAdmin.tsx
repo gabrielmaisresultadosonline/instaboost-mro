@@ -123,10 +123,7 @@ const InteligenciaFotosAdmin = () => {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadImage = async (file: File) => {
     setUploadingImage(true);
     try {
       const formData = new FormData();
@@ -139,12 +136,34 @@ const InteligenciaFotosAdmin = () => {
 
       if (error || !data?.url) throw new Error("Erro ao fazer upload");
 
-      setTemplateForm({ ...templateForm, image_url: data.url });
+      setTemplateForm((prev) => ({ ...prev, image_url: data.url }));
       toast.success("Imagem enviada!");
     } catch (error) {
       toast.error("Erro ao enviar imagem");
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadImage(file);
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          await uploadImage(file);
+        }
+        break;
+      }
     }
   };
 
@@ -434,13 +453,22 @@ const InteligenciaFotosAdmin = () => {
                   </Button>
                 </div>
               ) : (
-                <label className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer block hover:border-purple-500 transition-colors">
+                <label 
+                  className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer block hover:border-purple-500 transition-colors focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-500/20"
+                  tabIndex={0}
+                  onPaste={handlePaste}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.currentTarget.querySelector('input')?.click();
+                    }
+                  }}
+                >
                   {uploadingImage ? (
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-purple-500" />
                   ) : (
                     <>
                       <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500">Clique para enviar imagem</p>
+                      <p className="text-sm text-gray-500">Clique para enviar ou cole (Ctrl+V)</p>
                     </>
                   )}
                   <input
