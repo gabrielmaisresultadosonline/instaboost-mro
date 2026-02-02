@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,6 +48,30 @@ function getPngDimensionsFromBase64(base64: string): { width: number; height: nu
   } catch {
     return null;
   }
+}
+
+async function upscaleImageIfNeeded({
+  bytes,
+  requestedLongSide,
+}: {
+  bytes: Uint8Array;
+  requestedLongSide: number;
+}): Promise<{ bytes: Uint8Array; width: number; height: number; upscaled: boolean }> {
+  // Decode whatever the model returned (png/jpg) and upscale preserving aspect ratio.
+  const img = await Image.decode(bytes);
+  const currentLong = Math.max(img.width, img.height);
+
+  if (!requestedLongSide || currentLong >= requestedLongSide) {
+    return { bytes, width: img.width, height: img.height, upscaled: false };
+  }
+
+  const scale = requestedLongSide / currentLong;
+  const nextW = Math.max(1, Math.round(img.width * scale));
+  const nextH = Math.max(1, Math.round(img.height * scale));
+
+  const resized = img.resize(nextW, nextH);
+  const out = await resized.encode(); // PNG
+  return { bytes: out, width: nextW, height: nextH, upscaled: true };
 }
 
 serve(async (req) => {
@@ -128,22 +153,36 @@ serve(async (req) => {
     const userImageBase64 = btoa(String.fromCharCode(...new Uint8Array(userImageBuffer)));
     const userImageMime = userImageResponse.headers.get("content-type") || "image/jpeg";
 
-    // Prepare request body - include ONLY user photo as image input
+    // System instruction (NÃO altera o prompt do admin): força o modelo a usar a foto anexada como identidade.
+    const systemInstruction = {
+      role: "system",
+      parts: [
+        {
+          text:
+            "Use a imagem anexada como referência de identidade (rosto/aparência) do sujeito descrito no prompt. " +
+            "O sujeito (a pessoa) deve aparecer na cena. Preserve as feições da foto do usuário. " +
+            "Siga o texto do prompt exatamente; não invente um prompt diferente.",
+        },
+      ],
+    };
+
+    // Parts: envie a FOTO primeiro (contexto visual) e depois o PROMPT do template.
     const parts: any[] = [
-      { text: fullPrompt },
       {
         inline_data: {
           mime_type: userImageMime,
           data: userImageBase64,
         },
       },
+      { text: fullPrompt },
     ];
 
     const requestBody = {
-      contents: [{ parts }],
+      systemInstruction,
+      contents: [{ role: "user", parts }],
       generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"]
-      }
+        responseModalities: ["TEXT", "IMAGE"],
+      },
     };
 
     // IMPORTANT: do NOT retry on 429 here.
@@ -212,23 +251,26 @@ serve(async (req) => {
       );
     }
 
-    // Debug: log actual output resolution when possible
-    const detected = rawInlineBase64 ? getPngDimensionsFromBase64(rawInlineBase64) : null;
-    if (detected) {
-      console.log("Generated PNG dimensions:", detected);
-    } else {
-      console.log("Could not detect generated image dimensions (non-PNG or parse failed)");
-    }
-
-    // Extract base64 data and upload to storage
+    // Extract base64 data
     const base64Data = generatedImageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    const imageBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+
+    // Debug: log actual output resolution when possible (PNG only)
+    const detected = rawInlineBase64 ? getPngDimensionsFromBase64(rawInlineBase64) : null;
+    if (detected) console.log("Generated PNG dimensions:", detected);
+
+    // Upscale when model returns small images (ex: 1024px) — keeps aspect ratio.
+    const requestedLongSide = Math.max(dimensions.width, dimensions.height);
+    const upscaled = await upscaleImageIfNeeded({ bytes: imageBytes, requestedLongSide });
+    if (upscaled.upscaled) {
+      console.log("Upscaled image to:", { width: upscaled.width, height: upscaled.height });
+    }
     
     const fileName = `generations/${userId}/${Date.now()}.png`;
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("inteligencia-fotos")
-      .upload(fileName, imageBuffer, {
+      .upload(fileName, upscaled.bytes, {
         contentType: "image/png",
         upsert: false,
       });
@@ -271,6 +313,9 @@ serve(async (req) => {
           requestedHeight: dimensions.height,
           detectedWidth: detected?.width ?? null,
           detectedHeight: detected?.height ?? null,
+          finalWidth: upscaled.width,
+          finalHeight: upscaled.height,
+          upscaled: upscaled.upscaled,
         },
         message: "Imagem gerada com sucesso!"
       }),
