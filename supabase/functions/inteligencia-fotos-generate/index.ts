@@ -153,15 +153,7 @@ serve(async (req) => {
     const userImageBase64 = btoa(String.fromCharCode(...new Uint8Array(userImageBuffer)));
     const userImageMime = userImageResponse.headers.get("content-type") || "image/jpeg";
 
-    // Instrução de identidade embutida no prompt (modelo não suporta systemInstruction)
-    const identityInstruction = 
-      "INSTRUÇÃO OBRIGATÓRIA: A pessoa na foto anexada deve aparecer na cena descrita abaixo. " +
-      "Use o rosto, corpo e aparência exata da foto como referência. " +
-      "Mantenha as feições fielmente. Agora siga o prompt:\n\n";
-
-    const finalPrompt = identityInstruction + fullPrompt;
-
-    // Parts: envie a FOTO primeiro (contexto visual) e depois o PROMPT.
+    // Envia APENAS foto + prompt do template, sem nada extra
     const parts: any[] = [
       {
         inline_data: {
@@ -169,7 +161,7 @@ serve(async (req) => {
           data: userImageBase64,
         },
       },
-      { text: finalPrompt },
+      { text: fullPrompt },
     ];
 
     const requestBody = {
