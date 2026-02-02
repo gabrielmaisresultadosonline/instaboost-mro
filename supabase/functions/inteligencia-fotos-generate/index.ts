@@ -105,16 +105,21 @@ serve(async (req) => {
         ? { width: 1080, height: 1920 } // 1K Stories (Full HD vertical)
         : { width: 2048, height: 1638 }; // 2K Post (high quality)
 
-    // PROMPT: keep exactly the template prompt as the main prompt.
-    // Add only minimal technical constraints as a separate instruction block.
-    const basePrompt = `${template.prompt}`;
-    const technicalInstructions = `\n\nINSTRUCOES TECNICAS (NAO MUDE O CONTEUDO DO PROMPT ACIMA):\n- Use o rosto/corpo da imagem enviada pelo usuario (a imagem anexada) como referencia principal.\n- Preserve identidade (rosto) com maxima fidelidade.\n- Gere em ${dimensions.width}x${dimensions.height} (alta qualidade 1K-2K).\n- Preencha o canvas inteiro (sem margens).\n- Master quality, alta nitidez e textura realista.`;
-    const fullPrompt = basePrompt + technicalInstructions;
+    // PROMPT: Use template prompt + CRITICAL instructions to preserve face from uploaded photo
+    const fullPrompt = `INSTRUÇÃO PRINCIPAL: Gere uma imagem usando EXATAMENTE o rosto/aparência da pessoa na foto anexada.
+
+${template.prompt}
+
+OBRIGATÓRIO:
+- O ROSTO da pessoa na foto anexada deve aparecer na imagem gerada (mesma identidade, mesmas feições)
+- Resolução: ${dimensions.width}x${dimensions.height} pixels
+- Qualidade: 1K-2K, alta nitidez, sem compressão
+- Preencher canvas completo (sem margens)`;
 
     console.log("Generating image with Google Gemini API...");
-    console.log("Template prompt (unchanged):", template.prompt);
+    console.log("Template prompt:", template.prompt.substring(0, 200) + "...");
     console.log("Format:", format, "Dimensions:", dimensions);
-    console.log("User photo will be used as main identity reference (no template image will be sent)");
+    console.log("Sending user photo as identity reference");
 
     // Fetch ONLY the user's image - identity reference
     const userImageResponse = await fetch(inputImageUrl);
