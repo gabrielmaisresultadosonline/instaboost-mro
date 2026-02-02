@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { Camera, Download, History, LogOut, Sparkles, Image, Loader2, Save, Trash2 } from "lucide-react";
 
 interface Template {
@@ -43,6 +44,7 @@ const InteligenciaFotosDashboard = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [format, setFormat] = useState<"post" | "stories">("post");
   const [generating, setGenerating] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,6 +58,14 @@ const InteligenciaFotosDashboard = () => {
     loadTemplates();
     loadGenerations(JSON.parse(userData).id);
   }, []);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const t = window.setInterval(() => {
+      setCooldownSeconds((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => window.clearInterval(t);
+  }, [cooldownSeconds]);
 
   const loadTemplates = async () => {
     try {
@@ -105,6 +115,11 @@ const InteligenciaFotosDashboard = () => {
       return;
     }
 
+    if (cooldownSeconds > 0) {
+      toast.error(`Aguarde ${cooldownSeconds}s e tente novamente.`);
+      return;
+    }
+
     setGenerating(true);
     setGeneratedImage(null);
 
@@ -132,11 +147,27 @@ const InteligenciaFotosDashboard = () => {
         },
       });
 
-      if (error || !data?.success) {
+      if (error) {
+        // When the backend returns a non-2xx (e.g. 429), Supabase JS gives a FunctionsHttpError.
+        if (error instanceof FunctionsHttpError) {
+          const body = await error.context.json().catch(() => null as any);
+          const message = body?.error || "Erro ao gerar imagem";
+          const retryAfter = typeof body?.retryAfter === "number" ? body.retryAfter : undefined;
+          if (retryAfter && retryAfter > 0) setCooldownSeconds(Math.min(300, Math.ceil(retryAfter)));
+          throw new Error(message);
+        }
+
+        throw new Error(error.message || "Erro ao gerar imagem");
+      }
+
+      if (!data?.success) {
+        const retryAfter = typeof (data as any)?.retryAfter === "number" ? (data as any).retryAfter : undefined;
+        if (retryAfter && retryAfter > 0) setCooldownSeconds(Math.min(300, Math.ceil(retryAfter)));
         throw new Error(data?.error || "Erro ao gerar imagem");
       }
 
       setGeneratedImage(data.generatedImageUrl);
+      setCooldownSeconds(0);
       toast.success("Imagem gerada com sucesso!");
       loadGenerations(user.id);
     } catch (error: any) {
@@ -459,13 +490,18 @@ const InteligenciaFotosDashboard = () => {
             {!generatedImage && (
               <Button
                 onClick={handleGenerate}
-                disabled={generating || !uploadedImage}
+                disabled={generating || !uploadedImage || cooldownSeconds > 0}
                 className="w-full bg-purple-600 hover:bg-purple-700"
               >
                 {generating ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Gerando...
+                  </>
+                ) : cooldownSeconds > 0 ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Aguarde {cooldownSeconds}s
                   </>
                 ) : (
                   <>
