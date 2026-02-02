@@ -214,3 +214,15 @@ verify_jwt = false
 
 [functions.verify-pending-payments]
 verify_jwt = false
+
+[functions.inteligencia-fotos-auth]
+verify_jwt = false
+
+[functions.inteligencia-fotos-upload]
+verify_jwt = false
+
+[functions.inteligencia-fotos-generate]
+verify_jwt = false
+
+[functions.inteligencia-fotos-manage]
+verify_jwt = false

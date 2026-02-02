@@ -760,6 +760,174 @@ export type Database = {
         }
         Relationships: []
       }
+      inteligencia_fotos_admins: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          password: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          password: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          password?: string
+        }
+        Relationships: []
+      }
+      inteligencia_fotos_generations: {
+        Row: {
+          created_at: string
+          format: string
+          generated_image_url: string
+          id: string
+          input_image_url: string
+          saved: boolean | null
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          format?: string
+          generated_image_url: string
+          id?: string
+          input_image_url: string
+          saved?: boolean | null
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          format?: string
+          generated_image_url?: string
+          id?: string
+          input_image_url?: string
+          saved?: boolean | null
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inteligencia_fotos_generations_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inteligencia_fotos_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inteligencia_fotos_generations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "inteligencia_fotos_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inteligencia_fotos_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inteligencia_fotos_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          order_index: number | null
+          prompt: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          order_index?: number | null
+          prompt: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          prompt?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inteligencia_fotos_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          last_access: string | null
+          name: string
+          password: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          last_access?: string | null
+          name: string
+          password: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          last_access?: string | null
+          name?: string
+          password?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metodo_seguidor_admins: {
         Row: {
           created_at: string

@@ -61,6 +61,9 @@ import CorretorMRO from "./pages/CorretorMRO";
 import CorretorMROAdmin from "./pages/CorretorMROAdmin";
 import CorretorMROObrigado from "./pages/CorretorMROObrigado";
 import RateLimitHard from "./pages/RateLimitHard";
+import InteligenciaFotos from "./pages/InteligenciaFotos";
+import InteligenciaFotosDashboard from "./pages/InteligenciaFotosDashboard";
+import InteligenciaFotosAdmin from "./pages/InteligenciaFotosAdmin";
 
 const queryClient = new QueryClient();
 
@@ -130,6 +133,9 @@ const App = () => (
           <Route path="/corretormro/admin" element={<CorretorMROAdmin />} />
           <Route path="/corretormro/obrigado" element={<CorretorMROObrigado />} />
           <Route path="/RateLimitHard" element={<RateLimitHard />} />
+          <Route path="/inteligenciafotos" element={<InteligenciaFotos />} />
+          <Route path="/inteligenciafotos/dashboard" element={<InteligenciaFotosDashboard />} />
+          <Route path="/inteligenciafotos/admin" element={<InteligenciaFotosAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
