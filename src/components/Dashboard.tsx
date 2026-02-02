@@ -345,6 +345,27 @@ export const Dashboard = ({
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
+            {/* Aviso para perfis com restrição de idade que precisam de screenshot */}
+            {activeProfile.profile.needsScreenshotAnalysis && !hasScreenshot && (
+              <div className="glass-card glow-border p-4 sm:p-6 border-2 border-primary/50 bg-primary/5">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-full bg-primary/20 flex-shrink-0">
+                    <Camera className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-display font-bold text-foreground">
+                      📸 Envie um Print do Perfil para Análise
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Devido à <strong>restrição de idade</strong> do Instagram, não conseguimos acessar os dados do seu perfil automaticamente. 
+                      <br />
+                      <strong>Solução:</strong> Envie um print do seu perfil abaixo e nossa IA vai analisar e gerar estratégias personalizadas!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <ProfileCard 
               profile={activeProfile.profile} 
               onProfileUpdate={(updatedProfile) => {
