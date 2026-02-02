@@ -601,12 +601,72 @@ const Index = () => {
     }
   };
 
+  // Handler para ir direto para área de membros com perfil placeholder (restrição de idade)
+  const handleGoToMemberAreaWithPlaceholder = () => {
+    if (!ageRestrictionProfile) return;
+    
+    const loggedInUsername = getLoggedInUsername();
+    const username = ageRestrictionProfile.toLowerCase().replace('@', '');
+    
+    // Criar perfil placeholder para upload de screenshot
+    const placeholderProfile: InstagramProfile = {
+      username: username,
+      fullName: username,
+      bio: '',
+      profilePicUrl: `https://ui-avatars.com/api/?name=${username}&background=E1306C&color=fff&size=200`,
+      followers: 0,
+      following: 0,
+      posts: 0,
+      externalUrl: '',
+      isBusinessAccount: false,
+      category: '',
+      engagement: 0,
+      avgLikes: 0,
+      avgComments: 0,
+      recentPosts: [],
+      needsScreenshotAnalysis: true // Marcador especial para indicar que precisa de análise via screenshot
+    };
+    
+    const placeholderAnalysis: ProfileAnalysis = {
+      strengths: ['📸 Envie um print do perfil para análise completa'],
+      weaknesses: ['⚠️ Dados não disponíveis via API (restrição de idade)'],
+      opportunities: ['🎯 Após enviar o print, nossa IA vai analisar seu perfil'],
+      niche: 'A ser identificado',
+      audienceType: 'A ser identificado',
+      contentScore: 0,
+      engagementScore: 0,
+      profileScore: 0,
+      recommendations: ['Envie um print do seu perfil do Instagram para análise completa']
+    };
+    
+    // Adiciona o perfil placeholder
+    addProfile(placeholderProfile, placeholderAnalysis);
+    
+    // Registra o IG se tiver email
+    const user = getCurrentUser();
+    if (user?.email && !isIGRegistered(username)) {
+      addRegisteredIG(username, user.email, true);
+    }
+    
+    const updatedSession = getSession();
+    setSession(updatedSession);
+    setShowDashboard(true);
+    setHasRegisteredProfiles(true);
+    setAgeRestrictionProfile(null);
+    
+    toast({
+      title: "Perfil adicionado! 📸",
+      description: `@${username} foi adicionado. Envie um print do perfil para análise completa.`,
+    });
+  };
+
   const ageRestrictionDialogElement = (
     <AgeRestrictionDialog
       isOpen={!!ageRestrictionProfile}
       onClose={() => setAgeRestrictionProfile(null)}
       username={ageRestrictionProfile || ''}
       onRetrySync={handleRetrySync}
+      onGoToMemberArea={handleGoToMemberAreaWithPlaceholder}
     />
   );
 

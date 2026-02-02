@@ -7,20 +7,22 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, ExternalLink, RefreshCw, Shield } from 'lucide-react';
+import { AlertTriangle, ExternalLink, RefreshCw, Shield, Camera } from 'lucide-react';
 
 interface AgeRestrictionDialogProps {
   isOpen: boolean;
   onClose: () => void;
   username: string;
   onRetrySync?: () => void;
+  onGoToMemberArea?: () => void;
 }
 
 export const AgeRestrictionDialog = ({ 
   isOpen, 
   onClose, 
   username,
-  onRetrySync 
+  onRetrySync,
+  onGoToMemberArea
 }: AgeRestrictionDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -111,6 +113,24 @@ export const AgeRestrictionDialog = ({
             </div>
           </div>
 
+          {/* Alternative: Upload screenshot manually */}
+          {onGoToMemberArea && (
+            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+              <div className="flex items-start gap-3">
+                <Camera className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">
+                    Alternativa: Envie um print do perfil
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Você pode ir direto para a área de membros e enviar um <strong>print do perfil</strong>. 
+                    Nossa IA vai analisar a imagem e gerar estratégias personalizadas!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="p-3 rounded-lg bg-muted/50 border border-border">
             <p className="text-xs text-muted-foreground">
               <strong>Nota:</strong> Perfis públicos sem restrição de idade são sincronizados automaticamente. 
@@ -119,10 +139,16 @@ export const AgeRestrictionDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="flex gap-2">
+        <DialogFooter className="flex flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={onClose}>
             Fechar
           </Button>
+          {onGoToMemberArea && (
+            <Button variant="secondary" onClick={onGoToMemberArea} className="gap-2">
+              <Camera className="w-4 h-4" />
+              Seguir com Print Manual
+            </Button>
+          )}
           {onRetrySync && (
             <Button onClick={onRetrySync} className="gap-2">
               <RefreshCw className="w-4 h-4" />

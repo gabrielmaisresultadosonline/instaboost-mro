@@ -13,6 +13,7 @@ export interface InstagramProfile {
   engagement: number;
   avgLikes: number;
   avgComments: number;
+  needsScreenshotAnalysis?: boolean; // Indica que perfil precisa de análise via screenshot (restrição de idade)
 }
 
 export interface InstagramPost {
