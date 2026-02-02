@@ -11,8 +11,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Settings, Image, Users, Plus, Trash2, Edit, Save, 
-  LogOut, Sparkles, Loader2, Eye, EyeOff, Upload
+  LogOut, Sparkles, Loader2, Eye, EyeOff, Upload, Zap, CheckCircle2
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface Template {
   id: string;
@@ -317,6 +318,10 @@ const InteligenciaFotosAdmin = () => {
               <Users className="w-4 h-4 mr-2" />
               Usuários
             </TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-purple-600">
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </TabsTrigger>
           </TabsList>
 
           {/* Templates Tab */}
@@ -418,6 +423,82 @@ const InteligenciaFotosAdmin = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <h2 className="text-xl font-semibold text-white mb-6">Configurações</h2>
+            
+            <div className="grid gap-6 max-w-2xl">
+              {/* API Status Card */}
+              <Card className="bg-white/10 border-purple-500/30">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-yellow-400" />
+                    API de Geração de Imagens
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-black/20 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">Nano Banana (Gemini)</p>
+                        <p className="text-purple-300 text-sm">google/gemini-2.5-flash-image</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Ativo
+                    </Badge>
+                  </div>
+
+                  <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                    <p className="text-purple-200 text-sm">
+                      <strong>✅ API Configurada Automaticamente</strong>
+                    </p>
+                    <p className="text-purple-300 text-sm mt-2">
+                      A API Nano Banana está integrada via Lovable AI. Todas as imagens serão 
+                      geradas automaticamente através desta API quando os usuários selecionarem um template.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-white text-sm font-medium">Capacidades:</p>
+                    <ul className="text-purple-300 text-sm space-y-1">
+                      <li>• Geração de imagens a partir de texto</li>
+                      <li>• Edição de imagens com prompts</li>
+                      <li>• Suporte a múltiplos formatos (post, story, feed)</li>
+                      <li>• Alta qualidade de saída</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Stats Card */}
+              <Card className="bg-white/10 border-purple-500/30">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Image className="w-5 h-5 text-purple-400" />
+                    Estatísticas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-black/20 rounded-lg text-center">
+                      <p className="text-3xl font-bold text-white">{templates.length}</p>
+                      <p className="text-purple-300 text-sm">Templates Ativos</p>
+                    </div>
+                    <div className="p-4 bg-black/20 rounded-lg text-center">
+                      <p className="text-3xl font-bold text-white">{users.length}</p>
+                      <p className="text-purple-300 text-sm">Usuários Cadastrados</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
