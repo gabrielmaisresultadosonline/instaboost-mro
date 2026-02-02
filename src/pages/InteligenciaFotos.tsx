@@ -79,57 +79,57 @@ const InteligenciaFotos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-zinc-900">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-200 px-4 py-2 rounded-full text-sm mb-6">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-full text-sm mb-6 border border-emerald-500/30">
             <Sparkles className="w-4 h-4" />
             Tecnologia de IA Avançada
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-            Inteligência <span className="text-purple-400">Fotos</span>
+            Gere <span className="text-emerald-400">Fotos Profissionais</span> com I.A
           </h1>
-          <p className="text-xl text-purple-200 max-w-2xl mx-auto mb-8">
-            Transforme suas fotos em artes profissionais para Instagram usando 
+          <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
+            Transforme suas fotos em imagens profissionais para Instagram usando 
             Inteligência Artificial. Posts e Stories incríveis em segundos!
           </p>
         </div>
 
         {/* Features */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <Card className="bg-white/10 border-purple-500/30 text-white">
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
             <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-purple-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Camera className="w-6 h-6 text-purple-300" />
+              <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Camera className="w-6 h-6 text-emerald-400" />
               </div>
-              <h3 className="font-semibold mb-2">Suba Sua Foto</h3>
-              <p className="text-purple-200 text-sm">
+              <h3 className="font-semibold mb-2 text-white">Suba Sua Foto</h3>
+              <p className="text-slate-400 text-sm">
                 Envie sua foto de rosto ou corpo inteiro
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/10 border-purple-500/30 text-white">
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
             <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-purple-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Image className="w-6 h-6 text-purple-300" />
+              <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Image className="w-6 h-6 text-emerald-400" />
               </div>
-              <h3 className="font-semibold mb-2">Escolha o Estilo</h3>
-              <p className="text-purple-200 text-sm">
+              <h3 className="font-semibold mb-2 text-white">Escolha o Estilo</h3>
+              <p className="text-slate-400 text-sm">
                 Selecione entre diversos templates profissionais
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/10 border-purple-500/30 text-white">
+          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur">
             <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-purple-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-6 h-6 text-purple-300" />
+              <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-6 h-6 text-emerald-400" />
               </div>
-              <h3 className="font-semibold mb-2">Gere em Segundos</h3>
-              <p className="text-purple-200 text-sm">
-                IA gera sua arte profissional instantaneamente
+              <h3 className="font-semibold mb-2 text-white">Gere em Segundos</h3>
+              <p className="text-slate-400 text-sm">
+                IA gera sua foto profissional instantaneamente
               </p>
             </CardContent>
           </Card>
@@ -137,23 +137,23 @@ const InteligenciaFotos = () => {
 
         {/* Login/Register Form */}
         <div className="max-w-md mx-auto">
-          <Card className="bg-white/95 backdrop-blur shadow-2xl">
+          <Card className="bg-slate-800 border-slate-700 shadow-2xl">
             <CardHeader>
-              <CardTitle className="text-center text-2xl">
+              <CardTitle className="text-center text-2xl text-white">
                 {isLogin ? "Entrar" : "Criar Conta"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs value={isLogin ? "login" : "register"} onValueChange={(v) => setIsLogin(v === "login")}>
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="register">Cadastro</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-700">
+                  <TabsTrigger value="login" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">Login</TabsTrigger>
+                  <TabsTrigger value="register" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">Cadastro</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login">
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div>
-                      <Label htmlFor="email">E-mail</Label>
+                      <Label htmlFor="email" className="text-slate-200">E-mail</Label>
                       <Input
                         id="email"
                         name="email"
@@ -162,10 +162,11 @@ const InteligenciaFotos = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="seu@email.com"
+                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="password">Senha</Label>
+                      <Label htmlFor="password" className="text-slate-200">Senha</Label>
                       <Input
                         id="password"
                         name="password"
@@ -174,9 +175,10 @@ const InteligenciaFotos = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="••••••••"
+                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                       />
                     </div>
-                    <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={loading}>
+                    <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" disabled={loading}>
                       {loading ? "Entrando..." : "Entrar"}
                     </Button>
                   </form>
@@ -185,7 +187,7 @@ const InteligenciaFotos = () => {
                 <TabsContent value="register">
                   <form onSubmit={handleRegister} className="space-y-4">
                     <div>
-                      <Label htmlFor="name">Nome Completo</Label>
+                      <Label htmlFor="name" className="text-slate-200">Nome Completo</Label>
                       <Input
                         id="name"
                         name="name"
@@ -193,10 +195,11 @@ const InteligenciaFotos = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="Seu nome"
+                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="register-email">E-mail</Label>
+                      <Label htmlFor="register-email" className="text-slate-200">E-mail</Label>
                       <Input
                         id="register-email"
                         name="email"
@@ -205,20 +208,22 @@ const InteligenciaFotos = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="seu@email.com"
+                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="phone">WhatsApp</Label>
+                      <Label htmlFor="phone" className="text-slate-200">WhatsApp</Label>
                       <Input
                         id="phone"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="(00) 00000-0000"
+                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="register-password">Senha</Label>
+                      <Label htmlFor="register-password" className="text-slate-200">Senha</Label>
                       <Input
                         id="register-password"
                         name="password"
@@ -228,9 +233,10 @@ const InteligenciaFotos = () => {
                         required
                         placeholder="••••••••"
                         minLength={6}
+                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                       />
                     </div>
-                    <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={loading}>
+                    <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" disabled={loading}>
                       {loading ? "Criando conta..." : "Criar Conta Grátis"}
                     </Button>
                   </form>
@@ -240,7 +246,7 @@ const InteligenciaFotos = () => {
               <div className="mt-6 text-center">
                 <a 
                   href="/inteligenciafotos/admin" 
-                  className="text-sm text-purple-600 hover:underline"
+                  className="text-sm text-emerald-400 hover:text-emerald-300 hover:underline"
                 >
                   Acesso Administrativo
                 </a>
@@ -254,17 +260,17 @@ const InteligenciaFotos = () => {
           <h2 className="text-2xl font-bold text-white mb-8">Por que usar o Inteligência Fotos?</h2>
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { icon: Star, title: "Qualidade Pro", desc: "Artes com acabamento profissional" },
+              { icon: Star, title: "Qualidade Pro", desc: "Fotos com acabamento profissional" },
               { icon: Zap, title: "Super Rápido", desc: "Geração em poucos segundos" },
               { icon: History, title: "Histórico", desc: "Salve e acesse suas criações" },
               { icon: Shield, title: "Seguro", desc: "Suas fotos protegidas" },
             ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className="w-12 h-12 bg-purple-500/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <item.icon className="w-6 h-6 text-purple-300" />
+              <div key={i} className="text-center p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
+                <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <item.icon className="w-6 h-6 text-emerald-400" />
                 </div>
                 <h3 className="font-semibold text-white mb-1">{item.title}</h3>
-                <p className="text-purple-200 text-sm">{item.desc}</p>
+                <p className="text-slate-400 text-sm">{item.desc}</p>
               </div>
             ))}
           </div>
