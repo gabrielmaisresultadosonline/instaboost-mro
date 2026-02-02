@@ -454,7 +454,7 @@ const InteligenciaFotosDashboard = () => {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="post" id="post" className="border-purple-400 text-purple-400" />
                   <Label htmlFor="post" className="text-white cursor-pointer">
-                    Post (1350x1080)
+                     Post (2048x1638)
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
