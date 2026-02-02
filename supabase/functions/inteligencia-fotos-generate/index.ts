@@ -125,7 +125,7 @@ Ultra high resolution, professional quality.`;
     // IMPORTANT: do NOT retry on 429 here.
     // Retrying immediately will multiply requests and make rate limiting worse.
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gen-lang-client-0330671799:generateContent?key=${geminiApiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
