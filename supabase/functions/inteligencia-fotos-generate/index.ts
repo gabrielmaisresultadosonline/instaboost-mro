@@ -6,6 +6,54 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper function to delay execution
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to call Gemini with retry logic
+async function callGeminiWithRetry(
+  apiKey: string, 
+  requestBody: object, 
+  maxRetries: number = 3
+): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    if (attempt > 0) {
+      // Exponential backoff: 2s, 4s, 8s
+      const waitTime = Math.pow(2, attempt) * 1000;
+      console.log(`Retry attempt ${attempt + 1}, waiting ${waitTime}ms...`);
+      await delay(waitTime);
+    }
+    
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+        }
+      );
+      
+      // If not a rate limit error, return immediately
+      if (response.status !== 429) {
+        return response;
+      }
+      
+      // If rate limited, continue to retry
+      console.log(`Rate limited (429), attempt ${attempt + 1}/${maxRetries}`);
+      lastError = new Error("Rate limited");
+      
+    } catch (error) {
+      console.error(`Request failed on attempt ${attempt + 1}:`, error);
+      lastError = error as Error;
+    }
+  }
+  
+  // All retries exhausted
+  throw lastError || new Error("Max retries exceeded");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -89,40 +137,47 @@ Ultra high resolution, professional quality.`;
     const userImageMime = userImageResponse.headers.get("content-type") || "image/jpeg";
     const templateImageMime = templateImageResponse.headers.get("content-type") || "image/jpeg";
 
-    // Call Google Gemini API directly
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${geminiApiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
+    // Prepare request body
+    const requestBody = {
+      contents: [
+        {
+          parts: [
+            { text: fullPrompt },
             {
-              parts: [
-                { text: fullPrompt },
-                {
-                  inline_data: {
-                    mime_type: userImageMime,
-                    data: userImageBase64
-                  }
-                },
-                {
-                  inline_data: {
-                    mime_type: templateImageMime,
-                    data: templateImageBase64
-                  }
-                }
-              ]
+              inline_data: {
+                mime_type: userImageMime,
+                data: userImageBase64
+              }
+            },
+            {
+              inline_data: {
+                mime_type: templateImageMime,
+                data: templateImageBase64
+              }
             }
-          ],
-          generationConfig: {
-            responseModalities: ["TEXT", "IMAGE"]
-          }
-        }),
+          ]
+        }
+      ],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"]
       }
-    );
+    };
+
+    // Call Google Gemini API with retry logic
+    let geminiResponse: Response;
+    try {
+      geminiResponse = await callGeminiWithRetry(geminiApiKey, requestBody, 3);
+    } catch (error) {
+      console.error("All retries exhausted:", error);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "API do Google Gemini está sobrecarregada. O modelo experimental tem limites baixos. Aguarde 1-2 minutos e tente novamente.",
+          retryAfter: 60
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
@@ -130,14 +185,18 @@ Ultra high resolution, professional quality.`;
       
       if (geminiResponse.status === 429) {
         return new Response(
-          JSON.stringify({ success: false, error: "Muitas requisições. Tente novamente em alguns segundos." }),
+          JSON.stringify({ 
+            success: false, 
+            error: "API do Google Gemini está sobrecarregada. Aguarde 1-2 minutos e tente novamente.",
+            retryAfter: 60
+          }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
       if (geminiResponse.status === 403) {
         return new Response(
-          JSON.stringify({ success: false, error: "API key inválida ou sem permissões." }),
+          JSON.stringify({ success: false, error: "API key inválida ou sem permissões para geração de imagens." }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
