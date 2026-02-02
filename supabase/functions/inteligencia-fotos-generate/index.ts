@@ -153,20 +153,15 @@ serve(async (req) => {
     const userImageBase64 = btoa(String.fromCharCode(...new Uint8Array(userImageBuffer)));
     const userImageMime = userImageResponse.headers.get("content-type") || "image/jpeg";
 
-    // System instruction (NÃO altera o prompt do admin): força o modelo a usar a foto anexada como identidade.
-    const systemInstruction = {
-      role: "system",
-      parts: [
-        {
-          text:
-            "Use a imagem anexada como referência de identidade (rosto/aparência) do sujeito descrito no prompt. " +
-            "O sujeito (a pessoa) deve aparecer na cena. Preserve as feições da foto do usuário. " +
-            "Siga o texto do prompt exatamente; não invente um prompt diferente.",
-        },
-      ],
-    };
+    // Instrução de identidade embutida no prompt (modelo não suporta systemInstruction)
+    const identityInstruction = 
+      "INSTRUÇÃO OBRIGATÓRIA: A pessoa na foto anexada deve aparecer na cena descrita abaixo. " +
+      "Use o rosto, corpo e aparência exata da foto como referência. " +
+      "Mantenha as feições fielmente. Agora siga o prompt:\n\n";
 
-    // Parts: envie a FOTO primeiro (contexto visual) e depois o PROMPT do template.
+    const finalPrompt = identityInstruction + fullPrompt;
+
+    // Parts: envie a FOTO primeiro (contexto visual) e depois o PROMPT.
     const parts: any[] = [
       {
         inline_data: {
@@ -174,11 +169,10 @@ serve(async (req) => {
           data: userImageBase64,
         },
       },
-      { text: fullPrompt },
+      { text: finalPrompt },
     ];
 
     const requestBody = {
-      systemInstruction,
       contents: [{ role: "user", parts }],
       generationConfig: {
         responseModalities: ["TEXT", "IMAGE"],
