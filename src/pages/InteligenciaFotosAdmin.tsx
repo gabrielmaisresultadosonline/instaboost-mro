@@ -56,6 +56,12 @@ const InteligenciaFotosAdmin = () => {
   });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
+  
+  // API Key settings
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [savingApiKey, setSavingApiKey] = useState(false);
+  const [apiKeyConfigured, setApiKeyConfigured] = useState(false);
 
   useEffect(() => {
     const adminAuth = sessionStorage.getItem("inteligencia_fotos_admin");
@@ -117,10 +123,55 @@ const InteligenciaFotosAdmin = () => {
       if (!usersError && usersData?.users) {
         setUsers(usersData.users);
       }
+
+      // Load API key setting
+      const { data: settingsData } = await supabase.functions.invoke(
+        "inteligencia-fotos-manage",
+        { body: { action: "get_settings" } }
+      );
+
+      if (settingsData?.settings) {
+        const apiKeySetting = settingsData.settings.find(
+          (s: any) => s.setting_key === "google_gemini_api_key"
+        );
+        if (apiKeySetting?.setting_value) {
+          setGeminiApiKey(apiKeySetting.setting_value);
+          setApiKeyConfigured(true);
+        }
+      }
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveApiKey = async () => {
+    if (!geminiApiKey.trim()) {
+      toast.error("Digite a API Key do Google Gemini");
+      return;
+    }
+
+    setSavingApiKey(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("inteligencia-fotos-manage", {
+        body: {
+          action: "save_setting",
+          settingKey: "google_gemini_api_key",
+          settingValue: geminiApiKey.trim(),
+        },
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || "Erro ao salvar API key");
+      }
+
+      setApiKeyConfigured(true);
+      toast.success("API Key salva com sucesso!");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao salvar");
+    } finally {
+      setSavingApiKey(false);
     }
   };
 
@@ -431,48 +482,89 @@ const InteligenciaFotosAdmin = () => {
             <h2 className="text-xl font-semibold text-white mb-6">Configurações</h2>
             
             <div className="grid gap-6 max-w-2xl">
-              {/* API Status Card */}
+              {/* API Key Card */}
               <Card className="bg-white/10 border-purple-500/30">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Zap className="w-5 h-5 text-yellow-400" />
-                    API de Geração de Imagens
+                    API de Geração de Imagens - Google Gemini
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-black/20 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                         <Sparkles className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="text-white font-medium">Nano Banana (Gemini)</p>
-                        <p className="text-purple-300 text-sm">google/gemini-2.5-flash-image</p>
+                        <p className="text-white font-medium">Google Gemini API</p>
+                        <p className="text-purple-300 text-sm">gemini-2.0-flash-exp-image-generation</p>
                       </div>
                     </div>
-                    <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Ativo
-                    </Badge>
+                    {apiKeyConfigured ? (
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Configurado
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                        Pendente
+                      </Badge>
+                    )}
                   </div>
 
-                  <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                    <p className="text-purple-200 text-sm">
-                      <strong>✅ API Configurada Automaticamente</strong>
+                  <div className="space-y-3">
+                    <Label className="text-white">API Key do Google Gemini</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          type={showApiKey ? "text" : "password"}
+                          placeholder="Cole sua API key aqui..."
+                          value={geminiApiKey}
+                          onChange={(e) => setGeminiApiKey(e.target.value)}
+                          className="pr-10 bg-black/20 border-purple-500/30 text-white placeholder:text-purple-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 hover:text-white"
+                        >
+                          {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <Button
+                        onClick={handleSaveApiKey}
+                        disabled={savingApiKey}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {savingApiKey ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Salvar
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <p className="text-blue-200 text-sm">
+                      <strong>📌 Como obter a API Key:</strong>
                     </p>
-                    <p className="text-purple-300 text-sm mt-2">
-                      A API Nano Banana está integrada via Lovable AI. Todas as imagens serão 
-                      geradas automaticamente através desta API quando os usuários selecionarem um template.
-                    </p>
+                    <ol className="text-blue-300 text-sm mt-2 space-y-1 list-decimal list-inside">
+                      <li>Acesse <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">Google AI Studio</a></li>
+                      <li>Clique em "Create API Key"</li>
+                      <li>Copie a chave gerada e cole aqui</li>
+                    </ol>
                   </div>
 
                   <div className="space-y-2">
                     <p className="text-white text-sm font-medium">Capacidades:</p>
                     <ul className="text-purple-300 text-sm space-y-1">
-                      <li>• Geração de imagens a partir de texto</li>
-                      <li>• Edição de imagens com prompts</li>
+                      <li>• Geração de imagens a partir de texto e referência</li>
+                      <li>• Edição de imagens com prompts avançados</li>
                       <li>• Suporte a múltiplos formatos (post, story, feed)</li>
-                      <li>• Alta qualidade de saída</li>
+                      <li>• Alta qualidade de saída com Google Gemini</li>
                     </ul>
                   </div>
                 </CardContent>

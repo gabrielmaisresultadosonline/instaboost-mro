@@ -14,15 +14,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    if (!lovableApiKey) {
-      return new Response(
-        JSON.stringify({ success: false, error: "API key não configurada" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
 
     const { templateId, inputImageUrl, userId, format } = await req.json();
 
@@ -32,6 +24,23 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Get Google Gemini API key from settings
+    const { data: apiKeySetting, error: settingError } = await supabase
+      .from("inteligencia_fotos_settings")
+      .select("setting_value")
+      .eq("setting_key", "google_gemini_api_key")
+      .single();
+
+    if (settingError || !apiKeySetting?.setting_value) {
+      console.error("API key not configured:", settingError);
+      return new Response(
+        JSON.stringify({ success: false, error: "API key do Google Gemini não configurada. Configure nas configurações do admin." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const geminiApiKey = apiKeySetting.setting_value;
 
     // Get template with prompt
     const { data: template, error: templateError } = await supabase
@@ -60,77 +69,102 @@ The output should be a high-quality image at ${dimensions.width}x${dimensions.he
 Maintain the person's features exactly as shown in the reference.
 Ultra high resolution, professional quality.`;
 
-    console.log("Generating image with Nano Banana...");
+    console.log("Generating image with Google Gemini API...");
     console.log("Template prompt:", template.prompt);
     console.log("Format:", format, "Dimensions:", dimensions);
 
-    // Call Lovable AI (Nano Banana) for image generation
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: fullPrompt
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: inputImageUrl
-                }
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: template.image_url
-                }
-              }
-            ]
-          }
-        ],
-        modalities: ["image", "text"]
-      }),
-    });
+    // Fetch images and convert to base64
+    const [userImageResponse, templateImageResponse] = await Promise.all([
+      fetch(inputImageUrl),
+      fetch(template.image_url)
+    ]);
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI API error:", aiResponse.status, errorText);
+    const userImageBuffer = await userImageResponse.arrayBuffer();
+    const templateImageBuffer = await templateImageResponse.arrayBuffer();
+
+    const userImageBase64 = btoa(String.fromCharCode(...new Uint8Array(userImageBuffer)));
+    const templateImageBase64 = btoa(String.fromCharCode(...new Uint8Array(templateImageBuffer)));
+
+    // Get MIME types
+    const userImageMime = userImageResponse.headers.get("content-type") || "image/jpeg";
+    const templateImageMime = templateImageResponse.headers.get("content-type") || "image/jpeg";
+
+    // Call Google Gemini API directly
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${geminiApiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: fullPrompt },
+                {
+                  inline_data: {
+                    mime_type: userImageMime,
+                    data: userImageBase64
+                  }
+                },
+                {
+                  inline_data: {
+                    mime_type: templateImageMime,
+                    data: templateImageBase64
+                  }
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            responseModalities: ["TEXT", "IMAGE"]
+          }
+        }),
+      }
+    );
+
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text();
+      console.error("Gemini API error:", geminiResponse.status, errorText);
       
-      if (aiResponse.status === 429) {
+      if (geminiResponse.status === 429) {
         return new Response(
           JSON.stringify({ success: false, error: "Muitas requisições. Tente novamente em alguns segundos." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      if (aiResponse.status === 402) {
+      if (geminiResponse.status === 403) {
         return new Response(
-          JSON.stringify({ success: false, error: "Créditos insuficientes. Entre em contato com o suporte." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ success: false, error: "API key inválida ou sem permissões." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       return new Response(
-        JSON.stringify({ success: false, error: "Erro ao gerar imagem" }),
+        JSON.stringify({ success: false, error: `Erro da API Gemini: ${errorText}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const aiData = await aiResponse.json();
-    console.log("AI response received");
+    const geminiData = await geminiResponse.json();
+    console.log("Gemini response received");
 
-    const generatedImageBase64 = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    // Extract the generated image from Gemini response
+    let generatedImageBase64 = null;
+    
+    if (geminiData.candidates && geminiData.candidates[0]?.content?.parts) {
+      for (const part of geminiData.candidates[0].content.parts) {
+        if (part.inlineData?.data) {
+          generatedImageBase64 = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+          break;
+        }
+      }
+    }
 
     if (!generatedImageBase64) {
-      console.error("No image in response:", JSON.stringify(aiData).substring(0, 500));
+      console.error("No image in response:", JSON.stringify(geminiData).substring(0, 1000));
       return new Response(
         JSON.stringify({ success: false, error: "Imagem não foi gerada. Tente novamente." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

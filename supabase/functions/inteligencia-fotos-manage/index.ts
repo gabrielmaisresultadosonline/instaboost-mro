@@ -169,6 +169,60 @@ serve(async (req) => {
       );
     }
 
+    // Get settings
+    if (action === "get_settings") {
+      const { data, error } = await supabase
+        .from("inteligencia_fotos_settings")
+        .select("*");
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true, settings: data }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Save setting
+    if (action === "save_setting") {
+      const { settingKey, settingValue } = body;
+      
+      // Check if setting exists
+      const { data: existing } = await supabase
+        .from("inteligencia_fotos_settings")
+        .select("id")
+        .eq("setting_key", settingKey)
+        .single();
+
+      if (existing) {
+        // Update existing
+        const { error } = await supabase
+          .from("inteligencia_fotos_settings")
+          .update({ 
+            setting_value: settingValue,
+            updated_at: new Date().toISOString()
+          })
+          .eq("setting_key", settingKey);
+
+        if (error) throw error;
+      } else {
+        // Insert new
+        const { error } = await supabase
+          .from("inteligencia_fotos_settings")
+          .insert({
+            setting_key: settingKey,
+            setting_value: settingValue,
+          });
+
+        if (error) throw error;
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ success: false, error: "Ação inválida" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
