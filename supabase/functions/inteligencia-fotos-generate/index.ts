@@ -105,21 +105,14 @@ serve(async (req) => {
         ? { width: 1080, height: 1920 } // 1K Stories (Full HD vertical)
         : { width: 2048, height: 1638 }; // 2K Post (high quality)
 
-    // PROMPT: Use template prompt + CRITICAL instructions to preserve face from uploaded photo
-    const fullPrompt = `INSTRUÇÃO PRINCIPAL: Gere uma imagem usando EXATAMENTE o rosto/aparência da pessoa na foto anexada.
+    // SIMPLES: Enviar o prompt do template EXATAMENTE como está + a foto do usuário
+    // O prompt do template já contém as instruções necessárias
+    const fullPrompt = template.prompt;
 
-${template.prompt}
-
-OBRIGATÓRIO:
-- O ROSTO da pessoa na foto anexada deve aparecer na imagem gerada (mesma identidade, mesmas feições)
-- Resolução: ${dimensions.width}x${dimensions.height} pixels
-- Qualidade: 1K-2K, alta nitidez, sem compressão
-- Preencher canvas completo (sem margens)`;
-
-    console.log("Generating image with Google Gemini API...");
-    console.log("Template prompt:", template.prompt.substring(0, 200) + "...");
-    console.log("Format:", format, "Dimensions:", dimensions);
-    console.log("Sending user photo as identity reference");
+    console.log("=== GERANDO IMAGEM ===");
+    console.log("Prompt do template (enviando exatamente como está):", fullPrompt);
+    console.log("Formato:", format, "| Dimensões solicitadas:", dimensions.width, "x", dimensions.height);
+    console.log("Foto do usuário será enviada junto ao prompt");
 
     // Fetch ONLY the user's image - identity reference
     const userImageResponse = await fetch(inputImageUrl);
