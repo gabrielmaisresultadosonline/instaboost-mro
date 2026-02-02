@@ -27,7 +27,6 @@ function getPngDimensionsFromBase64(base64: string): { width: number; height: nu
   try {
     const bin = atob(base64);
     const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-    // PNG signature
     const isPng =
       bytes.length > 24 &&
       bytes[0] === 0x89 &&
@@ -39,8 +38,6 @@ function getPngDimensionsFromBase64(base64: string): { width: number; height: nu
       bytes[6] === 0x1a &&
       bytes[7] === 0x0a;
     if (!isPng) return null;
-
-    // IHDR chunk starts after signature + length(4) + type(4)
     const width = readUint32BE(bytes, 16);
     const height = readUint32BE(bytes, 20);
     if (!width || !height) return null;
@@ -57,21 +54,80 @@ async function upscaleImageIfNeeded({
   bytes: Uint8Array;
   requestedLongSide: number;
 }): Promise<{ bytes: Uint8Array; width: number; height: number; upscaled: boolean }> {
-  // Decode whatever the model returned (png/jpg) and upscale preserving aspect ratio.
   const img = await Image.decode(bytes);
   const currentLong = Math.max(img.width, img.height);
-
   if (!requestedLongSide || currentLong >= requestedLongSide) {
     return { bytes, width: img.width, height: img.height, upscaled: false };
   }
-
   const scale = requestedLongSide / currentLong;
   const nextW = Math.max(1, Math.round(img.width * scale));
   const nextH = Math.max(1, Math.round(img.height * scale));
-
   const resized = img.resize(nextW, nextH);
-  const out = await resized.encode(); // PNG
+  const out = await resized.encode();
   return { bytes: out, width: nextW, height: nextH, upscaled: true };
+}
+
+// Upload file to Google Files API and return file_uri
+async function uploadToGoogleFilesAPI(
+  fileBytes: Uint8Array,
+  mimeType: string,
+  apiKey: string
+): Promise<{ uri: string; mimeType: string }> {
+  const fileSize = fileBytes.length;
+  const displayName = `user-photo-${Date.now()}`;
+
+  // Step 1: Start resumable upload
+  const startResponse = await fetch(
+    `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Upload-Protocol": "resumable",
+        "X-Goog-Upload-Command": "start",
+        "X-Goog-Upload-Header-Content-Length": String(fileSize),
+        "X-Goog-Upload-Header-Content-Type": mimeType,
+      },
+      body: JSON.stringify({
+        file: { display_name: displayName },
+      }),
+    }
+  );
+
+  if (!startResponse.ok) {
+    const errText = await startResponse.text();
+    throw new Error(`Failed to start upload: ${startResponse.status} - ${errText}`);
+  }
+
+  const uploadUrl = startResponse.headers.get("X-Goog-Upload-URL");
+  if (!uploadUrl) {
+    throw new Error("No upload URL returned from Google Files API");
+  }
+
+  // Step 2: Upload the file data
+  const uploadResponse = await fetch(uploadUrl, {
+    method: "POST",
+    headers: {
+      "Content-Length": String(fileSize),
+      "X-Goog-Upload-Offset": "0",
+      "X-Goog-Upload-Command": "upload, finalize",
+    },
+    body: new Uint8Array(fileBytes) as unknown as BodyInit,
+  });
+
+  if (!uploadResponse.ok) {
+    const errText = await uploadResponse.text();
+    throw new Error(`Failed to upload file: ${uploadResponse.status} - ${errText}`);
+  }
+
+  const result = await uploadResponse.json();
+  console.log("Google Files API upload result:", JSON.stringify(result));
+
+  if (!result.file?.uri) {
+    throw new Error("No file URI returned from Google Files API");
+  }
+
+  return { uri: result.file.uri, mimeType: result.file.mimeType || mimeType };
 }
 
 serve(async (req) => {
@@ -139,7 +195,7 @@ serve(async (req) => {
     console.log("Formato:", format, "| Dimensões solicitadas:", dimensions.width, "x", dimensions.height);
     console.log("Foto do usuário será enviada junto ao prompt");
 
-    // Fetch ONLY the user's image - identity reference
+    // Fetch the user's image
     const userImageResponse = await fetch(inputImageUrl);
     if (!userImageResponse.ok) {
       console.error("Failed to fetch user image:", userImageResponse.status);
@@ -150,15 +206,22 @@ serve(async (req) => {
     }
 
     const userImageBuffer = await userImageResponse.arrayBuffer();
-    const userImageBase64 = btoa(String.fromCharCode(...new Uint8Array(userImageBuffer)));
+    const userImageBytes = new Uint8Array(userImageBuffer);
     const userImageMime = userImageResponse.headers.get("content-type") || "image/jpeg";
 
-    // Envia APENAS foto + prompt do template, sem nada extra
+    console.log("Uploading user image to Google Files API...");
+    console.log("Image size:", userImageBytes.length, "bytes, mime:", userImageMime);
+
+    // Upload to Google Files API (no base64 conversion!)
+    const uploadedFile = await uploadToGoogleFilesAPI(userImageBytes, userImageMime, geminiApiKey);
+    console.log("File uploaded successfully:", uploadedFile.uri);
+
+    // Build request with file_data (file_uri) instead of inline_data (base64)
     const parts: any[] = [
       {
-        inline_data: {
-          mime_type: userImageMime,
-          data: userImageBase64,
+        file_data: {
+          file_uri: uploadedFile.uri,
+          mime_type: uploadedFile.mimeType,
         },
       },
       { text: fullPrompt },
