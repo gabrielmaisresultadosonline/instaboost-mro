@@ -13,6 +13,42 @@ function getRetryAfterSeconds(headers: Headers): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+function readUint32BE(bytes: Uint8Array, offset: number): number {
+  return (
+    ((bytes[offset] ?? 0) << 24) |
+    ((bytes[offset + 1] ?? 0) << 16) |
+    ((bytes[offset + 2] ?? 0) << 8) |
+    (bytes[offset + 3] ?? 0)
+  ) >>> 0;
+}
+
+function getPngDimensionsFromBase64(base64: string): { width: number; height: number } | null {
+  try {
+    const bin = atob(base64);
+    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    // PNG signature
+    const isPng =
+      bytes.length > 24 &&
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47 &&
+      bytes[4] === 0x0d &&
+      bytes[5] === 0x0a &&
+      bytes[6] === 0x1a &&
+      bytes[7] === 0x0a;
+    if (!isPng) return null;
+
+    // IHDR chunk starts after signature + length(4) + type(4)
+    const width = readUint32BE(bytes, 16);
+    const height = readUint32BE(bytes, 20);
+    if (!width || !height) return null;
+    return { width, height };
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -64,33 +100,23 @@ serve(async (req) => {
     }
 
     // Determine dimensions based on format - HIGH QUALITY 1K-2K
-    const dimensions = format === "stories" 
-      ? { width: 1080, height: 1920 }  // 1K Stories (Full HD vertical)
-      : { width: 2048, height: 1638 }; // 2K Post (high quality landscape)
+    const dimensions =
+      format === "stories"
+        ? { width: 1080, height: 1920 } // 1K Stories (Full HD vertical)
+        : { width: 2048, height: 1638 }; // 2K Post (high quality)
 
-    // Build the prompt - USER'S PHOTO IS THE MAIN SUBJECT
-    // Template is only for style/scene reference
-    const fullPrompt = `CRITICAL INSTRUCTION: Generate a NEW high-quality image using the PERSON from the FIRST uploaded image as the MAIN SUBJECT.
-
-${template.prompt}
-
-MANDATORY REQUIREMENTS:
-1. The person's face, body, and features from the FIRST image (user's photo) MUST be preserved EXACTLY - same face, same body proportions, same appearance
-2. The SECOND image (template) is ONLY for style, scene, composition, and aesthetic reference - do NOT use the person from the template
-3. Place the person from the first image INTO the scene/style shown in the template
-4. Output resolution: ${dimensions.width}x${dimensions.height} pixels
-5. Fill the ENTIRE canvas edge-to-edge with no margins or empty space
-6. Master quality, Full HD to 4K, 90% sharpness, realistic textures
-7. Hyper-realistic photography appearance, professional lighting
-
-The final image must look like a professional photo of the person from the first image, styled according to the template's aesthetic.`;
+    // PROMPT: keep exactly the template prompt as the main prompt.
+    // Add only minimal technical constraints as a separate instruction block.
+    const basePrompt = `${template.prompt}`;
+    const technicalInstructions = `\n\nINSTRUCOES TECNICAS (NAO MUDE O CONTEUDO DO PROMPT ACIMA):\n- Use o rosto/corpo da imagem enviada pelo usuario (a imagem anexada) como referencia principal.\n- Preserve identidade (rosto) com maxima fidelidade.\n- Gere em ${dimensions.width}x${dimensions.height} (alta qualidade 1K-2K).\n- Preencha o canvas inteiro (sem margens).\n- Master quality, alta nitidez e textura realista.`;
+    const fullPrompt = basePrompt + technicalInstructions;
 
     console.log("Generating image with Google Gemini API...");
-    console.log("Template prompt:", template.prompt);
+    console.log("Template prompt (unchanged):", template.prompt);
     console.log("Format:", format, "Dimensions:", dimensions);
-    console.log("User photo will be used as main subject");
+    console.log("User photo will be used as main identity reference (no template image will be sent)");
 
-    // Fetch ONLY the user's image - this is what we're generating with
+    // Fetch ONLY the user's image - identity reference
     const userImageResponse = await fetch(inputImageUrl);
     if (!userImageResponse.ok) {
       console.error("Failed to fetch user image:", userImageResponse.status);
@@ -104,40 +130,16 @@ The final image must look like a professional photo of the person from the first
     const userImageBase64 = btoa(String.fromCharCode(...new Uint8Array(userImageBuffer)));
     const userImageMime = userImageResponse.headers.get("content-type") || "image/jpeg";
 
-    // Also fetch template for style reference
-    let templateImageBase64 = "";
-    let templateImageMime = "image/jpeg";
-    try {
-      const templateImageResponse = await fetch(template.image_url);
-      if (templateImageResponse.ok) {
-        const templateImageBuffer = await templateImageResponse.arrayBuffer();
-        templateImageBase64 = btoa(String.fromCharCode(...new Uint8Array(templateImageBuffer)));
-        templateImageMime = templateImageResponse.headers.get("content-type") || "image/jpeg";
-      }
-    } catch (e) {
-      console.log("Template image fetch failed, proceeding with prompt only");
-    }
-
-    // Prepare request body - USER IMAGE FIRST (main subject), template second (style reference)
+    // Prepare request body - include ONLY user photo as image input
     const parts: any[] = [
       { text: fullPrompt },
       {
         inline_data: {
           mime_type: userImageMime,
-          data: userImageBase64
-        }
-      }
+          data: userImageBase64,
+        },
+      },
     ];
-
-    // Add template image as style reference if available
-    if (templateImageBase64) {
-      parts.push({
-        inline_data: {
-          mime_type: templateImageMime,
-          data: templateImageBase64
-        }
-      });
-    }
 
     const requestBody = {
       contents: [{ parts }],
@@ -192,10 +194,12 @@ The final image must look like a professional photo of the person from the first
 
     // Extract the generated image from Gemini response
     let generatedImageBase64 = null;
+    let rawInlineBase64: string | null = null;
     
     if (geminiData.candidates && geminiData.candidates[0]?.content?.parts) {
       for (const part of geminiData.candidates[0].content.parts) {
         if (part.inlineData?.data) {
+          rawInlineBase64 = part.inlineData.data;
           generatedImageBase64 = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
           break;
         }
@@ -208,6 +212,14 @@ The final image must look like a professional photo of the person from the first
         JSON.stringify({ success: false, error: "Imagem não foi gerada. Tente novamente." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Debug: log actual output resolution when possible
+    const detected = rawInlineBase64 ? getPngDimensionsFromBase64(rawInlineBase64) : null;
+    if (detected) {
+      console.log("Generated PNG dimensions:", detected);
+    } else {
+      console.log("Could not detect generated image dimensions (non-PNG or parse failed)");
     }
 
     // Extract base64 data and upload to storage
@@ -256,6 +268,12 @@ The final image must look like a professional photo of the person from the first
       JSON.stringify({ 
         success: true, 
         generatedImageUrl,
+        output: {
+          requestedWidth: dimensions.width,
+          requestedHeight: dimensions.height,
+          detectedWidth: detected?.width ?? null,
+          detectedHeight: detected?.height ?? null,
+        },
         message: "Imagem gerada com sucesso!"
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
