@@ -63,60 +63,84 @@ serve(async (req) => {
       );
     }
 
-    // Determine dimensions based on format
+    // Determine dimensions based on format - HIGH QUALITY 1K-2K
     const dimensions = format === "stories" 
-      ? { width: 1080, height: 1920 }
-      : { width: 1350, height: 1080 };
+      ? { width: 1080, height: 1920 }  // 1K Stories (Full HD vertical)
+      : { width: 2048, height: 1638 }; // 2K Post (high quality landscape)
 
-    // Build the prompt combining template prompt with user image
-    const fullPrompt = `${template.prompt}
+    // Build the prompt - USER'S PHOTO IS THE MAIN SUBJECT
+    // Template is only for style/scene reference
+    const fullPrompt = `CRITICAL INSTRUCTION: Generate a NEW high-quality image using the PERSON from the FIRST uploaded image as the MAIN SUBJECT.
 
-Use the person's face/body from the reference image provided to create a new image with these exact characteristics. 
-The output should be a high-quality image at ${dimensions.width}x${dimensions.height} pixels.
-Maintain the person's features exactly as shown in the reference.
-Ultra high resolution, professional quality.`;
+${template.prompt}
+
+MANDATORY REQUIREMENTS:
+1. The person's face, body, and features from the FIRST image (user's photo) MUST be preserved EXACTLY - same face, same body proportions, same appearance
+2. The SECOND image (template) is ONLY for style, scene, composition, and aesthetic reference - do NOT use the person from the template
+3. Place the person from the first image INTO the scene/style shown in the template
+4. Output resolution: ${dimensions.width}x${dimensions.height} pixels
+5. Fill the ENTIRE canvas edge-to-edge with no margins or empty space
+6. Master quality, Full HD to 4K, 90% sharpness, realistic textures
+7. Hyper-realistic photography appearance, professional lighting
+
+The final image must look like a professional photo of the person from the first image, styled according to the template's aesthetic.`;
 
     console.log("Generating image with Google Gemini API...");
     console.log("Template prompt:", template.prompt);
     console.log("Format:", format, "Dimensions:", dimensions);
+    console.log("User photo will be used as main subject");
 
-    // Fetch images and convert to base64
-    const [userImageResponse, templateImageResponse] = await Promise.all([
-      fetch(inputImageUrl),
-      fetch(template.image_url)
-    ]);
+    // Fetch ONLY the user's image - this is what we're generating with
+    const userImageResponse = await fetch(inputImageUrl);
+    if (!userImageResponse.ok) {
+      console.error("Failed to fetch user image:", userImageResponse.status);
+      return new Response(
+        JSON.stringify({ success: false, error: "Não foi possível carregar sua foto. Tente novamente." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const userImageBuffer = await userImageResponse.arrayBuffer();
-    const templateImageBuffer = await templateImageResponse.arrayBuffer();
-
     const userImageBase64 = btoa(String.fromCharCode(...new Uint8Array(userImageBuffer)));
-    const templateImageBase64 = btoa(String.fromCharCode(...new Uint8Array(templateImageBuffer)));
-
-    // Get MIME types
     const userImageMime = userImageResponse.headers.get("content-type") || "image/jpeg";
-    const templateImageMime = templateImageResponse.headers.get("content-type") || "image/jpeg";
 
-    // Prepare request body
-    const requestBody = {
-      contents: [
-        {
-          parts: [
-            { text: fullPrompt },
-            {
-              inline_data: {
-                mime_type: userImageMime,
-                data: userImageBase64
-              }
-            },
-            {
-              inline_data: {
-                mime_type: templateImageMime,
-                data: templateImageBase64
-              }
-            }
-          ]
+    // Also fetch template for style reference
+    let templateImageBase64 = "";
+    let templateImageMime = "image/jpeg";
+    try {
+      const templateImageResponse = await fetch(template.image_url);
+      if (templateImageResponse.ok) {
+        const templateImageBuffer = await templateImageResponse.arrayBuffer();
+        templateImageBase64 = btoa(String.fromCharCode(...new Uint8Array(templateImageBuffer)));
+        templateImageMime = templateImageResponse.headers.get("content-type") || "image/jpeg";
+      }
+    } catch (e) {
+      console.log("Template image fetch failed, proceeding with prompt only");
+    }
+
+    // Prepare request body - USER IMAGE FIRST (main subject), template second (style reference)
+    const parts: any[] = [
+      { text: fullPrompt },
+      {
+        inline_data: {
+          mime_type: userImageMime,
+          data: userImageBase64
         }
-      ],
+      }
+    ];
+
+    // Add template image as style reference if available
+    if (templateImageBase64) {
+      parts.push({
+        inline_data: {
+          mime_type: templateImageMime,
+          data: templateImageBase64
+        }
+      });
+    }
+
+    const requestBody = {
+      contents: [{ parts }],
       generationConfig: {
         responseModalities: ["TEXT", "IMAGE"]
       }
