@@ -294,12 +294,12 @@ const MelhorarPublico = () => {
               <p className="text-gray-400 text-center mb-6 text-sm">Acesso completo por 12 meses</p>
 
               <div className="text-center mb-6">
-                <div className="text-gray-500 line-through text-lg mb-1">De R$497</div>
+                <div className="text-gray-500 line-through text-lg mb-1">De R$597</div>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl sm:text-5xl font-black text-white">12x</span>
-                  <span className="text-4xl sm:text-5xl font-black text-blue-400">R$33</span>
+                  <span className="text-4xl sm:text-5xl font-black text-blue-400">R$40</span>
                 </div>
-                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$300</span> à vista</p>
+                <p className="text-gray-400 mt-2">ou <span className="text-white font-bold">R$397</span> à vista</p>
               </div>
 
               <div className="space-y-2 mb-6">
@@ -315,8 +315,8 @@ const MelhorarPublico = () => {
                 size="lg"
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-xl hover:scale-105 transition-transform"
                 onClick={() => {
-                  trackInitiateCheckout('MelhorarPublico - Plano Anual', 300);
-                  window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+ANUAL","price":30000,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigado', '_blank');
+                  trackInitiateCheckout('MelhorarPublico - Plano Anual', 397);
+                  window.open('https://checkout.infinitepay.io/paguemro?items=[{"name":"MRO+ANUAL","price":39700,"quantity":1}]&redirect_url=https://maisresultadosonline.com.br/obrigado', '_blank');
                 }}
               >
                 GARANTIR PLANO ANUAL
