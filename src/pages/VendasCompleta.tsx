@@ -466,7 +466,7 @@ const VendasCompleta = () => {
           <div className="mt-10 max-w-4xl mx-auto">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
               <iframe
-                src="https://www.youtube.com/embed/yFN-F2U9z8w?rel=0"
+                src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1"
                 title="Video MRO"
                 className="w-full aspect-video"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
