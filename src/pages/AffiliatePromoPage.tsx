@@ -460,11 +460,10 @@ const AffiliatePromoPage = () => {
             <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
               <div className="aspect-video">
                 <iframe
-                  src="https://www.youtube.com/embed/yFN-F2U9z8w?rel=0&modestbranding=1"
+                  src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1"
                   title="Video MRO"
                   className="w-full h-full"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>
