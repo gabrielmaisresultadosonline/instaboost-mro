@@ -96,7 +96,7 @@ const MelhorarPublico = () => {
           <div className="max-w-4xl mx-auto mb-12">
             <div className="relative aspect-video rounded-2xl overflow-hidden border-4 border-yellow-500/30 shadow-2xl shadow-yellow-500/20">
               <iframe
-                src="https://www.youtube.com/embed/o0FMiGkvCDM?rel=0&modestbranding=1"
+                src="https://www.youtube.com/embed/EHTtdvtoI_A?rel=0&modestbranding=1"
                 title="MRO Inteligente - Melhore seu Público"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
