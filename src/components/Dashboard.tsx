@@ -123,11 +123,11 @@ export const Dashboard = ({
               <Logo size="sm" />
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-5 py-2 h-10 rounded-full"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-5 py-2 h-10 rounded-full max-w-[220px] truncate shrink-0"
                 data-tutorial="mro-button"
               >
-                <Wrench className="w-4 h-4 mr-2" />
-                FERRAMENTA MRO
+                <Wrench className="w-4 h-4 mr-2 shrink-0" />
+                <span className="truncate">FERRAMENTA MRO</span>
               </Button>
             </div>
 
