@@ -117,17 +117,17 @@ export const Dashboard = ({
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           {/* Desktop/Tablet Header */}
           {/* Desktop Header (lg+) */}
-          <div className="hidden lg:flex items-center justify-between">
+          <div className="hidden lg:flex items-center justify-between gap-2 min-w-0">
             {/* Left: Logo + MRO Button */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Logo size="sm" />
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-5 py-2 h-10 rounded-full max-w-[220px] truncate shrink-0"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs xl:text-sm px-3 xl:px-5 py-2 h-9 xl:h-10 rounded-full whitespace-nowrap shrink-0"
                 data-tutorial="mro-button"
               >
-                <Wrench className="w-4 h-4 mr-2 shrink-0" />
-                <span className="truncate">FERRAMENTA MRO</span>
+                <Wrench className="w-4 h-4 mr-1 xl:mr-2 shrink-0" />
+                FERRAMENTA MRO
               </Button>
             </div>
 
