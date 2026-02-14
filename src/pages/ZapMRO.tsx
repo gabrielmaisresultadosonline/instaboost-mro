@@ -358,7 +358,7 @@ const ZapMRO = () => {
               <div 
                 ref={scrollContainerRef}
                 onScroll={checkScroll}
-                className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory justify-center"
+                className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory mx-auto w-fit max-w-full"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {videoContents.map((content, idx) => (
