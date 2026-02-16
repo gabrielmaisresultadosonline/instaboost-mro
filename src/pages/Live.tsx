@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Radio, ExternalLink, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Hls from "hls.js";
 
 const Live = () => {
   const [session, setSession] = useState<any>(null);
@@ -9,7 +10,9 @@ const Live = () => {
   const [fakeViewers, setFakeViewers] = useState(0);
   const [watchPercentage, setWatchPercentage] = useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [hlsReady, setHlsReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const visitorIdRef = useRef(
     localStorage.getItem("live_visitor_id") || `v_${Date.now()}_${Math.random().toString(36).slice(2)}`
   );
@@ -33,6 +36,80 @@ const Live = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Setup HLS or direct video
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !session || session.status !== "active") return;
+
+    const videoUrl = session.video_url;
+    if (!videoUrl) return;
+
+    // Determine the base URL for the VPS
+    const baseUrl = window.location.origin;
+
+    // Check if we have an HLS URL (either stored or derived)
+    const hlsUrl = session.hls_url || null;
+    const isRelativeUrl = videoUrl.startsWith("/videos/");
+    const fullVideoUrl = isRelativeUrl ? `${baseUrl}${videoUrl}` : videoUrl;
+    const fullHlsUrl = hlsUrl ? (hlsUrl.startsWith("/") ? `${baseUrl}${hlsUrl}` : hlsUrl) : null;
+
+    // Try HLS first for adaptive streaming
+    if (fullHlsUrl && Hls.isSupported()) {
+      const tryHls = async () => {
+        try {
+          // Check if HLS manifest exists
+          const response = await fetch(fullHlsUrl, { method: "HEAD" });
+          if (response.ok) {
+            const hls = new Hls({
+              startLevel: 0, // Start at lowest quality (480p)
+              capLevelToPlayerSize: true,
+              maxBufferLength: 30,
+              maxMaxBufferLength: 60,
+            });
+            hls.loadSource(fullHlsUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+              setHlsReady(true);
+              video.play().catch(() => {});
+            });
+            hls.on(Hls.Events.ERROR, (_, data) => {
+              if (data.fatal) {
+                console.warn("HLS fatal error, falling back to direct video");
+                hls.destroy();
+                loadDirectVideo(video, fullVideoUrl);
+              }
+            });
+            hlsRef.current = hls;
+            return;
+          }
+        } catch {
+          // HLS not available yet, use direct
+        }
+        loadDirectVideo(video, fullVideoUrl);
+      };
+      tryHls();
+    } else if (video.canPlayType("application/vnd.apple.mpegurl") && fullHlsUrl) {
+      // Native HLS (Safari)
+      video.src = fullHlsUrl;
+      video.play().catch(() => {});
+    } else {
+      loadDirectVideo(video, fullVideoUrl);
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [session]);
+
+  const loadDirectVideo = (video: HTMLVideoElement, url: string) => {
+    video.src = url;
+    video.preload = "auto";
+    video.play().catch(() => {});
   };
 
   // Fake viewers ticker
@@ -96,7 +173,6 @@ const Live = () => {
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("ended", handleEnded);
 
-    // Send analytics every 10 seconds
     const analyticsInterval = setInterval(() => {
       if (video.duration) {
         const pct = (video.currentTime / video.duration) * 100;
@@ -132,7 +208,7 @@ const Live = () => {
         <p className="text-gray-400 text-lg mb-8 max-w-md">
           Aguarde no grupo do WhatsApp para ser notificado sobre a próxima live!
         </p>
-        {(session?.whatsapp_group_link) && (
+        {session?.whatsapp_group_link && (
           <a href={session.whatsapp_group_link} target="_blank" rel="noopener noreferrer">
             <Button className="bg-green-600 hover:bg-green-700 text-white text-lg px-8 py-6 rounded-xl gap-3">
               <MessageCircle className="w-6 h-6" />
@@ -177,11 +253,11 @@ const Live = () => {
           {session.video_url ? (
             <video
               ref={videoRef}
-              src={session.video_url}
               controls
               autoPlay
-              className="w-full aspect-video"
               playsInline
+              className="w-full aspect-video bg-black"
+              style={{ objectFit: "contain" }}
             />
           ) : (
             <div className="aspect-video flex items-center justify-center">
@@ -194,9 +270,16 @@ const Live = () => {
             <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
             LIVE
           </div>
+
+          {/* Quality indicator */}
+          {hlsReady && (
+            <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded">
+              HD Adaptativo
+            </div>
+          )}
         </div>
 
-        {/* Progress indicator */}
+        {/* Progress */}
         <div className="mt-2 bg-gray-800 rounded-full h-1">
           <div
             className="bg-red-500 h-1 rounded-full transition-all duration-300"
@@ -208,7 +291,6 @@ const Live = () => {
       {/* CTA after video ends */}
       {videoEnded && (
         <div className="max-w-4xl mx-auto px-4 pb-12 animate-fade-in">
-          {/* Group CTA */}
           {session.cta_button_link && (
             <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-2xl p-8 mb-8 text-center">
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
@@ -224,7 +306,6 @@ const Live = () => {
             </div>
           )}
 
-          {/* Info section */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
             <h3 className="text-xl md:text-2xl font-bold text-white mb-4">
               {session.cta_title || "Fature mais de 5k prestando serviço para as empresas"}
