@@ -497,7 +497,7 @@ const RendaExtraOf = () => {
                       onClick={() => { handleVideoAreaInteraction(); ytTogglePlay(); }}
                       onTouchStart={handleVideoAreaInteraction}
                     >
-                      <div ref={ytContainerRef} className="absolute" style={{ top: '-15%', left: '-15%', width: '130%', height: '130%' }} />
+                      <div ref={ytContainerRef} className="absolute inset-0 w-full h-full" />
                     </div>
                     {/* Custom Controls Overlay */}
                     {ytReady && (
