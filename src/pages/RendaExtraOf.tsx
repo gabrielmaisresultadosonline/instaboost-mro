@@ -62,6 +62,14 @@ const RendaExtraOf = () => {
   const [ytMuted, setYtMuted] = useState(false);
   const [ytVolume, setYtVolume] = useState(100);
   const [ytReady, setYtReady] = useState(false);
+  const [showControls, setShowControls] = useState(false);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleVideoAreaInteraction = useCallback(() => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
+  }, []);
 
   // Countdown para promoção - 8 horas a partir do primeiro acesso
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
@@ -439,12 +447,12 @@ const RendaExtraOf = () => {
           {/* Animated Title */}
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent px-2">
+            <h1 className="relative text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black mb-2 sm:mb-3 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent px-2 leading-tight">
               Renda Extra com a MRO !
             </h1>
-            <h2 className="relative text-lg sm:text-xl md:text-3xl lg:text-4xl font-black">
+            <h2 className="relative text-base sm:text-lg md:text-2xl lg:text-3xl font-bold">
               <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                aprenda grátis e inicie você também.
+                aprenda grátis e inicie você também
               </span>
             </h2>
           </div>
@@ -481,13 +489,25 @@ const RendaExtraOf = () => {
               <div className="aspect-video">
                 {pageMode === 'free' ? (
                   <>
-                    <div className="absolute inset-0 overflow-hidden">
+                    <div 
+                      className="absolute inset-0 overflow-hidden cursor-pointer" 
+                      onMouseMove={handleVideoAreaInteraction}
+                      onMouseEnter={handleVideoAreaInteraction}
+                      onMouseLeave={() => { if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current); setShowControls(false); }}
+                      onClick={() => { handleVideoAreaInteraction(); ytTogglePlay(); }}
+                      onTouchStart={handleVideoAreaInteraction}
+                    >
                       <div ref={ytContainerRef} className="absolute" style={{ top: '-15%', left: '-15%', width: '130%', height: '130%' }} />
                     </div>
                     {/* Custom Controls Overlay */}
                     {ytReady && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 flex items-center gap-3 z-20">
-                        <button onClick={ytTogglePlay} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                      <div 
+                        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 flex items-center gap-3 z-20 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        onMouseMove={handleVideoAreaInteraction}
+                        onMouseEnter={handleVideoAreaInteraction}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button onClick={(e) => { e.stopPropagation(); ytTogglePlay(); }} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
                           {ytPlaying ? <Pause className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white ml-0.5" />}
                         </button>
                         <button onClick={ytToggleMute} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
