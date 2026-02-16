@@ -47,6 +47,10 @@ const RendaExtraOf = () => {
   // Popup de desconto encerrado - desativado nesta página
   const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(false);
   
+  // Mode selection: null = show buttons, 'free' = only video, 'buy' = full page
+  const [pageMode, setPageMode] = useState<'free' | 'buy' | null>(null);
+  const [showFullContent, setShowFullContent] = useState(false);
+  
   // Countdown para promoção - 8 horas a partir do primeiro acesso
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
   const pricingRef = useRef<HTMLDivElement>(null);
@@ -147,6 +151,15 @@ const RendaExtraOf = () => {
     }
   };
 
+  // Timer de 17 minutos para modo "free"
+  useEffect(() => {
+    if (pageMode !== 'free') return;
+    const timer = setTimeout(() => {
+      setShowFullContent(true);
+    }, 17 * 60 * 1000); // 17 minutos
+    return () => clearTimeout(timer);
+  }, [pageMode]);
+
   // Track PageView on mount
   useEffect(() => {
     trackPageView('Sales Page - Renda Extra Oferta');
@@ -227,8 +240,47 @@ const RendaExtraOf = () => {
     "Suporte prioritário"
   ];
 
+  const shouldShowSalesContent = pageMode === 'buy' || (pageMode === 'free' && showFullContent);
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Mode Selection Screen */}
+      {pageMode === null && (
+        <div className="min-h-screen flex items-center justify-center px-4">
+          <div className="max-w-xl w-full text-center">
+            <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
+              Renda Extra com a MRO !
+            </h1>
+            <p className="text-gray-400 text-base sm:text-lg mb-10">
+              aprenda grátis e inicie você também.
+            </p>
+            
+            <div className="flex flex-col gap-4 max-w-sm mx-auto">
+              <Button
+                onClick={() => setPageMode('free')}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base sm:text-lg py-6 rounded-xl shadow-lg shadow-green-500/30"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Aprenda Grátis
+              </Button>
+              
+              <Button
+                onClick={() => setPageMode('buy')}
+                variant="outline"
+                className="w-full border-2 border-green-500/50 text-green-400 hover:bg-green-500/10 font-bold text-sm sm:text-base py-6 rounded-xl"
+              >
+                <ArrowRight className="w-5 h-5 mr-2" />
+                Já conheço, gostaria de adquirir
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Page Content - only shown after mode selection */}
+      {pageMode !== null && (
+        <>
       {/* Popup Desconto Encerrado */}
       {showDiscountEndedPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
@@ -266,7 +318,8 @@ const RendaExtraOf = () => {
         </div>
       )}
 
-      {/* Urgency Banner */}
+      {/* Urgency Banner - only when sales content visible */}
+      {shouldShowSalesContent && (
       <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2 px-2">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
           <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
@@ -281,15 +334,18 @@ const RendaExtraOf = () => {
           <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
         </div>
       </div>
+      )}
 
       {/* Hero Section */}
-      <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
+      <section className={`relative ${shouldShowSalesContent ? 'pt-16 sm:pt-20 md:pt-24' : 'pt-8 sm:pt-12 md:pt-16'} pb-10 sm:pb-16 px-3 sm:px-4`}>
         <div className="max-w-5xl mx-auto text-center">
           {/* Special Discount Badge */}
+          {shouldShowSalesContent && (
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-bounce">
             <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
             <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL LIBERADO!</span>
           </div>
+          )}
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           
@@ -307,6 +363,7 @@ const RendaExtraOf = () => {
           </div>
 
           {/* Countdown Timer Large */}
+          {shouldShowSalesContent && (
           <div className="mt-6 sm:mt-8 flex items-center justify-center gap-2 sm:gap-4">
             <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
               <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
@@ -329,6 +386,7 @@ const RendaExtraOf = () => {
               <div className="text-[10px] sm:text-xs text-red-200">SEGUNDOS</div>
             </div>
           </div>
+          )}
 
           {/* Main Video - Inline Player */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
@@ -346,15 +404,19 @@ const RendaExtraOf = () => {
           </div>
 
           {/* CTA Button */}
+          {shouldShowSalesContent && (
           <Button 
             onClick={scrollToPricing}
             className="mt-8 sm:mt-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30"
           >
             GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
+          )}
         </div>
       </section>
 
+      {shouldShowSalesContent && (
+      <>
       {/* O que está incluso */}
       <section ref={pricingRef} className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto">
@@ -604,6 +666,8 @@ const RendaExtraOf = () => {
           </Button>
         </div>
       </section>
+      </>
+      )}
 
       {/* Video Modal */}
       {showVideoModal && (
@@ -732,6 +796,8 @@ const RendaExtraOf = () => {
           <p>© 2025 MRO - Mais Resultados Online. Todos os direitos reservados.</p>
         </div>
       </footer>
+      </>
+      )}
     </div>
   );
 };
