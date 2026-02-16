@@ -42,6 +42,7 @@ import {
   Pause
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
+import MoneyParticles from "@/components/MoneyParticles";
 
 const RendaExtraOf = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -339,6 +340,7 @@ const RendaExtraOf = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      <MoneyParticles />
       {/* Mode Selection Screen */}
       {pageMode === null && (
         <div className="min-h-screen flex items-center justify-center px-4">
