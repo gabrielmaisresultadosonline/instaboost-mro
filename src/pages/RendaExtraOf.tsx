@@ -60,6 +60,7 @@ const RendaExtraOf = () => {
   const ytContainerRef = useRef<HTMLDivElement>(null);
   const [ytPlaying, setYtPlaying] = useState(false);
   const [ytMuted, setYtMuted] = useState(false);
+  const [ytVolume, setYtVolume] = useState(100);
   const [ytReady, setYtReady] = useState(false);
 
   // Countdown para promoção - 8 horas a partir do primeiro acesso
@@ -228,8 +229,16 @@ const RendaExtraOf = () => {
 
   const ytToggleMute = useCallback(() => {
     if (!ytPlayerRef.current) return;
-    if (ytMuted) { ytPlayerRef.current.unMute(); setYtMuted(false); }
+    if (ytMuted) { ytPlayerRef.current.unMute(); ytPlayerRef.current.setVolume(ytVolume || 100); setYtMuted(false); }
     else { ytPlayerRef.current.mute(); setYtMuted(true); }
+  }, [ytMuted, ytVolume]);
+
+  const ytChangeVolume = useCallback((val: number) => {
+    if (!ytPlayerRef.current) return;
+    setYtVolume(val);
+    ytPlayerRef.current.setVolume(val);
+    if (val === 0) { ytPlayerRef.current.mute(); setYtMuted(true); }
+    else if (ytMuted) { ytPlayerRef.current.unMute(); setYtMuted(false); }
   }, [ytMuted]);
 
   const ytRestart = useCallback(() => {
@@ -482,8 +491,16 @@ const RendaExtraOf = () => {
                           {ytPlaying ? <Pause className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white ml-0.5" />}
                         </button>
                         <button onClick={ytToggleMute} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
-                          {ytMuted ? <VolumeX className="w-4 h-4 text-white" /> : <Volume2 className="w-4 h-4 text-white" />}
+                          {ytMuted || ytVolume === 0 ? <VolumeX className="w-4 h-4 text-white" /> : <Volume2 className="w-4 h-4 text-white" />}
                         </button>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={ytMuted ? 0 : ytVolume}
+                          onChange={(e) => ytChangeVolume(Number(e.target.value))}
+                          className="w-20 sm:w-28 h-1 accent-white bg-white/30 rounded-full cursor-pointer"
+                        />
                         <button onClick={ytRestart} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
                           <RotateCcw className="w-4 h-4 text-white" />
                         </button>
