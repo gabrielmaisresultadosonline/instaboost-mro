@@ -55,7 +55,7 @@ WorkingDirectory=$VIDEO_SERVER_DIR
 ExecStart=/usr/bin/node server.js
 Restart=on-failure
 RestartSec=10
-Environment=VIDEO_PORT=3001
+Environment=VIDEO_PORT=3002
 Environment=VIDEOS_DIR=$VIDEOS_DIR
 StandardOutput=syslog
 StandardError=syslog
@@ -69,7 +69,7 @@ systemctl daemon-reload
 systemctl enable video-server
 systemctl restart video-server
 
-echo "✅ Video server rodando na porta 3001!"
+echo "✅ Video server rodando na porta 3002!"
 
 # 5. Update Nginx configuration
 echo ""
@@ -119,7 +119,7 @@ if ! grep -q "location /videos/" /etc/nginx/sites-available/$DOMAIN 2>/dev/null;
     \
     # Proxy video upload API to Node.js server \
     location /api/video/ { \
-        proxy_pass http://127.0.0.1:3001; \
+        proxy_pass http://127.0.0.1:3002; \
         proxy_http_version 1.1; \
         proxy_set_header Host $host; \
         proxy_set_header X-Real-IP $remote_addr; \
