@@ -470,11 +470,9 @@ const RendaExtraOf = () => {
               <div className="aspect-video">
                 {pageMode === 'free' ? (
                   <>
-                    <div ref={ytContainerRef} className="w-full h-full" />
-                    {/* Cover YouTube branding: title bar top, share buttons top-right, YouTube logo bottom-right */}
-                    <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
-                    <div className="absolute top-0 right-0 w-48 h-20 bg-gradient-to-bl from-black to-transparent pointer-events-none z-10" />
-                    <div className="absolute bottom-0 right-0 w-36 h-14 bg-gradient-to-tl from-black to-transparent pointer-events-none z-10" />
+                    <div className="absolute inset-0 overflow-hidden">
+                      <div ref={ytContainerRef} className="absolute" style={{ top: '-10%', left: '-10%', width: '120%', height: '120%' }} />
+                    </div>
                     {/* Custom Controls Overlay */}
                     {ytReady && (
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 flex items-center gap-3 z-20">
