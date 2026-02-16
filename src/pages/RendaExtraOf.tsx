@@ -195,9 +195,11 @@ const RendaExtraOf = () => {
           showinfo: 0,
           iv_load_policy: 3,
           playsinline: 1,
+          vq: 'hd1080',
         },
         events: {
-          onReady: () => {
+          onReady: (event: any) => {
+            event.target.setPlaybackQuality('hd1080');
             setYtReady(true);
           },
           onStateChange: (event: any) => {
