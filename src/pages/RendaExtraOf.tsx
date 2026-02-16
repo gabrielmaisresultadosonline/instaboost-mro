@@ -297,11 +297,11 @@ const RendaExtraOf = () => {
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
             <h1 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent px-2">
-              FERRAMENTA COMPLETA PARA INSTAGRAM
+              Renda Extra com a MRO !
             </h1>
             <h2 className="relative text-lg sm:text-xl md:text-3xl lg:text-4xl font-black">
               <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                POR APENAS 12x DE R$30
+                aprenda grátis e inicie você também.
               </span>
             </h2>
           </div>
@@ -335,7 +335,7 @@ const RendaExtraOf = () => {
             <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
               <div className="aspect-video">
                 <iframe 
-                  src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1" 
+                  src="https://www.youtube.com/embed/5CE8W8bclJY?rel=0&modestbranding=1" 
                   title="Video MRO"
                   className="w-full h-full" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
