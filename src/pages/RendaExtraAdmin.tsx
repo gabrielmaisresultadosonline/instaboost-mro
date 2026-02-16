@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
-  CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2
+  CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download
 } from "lucide-react";
 
 interface Lead {
@@ -327,14 +327,56 @@ const RendaExtraAdmin = () => {
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <CardTitle className="text-white">Cadastros ({filteredLeads.length})</CardTitle>
-                  <div className="relative w-full md:w-64">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                      placeholder="Buscar..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 bg-gray-700 border-gray-600 text-white"
-                    />
+                  <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    <div className="relative w-full md:w-64">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Buscar..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 bg-gray-700 border-gray-600 text-white"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
+                      onClick={() => {
+                        const emails = filteredLeads.map(l => l.email).join("\n");
+                        const blob = new Blob([emails], { type: "text/plain" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `emails-facebook-ads-${format(new Date(), "dd-MM-yyyy")}.txt`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast({ title: `${filteredLeads.length} emails exportados!`, description: "Arquivo TXT pronto para importar no Facebook Ads" });
+                      }}
+                      disabled={filteredLeads.length === 0}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Exportar Emails ({filteredLeads.length})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-green-500/50 text-green-400 hover:bg-green-500/20"
+                      onClick={() => {
+                        const csv = "email\n" + filteredLeads.map(l => l.email).join("\n");
+                        const blob = new Blob([csv], { type: "text/csv" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `emails-facebook-ads-${format(new Date(), "dd-MM-yyyy")}.csv`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast({ title: `${filteredLeads.length} emails exportados!`, description: "Arquivo CSV pronto para importar no Facebook Ads" });
+                      }}
+                      disabled={filteredLeads.length === 0}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      CSV
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
