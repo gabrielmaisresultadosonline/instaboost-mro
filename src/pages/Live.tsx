@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Radio, ExternalLink, MessageCircle } from "lucide-react";
+import { Users, Radio, ExternalLink, MessageCircle, MessageSquareOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Hls from "hls.js";
 
@@ -46,24 +46,19 @@ const Live = () => {
     const videoUrl = session.video_url;
     if (!videoUrl) return;
 
-    // Determine the base URL for the VPS
     const baseUrl = window.location.origin;
-
-    // Check if we have an HLS URL (either stored or derived)
     const hlsUrl = session.hls_url || null;
     const isRelativeUrl = videoUrl.startsWith("/videos/");
     const fullVideoUrl = isRelativeUrl ? `${baseUrl}${videoUrl}` : videoUrl;
     const fullHlsUrl = hlsUrl ? (hlsUrl.startsWith("/") ? `${baseUrl}${hlsUrl}` : hlsUrl) : null;
 
-    // Try HLS first for adaptive streaming
     if (fullHlsUrl && Hls.isSupported()) {
       const tryHls = async () => {
         try {
-          // Check if HLS manifest exists
           const response = await fetch(fullHlsUrl, { method: "HEAD" });
           if (response.ok) {
             const hls = new Hls({
-              startLevel: 0, // Start at lowest quality (480p)
+              startLevel: 0,
               capLevelToPlayerSize: true,
               maxBufferLength: 30,
               maxMaxBufferLength: 60,
@@ -76,7 +71,6 @@ const Live = () => {
             });
             hls.on(Hls.Events.ERROR, (_, data) => {
               if (data.fatal) {
-                console.warn("HLS fatal error, falling back to direct video");
                 hls.destroy();
                 loadDirectVideo(video, fullVideoUrl);
               }
@@ -84,14 +78,11 @@ const Live = () => {
             hlsRef.current = hls;
             return;
           }
-        } catch {
-          // HLS not available yet, use direct
-        }
+        } catch {}
         loadDirectVideo(video, fullVideoUrl);
       };
       tryHls();
     } else if (video.canPlayType("application/vnd.apple.mpegurl") && fullHlsUrl) {
-      // Native HLS (Safari)
       video.src = fullHlsUrl;
       video.play().catch(() => {});
     } else {
@@ -112,20 +103,64 @@ const Live = () => {
     video.play().catch(() => {});
   };
 
-  // Fake viewers ticker
+  // Realistic fake viewers - starts low, gradually climbs with organic fluctuations
   useEffect(() => {
     if (!session || session.status !== "active") return;
-    const min = session.fake_viewers_min || 14;
     const max = session.fake_viewers_max || 200;
-    setFakeViewers(min + Math.floor(Math.random() * 10));
+
+    // Start very low (2-5)
+    let elapsedSeconds = 0;
+    setFakeViewers(3);
 
     const interval = setInterval(() => {
+      elapsedSeconds += 2;
+
       setFakeViewers((prev) => {
-        const delta = Math.floor(Math.random() * 7) - 2;
+        const minutesElapsed = elapsedSeconds / 60;
+        let targetForPhase: number;
+
+        if (minutesElapsed < 1) {
+          // 0-1 min: very few (3-8)
+          targetForPhase = 3 + Math.floor(minutesElapsed * 5);
+        } else if (minutesElapsed < 3) {
+          // 1-3 min: slow climb (8-30)
+          targetForPhase = 8 + Math.floor((minutesElapsed - 1) * 11);
+        } else if (minutesElapsed < 6) {
+          // 3-6 min: moderate (30-100)
+          targetForPhase = 30 + Math.floor((minutesElapsed - 3) * 23);
+        } else if (minutesElapsed < 10) {
+          // 6-10 min: approaching max (100-max)
+          const progress = (minutesElapsed - 6) / 4;
+          targetForPhase = 100 + Math.floor(progress * (max - 100));
+        } else {
+          // 10+ min: fluctuate around max
+          targetForPhase = max;
+        }
+
+        targetForPhase = Math.min(targetForPhase, max);
+
+        // Organic randomness
+        const r = Math.random();
+        let delta: number;
+
+        if (r < 0.15) {
+          delta = -(3 + Math.floor(Math.random() * 10));
+        } else if (r < 0.3) {
+          delta = -(1 + Math.floor(Math.random() * 4));
+        } else if (r < 0.7) {
+          const diff = targetForPhase - prev;
+          delta = Math.floor(diff * (0.1 + Math.random() * 0.2));
+          if (delta === 0) delta = Math.random() > 0.5 ? 1 : -1;
+        } else if (r < 0.9) {
+          delta = 2 + Math.floor(Math.random() * 6);
+        } else {
+          delta = 5 + Math.floor(Math.random() * 11);
+        }
+
         const next = prev + delta;
-        return Math.max(min, Math.min(max, next));
+        return Math.max(1, Math.min(max + 15, next));
       });
-    }, 3000);
+    }, 2000 + Math.floor(Math.random() * 2000));
 
     return () => clearInterval(interval);
   }, [session]);
@@ -195,23 +230,22 @@ const Live = () => {
     );
   }
 
-  // No active live or paused
   if (!session || session.status === "paused") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black flex flex-col items-center justify-center p-6 text-center">
-        <div className="bg-red-500/10 border border-red-500/30 rounded-full p-6 mb-6">
-          <Radio className="w-16 h-16 text-red-400" />
+      <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black flex flex-col items-center justify-center p-4 sm:p-6 text-center">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-full p-4 sm:p-6 mb-4 sm:mb-6">
+          <Radio className="w-10 h-10 sm:w-16 sm:h-16 text-red-400" />
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
           🔴 LIVE ENCERRADA
         </h1>
-        <p className="text-gray-400 text-lg mb-8 max-w-md">
+        <p className="text-gray-400 text-sm sm:text-lg mb-6 sm:mb-8 max-w-md">
           Aguarde no grupo do WhatsApp para ser notificado sobre a próxima live!
         </p>
         {session?.whatsapp_group_link && (
           <a href={session.whatsapp_group_link} target="_blank" rel="noopener noreferrer">
-            <Button className="bg-green-600 hover:bg-green-700 text-white text-lg px-8 py-6 rounded-xl gap-3">
-              <MessageCircle className="w-6 h-6" />
+            <Button className="bg-green-600 hover:bg-green-700 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-xl gap-2 sm:gap-3">
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
               Entrar no Grupo do WhatsApp
             </Button>
           </a>
@@ -223,101 +257,145 @@ const Live = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       {/* Header */}
-      <div className="bg-red-600/90 backdrop-blur-sm py-3 px-4 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-3">
+      <div className="bg-red-600/90 backdrop-blur-sm py-2 sm:py-3 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="relative">
-            <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-            <div className="absolute inset-0 w-3 h-3 bg-white rounded-full animate-ping" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full animate-pulse" />
+            <div className="absolute inset-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full animate-ping" />
           </div>
-          <span className="text-white font-bold text-sm md:text-base">AO VIVO</span>
+          <span className="text-white font-bold text-xs sm:text-sm md:text-base">AO VIVO</span>
         </div>
-        <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-full">
-          <Users className="w-4 h-4 text-white" />
-          <span className="text-white font-semibold text-sm">{fakeViewers} assistindo</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-black/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">
+          <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+          <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+          <span className="text-white font-semibold text-xs sm:text-sm">
+            {fakeViewers.toLocaleString()} assistindo
+          </span>
         </div>
       </div>
 
-      {/* Title */}
-      <div className="text-center py-6 px-4">
-        <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">
-          {session.title || "Fazendo 5k com a MRO"}
-        </h1>
-        <p className="text-gray-400 text-sm md:text-base">
-          {session.description || "Veja abaixo, estamos ao vivo 🔴"}
-        </p>
-      </div>
-
-      {/* Video Player */}
-      <div className="max-w-4xl mx-auto px-4 pb-8">
-        <div className="relative rounded-2xl overflow-hidden bg-black shadow-2xl shadow-red-500/10 border border-white/10">
-          {session.video_url ? (
-            <video
-              ref={videoRef}
-              controls
-              autoPlay
-              playsInline
-              className="w-full aspect-video bg-black"
-              style={{ objectFit: "contain" }}
-            />
-          ) : (
-            <div className="aspect-video flex items-center justify-center">
-              <p className="text-gray-500">Aguardando vídeo...</p>
+      {/* Main content */}
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 py-3 sm:py-6">
+        <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
+          {/* Video Section */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-2 sm:mb-3 px-1">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-white leading-tight">
+                {session.title || "Fazendo 5k com a MRO"}
+              </h1>
+              <p className="text-gray-400 text-xs sm:text-sm mt-1">
+                {session.description || "Veja abaixo, estamos ao vivo 🔴"}
+              </p>
             </div>
-          )}
 
-          {/* Live badge overlay */}
-          <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded flex items-center gap-1.5">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            LIVE
+            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden bg-black shadow-2xl shadow-red-500/10 border border-white/10">
+              {session.video_url ? (
+                <video
+                  ref={videoRef}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="w-full aspect-video bg-black"
+                  style={{ objectFit: "contain" }}
+                />
+              ) : (
+                <div className="aspect-video flex items-center justify-center">
+                  <p className="text-gray-500 text-sm">Aguardando vídeo...</p>
+                </div>
+              )}
+
+              <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded flex items-center gap-1 sm:gap-1.5">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-pulse" />
+                LIVE
+              </div>
+
+              <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/70 backdrop-blur-sm text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1">
+                <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                <span className="font-medium">{fakeViewers.toLocaleString()}</span>
+              </div>
+
+              {hlsReady && (
+                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 bg-black/60 text-white text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded">
+                  HD
+                </div>
+              )}
+            </div>
+
+            <div className="mt-1.5 sm:mt-2 bg-gray-800 rounded-full h-0.5 sm:h-1">
+              <div
+                className="bg-red-500 h-0.5 sm:h-1 rounded-full transition-all duration-300"
+                style={{ width: `${watchPercentage}%` }}
+              />
+            </div>
           </div>
 
-          {/* Quality indicator */}
-          {hlsReady && (
-            <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded">
-              HD Adaptativo
-            </div>
-          )}
-        </div>
+          {/* Chat Disabled Panel */}
+          <div className="w-full lg:w-80 xl:w-96 shrink-0">
+            <div className="bg-gray-900/80 border border-gray-800 rounded-lg sm:rounded-2xl h-48 sm:h-64 lg:h-full lg:min-h-[400px] flex flex-col">
+              <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-800">
+                <div className="flex items-center gap-2">
+                  <MessageSquareOff className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-400 font-medium text-xs sm:text-sm">Chat ao vivo</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-gray-600">
+                  <Users className="w-3.5 h-3.5" />
+                  <span className="text-[10px] sm:text-xs">{fakeViewers.toLocaleString()}</span>
+                </div>
+              </div>
 
-        {/* Progress */}
-        <div className="mt-2 bg-gray-800 rounded-full h-1">
-          <div
-            className="bg-red-500 h-1 rounded-full transition-all duration-300"
-            style={{ width: `${watchPercentage}%` }}
-          />
+              <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 text-center">
+                <div className="bg-gray-800/50 rounded-full p-3 sm:p-4 mb-3 sm:mb-4">
+                  <MessageSquareOff className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
+                </div>
+                <p className="text-gray-400 font-semibold text-sm sm:text-base mb-1.5 sm:mb-2">
+                  Chat desativado
+                </p>
+                <p className="text-gray-500 text-[10px] sm:text-xs leading-relaxed max-w-[220px]">
+                  Pode tirar suas dúvidas no final da live. Assista até o final para liberar o acesso exclusivo! 🔒
+                </p>
+              </div>
+
+              <div className="px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-800">
+                <div className="flex items-center justify-center gap-1.5 text-gray-600">
+                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-[10px] sm:text-xs">Transmissão ao vivo</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* CTA after video ends */}
       {videoEnded && (
-        <div className="max-w-4xl mx-auto px-4 pb-12 animate-fade-in">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 pb-8 sm:pb-12 animate-fade-in">
           {session.cta_button_link && (
-            <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-2xl p-8 mb-8 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+            <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-xl sm:rounded-2xl p-5 sm:p-8 mb-6 sm:mb-8 text-center">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
                 {session.cta_button_text || "Acesse o GRUPO para liberar o desconto"}
               </h2>
-              <p className="text-green-300 mb-6">e você faturar 5k! 🚀</p>
+              <p className="text-green-300 text-sm sm:text-base mb-4 sm:mb-6">e você faturar 5k! 🚀</p>
               <a href={session.cta_button_link} target="_blank" rel="noopener noreferrer">
-                <Button className="bg-green-600 hover:bg-green-700 text-white text-lg px-10 py-6 rounded-xl gap-3 animate-pulse">
-                  <ExternalLink className="w-5 h-5" />
+                <Button className="bg-green-600 hover:bg-green-700 text-white text-base sm:text-lg px-6 sm:px-10 py-4 sm:py-6 rounded-xl gap-2 sm:gap-3 animate-pulse">
+                  <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
                   {session.cta_button_text || "Acessar Grupo"}
                 </Button>
               </a>
             </div>
           )}
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-            <h3 className="text-xl md:text-2xl font-bold text-white mb-4">
+          <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-5 sm:p-8">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4">
               {session.cta_title || "Fature mais de 5k prestando serviço para as empresas"}
             </h3>
-            <p className="text-gray-300 leading-relaxed mb-6">
+            <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 sm:mb-6">
               {session.cta_description ||
                 "Rode a ferramenta na sua maquina/notebook/pc e cobre mensalmente das empresas por isso. Receba todo o passo a passo de como fechar contratos, de como apresentar esse serviço e como faturar de verdade."}
             </p>
             {session.whatsapp_group_link && (
               <a href={session.whatsapp_group_link} target="_blank" rel="noopener noreferrer">
-                <Button className="bg-green-600 hover:bg-green-700 text-white gap-2">
-                  <MessageCircle className="w-5 h-5" />
+                <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 text-sm sm:text-base">
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   Entrar no Grupo
                 </Button>
               </a>
