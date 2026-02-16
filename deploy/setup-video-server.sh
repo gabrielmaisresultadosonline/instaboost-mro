@@ -138,11 +138,38 @@ if ! grep -q "location /videos/" /etc/nginx/sites-available/$DOMAIN 2>/dev/null;
   fi
 fi
 
-# Also update client_max_body_size in the main server block if needed
+# CRITICAL: Set client_max_body_size globally in nginx.conf (http block)
+echo ""
+echo "📐 Configurando limite global de upload no Nginx..."
+NGINX_MAIN="/etc/nginx/nginx.conf"
+if [ -f "$NGINX_MAIN" ]; then
+  if grep -q "client_max_body_size" "$NGINX_MAIN"; then
+    sed -i 's/client_max_body_size.*/client_max_body_size 3G;/' "$NGINX_MAIN"
+  else
+    sed -i '/http {/a \    client_max_body_size 3G;' "$NGINX_MAIN"
+  fi
+  echo "✅ nginx.conf atualizado com client_max_body_size 3G"
+fi
+
+# Also set in server block
 NGINX_CONF="/etc/nginx/sites-available/$DOMAIN"
 if [ -f "$NGINX_CONF" ]; then
-  if ! grep -q "client_max_body_size" "$NGINX_CONF"; then
+  if grep -q "client_max_body_size" "$NGINX_CONF"; then
+    sed -i 's/client_max_body_size.*/client_max_body_size 3G;/' "$NGINX_CONF"
+  else
     sed -i '/server_name/a \    client_max_body_size 3G;' "$NGINX_CONF"
+  fi
+fi
+
+# Increase proxy timeouts and buffering in the video location block
+if [ -f "$NGINX_CONF" ]; then
+  if ! grep -q "proxy_buffering off" "$NGINX_CONF"; then
+    sed -i '/location \/api\/video\//,/}/ {
+      /proxy_read_timeout/d
+      /proxy_send_timeout/d
+      /proxy_request_buffering/d
+      /client_max_body_size/a \        proxy_buffering off;\n        proxy_read_timeout 7200s;\n        proxy_send_timeout 7200s;\n        proxy_connect_timeout 300s;
+    }' "$NGINX_CONF" 2>/dev/null || true
   fi
 fi
 

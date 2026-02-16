@@ -9,6 +9,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Increase timeout for large uploads (2 hours)
+app.use((req, res, next) => {
+  req.setTimeout(7200000); // 2 hours
+  res.setTimeout(7200000);
+  next();
+});
+
 const PORT = process.env.VIDEO_PORT || 3001;
 const VIDEOS_DIR = process.env.VIDEOS_DIR || '/var/www/ia-mro/videos';
 const HLS_DIR = path.join(VIDEOS_DIR, 'hls');
