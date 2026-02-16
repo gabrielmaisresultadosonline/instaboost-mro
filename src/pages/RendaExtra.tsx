@@ -83,13 +83,20 @@ const RendaExtra = () => {
     return step;
   };
 
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    return emailRegex.test(email.trim());
+  };
+
+  const [emailError, setEmailError] = useState("");
+
   const canProceed = () => {
     const actualStep = getActualStep(currentStep);
     switch (actualStep) {
       case 0: return formData.nomeCompleto.trim() !== "";
-      case 1: return formData.email.trim() !== "" && formData.email.includes("@");
+      case 1: return isValidEmail(formData.email);
       case 2: return formData.whatsapp.trim() !== "";
-      case 3: return true; // trabalha question - handled by buttons
+      case 3: return true;
       case 4: return formData.mediaSalarial !== "";
       case 5: return formData.tipoComputador !== "";
       case 6: return formData.instagramUsername.trim() !== "";
@@ -98,6 +105,11 @@ const RendaExtra = () => {
   };
 
   const handleNext = () => {
+    const actualStep = getActualStep(currentStep);
+    if (actualStep === 1 && !isValidEmail(formData.email)) {
+      setEmailError("Digite um email válido (ex: seu@email.com)");
+      return;
+    }
     if (canProceed() && currentStep < getEffectiveTotalSteps() - 1) {
       setCurrentStep(currentStep + 1);
     }
@@ -234,11 +246,28 @@ const RendaExtra = () => {
           <Input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6"
+            onChange={(e) => {
+              setFormData({ ...formData, email: e.target.value });
+              if (emailError) {
+                const val = e.target.value.trim();
+                if (isValidEmail(val)) setEmailError("");
+              }
+            }}
+            onBlur={() => {
+              const val = formData.email.trim();
+              if (val && !isValidEmail(val)) {
+                setEmailError("Digite um email válido (ex: seu@email.com)");
+              } else {
+                setEmailError("");
+              }
+            }}
+            className={`bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-red-500/50 text-lg py-6 ${emailError ? "border-red-500" : ""}`}
             placeholder="seu@email.com"
             autoFocus
           />
+          {emailError && (
+            <p className="text-red-400 text-sm text-center animate-fade-in">{emailError}</p>
+          )}
         </div>
       );
     }
