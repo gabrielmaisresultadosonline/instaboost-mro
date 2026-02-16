@@ -471,7 +471,7 @@ const RendaExtraOf = () => {
                 {pageMode === 'free' ? (
                   <>
                     <div className="absolute inset-0 overflow-hidden">
-                      <div ref={ytContainerRef} className="absolute" style={{ top: '-10%', left: '-10%', width: '120%', height: '120%' }} />
+                      <div ref={ytContainerRef} className="absolute" style={{ top: '-15%', left: '-15%', width: '130%', height: '130%' }} />
                     </div>
                     {/* Custom Controls Overlay */}
                     {ytReady && (
