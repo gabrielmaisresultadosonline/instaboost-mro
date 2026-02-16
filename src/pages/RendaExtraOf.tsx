@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +35,11 @@ import {
   Loader2,
   Phone,
   Timer,
-  AlertTriangle
+  AlertTriangle,
+  Volume2,
+  VolumeX,
+  RotateCcw,
+  Pause
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 
@@ -51,6 +55,13 @@ const RendaExtraOf = () => {
   const [pageMode, setPageMode] = useState<'free' | 'buy' | null>(null);
   const [showFullContent, setShowFullContent] = useState(false);
   
+  // YouTube custom player for free mode
+  const ytPlayerRef = useRef<any>(null);
+  const ytContainerRef = useRef<HTMLDivElement>(null);
+  const [ytPlaying, setYtPlaying] = useState(false);
+  const [ytMuted, setYtMuted] = useState(false);
+  const [ytReady, setYtReady] = useState(false);
+
   // Countdown para promoção - 8 horas a partir do primeiro acesso
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
   const pricingRef = useRef<HTMLDivElement>(null);
@@ -159,6 +170,71 @@ const RendaExtraOf = () => {
     }, 17 * 60 * 1000); // 17 minutos
     return () => clearTimeout(timer);
   }, [pageMode]);
+
+  // YouTube IFrame API for free mode
+  useEffect(() => {
+    if (pageMode !== 'free') return;
+    
+    // Load YouTube IFrame API
+    if (!(window as any).YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
+    }
+
+    const initPlayer = () => {
+      if (!ytContainerRef.current) return;
+      ytPlayerRef.current = new (window as any).YT.Player(ytContainerRef.current, {
+        videoId: '5CE8W8bclJY',
+        playerVars: {
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0,
+          iv_load_policy: 3,
+          playsinline: 1,
+        },
+        events: {
+          onReady: () => {
+            setYtReady(true);
+          },
+          onStateChange: (event: any) => {
+            setYtPlaying(event.data === (window as any).YT.PlayerState.PLAYING);
+          },
+        },
+      });
+    };
+
+    if ((window as any).YT && (window as any).YT.Player) {
+      initPlayer();
+    } else {
+      (window as any).onYouTubeIframeAPIReady = initPlayer;
+    }
+
+    return () => {
+      if (ytPlayerRef.current?.destroy) ytPlayerRef.current.destroy();
+    };
+  }, [pageMode]);
+
+  const ytTogglePlay = useCallback(() => {
+    if (!ytPlayerRef.current) return;
+    if (ytPlaying) ytPlayerRef.current.pauseVideo();
+    else ytPlayerRef.current.playVideo();
+  }, [ytPlaying]);
+
+  const ytToggleMute = useCallback(() => {
+    if (!ytPlayerRef.current) return;
+    if (ytMuted) { ytPlayerRef.current.unMute(); setYtMuted(false); }
+    else { ytPlayerRef.current.mute(); setYtMuted(true); }
+  }, [ytMuted]);
+
+  const ytRestart = useCallback(() => {
+    if (!ytPlayerRef.current) return;
+    ytPlayerRef.current.seekTo(0, true);
+    ytPlayerRef.current.playVideo();
+  }, []);
 
   // Track PageView on mount
   useEffect(() => {
@@ -392,13 +468,33 @@ const RendaExtraOf = () => {
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
             <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
               <div className="aspect-video">
-                <iframe 
-                  src="https://www.youtube.com/embed/5CE8W8bclJY?rel=0&modestbranding=1" 
-                  title="Video MRO"
-                  className="w-full h-full" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen 
-                />
+                {pageMode === 'free' ? (
+                  <>
+                    <div ref={ytContainerRef} className="w-full h-full" />
+                    {/* Custom Controls Overlay */}
+                    {ytReady && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 flex items-center gap-3">
+                        <button onClick={ytTogglePlay} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                          {ytPlaying ? <Pause className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white ml-0.5" />}
+                        </button>
+                        <button onClick={ytToggleMute} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                          {ytMuted ? <VolumeX className="w-4 h-4 text-white" /> : <Volume2 className="w-4 h-4 text-white" />}
+                        </button>
+                        <button onClick={ytRestart} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                          <RotateCcw className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <iframe 
+                    src="https://www.youtube.com/embed/5CE8W8bclJY?rel=0&modestbranding=1" 
+                    title="Video MRO"
+                    className="w-full h-full" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen 
+                  />
+                )}
               </div>
             </div>
           </div>
