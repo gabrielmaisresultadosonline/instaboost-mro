@@ -65,6 +65,8 @@ import RateLimitHard from "./pages/RateLimitHard";
 import InteligenciaFotos from "./pages/InteligenciaFotos";
 import InteligenciaFotosDashboard from "./pages/InteligenciaFotosDashboard";
 import InteligenciaFotosAdmin from "./pages/InteligenciaFotosAdmin";
+import Live from "./pages/Live";
+import LiveAdmin from "./pages/LiveAdmin";
 
 const queryClient = new QueryClient();
 
@@ -138,6 +140,8 @@ const App = () => (
           <Route path="/inteligenciafotos" element={<InteligenciaFotos />} />
           <Route path="/inteligenciafotos/dashboard" element={<InteligenciaFotosDashboard />} />
           <Route path="/inteligenciafotos/admin" element={<InteligenciaFotosAdmin />} />
+          <Route path="/live" element={<Live />} />
+          <Route path="/live/admin" element={<LiveAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

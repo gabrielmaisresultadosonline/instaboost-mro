@@ -928,6 +928,128 @@ export type Database = {
         }
         Relationships: []
       }
+      live_analytics: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          id: string
+          session_id: string
+          updated_at: string
+          user_agent: string | null
+          visitor_id: string
+          watch_percentage: number
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          session_id: string
+          updated_at?: string
+          user_agent?: string | null
+          visitor_id: string
+          watch_percentage?: number
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          session_id?: string
+          updated_at?: string
+          user_agent?: string | null
+          visitor_id?: string
+          watch_percentage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_analytics_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_sessions: {
+        Row: {
+          created_at: string
+          cta_button_link: string | null
+          cta_button_text: string | null
+          cta_description: string | null
+          cta_title: string | null
+          description: string | null
+          ended_at: string | null
+          fake_viewers_max: number
+          fake_viewers_min: number
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          video_url: string | null
+          whatsapp_group_link: string | null
+        }
+        Insert: {
+          created_at?: string
+          cta_button_link?: string | null
+          cta_button_text?: string | null
+          cta_description?: string | null
+          cta_title?: string | null
+          description?: string | null
+          ended_at?: string | null
+          fake_viewers_max?: number
+          fake_viewers_min?: number
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          whatsapp_group_link?: string | null
+        }
+        Update: {
+          created_at?: string
+          cta_button_link?: string | null
+          cta_button_text?: string | null
+          cta_description?: string | null
+          cta_title?: string | null
+          description?: string | null
+          ended_at?: string | null
+          fake_viewers_max?: number
+          fake_viewers_min?: number
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          whatsapp_group_link?: string | null
+        }
+        Relationships: []
+      }
+      live_settings: {
+        Row: {
+          admin_email: string
+          admin_password: string
+          created_at: string
+          default_whatsapp_group: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          default_whatsapp_group?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          default_whatsapp_group?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metodo_seguidor_admins: {
         Row: {
           created_at: string
