@@ -44,7 +44,7 @@ const LiveAdmin = () => {
 
   // Settings
   const [defaultWhatsApp, setDefaultWhatsApp] = useState("");
-  const [vpsUrl, setVpsUrl] = useState(() => localStorage.getItem("live_vps_url") || "http://72.60.250.206");
+  const [vpsUrl, setVpsUrl] = useState(() => localStorage.getItem("live_vps_url") || "https://video.maisresultadosonline.com.br");
 
   // Previously uploaded videos
   const [serverVideos, setServerVideos] = useState<any[]>([]);
