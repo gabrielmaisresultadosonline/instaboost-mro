@@ -980,6 +980,7 @@ export type Database = {
           ended_at: string | null
           fake_viewers_max: number
           fake_viewers_min: number
+          hls_url: string | null
           id: string
           status: string
           title: string
@@ -997,6 +998,7 @@ export type Database = {
           ended_at?: string | null
           fake_viewers_max?: number
           fake_viewers_min?: number
+          hls_url?: string | null
           id?: string
           status?: string
           title?: string
@@ -1014,6 +1016,7 @@ export type Database = {
           ended_at?: string | null
           fake_viewers_max?: number
           fake_viewers_min?: number
+          hls_url?: string | null
           id?: string
           status?: string
           title?: string
