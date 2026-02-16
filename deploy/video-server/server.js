@@ -16,7 +16,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const PORT = process.env.VIDEO_PORT || 3001;
+const PORT = process.env.VIDEO_PORT || 3002;
 const VIDEOS_DIR = process.env.VIDEOS_DIR || '/var/www/ia-mro/videos';
 const HLS_DIR = path.join(VIDEOS_DIR, 'hls');
 
