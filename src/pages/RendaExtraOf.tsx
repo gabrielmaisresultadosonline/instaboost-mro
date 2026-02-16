@@ -471,9 +471,13 @@ const RendaExtraOf = () => {
                 {pageMode === 'free' ? (
                   <>
                     <div ref={ytContainerRef} className="w-full h-full" />
+                    {/* Cover YouTube branding: title bar top, share buttons top-right, YouTube logo bottom-right */}
+                    <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
+                    <div className="absolute top-0 right-0 w-48 h-20 bg-gradient-to-bl from-black to-transparent pointer-events-none z-10" />
+                    <div className="absolute bottom-0 right-0 w-36 h-14 bg-gradient-to-tl from-black to-transparent pointer-events-none z-10" />
                     {/* Custom Controls Overlay */}
                     {ytReady && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 flex items-center gap-3">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 flex items-center gap-3 z-20">
                         <button onClick={ytTogglePlay} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
                           {ytPlaying ? <Pause className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white ml-0.5" />}
                         </button>
