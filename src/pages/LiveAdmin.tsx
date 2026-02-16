@@ -45,6 +45,11 @@ const LiveAdmin = () => {
   // Settings
   const [defaultWhatsApp, setDefaultWhatsApp] = useState("");
 
+  // Previously uploaded videos
+  const [serverVideos, setServerVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const [showVideoList, setShowVideoList] = useState(false);
+
   const getVideoServerUrl = () => {
     // In production, use same origin (Nginx proxies /api/video to Node.js)
     return window.location.origin;
@@ -91,6 +96,37 @@ const LiveAdmin = () => {
       body: { action: "getSettings" },
     });
     setDefaultWhatsApp(data?.settings?.default_whatsapp_group || "");
+  };
+
+  const loadServerVideos = async () => {
+    setLoadingVideos(true);
+    try {
+      const baseUrl = getVideoServerUrl();
+      const res = await fetch(`${baseUrl}/api/video/list`);
+      const data = await res.json();
+      if (data?.success) {
+        setServerVideos(data.files || []);
+      }
+    } catch {
+      // Server might not be accessible
+      setServerVideos([]);
+    } finally {
+      setLoadingVideos(false);
+    }
+  };
+
+  const selectExistingVideo = (video: any) => {
+    const baseName = video.name.replace(/\.[^.]+$/, '');
+    const hlsUrl = `/videos/hls/${baseName}/master.m3u8`;
+    setNewLive((prev) => ({ ...prev, video_url: video.url, hls_url: hlsUrl }));
+    setShowVideoList(false);
+    toast.success("Vídeo selecionado!");
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
+    return `${(bytes / 1024).toFixed(0)} KB`;
   };
 
   const createLive = async () => {
@@ -363,14 +399,54 @@ const LiveAdmin = () => {
                       </label>
                     </div>
                   ) : (
-                    <label className="flex items-center gap-3 cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg px-4 py-6 hover:border-red-500 transition text-center justify-center">
-                      <Upload className="w-6 h-6 text-gray-400" />
-                      <div>
-                        <span className="text-gray-300 text-sm block">Clique para enviar o vídeo (MP4, até 3GB)</span>
-                        <span className="text-gray-500 text-xs">Será hospedado diretamente no seu servidor</span>
-                      </div>
-                      <input type="file" accept="video/*" className="hidden" onChange={(e) => handleVideoUpload(e)} />
-                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-3 cursor-pointer bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg px-4 py-6 hover:border-red-500 transition text-center justify-center">
+                        <Upload className="w-6 h-6 text-gray-400" />
+                        <div>
+                          <span className="text-gray-300 text-sm block">Clique para enviar um novo vídeo (MP4, até 3GB)</span>
+                          <span className="text-gray-500 text-xs">Será hospedado diretamente no seu servidor</span>
+                        </div>
+                        <input type="file" accept="video/*" className="hidden" onChange={(e) => handleVideoUpload(e)} />
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => { setShowVideoList(!showVideoList); if (!showVideoList) loadServerVideos(); }}
+                        className="w-full text-sm text-blue-400 hover:text-blue-300 bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition hover:border-blue-500/50"
+                      >
+                        <Play className="w-4 h-4" />
+                        Usar vídeo já enviado anteriormente
+                      </button>
+
+                      {showVideoList && (
+                        <div className="bg-gray-800 border border-gray-700 rounded-lg max-h-60 overflow-y-auto">
+                          {loadingVideos ? (
+                            <div className="flex items-center justify-center py-6 gap-2 text-gray-400 text-sm">
+                              <Loader2 className="w-4 h-4 animate-spin" /> Carregando vídeos do servidor...
+                            </div>
+                          ) : serverVideos.length === 0 ? (
+                            <div className="text-center py-6 text-gray-500 text-sm">
+                              Nenhum vídeo encontrado no servidor
+                            </div>
+                          ) : (
+                            serverVideos.map((v) => (
+                              <button
+                                key={v.name}
+                                type="button"
+                                onClick={() => selectExistingVideo(v)}
+                                className="w-full text-left px-4 py-3 hover:bg-gray-700/50 border-b border-gray-700/50 last:border-b-0 flex items-center gap-3 transition"
+                              >
+                                <Play className="w-4 h-4 text-red-400 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-gray-200 truncate">{v.name}</p>
+                                  <p className="text-xs text-gray-500">{formatFileSize(v.size)} • {new Date(v.created).toLocaleDateString('pt-BR')}</p>
+                                </div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 
