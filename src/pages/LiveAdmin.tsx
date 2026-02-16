@@ -44,6 +44,7 @@ const LiveAdmin = () => {
 
   // Settings
   const [defaultWhatsApp, setDefaultWhatsApp] = useState("");
+  const [vpsUrl, setVpsUrl] = useState(() => localStorage.getItem("live_vps_url") || "");
 
   // Previously uploaded videos
   const [serverVideos, setServerVideos] = useState<any[]>([]);
@@ -51,7 +52,9 @@ const LiveAdmin = () => {
   const [showVideoList, setShowVideoList] = useState(false);
 
   const getVideoServerUrl = () => {
-    // In production, use same origin (Nginx proxies /api/video to Node.js)
+    // Use configured VPS URL, fallback to same origin
+    const stored = vpsUrl || localStorage.getItem("live_vps_url");
+    if (stored) return stored.replace(/\/$/, '');
     return window.location.origin;
   };
 
@@ -580,6 +583,19 @@ const LiveAdmin = () => {
             <h2 className="text-lg font-bold flex items-center gap-2">
               <Settings className="w-5 h-5" /> Configurações
             </h2>
+            <div>
+              <label className="text-sm text-gray-400 mb-1 block">🌐 URL do VPS (domínio do servidor de vídeo)</label>
+              <Input 
+                placeholder="https://seu-dominio.com" 
+                value={vpsUrl} 
+                onChange={(e) => {
+                  setVpsUrl(e.target.value);
+                  localStorage.setItem("live_vps_url", e.target.value);
+                }} 
+                className="bg-gray-800 border-gray-700 text-white" 
+              />
+              <p className="text-xs text-gray-500 mt-1">Ex: https://seudominio.com — necessário para upload de vídeos grandes (até 3GB)</p>
+            </div>
             <div>
               <label className="text-sm text-gray-400 mb-1 block">Link padrão do Grupo WhatsApp</label>
               <Input placeholder="https://chat.whatsapp.com/..." value={defaultWhatsApp} onChange={(e) => setDefaultWhatsApp(e.target.value)} className="bg-gray-800 border-gray-700 text-white" />
