@@ -57,6 +57,7 @@ import TesteGratisAdmin from "./pages/TesteGratisAdmin";
 import TesteGratisUsuario from "./pages/TesteGratisUsuario";
 import RendaExtra from "./pages/RendaExtra";
 import RendaExtraAdmin from "./pages/RendaExtraAdmin";
+import RendaExtraOf from "./pages/RendaExtraOf";
 import CorretorMRO from "./pages/CorretorMRO";
 import CorretorMROAdmin from "./pages/CorretorMROAdmin";
 import CorretorMROObrigado from "./pages/CorretorMROObrigado";
@@ -129,6 +130,7 @@ const App = () => (
           <Route path="/testegratis/usuario" element={<TesteGratisUsuario />} />
           <Route path="/rendaextra" element={<RendaExtra />} />
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
+          <Route path="/rendaextraof" element={<RendaExtraOf />} />
           <Route path="/corretormro" element={<CorretorMRO />} />
           <Route path="/corretormro/admin" element={<CorretorMROAdmin />} />
           <Route path="/corretormro/obrigado" element={<CorretorMROObrigado />} />
