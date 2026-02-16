@@ -18,6 +18,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { action, email, password, settings: newSettings } = await req.json();
 
+    // Public settings (no auth required)
+    if (action === "getPublicSettings") {
+      const { data: settings } = await supabase
+        .from("renda_extra_settings")
+        .select("launch_date")
+        .limit(1)
+        .single();
+
+      return new Response(JSON.stringify({ success: true, launch_date: settings?.launch_date }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Login action
     if (action === "login") {
       const { data: settingsData } = await supabase

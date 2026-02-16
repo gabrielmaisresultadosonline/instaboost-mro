@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/renda-extra-hero.png";
 import logoMro from "@/assets/logo-mro-white.png";
+import MoneyParticles from "@/components/MoneyParticles";
 import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2, X } from "lucide-react";
 
 const RendaExtra = () => {
@@ -28,6 +29,7 @@ const RendaExtra = () => {
 
   const [showNoComputerWarning, setShowNoComputerWarning] = useState(false);
   const [canProceedAfterWarning, setCanProceedAfterWarning] = useState(false);
+  const [launchDateText, setLaunchDateText] = useState("21 de Janeiro de 2026");
 
   // Steps are dynamic now - if user doesn't work, skip salary question
   const getEffectiveTotalSteps = () => {
@@ -37,7 +39,23 @@ const RendaExtra = () => {
 
   useEffect(() => {
     trackVisit();
+    fetchLaunchDate();
   }, []);
+
+  const fetchLaunchDate = async () => {
+    try {
+      const response = await supabase.functions.invoke("renda-extra-admin", {
+        body: { action: "getPublicSettings" }
+      });
+      if (response.data?.launch_date) {
+        const date = new Date(response.data.launch_date);
+        const formatted = date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+        setLaunchDateText(formatted);
+      }
+    } catch (error) {
+      console.error("Error fetching launch date:", error);
+    }
+  };
 
   useEffect(() => {
     if (showForm) {
@@ -543,7 +561,9 @@ const RendaExtra = () => {
         </div>
       )}
 
-    <div className="min-h-screen bg-[#0a0f1a] overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0f1a] overflow-x-hidden relative">
+      {/* Money Particles Background */}
+      <MoneyParticles />
       {/* Hero Section with Image Background */}
       <section className="relative min-h-[90vh] flex flex-col">
         {/* Background Gradients */}
@@ -666,7 +686,7 @@ const RendaExtra = () => {
             Aprenda Grátis!
           </h2>
           <p className="text-gray-500 text-base">
-            Lançamento: <span className="text-yellow-400 font-semibold">21 de Janeiro de 2026</span>
+            Lançamento: <span className="text-yellow-400 font-semibold">{launchDateText}</span>
           </p>
         </div>
       </section>
