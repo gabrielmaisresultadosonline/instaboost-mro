@@ -47,8 +47,21 @@ const upload = multer({
   }
 });
 
-// Upload endpoint
-app.post('/api/video/upload', upload.single('video'), async (req, res) => {
+// Upload endpoint - with explicit CORS and multer error handling
+app.post('/api/video/upload', (req, res, next) => {
+  // Set CORS headers explicitly before multer processes
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  
+  upload.single('video')(req, res, (err) => {
+    if (err) {
+      console.error('[Upload] Multer error:', err.message);
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Nenhum arquivo enviado' });
   }
