@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import {
-  Radio, Play, Pause, StopCircle, Plus, BarChart3, Settings, Upload, Eye, Users, Percent, LogOut, Loader2, CheckCircle, AlertCircle
+  Radio, Play, Pause, StopCircle, Plus, BarChart3, Settings, Upload, Eye, Users, Percent, LogOut, Loader2, CheckCircle, AlertCircle, Trash2
 } from "lucide-react";
 
 const LiveAdmin = () => {
@@ -124,6 +124,23 @@ const LiveAdmin = () => {
     setNewLive((prev) => ({ ...prev, video_url: video.url, hls_url: hlsUrl }));
     setShowVideoList(false);
     toast.success("Vídeo selecionado!");
+  };
+
+  const deleteServerVideo = async (videoName: string) => {
+    if (!confirm(`Tem certeza que deseja excluir "${videoName}"? Esta ação não pode ser desfeita.`)) return;
+    try {
+      const baseUrl = getVideoServerUrl();
+      const res = await fetch(`${baseUrl}/api/video/${encodeURIComponent(videoName)}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data?.success) {
+        toast.success("Vídeo excluído com sucesso!");
+        setServerVideos((prev) => prev.filter((v) => v.name !== videoName));
+      } else {
+        toast.error("Erro ao excluir vídeo");
+      }
+    } catch {
+      toast.error("Erro ao conectar com o servidor de vídeo");
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -452,18 +469,30 @@ const LiveAdmin = () => {
                             </div>
                           ) : (
                             serverVideos.map((v) => (
-                              <button
+                              <div
                                 key={v.name}
-                                type="button"
-                                onClick={() => selectExistingVideo(v)}
-                                className="w-full text-left px-4 py-3 hover:bg-gray-700/50 border-b border-gray-700/50 last:border-b-0 flex items-center gap-3 transition"
+                                className="w-full px-4 py-3 hover:bg-gray-700/50 border-b border-gray-700/50 last:border-b-0 flex items-center gap-3 transition"
                               >
-                                <Play className="w-4 h-4 text-red-400 shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm text-gray-200 truncate">{v.name}</p>
-                                  <p className="text-xs text-gray-500">{formatFileSize(v.size)} • {new Date(v.created).toLocaleDateString('pt-BR')}</p>
-                                </div>
-                              </button>
+                                <button
+                                  type="button"
+                                  onClick={() => selectExistingVideo(v)}
+                                  className="flex-1 flex items-center gap-3 text-left min-w-0"
+                                >
+                                  <Play className="w-4 h-4 text-red-400 shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-200 truncate">{v.name}</p>
+                                    <p className="text-xs text-gray-500">{formatFileSize(v.size)} • {new Date(v.created).toLocaleDateString('pt-BR')}</p>
+                                  </div>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); deleteServerVideo(v.name); }}
+                                  className="p-1.5 rounded hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition shrink-0"
+                                  title="Excluir vídeo"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             ))
                           )}
                         </div>
