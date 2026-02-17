@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Radio, ExternalLink, MessageCircle, MessageSquareOff } from "lucide-react";
+import { Users, Radio, ExternalLink, MessageCircle, MessageSquareOff, Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Hls from "hls.js";
 
@@ -11,8 +11,13 @@ const Live = () => {
   const [watchPercentage, setWatchPercentage] = useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
   const [hlsReady, setHlsReady] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [showControls, setShowControls] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const visitorIdRef = useRef(
     localStorage.getItem("live_visitor_id") || `v_${Date.now()}_${Math.random().toString(36).slice(2)}`
   );
@@ -222,6 +227,55 @@ const Live = () => {
     };
   }, [session, sendAnalytics]);
 
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play();
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const changeVolume = (delta: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const newVol = Math.max(0, Math.min(1, video.volume + delta));
+    video.volume = newVol;
+    setVolume(newVol);
+  };
+
+  const toggleFullscreen = () => {
+    const container = videoContainerRef.current;
+    if (!container) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      container.requestFullscreen();
+    }
+  };
+
+  const handleVideoContainerMove = () => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2500);
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    video.addEventListener("play", onPlay);
+    video.addEventListener("pause", onPause);
+    return () => {
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("pause", onPause);
+    };
+  }, [session]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -288,15 +342,21 @@ const Live = () => {
               </p>
             </div>
 
-            <div className="relative rounded-lg sm:rounded-2xl overflow-hidden bg-black shadow-2xl shadow-red-500/10 border border-white/10">
+            <div
+              ref={videoContainerRef}
+              className="relative rounded-lg sm:rounded-2xl overflow-hidden bg-black shadow-2xl shadow-red-500/10 border border-white/10 group"
+              onMouseMove={handleVideoContainerMove}
+              onTouchStart={handleVideoContainerMove}
+              style={{ cursor: showControls ? "default" : "none" }}
+            >
               {session.video_url ? (
                 <video
                   ref={videoRef}
-                  controls
                   autoPlay
                   playsInline
                   className="w-full aspect-video bg-black"
                   style={{ objectFit: "contain" }}
+                  onClick={togglePlay}
                 />
               ) : (
                 <div className="aspect-video flex items-center justify-center">
@@ -304,28 +364,46 @@ const Live = () => {
                 </div>
               )}
 
-              <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded flex items-center gap-1 sm:gap-1.5">
+              <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded flex items-center gap-1 sm:gap-1.5 pointer-events-none">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-pulse" />
                 LIVE
               </div>
 
-              <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/70 backdrop-blur-sm text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1">
+              <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-black/70 backdrop-blur-sm text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex items-center gap-1 pointer-events-none">
                 <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                 <span className="font-medium">{fakeViewers.toLocaleString()}</span>
               </div>
 
-              {hlsReady && (
-                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 bg-black/60 text-white text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded">
+              {/* Custom controls */}
+              <div
+                className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+              >
+                <div className="flex items-center gap-3">
+                  <button onClick={togglePlay} className="text-white hover:text-red-400 transition-colors">
+                    {isPlaying ? <Pause className="w-6 h-6 sm:w-7 sm:h-7" /> : <Play className="w-6 h-6 sm:w-7 sm:h-7" />}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <button onClick={() => changeVolume(-0.1)} className="text-white hover:text-red-400 transition-colors">
+                    <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                  <div className="w-12 sm:w-16 h-1 bg-white/30 rounded-full overflow-hidden">
+                    <div className="h-full bg-white rounded-full" style={{ width: `${volume * 100}%` }} />
+                  </div>
+                  <button onClick={() => changeVolume(0.1)} className="text-white hover:text-red-400 transition-colors">
+                    <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                  <button onClick={toggleFullscreen} className="text-white hover:text-red-400 transition-colors ml-1 sm:ml-2">
+                    <Maximize className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {hlsReady && showControls && (
+                <div className="absolute bottom-12 sm:bottom-14 right-2 sm:right-4 bg-black/60 text-white text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded pointer-events-none">
                   HD
                 </div>
               )}
-            </div>
-
-            <div className="mt-1.5 sm:mt-2 bg-gray-800 rounded-full h-0.5 sm:h-1">
-              <div
-                className="bg-red-500 h-0.5 sm:h-1 rounded-full transition-all duration-300"
-                style={{ width: `${watchPercentage}%` }}
-              />
             </div>
           </div>
 
