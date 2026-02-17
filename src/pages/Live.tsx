@@ -230,6 +230,7 @@ const Live = () => {
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
+    if (videoEnded) return;
     if (video.paused) {
       video.play();
       setIsPlaying(true);
