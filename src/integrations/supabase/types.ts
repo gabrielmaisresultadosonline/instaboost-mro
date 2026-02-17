@@ -928,6 +928,63 @@ export type Database = {
         }
         Relationships: []
       }
+      license_keys: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          last_validated_at: string | null
+          license_key: string
+          password: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          last_validated_at?: string | null
+          license_key: string
+          password: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          last_validated_at?: string | null
+          license_key?: string
+          password?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      license_settings: {
+        Row: {
+          admin_email: string
+          admin_password: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       live_analytics: {
         Row: {
           created_at: string
