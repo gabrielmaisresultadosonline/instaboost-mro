@@ -44,8 +44,8 @@ const InstagramNovaPromo = () => {
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
   
-  // Popup de desconto encerrado
-  const [showDiscountEndedPopup, setShowDiscountEndedPopup] = useState(true);
+  // Popup de desconto encerrado - DESATIVADO
+  const [showDiscountEndedPopup] = useState(false);
   
   // Countdown para promoção - 8 horas a partir do primeiro acesso
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
