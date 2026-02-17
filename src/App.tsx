@@ -67,6 +67,7 @@ import InteligenciaFotosDashboard from "./pages/InteligenciaFotosDashboard";
 import InteligenciaFotosAdmin from "./pages/InteligenciaFotosAdmin";
 import Live from "./pages/Live";
 import LiveAdmin from "./pages/LiveAdmin";
+import LicencaAdmin from "./pages/LicencaAdmin";
 
 const queryClient = new QueryClient();
 
@@ -142,6 +143,7 @@ const App = () => (
           <Route path="/inteligenciafotos/admin" element={<InteligenciaFotosAdmin />} />
           <Route path="/live" element={<Live />} />
           <Route path="/live/admin" element={<LiveAdmin />} />
+          <Route path="/licencaadmin" element={<LicencaAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
