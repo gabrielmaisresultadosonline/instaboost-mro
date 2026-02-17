@@ -195,26 +195,45 @@ const LiveAdmin = () => {
       const formData = new FormData();
       formData.append("video", file);
 
-      // Use XMLHttpRequest for progress tracking
+      // Use XMLHttpRequest for progress tracking with extended timeout
       const result = await new Promise<any>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", `${baseUrl}/api/video/upload`);
+        xhr.timeout = 7200000; // 2 hours timeout for large files
+
+        let lastProgressTime = Date.now();
+        let lastLoaded = 0;
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             const pct = Math.round((e.loaded / e.total) * 100);
             setUploadProgress(pct);
+            lastProgressTime = Date.now();
+            lastLoaded = e.loaded;
+            
+            // Log speed for debugging
+            const elapsed = (Date.now() - lastProgressTime) / 1000;
+            if (pct % 10 === 0) {
+              const mbSent = (e.loaded / (1024 * 1024)).toFixed(1);
+              const mbTotal = (e.total / (1024 * 1024)).toFixed(1);
+              console.log(`[Upload] ${pct}% - ${mbSent}MB / ${mbTotal}MB`);
+            }
           }
         };
 
         xhr.onload = () => {
           if (xhr.status === 200) {
-            resolve(JSON.parse(xhr.responseText));
+            try {
+              resolve(JSON.parse(xhr.responseText));
+            } catch {
+              reject(new Error("Resposta inválida do servidor"));
+            }
           } else {
-            reject(new Error(`Upload failed: ${xhr.statusText}`));
+            reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
           }
         };
 
+        xhr.ontimeout = () => reject(new Error("Upload expirou por timeout. Tente um arquivo menor ou verifique a conexão."));
         xhr.onerror = () => reject(new Error("Upload falhou - verifique se o video server está rodando no VPS"));
         xhr.send(formData);
       });
