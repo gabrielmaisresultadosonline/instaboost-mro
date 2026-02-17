@@ -1,9 +1,9 @@
 const express = require('express');
-const multer = require('multer');
-const { exec, spawn } = require('child_process');
+const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const Busboy = require('busboy');
 
 const app = express();
 app.use(cors());
@@ -11,7 +11,7 @@ app.use(express.json());
 
 // Increase timeout for large uploads (2 hours)
 app.use((req, res, next) => {
-  req.setTimeout(7200000); // 2 hours
+  req.setTimeout(7200000);
   res.setTimeout(7200000);
   next();
 });
@@ -20,79 +20,154 @@ const PORT = process.env.VIDEO_PORT || 3002;
 const VIDEOS_DIR = process.env.VIDEOS_DIR || '/var/www/ia-mro/videos';
 const HLS_DIR = path.join(VIDEOS_DIR, 'hls');
 
-// Ensure directories exist
 fs.mkdirSync(VIDEOS_DIR, { recursive: true });
 fs.mkdirSync(HLS_DIR, { recursive: true });
 
-// Track transcoding jobs
 const transcodingJobs = {};
 
-const storage = multer.diskStorage({
-  destination: VIDEOS_DIR,
-  filename: (req, file, cb) => {
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    cb(null, `${Date.now()}-${safeName}`);
-  }
+// Prevent server from crashing on unhandled errors
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught Exception:', err.message);
+  console.error(err.stack);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('[FATAL] Unhandled Rejection:', err);
 });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 3 * 1024 * 1024 * 1024 }, // 3GB
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('video/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Apenas arquivos de vídeo são aceitos'));
-    }
-  }
-});
-
-// Upload endpoint - with explicit CORS and multer error handling
-app.post('/api/video/upload', (req, res, next) => {
-  // Set CORS headers explicitly before multer processes
+// Upload endpoint - streaming directly to disk (no memory buffering)
+app.post('/api/video/upload', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
-  
-  upload.single('video')(req, res, (err) => {
-    if (err) {
-      console.error('[Upload] Multer error:', err.message);
-      return res.status(400).json({ error: err.message });
-    }
-    next();
-  });
-}, async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+
+  console.log('[Upload] Starting streaming upload...');
+
+  let busboy;
+  try {
+    busboy = Busboy({ 
+      headers: req.headers,
+      limits: { fileSize: 3 * 1024 * 1024 * 1024 } // 3GB
+    });
+  } catch (err) {
+    console.error('[Upload] Busboy init error:', err.message);
+    return res.status(400).json({ error: 'Request inválido: ' + err.message });
   }
 
-  const inputPath = req.file.path;
-  const baseName = path.parse(req.file.filename).name;
-  const outputDir = path.join(HLS_DIR, baseName);
-  const directUrl = `/videos/${req.file.filename}`;
-  const hlsUrl = `/videos/hls/${baseName}/master.m3u8`;
+  let savedFile = null;
+  let fileWritten = false;
 
-  fs.mkdirSync(outputDir, { recursive: true });
+  busboy.on('file', (fieldname, file, info) => {
+    const { filename, mimeType } = info;
+    console.log(`[Upload] Receiving file: ${filename} (${mimeType})`);
 
-  // Return direct URL immediately so live can start
-  res.json({
-    success: true,
-    video_url: directUrl,
-    hls_url: hlsUrl,
-    job_id: baseName,
-    message: 'Upload concluído. Transcoding HLS iniciado em background.'
+    if (!mimeType.startsWith('video/')) {
+      file.resume(); // drain the stream
+      return res.status(400).json({ error: 'Apenas arquivos de vídeo são aceitos' });
+    }
+
+    const safeName = (filename || 'video.mp4').replace(/[^a-zA-Z0-9.-]/g, '_');
+    const finalName = `${Date.now()}-${safeName}`;
+    const filePath = path.join(VIDEOS_DIR, finalName);
+
+    savedFile = { filename: finalName, path: filePath };
+
+    const writeStream = fs.createWriteStream(filePath);
+    let bytesReceived = 0;
+
+    file.on('data', (chunk) => {
+      bytesReceived += chunk.length;
+      // Log progress every 100MB
+      if (bytesReceived % (100 * 1024 * 1024) < chunk.length) {
+        const mb = (bytesReceived / (1024 * 1024)).toFixed(1);
+        console.log(`[Upload] ${finalName}: ${mb}MB received`);
+      }
+    });
+
+    file.pipe(writeStream);
+
+    writeStream.on('finish', () => {
+      fileWritten = true;
+      const mb = (bytesReceived / (1024 * 1024)).toFixed(1);
+      console.log(`[Upload] File saved: ${finalName} (${mb}MB)`);
+    });
+
+    writeStream.on('error', (err) => {
+      console.error('[Upload] Write error:', err.message);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Erro ao salvar arquivo: ' + err.message });
+      }
+    });
+
+    file.on('limit', () => {
+      console.error('[Upload] File size limit exceeded');
+      writeStream.destroy();
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      if (!res.headersSent) {
+        res.status(413).json({ error: 'Arquivo excede o limite de 3GB' });
+      }
+    });
   });
 
-  // Start HLS transcoding in background
-  transcodingJobs[baseName] = { status: 'processing', progress: 0 };
-  transcodeToHLS(inputPath, outputDir, baseName);
+  busboy.on('finish', () => {
+    if (res.headersSent) return;
+
+    if (!savedFile || !fileWritten) {
+      // Wait a bit for writeStream to finish
+      const checkInterval = setInterval(() => {
+        if (fileWritten || !savedFile) {
+          clearInterval(checkInterval);
+          sendResponse();
+        }
+      }, 100);
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        sendResponse();
+      }, 5000);
+    } else {
+      sendResponse();
+    }
+
+    function sendResponse() {
+      if (res.headersSent) return;
+      if (!savedFile) {
+        return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+      }
+
+      const baseName = path.parse(savedFile.filename).name;
+      const outputDir = path.join(HLS_DIR, baseName);
+      const directUrl = `/videos/${savedFile.filename}`;
+      const hlsUrl = `/videos/hls/${baseName}/master.m3u8`;
+
+      fs.mkdirSync(outputDir, { recursive: true });
+
+      console.log(`[Upload] Complete! Responding with URLs...`);
+      res.json({
+        success: true,
+        video_url: directUrl,
+        hls_url: hlsUrl,
+        job_id: baseName,
+        message: 'Upload concluído. Transcoding HLS iniciado em background.'
+      });
+
+      transcodingJobs[baseName] = { status: 'processing', progress: 0 };
+      transcodeToHLS(savedFile.path, outputDir, baseName);
+    }
+  });
+
+  busboy.on('error', (err) => {
+    console.error('[Upload] Busboy error:', err.message);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Erro no upload: ' + err.message });
+    }
+  });
+
+  req.pipe(busboy);
 });
 
 // Check transcoding status
 app.get('/api/video/status/:jobId', (req, res) => {
   const job = transcodingJobs[req.params.jobId];
   if (!job) {
-    // Check if HLS files exist
     const masterPath = path.join(HLS_DIR, req.params.jobId, 'master.m3u8');
     if (fs.existsSync(masterPath)) {
       return res.json({ status: 'completed', progress: 100 });
@@ -139,7 +214,6 @@ async function transcodeToHLS(inputPath, outputDir, jobId) {
   console.log(`[HLS] Starting transcoding for ${jobId}`);
 
   try {
-    // Get video info first
     const probeCmd = `ffprobe -v quiet -print_format json -show_streams "${inputPath}"`;
     const videoInfo = await execPromise(probeCmd);
     const streams = JSON.parse(videoInfo);
@@ -155,7 +229,6 @@ async function transcodeToHLS(inputPath, outputDir, jobId) {
       qualities.push({ h: 480, br: '800k', maxrate: '856k', bufsize: '1200k', crf: 28 });
     }
 
-    // Transcode each quality sequentially
     for (let i = 0; i < qualities.length; i++) {
       const q = qualities[i];
       const progress = Math.round(((i) / qualities.length) * 100);
@@ -181,7 +254,6 @@ async function transcodeToHLS(inputPath, outputDir, jobId) {
       console.log(`[HLS] ${q.h}p done!`);
     }
 
-    // Create master playlist
     let masterPlaylist = '#EXTM3U\n#EXT-X-VERSION:3\n';
     for (const q of qualities) {
       const bandwidth = parseInt(q.br) * 1000;
