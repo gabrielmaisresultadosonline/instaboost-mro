@@ -46,11 +46,11 @@ const Live = () => {
     const videoUrl = session.video_url;
     if (!videoUrl) return;
 
-    const baseUrl = window.location.origin;
+    const VIDEO_SERVER = "https://video.maisresultadosonline.com.br";
     const hlsUrl = session.hls_url || null;
-    const isRelativeUrl = videoUrl.startsWith("/videos/");
-    const fullVideoUrl = isRelativeUrl ? `${baseUrl}${videoUrl}` : videoUrl;
-    const fullHlsUrl = hlsUrl ? (hlsUrl.startsWith("/") ? `${baseUrl}${hlsUrl}` : hlsUrl) : null;
+    const isRelativeUrl = videoUrl.startsWith("/videos/") || videoUrl.startsWith("/hls/");
+    const fullVideoUrl = isRelativeUrl ? `${VIDEO_SERVER}${videoUrl}` : videoUrl;
+    const fullHlsUrl = hlsUrl ? (hlsUrl.startsWith("/") ? `${VIDEO_SERVER}${hlsUrl}` : hlsUrl) : null;
 
     if (fullHlsUrl && Hls.isSupported()) {
       const tryHls = async () => {
