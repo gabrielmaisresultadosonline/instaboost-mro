@@ -88,7 +88,7 @@ serve(async (req) => {
       },
     });
 
-    const memberAreaUrl = 'https://maisresultadosonline.com.br';
+    const memberAreaUrl = 'https://maisresultadosonline.com.br/areademembros';
 
     const htmlContent = `<!DOCTYPE html>
 <html>
