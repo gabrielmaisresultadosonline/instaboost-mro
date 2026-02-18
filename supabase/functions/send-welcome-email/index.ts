@@ -12,8 +12,8 @@ const logStep = (step: string, details?: any) => {
   console.log(`[SEND-WELCOME-EMAIL] ${step}${detailsStr}`);
 };
 
-// Default WhatsApp group link (fallback)
 const DEFAULT_WHATSAPP_GROUP = 'https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi';
+const SUPPORT_WHATSAPP = 'https://wa.me/5551920365400';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -41,12 +41,10 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Try to get admin settings for WhatsApp group link
     let whatsappGroupLink = DEFAULT_WHATSAPP_GROUP;
     try {
       const { data, error } = await supabase.storage
@@ -65,7 +63,6 @@ serve(async (req) => {
       logStep("Could not load admin settings, using default WhatsApp link");
     }
 
-    // Format days remaining display
     let daysDisplay = '';
     let daysStyle = '';
     if (daysRemaining && daysRemaining > 365) {
@@ -107,52 +104,25 @@ serve(async (req) => {
 <tr>
 <td style="padding:30px;background:#ffffff;">
 
-<!-- Welcome Message -->
 <div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:20px;border-radius:10px;margin-bottom:25px;text-align:center;">
 <p style="margin:0;color:#fff;font-size:18px;font-weight:bold;">✨ Parabéns! Você está no caminho certo!</p>
 </div>
 
 <p style="margin:0 0 20px 0;font-size:16px;">Olá!</p>
-
 <p style="margin:0 0 15px 0;font-size:16px;">Já reconheci seu <strong>primeiro acesso</strong> à nossa ferramenta <strong>MRO</strong>! 🚀</p>
-
 <p style="margin:0 0 15px 0;font-size:16px;">A partir de agora, você vai:</p>
 
 <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px 0;">
-<tr>
-<td style="padding:8px 0;">
-<span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">📈</span>
-<span style="color:#333;">Aumentar suas <strong>visualizações</strong></span>
-</td>
-</tr>
-<tr>
-<td style="padding:8px 0;">
-<span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">💬</span>
-<span style="color:#333;">Melhorar seu <strong>engajamento</strong></span>
-</td>
-</tr>
-<tr>
-<td style="padding:8px 0;">
-<span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">👥</span>
-<span style="color:#333;">Conquistar mais <strong>seguidores</strong></span>
-</td>
-</tr>
-<tr>
-<td style="padding:8px 0;">
-<span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">🎯</span>
-<span style="color:#333;">E <strong>muito mais!</strong></span>
-</td>
-</tr>
+<tr><td style="padding:8px 0;"><span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">📈</span><span style="color:#333;">Aumentar suas <strong>visualizações</strong></span></td></tr>
+<tr><td style="padding:8px 0;"><span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">💬</span><span style="color:#333;">Melhorar seu <strong>engajamento</strong></span></td></tr>
+<tr><td style="padding:8px 0;"><span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">👥</span><span style="color:#333;">Conquistar mais <strong>seguidores</strong></span></td></tr>
+<tr><td style="padding:8px 0;"><span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">🎯</span><span style="color:#333;">E <strong>muito mais!</strong></span></td></tr>
 </table>
 
 <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:15px;margin:20px 0;border-radius:0 8px 8px 0;">
-<p style="margin:0;color:#856404;font-size:15px;">
-<strong>💛 A MRO não é só uma ferramenta, é uma família de apoio!</strong><br>
-Você receberá sempre novidades em primeira mão dentro da nossa área.
-</p>
+<p style="margin:0;color:#856404;font-size:15px;"><strong>💛 A MRO não é só uma ferramenta, é uma família de apoio!</strong><br>Você receberá sempre novidades em primeira mão dentro da nossa área.</p>
 </div>
 
-<!-- Access Credentials -->
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border:2px solid #FFD700;border-radius:10px;margin:20px 0;">
 <tr>
 <td style="padding:20px;">
@@ -162,13 +132,8 @@ Você receberá sempre novidades em primeira mão dentro da nossa área.
 <td style="padding:12px;background:#f8f9fa;border-radius:5px;margin-bottom:10px;">
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
-<td>
-<span style="font-size:12px;color:#666;display:block;">Usuário:</span>
-<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${username}</span>
-</td>
-<td width="40" style="text-align:right;vertical-align:middle;">
-<span style="font-size:18px;" title="Copie o usuário">📋</span>
-</td>
+<td><span style="font-size:12px;color:#666;display:block;">Usuário:</span><span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${username}</span></td>
+<td width="40" style="text-align:right;vertical-align:middle;"><span style="font-size:18px;" title="Copie o usuário">📋</span></td>
 </tr>
 </table>
 </td>
@@ -178,68 +143,31 @@ Você receberá sempre novidades em primeira mão dentro da nossa área.
 <td style="padding:12px;background:#f8f9fa;border-radius:5px;">
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
-<td>
-<span style="font-size:12px;color:#666;display:block;">Senha:</span>
-<span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${password}</span>
-</td>
-<td width="40" style="text-align:right;vertical-align:middle;">
-<span style="font-size:18px;" title="Copie a senha">📋</span>
-</td>
+<td><span style="font-size:12px;color:#666;display:block;">Senha:</span><span style="font-size:18px;color:#000;font-family:monospace;font-weight:bold;">${password}</span></td>
+<td width="40" style="text-align:right;vertical-align:middle;"><span style="font-size:18px;" title="Copie a senha">📋</span></td>
 </tr>
 </table>
 </td>
 </tr>
-${daysDisplay ? `
-<tr><td style="height:10px;"></td></tr>
-<tr>
-<td style="padding:12px;${daysStyle}border-radius:5px;text-align:center;">
-<span style="font-size:14px;font-weight:bold;">⏱️ ${daysDisplay}</span>
-</td>
-</tr>
-` : ''}
+${daysDisplay ? `<tr><td style="height:10px;"></td></tr><tr><td style="padding:12px;${daysStyle}border-radius:5px;text-align:center;"><span style="font-size:14px;font-weight:bold;">⏱️ ${daysDisplay}</span></td></tr>` : ''}
 </table>
 </td>
 </tr>
 </table>
 
-<!-- Important Notice -->
 <div style="background:#e8f5e9;border:1px solid #4caf50;padding:15px;border-radius:8px;margin:20px 0;">
-<p style="margin:0;color:#2e7d32;font-size:14px;">
-<strong>✅ Primeiro passo concluído!</strong><br>
-Seu cadastro e email já estão salvos. A partir de agora, não precisará fazer isso novamente — <strong>vamos manter contato com você por este email</strong> além do nosso WhatsApp de suporte!
-</p>
+<p style="margin:0;color:#2e7d32;font-size:14px;"><strong>✅ Primeiro passo concluído!</strong><br>Seu cadastro e email já estão salvos. A partir de agora, não precisará fazer isso novamente — <strong>vamos manter contato com você por este email</strong> além do nosso WhatsApp de suporte!</p>
 </div>
 
-<!-- Steps -->
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;border-radius:10px;margin:20px 0;">
 <tr>
 <td style="padding:20px;">
 <h3 style="color:#333;margin:0 0 15px 0;font-size:16px;">📝 Próximos Passos:</h3>
 <table width="100%" cellpadding="0" cellspacing="0">
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
-<span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">1</span>
-<span style="color:#333;">Acesse nossa <strong>Área de Membros</strong></span>
-</td>
-</tr>
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
-<span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">2</span>
-<span style="color:#333;">Assista os <strong>vídeos tutoriais</strong></span>
-</td>
-</tr>
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #e0e0e0;">
-<span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">3</span>
-<span style="color:#333;">Entre no <strong>Grupo do WhatsApp</strong> para suporte</span>
-</td>
-</tr>
-<tr>
-<td style="padding:10px 0;">
-<span style="display:inline-block;background:#25D366;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span>
-<span style="color:#333;font-weight:bold;">Pronto! Utilize à vontade!</span>
-</td>
-</tr>
+<tr><td style="padding:10px 0;border-bottom:1px solid #e0e0e0;"><span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">1</span><span style="color:#333;">Acesse nossa <strong>Área de Membros</strong></span></td></tr>
+<tr><td style="padding:10px 0;border-bottom:1px solid #e0e0e0;"><span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">2</span><span style="color:#333;">Assista os <strong>vídeos tutoriais</strong></span></td></tr>
+<tr><td style="padding:10px 0;border-bottom:1px solid #e0e0e0;"><span style="display:inline-block;background:#FFD700;color:#000;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">3</span><span style="color:#333;">Entre no <strong>Grupo do WhatsApp</strong> para suporte</span></td></tr>
+<tr><td style="padding:10px 0;"><span style="display:inline-block;background:#25D366;color:#fff;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-weight:bold;margin-right:10px;">✓</span><span style="color:#333;font-weight:bold;">Pronto! Utilize à vontade!</span></td></tr>
 </table>
 </td>
 </tr>
@@ -248,16 +176,24 @@ Seu cadastro e email já estão salvos. A partir de agora, não precisará fazer
 <!-- CTA Buttons -->
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr>
-<td style="text-align:center;padding:20px 0;">
+<td style="text-align:center;padding:20px 0 10px 0;">
 <a href="${memberAreaUrl}" style="display:inline-block;background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);color:#000;text-decoration:none;padding:15px 40px;border-radius:8px;font-weight:bold;font-size:16px;">🚀 Acessar Área de Membros</a>
 </td>
 </tr>
 </table>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0;">
 <tr>
-<td style="text-align:center;padding:15px;background:#25D366;border-radius:8px;">
-<a href="${whatsappGroupLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:14px;">📱 Entrar no Grupo do WhatsApp (Suporte)</a>
+<td style="text-align:center;padding:12px;background:#25D366;border-radius:8px;">
+<a href="${SUPPORT_WHATSAPP}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:16px;">📱 Falar no WhatsApp com Suporte</a>
+</td>
+</tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 20px 0;">
+<tr>
+<td style="text-align:center;padding:12px;background:#128C7E;border-radius:8px;">
+<a href="${whatsappGroupLink}" style="color:#fff;text-decoration:none;font-weight:bold;font-size:14px;">👥 Entrar no Grupo do WhatsApp</a>
 </td>
 </tr>
 </table>
@@ -284,7 +220,6 @@ Seu cadastro e email já estão salvos. A partir de agora, não precisará fazer
 
     await client.close();
 
-    // Update user session with email
     await supabase.from('user_sessions').update({
       email: email,
       updated_at: new Date().toISOString()
