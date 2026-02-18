@@ -746,11 +746,10 @@ const InstagramNovaP = () => {
               <div className="space-y-2 mb-6">
                 {[
                   "Ferramenta completa para Instagram",
-                  "Acesso a 4 contas simultâneas",
-                  "5 testes no mês",
+                  "Acesso a 1 conta/negócio disponível",
                   "Área de membros por 30 dias",
                   "Grupo VIP no WhatsApp",
-                  "Suporte prioritário"
+                  "Suporte WhatsApp"
                 ].map((feature, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
