@@ -794,7 +794,7 @@ const InstagramNovaP = () => {
 
               <Button 
                 size="lg"
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-black font-black py-5 rounded-xl hover:scale-105 transition-transform text-lg shadow-lg shadow-green-500/40"
+                className="w-full max-w-xs mx-auto block bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-black font-black py-3 px-6 rounded-xl hover:scale-105 transition-transform text-base shadow-lg shadow-green-500/40"
                 onClick={() => {
                   trackLead('Instagram MRO P - Plano Teste 30 Dias');
                   setSelectedPlan("trial");
