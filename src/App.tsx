@@ -65,6 +65,7 @@ import RateLimitHard from "./pages/RateLimitHard";
 import InteligenciaFotos from "./pages/InteligenciaFotos";
 import InteligenciaFotosDashboard from "./pages/InteligenciaFotosDashboard";
 import InteligenciaFotosAdmin from "./pages/InteligenciaFotosAdmin";
+import InstagramNovaP from "./pages/InstagramNovaP";
 import Live from "./pages/Live";
 import LiveAdmin from "./pages/LiveAdmin";
 import LicencaAdmin from "./pages/LicencaAdmin";
@@ -97,6 +98,7 @@ const App = () => (
           <Route path="/instagram-nova-euro-admin" element={<InstagramNovaEuroAdmin />} />
           <Route path="/instagram-nova-promo" element={<InstagramNovaPromo />} />
           <Route path="/instagram-nova-promoo2" element={<InstagramNovaPromoo2 />} />
+          <Route path="/instagram-nova-p" element={<InstagramNovaP />} />
           <Route path="/instagram-promo-mila" element={<InstagramPromoMila />} />
           <Route path="/promo/:affiliateId" element={<AffiliatePromoPage />} />
           <Route path="/resumo/:affiliateId" element={<AffiliateResumo />} />
