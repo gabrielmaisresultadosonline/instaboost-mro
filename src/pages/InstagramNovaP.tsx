@@ -731,7 +731,7 @@ const InstagramNovaP = () => {
               </div>
 
               {/* Pulse animation ring */}
-              <div className="absolute inset-0 rounded-2xl sm:rounded-3xl border-2 border-green-400/30 animate-ping" style={{animationDuration: '2s'}} />
+              <div className="absolute inset-0 rounded-2xl sm:rounded-3xl border-2 border-green-400/30 animate-ping pointer-events-none" style={{animationDuration: '2s'}} />
 
               <h3 className="text-3xl font-bold mb-1 text-center text-green-300 mt-3">Plano Teste 30 Dias</h3>
               <p className="text-gray-400 text-center mb-6 text-sm">Sem recorrência — pague uma vez e teste por 30 dias</p>
