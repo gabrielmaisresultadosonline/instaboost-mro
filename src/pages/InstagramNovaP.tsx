@@ -435,7 +435,7 @@ const InstagramNovaP = () => {
           
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
-            <h1 className="relative text-2xl md:text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
+            <h1 className="relative text-3xl md:text-5xl lg:text-6xl font-black mb-4 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent leading-tight">
               NÃO GASTE MAIS COM ANÚNCIOS
             </h1>
             <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black">
@@ -447,8 +447,9 @@ const InstagramNovaP = () => {
               Instale em seu notebook, macbook ou computador de mesa!
             </p>
             <div className="relative mt-6 inline-block">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-black font-black text-lg md:text-2xl lg:text-3xl px-6 py-3 rounded-2xl shadow-lg shadow-green-500/40 animate-pulse">
-                🔥 TESTE AGORA 30 DIAS POR R$97
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-black font-black text-sm md:text-xl lg:text-2xl px-5 py-3 rounded-2xl shadow-lg shadow-green-500/40 animate-pulse leading-snug">
+                <span className="block sm:inline">🔥 TESTE AGORA</span>
+                <span className="block sm:inline sm:ml-1">30 DIAS POR R$97</span>
               </div>
             </div>
           </div>
