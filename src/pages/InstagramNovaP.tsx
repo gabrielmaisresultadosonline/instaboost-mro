@@ -606,25 +606,53 @@ const InstagramNovaP = () => {
       </section>
 
       {/* Guarantee Section */}
-      <section className="py-16 px-4">
+      <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-3xl p-8 md:p-12 text-center">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <Shield className="w-16 h-16 text-green-400" />
+          <div className="relative bg-gradient-to-br from-green-950/80 to-black border-2 border-green-500/50 rounded-3xl p-8 md:p-14 text-center shadow-2xl shadow-green-500/10 overflow-hidden">
+            {/* Background glow */}
+            <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 to-transparent pointer-events-none" />
+
+            {/* Shield icon with ring */}
+            <div className="relative flex items-center justify-center mb-6">
+              <div className="absolute w-28 h-28 rounded-full bg-green-500/10 animate-ping pointer-events-none" style={{animationDuration: '3s'}} />
+              <div className="relative w-24 h-24 rounded-full bg-green-500/20 border-2 border-green-500/40 flex items-center justify-center">
+                <Shield className="w-12 h-12 text-green-400" />
+              </div>
             </div>
-            <span className="text-green-400 font-bold text-sm tracking-widest">GARANTIA</span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-6">
+
+            <span className="text-green-400 font-bold text-xs tracking-[0.3em] uppercase">GARANTIA TOTAL</span>
+            <h2 className="text-3xl md:text-5xl font-black mt-3 mb-6 leading-tight">
               30 Dias de Resultados <span className="text-green-400">Garantidos</span>
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-6">
-              Nós garantimos engajamento, clientes, público e vendas utilizando nossa ferramenta de modo contínuo. 
-              Se em 30 dias você não estiver completamente satisfeito, <strong className="text-white">devolvemos 100% do seu investimento!</strong>
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-              <span className="bg-green-500/20 rounded-full px-4 py-2 text-green-400">Sem Risco</span>
-              <span className="bg-green-500/20 rounded-full px-4 py-2 text-green-400">Compra Segura</span>
-              <span className="bg-green-500/20 rounded-full px-4 py-2 text-green-400">Satisfação Garantida</span>
+
+            {/* Main guarantee text */}
+            <div className="bg-green-500/10 border border-green-500/30 rounded-2xl px-6 py-5 max-w-2xl mx-auto mb-8">
+              <p className="text-white text-lg md:text-xl leading-relaxed">
+                Se em <strong className="text-green-400">30 dias</strong> não tiver os resultados prometidos,{" "}
+                <strong className="text-white">devolvemos o seu dinheiro.</strong>
+              </p>
+              <p className="text-green-300 font-bold text-lg mt-2">
+                Nós garantimos resultados. Sem risco para você.
+              </p>
             </div>
+
+            {/* Guarantee items */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+              {[
+                { emoji: "🔒", label: "Compra 100% Segura" },
+                { emoji: "💰", label: "Reembolso Garantido" },
+                { emoji: "✅", label: "Satisfação ou Dinheiro de Volta" }
+              ].map((item, i) => (
+                <div key={i} className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 flex items-center gap-2 justify-center">
+                  <span className="text-xl">{item.emoji}</span>
+                  <span className="text-green-300 text-sm font-semibold">{item.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-gray-500 text-sm">
+              Garantia válida por 30 dias após a data da compra. Basta entrar em contato pelo WhatsApp.
+            </p>
           </div>
         </div>
       </section>
