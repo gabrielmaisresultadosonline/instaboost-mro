@@ -46,6 +46,7 @@ interface SalesSettings {
 
 // Valores de produção
 const PLANS = {
+  trial: { name: "Teste 30 Dias", price: 97.00, days: 30, description: "Teste por 30 dias" },
   annual: { name: "Anual", price: 397.00, days: 365, description: "Acesso por 1 ano" },
   lifetime: { name: "Vitalício", price: 797.00, days: 999999, description: "Acesso para sempre" },
 };
@@ -67,7 +68,7 @@ const InstagramNovaP = () => {
   
   // Modal de cadastro
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"annual" | "lifetime">("annual");
+  const [selectedPlan, setSelectedPlan] = useState<"trial" | "annual" | "lifetime">("annual");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -711,9 +712,66 @@ const InstagramNovaP = () => {
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4">
               ESCOLHA SEU <span className="text-amber-400">PLANO</span>
             </h2>
-            <p className="text-gray-400 text-lg mb-6">
+            <p className="text-gray-400 text-lg mb-2">
               A solução definitiva para crescer no Instagram sem gastar com anúncios
             </p>
+            <p className="text-green-400 font-bold text-xl">
+              🔥 TESTE 30 DIAS AGORA POR R$97
+            </p>
+          </div>
+
+          {/* Plano Trial - Destaque especial */}
+          <div className="max-w-md mx-auto mb-8">
+            <div className="relative bg-gradient-to-br from-green-900/60 to-green-800/40 border-2 border-green-400 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl shadow-green-500/30">
+              {/* Badge de destaque */}
+              <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 flex gap-2">
+                <div className="bg-gradient-to-r from-green-400 to-emerald-400 text-black text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap shadow-lg">
+                  🚀 COMECE HOJE — SEM RECORRÊNCIA
+                </div>
+              </div>
+
+              {/* Pulse animation ring */}
+              <div className="absolute inset-0 rounded-2xl sm:rounded-3xl border-2 border-green-400/30 animate-ping" style={{animationDuration: '2s'}} />
+
+              <h3 className="text-3xl font-bold mb-1 text-center text-green-300 mt-3">Plano Teste 30 Dias</h3>
+              <p className="text-gray-400 text-center mb-6 text-sm">Sem recorrência — pague uma vez e teste por 30 dias</p>
+
+              <div className="text-center mb-6">
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-5xl sm:text-7xl font-black text-green-400">R$97</span>
+                </div>
+                <p className="text-green-300/70 mt-1 text-sm font-medium">Pagamento único • 30 dias de acesso</p>
+              </div>
+
+              <div className="space-y-2 mb-6">
+                {[
+                  "Ferramenta completa para Instagram",
+                  "Acesso a 4 contas simultâneas",
+                  "5 testes no mês",
+                  "Área de membros por 30 dias",
+                  "Grupo VIP no WhatsApp",
+                  "Suporte prioritário"
+                ].map((feature, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    <span className="text-gray-300">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-black font-black py-5 rounded-xl hover:scale-105 transition-transform text-lg shadow-lg shadow-green-500/40"
+                onClick={() => {
+                  trackLead('Instagram MRO P - Plano Teste 30 Dias');
+                  setSelectedPlan("trial");
+                  setShowCheckoutModal(true);
+                }}
+              >
+                🚀 TESTAR POR R$97 AGORA
+              </Button>
+              <p className="text-center text-xs text-gray-500 mt-2">Sem cobrança recorrente — sem surpresas</p>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
@@ -1045,17 +1103,22 @@ const InstagramNovaP = () => {
 
             <div className="text-center mb-6">
               <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
-                selectedPlan === "annual" 
+                selectedPlan === "trial"
+                  ? "bg-green-500/20"
+                  : selectedPlan === "annual" 
                   ? "bg-blue-500/20" 
                   : "bg-gradient-to-br from-amber-500/20 to-orange-500/20"
               }`}>
-                <Sparkles className={`w-7 h-7 ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`} />
+                <Sparkles className={`w-7 h-7 ${selectedPlan === "trial" ? "text-green-400" : selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`} />
               </div>
               <h3 className="text-xl font-bold text-white">
                 Plano {PLANS[selectedPlan].name}
               </h3>
+              {selectedPlan === "trial" && (
+                <p className="text-xs text-green-400 font-medium mt-1">Sem recorrência • Pague uma vez</p>
+              )}
               <p className="text-2xl font-bold mt-2">
-                <span className={selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}>
+                <span className={selectedPlan === "trial" ? "text-green-400" : selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}>
                   R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}
                 </span>
               </p>
@@ -1122,16 +1185,24 @@ const InstagramNovaP = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-400">Total</span>
-                  <span className={`font-bold ${selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`}>
+                  <span className={`font-bold ${selectedPlan === "trial" ? "text-green-400" : selectedPlan === "annual" ? "text-blue-400" : "text-amber-400"}`}>
                     R$ {PLANS[selectedPlan].price.toFixed(2).replace(".", ",")}
                   </span>
                 </div>
+                {selectedPlan === "trial" && (
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Acesso</span>
+                    <span className="text-green-400 font-medium">30 dias • Sem recorrência</span>
+                  </div>
+                )}
               </div>
 
               <Button
                 type="submit"
                 className={`w-full font-bold py-5 ${
-                  selectedPlan === "annual"
+                  selectedPlan === "trial"
+                    ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-black"
+                    : selectedPlan === "annual"
                     ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                     : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black"
                 }`}

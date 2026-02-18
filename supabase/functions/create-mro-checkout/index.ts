@@ -61,7 +61,7 @@ serve(async (req) => {
     const cleanPhone = phone ? phone.replace(/\D/g, "").trim() : "";
     const orderNsu = generateNSU();
     const priceInCents = Math.round((amount || 397) * 100);
-    const planLabel = planType === "lifetime" ? "VITALICIO" : "ANUAL";
+    const planLabel = planType === "lifetime" ? "VITALICIO" : planType === "trial" ? "TRIAL" : "ANUAL";
 
     // Verificar se usuário já existe na SquareCloud
     if (checkUserExists) {
@@ -104,7 +104,7 @@ serve(async (req) => {
 
     // Descrição do produto inclui email e username para identificação
     // Formato: MROIG_PLANO_username_email (email pode incluir afiliado:email@real.com)
-    let productDescription = `MROIG_${planType === "lifetime" ? "VITALICIO" : "ANUAL"}_${cleanUsername}_${cleanEmail}`;
+    let productDescription = `MROIG_${planType === "lifetime" ? "VITALICIO" : planType === "trial" ? "TRIAL" : "ANUAL"}_${cleanUsername}_${cleanEmail}`;
     
     // Email para mostrar no checkout (sem prefixo do afiliado)
     let customerEmailForPayment = cleanEmail;
