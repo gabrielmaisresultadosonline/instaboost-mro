@@ -446,6 +446,11 @@ const InstagramNovaP = () => {
             <p className="relative mt-3 text-sm md:text-base text-gray-400">
               Instale em seu notebook, macbook ou computador de mesa!
             </p>
+            <div className="relative mt-6 inline-block">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-black font-black text-lg md:text-2xl lg:text-3xl px-6 py-3 rounded-2xl shadow-lg shadow-green-500/40 animate-pulse">
+                🔥 TESTE AGORA 30 DIAS POR R$97
+              </div>
+            </div>
           </div>
 
           <div className="mt-10 max-w-4xl mx-auto">
