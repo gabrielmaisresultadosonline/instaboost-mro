@@ -44,8 +44,8 @@ const InstagramNovaPromo = () => {
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
   
-  // Popup de desconto encerrado - DESATIVADO
-  const [showDiscountEndedPopup] = useState(false);
+  // Popup de desconto encerrado - ATIVADO e permanente
+  const [showDiscountEndedPopup] = useState(true);
   
   // Countdown para promoção - 8 horas a partir do primeiro acesso
   const [promoTimeLeft, setPromoTimeLeft] = useState({ hours: 8, minutes: 0, seconds: 0, expired: false });
@@ -234,33 +234,24 @@ const InstagramNovaPromo = () => {
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Popup Desconto Encerrado */}
       {showDiscountEndedPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-red-500 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center relative animate-in zoom-in-95 duration-300">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <div className="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-sm">
-                ⚠️ AVISO
-              </div>
-            </div>
-            
-            <div className="mt-4 mb-6">
-              <AlertTriangle className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 mx-auto mb-3 sm:mb-4" />
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 px-2">
-                Que pena, você perdeu nosso desconto!
-              </h2>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-red-400 mb-3 sm:mb-4">
-                Desconto Encerrado!
-              </h3>
-              <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed px-2">
-                Aguarde um próximo desconto ou siga para página oficial para adquirir o plano hoje
-              </p>
-            </div>
-            
-            <Button 
-              onClick={() => window.location.href = '/instagram-nova'}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg py-5 rounded-xl shadow-lg shadow-green-500/30"
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)'}}>
+          <div style={{background: 'linear-gradient(to bottom, #1a1a1a, #111)', border: '2px solid #ef4444', borderRadius: '1rem', padding: '2.5rem 2rem', maxWidth: '420px', width: '100%', textAlign: 'center'}}>
+            <div style={{fontSize: '3rem', marginBottom: '1rem'}}>😢</div>
+            <h2 style={{color: '#ef4444', fontSize: '1.6rem', fontWeight: 'bold', marginBottom: '0.75rem', lineHeight: '1.3'}}>
+              Que pena, você perdeu o desconto!
+            </h2>
+            <p style={{color: '#d1d5db', marginBottom: '0.5rem', fontSize: '1rem'}}>
+              O período de desconto encerrou.
+            </p>
+            <p style={{color: '#9ca3af', marginBottom: '2rem', fontSize: '0.95rem'}}>
+              Mas você ainda pode acessar nosso valor original agora!
+            </p>
+            <a
+              href="/instagram-nova"
+              style={{display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'linear-gradient(to right, #16a34a, #15803d)', color: 'white', padding: '0.85rem 2rem', borderRadius: '0.75rem', fontWeight: 'bold', fontSize: '1rem', textDecoration: 'none', cursor: 'pointer'}}
             >
-              Acessar Página <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
+              Acessar Valor Original →
+            </a>
           </div>
         </div>
       )}
