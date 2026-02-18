@@ -1027,11 +1027,12 @@ ${GROUP_LINK}`;
     expired: filteredOrders.filter(o => o.status === "expired"),
   };
 
-  // Calcular dias restantes (365 dias a partir do pagamento)
+  // Calcular dias restantes baseado no plan_type
   const getDaysRemaining = (order: MROOrder) => {
     if (!order.paid_at) return null;
     const paidDate = new Date(order.paid_at);
-    const expirationDate = addDays(paidDate, 365);
+    const planDays = order.plan_type === 'trial' ? 30 : order.plan_type === 'lifetime' ? 9999 : 365;
+    const expirationDate = addDays(paidDate, planDays);
     const daysLeft = differenceInDays(expirationDate, new Date());
     return daysLeft > 0 ? daysLeft : 0;
   };
