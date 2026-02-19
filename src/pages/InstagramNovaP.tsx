@@ -415,6 +415,54 @@ const InstagramNovaP = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+
+      {/* ===== OVERLAY PROMOÇÃO ENCERRADA - NÃO FECHÁVEL ===== */}
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)' }}>
+        <div className="w-full max-w-lg mx-auto text-center">
+          {/* Ícone */}
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #ef4444, #b91c1c)' }}>
+              <span className="text-4xl">😔</span>
+            </div>
+          </div>
+
+          {/* Título */}
+          <h1 className="text-3xl md:text-4xl font-black text-white mb-3 leading-tight">
+            Encerramos nossa
+            <span className="block" style={{ color: '#f59e0b' }}>promoção de teste!</span>
+          </h1>
+
+          {/* Mensagem */}
+          <p className="text-gray-300 text-lg md:text-xl mb-2 leading-relaxed">
+            Que pena, você perdeu nossa promoção de teste!
+          </p>
+          <p className="text-gray-400 text-base mb-8 leading-relaxed">
+            Mas não se preocupe — você ainda pode ter acesso à <strong className="text-white">MRO Inteligente</strong> pelo nosso valor original e garantir todos os benefícios da ferramenta.
+          </p>
+
+          {/* Separador */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="flex-1 h-px bg-gray-700"></div>
+            <span className="text-gray-500 text-sm uppercase tracking-widest">ainda dá tempo</span>
+            <div className="flex-1 h-px bg-gray-700"></div>
+          </div>
+
+          {/* Botão CTA */}
+          <a
+            href="/instagram-nova"
+            className="block w-full py-5 px-8 rounded-2xl font-black text-black text-xl uppercase tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-2xl mb-4"
+            style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 0 40px rgba(245,158,11,0.4)' }}
+          >
+            🚀 Aproveitar no Valor Original
+          </a>
+
+          <p className="text-gray-600 text-sm">
+            Clique acima para ver os planos disponíveis
+          </p>
+        </div>
+      </div>
+      {/* ===== FIM OVERLAY ===== */}
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
