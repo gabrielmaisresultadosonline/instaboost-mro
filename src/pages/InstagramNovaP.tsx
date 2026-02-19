@@ -448,13 +448,13 @@ const InstagramNovaP = () => {
           </div>
 
           {/* Botão CTA */}
-          <a
-            href="/instagram-nova"
-            className="block w-full py-5 px-8 rounded-2xl font-black text-black text-xl uppercase tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-2xl mb-4"
+          <button
+            onClick={() => { window.location.href = '/instagram-nova'; }}
+            className="block w-full py-5 px-8 rounded-2xl font-black text-black text-xl uppercase tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-2xl mb-4 cursor-pointer border-0"
             style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 0 40px rgba(245,158,11,0.4)' }}
           >
             🚀 Aproveitar no Valor Original
-          </a>
+          </button>
 
           <p className="text-gray-600 text-sm">
             Clique acima para ver os planos disponíveis
