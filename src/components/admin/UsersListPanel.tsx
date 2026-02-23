@@ -108,23 +108,42 @@ const UsersListPanel = () => {
     setDownloadingAll(false);
   };
 
-  const exportCSV = () => {
-    const rows = [['Usuário', 'Email', 'Primeiro Cadastro', 'Dias desde cadastro', 'Instagrams', 'Tem Print']];
-    for (const u of filteredUsers) {
-      rows.push([
-        u.squarecloud_username,
-        u.email || 'N/A',
-        new Date(u.first_registered).toLocaleDateString('pt-BR'),
-        String(u.days_since_first),
-        u.instagrams.map(ig => ig.username).join('; '),
-        u.instagrams.some(ig => ig.screenshot_url) ? 'Sim' : 'Não',
-      ]);
+  const getFirstPrintDate = (u: MergedUser): string => {
+    const withPrint = u.instagrams.filter(ig => ig.screenshot_url);
+    if (withPrint.length === 0) return 'Sem print';
+    const sorted = withPrint.sort((a, b) => new Date(a.registered_at).getTime() - new Date(b.registered_at).getTime());
+    return new Date(sorted[0].registered_at).toLocaleDateString('pt-BR');
+  };
+
+  const exportCSV = (type: 'full' | 'simple') => {
+    let rows: string[][];
+    if (type === 'simple') {
+      rows = [['Usuário', 'Primeiro Cadastro']];
+      for (const u of filteredUsers) {
+        rows.push([
+          u.squarecloud_username,
+          new Date(u.first_registered).toLocaleDateString('pt-BR'),
+        ]);
+      }
+    } else {
+      rows = [['Usuário', 'Email', 'Primeiro Cadastro', 'Dias desde cadastro', 'Data Primeiro Print', 'Instagrams', 'Tem Print']];
+      for (const u of filteredUsers) {
+        rows.push([
+          u.squarecloud_username,
+          u.email || 'N/A',
+          new Date(u.first_registered).toLocaleDateString('pt-BR'),
+          String(u.days_since_first),
+          getFirstPrintDate(u),
+          u.instagrams.map(ig => ig.username).join('; '),
+          u.instagrams.some(ig => ig.screenshot_url) ? 'Sim' : 'Não',
+        ]);
+      }
     }
     const csv = rows.map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'usuarios_lista.csv';
+    link.download = type === 'simple' ? 'usuarios_simples.csv' : 'usuarios_completo.csv';
     link.click();
     URL.revokeObjectURL(link.href);
     toast({ title: 'CSV exportado!', description: `${filteredUsers.length} usuários exportados` });
@@ -194,8 +213,11 @@ const UsersListPanel = () => {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={exportCSV}>
-            <Download className="w-4 h-4 mr-1" /> CSV
+          <Button variant="outline" size="sm" onClick={() => exportCSV('full')}>
+            <Download className="w-4 h-4 mr-1" /> CSV Completo
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportCSV('simple')}>
+            <Download className="w-4 h-4 mr-1" /> Só Usuários + Data
           </Button>
           <Button
             variant="outline"
