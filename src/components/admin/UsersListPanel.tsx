@@ -1,0 +1,343 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { RefreshCw, Download, Image, User, Mail, Calendar, Instagram, Search, CheckCircle, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+
+interface UserProfileEntry {
+  squarecloud_username: string;
+  instagram_username: string;
+  profile_screenshot_url: string | null;
+  created_at: string;
+}
+
+interface UserSessionEntry {
+  squarecloud_username: string;
+  email: string | null;
+  created_at: string;
+}
+
+interface MergedUser {
+  squarecloud_username: string;
+  email: string | null;
+  first_registered: string;
+  instagrams: { username: string; screenshot_url: string | null; registered_at: string }[];
+  days_since_first: number;
+}
+
+const UsersListPanel = () => {
+  const { toast } = useToast();
+  const [users, setUsers] = useState<MergedUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'with_print' | 'without_print'>('all');
+  const [downloadingAll, setDownloadingAll] = useState(false);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch all profile registrations
+      const { data: profiles, error: profilesError } = await supabase
+        .from('squarecloud_user_profiles')
+        .select('squarecloud_username, instagram_username, profile_screenshot_url, created_at')
+        .order('created_at', { ascending: true });
+
+      if (profilesError) throw profilesError;
+
+      // Fetch user sessions for emails
+      const { data: sessions, error: sessionsError } = await supabase.functions.invoke('get-connected-users');
+      
+      const sessionsMap = new Map<string, { email: string | null; created_at: string }>();
+      if (sessions?.users) {
+        for (const s of sessions.users) {
+          sessionsMap.set(s.squarecloud_username, { email: s.email, created_at: s.updated_at });
+        }
+      }
+
+      // Group profiles by user
+      const userMap = new Map<string, MergedUser>();
+      
+      for (const p of (profiles || [])) {
+        const existing = userMap.get(p.squarecloud_username);
+        const sessionInfo = sessionsMap.get(p.squarecloud_username);
+        
+        const igEntry = {
+          username: p.instagram_username,
+          screenshot_url: p.profile_screenshot_url,
+          registered_at: p.created_at,
+        };
+
+        if (existing) {
+          existing.instagrams.push(igEntry);
+          // Update first_registered if this one is earlier
+          if (new Date(p.created_at) < new Date(existing.first_registered)) {
+            existing.first_registered = p.created_at;
+          }
+        } else {
+          const firstDate = p.created_at;
+          const daysSince = Math.floor((Date.now() - new Date(firstDate).getTime()) / 86400000);
+          userMap.set(p.squarecloud_username, {
+            squarecloud_username: p.squarecloud_username,
+            email: sessionInfo?.email || null,
+            first_registered: firstDate,
+            instagrams: [igEntry],
+            days_since_first: daysSince,
+          });
+        }
+      }
+
+      // Recalculate days
+      const merged = Array.from(userMap.values()).map(u => ({
+        ...u,
+        days_since_first: Math.floor((Date.now() - new Date(u.first_registered).getTime()) / 86400000),
+      }));
+
+      // Sort by most recent first
+      merged.sort((a, b) => new Date(b.first_registered).getTime() - new Date(a.first_registered).getTime());
+
+      setUsers(merged);
+    } catch (error) {
+      console.error('Error fetching user list:', error);
+      toast({ title: 'Erro', description: 'Não foi possível carregar a lista', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = 
+      u.squarecloud_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.instagrams.some(ig => ig.username.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (!matchesSearch) return false;
+
+    if (filterType === 'with_print') return u.instagrams.some(ig => ig.screenshot_url);
+    if (filterType === 'without_print') return u.instagrams.every(ig => !ig.screenshot_url);
+    return true;
+  });
+
+  const totalWithPrint = users.filter(u => u.instagrams.some(ig => ig.screenshot_url)).length;
+  const totalWithoutPrint = users.filter(u => u.instagrams.every(ig => !ig.screenshot_url)).length;
+
+  const downloadSinglePrint = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível baixar o print', variant: 'destructive' });
+    }
+  };
+
+  const downloadAllPrints = async () => {
+    setDownloadingAll(true);
+    const screenshots = filteredUsers.flatMap(u =>
+      u.instagrams.filter(ig => ig.screenshot_url).map(ig => ({
+        url: ig.screenshot_url!,
+        name: `${u.squarecloud_username}_${ig.username}.png`,
+      }))
+    );
+
+    for (const s of screenshots) {
+      await downloadSinglePrint(s.url, s.name);
+      await new Promise(r => setTimeout(r, 300)); // small delay between downloads
+    }
+
+    toast({ title: 'Downloads concluídos', description: `${screenshots.length} prints baixados` });
+    setDownloadingAll(false);
+  };
+
+  const exportCSV = () => {
+    const rows = [['Usuário', 'Email', 'Primeiro Cadastro', 'Dias desde cadastro', 'Instagrams', 'Tem Print']];
+    for (const u of filteredUsers) {
+      rows.push([
+        u.squarecloud_username,
+        u.email || 'N/A',
+        new Date(u.first_registered).toLocaleDateString('pt-BR'),
+        String(u.days_since_first),
+        u.instagrams.map(ig => ig.username).join('; '),
+        u.instagrams.some(ig => ig.screenshot_url) ? 'Sim' : 'Não',
+      ]);
+    }
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'usuarios_lista.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast({ title: 'CSV exportado!', description: `${filteredUsers.length} usuários exportados` });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Carregando lista de usuários...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="glass-card p-4 text-center">
+          <User className="w-6 h-6 mx-auto text-primary mb-2" />
+          <p className="text-2xl font-bold">{users.length}</p>
+          <p className="text-xs text-muted-foreground">Total Usuários</p>
+        </div>
+        <div className="glass-card p-4 text-center">
+          <CheckCircle className="w-6 h-6 mx-auto text-green-500 mb-2" />
+          <p className="text-2xl font-bold">{totalWithPrint}</p>
+          <p className="text-xs text-muted-foreground">Com Print</p>
+        </div>
+        <div className="glass-card p-4 text-center">
+          <XCircle className="w-6 h-6 mx-auto text-yellow-500 mb-2" />
+          <p className="text-2xl font-bold">{totalWithoutPrint}</p>
+          <p className="text-xs text-muted-foreground">Sem Print</p>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar usuário, email ou @instagram..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-80 bg-secondary/50"
+            />
+          </div>
+          <div className="flex gap-1 bg-secondary/50 rounded-lg p-1">
+            {[
+              { key: 'all', label: 'Todos' },
+              { key: 'with_print', label: 'Com Print' },
+              { key: 'without_print', label: 'Sem Print' },
+            ].map(f => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFilterType(f.key as any)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
+                  filterType === f.key
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportCSV}>
+            <Download className="w-4 h-4 mr-1" /> Exportar Lista CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={downloadAllPrints}
+            disabled={downloadingAll}
+          >
+            <Image className="w-4 h-4 mr-1" />
+            {downloadingAll ? 'Baixando...' : 'Baixar Todos Prints'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 mr-1" /> Atualizar
+          </Button>
+        </div>
+      </div>
+
+      <p className="text-sm text-muted-foreground">
+        Mostrando {filteredUsers.length} de {users.length} usuários
+      </p>
+
+      {/* User List */}
+      <div className="space-y-3">
+        {filteredUsers.map((user) => (
+          <div key={user.squarecloud_username} className="glass-card p-4 space-y-3">
+            {/* User header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <User className="w-5 h-5 text-primary" />
+                <span className="font-bold text-lg">{user.squarecloud_username}</span>
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Mail className="w-3 h-3" />
+                  {user.email || 'Email não informado'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <Calendar className="w-4 h-4" />
+                  Cadastro: {new Date(user.first_registered).toLocaleDateString('pt-BR')}
+                </span>
+                <span className="px-2 py-1 rounded-full bg-primary/20 text-primary font-medium">
+                  {user.days_since_first} dias
+                </span>
+              </div>
+            </div>
+
+            {/* Instagram accounts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {user.instagrams.map((ig) => (
+                <div key={ig.username} className="border border-border rounded-lg p-3 bg-secondary/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Instagram className="w-4 h-4 text-pink-500" />
+                    <span className="font-medium text-sm">@{ig.username}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(ig.registered_at).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                  
+                  {ig.screenshot_url ? (
+                    <div className="space-y-2">
+                      <a href={ig.screenshot_url} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={ig.screenshot_url}
+                          alt={`Print @${ig.username}`}
+                          className="w-full h-40 object-cover rounded-md border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                          loading="lazy"
+                        />
+                      </a>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => downloadSinglePrint(ig.screenshot_url!, `${user.squarecloud_username}_${ig.username}.png`)}
+                      >
+                        <Download className="w-3 h-3 mr-1" /> Baixar Print
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-full h-40 bg-secondary/50 rounded-md flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground">Sem print</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredUsers.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          Nenhum usuário encontrado
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default UsersListPanel;
