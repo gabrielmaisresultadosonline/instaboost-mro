@@ -91,7 +91,7 @@ const UsersListPanel = () => {
     }
   };
 
-  const createStoryImage = (img: HTMLImageElement, username: string): Promise<Blob> => {
+  const createStoryImage = (img: HTMLImageElement): Promise<Blob> => {
     return new Promise((resolve) => {
       const W = 1080;
       const H = 1920;
@@ -104,31 +104,23 @@ const UsersListPanel = () => {
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, W, H);
 
-      // Draw the screenshot centered, covering the canvas
-      const scale = Math.max(W / img.width, H / img.height);
-      const sw = img.width * scale;
-      const sh = img.height * scale;
-      const sx = (W - sw) / 2;
-      const sy = (H - sh) / 2;
-      ctx.drawImage(img, sx, sy, sw, sh);
+      // Header area height
+      const headerH = 180;
 
-      // Semi-transparent overlay at top for text
-      const gradient = ctx.createLinearGradient(0, 0, 0, 220);
-      gradient.addColorStop(0, 'rgba(0,0,0,0.8)');
-      gradient.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, W, 220);
-
-      // "Cliente Ativo ✅" text
+      // "Cliente Ativo ✅" text at top
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 64px Arial, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('Cliente Ativo ✅', W / 2, 100);
+      ctx.fillText('Cliente Ativo ✅', W / 2, 110);
 
-      // Username below
-      ctx.font = '36px Arial, sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.fillText(`@${username}`, W / 2, 160);
+      // Draw image below the header, fitting the remaining space
+      const availH = H - headerH;
+      const scale = Math.min(W / img.width, availH / img.height);
+      const sw = img.width * scale;
+      const sh = img.height * scale;
+      const sx = (W - sw) / 2;
+      const sy = headerH + (availH - sh) / 2;
+      ctx.drawImage(img, sx, sy, sw, sh);
 
       canvas.toBlob((blob) => resolve(blob!), 'image/png', 1);
     });
@@ -166,7 +158,7 @@ const UsersListPanel = () => {
             i.src = URL.createObjectURL(blob);
           });
 
-          const storyBlob = await createStoryImage(img, s.igUsername);
+          const storyBlob = await createStoryImage(img);
           zip.file(`${s.name}.png`, storyBlob);
           processed++;
           
