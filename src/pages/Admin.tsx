@@ -253,36 +253,35 @@ const Admin = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-card border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
               <Logo size="sm" />
               <span className="text-sm font-medium text-primary">Admin Panel</span>
             </div>
-
-            <nav className="flex items-center gap-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as Tab)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  {tab.icon}
-                  <span className="hidden md:inline">{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-
             <Button type="button" variant="outline" size="sm" onClick={handleLogout} className="cursor-pointer">
               <LogOut className="w-4 h-4" />
               <span className="hidden md:inline ml-2">Sair</span>
             </Button>
           </div>
+
+          <nav className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as Tab)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap text-sm shrink-0 ${
+                  activeTab === tab.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
       </header>
 
