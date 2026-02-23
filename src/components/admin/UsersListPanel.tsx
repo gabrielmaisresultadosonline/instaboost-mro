@@ -30,9 +30,15 @@ const UsersListPanel = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
+      console.log('[UsersListPanel] Fetching users list...');
       const { data, error } = await supabase.functions.invoke('get-users-list');
       
-      if (error) throw error;
+      console.log('[UsersListPanel] Response:', { data: data ? 'received' : 'null', error, usersCount: data?.users?.length });
+      
+      if (error) {
+        console.error('[UsersListPanel] Supabase error:', error);
+        throw error;
+      }
 
       if (data?.success && data.users) {
         const enriched: MergedUser[] = data.users.map((u: any) => ({
@@ -40,10 +46,13 @@ const UsersListPanel = () => {
           days_since_first: Math.floor((Date.now() - new Date(u.first_registered).getTime()) / 86400000),
         }));
         setUsers(enriched);
+        console.log('[UsersListPanel] Loaded', enriched.length, 'users');
+      } else {
+        console.warn('[UsersListPanel] No users in response:', data);
       }
-    } catch (error) {
-      console.error('Error fetching user list:', error);
-      toast({ title: 'Erro', description: 'Não foi possível carregar a lista', variant: 'destructive' });
+    } catch (error: any) {
+      console.error('[UsersListPanel] Error:', error);
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível carregar a lista', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
