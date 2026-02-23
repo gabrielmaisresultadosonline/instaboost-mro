@@ -4,6 +4,7 @@ import { RefreshCw, Download, Image, User, Mail, Calendar, Instagram, Search, Ch
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import JSZip from 'jszip';
 
 interface IgEntry {
   username: string;
@@ -90,21 +91,107 @@ const UsersListPanel = () => {
     }
   };
 
+  const createStoryImage = (img: HTMLImageElement, username: string): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const W = 1080;
+      const H = 1920;
+      const canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d')!;
+
+      // Background
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, W, H);
+
+      // Draw the screenshot centered, covering the canvas
+      const scale = Math.max(W / img.width, H / img.height);
+      const sw = img.width * scale;
+      const sh = img.height * scale;
+      const sx = (W - sw) / 2;
+      const sy = (H - sh) / 2;
+      ctx.drawImage(img, sx, sy, sw, sh);
+
+      // Semi-transparent overlay at top for text
+      const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+      gradient.addColorStop(0, 'rgba(0,0,0,0.8)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, W, 220);
+
+      // "Cliente Ativo ✅" text
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 64px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Cliente Ativo ✅', W / 2, 100);
+
+      // Username below
+      ctx.font = '36px Arial, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fillText(`@${username}`, W / 2, 160);
+
+      canvas.toBlob((blob) => resolve(blob!), 'image/png', 1);
+    });
+  };
+
   const downloadAllPrints = async () => {
     setDownloadingAll(true);
     const screenshots = filteredUsers.flatMap(u =>
       u.instagrams.filter(ig => ig.screenshot_url).map(ig => ({
         url: ig.screenshot_url!,
-        name: `${u.squarecloud_username}_${ig.username}.png`,
+        name: `${u.squarecloud_username}_${ig.username}`,
+        igUsername: ig.username,
       }))
     );
 
-    for (const s of screenshots) {
-      await downloadSinglePrint(s.url, s.name);
-      await new Promise(r => setTimeout(r, 300));
+    if (screenshots.length === 0) {
+      toast({ title: 'Nenhum print', description: 'Não há prints para baixar', variant: 'destructive' });
+      setDownloadingAll(false);
+      return;
     }
 
-    toast({ title: 'Downloads concluídos', description: `${screenshots.length} prints baixados` });
+    try {
+      const zip = new JSZip();
+      let processed = 0;
+
+      for (const s of screenshots) {
+        try {
+          const response = await fetch(s.url);
+          const blob = await response.blob();
+          const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const i = new window.Image();
+            i.crossOrigin = 'anonymous';
+            i.onload = () => resolve(i);
+            i.onerror = reject;
+            i.src = URL.createObjectURL(blob);
+          });
+
+          const storyBlob = await createStoryImage(img, s.igUsername);
+          zip.file(`${s.name}.png`, storyBlob);
+          processed++;
+          
+          // Small delay to avoid overwhelming
+          if (processed % 5 === 0) {
+            await new Promise(r => setTimeout(r, 100));
+          }
+        } catch (err) {
+          console.warn(`Falha ao processar ${s.name}:`, err);
+        }
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `clientes_ativos_stories_${new Date().toISOString().slice(0,10)}.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+      toast({ title: 'ZIP criado!', description: `${processed} prints em formato stories baixados` });
+    } catch (err) {
+      console.error('Erro ao criar ZIP:', err);
+      toast({ title: 'Erro', description: 'Falha ao criar o arquivo ZIP', variant: 'destructive' });
+    }
+
     setDownloadingAll(false);
   };
 
