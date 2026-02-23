@@ -104,23 +104,42 @@ const UsersListPanel = () => {
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, W, H);
 
-      // Header area height
-      const headerH = 180;
-
-      // "Cliente Ativo ✅" text at top
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 64px Arial, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Cliente Ativo ✅', W / 2, 110);
-
-      // Draw image below the header, fitting the remaining space
-      const availH = H - headerH;
-      const scale = Math.min(W / img.width, availH / img.height);
+      // Scale image to fit canvas width, max canvas height
+      const textH = 100; // height reserved for text line
+      const gap = 20; // gap between text and image
+      const maxImgH = H - textH - gap;
+      const scale = Math.min(W / img.width, maxImgH / img.height);
       const sw = img.width * scale;
       const sh = img.height * scale;
-      const sx = (W - sw) / 2;
-      const sy = headerH + (availH - sh) / 2;
-      ctx.drawImage(img, sx, sy, sw, sh);
+
+      // Check if image fills most of the canvas (stories-like)
+      const fillsCanvas = sh >= H * 0.85;
+
+      if (fillsCanvas) {
+        // Stories format: image fills canvas, text fixed at top
+        ctx.drawImage(img, (W - sw) / 2, (H - sh) / 2, sw, sh);
+        // Semi-transparent overlay for readability
+        const gradient = ctx.createLinearGradient(0, 0, 0, 160);
+        gradient.addColorStop(0, 'rgba(0,0,0,0.7)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, W, 160);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 64px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Cliente Ativo ✅', W / 2, 100);
+      } else {
+        // Smaller image: center the block (text + image) vertically
+        const blockH = textH + gap + sh;
+        const startY = (H - blockH) / 2;
+        // Draw text
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 64px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Cliente Ativo ✅', W / 2, startY + 70);
+        // Draw image right below text
+        ctx.drawImage(img, (W - sw) / 2, startY + textH + gap, sw, sh);
+      }
 
       canvas.toBlob((blob) => resolve(blob!), 'image/png', 1);
     });
