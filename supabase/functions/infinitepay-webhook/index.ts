@@ -250,8 +250,10 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       }).eq("id", promptsOrder.id);
 
-      // Unlock user
-      const subscriptionEnd = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      // Unlock user - determine plan based on amount (<=50 = monthly 30 days, >50 = annual 365 days)
+      const isMonthly = promptsOrder.amount <= 50;
+      const planDays = isMonthly ? 30 : 365;
+      const subscriptionEnd = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
       if (promptsOrder.user_id) {
         await supabase.from("prompts_mro_users").update({
           is_paid: true,
