@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle } from "lucide-react";
+import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ interface PromptItem {
   image_url: string | null;
   is_active: boolean;
   order_index: number;
+  category: string;
   created_at: string;
 }
 
@@ -24,6 +25,12 @@ interface PromptUser {
   last_access: string | null;
   created_at: string;
 }
+
+const CATEGORIES = [
+  { value: 'feminino', label: '👩 Feminino', color: 'pink' },
+  { value: 'masculino', label: '👨 Masculino', color: 'blue' },
+  { value: 'geral', label: '🌐 Geral', color: 'purple' },
+];
 
 const callAdmin = async (action: string, body?: any) => {
   const isFormData = body instanceof FormData;
@@ -49,6 +56,8 @@ const PromptsMROAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [uploadProgress, setUploadProgress] = useState("");
+  const [uploadCategory, setUploadCategory] = useState("feminino");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
 
   const loadPrompts = useCallback(async () => {
     setLoading(true);
@@ -89,15 +98,16 @@ const PromptsMROAdmin = () => {
     }
 
     setUploading(true);
-    setUploadProgress("Enviando e processando ZIP...");
+    setUploadProgress(`Enviando ZIP (${uploadCategory})...`);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('category', uploadCategory);
       const data = await callAdmin('upload-zip', formData);
 
       if (data.success) {
-        toast.success(`${data.processed} prompts processados de ${data.total} pastas!`);
+        toast.success(`${data.processed} prompts (${uploadCategory}) processados de ${data.total} pastas!`);
         loadPrompts();
       } else {
         toast.error(data.error || "Erro ao processar ZIP");
@@ -144,10 +154,27 @@ const PromptsMROAdmin = () => {
     toast.success("Usuário deletado");
   };
 
-  const filteredPrompts = prompts.filter(p =>
-    p.folder_name.toLowerCase().includes(search.toLowerCase()) ||
-    p.prompt_text.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPrompts = prompts.filter(p => {
+    const matchesSearch = p.folder_name.toLowerCase().includes(search.toLowerCase()) ||
+      p.prompt_text.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || p.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const categoryCounts = {
+    all: prompts.length,
+    feminino: prompts.filter(p => p.category === 'feminino').length,
+    masculino: prompts.filter(p => p.category === 'masculino').length,
+    geral: prompts.filter(p => p.category === 'geral').length,
+  };
+
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case 'feminino': return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/20 text-pink-400">👩 Feminino</span>;
+      case 'masculino': return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400">👨 Masculino</span>;
+      default: return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-400">🌐 Geral</span>;
+    }
+  };
 
   if (!isAuth) {
     return (
@@ -167,7 +194,6 @@ const PromptsMROAdmin = () => {
 
   return (
     <div className="min-h-screen bg-[#050508] text-white">
-      {/* Header */}
       <header className="bg-[#0a0a10] border-b border-white/5 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold">Prompts MRO <span className="text-purple-400">Admin</span></h1>
@@ -196,9 +222,29 @@ const PromptsMROAdmin = () => {
               <h2 className="text-lg font-bold mb-1">Enviar arquivo ZIP com prompts</h2>
               <p className="text-gray-500 text-sm mb-4">Cada pasta dentro do ZIP será um prompt (imagem + arquivo .txt ou .pdf)</p>
               
+              {/* Category selector */}
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <span className="text-sm text-gray-400"><Filter className="w-4 h-4 inline mr-1" />Categoria do ZIP:</span>
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat.value}
+                    onClick={() => setUploadCategory(cat.value)}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                      uploadCategory === cat.value
+                        ? cat.value === 'feminino' ? 'bg-pink-500/20 border-pink-500/50 text-pink-300'
+                        : cat.value === 'masculino' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                        : 'bg-purple-500/20 border-purple-500/50 text-purple-300'
+                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
               <label className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold cursor-pointer transition-all ${uploading ? 'bg-gray-700 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500'}`}>
                 <Upload className="w-5 h-5" />
-                {uploading ? uploadProgress : "Selecionar ZIP"}
+                {uploading ? uploadProgress : `Enviar ZIP (${CATEGORIES.find(c => c.value === uploadCategory)?.label})`}
                 <input type="file" accept=".zip" onChange={handleUploadZip} disabled={uploading} className="hidden" />
               </label>
 
@@ -213,6 +259,36 @@ const PromptsMROAdmin = () => {
                 </div>
               )}
             </div>
+
+            {/* Category filter tabs */}
+            {prompts.length > 0 && (
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <button
+                  onClick={() => setFilterCategory('all')}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${filterCategory === 'all' ? 'bg-purple-600/20 border-purple-500/50 text-purple-300' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                >
+                  Todos ({categoryCounts.all})
+                </button>
+                <button
+                  onClick={() => setFilterCategory('feminino')}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${filterCategory === 'feminino' ? 'bg-pink-500/20 border-pink-500/50 text-pink-300' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                >
+                  👩 Feminino ({categoryCounts.feminino})
+                </button>
+                <button
+                  onClick={() => setFilterCategory('masculino')}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${filterCategory === 'masculino' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                >
+                  👨 Masculino ({categoryCounts.masculino})
+                </button>
+                <button
+                  onClick={() => setFilterCategory('geral')}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${filterCategory === 'geral' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                >
+                  🌐 Geral ({categoryCounts.geral})
+                </button>
+              </div>
+            )}
 
             {/* Search */}
             {prompts.length > 0 && (
@@ -239,7 +315,10 @@ const PromptsMROAdmin = () => {
                       </div>
                     )}
                     <div className="p-4">
-                      <h3 className="font-bold text-sm text-purple-300 mb-2">{prompt.folder_name}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-bold text-sm text-purple-300 flex-1">{prompt.folder_name}</h3>
+                        {getCategoryBadge(prompt.category)}
+                      </div>
                       <p className="text-gray-400 text-xs line-clamp-4 mb-3 whitespace-pre-wrap">{prompt.prompt_text.substring(0, 300)}{prompt.prompt_text.length > 300 ? '...' : ''}</p>
                       <div className="flex items-center gap-2">
                         <button onClick={() => handleTogglePrompt(prompt.id, prompt.is_active)} className={`p-2 rounded-lg text-xs flex items-center gap-1 ${prompt.is_active ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>

@@ -39,6 +39,7 @@ serve(async (req) => {
     if (action === 'upload-zip') {
       const formData = await req.formData();
       const file = formData.get('file') as File;
+      const category = (formData.get('category') as string) || 'geral';
       if (!file) {
         return new Response(JSON.stringify({ error: 'No file provided' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
@@ -157,6 +158,7 @@ serve(async (req) => {
           image_url: imageUrl,
           order_index: orderIndex++,
           is_active: true,
+          category: category,
         });
 
         processed++;
