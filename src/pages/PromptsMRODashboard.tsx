@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle, Play, X, ExternalLink } from "lucide-react";
+import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle, Play, X, ExternalLink, Scissors } from "lucide-react";
+import ImageCropEditor from "@/components/ImageCropEditor";
 import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -46,6 +47,7 @@ const PromptsMRODashboard = () => {
   const [creatingPayment, setCreatingPayment] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<"prompts" | "editar">("prompts");
 
   // Check session
   useEffect(() => {
@@ -402,6 +404,33 @@ const PromptsMRODashboard = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab("prompts")}
+            className={`px-5 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
+              activeTab === "prompts"
+                ? "bg-purple-600 text-white shadow-lg shadow-purple-600/25"
+                : "bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/30"
+            }`}
+          >
+            <Sparkles className="w-4 h-4" /> Prompts
+          </button>
+          <button
+            onClick={() => setActiveTab("editar")}
+            className={`px-5 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
+              activeTab === "editar"
+                ? "bg-purple-600 text-white shadow-lg shadow-purple-600/25"
+                : "bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/30"
+            }`}
+          >
+            <Scissors className="w-4 h-4" /> Editar
+          </button>
+        </div>
+
+        {activeTab === "editar" && <ImageCropEditor />}
+
+        {activeTab === "prompts" && (<>
         {/* Welcome */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2 flex-wrap">
@@ -565,6 +594,7 @@ const PromptsMRODashboard = () => {
             <p className="text-gray-600 text-sm">Tente alterar os filtros ou buscar por outro termo</p>
           </div>
         )}
+        </>)}
       </main>
     </div>
   );
