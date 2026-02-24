@@ -281,23 +281,23 @@ const PromptsMRODashboard = () => {
     if (!blocked || isPaid) return null;
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm px-4">
-        <div className="bg-[#111118] border border-purple-500/30 rounded-3xl p-8 md:p-10 max-w-md w-full text-center shadow-2xl shadow-purple-900/30">
-          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
-            <Lock className="w-8 h-8 text-red-400" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm px-3 sm:px-4 overflow-y-auto">
+        <div className="bg-[#111118] border border-purple-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 max-w-md w-full text-center shadow-2xl shadow-purple-900/30 my-4">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <Lock className="w-7 h-7 sm:w-8 sm:h-8 text-red-400" />
           </div>
 
-          <h2 className="text-2xl font-bold mb-2">Limite Atingido!</h2>
-          <p className="text-gray-400 mb-6 text-sm">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">Limite Atingido!</h2>
+          <p className="text-gray-400 mb-4 sm:mb-6 text-xs sm:text-sm">
             Você usou suas <span className="text-white font-bold">{copiesLimit} cópias gratuitas</span>. 
             Para continuar acessando todos os +1000 prompts, desbloqueie o acesso completo.
           </p>
 
-          <div className="bg-gradient-to-b from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-6 mb-6">
-            <div className="text-sm text-gray-400 mb-1">Acesso Anual Completo</div>
+          <div className="bg-gradient-to-b from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
+            <div className="text-xs sm:text-sm text-gray-400 mb-1">Acesso Anual Completo</div>
             <div className="flex items-baseline justify-center gap-1 mb-2">
-              <span className="text-4xl font-black text-white">R$67</span>
-              <span className="text-gray-400 text-sm">/ano</span>
+              <span className="text-3xl sm:text-4xl font-black text-white">R$67</span>
+              <span className="text-gray-400 text-xs sm:text-sm">/ano</span>
             </div>
             <div className="text-xs text-gray-500">+1000 prompts • Atualizações • Acesso ilimitado</div>
           </div>
@@ -306,7 +306,7 @@ const PromptsMRODashboard = () => {
             <button
               onClick={handleCreatePayment}
               disabled={creatingPayment}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shadow-xl shadow-purple-600/25"
+              className="w-full py-3 sm:py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shadow-xl shadow-purple-600/25"
             >
               {creatingPayment ? (
                 <><Loader2 className="w-5 h-5 animate-spin" /> Gerando link...</>
@@ -320,7 +320,7 @@ const PromptsMRODashboard = () => {
                 href={paymentLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-green-600/25"
+                className="w-full py-3 sm:py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-green-600/25"
               >
                 <CreditCard className="w-5 h-5" /> PAGAR R$67
               </a>
@@ -328,7 +328,7 @@ const PromptsMRODashboard = () => {
               <button
                 onClick={checkPaymentStatus}
                 disabled={checkingPayment}
-                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:text-white hover:border-purple-500/30 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-xs sm:text-sm text-gray-300 hover:text-white hover:border-purple-500/30 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
                 {checkingPayment ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Verificando pagamento...</>
@@ -341,7 +341,7 @@ const PromptsMRODashboard = () => {
             </div>
           )}
 
-          <button onClick={handleLogout} className="mt-4 text-sm text-gray-600 hover:text-gray-400 transition-colors">
+          <button onClick={handleLogout} className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 hover:text-gray-400 transition-colors">
             Sair da conta
           </button>
         </div>
