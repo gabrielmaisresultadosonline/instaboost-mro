@@ -227,6 +227,48 @@ const PromptsMROAdmin = () => {
             console.warn(`Erro ao ler PDF de ${folderName}:`, pdfErr);
             folders[folderName].text = `Prompt: ${folderName}`;
           }
+        } else if (fileName.endsWith('.docx')) {
+          try {
+            const docxData = await zipEntry.async('uint8array');
+            const docxZip = await JSZip.loadAsync(docxData);
+            const xmlContent = await docxZip.file('word/document.xml')?.async('string');
+            if (xmlContent) {
+              // Strip XML tags to get plain text
+              const text = xmlContent
+                .replace(/<\/w:p>/g, '\n')
+                .replace(/<[^>]+>/g, '')
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&apos;/g, "'")
+                .trim();
+              folders[folderName].text = text.length > 5 ? text : `Prompt: ${folderName}`;
+            }
+          } catch (docxErr) {
+            console.warn(`Erro ao ler DOCX de ${folderName}:`, docxErr);
+            folders[folderName].text = `Prompt: ${folderName}`;
+          }
+        } else if (fileName.endsWith('.xml')) {
+          try {
+            const rawData = await zipEntry.async('uint8array');
+            const decoder = new TextDecoder('utf-8');
+            const xmlText = decoder.decode(rawData);
+            // Strip XML tags to get plain text content
+            const text = xmlText
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/&amp;/g, '&')
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&quot;/g, '"')
+              .replace(/&apos;/g, "'")
+              .replace(/\s+/g, ' ')
+              .trim();
+            folders[folderName].text = text.length > 5 ? text : `Prompt: ${folderName}`;
+          } catch (xmlErr) {
+            console.warn(`Erro ao ler XML de ${folderName}:`, xmlErr);
+            folders[folderName].text = `Prompt: ${folderName}`;
+          }
         }
       }
 
