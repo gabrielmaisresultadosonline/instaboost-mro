@@ -153,7 +153,8 @@ const PromptsMRODashboard = () => {
 
     if (blocked && !isPaid) return;
 
-    navigator.clipboard.writeText(text);
+    const sufixoPrompt = "\n\nGere a imagem com o mesmo rosto, mesma fisionomia que estou enviando sem mudar nada, cor do cabelo estilo do cabelo o mesmo da foto não crie nada diferente do rosto o resto e os traços precisam ser os mesmos.. gere a imagem agora.";
+    navigator.clipboard.writeText(text + sufixoPrompt);
     setCopiedId(id);
     toast.success("Prompt copiado!");
     setTimeout(() => setCopiedId(null), 2000);
