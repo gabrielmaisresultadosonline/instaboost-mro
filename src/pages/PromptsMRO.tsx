@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Camera, Wand2, Star, CheckCircle, ArrowRight, Users, Zap, Shield, Crown, Image, Layers, TrendingUp, Heart, LogIn, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,95 +10,43 @@ const PromptsMRO = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [isLogging, setIsLogging] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [pendingNsu, setPendingNsu] = useState<string | null>(null);
-  const [checkingPayment, setCheckingPayment] = useState(false);
-  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
 
-  // Auto-check payment when there's a pending NSU
-  useEffect(() => {
-    if (!pendingNsu) return;
-    setCheckingPayment(true);
-
-    const checkPayment = async () => {
-      try {
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/check-prompts-payment`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
-          body: JSON.stringify({ nsu_order: pendingNsu }),
-        });
-        const data = await res.json();
-        if (data.status === "completed" || data.status === "paid") {
-          toast.success("Pagamento confirmado! Redirecionando...");
-          setPendingNsu(null);
-          setCheckingPayment(false);
-          if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
-          // Auto-login with created credentials
-          if (data.order?.email) {
-            const pwd = data.order.email.split("@")[0] + "2025";
-            try {
-              const loginRes = await fetch(`${SUPABASE_URL}/functions/v1/prompts-mro-auth?action=login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
-                body: JSON.stringify({ email: data.order.email, password: pwd }),
-              });
-              const loginData = await loginRes.json();
-              if (loginData.user) {
-                sessionStorage.setItem("prompts_mro_user", JSON.stringify(loginData.user));
-                navigate("/prompts/dashboard");
-                return;
-              }
-            } catch {}
-          }
-          navigate("/prompts/dashboard");
-        }
-      } catch {}
-    };
-
-    checkIntervalRef.current = setInterval(checkPayment, 8000);
-    // Check immediately too
-    checkPayment();
-
-    return () => {
-      if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
-    };
-  }, [pendingNsu, navigate]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !name) {
+    if (!email || !name || !password) {
       toast.error("Preencha todos os campos");
       return;
     }
-    setIsCheckingOut(true);
+    if (password.length < 4) {
+      toast.error("A senha deve ter pelo menos 4 caracteres");
+      return;
+    }
+    setIsRegistering(true);
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-prompts-checkout`, {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/prompts-mro-auth?action=register`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
-        body: JSON.stringify({ email, name, phone }),
+        body: JSON.stringify({ name, email, password }),
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        toast.error(data.error || "Erro ao criar pagamento");
-        setIsCheckingOut(false);
+        toast.error(data.error || "Erro ao criar conta");
+        setIsRegistering(false);
         return;
       }
-      // Save NSU for auto-check
-      setPendingNsu(data.nsu_order);
-      // Open payment link
-      if (data.payment_link) {
-        window.open(data.payment_link, "_blank");
-        toast.success("Link de pagamento aberto! Aguardando confirmação...");
-      }
+      sessionStorage.setItem("prompts_mro_user", JSON.stringify(data.user));
+      toast.success(`Bem-vindo(a), ${data.user.name}!`);
+      navigate("/prompts/dashboard");
     } catch {
       toast.error("Erro ao conectar ao servidor");
     }
-    setIsCheckingOut(false);
+    setIsRegistering(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -331,43 +279,29 @@ const PromptsMRO = () => {
             </div>
 
             <h2 className="text-3xl md:text-4xl font-black mb-3">
-              Acesse <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Agora</span>
+              Cadastre-se <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Agora</span>
             </h2>
+            <p className="text-gray-400 mb-8 text-sm">Crie sua conta e acesse todos os prompts instantaneamente.</p>
 
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-gray-500 line-through text-lg">R$197</span>
-              <span className="text-3xl font-black text-white">R$97</span>
-              <span className="text-sm text-gray-400">/ano</span>
-            </div>
-            <p className="text-gray-400 mb-8 text-sm">Acesso completo a todos os +1000 prompts por 1 ano inteiro</p>
-
-            {checkingPayment ? (
-              <div className="py-10 space-y-4">
-                <Loader2 className="w-10 h-10 text-purple-400 animate-spin mx-auto" />
-                <p className="text-purple-300 font-medium">Verificando pagamento...</p>
-                <p className="text-gray-500 text-sm">Complete o pagamento na aba que foi aberta. A verificação é automática.</p>
+            <form onSubmit={handleRegister} className="space-y-3 text-left">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Nome completo</label>
+                <input type="text" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-3 text-left">
-                <div>
-                  <label className="text-sm text-gray-400 mb-1 block">Nome completo</label>
-                  <input type="text" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-400 mb-1 block">E-mail</label>
-                  <input type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-400 mb-1 block">WhatsApp (opcional)</label>
-                  <input type="tel" placeholder="(00) 00000-0000" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
-                </div>
-                <button type="submit" disabled={isCheckingOut} className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-purple-600/25 mt-4 disabled:opacity-50">
-                  {isCheckingOut ? <><Loader2 className="w-5 h-5 animate-spin" /> Gerando pagamento...</> : <>PAGAR R$97 E ACESSAR<ArrowRight className="w-5 h-5" /></>}
-                </button>
-              </form>
-            )}
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">E-mail</label>
+                <input type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Senha</label>
+                <input type="password" placeholder="Crie uma senha" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
+              </div>
+              <button type="submit" disabled={isRegistering} className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-purple-600/25 mt-4 disabled:opacity-50">
+                {isRegistering ? <><Loader2 className="w-5 h-5 animate-spin" /> Criando conta...</> : <>QUERO ACESSAR OS PROMPTS <ArrowRight className="w-5 h-5" /></>}
+              </button>
+            </form>
 
-            <p className="text-xs text-gray-600 mt-4">Pagamento seguro via InfiniPay. Acesso liberado automaticamente.</p>
+            <p className="text-xs text-gray-600 mt-4">Ao se cadastrar, você concorda com nossos termos de uso.</p>
           </div>
         </div>
       </section>
