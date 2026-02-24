@@ -281,7 +281,17 @@ const PromptsMRO = () => {
             <h2 className="text-3xl md:text-4xl font-black mb-3">
               Cadastre-se <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Agora</span>
             </h2>
-            <p className="text-gray-400 mb-8 text-sm">Crie sua conta e acesse todos os prompts instantaneamente.</p>
+
+            <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4 mb-4">
+              <div className="text-sm text-gray-400 mb-1">Acesso Anual Completo</div>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-4xl font-black text-white">R$67</span>
+                <span className="text-gray-400 text-sm">/ano</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Comece grátis com 5 cópias • Pague só quando quiser mais</div>
+            </div>
+
+            <p className="text-gray-400 mb-6 text-sm">Crie sua conta grátis e teste os prompts. Desbloqueie o acesso completo por apenas R$67/ano.</p>
 
             <form onSubmit={handleRegister} className="space-y-3 text-left">
               <div>

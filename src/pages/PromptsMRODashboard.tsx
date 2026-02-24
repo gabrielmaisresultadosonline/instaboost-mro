@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
-import { Sparkles, LogOut, Copy, Check, Search, Image, Filter } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useCallback } from "react";
+import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface PromptItem {
   id: string;
@@ -16,6 +18,9 @@ interface UserData {
   id: string;
   name: string;
   email: string;
+  copies_count: number;
+  copies_limit: number;
+  is_paid: boolean;
 }
 
 const PromptsMRODashboard = () => {
@@ -30,55 +35,93 @@ const PromptsMRODashboard = () => {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Paywall state
+  const [blocked, setBlocked] = useState(false);
+  const [copiesCount, setCopiesCount] = useState(0);
+  const [copiesLimit, setCopiesLimit] = useState(5);
+  const [isPaid, setIsPaid] = useState(false);
+  const [paymentLink, setPaymentLink] = useState<string | null>(null);
+  const [creatingPayment, setCreatingPayment] = useState(false);
+  const [checkingPayment, setCheckingPayment] = useState(false);
+
   // Check session
   useEffect(() => {
     const saved = sessionStorage.getItem("prompts_mro_user");
     if (saved) {
-      setUser(JSON.parse(saved));
+      const parsed = JSON.parse(saved);
+      setUser(parsed);
+      setCopiesCount(parsed.copies_count || 0);
+      setCopiesLimit(parsed.copies_limit || 5);
+      setIsPaid(parsed.is_paid || false);
+      setBlocked(!parsed.is_paid && (parsed.copies_count || 0) >= (parsed.copies_limit || 5));
     }
   }, []);
 
   // Load prompts when user is logged in
   useEffect(() => {
-    if (user) loadPrompts();
-  }, [user]);
+    if (user) {
+      loadPrompts();
+      refreshUserStatus();
+    }
+  }, [user?.id]);
+
+  // Auto-check payment every 15 seconds when blocked and payment link exists
+  useEffect(() => {
+    if (!blocked || !paymentLink || isPaid || !user) return;
+    const interval = setInterval(() => {
+      checkPaymentStatus();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [blocked, paymentLink, isPaid, user?.id]);
+
+  const callAuth = async (action: string, body: Record<string, unknown>) => {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/prompts-mro-auth?action=${action}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+      body: JSON.stringify(body),
+    });
+    return res.json();
+  };
+
+  const refreshUserStatus = async () => {
+    if (!user) return;
+    const data = await callAuth("user-status", { user_id: user.id });
+    if (data.error) return;
+    setCopiesCount(data.copies_count);
+    setCopiesLimit(data.copies_limit);
+    setIsPaid(data.is_paid);
+    setBlocked(data.blocked);
+    // Update session
+    const updated = { ...user, copies_count: data.copies_count, copies_limit: data.copies_limit, is_paid: data.is_paid };
+    setUser(updated);
+    sessionStorage.setItem("prompts_mro_user", JSON.stringify(updated));
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLogging(true);
     try {
-      const { data, error } = await supabase.functions.invoke("prompts-mro-auth", {
-        body: { email: loginEmail, password: loginPassword },
-        headers: { "Content-Type": "application/json" },
-      });
-
-      // Handle edge function returning error in body
-      const params = new URLSearchParams();
-      params.set("action", "login");
-
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/prompts-mro-auth?action=login`,
+        `${SUPABASE_URL}/functions/v1/prompts-mro-auth?action=login`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
+          headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
           body: JSON.stringify({ email: loginEmail, password: loginPassword }),
         }
       );
-
       const result = await res.json();
-
       if (!res.ok || result.error) {
         toast.error(result.error || "Erro ao fazer login");
         return;
       }
-
       setUser(result.user);
+      setCopiesCount(result.user.copies_count || 0);
+      setCopiesLimit(result.user.copies_limit || 5);
+      setIsPaid(result.user.is_paid || false);
+      setBlocked(!result.user.is_paid && (result.user.copies_count || 0) >= (result.user.copies_limit || 5));
       sessionStorage.setItem("prompts_mro_user", JSON.stringify(result.user));
       toast.success(`Bem-vindo(a), ${result.user.name}!`);
-    } catch (err) {
+    } catch {
       toast.error("Erro ao conectar ao servidor");
     } finally {
       setIsLogging(false);
@@ -89,12 +132,8 @@ const PromptsMRODashboard = () => {
     setLoading(true);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/prompts-mro-auth?action=get-prompts`,
-        {
-          headers: {
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
+        `${SUPABASE_URL}/functions/v1/prompts-mro-auth?action=get-prompts`,
+        { headers: { apikey: SUPABASE_KEY } }
       );
       const result = await res.json();
       setPrompts(result.prompts || []);
@@ -105,17 +144,77 @@ const PromptsMRODashboard = () => {
     }
   };
 
-  const handleCopy = (text: string, id: string) => {
+  const handleCopy = async (text: string, id: string) => {
+    if (!user) return;
+
+    if (blocked && !isPaid) return;
+
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     toast.success("Prompt copiado!");
     setTimeout(() => setCopiedId(null), 2000);
+
+    // Track the copy if not paid
+    if (!isPaid) {
+      const data = await callAuth("track-copy", { user_id: user.id });
+      if (data.success) {
+        setCopiesCount(data.copies_count);
+        setBlocked(data.blocked);
+        const updated = { ...user, copies_count: data.copies_count };
+        setUser(updated);
+        sessionStorage.setItem("prompts_mro_user", JSON.stringify(updated));
+        
+        if (data.blocked) {
+          toast.error("Limite de cópias gratuitas atingido! Desbloqueie o acesso completo.");
+        } else if (data.copies_count >= (data.copies_limit - 2)) {
+          toast("⚠️ Você tem apenas " + (data.copies_limit - data.copies_count) + " cópias gratuitas restantes");
+        }
+      }
+    }
+  };
+
+  const handleCreatePayment = async () => {
+    if (!user) return;
+    setCreatingPayment(true);
+    try {
+      const data = await callAuth("create-payment", { user_id: user.id });
+      if (data.success && data.payment_link) {
+        setPaymentLink(data.payment_link);
+        window.open(data.payment_link, "_blank");
+      } else {
+        toast.error("Erro ao gerar link de pagamento");
+      }
+    } catch {
+      toast.error("Erro ao conectar");
+    } finally {
+      setCreatingPayment(false);
+    }
+  };
+
+  const checkPaymentStatus = async () => {
+    if (!user) return;
+    setCheckingPayment(true);
+    try {
+      const data = await callAuth("check-payment", { user_id: user.id });
+      if (data.is_paid) {
+        setIsPaid(true);
+        setBlocked(false);
+        setPaymentLink(null);
+        const updated = { ...user, is_paid: true };
+        setUser(updated);
+        sessionStorage.setItem("prompts_mro_user", JSON.stringify(updated));
+        toast.success("🎉 Pagamento confirmado! Acesso liberado!");
+      }
+    } catch { /* silent */ }
+    finally { setCheckingPayment(false); }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem("prompts_mro_user");
     setUser(null);
     setPrompts([]);
+    setBlocked(false);
+    setPaymentLink(null);
   };
 
   const filteredPrompts = prompts.filter(p => {
@@ -152,37 +251,19 @@ const PromptsMRODashboard = () => {
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="text-sm text-gray-400 mb-1.5 block">E-mail</label>
-                <input
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={loginEmail}
-                  onChange={e => setLoginEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
-                />
+                <input type="email" placeholder="seu@email.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
               </div>
               <div>
                 <label className="text-sm text-gray-400 mb-1.5 block">Senha</label>
-                <input
-                  type="password"
-                  placeholder="Sua senha"
-                  value={loginPassword}
-                  onChange={e => setLoginPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
-                />
+                <input type="password" placeholder="Sua senha" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
               </div>
-              <button
-                type="submit"
-                disabled={isLogging}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-purple-600/25"
-              >
+              <button type="submit" disabled={isLogging} className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-purple-600/25">
                 {isLogging ? "Entrando..." : "Entrar"}
               </button>
             </form>
 
             <p className="text-xs text-gray-600 mt-6 text-center">
-              Não tem conta? Entre em contato para obter acesso.
+              Não tem conta? <a href="/prompts" className="text-purple-400 hover:underline">Cadastre-se grátis</a>
             </p>
           </div>
         </div>
@@ -190,9 +271,84 @@ const PromptsMRODashboard = () => {
     );
   }
 
+  // PAYWALL OVERLAY
+  const renderPaywall = () => {
+    if (!blocked || isPaid) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm px-4">
+        <div className="bg-[#111118] border border-purple-500/30 rounded-3xl p-8 md:p-10 max-w-md w-full text-center shadow-2xl shadow-purple-900/30">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-8 h-8 text-red-400" />
+          </div>
+
+          <h2 className="text-2xl font-bold mb-2">Limite Atingido!</h2>
+          <p className="text-gray-400 mb-6 text-sm">
+            Você usou suas <span className="text-white font-bold">{copiesLimit} cópias gratuitas</span>. 
+            Para continuar acessando todos os +1000 prompts, desbloqueie o acesso completo.
+          </p>
+
+          <div className="bg-gradient-to-b from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-6 mb-6">
+            <div className="text-sm text-gray-400 mb-1">Acesso Anual Completo</div>
+            <div className="flex items-baseline justify-center gap-1 mb-2">
+              <span className="text-4xl font-black text-white">R$67</span>
+              <span className="text-gray-400 text-sm">/ano</span>
+            </div>
+            <div className="text-xs text-gray-500">+1000 prompts • Atualizações • Acesso ilimitado</div>
+          </div>
+
+          {!paymentLink ? (
+            <button
+              onClick={handleCreatePayment}
+              disabled={creatingPayment}
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shadow-xl shadow-purple-600/25"
+            >
+              {creatingPayment ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Gerando link...</>
+              ) : (
+                <><CreditCard className="w-5 h-5" /> DESBLOQUEAR ACESSO</>
+              )}
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <a
+                href={paymentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-green-600/25"
+              >
+                <CreditCard className="w-5 h-5" /> PAGAR R$67
+              </a>
+
+              <button
+                onClick={checkPaymentStatus}
+                disabled={checkingPayment}
+                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:text-white hover:border-purple-500/30 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {checkingPayment ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Verificando pagamento...</>
+                ) : (
+                  <><CheckCircle className="w-4 h-4" /> Já paguei — Verificar</>
+                )}
+              </button>
+
+              <p className="text-xs text-gray-600">Verificação automática a cada 15 segundos</p>
+            </div>
+          )}
+
+          <button onClick={handleLogout} className="mt-4 text-sm text-gray-600 hover:text-gray-400 transition-colors">
+            Sair da conta
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // DASHBOARD
   return (
     <div className="min-h-screen bg-[#050508] text-white">
+      {renderPaywall()}
+
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#050508]/90 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -201,6 +357,18 @@ const PromptsMRODashboard = () => {
             <span className="font-bold text-lg">PROMPTS <span className="text-purple-400">MRO</span></span>
           </div>
           <div className="flex items-center gap-4">
+            {!isPaid && (
+              <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">
+                <AlertTriangle className="w-3 h-3" />
+                {copiesCount}/{copiesLimit} cópias
+              </div>
+            )}
+            {isPaid && (
+              <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400">
+                <CheckCircle className="w-3 h-3" />
+                Acesso Completo
+              </div>
+            )}
             <span className="text-sm text-gray-400 hidden sm:block">Olá, <span className="text-white font-medium">{user.name}</span></span>
             <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-red-500/50 text-sm text-gray-400 hover:text-red-400 transition-colors">
               <LogOut className="w-4 h-4" />
@@ -272,19 +440,12 @@ const PromptsMRODashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredPrompts.map(prompt => (
               <div key={prompt.id} className="group bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-purple-500/30 transition-all">
-                {/* Image */}
                 {prompt.image_url && (
                   <div className="aspect-[3/4] overflow-hidden bg-black/20">
-                    <img
-                      src={prompt.image_url}
-                      alt={prompt.folder_name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
+                    <img src={prompt.image_url} alt={prompt.folder_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   </div>
                 )}
 
-                {/* Content */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium text-sm truncate flex-1">{prompt.folder_name}</h3>
@@ -302,22 +463,21 @@ const PromptsMRODashboard = () => {
 
                   <button
                     onClick={() => handleCopy(prompt.prompt_text, prompt.id)}
+                    disabled={blocked && !isPaid}
                     className={`w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all ${
-                      copiedId === prompt.id
-                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                        : "bg-purple-600/20 text-purple-300 border border-purple-500/20 hover:bg-purple-600/30 hover:border-purple-500/40"
+                      blocked && !isPaid
+                        ? "bg-red-500/10 text-red-400 border border-red-500/20 cursor-not-allowed"
+                        : copiedId === prompt.id
+                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                          : "bg-purple-600/20 text-purple-300 border border-purple-500/20 hover:bg-purple-600/30 hover:border-purple-500/40"
                     }`}
                   >
-                    {copiedId === prompt.id ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Copiado!
-                      </>
+                    {blocked && !isPaid ? (
+                      <><Lock className="w-4 h-4" /> Bloqueado</>
+                    ) : copiedId === prompt.id ? (
+                      <><Check className="w-4 h-4" /> Copiado!</>
                     ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        Copiar Prompt
-                      </>
+                      <><Copy className="w-4 h-4" /> Copiar Prompt</>
                     )}
                   </button>
                 </div>

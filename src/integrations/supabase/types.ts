@@ -1797,6 +1797,56 @@ export type Database = {
         }
         Relationships: []
       }
+      prompts_mro_payment_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          nsu_order: string
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          nsu_order: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          nsu_order?: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompts_mro_payment_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "prompts_mro_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prompts_mro_settings: {
         Row: {
           admin_email: string
@@ -1823,32 +1873,47 @@ export type Database = {
       }
       prompts_mro_users: {
         Row: {
+          copies_count: number
+          copies_limit: number
           created_at: string
           email: string
           id: string
+          is_paid: boolean
           last_access: string | null
           name: string
+          paid_at: string | null
           password: string
+          payment_nsu: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          copies_count?: number
+          copies_limit?: number
           created_at?: string
           email: string
           id?: string
+          is_paid?: boolean
           last_access?: string | null
           name: string
+          paid_at?: string | null
           password: string
+          payment_nsu?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          copies_count?: number
+          copies_limit?: number
           created_at?: string
           email?: string
           id?: string
+          is_paid?: boolean
           last_access?: string | null
           name?: string
+          paid_at?: string | null
           password?: string
+          payment_nsu?: string | null
           status?: string
           updated_at?: string
         }
