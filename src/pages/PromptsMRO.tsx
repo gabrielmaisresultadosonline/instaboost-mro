@@ -271,7 +271,7 @@ const PromptsMRO = () => {
               "Atualizações constantes com novos prompts",
               "Área fácil de usar — copie, cole e gere",
               "Suporte e comunidade exclusiva",
-              "Acesso vitalício a todos os prompts",
+              "Acesso anual a todos os prompts",
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.05] rounded-xl px-5 py-4 hover:border-green-500/20 transition-colors">
                 <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
@@ -339,11 +339,13 @@ const PromptsMRO = () => {
           <h2 className="text-3xl font-bold text-center mb-10">Perguntas Frequentes</h2>
           <div className="space-y-4">
             {[
-              { q: "Como funciona o Prompts MRO?", a: "Você se cadastra, acessa a área de membros e encontra centenas de prompts organizados por categoria. Basta copiar o prompt e colar na IA de geração de imagens (ChatGPT, Midjourney, Leonardo AI, etc)." },
+              { q: "Como funciona o Prompts MRO?", a: "Você se cadastra, acessa a área de membros e encontra centenas de prompts organizados por categoria. Basta copiar o prompt e colar na IA de geração de imagens. Comece grátis com 5 cópias e desbloqueie o acesso completo por R$67/ano." },
               { q: "Preciso saber usar IA para gerar fotos?", a: "Não! Os prompts são prontos para copiar e colar. É super fácil e qualquer pessoa consegue usar, mesmo sem experiência com IA." },
-              { q: "Os prompts funcionam em qual IA?", a: "Nossos prompts funcionam em qualquer IA de geração de imagens: ChatGPT (DALL-E), Midjourney, Leonardo AI, Stable Diffusion e outras." },
+              { q: "Os prompts funcionam em qual IA?", a: "Nossos prompts funcionam no Google Gemini (Nano Banana) que é 100% GRÁTIS, e também no ChatGPT (DALL-E), Midjourney, Leonardo AI, Stable Diffusion e outras IAs de geração de imagens." },
               { q: "Os prompts são atualizados?", a: "Sim! Adicionamos novos prompts frequentemente e atualizamos os existentes para garantir resultados cada vez melhores." },
               { q: "Tem prompts femininos e masculinos?", a: "Sim! Temos mais de 400 prompts femininos e 400 masculinos, além de categorias como corporativo, e-commerce, cenários e muito mais." },
+              { q: "O acesso é anual?", a: "Sim! Você começa com 5 cópias gratuitas para testar. Após isso, o acesso completo ilimitado custa apenas R$67/ano com renovação anual." },
+              { q: "Preciso pagar para usar?", a: "Não! Você pode se cadastrar gratuitamente e testar 5 prompts. Só paga quando quiser acesso ilimitado a todos os +1000 prompts." },
             ].map((item, i) => (
               <details key={i} className="group bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
                 <summary className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-white/[0.02] transition-colors">
