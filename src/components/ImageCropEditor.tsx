@@ -29,7 +29,7 @@ const ImageCropEditor = () => {
 
   const fmt = FORMATS[format];
   const aspect = fmt.w / fmt.h;
-  const imgAspect = imgNatural.w / (imgNatural.h || 1);
+  const imgAspect = imgNatural.w > 0 && imgNatural.h > 0 ? imgNatural.w / imgNatural.h : 1;
 
   const getPreviewSize = useCallback(() => {
     if (!containerRef.current) return { pw: 300, ph: 300 };
@@ -82,14 +82,14 @@ const ImageCropEditor = () => {
 
       const { pw, ph } = getPreviewSize();
       const natAspect = img.naturalWidth / img.naturalHeight;
-      // Contain: show full image, user can scale up to crop
+      // Cover proporcional: preenche o canvas e corta cantos quando necessário (sem distorcer)
       let drawW: number, drawH: number;
       if (natAspect > pw / ph) {
-        drawW = pw;
-        drawH = pw / natAspect;
-      } else {
         drawH = ph;
         drawW = ph * natAspect;
+      } else {
+        drawW = pw;
+        drawH = pw / natAspect;
       }
       setImgRect({
         x: (pw - drawW) / 2,
@@ -276,9 +276,8 @@ const ImageCropEditor = () => {
   // Download
   const handleDownload = () => {
     if (!imgRef.current) return;
-    const { pw, ph } = getPreviewSize();
-    const ratioX = fmt.w / pw;
-    const ratioY = fmt.h / ph;
+    const { pw } = getPreviewSize();
+    const scale = fmt.w / pw;
 
     const canvas = document.createElement("canvas");
     canvas.width = fmt.w;
@@ -287,10 +286,10 @@ const ImageCropEditor = () => {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, fmt.w, fmt.h);
 
-    const dx = imgRect.x * ratioX;
-    const dy = imgRect.y * ratioY;
-    const dw = imgRect.w * ratioX;
-    const dh = imgRect.h * ratioY;
+    const dx = imgRect.x * scale;
+    const dy = imgRect.y * scale;
+    const dw = imgRect.w * scale;
+    const dh = imgRect.h * scale;
 
     ctx.drawImage(imgRef.current, dx, dy, dw, dh);
 
