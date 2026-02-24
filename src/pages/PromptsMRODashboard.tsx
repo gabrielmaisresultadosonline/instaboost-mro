@@ -21,6 +21,8 @@ interface UserData {
   copies_count: number;
   copies_limit: number;
   is_paid: boolean;
+  days_remaining?: number | null;
+  subscription_end?: string | null;
 }
 
 const PromptsMRODashboard = () => {
@@ -43,6 +45,7 @@ const PromptsMRODashboard = () => {
   const [paymentLink, setPaymentLink] = useState<string | null>(null);
   const [creatingPayment, setCreatingPayment] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
 
   // Check session
   useEffect(() => {
@@ -54,6 +57,7 @@ const PromptsMRODashboard = () => {
       setCopiesLimit(parsed.copies_limit || 5);
       setIsPaid(parsed.is_paid || false);
       setBlocked(!parsed.is_paid && (parsed.copies_count || 0) >= (parsed.copies_limit || 5));
+      if (parsed.days_remaining != null) setDaysRemaining(parsed.days_remaining);
     }
   }, []);
 
@@ -91,8 +95,8 @@ const PromptsMRODashboard = () => {
     setCopiesLimit(data.copies_limit);
     setIsPaid(data.is_paid);
     setBlocked(data.blocked);
-    // Update session
-    const updated = { ...user, copies_count: data.copies_count, copies_limit: data.copies_limit, is_paid: data.is_paid };
+    if (data.days_remaining != null) setDaysRemaining(data.days_remaining);
+    const updated = { ...user, copies_count: data.copies_count, copies_limit: data.copies_limit, is_paid: data.is_paid, days_remaining: data.days_remaining, subscription_end: data.subscription_end };
     setUser(updated);
     sessionStorage.setItem("prompts_mro_user", JSON.stringify(updated));
   };
@@ -200,10 +204,11 @@ const PromptsMRODashboard = () => {
         setIsPaid(true);
         setBlocked(false);
         setPaymentLink(null);
-        const updated = { ...user, is_paid: true };
+        if (data.days_remaining != null) setDaysRemaining(data.days_remaining);
+        const updated = { ...user, is_paid: true, days_remaining: data.days_remaining };
         setUser(updated);
         sessionStorage.setItem("prompts_mro_user", JSON.stringify(updated));
-        toast.success("🎉 Pagamento confirmado! Acesso liberado!");
+        toast.success("🎉 Pagamento confirmado! Acesso liberado por 1 ano!");
       }
     } catch { /* silent */ }
     finally { setCheckingPayment(false); }
@@ -366,7 +371,7 @@ const PromptsMRODashboard = () => {
             {isPaid && (
               <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400">
                 <CheckCircle className="w-3 h-3" />
-                Acesso Completo
+                {daysRemaining != null ? `${daysRemaining} dias restantes` : 'Acesso Completo'}
               </div>
             )}
             <span className="text-sm text-gray-400 hidden sm:block">Olá, <span className="text-white font-medium">{user.name}</span></span>

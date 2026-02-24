@@ -1885,6 +1885,7 @@ export type Database = {
           password: string
           payment_nsu: string | null
           status: string
+          subscription_end: string | null
           updated_at: string
         }
         Insert: {
@@ -1900,6 +1901,7 @@ export type Database = {
           password: string
           payment_nsu?: string | null
           status?: string
+          subscription_end?: string | null
           updated_at?: string
         }
         Update: {
@@ -1915,6 +1917,7 @@ export type Database = {
           password?: string
           payment_nsu?: string | null
           status?: string
+          subscription_end?: string | null
           updated_at?: string
         }
         Relationships: []
