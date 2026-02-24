@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter, ShoppingCart, CheckCircle, Clock, XCircle, Copy, Loader2, Pencil, Save, X, Image } from "lucide-react";
+import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter, ShoppingCart, CheckCircle, Clock, XCircle, Copy, Loader2, Pencil, Save, X, Image, Mail, Send } from "lucide-react";
 import JSZip from "jszip";
 import * as pdfjsLib from "pdfjs-dist";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,17 +34,20 @@ interface PromptUser {
 interface PromptOrder {
   id: string;
   email: string;
-  name: string | null;
-  phone: string | null;
   amount: number;
   status: string;
   nsu_order: string;
   infinitepay_link: string | null;
   paid_at: string | null;
   expired_at: string | null;
-  completed_at: string | null;
-  access_created: boolean;
+  user_id: string | null;
   created_at: string;
+  user?: {
+    name: string;
+    email: string;
+    is_paid: boolean;
+    subscription_end: string | null;
+  } | null;
 }
 
 const CATEGORIES = [
@@ -865,27 +868,33 @@ const PromptsMROAdmin = () => {
                     <thead>
                       <tr className="border-b border-white/5 text-left text-gray-400">
                         <th className="px-4 py-3">E-mail</th>
-                        <th className="px-4 py-3">Nome</th>
+                        <th className="px-4 py-3">Usuário</th>
                         <th className="px-4 py-3">Valor</th>
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3">NSU</th>
                         <th className="px-4 py-3">Data</th>
+                        <th className="px-4 py-3">Pago em</th>
                         <th className="px-4 py-3">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
                       {orders.map(order => {
                         const isPending = order.status === "pending";
-                        const isPaid = order.status === "paid" || order.status === "completed";
+                        const isPaid = order.status === "paid";
                         const isExpired = order.status === "expired";
                         const timeLeft = isPending && order.expired_at
                           ? Math.max(0, Math.round((new Date(order.expired_at).getTime() - Date.now()) / 60000))
                           : 0;
+                        const userName = order.user?.name || '—';
+                        const userIsPaid = order.user?.is_paid || false;
 
                         return (
                           <tr key={order.id} className={`border-b border-white/5 hover:bg-white/[0.02] ${isExpired ? 'opacity-50' : ''}`}>
                             <td className="px-4 py-3 text-gray-300">{order.email}</td>
-                            <td className="px-4 py-3 font-medium">{order.name || '—'}</td>
+                            <td className="px-4 py-3 font-medium">
+                              {userName}
+                              {userIsPaid && <span className="ml-1 text-xs text-green-400">PRO</span>}
+                            </td>
                             <td className="px-4 py-3 text-green-400 font-bold">R${order.amount}</td>
                             <td className="px-4 py-3">
                               {isPaid && (
@@ -906,14 +915,15 @@ const PromptsMROAdmin = () => {
                             </td>
                             <td className="px-4 py-3 text-gray-500 text-xs font-mono">{order.nsu_order}</td>
                             <td className="px-4 py-3 text-gray-500">{new Date(order.created_at).toLocaleString('pt-BR')}</td>
+                            <td className="px-4 py-3 text-gray-500">{order.paid_at ? new Date(order.paid_at).toLocaleString('pt-BR') : '—'}</td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1">
                                 {isPending && (
                                   <button
                                     onClick={async () => {
                                       if (!confirm("Marcar como PAGO manualmente?")) return;
-                                      await callAdmin('mark-order-paid', { id: order.id, email: order.email, name: order.name });
-                                      toast.success("Pedido marcado como pago");
+                                      await callAdmin('mark-order-paid', { id: order.id });
+                                      toast.success("Pedido marcado como pago e acesso liberado");
                                       loadOrders();
                                     }}
                                     className="px-2 py-1 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20"
@@ -921,16 +931,19 @@ const PromptsMROAdmin = () => {
                                     ✓ Pagar
                                   </button>
                                 )}
-                                {isPaid && order.access_created && (
+                                {isPaid && order.user_id && (
                                   <button
-                                    onClick={() => {
-                                      const pwd = order.email.split("@")[0] + "2025";
-                                      navigator.clipboard.writeText(`E-mail: ${order.email}\nSenha: ${pwd}\nAcesse: prompt.maisresultadosonline.com.br`);
-                                      toast.success("Dados copiados!");
+                                    onClick={async () => {
+                                      try {
+                                        await callAdmin('resend-email', { user_id: order.user_id });
+                                        toast.success("E-mail reenviado!");
+                                      } catch (e) {
+                                        toast.error("Erro ao reenviar");
+                                      }
                                     }}
-                                    className="px-2 py-1 rounded-lg text-xs bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 flex items-center gap-1"
+                                    className="px-2 py-1 rounded-lg text-xs bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 flex items-center gap-1"
                                   >
-                                    <Copy className="w-3 h-3" /> Copiar Acesso
+                                    <Mail className="w-3 h-3" /> Reenviar
                                   </button>
                                 )}
                                 <button

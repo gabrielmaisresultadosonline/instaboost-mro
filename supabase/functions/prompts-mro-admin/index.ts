@@ -199,11 +199,11 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Get orders
+    // Get orders (from prompts_mro_payment_orders + join user info)
     if (action === 'get-orders') {
       const { data, error } = await supabase
-        .from('prompts_mro_orders')
-        .select('*')
+        .from('prompts_mro_payment_orders')
+        .select('*, user:prompts_mro_users(name, email, is_paid, subscription_end)')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -212,7 +212,7 @@ serve(async (req) => {
       const now = new Date();
       const updated = (data || []).map(order => {
         if (order.status === 'pending' && order.expired_at && new Date(order.expired_at) < now) {
-          supabase.from('prompts_mro_orders').update({ status: 'expired' }).eq('id', order.id);
+          supabase.from('prompts_mro_payment_orders').update({ status: 'expired' }).eq('id', order.id);
           return { ...order, status: 'expired' };
         }
         return order;
@@ -221,38 +221,35 @@ serve(async (req) => {
       return new Response(JSON.stringify({ orders: updated }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Mark order as paid manually + create user access
+    // Mark order as paid manually + activate user
     if (action === 'mark-order-paid') {
-      const { id, email, name } = await req.json();
-      await supabase.from('prompts_mro_orders').update({ 
+      const { id } = await req.json();
+      
+      // Get order details
+      const { data: order } = await supabase
+        .from('prompts_mro_payment_orders')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (!order) throw new Error('Pedido não encontrado');
+
+      await supabase.from('prompts_mro_payment_orders').update({ 
         status: 'paid', 
         paid_at: new Date().toISOString() 
       }).eq('id', id);
 
-      // Create user access
-      const { data: existing } = await supabase
-        .from('prompts_mro_users')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (existing) {
-        await supabase.from('prompts_mro_users').update({ status: 'active' }).eq('id', existing.id);
-      } else {
-        const password = email.split('@')[0] + '2025';
-        await supabase.from('prompts_mro_users').insert({
-          name: name || email.split('@')[0],
-          email,
-          password,
-          status: 'active',
-        });
+      // Activate user if linked
+      if (order.user_id) {
+        const subEnd = new Date();
+        subEnd.setDate(subEnd.getDate() + 365);
+        await supabase.from('prompts_mro_users').update({ 
+          is_paid: true,
+          paid_at: new Date().toISOString(),
+          subscription_end: subEnd.toISOString(),
+          status: 'active'
+        }).eq('id', order.user_id);
       }
-
-      await supabase.from('prompts_mro_orders').update({ 
-        status: 'completed', 
-        access_created: true, 
-        completed_at: new Date().toISOString() 
-      }).eq('id', id);
 
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
@@ -260,7 +257,61 @@ serve(async (req) => {
     // Delete order
     if (action === 'delete-order') {
       const { id } = await req.json();
-      await supabase.from('prompts_mro_orders').delete().eq('id', id);
+      await supabase.from('prompts_mro_payment_orders').delete().eq('id', id);
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Resend access email
+    if (action === 'resend-email') {
+      const { user_id } = await req.json();
+      const { data: user } = await supabase
+        .from('prompts_mro_users')
+        .select('*')
+        .eq('id', user_id)
+        .single();
+
+      if (!user) throw new Error('Usuário não encontrado');
+
+      const SMTP_PASSWORD = Deno.env.get('SMTP_PASSWORD');
+      if (!SMTP_PASSWORD) throw new Error('SMTP not configured');
+
+      const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
+      const client = new SMTPClient({
+        connection: {
+          hostname: "smtp.hostinger.com",
+          port: 465,
+          tls: true,
+          auth: { username: "suporte@maisresultadosonline.com.br", password: SMTP_PASSWORD },
+        },
+      });
+
+      const isPaid = user.is_paid;
+      const daysLeft = user.subscription_end ? Math.max(0, Math.ceil((new Date(user.subscription_end).getTime() - Date.now()) / (1000*60*60*24))) : 0;
+
+      const subject = isPaid ? '🎉 Seu acesso COMPLETO ao Prompts MRO' : '✅ Seus dados de acesso - Prompts MRO';
+      const html = `
+        <div style="font-family:Arial;max-width:600px;margin:0 auto;background:#0a0a0f;color:#fff;padding:30px;border-radius:16px;">
+          <h1 style="color:#22c55e;text-align:center;">${isPaid ? '🎉 Acesso Completo Liberado!' : '✅ Seus dados de acesso'}</h1>
+          <div style="background:#111;padding:20px;border-radius:12px;margin:20px 0;">
+            <p><strong>Nome:</strong> ${user.name}</p>
+            <p><strong>E-mail:</strong> ${user.email}</p>
+            <p><strong>Senha:</strong> ${user.password}</p>
+            ${isPaid ? `<p><strong>Acesso:</strong> Ilimitado por 1 ano (${daysLeft} dias restantes)</p>` : '<p><strong>Créditos:</strong> 5 cópias gratuitas</p>'}
+          </div>
+          <div style="text-align:center;margin:20px 0;">
+            <a href="https://prompt.maisresultadosonline.com.br" style="background:#22c55e;color:#000;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;">Acessar Plataforma</a>
+          </div>
+        </div>
+      `;
+
+      await client.send({
+        from: "Prompts MRO <suporte@maisresultadosonline.com.br>",
+        to: user.email,
+        subject,
+        html,
+      });
+      await client.close();
+
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
