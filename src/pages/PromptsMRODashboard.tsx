@@ -236,6 +236,7 @@ const PromptsMRODashboard = () => {
     { value: "feminino", label: "Feminino", icon: "👩" },
     { value: "masculino", label: "Masculino", icon: "👨" },
     { value: "geral", label: "Geral", icon: "🎯" },
+    { value: "empresarial", label: "Empresarial", icon: "🏢" },
   ];
 
   // LOGIN SCREEN
