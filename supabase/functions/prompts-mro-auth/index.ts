@@ -73,6 +73,60 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Register new user
+    if (action === 'register') {
+      const { name, email, password } = await req.json();
+      
+      if (!name || !email || !password) {
+        return new Response(JSON.stringify({ error: 'Nome, email e senha são obrigatórios' }), { 
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Check if user already exists
+      const { data: existing } = await supabase
+        .from('prompts_mro_users')
+        .select('id')
+        .eq('email', normalizedEmail)
+        .single();
+
+      if (existing) {
+        return new Response(JSON.stringify({ error: 'Este e-mail já está cadastrado. Faça login.' }), { 
+          status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
+      }
+
+      // Hash password
+      const { hash } = await import("https://deno.land/x/bcrypt@v0.4.1/mod.ts");
+      const hashedPassword = await hash(password);
+
+      const { data: newUser, error: insertError } = await supabase
+        .from('prompts_mro_users')
+        .insert({
+          name: name.trim(),
+          email: normalizedEmail,
+          password: hashedPassword,
+          status: 'active',
+          last_access: new Date().toISOString(),
+        })
+        .select('id, name, email')
+        .single();
+
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        return new Response(JSON.stringify({ error: 'Erro ao criar conta' }), { 
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        user: { id: newUser.id, name: newUser.name, email: newUser.email }
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     // Get prompts for member area
     if (action === 'get-prompts') {
       const { data: prompts, error } = await supabase
