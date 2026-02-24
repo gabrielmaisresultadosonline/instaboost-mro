@@ -129,9 +129,20 @@ const PromptsMRO = () => {
             <span className="text-sm text-purple-200 font-medium">+1000 Prompts Profissionais</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black mb-6 leading-[1.1] tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-black mb-8 leading-[1.1] tracking-tight">
             Gere Fotos <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400">Incríveis</span> com IA
           </h1>
+
+          {/* Video */}
+          <div className="max-w-2xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/20 aspect-video mb-10">
+            <iframe
+              src="https://www.youtube.com/embed/btICOskVlhY"
+              title="Prompts MRO"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
 
           <p className="text-xl md:text-2xl text-gray-300 mb-3 font-medium">
             A maior área de prompts para gerar suas fotos com qualidade profissional.
@@ -140,7 +151,7 @@ const PromptsMRO = () => {
             Feminino e masculino. 100% atualizados. Cadastre-se e comece a gerar agora.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <button onClick={scrollToForm} className="px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-purple-600/30">
               QUERO ACESSAR AGORA
               <ArrowRight className="w-5 h-5" />
@@ -148,17 +159,6 @@ const PromptsMRO = () => {
             <button onClick={() => setShowLogin(true)} className="px-8 py-4 rounded-2xl border border-white/10 hover:border-purple-500/50 font-medium text-gray-300 hover:text-white transition-colors">
               Já tenho conta
             </button>
-          </div>
-
-          {/* Video */}
-          <div className="mt-10 max-w-2xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/20 aspect-video">
-            <iframe
-              src="https://www.youtube.com/embed/btICOskVlhY"
-              title="Prompts MRO"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
-            />
           </div>
 
           {/* Social proof */}
