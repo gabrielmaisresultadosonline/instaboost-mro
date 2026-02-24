@@ -178,11 +178,11 @@ const PromptsMRODashboard = () => {
     }
   };
 
-  const handleCreatePayment = async () => {
+  const handleCreatePayment = async (planType: 'monthly' | 'annual') => {
     if (!user) return;
     setCreatingPayment(true);
     try {
-      const data = await callAuth("create-payment", { user_id: user.id });
+      const data = await callAuth("create-payment", { user_id: user.id, plan_type: planType });
       if (data.success && data.payment_link) {
         setPaymentLink(data.payment_link);
         window.open(data.payment_link, "_blank");
@@ -294,28 +294,45 @@ const PromptsMRODashboard = () => {
             Para continuar acessando todos os +1000 prompts, desbloqueie o acesso completo.
           </p>
 
-          <div className="bg-gradient-to-b from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
-            <div className="text-xs sm:text-sm text-gray-400 mb-1">Acesso Anual Completo</div>
-            <div className="flex items-baseline justify-center gap-1 mb-2">
-              <span className="text-3xl sm:text-4xl font-black text-white">R$67</span>
-              <span className="text-gray-400 text-xs sm:text-sm">/ano</span>
+          <div className="grid grid-cols-2 gap-3 mb-4 sm:mb-6">
+            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
+              <div className="text-[10px] sm:text-xs text-gray-400 mb-1">Mensal</div>
+              <div className="flex items-baseline justify-center gap-0.5 mb-1">
+                <span className="text-2xl sm:text-3xl font-black text-white">R$47</span>
+                <span className="text-gray-400 text-[10px] sm:text-xs">/mês</span>
+              </div>
+              <div className="text-[10px] text-gray-500 mb-2">30 dias</div>
+              {!paymentLink && (
+                <button
+                  onClick={() => handleCreatePayment('monthly')}
+                  disabled={creatingPayment}
+                  className="w-full py-2 sm:py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                >
+                  {creatingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-3.5 h-3.5" /> Assinar</>}
+                </button>
+              )}
             </div>
-            <div className="text-xs text-gray-500">+1000 prompts • Atualizações • Acesso ilimitado</div>
+            <div className="bg-gradient-to-b from-purple-500/20 to-pink-500/10 border-2 border-purple-500/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center relative">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">MELHOR</div>
+              <div className="text-[10px] sm:text-xs text-gray-400 mb-1">Anual</div>
+              <div className="flex items-baseline justify-center gap-0.5 mb-1">
+                <span className="text-2xl sm:text-3xl font-black text-white">R$97</span>
+                <span className="text-gray-400 text-[10px] sm:text-xs">/ano</span>
+              </div>
+              <div className="text-[10px] text-green-400 mb-2">365 dias • Economia!</div>
+              {!paymentLink && (
+                <button
+                  onClick={() => handleCreatePayment('annual')}
+                  disabled={creatingPayment}
+                  className="w-full py-2 sm:py-2.5 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                >
+                  {creatingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-3.5 h-3.5" /> Assinar</>}
+                </button>
+              )}
+            </div>
           </div>
 
-          {!paymentLink ? (
-            <button
-              onClick={handleCreatePayment}
-              disabled={creatingPayment}
-              className="w-full py-3 sm:py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shadow-xl shadow-purple-600/25"
-            >
-              {creatingPayment ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Gerando link...</>
-              ) : (
-                <><CreditCard className="w-5 h-5" /> DESBLOQUEAR ACESSO</>
-              )}
-            </button>
-          ) : (
+          {paymentLink && (
             <div className="space-y-3">
               <a
                 href={paymentLink}
@@ -323,7 +340,7 @@ const PromptsMRODashboard = () => {
                 rel="noopener noreferrer"
                 className="w-full py-3 sm:py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-green-600/25"
               >
-                <CreditCard className="w-5 h-5" /> PAGAR R$67
+                <CreditCard className="w-5 h-5" /> PAGAR AGORA
               </a>
 
               <button

@@ -95,7 +95,7 @@ function buildWelcomeEmail(name: string, email: string, password: string) {
 
 <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:15px;border-radius:0 8px 8px 0;margin:20px 0;">
 <p style="margin:0;color:#92400e;font-size:14px;"><strong>🎁 Você recebeu 5 créditos GRÁTIS!</strong><br>
-Faça até 5 cópias de prompts totalmente gratuitas para testar a plataforma. Após esgotar seus créditos gratuitos, você pode desbloquear o acesso completo por apenas <strong>R$67/ano</strong>.</p>
+Faça até 5 cópias de prompts totalmente gratuitas para testar a plataforma. Após esgotar seus créditos gratuitos, você pode desbloquear o acesso completo: <strong>R$47/mês</strong> ou <strong>R$97/ano</strong>.</p>
 </div>
 
 <table width="100%"><tr><td style="text-align:center;padding:20px 0;">
@@ -380,7 +380,7 @@ serve(async (req) => {
 
     // Create payment checkout
     if (action === 'create-payment') {
-      const { user_id } = await req.json();
+      const { user_id, plan_type } = await req.json();
       
       const { data: user } = await supabase
         .from('prompts_mro_users')
@@ -394,13 +394,16 @@ serve(async (req) => {
         });
       }
 
+      const selectedPlan = plan_type === 'monthly' ? 'monthly' : 'annual';
+      const amount = selectedPlan === 'monthly' ? 47 : 97;
+      const planLabel = selectedPlan === 'monthly' ? 'MENSAL' : 'ANUAL';
+
       const orderNsu = generateNSU();
-      const amount = 67;
       const priceInCents = amount * 100;
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const redirectUrl = `https://maisresultadosonline.com.br/prompts/dashboard`;
       const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
-      const productDescription = `PROMPTS_${user.email}`;
+      const productDescription = `PROMPTS_${planLabel}_${user.email}`;
 
       const lineItems = [{ description: productDescription, quantity: 1, price: priceInCents }];
 
@@ -488,7 +491,11 @@ serve(async (req) => {
       }
 
       const unlockUser = async () => {
-        const subscriptionEnd = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        // Determine plan days based on payment amount
+        const isMonthly = order.amount <= 50;
+        const planDays = isMonthly ? 30 : 365;
+        const planLabel = isMonthly ? 'Mensal (30 dias)' : 'Anual (365 dias)';
+        const subscriptionEnd = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
         
         await supabase.from('prompts_mro_users').update({ 
           is_paid: true, paid_at: new Date().toISOString(), subscription_end: subscriptionEnd
@@ -501,7 +508,7 @@ serve(async (req) => {
         // Send payment confirmation email
         sendEmail(
           user.email,
-          "🎉 Pagamento Confirmado - Acesso Completo Prompts MRO por 1 Ano!",
+          `🎉 Pagamento Confirmado - Plano ${planLabel} Prompts MRO!`,
           buildPaymentConfirmationEmail(user.name || 'Cliente', subscriptionEnd)
         ).catch(e => console.error("Payment email error:", e));
 
