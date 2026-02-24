@@ -1734,6 +1734,69 @@ export type Database = {
         }
         Relationships: []
       }
+      prompts_mro_orders: {
+        Row: {
+          access_created: boolean | null
+          amount: number
+          completed_at: string | null
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          invoice_slug: string | null
+          name: string | null
+          nsu_order: string
+          paid_at: string | null
+          phone: string | null
+          plan_type: string
+          status: string
+          transaction_nsu: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_created?: boolean | null
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          invoice_slug?: string | null
+          name?: string | null
+          nsu_order: string
+          paid_at?: string | null
+          phone?: string | null
+          plan_type?: string
+          status?: string
+          transaction_nsu?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_created?: boolean | null
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          invoice_slug?: string | null
+          name?: string | null
+          nsu_order?: string
+          paid_at?: string | null
+          phone?: string | null
+          plan_type?: string
+          status?: string
+          transaction_nsu?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       prompts_mro_settings: {
         Row: {
           admin_email: string

@@ -148,6 +148,71 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Get orders
+    if (action === 'get-orders') {
+      const { data, error } = await supabase
+        .from('prompts_mro_orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+
+      // Auto-expire pending orders past their expired_at
+      const now = new Date();
+      const updated = (data || []).map(order => {
+        if (order.status === 'pending' && order.expired_at && new Date(order.expired_at) < now) {
+          supabase.from('prompts_mro_orders').update({ status: 'expired' }).eq('id', order.id);
+          return { ...order, status: 'expired' };
+        }
+        return order;
+      });
+
+      return new Response(JSON.stringify({ orders: updated }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Mark order as paid manually + create user access
+    if (action === 'mark-order-paid') {
+      const { id, email, name } = await req.json();
+      await supabase.from('prompts_mro_orders').update({ 
+        status: 'paid', 
+        paid_at: new Date().toISOString() 
+      }).eq('id', id);
+
+      // Create user access
+      const { data: existing } = await supabase
+        .from('prompts_mro_users')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from('prompts_mro_users').update({ status: 'active' }).eq('id', existing.id);
+      } else {
+        const password = email.split('@')[0] + '2025';
+        await supabase.from('prompts_mro_users').insert({
+          name: name || email.split('@')[0],
+          email,
+          password,
+          status: 'active',
+        });
+      }
+
+      await supabase.from('prompts_mro_orders').update({ 
+        status: 'completed', 
+        access_created: true, 
+        completed_at: new Date().toISOString() 
+      }).eq('id', id);
+
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Delete order
+    if (action === 'delete-order') {
+      const { id } = await req.json();
+      await supabase.from('prompts_mro_orders').delete().eq('id', id);
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
