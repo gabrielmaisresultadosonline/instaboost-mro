@@ -465,7 +465,7 @@ const PromptsMRODashboard = () => {
               {/* Video */}
               <div className="w-full aspect-video rounded-xl overflow-hidden bg-black/30 border border-white/10 mb-6">
                 <iframe
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  src="https://www.youtube.com/embed/btICOskVlhY"
                   title="Como gerar fotos com IA"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
