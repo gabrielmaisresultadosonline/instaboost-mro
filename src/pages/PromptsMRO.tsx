@@ -1,21 +1,50 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sparkles, Camera, Wand2, Star, CheckCircle, ArrowRight, Users, Zap, Shield, Crown, Image, Layers, TrendingUp, Heart, LogIn } from "lucide-react";
+import { toast } from "sonner";
 
 const PromptsMRO = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [isLogging, setIsLogging] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Cadastro:", { name, email });
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login:", { loginEmail, loginPassword });
+    setIsLogging(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/prompts-mro-auth?action=login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+        }
+      );
+      const result = await res.json();
+      if (!res.ok || result.error) {
+        toast.error(result.error || "Erro ao fazer login");
+        return;
+      }
+      sessionStorage.setItem("prompts_mro_user", JSON.stringify(result.user));
+      toast.success(`Bem-vindo(a), ${result.user.name}!`);
+      navigate("/prompts/dashboard");
+    } catch {
+      toast.error("Erro ao conectar ao servidor");
+    } finally {
+      setIsLogging(false);
+    }
   };
 
   const scrollToForm = () => {
@@ -33,7 +62,7 @@ const PromptsMRO = () => {
             <form onSubmit={handleLogin} className="space-y-3">
               <input type="email" placeholder="Seu e-mail" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500" />
               <input type="password" placeholder="Sua senha" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500" />
-              <button type="submit" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg">Entrar</button>
+              <button type="submit" disabled={isLogging} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg disabled:opacity-50">{isLogging ? "Entrando..." : "Entrar"}</button>
             </form>
             <button onClick={() => setShowLogin(false)} className="w-full mt-4 text-gray-500 text-sm hover:text-white transition-colors">Fechar</button>
           </div>
