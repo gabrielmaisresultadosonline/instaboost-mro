@@ -116,6 +116,13 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Delete prompts by category
+    if (action === 'delete-prompts-by-category') {
+      const { category } = body;
+      await supabase.from('prompts_mro_items').delete().eq('category', category);
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     // Toggle prompt active
     if (action === 'toggle-prompt') {
       const { id, is_active } = await req.json();
