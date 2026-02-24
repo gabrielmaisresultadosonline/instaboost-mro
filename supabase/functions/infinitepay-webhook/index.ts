@@ -253,16 +253,89 @@ serve(async (req) => {
       // Unlock user - determine plan based on amount (<=50 = monthly 30 days, >50 = annual 365 days)
       const isMonthly = promptsOrder.amount <= 50;
       const planDays = isMonthly ? 30 : 365;
+      const planLabel = isMonthly ? 'PRO Mensal (30 dias)' : 'PRO Anual (365 dias)';
       const subscriptionEnd = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
+      let userName = 'Cliente';
       if (promptsOrder.user_id) {
         await supabase.from("prompts_mro_users").update({
           is_paid: true,
           paid_at: new Date().toISOString(),
           subscription_end: subscriptionEnd,
         }).eq("id", promptsOrder.user_id);
+
+        // Fetch user name for email
+        const { data: userData } = await supabase.from("prompts_mro_users").select("name, email").eq("id", promptsOrder.user_id).single();
+        if (userData?.name) userName = userData.name;
       }
 
-      log("PROMPTS order marked as PAID and user unlocked", { orderId: promptsOrder.id });
+      log("PROMPTS order marked as PAID and user unlocked", { orderId: promptsOrder.id, planLabel, planDays });
+
+      // Send payment confirmation email
+      try {
+        const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+        if (smtpPassword) {
+          const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
+          const endDate = new Date(subscriptionEnd);
+          const formattedEnd = endDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+          const emailHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;">
+<tr><td style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:30px;text-align:center;">
+<div style="background:#fff;color:#22c55e;display:inline-block;padding:8px 20px;border-radius:8px;font-size:24px;font-weight:bold;letter-spacing:2px;">✨ PROMPTS MRO</div>
+<h1 style="color:#fff;margin:15px 0 0;font-size:22px;">🎉 Pagamento Confirmado!</h1>
+</td></tr>
+<tr><td style="padding:30px;">
+<div style="background:#f0fdf4;border:2px solid #22c55e;padding:20px;border-radius:10px;margin-bottom:20px;text-align:center;">
+<p style="margin:0 0 5px;color:#16a34a;font-size:20px;font-weight:bold;">Parabéns, ${userName}! 🥳</p>
+<p style="margin:0;color:#333;font-size:15px;">Seu plano <strong>${planLabel}</strong> foi ativado com sucesso!</p>
+</div>
+<div style="background:linear-gradient(135deg,#7c3aed10,#ec489910);border:2px solid #7c3aed;border-radius:10px;padding:20px;margin:20px 0;text-align:center;">
+<p style="margin:0 0 8px;font-size:14px;color:#666;">Seu acesso é válido até:</p>
+<p style="margin:0;font-size:28px;font-weight:bold;color:#7c3aed;">${formattedEnd}</p>
+<p style="margin:8px 0 0;font-size:16px;color:#333;">⏱️ <strong>${planDays} dias</strong> de acesso</p>
+</div>
+<h3 style="color:#333;margin:25px 0 15px;">O que você ganhou:</h3>
+<table width="100%">
+<tr><td style="padding:8px 0;"><span style="background:#7c3aed;color:#fff;padding:3px 10px;border-radius:15px;font-size:13px;margin-right:8px;">✓</span> Acesso a <strong>+1000 prompts</strong> profissionais</td></tr>
+<tr><td style="padding:8px 0;"><span style="background:#7c3aed;color:#fff;padding:3px 10px;border-radius:15px;font-size:13px;margin-right:8px;">✓</span> Cópias <strong>ilimitadas</strong></td></tr>
+<tr><td style="padding:8px 0;"><span style="background:#7c3aed;color:#fff;padding:3px 10px;border-radius:15px;font-size:13px;margin-right:8px;">✓</span> Categorias <strong>Feminino, Masculino, Empresarial e Geral</strong></td></tr>
+</table>
+<table width="100%"><tr><td style="text-align:center;padding:25px 0;">
+<a href="https://maisresultadosonline.com.br/prompts/dashboard" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;text-decoration:none;padding:15px 40px;border-radius:8px;font-weight:bold;font-size:16px;">🚀 Acessar Meus Prompts</a>
+</td></tr></table>
+</td></tr>
+<tr><td style="background:#1a1a1a;padding:20px;text-align:center;">
+<p style="color:#22c55e;margin:0 0 8px;font-weight:bold;">Obrigado por confiar na Prompts MRO! 💚</p>
+<p style="color:#888;margin:0;font-size:12px;">© ${new Date().getFullYear()} MRO - Mais Resultados Online</p>
+</td></tr>
+</table></body></html>`;
+
+          const client = new SMTPClient({
+            connection: {
+              hostname: "smtp.hostinger.com",
+              port: 465,
+              tls: true,
+              auth: {
+                username: "suporte@maisresultadosonline.com.br",
+                password: smtpPassword,
+              },
+            },
+          });
+          await client.send({
+            from: "Prompts MRO <suporte@maisresultadosonline.com.br>",
+            to: promptsOrder.email,
+            subject: `🎉 Pagamento Confirmado - Plano ${planLabel} Prompts MRO!`,
+            content: "auto",
+            html: emailHtml,
+          });
+          await client.close();
+          log("Payment confirmation email sent", { email: promptsOrder.email, planLabel });
+        }
+      } catch (emailErr) {
+        log("Error sending payment email (non-blocking)", { error: String(emailErr) });
+      }
 
       await saveWebhookLog(supabase, {
         event_type: "prompts_payment_confirmed",
@@ -272,7 +345,7 @@ serve(async (req) => {
         amount: (paid_amount || amount) as number | null | undefined,
         status: "success",
         payload: body,
-        result_message: `PROMPTS order ${promptsOrder.id} marked as PAID`,
+        result_message: `PROMPTS order ${promptsOrder.id} marked as PAID - ${planLabel}`,
         order_found: true,
         order_id: promptsOrder.id,
       });
