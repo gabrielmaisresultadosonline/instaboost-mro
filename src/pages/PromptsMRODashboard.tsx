@@ -434,16 +434,34 @@ const PromptsMRODashboard = () => {
         {activeTab === "prompts" && (<>
         {/* Welcome */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2 flex-wrap">
-            <h1 className="text-2xl md:text-3xl font-bold">Seus Prompts</h1>
-            <button
-              onClick={() => setShowHowToGenerate(true)}
-              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold flex items-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-red-600/25"
-            >
-              <Play className="w-4 h-4" /> Como gerar?
-            </button>
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <h1 className="text-2xl md:text-3xl font-bold">✨ Gere Fotos Incríveis com IA</h1>
           </div>
-          <p className="text-gray-400">Encontre e copie prompts profissionais para gerar suas fotos com IA</p>
+
+          {/* Tutorial Video */}
+          <div className="w-full max-w-2xl aspect-video rounded-xl overflow-hidden bg-black/30 border border-white/10 mb-5">
+            <iframe
+              src="https://www.youtube.com/embed/btICOskVlhY"
+              title="Como gerar fotos com IA"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+
+          <p className="text-gray-400 mb-4">Encontre e copie prompts profissionais para gerar suas fotos com IA</p>
+
+          {/* Gemini Button */}
+          <a
+            href="https://gemini.google.com/app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-bold text-base transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-blue-600/25"
+          >
+            <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini" className="w-5 h-5" />
+            Abrir Google Gemini
+            <ExternalLink className="w-4 h-4" />
+          </a>
         </div>
 
         {/* How to Generate Modal */}
