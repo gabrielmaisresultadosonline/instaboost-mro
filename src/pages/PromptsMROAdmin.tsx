@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter, ShoppingCart, CheckCircle, Clock, XCircle, Copy, Loader2 } from "lucide-react";
 import JSZip from "jszip";
+import * as pdfjsLib from "pdfjs-dist";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Set PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs`;
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -205,9 +209,22 @@ const PromptsMROAdmin = () => {
           const text = await zipEntry.async('string');
           folders[folderName].text = text.trim();
         } else if (fileName.endsWith('.pdf')) {
-          const text = await zipEntry.async('string');
-          const cleanText = text.replace(/[^\x20-\x7E\xC0-\xFF\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
-          folders[folderName].text = cleanText.length > 10 ? cleanText.substring(0, 5000) : `Prompt: ${folderName}`;
+          try {
+            const pdfData = await zipEntry.async('uint8array');
+            const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              const pageText = content.items.map((item: any) => item.str).join(' ');
+              fullText += pageText + '\n';
+            }
+            const cleanText = fullText.trim();
+            folders[folderName].text = cleanText.length > 5 ? cleanText : `Prompt: ${folderName}`;
+          } catch (pdfErr) {
+            console.warn(`Erro ao ler PDF de ${folderName}:`, pdfErr);
+            folders[folderName].text = `Prompt: ${folderName}`;
+          }
         }
       }
 
