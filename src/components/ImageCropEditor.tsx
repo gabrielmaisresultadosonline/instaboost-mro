@@ -395,6 +395,8 @@ const ImageCropEditor = () => {
                 top: imgRect.y,
                 width: imgRect.w,
                 height: imgRect.h,
+                maxWidth: "none",
+                maxHeight: "none",
                 pointerEvents: "none",
                 userSelect: "none",
               }}
