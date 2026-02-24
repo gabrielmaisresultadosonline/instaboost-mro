@@ -123,6 +123,50 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Update prompt text/category/folder_name
+    if (action === 'update-prompt') {
+      const { id, prompt_text, category, folder_name } = await req.json();
+      const updates: Record<string, any> = {};
+      if (prompt_text !== undefined) updates.prompt_text = prompt_text;
+      if (category !== undefined) updates.category = category;
+      if (folder_name !== undefined) updates.folder_name = folder_name;
+      
+      const { error } = await supabase.from('prompts_mro_items').update(updates).eq('id', id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Update prompt image
+    if (action === 'update-prompt-image') {
+      const formData = await req.formData();
+      const file = formData.get('file') as File;
+      const id = formData.get('id') as string;
+      
+      if (!file || !id) {
+        return new Response(JSON.stringify({ error: 'Missing file or id' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const ext = file.name.split('.').pop() || 'png';
+      const storagePath = `prompts/${Date.now()}_edit_${id.slice(0, 8)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(storagePath, new Uint8Array(arrayBuffer), {
+          contentType: file.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        return new Response(JSON.stringify({ error: uploadError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const { data: urlData } = supabase.storage.from('assets').getPublicUrl(storagePath);
+      await supabase.from('prompts_mro_items').update({ image_url: urlData.publicUrl }).eq('id', id);
+
+      return new Response(JSON.stringify({ success: true, url: urlData.publicUrl }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     // Get users
     if (action === 'get-users') {
       const { data, error } = await supabase

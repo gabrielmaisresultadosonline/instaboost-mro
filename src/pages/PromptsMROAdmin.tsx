@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter, ShoppingCart, CheckCircle, Clock, XCircle, Copy, Loader2 } from "lucide-react";
+import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter, ShoppingCart, CheckCircle, Clock, XCircle, Copy, Loader2, Pencil, Save, X, Image } from "lucide-react";
 import JSZip from "jszip";
 import * as pdfjsLib from "pdfjs-dist";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,6 +82,14 @@ const PromptsMROAdmin = () => {
   const [uploadCategory, setUploadCategory] = useState("feminino");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [lastVerification, setLastVerification] = useState<string>("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editFolderName, setEditFolderName] = useState("");
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const editImageRef = useRef<HTMLInputElement>(null);
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadPrompts = useCallback(async () => {
@@ -376,6 +384,88 @@ const PromptsMROAdmin = () => {
     toast.success("Usuário deletado");
   };
 
+  const startEditing = (prompt: PromptItem) => {
+    setEditingId(prompt.id);
+    setEditText(prompt.prompt_text);
+    setEditCategory(prompt.category);
+    setEditFolderName(prompt.folder_name);
+    setEditImagePreview(null);
+    setEditImageFile(null);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditText("");
+    setEditCategory("");
+    setEditFolderName("");
+    setEditImagePreview(null);
+    setEditImageFile(null);
+  };
+
+  const handleEditImagePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          setEditImageFile(file);
+          setEditImagePreview(URL.createObjectURL(file));
+        }
+        break;
+      }
+    }
+  };
+
+  const handleEditImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEditImageFile(file);
+      setEditImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    setSaving(true);
+    try {
+      // Save text/category/folder_name
+      await callAdmin('update-prompt', {
+        id,
+        prompt_text: editText,
+        category: editCategory,
+        folder_name: editFolderName,
+      });
+
+      // Save image if changed
+      if (editImageFile) {
+        const formData = new FormData();
+        formData.append('file', editImageFile);
+        formData.append('id', id);
+        const imgRes = await fetch(`${SUPABASE_URL}/functions/v1/prompts-mro-admin?action=update-prompt-image`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY },
+          body: formData,
+        });
+        const imgData = await imgRes.json();
+        if (imgData.url) {
+          setPrompts(prev => prev.map(p => p.id === id ? { ...p, image_url: imgData.url } : p));
+        }
+      }
+
+      setPrompts(prev => prev.map(p => p.id === id ? {
+        ...p,
+        prompt_text: editText,
+        category: editCategory,
+        folder_name: editFolderName,
+      } : p));
+
+      cancelEditing();
+      toast.success("Prompt atualizado!");
+    } catch (err) {
+      toast.error("Erro ao salvar");
+    }
+    setSaving(false);
+  };
+
   const filteredPrompts = prompts.filter(p => {
     const matchesSearch = p.folder_name.toLowerCase().includes(search.toLowerCase()) ||
       p.prompt_text.toLowerCase().includes(search.toLowerCase());
@@ -550,31 +640,117 @@ const PromptsMROAdmin = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredPrompts.map(prompt => (
-                  <div key={prompt.id} className={`bg-[#111118] border rounded-xl overflow-hidden transition-colors ${prompt.is_active ? 'border-white/10' : 'border-red-500/20 opacity-60'}`}>
-                    {prompt.image_url && (
+                {filteredPrompts.map(prompt => {
+                  const isEditing = editingId === prompt.id;
+                  return (
+                  <div key={prompt.id} className={`bg-[#111118] border rounded-xl overflow-hidden transition-colors ${isEditing ? 'border-purple-500/50 ring-1 ring-purple-500/20' : prompt.is_active ? 'border-white/10' : 'border-red-500/20 opacity-60'}`}>
+                    {/* Image area */}
+                    {isEditing ? (
+                      <div
+                        className="aspect-square bg-black/50 flex items-center justify-center overflow-hidden relative cursor-pointer group"
+                        onPaste={handleEditImagePaste}
+                        onClick={() => editImageRef.current?.click()}
+                        tabIndex={0}
+                      >
+                        <img
+                          src={editImagePreview || prompt.image_url || ''}
+                          alt={prompt.folder_name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Image className="w-8 h-8 text-white mb-2" />
+                          <span className="text-white text-xs font-medium">Clique ou Ctrl+V para trocar</span>
+                        </div>
+                        {editImagePreview && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Nova imagem</div>
+                        )}
+                        <input ref={editImageRef} type="file" accept="image/*" onChange={handleEditImageSelect} className="hidden" />
+                      </div>
+                    ) : prompt.image_url ? (
                       <div className="aspect-square bg-black/50 flex items-center justify-center overflow-hidden">
                         <img src={prompt.image_url} alt={prompt.folder_name} className="w-full h-full object-cover" loading="lazy" />
                       </div>
-                    )}
+                    ) : null}
+
                     <div className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-bold text-sm text-purple-300 flex-1">{prompt.folder_name}</h3>
-                        {getCategoryBadge(prompt.category)}
-                      </div>
-                      <p className="text-gray-400 text-xs line-clamp-4 mb-3 whitespace-pre-wrap">{prompt.prompt_text.substring(0, 300)}{prompt.prompt_text.length > 300 ? '...' : ''}</p>
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => handleTogglePrompt(prompt.id, prompt.is_active)} className={`p-2 rounded-lg text-xs flex items-center gap-1 ${prompt.is_active ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
-                          {prompt.is_active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                          {prompt.is_active ? 'Ativo' : 'Inativo'}
-                        </button>
-                        <button onClick={() => handleDeletePrompt(prompt.id)} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20">
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
+                      {isEditing ? (
+                        <>
+                          {/* Edit folder name */}
+                          <input
+                            type="text"
+                            value={editFolderName}
+                            onChange={e => setEditFolderName(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm mb-2 focus:outline-none focus:border-purple-500"
+                            placeholder="Nome da pasta"
+                          />
+                          {/* Edit category */}
+                          <div className="flex gap-1 mb-2">
+                            {CATEGORIES.map(cat => (
+                              <button
+                                key={cat.value}
+                                onClick={() => setEditCategory(cat.value)}
+                                className={`px-2 py-1 rounded-lg text-[10px] font-medium border transition-all ${
+                                  editCategory === cat.value
+                                    ? cat.value === 'feminino' ? 'bg-pink-500/20 border-pink-500/50 text-pink-300'
+                                    : cat.value === 'masculino' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                                    : 'bg-purple-500/20 border-purple-500/50 text-purple-300'
+                                    : 'bg-white/5 border-white/10 text-gray-500'
+                                }`}
+                              >
+                                {cat.label}
+                              </button>
+                            ))}
+                          </div>
+                          {/* Edit prompt text */}
+                          <textarea
+                            value={editText}
+                            onChange={e => setEditText(e.target.value)}
+                            rows={6}
+                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs mb-3 focus:outline-none focus:border-purple-500 resize-y"
+                            placeholder="Texto do prompt..."
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleSaveEdit(prompt.id)}
+                              disabled={saving}
+                              className="px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1 bg-green-500/20 text-green-400 hover:bg-green-500/30 disabled:opacity-50"
+                            >
+                              {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                              Salvar
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="px-3 py-2 rounded-lg text-xs flex items-center gap-1 bg-white/5 text-gray-400 hover:bg-white/10"
+                            >
+                              <X className="w-3 h-3" /> Cancelar
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-bold text-sm text-purple-300 flex-1">{prompt.folder_name}</h3>
+                            {getCategoryBadge(prompt.category)}
+                          </div>
+                          <p className="text-gray-400 text-xs line-clamp-4 mb-3 whitespace-pre-wrap">{prompt.prompt_text.substring(0, 300)}{prompt.prompt_text.length > 300 ? '...' : ''}</p>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => startEditing(prompt)} className="p-2 rounded-lg text-xs flex items-center gap-1 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20">
+                              <Pencil className="w-3 h-3" /> Editar
+                            </button>
+                            <button onClick={() => handleTogglePrompt(prompt.id, prompt.is_active)} className={`p-2 rounded-lg text-xs flex items-center gap-1 ${prompt.is_active ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                              {prompt.is_active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                              {prompt.is_active ? 'Ativo' : 'Inativo'}
+                            </button>
+                            <button onClick={() => handleDeletePrompt(prompt.id)} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20">
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
