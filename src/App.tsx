@@ -71,6 +71,7 @@ import LiveAdmin from "./pages/LiveAdmin";
 import LicencaAdmin from "./pages/LicencaAdmin";
 import PromptsMRO from "./pages/PromptsMRO";
 import PromptsMROAdmin from "./pages/PromptsMROAdmin";
+import PromptsMRODashboard from "./pages/PromptsMRODashboard";
 
 const queryClient = new QueryClient();
 
@@ -150,6 +151,7 @@ const App = () => (
           <Route path="/licencaadmin" element={<LicencaAdmin />} />
           <Route path="/prompts" element={<PromptsMRO />} />
           <Route path="/prompts/admin" element={<PromptsMROAdmin />} />
+          <Route path="/prompts/dashboard" element={<PromptsMRODashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
