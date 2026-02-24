@@ -39,7 +39,7 @@ serve(async (req) => {
     });
 
     const body = await req.json();
-    const { email, name, phone } = body;
+    const { email, name, phone, plan_type } = body;
 
     if (!email || !email.includes("@")) {
       return new Response(
@@ -48,11 +48,13 @@ serve(async (req) => {
       );
     }
 
+    const selectedPlan = plan_type === 'monthly' ? 'monthly' : 'annual';
     const cleanEmail = email.toLowerCase().trim();
     const cleanName = (name || "").trim();
     const cleanPhone = phone ? phone.replace(/\D/g, "").trim() : "";
     const orderNsu = generateNSU();
-    const amount = 97;
+    const amount = selectedPlan === 'monthly' ? 47 : 97;
+    const planLabel = selectedPlan === 'monthly' ? 'MENSAL' : 'ANUAL';
     const priceInCents = amount * 100;
 
     // Check if email already has active access
@@ -73,7 +75,7 @@ serve(async (req) => {
     const redirectUrl = `https://maisresultadosonline.com.br/prompts`;
     const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
 
-    const productDescription = `PROMPTS_ANUAL_${cleanEmail}`;
+    const productDescription = `PROMPTS_${planLabel}_${cleanEmail}`;
 
     const lineItems = [{
       description: productDescription,
@@ -125,7 +127,7 @@ serve(async (req) => {
         email: cleanEmail,
         name: cleanName || null,
         phone: cleanPhone || null,
-        plan_type: "annual",
+        plan_type: selectedPlan,
         amount,
         status: "pending",
         nsu_order: orderNsu,

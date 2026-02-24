@@ -295,16 +295,27 @@ const PromptsMRO = () => {
               Cadastre-se <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Agora</span>
             </h2>
 
-            <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4 mb-4">
-              <div className="text-sm text-gray-400 mb-1">Acesso Anual Completo</div>
-              <div className="flex items-baseline justify-center gap-1">
-                <span className="text-4xl font-black text-white">R$67</span>
-                <span className="text-gray-400 text-sm">/ano</span>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4 text-center">
+                <div className="text-xs text-gray-400 mb-1">Plano Mensal</div>
+                <div className="flex items-baseline justify-center gap-0.5">
+                  <span className="text-3xl font-black text-white">R$47</span>
+                  <span className="text-gray-400 text-xs">/mês</span>
+                </div>
+                <div className="text-[10px] text-gray-500 mt-1">30 dias de acesso</div>
               </div>
-              <div className="text-xs text-gray-500 mt-1">Comece grátis com 5 cópias • Pague só quando quiser mais</div>
+              <div className="bg-gradient-to-b from-purple-500/20 to-pink-500/10 border-2 border-purple-500/40 rounded-2xl p-4 text-center relative">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-full">MELHOR</div>
+                <div className="text-xs text-gray-400 mb-1">Plano Anual</div>
+                <div className="flex items-baseline justify-center gap-0.5">
+                  <span className="text-3xl font-black text-white">R$97</span>
+                  <span className="text-gray-400 text-xs">/ano</span>
+                </div>
+                <div className="text-[10px] text-green-400 mt-1">365 dias • Economia!</div>
+              </div>
             </div>
 
-            <p className="text-gray-400 mb-6 text-sm">Crie sua conta grátis e teste os prompts. Desbloqueie o acesso completo por apenas R$67/ano.</p>
+            <p className="text-gray-400 mb-6 text-sm">Crie sua conta grátis e teste os prompts. Desbloqueie o acesso completo escolhendo seu plano.</p>
 
             <form onSubmit={handleRegister} className="space-y-3 text-left">
               <div>
@@ -339,12 +350,12 @@ const PromptsMRO = () => {
           <h2 className="text-3xl font-bold text-center mb-10">Perguntas Frequentes</h2>
           <div className="space-y-4">
             {[
-              { q: "Como funciona o Prompts MRO?", a: "Você se cadastra, acessa a área de membros e encontra centenas de prompts organizados por categoria. Basta copiar o prompt e colar na IA de geração de imagens. Comece grátis com 5 cópias e desbloqueie o acesso completo por R$67/ano." },
+              { q: "Como funciona o Prompts MRO?", a: "Você se cadastra, acessa a área de membros e encontra centenas de prompts organizados por categoria. Basta copiar o prompt e colar na IA de geração de imagens. Comece grátis com 5 cópias e desbloqueie o acesso completo escolhendo o plano Mensal (R$47/mês) ou Anual (R$97/ano)." },
               { q: "Preciso saber usar IA para gerar fotos?", a: "Não! Os prompts são prontos para copiar e colar. É super fácil e qualquer pessoa consegue usar, mesmo sem experiência com IA." },
               { q: "Os prompts funcionam em qual IA?", a: "Nossos prompts funcionam no Google Gemini (Nano Banana) que é 100% GRÁTIS, e também no ChatGPT (DALL-E), Midjourney, Leonardo AI, Stable Diffusion e outras IAs de geração de imagens." },
               { q: "Os prompts são atualizados?", a: "Sim! Adicionamos novos prompts frequentemente e atualizamos os existentes para garantir resultados cada vez melhores." },
               { q: "Tem prompts femininos e masculinos?", a: "Sim! Temos mais de 400 prompts femininos e 400 masculinos, além de categorias como corporativo, e-commerce, cenários e muito mais." },
-              { q: "O acesso é anual?", a: "Sim! Você começa com 5 cópias gratuitas para testar. Após isso, o acesso completo ilimitado custa apenas R$67/ano com renovação anual." },
+              { q: "Quais são os planos disponíveis?", a: "Temos dois planos: Mensal por R$47/mês (30 dias de acesso) e Anual por R$97/ano (365 dias de acesso). Você começa com 5 cópias gratuitas para testar antes de escolher seu plano." },
               { q: "Preciso pagar para usar?", a: "Não! Você pode se cadastrar gratuitamente e testar 5 prompts. Só paga quando quiser acesso ilimitado a todos os +1000 prompts." },
             ].map((item, i) => (
               <details key={i} className="group bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
