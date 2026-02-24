@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter, ShoppingCart, CheckCircle, Clock, XCircle, Copy, Loader2 } from "lucide-react";
 import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -27,6 +27,22 @@ interface PromptUser {
   created_at: string;
 }
 
+interface PromptOrder {
+  id: string;
+  email: string;
+  name: string | null;
+  phone: string | null;
+  amount: number;
+  status: string;
+  nsu_order: string;
+  infinitepay_link: string | null;
+  paid_at: string | null;
+  expired_at: string | null;
+  completed_at: string | null;
+  access_created: boolean;
+  created_at: string;
+}
+
 const CATEGORIES = [
   { value: 'feminino', label: '👩 Feminino', color: 'pink' },
   { value: 'masculino', label: '👨 Masculino', color: 'blue' },
@@ -50,9 +66,10 @@ const PromptsMROAdmin = () => {
   const [isAuth, setIsAuth] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [tab, setTab] = useState<"prompts" | "users">("prompts");
+  const [tab, setTab] = useState<"prompts" | "users" | "vendas">("prompts");
   const [prompts, setPrompts] = useState<PromptItem[]>([]);
   const [users, setUsers] = useState<PromptUser[]>([]);
+  const [orders, setOrders] = useState<PromptOrder[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -60,6 +77,8 @@ const PromptsMROAdmin = () => {
   const [uploadPercent, setUploadPercent] = useState(0);
   const [uploadCategory, setUploadCategory] = useState("feminino");
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [lastVerification, setLastVerification] = useState<string>("");
+  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadPrompts = useCallback(async () => {
     setLoading(true);
@@ -73,12 +92,46 @@ const PromptsMROAdmin = () => {
     if (data.users) setUsers(data.users);
   }, []);
 
+  const loadOrders = useCallback(async () => {
+    const data = await callAdmin('get-orders');
+    if (data.orders) setOrders(data.orders);
+  }, []);
+
+  // Auto-verify pending orders every 8 seconds
+  useEffect(() => {
+    if (!isAuth || tab !== "vendas") {
+      if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
+      return;
+    }
+
+    const verifyPending = async () => {
+      const pendingOrders = orders.filter(o => o.status === "pending");
+      for (const order of pendingOrders) {
+        try {
+          await fetch(`${SUPABASE_URL}/functions/v1/check-prompts-payment`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
+            body: JSON.stringify({ nsu_order: order.nsu_order }),
+          });
+        } catch {}
+      }
+      if (pendingOrders.length > 0) {
+        setLastVerification(new Date().toLocaleTimeString("pt-BR"));
+        loadOrders();
+      }
+    };
+
+    checkIntervalRef.current = setInterval(verifyPending, 8000);
+    return () => { if (checkIntervalRef.current) clearInterval(checkIntervalRef.current); };
+  }, [isAuth, tab, orders, loadOrders]);
+
   useEffect(() => {
     if (isAuth) {
       loadPrompts();
       loadUsers();
+      loadOrders();
     }
-  }, [isAuth, loadPrompts, loadUsers]);
+  }, [isAuth, loadPrompts, loadUsers, loadOrders]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -306,12 +359,15 @@ const PromptsMROAdmin = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold">Prompts MRO <span className="text-purple-400">Admin</span></h1>
           <div className="flex items-center gap-3">
-            <div className="flex bg-white/5 rounded-lg p-1">
+            <div className="flex bg-white/5 rounded-lg p-1 flex-wrap">
               <button onClick={() => setTab("prompts")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'prompts' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}>
                 <Layers className="w-4 h-4 inline mr-1" /> Prompts ({prompts.length})
               </button>
               <button onClick={() => setTab("users")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'users' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}>
                 <Users className="w-4 h-4 inline mr-1" /> Usuários ({users.length})
+              </button>
+              <button onClick={() => setTab("vendas")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'vendas' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}>
+                <ShoppingCart className="w-4 h-4 inline mr-1" /> Vendas ({orders.length})
               </button>
             </div>
             <button onClick={() => setIsAuth(false)} className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white">
@@ -512,6 +568,136 @@ const PromptsMROAdmin = () => {
                           </td>
                         </tr>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "vendas" && (
+          <div>
+            <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-lg font-bold">Vendas / Pedidos ({orders.length})</h2>
+              <div className="flex items-center gap-3">
+                {lastVerification && (
+                  <span className="text-xs text-gray-500">Última verificação: {lastVerification}</span>
+                )}
+                <button onClick={loadOrders} className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
+                  <RefreshCw className="w-4 h-4" /> Atualizar
+                </button>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              {[
+                { label: "Total", count: orders.length, color: "text-white" },
+                { label: "Pendentes", count: orders.filter(o => o.status === "pending").length, color: "text-yellow-400" },
+                { label: "Pagos", count: orders.filter(o => o.status === "paid" || o.status === "completed").length, color: "text-green-400" },
+                { label: "Expirados", count: orders.filter(o => o.status === "expired").length, color: "text-red-400" },
+              ].map((s, i) => (
+                <div key={i} className="bg-[#111118] border border-white/10 rounded-xl p-4 text-center">
+                  <div className={`text-2xl font-black ${s.color}`}>{s.count}</div>
+                  <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="text-center py-20 text-gray-500">Nenhum pedido ainda.</div>
+            ) : (
+              <div className="bg-[#111118] border border-white/10 rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-white/5 text-left text-gray-400">
+                        <th className="px-4 py-3">E-mail</th>
+                        <th className="px-4 py-3">Nome</th>
+                        <th className="px-4 py-3">Valor</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3">NSU</th>
+                        <th className="px-4 py-3">Data</th>
+                        <th className="px-4 py-3">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.map(order => {
+                        const isPending = order.status === "pending";
+                        const isPaid = order.status === "paid" || order.status === "completed";
+                        const isExpired = order.status === "expired";
+                        const timeLeft = isPending && order.expired_at
+                          ? Math.max(0, Math.round((new Date(order.expired_at).getTime() - Date.now()) / 60000))
+                          : 0;
+
+                        return (
+                          <tr key={order.id} className={`border-b border-white/5 hover:bg-white/[0.02] ${isExpired ? 'opacity-50' : ''}`}>
+                            <td className="px-4 py-3 text-gray-300">{order.email}</td>
+                            <td className="px-4 py-3 font-medium">{order.name || '—'}</td>
+                            <td className="px-4 py-3 text-green-400 font-bold">R${order.amount}</td>
+                            <td className="px-4 py-3">
+                              {isPaid && (
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 flex items-center gap-1 w-fit">
+                                  <CheckCircle className="w-3 h-3" /> Pago
+                                </span>
+                              )}
+                              {isPending && (
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 flex items-center gap-1 w-fit">
+                                  <Clock className="w-3 h-3" /> Pendente {timeLeft > 0 ? `(${timeLeft}min)` : ''}
+                                </span>
+                              )}
+                              {isExpired && (
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 flex items-center gap-1 w-fit">
+                                  <XCircle className="w-3 h-3" /> Expirado
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-gray-500 text-xs font-mono">{order.nsu_order}</td>
+                            <td className="px-4 py-3 text-gray-500">{new Date(order.created_at).toLocaleString('pt-BR')}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1">
+                                {isPending && (
+                                  <button
+                                    onClick={async () => {
+                                      if (!confirm("Marcar como PAGO manualmente?")) return;
+                                      await callAdmin('mark-order-paid', { id: order.id, email: order.email, name: order.name });
+                                      toast.success("Pedido marcado como pago");
+                                      loadOrders();
+                                    }}
+                                    className="px-2 py-1 rounded-lg text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20"
+                                  >
+                                    ✓ Pagar
+                                  </button>
+                                )}
+                                {isPaid && order.access_created && (
+                                  <button
+                                    onClick={() => {
+                                      const pwd = order.email.split("@")[0] + "2025";
+                                      navigator.clipboard.writeText(`E-mail: ${order.email}\nSenha: ${pwd}\nAcesse: prompt.maisresultadosonline.com.br`);
+                                      toast.success("Dados copiados!");
+                                    }}
+                                    className="px-2 py-1 rounded-lg text-xs bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 flex items-center gap-1"
+                                  >
+                                    <Copy className="w-3 h-3" /> Copiar Acesso
+                                  </button>
+                                )}
+                                <button
+                                  onClick={async () => {
+                                    if (!confirm("Deletar este pedido?")) return;
+                                    await callAdmin('delete-order', { id: order.id });
+                                    setOrders(prev => prev.filter(o => o.id !== order.id));
+                                    toast.success("Pedido deletado");
+                                  }}
+                                  className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
