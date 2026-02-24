@@ -177,29 +177,55 @@ async function createUserAccess(supabase: any, order: any) {
   log("Creating user access", { email: order.email });
 
   try {
+    const subEnd = new Date();
+    subEnd.setDate(subEnd.getDate() + 365);
+
+    let userName = order.name || order.email.split("@")[0];
+    let userPassword = "";
+
     // Check if user already exists
     const { data: existing } = await supabase
       .from("prompts_mro_users")
-      .select("id")
+      .select("*")
       .eq("email", order.email)
       .maybeSingle();
 
     if (existing) {
-      // Reactivate existing user
+      // Reactivate existing user with PRO
       await supabase
         .from("prompts_mro_users")
-        .update({ status: "active", updated_at: new Date().toISOString() })
+        .update({ 
+          status: "active", 
+          is_paid: true,
+          paid_at: new Date().toISOString(),
+          subscription_end: subEnd.toISOString(),
+          copies_limit: 999999,
+          updated_at: new Date().toISOString() 
+        })
         .eq("id", existing.id);
+      userName = existing.name;
+      userPassword = existing.password;
     } else {
-      // Create new user - password = email
-      const password = order.email.split("@")[0] + "2025";
+      // Create new user
+      userPassword = order.email.split("@")[0] + "2025";
       await supabase.from("prompts_mro_users").insert({
-        name: order.name || order.email.split("@")[0],
+        name: userName,
         email: order.email,
-        password,
+        password: userPassword,
         status: "active",
+        is_paid: true,
+        paid_at: new Date().toISOString(),
+        subscription_end: subEnd.toISOString(),
+        copies_limit: 999999,
       });
     }
+
+    // Also update prompts_mro_payment_orders if exists
+    await supabase
+      .from("prompts_mro_payment_orders")
+      .update({ status: "paid", paid_at: new Date().toISOString() })
+      .eq("email", order.email)
+      .eq("status", "pending");
 
     // Mark order as completed
     await supabase
@@ -212,8 +238,62 @@ async function createUserAccess(supabase: any, order: any) {
       })
       .eq("id", order.id);
 
-    log("User access created successfully");
+    // Send confirmation email
+    await sendProConfirmationEmail(order.email, userName, userPassword);
+
+    log("User access created and email sent successfully");
   } catch (e) {
     log("Error creating user access", String(e));
+  }
+}
+
+async function sendProConfirmationEmail(email: string, name: string, password: string) {
+  try {
+    const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD");
+    if (!SMTP_PASSWORD) {
+      log("SMTP not configured, skipping email");
+      return;
+    }
+
+    const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.hostinger.com",
+        port: 465,
+        tls: true,
+        auth: { username: "suporte@maisresultadosonline.com.br", password: SMTP_PASSWORD },
+      },
+    });
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0f;color:#fff;padding:30px;border-radius:16px;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <img src="https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/assets/logo-mro-email.png" alt="MRO" style="height:50px;" />
+        </div>
+        <h1 style="color:#22c55e;text-align:center;font-size:24px;">🎉 Pagamento Confirmado!</h1>
+        <p style="text-align:center;color:#ccc;font-size:16px;">Seu plano <strong style="color:#22c55e;">PRO Anual</strong> foi ativado com sucesso!</p>
+        <div style="background:#111;padding:20px;border-radius:12px;margin:20px 0;border:1px solid #22c55e33;">
+          <p style="margin:8px 0;"><strong style="color:#22c55e;">👤 Nome:</strong> ${name}</p>
+          <p style="margin:8px 0;"><strong style="color:#22c55e;">📧 E-mail:</strong> ${email}</p>
+          <p style="margin:8px 0;"><strong style="color:#22c55e;">🔑 Senha:</strong> ${password}</p>
+          <p style="margin:8px 0;"><strong style="color:#22c55e;">⭐ Plano:</strong> PRO Anual - Acesso Ilimitado por 365 dias</p>
+        </div>
+        <div style="text-align:center;margin:24px 0;">
+          <a href="https://prompt.maisresultadosonline.com.br" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#000;padding:14px 40px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;display:inline-block;">Acessar Plataforma</a>
+        </div>
+        <p style="text-align:center;color:#666;font-size:12px;margin-top:20px;">Obrigado por confiar na MRO! 💚</p>
+      </div>
+    `;
+
+    await client.send({
+      from: "Prompts MRO <suporte@maisresultadosonline.com.br>",
+      to: email,
+      subject: "🎉 Pagamento Confirmado - Plano PRO Anual Ativado!",
+      html,
+    });
+    await client.close();
+    log("Pro confirmation email sent", { email });
+  } catch (e) {
+    log("Error sending confirmation email", String(e));
   }
 }
