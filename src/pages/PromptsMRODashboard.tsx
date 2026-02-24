@@ -420,18 +420,14 @@ const PromptsMRODashboard = () => {
         </div>
 
         {/* Stats */}
-        <div className="flex items-center gap-4 mb-6 text-sm text-gray-500">
-          <div className="flex items-center gap-1.5">
-            <Image className="w-4 h-4 text-purple-400" />
-            <span>{filteredPrompts.length} prompts</span>
-          </div>
-          {filterCategory !== "all" && (
+        {filterCategory !== "all" && (
+          <div className="flex items-center gap-4 mb-6 text-sm text-gray-500">
             <div className="flex items-center gap-1.5">
               <Filter className="w-4 h-4 text-pink-400" />
               <span>Filtro: {categories.find(c => c.value === filterCategory)?.label}</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Loading */}
         {loading && (
