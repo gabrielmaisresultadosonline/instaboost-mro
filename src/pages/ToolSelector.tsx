@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target } from 'lucide-react';
+import { Instagram, MessageCircle, Sparkles, Users, ExternalLink, X, TrendingUp, CreditCard, Target, Wand2 } from 'lucide-react';
 import logoMro from '@/assets/logo-mro.png';
 import { trackPageView, trackViewContent } from '@/lib/facebookTracking';
 
@@ -74,6 +74,18 @@ const ToolSelector = () => {
       borderColor: 'border-amber-500/30',
       badge: 'GESTÃO',
       salesPath: '/gestaomensal'
+    },
+    {
+      id: 'prompts',
+      name: 'Prompts de I.A.',
+      subtitle: 'BIBLIOTECA DE PROMPTS',
+      description: 'Gere fotos profissionais com inteligência artificial',
+      icon: Wand2,
+      color: 'from-purple-500 to-violet-600',
+      hoverColor: 'hover:from-purple-600 hover:to-violet-700',
+      borderColor: 'border-purple-500/30',
+      badge: 'PROMPTS MRO',
+      salesPath: '/prompts'
     },
   ];
 
