@@ -6,6 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple hash using Web Crypto API (works in edge runtime)
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "_prompts_mro_salt_2025");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -35,7 +44,7 @@ serve(async (req) => {
         .select('*')
         .eq('email', email.toLowerCase().trim())
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       if (error || !user) {
         return new Response(JSON.stringify({ error: 'E-mail não encontrado ou conta inativa' }), { 
@@ -43,19 +52,16 @@ serve(async (req) => {
         });
       }
 
-      // Check password (support both plain and bcrypt)
+      // Check password - support plain text, bcrypt prefix, and sha256 hash
       let passwordMatch = false;
-      if (user.password.startsWith('$2')) {
-        const { compare } = await import("https://deno.land/x/bcrypt@v0.4.1/mod.ts");
-        passwordMatch = await compare(password, user.password);
-      } else {
-        passwordMatch = user.password === password;
-        // Upgrade to bcrypt
-        if (passwordMatch) {
-          const { hash } = await import("https://deno.land/x/bcrypt@v0.4.1/mod.ts");
-          const hashed = await hash(password);
-          await supabase.from('prompts_mro_users').update({ password: hashed }).eq('id', user.id);
-        }
+      const hashedInput = await hashPassword(password);
+      
+      if (user.password === hashedInput) {
+        passwordMatch = true;
+      } else if (user.password === password) {
+        // Plain text match - upgrade to hash
+        passwordMatch = true;
+        await supabase.from('prompts_mro_users').update({ password: hashedInput }).eq('id', user.id);
       }
 
       if (!passwordMatch) {
@@ -90,7 +96,7 @@ serve(async (req) => {
         .from('prompts_mro_users')
         .select('id')
         .eq('email', normalizedEmail)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         return new Response(JSON.stringify({ error: 'Este e-mail já está cadastrado. Faça login.' }), { 
@@ -99,8 +105,7 @@ serve(async (req) => {
       }
 
       // Hash password
-      const { hash } = await import("https://deno.land/x/bcrypt@v0.4.1/mod.ts");
-      const hashedPassword = await hash(password);
+      const hashedPassword = await hashPassword(password);
 
       const { data: newUser, error: insertError } = await supabase
         .from('prompts_mro_users')
