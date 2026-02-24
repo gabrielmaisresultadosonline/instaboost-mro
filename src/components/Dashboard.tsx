@@ -200,7 +200,7 @@ export const Dashboard = ({
                 variant="outline"
                 size="sm"
               />
-              {onLogout && <UserHeader onLogout={onLogout} />}
+              {onLogout && <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} />}
             </div>
           </div>
 
@@ -241,7 +241,7 @@ export const Dashboard = ({
                   isLoading={isLoading}
                 />
               </div>
-              {onLogout && <UserHeader onLogout={onLogout} />}
+              {onLogout && <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} />}
             </div>
 
             {/* Linha 4: Tabs com scroll horizontal */}
@@ -306,7 +306,7 @@ export const Dashboard = ({
                     isLoading={isLoading}
                   />
                 </div>
-                {onLogout && <UserHeader onLogout={onLogout} />}
+                {onLogout && <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} />}
               </div>
             </div>
 
