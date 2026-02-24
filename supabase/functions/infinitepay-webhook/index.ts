@@ -131,11 +131,20 @@ serve(async (req) => {
     let username: string | null = null;
     let affiliateId: string | null = null;
     let isMROOrder = false;
+    let isPromptsOrder = false;
     
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
+        
+        // Formato PROMPTS: PROMPTS_email@domain.com
+        if (itemName.startsWith("PROMPTS_")) {
+          isPromptsOrder = true;
+          email = itemName.replace("PROMPTS_", "").toLowerCase();
+          log("Parsed PROMPTS order", { email });
+          break;
+        }
         
         // Formato MRO: MROIG_ANUAL_username_afiliado:email ou MROIG_VITALICIO_username_email
         if (itemName.startsWith("MROIG_")) {
@@ -184,6 +193,93 @@ serve(async (req) => {
       paid_amount,
       capture_method 
     });
+
+    // PROMPTS MRO orders
+    if (isPromptsOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("PROMPTS"))) {
+      log("Processing as PROMPTS order", { order_nsu, email });
+      
+      let promptsOrder = null;
+
+      if (order_nsu) {
+        const result = await supabase
+          .from("prompts_mro_payment_orders")
+          .select("*")
+          .eq("nsu_order", order_nsu)
+          .eq("status", "pending")
+          .maybeSingle();
+        promptsOrder = result.data;
+        if (promptsOrder) log("Found PROMPTS order by NSU", { orderId: promptsOrder.id });
+      }
+
+      if (!promptsOrder && email) {
+        const result = await supabase
+          .from("prompts_mro_payment_orders")
+          .select("*")
+          .eq("email", email)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        promptsOrder = result.data;
+        if (promptsOrder) log("Found PROMPTS order by email", { orderId: promptsOrder.id });
+      }
+
+      if (!promptsOrder) {
+        log("No pending PROMPTS order found", { order_nsu, email });
+        await saveWebhookLog(supabase, {
+          event_type: "prompts_order_not_found",
+          order_nsu: order_nsu || null,
+          transaction_nsu: transaction_nsu || null,
+          email,
+          amount: (paid_amount || amount) as number | null | undefined,
+          status: "not_found",
+          payload: body,
+          result_message: "No pending PROMPTS order found",
+          order_found: false,
+        });
+        return new Response(
+          JSON.stringify({ success: false, error: "No pending PROMPTS order found" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
+
+      // Mark as paid
+      await supabase.from("prompts_mro_payment_orders").update({
+        status: "paid",
+        paid_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", promptsOrder.id);
+
+      // Unlock user
+      const subscriptionEnd = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      if (promptsOrder.user_id) {
+        await supabase.from("prompts_mro_users").update({
+          is_paid: true,
+          paid_at: new Date().toISOString(),
+          subscription_end: subscriptionEnd,
+        }).eq("id", promptsOrder.user_id);
+      }
+
+      log("PROMPTS order marked as PAID and user unlocked", { orderId: promptsOrder.id });
+
+      await saveWebhookLog(supabase, {
+        event_type: "prompts_payment_confirmed",
+        order_nsu: order_nsu || null,
+        transaction_nsu: transaction_nsu || null,
+        email: promptsOrder.email,
+        amount: (paid_amount || amount) as number | null | undefined,
+        status: "success",
+        payload: body,
+        result_message: `PROMPTS order ${promptsOrder.id} marked as PAID`,
+        order_found: true,
+        order_id: promptsOrder.id,
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, message: "PROMPTS Payment confirmed", order_id: promptsOrder.id }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
     // Se é um pedido MRO, processar na tabela mro_orders
     if (isMROOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("MROIG"))) {
