@@ -1884,6 +1884,7 @@ export type Database = {
           paid_at: string | null
           password: string
           payment_nsu: string | null
+          phone: string | null
           status: string
           subscription_end: string | null
           updated_at: string
@@ -1900,6 +1901,7 @@ export type Database = {
           paid_at?: string | null
           password: string
           payment_nsu?: string | null
+          phone?: string | null
           status?: string
           subscription_end?: string | null
           updated_at?: string
@@ -1916,6 +1918,7 @@ export type Database = {
           paid_at?: string | null
           password?: string
           payment_nsu?: string | null
+          phone?: string | null
           status?: string
           subscription_end?: string | null
           updated_at?: string

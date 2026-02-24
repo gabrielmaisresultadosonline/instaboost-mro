@@ -11,6 +11,7 @@ const PromptsMRO = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -19,7 +20,7 @@ const PromptsMRO = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !name || !password) {
+    if (!email || !name || !password || !phone) {
       toast.error("Preencha todos os campos");
       return;
     }
@@ -32,7 +33,7 @@ const PromptsMRO = () => {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/prompts-mro-auth?action=register`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, phone }),
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -305,6 +306,10 @@ const PromptsMRO = () => {
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Senha</label>
                 <input type="password" placeholder="Crie uma senha" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">WhatsApp</label>
+                <input type="tel" placeholder="(11) 99999-9999" value={phone} onChange={e => setPhone(e.target.value)} required className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors" />
               </div>
               <button type="submit" disabled={isRegistering} className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-purple-600/25 mt-4 disabled:opacity-50">
                 {isRegistering ? <><Loader2 className="w-5 h-5 animate-spin" /> Criando conta...</> : <>QUERO ACESSAR OS PROMPTS <ArrowRight className="w-5 h-5" /></>}
