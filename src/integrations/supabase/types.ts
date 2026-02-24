@@ -1698,6 +1698,96 @@ export type Database = {
         }
         Relationships: []
       }
+      prompts_mro_items: {
+        Row: {
+          created_at: string
+          folder_name: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          order_index: number | null
+          prompt_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          folder_name: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          order_index?: number | null
+          prompt_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          folder_name?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          order_index?: number | null
+          prompt_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prompts_mro_settings: {
+        Row: {
+          admin_email: string
+          admin_password: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prompts_mro_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          last_access: string | null
+          name: string
+          password: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          last_access?: string | null
+          name: string
+          password: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          last_access?: string | null
+          name?: string
+          password?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       renda_extra_analytics: {
         Row: {
           created_at: string

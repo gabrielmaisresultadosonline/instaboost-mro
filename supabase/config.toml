@@ -226,3 +226,6 @@ verify_jwt = false
 
 [functions.inteligencia-fotos-manage]
 verify_jwt = false
+
+[functions.prompts-mro-admin]
+verify_jwt = false
