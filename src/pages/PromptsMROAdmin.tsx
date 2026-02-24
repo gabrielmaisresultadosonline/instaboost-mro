@@ -365,6 +365,14 @@ const PromptsMROAdmin = () => {
     toast.success("Todos os prompts deletados");
   };
 
+  const handleDeleteByCategory = async (category: string) => {
+    const label = category === 'masculino' ? '👨 Masculino' : '👩 Feminino';
+    if (!confirm(`ATENÇÃO: Deletar TODOS os prompts da categoria ${label}? Esta ação não pode ser desfeita!`)) return;
+    await callAdmin('delete-prompts-by-category', { category });
+    setPrompts(prev => prev.filter(p => p.category !== category));
+    toast.success(`Prompts ${label} deletados`);
+  };
+
   const handleTogglePrompt = async (id: string, currentActive: boolean) => {
     await callAdmin('toggle-prompt', { id, is_active: !currentActive });
     setPrompts(prev => prev.map(p => p.id === id ? { ...p, is_active: !currentActive } : p));
@@ -585,6 +593,12 @@ const PromptsMROAdmin = () => {
                 <div className="mt-4 flex items-center justify-center gap-4">
                   <button onClick={() => loadPrompts()} className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
                     <RefreshCw className="w-4 h-4" /> Atualizar
+                  </button>
+                  <button onClick={() => handleDeleteByCategory('masculino')} className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" /> Deletar 👨 Masculino
+                  </button>
+                  <button onClick={() => handleDeleteByCategory('feminino')} className="text-sm text-pink-400 hover:text-pink-300 flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" /> Deletar 👩 Feminino
                   </button>
                   <button onClick={handleDeleteAll} className="text-sm text-red-400 hover:text-red-300 flex items-center gap-1">
                     <AlertTriangle className="w-4 h-4" /> Deletar Todos
