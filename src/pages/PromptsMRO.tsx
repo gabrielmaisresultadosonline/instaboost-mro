@@ -191,7 +191,7 @@ const PromptsMRO = () => {
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { step: "01", title: "Escolha o Prompt", desc: "Navegue pelas categorias e encontre o prompt ideal para o que você precisa.", icon: Layers },
-            { step: "02", title: "Copie e Cole", desc: "Copie o prompt pronto e cole na IA de geração de imagens (ChatGPT, Midjourney, etc).", icon: Zap },
+            { step: "02", title: "Copie e Cole", desc: "Copie o prompt pronto e cole no Google Gemini (Nano Banana) que é 100% GRÁTIS, ou em outras IAs como ChatGPT, Midjourney, etc.", icon: Zap },
             { step: "03", title: "Foto Pronta!", desc: "Receba uma foto profissional de alta qualidade pronta para usar.", icon: Camera },
           ].map((item, i) => (
             <div key={i} className="relative bg-gradient-to-b from-white/[0.04] to-transparent border border-white/[0.06] rounded-2xl p-8 text-center group hover:border-purple-500/30 transition-all">
