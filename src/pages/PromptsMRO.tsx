@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Camera, Wand2, Star, CheckCircle, ArrowRight, Users, Zap, Shield, Crown, Image, Layers, TrendingUp, Heart, LogIn, Loader2 } from "lucide-react";
+import promptsAreaPreview from "@/assets/prompts-area-preview.png";
 import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -191,6 +192,17 @@ const PromptsMRO = () => {
               <p className="text-gray-400">{item.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Area Preview */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">Veja como é a área por dentro</h2>
+          <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">Uma interface moderna com centenas de prompts organizados e prontos para copiar</p>
+          <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/20">
+            <img src={promptsAreaPreview} alt="Prévia da área de prompts MRO" className="w-full h-auto" />
+          </div>
         </div>
       </section>
 
