@@ -150,6 +150,17 @@ const PromptsMRO = () => {
             </button>
           </div>
 
+          {/* Video */}
+          <div className="mt-10 max-w-2xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/20 aspect-video">
+            <iframe
+              src="https://www.youtube.com/embed/btICOskVlhY"
+              title="Prompts MRO"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+
           {/* Social proof */}
           <div className="mt-12 flex items-center justify-center gap-6 text-sm text-gray-500">
             <div className="flex items-center gap-2">
