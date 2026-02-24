@@ -54,6 +54,7 @@ const CATEGORIES = [
   { value: 'feminino', label: '👩 Feminino', color: 'pink' },
   { value: 'masculino', label: '👨 Masculino', color: 'blue' },
   { value: 'geral', label: '🌐 Geral', color: 'purple' },
+  { value: 'empresarial', label: '🏢 Empresarial', color: 'amber' },
 ];
 
 const callAdmin = async (action: string, body?: any) => {
@@ -94,6 +95,15 @@ const PromptsMROAdmin = () => {
   const [saving, setSaving] = useState(false);
   const editImageRef = useRef<HTMLInputElement>(null);
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Individual prompt creation
+  const [newPromptName, setNewPromptName] = useState("");
+  const [newPromptText, setNewPromptText] = useState("");
+  const [newPromptCategory, setNewPromptCategory] = useState("empresarial");
+  const [newPromptImage, setNewPromptImage] = useState<File | null>(null);
+  const [newPromptImagePreview, setNewPromptImagePreview] = useState<string | null>(null);
+  const [creatingPrompt, setCreatingPrompt] = useState(false);
+  const newPromptImageRef = useRef<HTMLInputElement>(null);
 
   const loadPrompts = useCallback(async () => {
     setLoading(true);
@@ -477,6 +487,43 @@ const PromptsMROAdmin = () => {
     setSaving(false);
   };
 
+  const handleCreateIndividualPrompt = async () => {
+    if (!newPromptName.trim() || !newPromptText.trim()) {
+      toast.error("Preencha o nome e o texto do prompt");
+      return;
+    }
+    setCreatingPrompt(true);
+    try {
+      let imageUrl: string | null = null;
+      if (newPromptImage) {
+        const formData = new FormData();
+        formData.append('file', newPromptImage, `${newPromptName}.${newPromptImage.name.split('.').pop()}`);
+        formData.append('folder', newPromptName);
+        const imgRes = await fetch(`${SUPABASE_URL}/functions/v1/prompts-mro-admin?action=upload-image`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY },
+          body: formData,
+        });
+        const imgData = await imgRes.json();
+        if (imgData.url) imageUrl = imgData.url;
+      }
+      await callAdmin('insert-prompt', {
+        folder_name: newPromptName.trim(),
+        prompt_text: newPromptText.trim(),
+        image_url: imageUrl,
+        category: newPromptCategory,
+      });
+      toast.success("Prompt criado com sucesso!");
+      setNewPromptName("");
+      setNewPromptText("");
+      setNewPromptImage(null);
+      setNewPromptImagePreview(null);
+      loadPrompts();
+    } catch {
+      toast.error("Erro ao criar prompt");
+    }
+    setCreatingPrompt(false);
+  };
   const filteredPrompts = prompts.filter(p => {
     const matchesSearch = p.folder_name.toLowerCase().includes(search.toLowerCase()) ||
       p.prompt_text.toLowerCase().includes(search.toLowerCase());
@@ -489,12 +536,14 @@ const PromptsMROAdmin = () => {
     feminino: prompts.filter(p => p.category === 'feminino').length,
     masculino: prompts.filter(p => p.category === 'masculino').length,
     geral: prompts.filter(p => p.category === 'geral').length,
+    empresarial: prompts.filter(p => p.category === 'empresarial').length,
   };
 
   const getCategoryBadge = (category: string) => {
     switch (category) {
       case 'feminino': return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/20 text-pink-400">👩 Feminino</span>;
       case 'masculino': return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400">👨 Masculino</span>;
+      case 'empresarial': return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400">🏢 Empresarial</span>;
       default: return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-400">🌐 Geral</span>;
     }
   };
@@ -610,6 +659,99 @@ const PromptsMROAdmin = () => {
               )}
             </div>
 
+            {/* Individual prompt creation */}
+            <div className="bg-[#111118] border border-white/10 rounded-2xl p-6 mb-6">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Image className="w-5 h-5 text-purple-400" /> Adicionar Prompt Individual
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Nome do Prompt</label>
+                    <input
+                      type="text"
+                      value={newPromptName}
+                      onChange={e => setNewPromptName(e.target.value)}
+                      placeholder="Ex: Empresário no escritório"
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Texto do Prompt</label>
+                    <textarea
+                      value={newPromptText}
+                      onChange={e => setNewPromptText(e.target.value)}
+                      placeholder="Cole aqui o texto completo do prompt..."
+                      rows={5}
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Categoria</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {CATEGORIES.map(cat => (
+                        <button
+                          key={cat.value}
+                          onClick={() => setNewPromptCategory(cat.value)}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                            newPromptCategory === cat.value
+                              ? cat.value === 'feminino' ? 'bg-pink-500/20 border-pink-500/50 text-pink-300'
+                              : cat.value === 'masculino' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                              : cat.value === 'empresarial' ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                              : 'bg-purple-500/20 border-purple-500/50 text-purple-300'
+                              : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <label className="text-sm text-gray-400 mb-1 block">Imagem (opcional)</label>
+                  <div
+                    onClick={() => newPromptImageRef.current?.click()}
+                    className="aspect-square max-h-64 rounded-xl bg-white/5 border-2 border-dashed border-white/10 flex items-center justify-center cursor-pointer hover:border-purple-500/30 transition-colors overflow-hidden"
+                  >
+                    {newPromptImagePreview ? (
+                      <img src={newPromptImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center p-4">
+                        <Upload className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                        <p className="text-gray-500 text-xs">Clique para enviar imagem</p>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    ref={newPromptImageRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setNewPromptImage(file);
+                        setNewPromptImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                  {newPromptImagePreview && (
+                    <button onClick={() => { setNewPromptImage(null); setNewPromptImagePreview(null); }} className="text-xs text-red-400 hover:text-red-300">
+                      Remover imagem
+                    </button>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={handleCreateIndividualPrompt}
+                disabled={creatingPrompt || !newPromptName.trim() || !newPromptText.trim()}
+                className="mt-4 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {creatingPrompt ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Save className="w-4 h-4" /> Salvar Prompt</>}
+              </button>
+            </div>
+
             {/* Category filter tabs */}
             {prompts.length > 0 && (
               <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -636,6 +778,12 @@ const PromptsMROAdmin = () => {
                   className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${filterCategory === 'geral' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-white/5 border-white/10 text-gray-400'}`}
                 >
                   🌐 Geral ({categoryCounts.geral})
+                </button>
+                <button
+                  onClick={() => setFilterCategory('empresarial')}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${filterCategory === 'empresarial' ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                >
+                  🏢 Empresarial ({categoryCounts.empresarial})
                 </button>
               </div>
             )}
