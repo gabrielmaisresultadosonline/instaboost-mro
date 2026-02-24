@@ -206,7 +206,9 @@ const PromptsMROAdmin = () => {
           const ext = fileName.split('.').pop()!;
           folders[folderName].image = { name: fileName, data, ext };
         } else if (fileName.endsWith('.txt')) {
-          const text = await zipEntry.async('string');
+          const rawData = await zipEntry.async('uint8array');
+          const decoder = new TextDecoder('utf-8');
+          const text = decoder.decode(rawData);
           folders[folderName].text = text.trim();
         } else if (fileName.endsWith('.pdf')) {
           try {
