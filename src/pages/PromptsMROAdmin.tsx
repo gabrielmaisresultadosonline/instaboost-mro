@@ -56,6 +56,7 @@ const PromptsMROAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [uploadProgress, setUploadProgress] = useState("");
+  const [uploadPercent, setUploadPercent] = useState(0);
   const [uploadCategory, setUploadCategory] = useState("feminino");
   const [filterCategory, setFilterCategory] = useState<string>("all");
 
@@ -89,6 +90,12 @@ const PromptsMROAdmin = () => {
     }
   };
 
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const handleUploadZip = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -98,26 +105,60 @@ const PromptsMROAdmin = () => {
     }
 
     setUploading(true);
-    setUploadProgress(`Enviando ZIP (${uploadCategory})...`);
+    setUploadPercent(0);
+    setUploadProgress(`Preparando envio...`);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('category', uploadCategory);
-      const data = await callAdmin('upload-zip', formData);
 
-      if (data.success) {
-        toast.success(`${data.processed} prompts (${uploadCategory}) processados de ${data.total} pastas!`);
+      const xhr = new XMLHttpRequest();
+      
+      const result = await new Promise<any>((resolve, reject) => {
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            setUploadPercent(percent);
+            setUploadProgress(
+              `${formatBytes(event.loaded)} de ${formatBytes(event.total)} (${percent}%)`
+            );
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            reject(new Error('Resposta inválida do servidor'));
+          }
+        });
+
+        xhr.addEventListener('error', () => reject(new Error('Erro de rede')));
+        xhr.addEventListener('abort', () => reject(new Error('Upload cancelado')));
+
+        xhr.open('POST', `${SUPABASE_URL}/functions/v1/prompts-mro-admin?action=upload-zip`);
+        xhr.setRequestHeader('apikey', SUPABASE_KEY);
+        xhr.send(formData);
+      });
+
+      if (result.success) {
+        setUploadPercent(100);
+        setUploadProgress('Concluído!');
+        toast.success(`${result.processed} prompts (${uploadCategory}) processados de ${result.total} pastas!`);
         loadPrompts();
       } else {
-        toast.error(data.error || "Erro ao processar ZIP");
+        toast.error(result.error || "Erro ao processar ZIP");
       }
-    } catch (err) {
-      toast.error("Erro ao enviar arquivo");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar arquivo");
     }
 
-    setUploading(false);
-    setUploadProgress("");
+    setTimeout(() => {
+      setUploading(false);
+      setUploadProgress("");
+      setUploadPercent(0);
+    }, 1500);
     e.target.value = "";
   };
 
@@ -248,6 +289,24 @@ const PromptsMROAdmin = () => {
                 <input type="file" accept=".zip" onChange={handleUploadZip} disabled={uploading} className="hidden" />
               </label>
 
+              {/* Progress bar */}
+              {uploading && (
+                <div className="mt-5 w-full max-w-md mx-auto space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">{uploadProgress}</span>
+                    <span className="text-purple-400 font-bold">{uploadPercent}%</span>
+                  </div>
+                  <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden border border-white/10">
+                    <div
+                      className="h-full rounded-full transition-all duration-300 ease-out"
+                      style={{
+                        width: `${uploadPercent}%`,
+                        background: 'linear-gradient(90deg, #7c3aed, #ec4899)',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
               {prompts.length > 0 && (
                 <div className="mt-4 flex items-center justify-center gap-4">
                   <button onClick={() => loadPrompts()} className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
