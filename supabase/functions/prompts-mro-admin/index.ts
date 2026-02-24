@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,88 +34,38 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Upload ZIP and process
-    if (action === 'upload-zip') {
+    // Upload single image to storage
+    if (action === 'upload-image') {
       const formData = await req.formData();
       const file = formData.get('file') as File;
-      const category = (formData.get('category') as string) || 'geral';
+      const folder = formData.get('folder') as string;
+      
       if (!file) {
-        return new Response(JSON.stringify({ error: 'No file provided' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify({ error: 'No file' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       const arrayBuffer = await file.arrayBuffer();
-      const zip = await JSZip.loadAsync(arrayBuffer);
+      const ext = file.name.split('.').pop() || 'png';
+      const storagePath = `prompts/${Date.now()}_${(folder || 'img').replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
 
-      const folders: Record<string, { image?: { name: string; data: Uint8Array; ext: string }; text?: string }> = {};
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(storagePath, new Uint8Array(arrayBuffer), {
+          contentType: file.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+          upsert: true,
+        });
 
-      // First pass: find root folder structure
-      // ZIP might have a root folder wrapping everything
-      const allPaths = Object.keys(zip.files);
-      
-      // Detect common root prefix
-      let rootPrefix = '';
-      const topLevel = new Set<string>();
-      for (const path of allPaths) {
-        const parts = path.split('/').filter(Boolean);
-        if (parts.length >= 1) topLevel.add(parts[0]);
-      }
-      // If there's only one top-level folder, it's a wrapper
-      if (topLevel.size === 1) {
-        rootPrefix = [...topLevel][0] + '/';
+      if (uploadError) {
+        return new Response(JSON.stringify({ error: uploadError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      for (const [path, zipEntry] of Object.entries(zip.files)) {
-        if (zipEntry.dir) continue;
+      const { data: urlData } = supabase.storage.from('assets').getPublicUrl(storagePath);
+      return new Response(JSON.stringify({ url: urlData.publicUrl }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
-        // Remove root prefix if exists
-        let cleanPath = path;
-        if (rootPrefix && cleanPath.startsWith(rootPrefix)) {
-          cleanPath = cleanPath.slice(rootPrefix.length);
-        }
-
-        const parts = cleanPath.split('/').filter(Boolean);
-        if (parts.length < 2) continue; // Need at least folder/file
-
-        const folderName = parts[0];
-        const fileName = parts[parts.length - 1].toLowerCase();
-
-        if (!folders[folderName]) folders[folderName] = {};
-
-        // Check if image
-        if (fileName.match(/\.(png|jpg|jpeg|webp|gif)$/i)) {
-          const data = await zipEntry.async('uint8array');
-          const ext = fileName.split('.').pop()!;
-          folders[folderName].image = { name: fileName, data, ext };
-        }
-        // Check if text/pdf
-        else if (fileName.match(/\.(txt|pdf|docx|doc)$/i)) {
-          if (fileName.endsWith('.txt')) {
-            const text = await zipEntry.async('string');
-            folders[folderName].text = text.trim();
-          } else if (fileName.endsWith('.pdf')) {
-            // For PDF, just note the file name as prompt placeholder
-            const text = await zipEntry.async('string');
-            // Try to extract readable text from PDF (basic)
-            const cleanText = text.replace(/[^\x20-\x7E\xC0-\xFF\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
-            folders[folderName].text = cleanText.length > 10 ? cleanText.substring(0, 5000) : `Prompt: ${folderName}`;
-          } else {
-            // docx - try to extract text
-            try {
-              const docZip = await JSZip.loadAsync(await zipEntry.async('uint8array'));
-              const docXml = await docZip.file('word/document.xml')?.async('string');
-              if (docXml) {
-                const textContent = docXml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-                folders[folderName].text = textContent;
-              }
-            } catch {
-              folders[folderName].text = `Prompt: ${folderName}`;
-            }
-          }
-        }
-      }
-
-      let processed = 0;
-      let orderIndex = 0;
+    // Insert single prompt
+    if (action === 'insert-prompt') {
+      const { folder_name, prompt_text, image_url, category } = await req.json();
 
       // Get current max order_index
       const { data: existingItems } = await supabase
@@ -125,46 +74,22 @@ serve(async (req) => {
         .order('order_index', { ascending: false })
         .limit(1);
       
+      let orderIndex = 0;
       if (existingItems && existingItems.length > 0) {
         orderIndex = existingItems[0].order_index + 1;
       }
 
-      for (const [folderName, content] of Object.entries(folders)) {
-        if (!content.text && !content.image) continue;
+      const { error } = await supabase.from('prompts_mro_items').insert({
+        folder_name,
+        prompt_text,
+        image_url,
+        order_index: orderIndex,
+        is_active: true,
+        category: category || 'geral',
+      });
 
-        let imageUrl = null;
-
-        // Upload image to storage
-        if (content.image) {
-          const storagePath = `prompts/${Date.now()}_${folderName.replace(/[^a-zA-Z0-9]/g, '_')}.${content.image.ext}`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('assets')
-            .upload(storagePath, content.image.data, {
-              contentType: `image/${content.image.ext === 'jpg' ? 'jpeg' : content.image.ext}`,
-              upsert: true,
-            });
-
-          if (!uploadError && uploadData) {
-            const { data: urlData } = supabase.storage.from('assets').getPublicUrl(storagePath);
-            imageUrl = urlData.publicUrl;
-          }
-        }
-
-        const promptText = content.text || `Prompt: ${folderName}`;
-
-        await supabase.from('prompts_mro_items').insert({
-          folder_name: folderName,
-          prompt_text: promptText,
-          image_url: imageUrl,
-          order_index: orderIndex++,
-          is_active: true,
-          category: category,
-        });
-
-        processed++;
-      }
-
-      return new Response(JSON.stringify({ success: true, processed, total: Object.keys(folders).length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Get all prompts
