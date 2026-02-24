@@ -82,14 +82,14 @@ const ImageCropEditor = () => {
 
       const { pw, ph } = getPreviewSize();
       const natAspect = img.naturalWidth / img.naturalHeight;
-      // Cover the preview
+      // Contain: show full image, user can scale up to crop
       let drawW: number, drawH: number;
       if (natAspect > pw / ph) {
-        drawH = ph;
-        drawW = ph * natAspect;
-      } else {
         drawW = pw;
         drawH = pw / natAspect;
+      } else {
+        drawH = ph;
+        drawW = ph * natAspect;
       }
       setImgRect({
         x: (pw - drawW) / 2,
