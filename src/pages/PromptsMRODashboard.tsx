@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle } from "lucide-react";
+import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle, Play, X, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -36,7 +36,7 @@ const PromptsMRODashboard = () => {
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-
+  const [showHowToGenerate, setShowHowToGenerate] = useState(false);
   // Paywall state
   const [blocked, setBlocked] = useState(false);
   const [copiesCount, setCopiesCount] = useState(0);
@@ -386,9 +386,61 @@ const PromptsMRODashboard = () => {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome */}
         <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">Seus Prompts</h1>
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
+            <h1 className="text-2xl md:text-3xl font-bold">Seus Prompts</h1>
+            <button
+              onClick={() => setShowHowToGenerate(true)}
+              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold flex items-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-red-600/25"
+            >
+              <Play className="w-4 h-4" /> Como gerar?
+            </button>
+          </div>
           <p className="text-gray-400">Encontre e copie prompts profissionais para gerar suas fotos com IA</p>
         </div>
+
+        {/* How to Generate Modal */}
+        {showHowToGenerate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm px-3 sm:px-4 overflow-y-auto">
+            <div className="bg-[#111118] border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-2xl w-full shadow-2xl my-4 relative">
+              <button
+                onClick={() => setShowHowToGenerate(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h2 className="text-xl sm:text-2xl font-bold mb-1 flex items-center gap-2">
+                <Play className="w-5 h-5 text-red-400" /> Como gerar suas fotos?
+              </h2>
+              <p className="text-gray-400 text-sm mb-5">Assista o tutorial e use o Gemini para gerar</p>
+
+              {/* Video */}
+              <div className="w-full aspect-video rounded-xl overflow-hidden bg-black/30 border border-white/10 mb-6">
+                <iframe
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  title="Como gerar fotos com IA"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+
+              {/* Gemini Button */}
+              <a
+                href="https://gemini.google.com/app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-bold text-lg flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-blue-600/25"
+              >
+                <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini" className="w-6 h-6" />
+                Abrir Google Gemini
+                <ExternalLink className="w-4 h-4" />
+              </a>
+
+              <p className="text-xs text-gray-600 text-center mt-3">Copie o prompt acima e cole no Gemini para gerar sua foto</p>
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
