@@ -69,6 +69,7 @@ import InstagramNovaP from "./pages/InstagramNovaP";
 import Live from "./pages/Live";
 import LiveAdmin from "./pages/LiveAdmin";
 import LicencaAdmin from "./pages/LicencaAdmin";
+import PromptsMRO from "./pages/PromptsMRO";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +147,7 @@ const App = () => (
           <Route path="/live" element={<Live />} />
           <Route path="/live/admin" element={<LiveAdmin />} />
           <Route path="/licencaadmin" element={<LicencaAdmin />} />
+          <Route path="/prompts" element={<PromptsMRO />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
