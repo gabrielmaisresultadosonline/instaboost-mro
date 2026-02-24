@@ -233,7 +233,7 @@ serve(async (req) => {
 
     // Register new user
     if (action === 'register') {
-      const { name, email, password } = await req.json();
+      const { name, email, password, phone } = await req.json();
       
       if (!name || !email || !password) {
         return new Response(JSON.stringify({ error: 'Nome, email e senha são obrigatórios' }), { 
@@ -263,6 +263,7 @@ serve(async (req) => {
           name: name.trim(),
           email: normalizedEmail,
           password: hashedPassword,
+          phone: phone ? phone.trim() : null,
           status: 'active',
           last_access: new Date().toISOString(),
           copies_count: 0,
