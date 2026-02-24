@@ -213,9 +213,19 @@ const UsersListPanel = () => {
     return new Date(sorted[0].registered_at).toLocaleDateString('pt-BR');
   };
 
-  const exportCSV = (type: 'full' | 'simple') => {
+  const exportCSV = (type: 'full' | 'simple' | 'emails') => {
     let rows: string[][];
-    if (type === 'simple') {
+    if (type === 'emails') {
+      rows = [['email']];
+      const seen = new Set<string>();
+      for (const u of filteredUsers) {
+        const email = (u.email || '').trim().toLowerCase();
+        if (email && email !== 'n/a' && !seen.has(email)) {
+          seen.add(email);
+          rows.push([email]);
+        }
+      }
+    } else if (type === 'simple') {
       rows = [['Usuário', 'Primeiro Cadastro']];
       for (const u of filteredUsers) {
         rows.push([
@@ -241,10 +251,11 @@ const UsersListPanel = () => {
     const blob = new Blob([csv], { type: 'text/csv' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = type === 'simple' ? 'usuarios_simples.csv' : 'usuarios_completo.csv';
+    link.download = type === 'emails' ? 'emails_facebook_ads.csv' : type === 'simple' ? 'usuarios_simples.csv' : 'usuarios_completo.csv';
     link.click();
     URL.revokeObjectURL(link.href);
-    toast({ title: 'CSV exportado!', description: `${filteredUsers.length} usuários exportados` });
+    const count = type === 'emails' ? rows.length - 1 : filteredUsers.length;
+    toast({ title: 'CSV exportado!', description: `${count} ${type === 'emails' ? 'emails únicos exportados' : 'usuários exportados'}` });
   };
 
   if (isLoading) {
@@ -316,6 +327,9 @@ const UsersListPanel = () => {
           </Button>
           <Button variant="outline" size="sm" onClick={() => exportCSV('simple')}>
             <Download className="w-4 h-4 mr-1" /> Só Usuários + Data
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportCSV('emails')} className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10">
+            <Download className="w-4 h-4 mr-1" /> Só Emails (Ads)
           </Button>
           <Button
             variant="outline"
