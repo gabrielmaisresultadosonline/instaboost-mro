@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Upload, Trash2, Eye, EyeOff, Users, Layers, LogOut, RefreshCw, Search, AlertTriangle, Filter } from "lucide-react";
+import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -106,52 +107,118 @@ const PromptsMROAdmin = () => {
 
     setUploading(true);
     setUploadPercent(0);
-    setUploadProgress(`Preparando envio...`);
+    setUploadProgress("Lendo arquivo ZIP...");
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('category', uploadCategory);
+      // Step 1: Read and extract ZIP client-side
+      const arrayBuffer = await file.arrayBuffer();
+      const zip = await JSZip.loadAsync(arrayBuffer);
 
-      const xhr = new XMLHttpRequest();
-      
-      const result = await new Promise<any>((resolve, reject) => {
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            setUploadPercent(percent);
-            setUploadProgress(
-              `${formatBytes(event.loaded)} de ${formatBytes(event.total)} (${percent}%)`
-            );
-          }
-        });
+      setUploadProgress("Analisando pastas...");
 
-        xhr.addEventListener('load', () => {
-          try {
-            resolve(JSON.parse(xhr.responseText));
-          } catch {
-            reject(new Error('Resposta inválida do servidor'));
-          }
-        });
-
-        xhr.addEventListener('error', () => reject(new Error('Erro de rede')));
-        xhr.addEventListener('abort', () => reject(new Error('Upload cancelado')));
-
-        xhr.open('POST', `${SUPABASE_URL}/functions/v1/prompts-mro-admin?action=upload-zip`);
-        xhr.setRequestHeader('apikey', SUPABASE_KEY);
-        xhr.send(formData);
-      });
-
-      if (result.success) {
-        setUploadPercent(100);
-        setUploadProgress('Concluído!');
-        toast.success(`${result.processed} prompts (${uploadCategory}) processados de ${result.total} pastas!`);
-        loadPrompts();
-      } else {
-        toast.error(result.error || "Erro ao processar ZIP");
+      // Detect root wrapper folder
+      const allPaths = Object.keys(zip.files);
+      const topLevel = new Set<string>();
+      for (const path of allPaths) {
+        const parts = path.split('/').filter(Boolean);
+        if (parts.length >= 1) topLevel.add(parts[0]);
       }
+      let rootPrefix = '';
+      if (topLevel.size === 1) {
+        rootPrefix = [...topLevel][0] + '/';
+      }
+
+      // Group files by folder
+      const folders: Record<string, { image?: { name: string; data: Uint8Array; ext: string }; text?: string }> = {};
+
+      for (const [path, zipEntry] of Object.entries(zip.files)) {
+        if (zipEntry.dir) continue;
+        let cleanPath = path;
+        if (rootPrefix && cleanPath.startsWith(rootPrefix)) {
+          cleanPath = cleanPath.slice(rootPrefix.length);
+        }
+        const parts = cleanPath.split('/').filter(Boolean);
+        if (parts.length < 2) continue;
+
+        const folderName = parts[0];
+        const fileName = parts[parts.length - 1].toLowerCase();
+        if (!folders[folderName]) folders[folderName] = {};
+
+        if (fileName.match(/\.(png|jpg|jpeg|webp|gif)$/i)) {
+          const data = await zipEntry.async('uint8array');
+          const ext = fileName.split('.').pop()!;
+          folders[folderName].image = { name: fileName, data, ext };
+        } else if (fileName.endsWith('.txt')) {
+          const text = await zipEntry.async('string');
+          folders[folderName].text = text.trim();
+        } else if (fileName.endsWith('.pdf')) {
+          const text = await zipEntry.async('string');
+          const cleanText = text.replace(/[^\x20-\x7E\xC0-\xFF\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
+          folders[folderName].text = cleanText.length > 10 ? cleanText.substring(0, 5000) : `Prompt: ${folderName}`;
+        }
+      }
+
+      const entries = Object.entries(folders).filter(([, c]) => c.text || c.image);
+      const total = entries.length;
+
+      if (total === 0) {
+        toast.error("Nenhum prompt encontrado no ZIP");
+        setUploading(false);
+        setUploadProgress("");
+        setUploadPercent(0);
+        e.target.value = "";
+        return;
+      }
+
+      // Step 2: Upload each prompt individually
+      let processed = 0;
+      let errors = 0;
+
+      for (const [folderName, content] of entries) {
+        processed++;
+        const percent = Math.round((processed / total) * 100);
+        setUploadPercent(percent);
+        setUploadProgress(`Processando ${processed} de ${total} prompts...`);
+
+        try {
+          let imageUrl: string | null = null;
+
+          // Upload image to storage via edge function
+          if (content.image) {
+            const imgFormData = new FormData();
+            const blob = new Blob([new Uint8Array(content.image.data)], { 
+              type: `image/${content.image.ext === 'jpg' ? 'jpeg' : content.image.ext}` 
+            });
+            imgFormData.append('file', blob, `${folderName}.${content.image.ext}`);
+            imgFormData.append('folder', folderName);
+
+            const imgRes = await fetch(`${SUPABASE_URL}/functions/v1/prompts-mro-admin?action=upload-image`, {
+              method: 'POST',
+              headers: { 'apikey': SUPABASE_KEY },
+              body: imgFormData,
+            });
+            const imgData = await imgRes.json();
+            if (imgData.url) imageUrl = imgData.url;
+          }
+
+          // Insert prompt record
+          await callAdmin('insert-prompt', {
+            folder_name: folderName,
+            prompt_text: content.text || `Prompt: ${folderName}`,
+            image_url: imageUrl,
+            category: uploadCategory,
+          });
+        } catch {
+          errors++;
+        }
+      }
+
+      setUploadPercent(100);
+      setUploadProgress('Concluído!');
+      toast.success(`${processed - errors} prompts (${uploadCategory}) processados de ${total} pastas!${errors > 0 ? ` ${errors} erros.` : ''}`);
+      loadPrompts();
     } catch (err: any) {
-      toast.error(err.message || "Erro ao enviar arquivo");
+      toast.error(err.message || "Erro ao processar arquivo ZIP");
     }
 
     setTimeout(() => {
