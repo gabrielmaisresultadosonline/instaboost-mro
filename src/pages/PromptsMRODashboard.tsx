@@ -502,22 +502,20 @@ const PromptsMRODashboard = () => {
               className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
             />
           </div>
-          <div className="w-full overflow-x-auto -mx-4 px-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-            <div className="flex gap-2 w-max min-w-full sm:w-auto sm:min-w-0 sm:flex-wrap">
-              {categories.map(cat => (
-                <button
-                  key={cat.value}
-                  onClick={() => setFilterCategory(cat.value)}
-                  className={`px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
-                    filterCategory === cat.value
-                      ? "bg-purple-600 text-white"
-                      : "bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/30"
-                  }`}
-                >
-                  {cat.icon} {cat.label}
-                </button>
-              ))}
-            </div>
+          <div className="flex gap-2 flex-wrap justify-center">
+            {categories.map(cat => (
+              <button
+                key={cat.value}
+                onClick={() => setFilterCategory(cat.value)}
+                className={`px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
+                  filterCategory === cat.value
+                    ? "bg-purple-600 text-white"
+                    : "bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-purple-500/30"
+                }`}
+              >
+                {cat.icon} {cat.label}
+              </button>
+            ))}
           </div>
         </div>
 
