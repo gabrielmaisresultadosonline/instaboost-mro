@@ -72,6 +72,9 @@ import LicencaAdmin from "./pages/LicencaAdmin";
 import PromptsMRO from "./pages/PromptsMRO";
 import PromptsMROAdmin from "./pages/PromptsMROAdmin";
 import PromptsMRODashboard from "./pages/PromptsMRODashboard";
+import PromptsIN from "./pages/PromptsIN";
+import PromptsINAdmin from "./pages/PromptsINAdmin";
+import PromptsINDashboard from "./pages/PromptsINDashboard";
 
 const queryClient = new QueryClient();
 
@@ -152,6 +155,9 @@ const App = () => (
           <Route path="/prompts" element={<PromptsMRO />} />
           <Route path="/prompts/admin" element={<PromptsMROAdmin />} />
           <Route path="/prompts/dashboard" element={<PromptsMRODashboard />} />
+          <Route path="/promptsin" element={<PromptsIN />} />
+          <Route path="/promptsin/admin" element={<PromptsINAdmin />} />
+          <Route path="/promptsin/dashboard" element={<PromptsINDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
