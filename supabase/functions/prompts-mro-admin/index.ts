@@ -315,6 +315,27 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Grant plan manually to a user
+    if (action === 'grant-plan') {
+      const { user_id, plan_type } = await req.json();
+      if (!user_id || !plan_type) throw new Error('user_id e plan_type são obrigatórios');
+
+      const days = plan_type === 'mensal' ? 30 : 365;
+      const subEnd = new Date();
+      subEnd.setDate(subEnd.getDate() + days);
+
+      const { error } = await supabase.from('prompts_mro_users').update({
+        is_paid: true,
+        paid_at: new Date().toISOString(),
+        subscription_end: subEnd.toISOString(),
+        copies_limit: 999999,
+        status: 'active',
+      }).eq('id', user_id);
+
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true, plan_type, days }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {

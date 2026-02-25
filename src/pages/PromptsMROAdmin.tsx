@@ -405,6 +405,22 @@ const PromptsMROAdmin = () => {
     toast.success("Usuário deletado");
   };
 
+  const handleGrantPlan = async (userId: string, planType: 'mensal' | 'anual') => {
+    const label = planType === 'mensal' ? 'PRO Mensal (30 dias)' : 'PRO Anual (365 dias)';
+    if (!confirm(`Liberar plano ${label} para este usuário?`)) return;
+    try {
+      const data = await callAdmin('grant-plan', { user_id: userId, plan_type: planType });
+      if (data.success) {
+        toast.success(`Plano ${label} liberado com sucesso!`);
+        loadUsers();
+      } else {
+        toast.error(data.error || 'Erro ao liberar plano');
+      }
+    } catch {
+      toast.error('Erro ao liberar plano');
+    }
+  };
+
   const startEditing = (prompt: PromptItem) => {
     setEditingId(prompt.id);
     setEditText(prompt.prompt_text);
@@ -959,7 +975,21 @@ const PromptsMROAdmin = () => {
                           <td className="px-4 py-3 text-gray-500">{new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
                           <td className="px-4 py-3 text-gray-500">{user.last_access ? new Date(user.last_access).toLocaleDateString('pt-BR') : '—'}</td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <button
+                                onClick={() => handleGrantPlan(user.id, 'mensal')}
+                                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 whitespace-nowrap"
+                                title="Liberar PRO Mensal (30 dias)"
+                              >
+                                30d
+                              </button>
+                              <button
+                                onClick={() => handleGrantPlan(user.id, 'anual')}
+                                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-green-500/10 text-green-400 hover:bg-green-500/20 whitespace-nowrap"
+                                title="Liberar PRO Anual (365 dias)"
+                              >
+                                365d
+                              </button>
                               <button onClick={() => handleToggleUser(user.id, user.status)} className={`p-1.5 rounded-lg ${user.status === 'active' ? 'text-yellow-400 hover:bg-yellow-500/10' : 'text-green-400 hover:bg-green-500/10'}`}>
                                 {user.status === 'active' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                               </button>
