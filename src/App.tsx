@@ -72,6 +72,9 @@ import LicencaAdmin from "./pages/LicencaAdmin";
 import PromptsMRO from "./pages/PromptsMRO";
 import PromptsMROAdmin from "./pages/PromptsMROAdmin";
 import PromptsMRODashboard from "./pages/PromptsMRODashboard";
+import PromptsIN from "./pages/PromptsIN";
+import PromptsINAdmin from "./pages/PromptsINAdmin";
+import PromptsINDashboard from "./pages/PromptsINDashboard";
 
 const queryClient = new QueryClient();
 
