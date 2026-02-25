@@ -1925,6 +1925,144 @@ export type Database = {
         }
         Relationships: []
       }
+      promptsin_orders: {
+        Row: {
+          access_created: boolean | null
+          amount: number
+          completed_at: string | null
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          id: string
+          name: string | null
+          paid_at: string | null
+          phone: string | null
+          plan_type: string
+          status: string
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_created?: boolean | null
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          id?: string
+          name?: string | null
+          paid_at?: string | null
+          phone?: string | null
+          plan_type?: string
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_created?: boolean | null
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          id?: string
+          name?: string | null
+          paid_at?: string | null
+          phone?: string | null
+          plan_type?: string
+          status?: string
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      promptsin_settings: {
+        Row: {
+          admin_email: string
+          admin_password: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      promptsin_users: {
+        Row: {
+          copies_count: number
+          copies_limit: number
+          created_at: string
+          email: string
+          id: string
+          is_paid: boolean
+          last_access: string | null
+          name: string
+          paid_at: string | null
+          password: string
+          phone: string | null
+          plan_type: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_session_id: string | null
+          subscription_end: string | null
+          updated_at: string
+        }
+        Insert: {
+          copies_count?: number
+          copies_limit?: number
+          created_at?: string
+          email: string
+          id?: string
+          is_paid?: boolean
+          last_access?: string | null
+          name: string
+          paid_at?: string | null
+          password: string
+          phone?: string | null
+          plan_type?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id?: string | null
+          subscription_end?: string | null
+          updated_at?: string
+        }
+        Update: {
+          copies_count?: number
+          copies_limit?: number
+          created_at?: string
+          email?: string
+          id?: string
+          is_paid?: boolean
+          last_access?: string | null
+          name?: string
+          paid_at?: string | null
+          password?: string
+          phone?: string | null
+          plan_type?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id?: string | null
+          subscription_end?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       renda_extra_analytics: {
         Row: {
           created_at: string
