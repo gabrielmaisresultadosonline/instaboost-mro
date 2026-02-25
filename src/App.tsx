@@ -155,6 +155,9 @@ const App = () => (
           <Route path="/prompts" element={<PromptsMRO />} />
           <Route path="/prompts/admin" element={<PromptsMROAdmin />} />
           <Route path="/prompts/dashboard" element={<PromptsMRODashboard />} />
+          <Route path="/promptsin" element={<PromptsIN />} />
+          <Route path="/promptsin/admin" element={<PromptsINAdmin />} />
+          <Route path="/promptsin/dashboard" element={<PromptsINDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
