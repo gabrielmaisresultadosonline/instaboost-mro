@@ -376,6 +376,76 @@ Deno.serve(async (req) => {
       return json({ success: true, message: "Detecção desativada" });
     }
 
+    // ── CONVERSATIONS (grouped by sender_id) ──
+    if (action === "get-conversations") {
+      const { data: logs } = await supabase
+        .from("mro_direct_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      // Group by sender_id
+      const convMap = new Map<string, any>();
+      for (const log of (logs || [])) {
+        if (!log.sender_id) continue;
+        if (!convMap.has(log.sender_id)) {
+          convMap.set(log.sender_id, {
+            sender_id: log.sender_id,
+            sender_username: log.sender_username,
+            messages: [],
+            last_message_at: log.created_at,
+          });
+        }
+        convMap.get(log.sender_id).messages.push(log);
+      }
+
+      // Sort conversations by last message
+      const conversations = Array.from(convMap.values())
+        .sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+
+      // Get AI pause states
+      const senderIds = conversations.map(c => c.sender_id);
+      const { data: pauses } = await supabase
+        .from("mro_direct_ai_pauses")
+        .select("sender_id, is_paused")
+        .in("sender_id", senderIds.length > 0 ? senderIds : ["__none__"]);
+
+      const pauseMap = new Map((pauses || []).map(p => [p.sender_id, p.is_paused]));
+      for (const conv of conversations) {
+        conv.ai_paused = pauseMap.get(conv.sender_id) || false;
+      }
+
+      return json({ conversations });
+    }
+
+    // ── TOGGLE AI PAUSE ──
+    if (action === "toggle-ai-pause") {
+      const { sender_id, paused } = data;
+      if (!sender_id) throw new Error("sender_id é obrigatório");
+
+      const { data: existing } = await supabase
+        .from("mro_direct_ai_pauses")
+        .select("id")
+        .eq("sender_id", sender_id)
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from("mro_direct_ai_pauses").update({
+          is_paused: paused,
+          paused_at: paused ? new Date().toISOString() : null,
+        }).eq("id", existing.id);
+      } else {
+        await supabase.from("mro_direct_ai_pauses").insert({
+          sender_id,
+          is_paused: paused,
+          paused_at: paused ? new Date().toISOString() : null,
+        });
+      }
+
+      return json({ success: true, paused });
+    }
+
     return json({ error: "Ação não reconhecida" }, 400);
   } catch (error) {
     console.error("[mro-direct-api] Error:", error);
