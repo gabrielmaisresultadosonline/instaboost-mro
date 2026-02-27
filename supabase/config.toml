@@ -235,3 +235,6 @@ verify_jwt = false
 
 [functions.mro-direct-webhook]
 verify_jwt = false
+
+[functions.mro-direct-oauth]
+verify_jwt = false

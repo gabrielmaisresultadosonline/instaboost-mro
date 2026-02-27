@@ -41,17 +41,55 @@ const typeLabels: Record<string, { label: string; icon: typeof MessageCircle; co
 
 // ─── LOGIN / CONNECT SCREEN ───
 const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void }) => {
-  const [tokenInput, setTokenInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
+  const [oauthError, setOauthError] = useState("");
 
-  // On mount, check if there's already a saved token and try to load profile
+  // Handle OAuth callback code
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const stateParam = params.get("state");
+    const storedState = sessionStorage.getItem("mro_oauth_state");
+
+    if (code) {
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+
+      if (stateParam && storedState && stateParam !== storedState) {
+        setOauthError("Erro de segurança (state inválido). Tente novamente.");
+        setCheckingExisting(false);
+        return;
+      }
+      sessionStorage.removeItem("mro_oauth_state");
+
+      // Exchange code for token
+      setLoading(true);
+      (async () => {
+        try {
+          const redirectUri = `${window.location.origin}/mrodirectmais`;
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/mro-direct-oauth`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+            body: JSON.stringify({ action: "exchange-code", code, redirect_uri: redirectUri }),
+          }).then(r => r.json());
+          if (res.error) throw new Error(res.error);
+          toast.success("Instagram conectado com sucesso!");
+          onConnected(res.profile);
+        } catch (e: any) {
+          setOauthError(e.message || "Erro ao conectar com Instagram");
+          setCheckingExisting(false);
+          setLoading(false);
+        }
+      })();
+      return;
+    }
+
+    // Check if already connected
     (async () => {
       try {
         const settingsRes = await api("get-settings");
         if (settingsRes.settings?.page_access_token) {
-          // Token exists, try to load profile
           const infoRes = await api("get-ig-info");
           if (infoRes.info?.id) {
             onConnected(infoRes.info);
@@ -59,48 +97,64 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
           }
         }
       } catch {
-        // No valid token, show login screen
+        // No valid token
       }
       setCheckingExisting(false);
     })();
   }, [onConnected]);
 
-  const handleConnect = async () => {
-    if (!tokenInput.trim()) return toast.error("Cole seu Access Token");
-    setLoading(true);
-    try {
-      // Save the token first
-      await api("save-settings", {
-        page_access_token: tokenInput.trim(),
-        instagram_account_id: "",
-        is_active: true,
-      });
-
-      // Try to fetch profile info to validate token
-      const infoRes = await api("get-ig-info");
-      if (!infoRes.info?.id) throw new Error("Token inválido - não foi possível obter perfil");
-
-      // Save the actual instagram account id
-      await api("save-settings", {
-        page_access_token: tokenInput.trim(),
-        instagram_account_id: infoRes.info.id,
-        is_active: true,
-      });
-
-      toast.success("Instagram conectado com sucesso!");
-      onConnected(infoRes.info);
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao conectar");
-    }
-    setLoading(false);
+  // Redirect to Facebook OAuth using the edge function's api helper
+  const apiOauth = async (action: string, data: Record<string, unknown> = {}) => {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/mro-direct-oauth`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+      body: JSON.stringify({ action, ...data }),
+    });
+    return res.json();
   };
 
-  if (checkingExisting) {
+
+
+  const handleLogin = async () => {
+    setLoading(true);
+    setOauthError("");
+    try {
+      const appIdRes = await apiOauth("get-app-id");
+      if (!appIdRes.app_id) throw new Error("App ID não configurado");
+
+      const state = crypto.randomUUID().replace(/-/g, "");
+      sessionStorage.setItem("mro_oauth_state", state);
+
+      const redirectUri = `${window.location.origin}/mrodirectmais`;
+      const scopes = [
+        "instagram_basic",
+        "instagram_manage_messages",
+        "pages_show_list",
+        "pages_read_engagement",
+        "pages_messaging",
+      ].join(",");
+
+      const authUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${appIdRes.app_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scopes}&state=${state}`;
+
+      window.location.href = authUrl;
+    } catch (e: any) {
+      setOauthError(e.message || "Erro ao iniciar login");
+      setLoading(false);
+    }
+  };
+
+
+
+  if (checkingExisting || loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-10 w-10 text-purple-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Verificando conexão...</p>
+          <p className="text-gray-400">{loading ? "Conectando ao Instagram..." : "Verificando conexão..."}</p>
         </div>
       </div>
     );
@@ -124,7 +178,7 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
         <Card className="bg-gray-900/80 border-white/10 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-white text-lg flex items-center gap-2">
-              <Key className="h-5 w-5 text-purple-400" />
+              <Instagram className="h-5 w-5 text-purple-400" />
               Conectar Instagram
             </CardTitle>
           </CardHeader>
@@ -133,32 +187,27 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
               <div className="flex items-start gap-3">
                 <ShieldCheck className="h-5 w-5 text-purple-400 mt-0.5 shrink-0" />
                 <div className="text-sm">
-                  <p className="text-gray-300 font-medium mb-1">Como obter seu token:</p>
-                  <ol className="text-gray-400 space-y-1 list-decimal list-inside text-xs">
-                    <li>Acesse o <strong className="text-gray-300">Graph API Explorer</strong> do Facebook</li>
-                    <li>Selecione seu App e a Página vinculada ao Instagram</li>
-                    <li>Adicione as permissões: <code className="text-purple-300">instagram_manage_messages</code>, <code className="text-purple-300">pages_messaging</code></li>
-                    <li>Clique em <strong className="text-gray-300">"Generate Access Token"</strong></li>
-                    <li>Cole o token abaixo</li>
-                  </ol>
+                  <p className="text-gray-300 font-medium mb-1">Login seguro com Instagram</p>
+                  <p className="text-gray-400 text-xs">
+                    Clique no botão abaixo para autorizar o acesso ao seu Instagram Business/Creator. 
+                    Você será redirecionado ao Facebook para fazer login e conceder as permissões necessárias.
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">Page Access Token</label>
-              <Textarea
-                value={tokenInput}
-                onChange={(e) => setTokenInput(e.target.value)}
-                placeholder="Cole seu Page Access Token aqui..."
-                className="bg-gray-800 border-white/10 text-white font-mono text-xs min-h-[80px]"
-                rows={3}
-              />
-            </div>
+            {oauthError && (
+              <div className="bg-red-900/30 border border-red-500/30 rounded-lg p-3">
+                <p className="text-red-300 text-sm flex items-center gap-2">
+                  <XCircle className="h-4 w-4 shrink-0" />
+                  {oauthError}
+                </p>
+              </div>
+            )}
 
             <Button
-              onClick={handleConnect}
-              disabled={loading || !tokenInput.trim()}
+              onClick={handleLogin}
+              disabled={loading}
               className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-base transition-all"
             >
               {loading ? (
@@ -176,7 +225,7 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
             </Button>
 
             <p className="text-xs text-gray-500 text-center">
-              Seu token será salvo de forma segura e usado para as automações.
+              Seu perfil precisa ser <strong className="text-gray-400">Business</strong> ou <strong className="text-gray-400">Creator</strong> e estar vinculado a uma Página do Facebook.
             </p>
           </CardContent>
         </Card>
