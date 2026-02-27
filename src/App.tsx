@@ -76,6 +76,7 @@ import PromptsIN from "./pages/PromptsIN";
 import PromptsINAdmin from "./pages/PromptsINAdmin";
 import PromptsINDashboard from "./pages/PromptsINDashboard";
 import PoliticaDePrivacidadeIG from "./pages/PoliticaDePrivacidadeIG";
+import MRODirectMais from "./pages/MRODirectMais";
 
 const queryClient = new QueryClient();
 
@@ -160,6 +161,7 @@ const App = () => (
           <Route path="/promptsin/admin" element={<PromptsINAdmin />} />
           <Route path="/promptsin/dashboard" element={<PromptsINDashboard />} />
           <Route path="/politicasdeprivacidadeig" element={<PoliticaDePrivacidadeIG />} />
+          <Route path="/mrodirectmais" element={<MRODirectMais />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
