@@ -300,41 +300,63 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── FOLLOWER POLLING ──
+    // ── FOLLOWER WEBHOOK STATUS ──
     if (action === "follower-polling-status") {
-      const res = await fetch(`${supabaseUrl}/functions/v1/mro-direct-brightdata-followers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
-        body: JSON.stringify({ action: "status" }),
+      const { data: s } = await supabase.from("mro_direct_settings").select("*").limit(1).single();
+      const { count: known } = await supabase
+        .from("mro_direct_known_followers")
+        .select("*", { count: "exact", head: true })
+        .eq("instagram_account_id", s?.instagram_account_id || "");
+      const { count: pending } = await supabase
+        .from("mro_direct_known_followers")
+        .select("*", { count: "exact", head: true })
+        .eq("instagram_account_id", s?.instagram_account_id || "")
+        .eq("welcomed", false);
+      return json({
+        polling_active: s?.follower_polling_active || false,
+        baseline: s?.follower_count_baseline || 0,
+        username: s?.instagram_username || "",
+        last_check: s?.last_follower_check,
+        known_followers: known || 0,
+        pending_welcome: pending || 0,
       });
-      return new Response(await res.text(), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action === "follower-polling-activate") {
-      const res = await fetch(`${supabaseUrl}/functions/v1/mro-direct-brightdata-followers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
-        body: JSON.stringify({ action: "activate", username: data.username }),
-      });
-      return new Response(await res.text(), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const username = data.username as string;
+      const { data: s } = await supabase.from("mro_direct_settings").select("*").limit(1).single();
+      if (!s) throw new Error("Settings não encontradas");
+
+      // Get current follower count from Graph API
+      let baseline = 0;
+      if (s.page_access_token && s.instagram_account_id) {
+        const igRes = await fetch(
+          `https://graph.facebook.com/v21.0/${s.instagram_account_id}?fields=followers_count&access_token=${s.page_access_token}`
+        );
+        const igData = await igRes.json();
+        if (igData.followers_count) baseline = igData.followers_count;
+      }
+
+      await supabase.from("mro_direct_settings").update({
+        follower_polling_active: true,
+        instagram_username: username,
+        follower_count_baseline: baseline,
+        last_follower_check: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", s.id);
+
+      return json({ success: true, message: `Webhook ativado! Baseline: ${baseline} seguidores. Novos seguidores serão detectados em tempo real.` });
     }
 
     if (action === "follower-polling-deactivate") {
-      const res = await fetch(`${supabaseUrl}/functions/v1/mro-direct-brightdata-followers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
-        body: JSON.stringify({ action: "deactivate" }),
-      });
-      return new Response(await res.text(), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    if (action === "follower-polling-check") {
-      const res = await fetch(`${supabaseUrl}/functions/v1/mro-direct-brightdata-followers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
-        body: JSON.stringify({ action: "check" }),
-      });
-      return new Response(await res.text(), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { data: s } = await supabase.from("mro_direct_settings").select("id").limit(1).single();
+      if (s) {
+        await supabase.from("mro_direct_settings").update({
+          follower_polling_active: false,
+          updated_at: new Date().toISOString(),
+        }).eq("id", s.id);
+      }
+      return json({ success: true, message: "Detecção desativada" });
     }
 
     return json({ error: "Ação não reconhecida" }, 400);

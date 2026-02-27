@@ -341,16 +341,11 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
     setPollingLoading(false);
   };
 
-  const checkFollowersNow = async () => {
+  const refreshPollingStatus = async () => {
     setPollingLoading(true);
     try {
-      const res = await api("follower-polling-check");
-      if (res.new_followers_detected) {
-        toast.success(`${res.new_followers_detected} novos seguidores detectados!`);
-      } else {
-        toast.info(res.message || `Verificado: ${res.diff || 0} novos seguidores`);
-      }
       await loadPollingStatus();
+      toast.success("Status atualizado!");
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -557,7 +552,7 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
               <CardHeader className="pb-3">
                 <CardTitle className="text-white text-lg flex items-center gap-2">
                   <Radar className="h-5 w-5 text-pink-400" />
-                  Detecção de Novos Seguidores (Bright Data)
+                  Detecção de Novos Seguidores (Webhook Meta)
                   {pollingStatus?.polling_active && (
                     <Badge className="bg-green-600 ml-2 text-xs">Ativo</Badge>
                   )}
@@ -565,7 +560,7 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-gray-400">
-                  Detecta automaticamente novos seguidores comparando a lista via Bright Data e envia DM de boas-vindas.
+                  Detecta novos seguidores em tempo real via Webhook da Meta (custo zero). Quando alguém segue, a DM de boas-vindas é enviada automaticamente.
                 </p>
 
                 {pollingStatus?.polling_active ? (
@@ -589,24 +584,25 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                       </div>
                     </div>
 
-                    {pollingStatus.last_check && (
-                      <p className="text-xs text-gray-500">
-                        Última verificação: {new Date(pollingStatus.last_check).toLocaleString("pt-BR")}
+                    <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-3">
+                      <p className="text-sm text-green-300 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Webhook ativo — novos seguidores são detectados em tempo real pela Meta
                       </p>
-                    )}
+                    </div>
 
                     <div className="flex gap-2">
                       <Button
-                        onClick={checkFollowersNow}
+                        onClick={refreshPollingStatus}
                         disabled={pollingLoading}
                         className="bg-pink-600 hover:bg-pink-700 flex-1"
                       >
                         {pollingLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : (
-                          <Radar className="h-4 w-4 mr-2" />
+                          <RefreshCw className="h-4 w-4 mr-2" />
                         )}
-                        Verificar Agora
+                        Atualizar Status
                       </Button>
                       <Button
                         onClick={deactivatePolling}
@@ -645,10 +641,10 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                       ) : (
                         <Radar className="h-4 w-4 mr-2" />
                       )}
-                      Ativar Detecção de Novos Seguidores
+                      Ativar Detecção via Webhook
                     </Button>
                     <p className="text-xs text-gray-500">
-                      Ao ativar, o sistema memoriza a contagem atual ({profile.followers_count || "?"} seguidores) e os últimos 10 seguidores via Bright Data. A partir daí, rastreia novos e envia DM de boas-vindas automaticamente.
+                      Ao ativar, o sistema registra a contagem atual ({profile.followers_count || "?"} seguidores) como baseline. A partir daí, a Meta envia webhooks em tempo real quando alguém seguir — sem custo de API externa.
                     </p>
                   </div>
                 )}

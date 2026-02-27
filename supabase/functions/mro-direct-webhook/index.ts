@@ -71,6 +71,9 @@ Deno.serve(async (req) => {
           if (change.field === "comments") {
             await handleComment(supabase, settings, change.value);
           }
+          if (change.field === "followers" || change.field === "follow") {
+            await handleNewFollower(supabase, settings, change.value);
+          }
           if (change.field === "mentions") {
             // Could handle mentions too
           }
@@ -165,6 +168,83 @@ async function handleComment(supabase: any, settings: any, commentData: any) {
       break;
     }
   }
+}
+
+async function handleNewFollower(supabase: any, settings: any, followerData: any) {
+  // The webhook sends { follower_id, follower_username } or similar
+  const followerId = followerData?.id || followerData?.follower_id || followerData?.from?.id;
+  const followerUsername = followerData?.username || followerData?.follower_username || followerData?.from?.username || null;
+
+  if (!followerId) {
+    console.log("[mro-direct-webhook] Follower event but no follower ID:", JSON.stringify(followerData));
+    return;
+  }
+
+  console.log("[mro-direct-webhook] New follower detected:", followerId, followerUsername);
+
+  // Check if already known
+  const { data: existing } = await supabase
+    .from("mro_direct_known_followers")
+    .select("id, welcomed")
+    .eq("instagram_account_id", settings.instagram_account_id)
+    .eq("follower_id", followerId)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing?.welcomed) {
+    console.log("[mro-direct-webhook] Follower already welcomed:", followerId);
+    return;
+  }
+
+  // Insert or update known follower
+  await supabase.from("mro_direct_known_followers").upsert(
+    {
+      instagram_account_id: settings.instagram_account_id,
+      follower_id: followerId,
+      follower_username: followerUsername,
+      welcomed: false,
+    },
+    { onConflict: "instagram_account_id,follower_id" }
+  );
+
+  // Check if there's a welcome_follower automation active
+  const { data: automations } = await supabase
+    .from("mro_direct_automations")
+    .select("*")
+    .eq("automation_type", "welcome_follower")
+    .eq("is_active", true);
+
+  if (!automations || automations.length === 0) {
+    console.log("[mro-direct-webhook] No welcome_follower automation active");
+    return;
+  }
+
+  const auto = automations[0];
+
+  // Delay if configured
+  if (auto.delay_seconds > 0) {
+    await new Promise((r) => setTimeout(r, auto.delay_seconds * 1000));
+  }
+
+  // Send welcome DM
+  await sendInstagramMessage(
+    supabase,
+    settings,
+    followerId,
+    auto.reply_message,
+    auto.id,
+    "welcome_follower",
+    `New follower: ${followerUsername || followerId}`
+  );
+
+  // Mark as welcomed
+  await supabase
+    .from("mro_direct_known_followers")
+    .update({ welcomed: true })
+    .eq("instagram_account_id", settings.instagram_account_id)
+    .eq("follower_id", followerId);
+
+  console.log("[mro-direct-webhook] Welcome DM sent to new follower:", followerId);
 }
 
 async function sendInstagramMessage(
