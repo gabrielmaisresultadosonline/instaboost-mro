@@ -38,7 +38,12 @@ Deno.serve(async (req) => {
 
       let currentCount = 0;
       if (settings.page_access_token && settings.instagram_account_id) {
-        currentCount = await getFollowerCount(settings.instagram_account_id, settings.page_access_token);
+        const baselineResult = await getFollowerCount(settings.instagram_account_id, settings.page_access_token);
+        if (baselineResult.ok) {
+          currentCount = baselineResult.count;
+        } else {
+          log("Falha ao obter baseline via Meta API", { error: baselineResult.error });
+        }
       }
 
       // Seed known followers from session/Bright Data
@@ -121,23 +126,24 @@ Deno.serve(async (req) => {
 
     const threshold = settings.follower_check_threshold || 1;
 
-    // STEP 1: Check follower count via Meta Graph API (FREE - no credits)
-    const currentCount = await getFollowerCount(settings.instagram_account_id, settings.page_access_token);
-    
-    if (currentCount < 0) {
-      return json({ success: false, error: "Failed to fetch follower count from Meta API" });
-    }
-
-    const baseline = settings.follower_count_baseline || 0;
-    const diff = currentCount - baseline;
-
-    log(`Count check: baseline=${baseline}, current=${currentCount}, diff=${diff}, threshold=${threshold}`);
-
-    // Always update last check time
+    // Always update last check time (even when Meta API fails)
     await supabase.from("mro_direct_settings").update({
       last_follower_check: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", settings.id);
+
+    // STEP 1: Check follower count via Meta Graph API (FREE - no credits)
+    const countResult = await getFollowerCount(settings.instagram_account_id, settings.page_access_token);
+
+    if (!countResult.ok) {
+      return json({ success: false, error: `Failed to fetch follower count from Meta API: ${countResult.error || "unknown"}` });
+    }
+
+    const currentCount = countResult.count;
+    const baseline = settings.follower_count_baseline || 0;
+    const diff = currentCount - baseline;
+
+    log(`Count check: baseline=${baseline}, current=${currentCount}, diff=${diff}, threshold=${threshold}`);
 
     // If no increase, SKIP Bright Data (saves credits!)
     if (diff < threshold) {
@@ -264,22 +270,84 @@ Deno.serve(async (req) => {
 });
 
 // ── META GRAPH API: Get follower count (FREE) ──
-async function getFollowerCount(igAccountId: string, accessToken: string): Promise<number> {
-  try {
-    const res = await fetch(
-      `https://graph.facebook.com/v21.0/${igAccountId}?fields=followers_count&access_token=${accessToken}`
-    );
-    const data = await res.json();
-    if (res.ok && data.followers_count != null) {
-      log(`Meta API: followers_count = ${data.followers_count}`);
-      return data.followers_count;
+async function getFollowerCount(
+  igAccountId: string,
+  accessToken: string
+): Promise<{ ok: boolean; count: number; error?: string }> {
+  const endpoints = [
+    {
+      label: "graph.instagram.com/me",
+      url: `https://graph.instagram.com/v21.0/me?fields=followers_count&access_token=${accessToken}`,
+    },
+    {
+      label: "graph.facebook.com/{ig_account_id}",
+      url: `https://graph.facebook.com/v21.0/${igAccountId}?fields=followers_count&access_token=${accessToken}`,
+    },
+  ];
+
+  let lastError = "Unknown error";
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint.url);
+      const data = await res.json().catch(() => null);
+      const count = extractFollowerCount(data);
+
+      if (res.ok && count !== null) {
+        log(`Meta API (${endpoint.label}): followers_count = ${count}`);
+        return { ok: true, count };
+      }
+
+      const apiError =
+        (data as any)?.error?.message ||
+        (res.ok ? "followers_count missing in response" : `HTTP ${res.status}`);
+
+      log(`Meta API (${endpoint.label}) error`, {
+        status: res.status,
+        error: apiError,
+      });
+
+      lastError = `${endpoint.label}: ${apiError}`;
+    } catch (e) {
+      const msg = String(e);
+      log(`Meta API (${endpoint.label}) exception`, { error: msg });
+      lastError = `${endpoint.label}: ${msg}`;
     }
-    log("Meta API error", data.error);
-    return -1;
-  } catch (e) {
-    log("Meta API exception", { error: String(e) });
-    return -1;
   }
+
+  return { ok: false, count: -1, error: lastError };
+}
+
+function extractFollowerCount(payload: unknown): number | null {
+  if (!payload || typeof payload !== "object") return null;
+
+  const root = payload as Record<string, unknown>;
+
+  if (typeof root.followers_count === "number") return root.followers_count;
+  if (typeof root.followers_count === "string") {
+    const parsed = Number(root.followers_count);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  if (root.data && typeof root.data === "object") {
+    const nested = root.data as Record<string, unknown>;
+    if (typeof nested.followers_count === "number") return nested.followers_count;
+    if (typeof nested.followers_count === "string") {
+      const parsed = Number(nested.followers_count);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+  }
+
+  if (Array.isArray(root.data) && root.data.length > 0) {
+    const first = root.data[0] as Record<string, unknown>;
+    if (typeof first?.followers_count === "number") return first.followers_count;
+    if (typeof first?.followers_count === "string") {
+      const parsed = Number(first.followers_count);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+  }
+
+  return null;
 }
 
 // ── SCRAPE FOLLOWERS LIST (Session Cookie → Bright Data fallback) ──
