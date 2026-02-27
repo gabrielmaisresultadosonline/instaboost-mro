@@ -1440,6 +1440,30 @@ export type Database = {
           },
         ]
       }
+      mro_direct_ai_pauses: {
+        Row: {
+          created_at: string
+          id: string
+          is_paused: boolean
+          paused_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_paused?: boolean
+          paused_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_paused?: boolean
+          paused_at?: string | null
+          sender_id?: string
+        }
+        Relationships: []
+      }
       mro_direct_automations: {
         Row: {
           ai_prompt: string | null

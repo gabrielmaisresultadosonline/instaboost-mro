@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   MessageCircle, Settings, BarChart3, Plus, Trash2, Send, Bot,
   Heart, AtSign, Zap, RefreshCw, Eye, CheckCircle2, XCircle, Clock,
   Instagram, LogOut, ShieldCheck, ArrowRight, Loader2, Users,
-  Sparkles, Lock, MessageSquare, Image
+  Sparkles, Lock, MessageSquare, Image, Inbox, BotOff, ArrowDown
 } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -643,6 +645,283 @@ const CreateAutomationDialog = ({
   );
 };
 
+// ─── CONVERSATIONS TAB (Real-time Inbox) ───
+const ConversationsTab = () => {
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedSender, setSelectedSender] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const loadConversations = useCallback(async () => {
+    try {
+      const res = await api("get-conversations");
+      setConversations(res.conversations || []);
+    } catch (e: any) {
+      console.error(e);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel("mro-direct-logs-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "mro_direct_logs" },
+        (payload) => {
+          const newLog = payload.new as any;
+          if (!newLog.sender_id) return;
+
+          setConversations((prev) => {
+            const existing = prev.find((c) => c.sender_id === newLog.sender_id);
+            if (existing) {
+              return prev.map((c) =>
+                c.sender_id === newLog.sender_id
+                  ? {
+                      ...c,
+                      messages: [newLog, ...c.messages],
+                      last_message_at: newLog.created_at,
+                    }
+                  : c
+              ).sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+            } else {
+              return [
+                {
+                  sender_id: newLog.sender_id,
+                  sender_username: newLog.sender_username,
+                  messages: [newLog],
+                  last_message_at: newLog.created_at,
+                  ai_paused: false,
+                },
+                ...prev,
+              ];
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Scroll to bottom when selecting conversation
+  useEffect(() => {
+    if (selectedSender && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [selectedSender]);
+
+  const toggleAiPause = async (senderId: string, currentPaused: boolean) => {
+    try {
+      await api("toggle-ai-pause", { sender_id: senderId, paused: !currentPaused });
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.sender_id === senderId ? { ...c, ai_paused: !currentPaused } : c
+        )
+      );
+      toast.success(!currentPaused ? "I.A pausada para esta conversa" : "I.A reativada para esta conversa");
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const selectedConv = conversations.find((c) => c.sender_id === selectedSender);
+  const sortedMessages = selectedConv
+    ? [...selectedConv.messages].sort(
+        (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
+    : [];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-220px)]">
+      {/* Conversation List */}
+      <div className="md:col-span-1">
+        <Card className="bg-gray-900/80 border-white/10 h-full flex flex-col">
+          <CardHeader className="pb-2 shrink-0">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-white text-sm flex items-center gap-2">
+                <Inbox className="h-4 w-4 text-purple-400" /> Conversas
+                {conversations.length > 0 && (
+                  <Badge className="bg-purple-600 text-xs">{conversations.length}</Badge>
+                )}
+              </CardTitle>
+              <Button size="icon" variant="ghost" onClick={loadConversations} className="h-7 w-7 text-gray-400">
+                <RefreshCw className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-hidden p-0">
+            <ScrollArea className="h-full">
+              {conversations.length === 0 ? (
+                <div className="p-6 text-center">
+                  <MessageCircle className="h-10 w-10 text-gray-600 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Nenhuma conversa ainda</p>
+                  <p className="text-xs text-gray-600">Quando alguém enviar DM, aparecerá aqui em tempo real</p>
+                </div>
+              ) : (
+                <div className="space-y-0.5 p-2">
+                  {conversations.map((conv) => {
+                    const lastMsg = conv.messages[0];
+                    const isSelected = selectedSender === conv.sender_id;
+                    const hasIncoming = conv.messages.some((m: any) => m.direction === "incoming");
+                    return (
+                      <button
+                        key={conv.sender_id}
+                        onClick={() => setSelectedSender(conv.sender_id)}
+                        className={`w-full text-left p-3 rounded-lg transition-all ${
+                          isSelected
+                            ? "bg-purple-900/40 border border-purple-500/40"
+                            : "hover:bg-gray-800/60 border border-transparent"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
+                            <Users className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">
+                              {conv.sender_username ? `@${conv.sender_username}` : conv.sender_id.slice(0, 12) + "..."}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(conv.last_message_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            {conv.ai_paused && (
+                              <Badge className="bg-red-600/60 text-[9px] px-1.5">I.A OFF</Badge>
+                            )}
+                            {hasIncoming && (
+                              <div className="h-2 w-2 rounded-full bg-green-500" />
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400 truncate pl-10">
+                          {lastMsg.direction === "incoming"
+                            ? `📩 ${lastMsg.incoming_text || lastMsg.trigger_content || ""}`
+                            : `📤 ${lastMsg.message_sent || ""}`}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Message Thread */}
+      <div className="md:col-span-2">
+        <Card className="bg-gray-900/80 border-white/10 h-full flex flex-col">
+          {!selectedConv ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <MessageSquare className="h-16 w-16 text-gray-700 mx-auto mb-3" />
+                <p className="text-gray-500">Selecione uma conversa</p>
+                <p className="text-xs text-gray-600 mt-1">As mensagens aparecem em tempo real</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Thread Header */}
+              <div className="p-4 border-b border-white/10 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold">
+                      {selectedConv.sender_username ? `@${selectedConv.sender_username}` : selectedConv.sender_id}
+                    </p>
+                    <p className="text-xs text-gray-400">{selectedConv.messages.length} mensagens</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant={selectedConv.ai_paused ? "default" : "outline"}
+                    onClick={() => toggleAiPause(selectedConv.sender_id, selectedConv.ai_paused)}
+                    className={selectedConv.ai_paused
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : "border-white/20 text-gray-300 hover:bg-gray-800"
+                    }
+                  >
+                    {selectedConv.ai_paused ? (
+                      <><BotOff className="h-4 w-4 mr-1" /> I.A Pausada</>
+                    ) : (
+                      <><Bot className="h-4 w-4 mr-1" /> I.A Ativa</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-3">
+                  {sortedMessages.map((msg: any) => {
+                    const isIncoming = msg.direction === "incoming";
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex ${isIncoming ? "justify-start" : "justify-end"}`}
+                      >
+                        <div
+                          className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
+                            isIncoming
+                              ? "bg-gray-800 border border-white/10 rounded-bl-sm"
+                              : "bg-gradient-to-r from-purple-600 to-pink-600 rounded-br-sm"
+                          }`}
+                        >
+                          <p className="text-sm text-white whitespace-pre-wrap">
+                            {isIncoming
+                              ? msg.incoming_text || msg.trigger_content || "(sem texto)"
+                              : msg.message_sent || "(automação)"}
+                          </p>
+                          <div className={`flex items-center gap-1.5 mt-1 ${isIncoming ? "text-gray-500" : "text-purple-200"}`}>
+                            <span className="text-[10px]">
+                              {new Date(msg.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                            {!isIncoming && (
+                              <Badge className={`text-[9px] px-1 py-0 ${
+                                msg.status === "sent" ? "bg-green-600/60" : msg.status === "error" ? "bg-red-600/60" : "bg-gray-600/60"
+                              }`}>
+                                {msg.status === "sent" ? "✓" : msg.status === "error" ? "✗" : msg.status}
+                              </Badge>
+                            )}
+                            {msg.response_mode === "ai" || msg.event_type?.includes("ai") ? (
+                              <Sparkles className="h-3 w-3 text-yellow-400" />
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+            </>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+};
+
 // ─── MAIN DASHBOARD ───
 const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: () => void }) => {
   const [tab, setTab] = useState("automations");
@@ -792,6 +1071,9 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
             <TabsTrigger value="automations" className="data-[state=active]:bg-purple-600">
               <Zap className="h-4 w-4 mr-1" /> Automações
             </TabsTrigger>
+            <TabsTrigger value="conversations" className="data-[state=active]:bg-purple-600">
+              <Inbox className="h-4 w-4 mr-1" /> Conversas
+            </TabsTrigger>
             <TabsTrigger value="dashboard" className="data-[state=active]:bg-purple-600">
               <BarChart3 className="h-4 w-4 mr-1" /> Dashboard
             </TabsTrigger>
@@ -824,6 +1106,11 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
               autoType={createType}
               onCreated={loadAll}
             />
+          </TabsContent>
+
+          {/* ── CONVERSATIONS (Real-time Inbox) ── */}
+          <TabsContent value="conversations">
+            <ConversationsTab />
           </TabsContent>
 
           {/* ── DASHBOARD ── */}
