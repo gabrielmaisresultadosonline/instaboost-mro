@@ -10,13 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  MessageCircle, Settings, BarChart3, Plus, Trash2, Send, Users, Bot,
-  Heart, AtSign, Zap, RefreshCw, Eye, CheckCircle2, XCircle, Clock
+  MessageCircle, Settings, BarChart3, Plus, Trash2, Send, Bot,
+  Heart, AtSign, Zap, RefreshCw, Eye, CheckCircle2, XCircle, Clock,
+  Instagram, LogOut, ShieldCheck, Key, ArrowRight, Loader2
 } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
 async function api(action: string, data: Record<string, unknown> = {}) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/mro-direct-api`, {
@@ -39,21 +39,161 @@ const typeLabels: Record<string, { label: string; icon: typeof MessageCircle; co
   welcome_follower: { label: "Boas-vindas Seguidor", icon: Heart, color: "bg-pink-500" },
 };
 
-const MRODirectMais = () => {
+// ─── LOGIN / CONNECT SCREEN ───
+const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void }) => {
+  const [tokenInput, setTokenInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [checkingExisting, setCheckingExisting] = useState(true);
+
+  // On mount, check if there's already a saved token and try to load profile
+  useEffect(() => {
+    (async () => {
+      try {
+        const settingsRes = await api("get-settings");
+        if (settingsRes.settings?.page_access_token) {
+          // Token exists, try to load profile
+          const infoRes = await api("get-ig-info");
+          if (infoRes.info?.id) {
+            onConnected(infoRes.info);
+            return;
+          }
+        }
+      } catch {
+        // No valid token, show login screen
+      }
+      setCheckingExisting(false);
+    })();
+  }, [onConnected]);
+
+  const handleConnect = async () => {
+    if (!tokenInput.trim()) return toast.error("Cole seu Access Token");
+    setLoading(true);
+    try {
+      // Save the token first
+      await api("save-settings", {
+        page_access_token: tokenInput.trim(),
+        instagram_account_id: "",
+        is_active: true,
+      });
+
+      // Try to fetch profile info to validate token
+      const infoRes = await api("get-ig-info");
+      if (!infoRes.info?.id) throw new Error("Token inválido - não foi possível obter perfil");
+
+      // Save the actual instagram account id
+      await api("save-settings", {
+        page_access_token: tokenInput.trim(),
+        instagram_account_id: infoRes.info.id,
+        is_active: true,
+      });
+
+      toast.success("Instagram conectado com sucesso!");
+      onConnected(infoRes.info);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao conectar");
+    }
+    setLoading(false);
+  };
+
+  if (checkingExisting) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Verificando conexão...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo / Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 mb-5 shadow-2xl shadow-purple-500/30">
+            <Instagram className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
+            MRO Direct+
+          </h1>
+          <p className="text-gray-400 mt-2">Automação de DMs via Instagram Graph API</p>
+        </div>
+
+        {/* Connect Card */}
+        <Card className="bg-gray-900/80 border-white/10 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white text-lg flex items-center gap-2">
+              <Key className="h-5 w-5 text-purple-400" />
+              Conectar Instagram
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-lg p-4 border border-purple-500/20">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-purple-400 mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="text-gray-300 font-medium mb-1">Como obter seu token:</p>
+                  <ol className="text-gray-400 space-y-1 list-decimal list-inside text-xs">
+                    <li>Acesse o <strong className="text-gray-300">Graph API Explorer</strong> do Facebook</li>
+                    <li>Selecione seu App e a Página vinculada ao Instagram</li>
+                    <li>Adicione as permissões: <code className="text-purple-300">instagram_manage_messages</code>, <code className="text-purple-300">pages_messaging</code></li>
+                    <li>Clique em <strong className="text-gray-300">"Generate Access Token"</strong></li>
+                    <li>Cole o token abaixo</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-400 mb-1.5 block">Page Access Token</label>
+              <Textarea
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="Cole seu Page Access Token aqui..."
+                className="bg-gray-800 border-white/10 text-white font-mono text-xs min-h-[80px]"
+                rows={3}
+              />
+            </div>
+
+            <Button
+              onClick={handleConnect}
+              disabled={loading || !tokenInput.trim()}
+              className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-base transition-all"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  Conectando...
+                </>
+              ) : (
+                <>
+                  <Instagram className="h-5 w-5 mr-2" />
+                  Entrar com Instagram
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
+            </Button>
+
+            <p className="text-xs text-gray-500 text-center">
+              Seu token será salvo de forma segura e usado para as automações.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// ─── MAIN DASHBOARD ───
+const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: () => void }) => {
   const [tab, setTab] = useState("dashboard");
   const [settings, setSettings] = useState<any>(null);
   const [automations, setAutomations] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
-  const [igInfo, setIgInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Settings form
-  const [tokenInput, setTokenInput] = useState("");
-  const [igIdInput, setIgIdInput] = useState("");
-  const [isActive, setIsActive] = useState(false);
-
-  // New automation form
   const [showNewAuto, setShowNewAuto] = useState(false);
   const [newType, setNewType] = useState("dm_reply");
   const [newMessage, setNewMessage] = useState("");
@@ -61,9 +201,13 @@ const MRODirectMais = () => {
   const [newPostId, setNewPostId] = useState("");
   const [newDelay, setNewDelay] = useState("0");
 
-  // Test message
   const [testRecipient, setTestRecipient] = useState("");
   const [testMessage, setTestMessage] = useState("");
+
+  // Settings form
+  const [tokenInput, setTokenInput] = useState("");
+  const [igIdInput, setIgIdInput] = useState("");
+  const [isActive, setIsActive] = useState(false);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -93,15 +237,6 @@ const MRODirectMais = () => {
     try {
       const res = await api("get-logs");
       setLogs(res.logs);
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  const loadIgInfo = async () => {
-    try {
-      const res = await api("get-ig-info");
-      setIgInfo(res.info);
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -185,23 +320,45 @@ const MRODirectMais = () => {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      {/* Header */}
+      {/* Header with profile */}
       <div className="bg-gradient-to-r from-purple-900/60 via-gray-950 to-pink-900/40 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2.5 rounded-xl">
-              <Bot className="h-7 w-7 text-white" />
+            <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-xl">
+              <Bot className="h-6 w-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <div className="flex-1">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 MRO Direct+
               </h1>
-              <p className="text-sm text-gray-400">Automação de DMs via Instagram Graph API</p>
+              <p className="text-xs text-gray-400">Automação de DMs via Instagram Graph API</p>
             </div>
-            <div className="ml-auto flex items-center gap-2">
-              <Badge variant={isActive ? "default" : "secondary"} className={isActive ? "bg-green-600" : ""}>
-                {isActive ? "Ativo" : "Inativo"}
-              </Badge>
+
+            {/* Profile pill */}
+            <div className="flex items-center gap-3 bg-gray-900/80 rounded-full px-4 py-2 border border-white/10">
+              {profile.profile_picture_url ? (
+                <img src={profile.profile_picture_url} className="h-8 w-8 rounded-full ring-2 ring-purple-500" alt="" />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <Instagram className="h-4 w-4 text-white" />
+                </div>
+              )}
+              <div className="hidden sm:block">
+                <p className="text-sm font-semibold text-white leading-tight">@{profile.username || profile.name}</p>
+                {profile.followers_count != null && (
+                  <p className="text-xs text-gray-400">{profile.followers_count.toLocaleString()} seguidores</p>
+                )}
+              </div>
+              <Badge className="bg-green-600/80 text-xs">Conectado</Badge>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-gray-400 hover:text-red-400"
+                onClick={onDisconnect}
+                title="Desconectar"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
@@ -226,6 +383,33 @@ const MRODirectMais = () => {
 
           {/* ── DASHBOARD ── */}
           <TabsContent value="dashboard">
+            {/* Profile Card */}
+            <Card className="bg-gradient-to-r from-purple-900/40 to-pink-900/30 border-purple-500/20 mb-6">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-4">
+                  {profile.profile_picture_url ? (
+                    <img src={profile.profile_picture_url} className="h-16 w-16 rounded-full ring-3 ring-purple-500/50 shadow-lg" alt="" />
+                  ) : (
+                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+                      <Instagram className="h-8 w-8 text-white" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-white">@{profile.username || profile.name}</h3>
+                    <p className="text-sm text-gray-400">ID: {profile.id}</p>
+                    {profile.followers_count != null && (
+                      <p className="text-sm text-purple-300">{profile.followers_count.toLocaleString()} seguidores</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <Badge className="bg-green-600 mb-1">Sistema Ativo</Badge>
+                    <p className="text-xs text-gray-400">{stats?.activeAutomations || 0} automações ativas</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               {[
                 { label: "Mensagens Hoje", value: stats?.todaySent || 0, icon: Send, color: "text-blue-400" },
@@ -243,35 +427,6 @@ const MRODirectMais = () => {
                 </Card>
               ))}
             </div>
-
-            {/* Instagram Profile Info */}
-            <Card className="bg-gray-900 border-white/10 mb-6">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-white text-lg">Perfil Conectado</CardTitle>
-                <Button size="sm" variant="outline" onClick={loadIgInfo} className="border-white/20 text-white">
-                  <RefreshCw className="h-4 w-4 mr-1" /> Verificar
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {igInfo ? (
-                  <div className="flex items-center gap-4">
-                    {igInfo.profile_picture_url && (
-                      <img src={igInfo.profile_picture_url} className="h-14 w-14 rounded-full" alt="" />
-                    )}
-                    <div>
-                      <p className="font-bold text-white">@{igInfo.username || igInfo.name}</p>
-                      <p className="text-sm text-gray-400">ID: {igInfo.id}</p>
-                      {igInfo.followers_count != null && (
-                        <p className="text-sm text-gray-400">{igInfo.followers_count.toLocaleString()} seguidores</p>
-                      )}
-                    </div>
-                    <Badge className="bg-green-600 ml-auto">Conectado</Badge>
-                  </div>
-                ) : (
-                  <p className="text-gray-400 text-sm">Clique em "Verificar" para testar a conexão com o token.</p>
-                )}
-              </CardContent>
-            </Card>
 
             {/* Send Test */}
             <Card className="bg-gray-900 border-white/10">
@@ -577,6 +732,32 @@ const MRODirectMais = () => {
       </div>
     </div>
   );
+};
+
+// ─── MAIN PAGE (state machine: connect → dashboard) ───
+const MRODirectMais = () => {
+  const [profile, setProfile] = useState<any>(null);
+
+  const handleDisconnect = async () => {
+    if (!confirm("Deseja desconectar o Instagram?")) return;
+    try {
+      await api("save-settings", {
+        page_access_token: "",
+        instagram_account_id: "",
+        is_active: false,
+      });
+      setProfile(null);
+      toast.success("Instagram desconectado");
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  if (!profile) {
+    return <ConnectScreen onConnected={setProfile} />;
+  }
+
+  return <DashboardView profile={profile} onDisconnect={handleDisconnect} />;
 };
 
 export default MRODirectMais;
