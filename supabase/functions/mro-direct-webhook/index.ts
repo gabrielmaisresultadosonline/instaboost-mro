@@ -93,6 +93,17 @@ async function handleDirectMessage(supabase: any, settings: any, messaging: any)
 
   console.log("[mro-direct-webhook] DM from:", senderId, "Text:", messageText);
 
+  // Register sender as known follower if not already known (for welcome_follower automation)
+  await supabase.from("mro_direct_known_followers").upsert(
+    {
+      instagram_account_id: settings.instagram_account_id,
+      follower_id: senderId,
+      follower_username: null,
+      welcomed: false,
+    },
+    { onConflict: "instagram_account_id,follower_id", ignoreDuplicates: true }
+  );
+
   // Get active DM automations
   const { data: automations } = await supabase
     .from("mro_direct_automations")
