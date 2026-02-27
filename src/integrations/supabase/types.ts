@@ -1558,6 +1558,7 @@ export type Database = {
           follower_polling_active: boolean | null
           id: string
           instagram_account_id: string | null
+          instagram_user_id: string | null
           instagram_username: string | null
           is_active: boolean | null
           last_follower_check: string | null
@@ -1572,6 +1573,7 @@ export type Database = {
           follower_polling_active?: boolean | null
           id?: string
           instagram_account_id?: string | null
+          instagram_user_id?: string | null
           instagram_username?: string | null
           is_active?: boolean | null
           last_follower_check?: string | null
@@ -1586,6 +1588,7 @@ export type Database = {
           follower_polling_active?: boolean | null
           id?: string
           instagram_account_id?: string | null
+          instagram_user_id?: string | null
           instagram_username?: string | null
           is_active?: boolean | null
           last_follower_check?: string | null
