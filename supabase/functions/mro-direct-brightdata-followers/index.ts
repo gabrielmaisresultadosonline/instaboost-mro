@@ -51,9 +51,10 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Also seed known followers from Bright Data to establish baseline
-      log("Seeding initial followers list via Bright Data...");
-      const followers = await scrapeFollowers(username);
+      // Seed the last 10 followers from Bright Data to establish baseline
+      log("Seeding last 10 followers via Bright Data...");
+      const allFollowers = await scrapeFollowers(username);
+      const followers = allFollowers.slice(0, 10); // Only last 10
       
       if (followers.length > 0) {
         // Insert all current followers as "already welcomed" (baseline)
