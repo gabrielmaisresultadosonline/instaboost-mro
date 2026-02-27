@@ -1442,34 +1442,43 @@ export type Database = {
       }
       mro_direct_automations: {
         Row: {
+          ai_prompt: string | null
           automation_type: string
+          comment_reply_text: string | null
           created_at: string
           delay_seconds: number | null
           id: string
           is_active: boolean | null
           reply_message: string
+          response_mode: string
           target_post_id: string | null
           trigger_keywords: string[] | null
           updated_at: string
         }
         Insert: {
+          ai_prompt?: string | null
           automation_type: string
+          comment_reply_text?: string | null
           created_at?: string
           delay_seconds?: number | null
           id?: string
           is_active?: boolean | null
           reply_message: string
+          response_mode?: string
           target_post_id?: string | null
           trigger_keywords?: string[] | null
           updated_at?: string
         }
         Update: {
+          ai_prompt?: string | null
           automation_type?: string
+          comment_reply_text?: string | null
           created_at?: string
           delay_seconds?: number | null
           id?: string
           is_active?: boolean | null
           reply_message?: string
+          response_mode?: string
           target_post_id?: string | null
           trigger_keywords?: string[] | null
           updated_at?: string

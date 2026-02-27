@@ -21,10 +21,7 @@ Deno.serve(async (req) => {
     const token = url.searchParams.get("hub.verify_token");
     const challenge = url.searchParams.get("hub.challenge");
 
-    console.log("[mro-direct-webhook] Verification request:", { mode, token });
-
     if (mode === "subscribe") {
-      // Get stored verify token
       const { data: settings } = await supabase
         .from("mro_direct_settings")
         .select("webhook_verify_token")
@@ -32,7 +29,6 @@ Deno.serve(async (req) => {
         .single();
 
       if (settings && token === settings.webhook_verify_token) {
-        console.log("[mro-direct-webhook] Verification successful");
         return new Response(challenge, { status: 200, headers: { "Content-Type": "text/plain" } });
       }
     }
@@ -57,25 +53,25 @@ Deno.serve(async (req) => {
         return new Response("OK", { status: 200 });
       }
 
-      // Process each entry
       for (const entry of body.entry || []) {
-        // ── MESSAGING (DMs) ──
+        // ── MESSAGING (DMs + Story replies) ──
         for (const messaging of entry.messaging || []) {
           if (messaging.message && !messaging.message.is_echo) {
-            await handleDirectMessage(supabase, settings, messaging);
+            // Check if it's a story reply (has reply_to with story info)
+            const isStoryReply = messaging.message?.reply_to?.story?.id || messaging.message?.referral?.ref === "story";
+            
+            if (isStoryReply) {
+              await handleStoryReply(supabase, settings, messaging);
+            } else {
+              await handleDirectMessage(supabase, settings, messaging);
+            }
           }
         }
 
-        // ── CHANGES (Comments, Follows) ──
+        // ── CHANGES (Comments) ──
         for (const change of entry.changes || []) {
           if (change.field === "comments") {
             await handleComment(supabase, settings, change.value);
-          }
-          if (change.field === "followers" || change.field === "follow") {
-            await handleNewFollower(supabase, settings, change.value);
-          }
-          if (change.field === "mentions") {
-            // Could handle mentions too
           }
         }
       }
@@ -83,12 +79,59 @@ Deno.serve(async (req) => {
       return new Response("OK", { status: 200 });
     } catch (error) {
       console.error("[mro-direct-webhook] Error:", error);
-      return new Response("OK", { status: 200 }); // Always return 200 to Instagram
+      return new Response("OK", { status: 200 });
     }
   }
 
   return new Response("Method not allowed", { status: 405 });
 });
+
+// ── Generate AI response using Lovable AI ──
+async function generateAIResponse(prompt: string, userMessage: string): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) {
+    console.error("[mro-direct-webhook] LOVABLE_API_KEY not configured");
+    return "(Erro: I.A não configurada)";
+  }
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: `${prompt}\n\nIMPORTANTE: Responda de forma curta e direta, como uma mensagem de DM do Instagram (máximo 300 caracteres). Não use markdown. Seja natural e humano.` },
+          { role: "user", content: userMessage },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[mro-direct-webhook] AI error:", response.status, errorText);
+      return "(Erro ao gerar resposta da I.A)";
+    }
+
+    const data = await response.json();
+    const aiReply = data.choices?.[0]?.message?.content?.trim();
+    return aiReply || "(Sem resposta da I.A)";
+  } catch (error) {
+    console.error("[mro-direct-webhook] AI fetch error:", error);
+    return "(Erro de conexão com I.A)";
+  }
+}
+
+// ── Get response message (manual or AI) ──
+async function getResponseMessage(auto: any, triggerText: string): Promise<string> {
+  if (auto.response_mode === "ai" && auto.ai_prompt) {
+    return await generateAIResponse(auto.ai_prompt, triggerText);
+  }
+  return auto.reply_message;
+}
 
 async function handleDirectMessage(supabase: any, settings: any, messaging: any) {
   const senderId = messaging.sender.id;
@@ -96,18 +139,12 @@ async function handleDirectMessage(supabase: any, settings: any, messaging: any)
 
   console.log("[mro-direct-webhook] DM from:", senderId, "Text:", messageText);
 
-  // Register sender as known follower if not already known (for welcome_follower automation)
+  // Register as known follower
   await supabase.from("mro_direct_known_followers").upsert(
-    {
-      instagram_account_id: settings.instagram_account_id,
-      follower_id: senderId,
-      follower_username: null,
-      welcomed: false,
-    },
+    { instagram_account_id: settings.instagram_account_id, follower_id: senderId, follower_username: null, welcomed: false },
     { onConflict: "instagram_account_id,follower_id", ignoreDuplicates: true }
   );
 
-  // Get active DM automations
   const { data: automations } = await supabase
     .from("mro_direct_automations")
     .select("*")
@@ -115,20 +152,15 @@ async function handleDirectMessage(supabase: any, settings: any, messaging: any)
     .eq("is_active", true);
 
   for (const auto of automations || []) {
-    // Check keywords (if empty = match all)
     const keywords = auto.trigger_keywords || [];
-    const shouldReply =
-      keywords.length === 0 ||
-      keywords.some((kw: string) => messageText.toLowerCase().includes(kw.toLowerCase()));
+    const shouldReply = keywords.length === 0 || keywords.some((kw: string) => messageText.toLowerCase().includes(kw.toLowerCase()));
 
     if (shouldReply) {
-      // Delay if configured
-      if (auto.delay_seconds > 0) {
-        await new Promise((r) => setTimeout(r, auto.delay_seconds * 1000));
-      }
-
-      await sendInstagramMessage(supabase, settings, senderId, auto.reply_message, auto.id, "dm_reply", messageText);
-      break; // Only send one reply per message
+      if (auto.delay_seconds > 0) await new Promise((r) => setTimeout(r, auto.delay_seconds * 1000));
+      
+      const responseMessage = await getResponseMessage(auto, messageText);
+      await sendInstagramMessage(supabase, settings, senderId, responseMessage, auto.id, "dm_reply", messageText);
+      break;
     }
   }
 }
@@ -137,12 +169,12 @@ async function handleComment(supabase: any, settings: any, commentData: any) {
   const commenterId = commentData.from?.id;
   const commentText = commentData.text || "";
   const mediaId = commentData.media?.id;
+  const commentId = commentData.id;
 
   if (!commenterId) return;
 
   console.log("[mro-direct-webhook] Comment from:", commenterId, "on media:", mediaId);
 
-  // Get active comment automations
   const { data: automations } = await supabase
     .from("mro_direct_automations")
     .select("*")
@@ -150,101 +182,75 @@ async function handleComment(supabase: any, settings: any, commentData: any) {
     .eq("is_active", true);
 
   for (const auto of automations || []) {
-    // Check if targeting specific post or all
     if (auto.target_post_id && auto.target_post_id !== mediaId) continue;
 
-    // Check keywords
     const keywords = auto.trigger_keywords || [];
-    const shouldReply =
-      keywords.length === 0 ||
-      keywords.some((kw: string) => commentText.toLowerCase().includes(kw.toLowerCase()));
+    const shouldReply = keywords.length === 0 || keywords.some((kw: string) => commentText.toLowerCase().includes(kw.toLowerCase()));
 
     if (shouldReply) {
-      if (auto.delay_seconds > 0) {
-        await new Promise((r) => setTimeout(r, auto.delay_seconds * 1000));
+      if (auto.delay_seconds > 0) await new Promise((r) => setTimeout(r, auto.delay_seconds * 1000));
+
+      // Reply to the comment itself if comment_reply_text is set
+      if (auto.comment_reply_text && commentId) {
+        await replyToComment(settings, commentId, auto.comment_reply_text);
       }
 
-      await sendInstagramMessage(supabase, settings, commenterId, auto.reply_message, auto.id, "comment_reply", commentText);
+      // Send DM
+      const responseMessage = await getResponseMessage(auto, commentText);
+      await sendInstagramMessage(supabase, settings, commenterId, responseMessage, auto.id, "comment_reply", commentText);
       break;
     }
   }
 }
 
-async function handleNewFollower(supabase: any, settings: any, followerData: any) {
-  // The webhook sends { follower_id, follower_username } or similar
-  const followerId = followerData?.id || followerData?.follower_id || followerData?.from?.id;
-  const followerUsername = followerData?.username || followerData?.follower_username || followerData?.from?.username || null;
+async function handleStoryReply(supabase: any, settings: any, messaging: any) {
+  const senderId = messaging.sender.id;
+  const messageText = messaging.message.text || "(story reaction)";
 
-  if (!followerId) {
-    console.log("[mro-direct-webhook] Follower event but no follower ID:", JSON.stringify(followerData));
-    return;
-  }
+  console.log("[mro-direct-webhook] Story reply from:", senderId, "Text:", messageText);
 
-  console.log("[mro-direct-webhook] New follower detected:", followerId, followerUsername);
-
-  // Check if already known
-  const { data: existing } = await supabase
-    .from("mro_direct_known_followers")
-    .select("id, welcomed")
-    .eq("instagram_account_id", settings.instagram_account_id)
-    .eq("follower_id", followerId)
-    .limit(1)
-    .maybeSingle();
-
-  if (existing?.welcomed) {
-    console.log("[mro-direct-webhook] Follower already welcomed:", followerId);
-    return;
-  }
-
-  // Insert or update known follower
-  await supabase.from("mro_direct_known_followers").upsert(
-    {
-      instagram_account_id: settings.instagram_account_id,
-      follower_id: followerId,
-      follower_username: followerUsername,
-      welcomed: false,
-    },
-    { onConflict: "instagram_account_id,follower_id" }
-  );
-
-  // Check if there's a welcome_follower automation active
   const { data: automations } = await supabase
     .from("mro_direct_automations")
     .select("*")
-    .eq("automation_type", "welcome_follower")
+    .eq("automation_type", "story_reply")
     .eq("is_active", true);
 
-  if (!automations || automations.length === 0) {
-    console.log("[mro-direct-webhook] No welcome_follower automation active");
-    return;
+  for (const auto of automations || []) {
+    const keywords = auto.trigger_keywords || [];
+    const shouldReply = keywords.length === 0 || keywords.some((kw: string) => messageText.toLowerCase().includes(kw.toLowerCase()));
+
+    if (shouldReply) {
+      if (auto.delay_seconds > 0) await new Promise((r) => setTimeout(r, auto.delay_seconds * 1000));
+
+      const responseMessage = await getResponseMessage(auto, messageText);
+      await sendInstagramMessage(supabase, settings, senderId, responseMessage, auto.id, "story_reply", messageText);
+      break;
+    }
   }
+}
 
-  const auto = automations[0];
-
-  // Delay if configured
-  if (auto.delay_seconds > 0) {
-    await new Promise((r) => setTimeout(r, auto.delay_seconds * 1000));
+async function replyToComment(settings: any, commentId: string, replyText: string) {
+  try {
+    const res = await fetch(
+      `https://graph.instagram.com/v21.0/${commentId}/replies`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: replyText,
+          access_token: settings.page_access_token,
+        }),
+      }
+    );
+    const result = await res.json();
+    if (!res.ok) {
+      console.error("[mro-direct-webhook] Comment reply error:", result);
+    } else {
+      console.log("[mro-direct-webhook] Comment reply sent to:", commentId);
+    }
+  } catch (error) {
+    console.error("[mro-direct-webhook] Comment reply error:", error);
   }
-
-  // Send welcome DM
-  await sendInstagramMessage(
-    supabase,
-    settings,
-    followerId,
-    auto.reply_message,
-    auto.id,
-    "welcome_follower",
-    `New follower: ${followerUsername || followerId}`
-  );
-
-  // Mark as welcomed
-  await supabase
-    .from("mro_direct_known_followers")
-    .update({ welcomed: true })
-    .eq("instagram_account_id", settings.instagram_account_id)
-    .eq("follower_id", followerId);
-
-  console.log("[mro-direct-webhook] Welcome DM sent to new follower:", followerId);
 }
 
 async function sendInstagramMessage(
