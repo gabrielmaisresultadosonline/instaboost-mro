@@ -652,21 +652,23 @@ const ConversationsTab = () => {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const loadConversations = useCallback(async () => {
+  const loadConversations = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const res = await api("get-conversations");
       setConversations(res.conversations || []);
     } catch (e: any) {
       console.error(e);
+    } finally {
+      if (!silent) setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
 
-  // Realtime subscription
+  // Realtime subscription (best effort)
   useEffect(() => {
     const channel = supabase
       .channel("mro-direct-logs-realtime")
@@ -680,36 +682,68 @@ const ConversationsTab = () => {
           setConversations((prev) => {
             const existing = prev.find((c) => c.sender_id === newLog.sender_id);
             if (existing) {
-              return prev.map((c) =>
-                c.sender_id === newLog.sender_id
-                  ? {
-                      ...c,
-                      messages: [newLog, ...c.messages],
-                      last_message_at: newLog.created_at,
-                    }
-                  : c
-              ).sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
-            } else {
-              return [
-                {
-                  sender_id: newLog.sender_id,
-                  sender_username: newLog.sender_username,
-                  messages: [newLog],
-                  last_message_at: newLog.created_at,
-                  ai_paused: false,
-                },
-                ...prev,
-              ];
+              return prev
+                .map((c) => {
+                  if (c.sender_id !== newLog.sender_id) return c;
+                  const deduped = [newLog, ...c.messages.filter((m: any) => m.id !== newLog.id)];
+                  return {
+                    ...c,
+                    messages: deduped,
+                    last_message_at: newLog.created_at,
+                  };
+                })
+                .sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
             }
+
+            return [
+              {
+                sender_id: newLog.sender_id,
+                sender_username: newLog.sender_username,
+                messages: [newLog],
+                last_message_at: newLog.created_at,
+                ai_paused: false,
+              },
+              ...prev,
+            ];
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn("[MRO Direct+] Realtime indisponível, mantendo atualização automática por polling.");
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Fallback polling para garantir atualização contínua mesmo sem realtime
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      loadConversations({ silent: true });
+    }, 3000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        loadConversations({ silent: true });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [loadConversations]);
+
+  useEffect(() => {
+    if (!selectedSender && conversations.length > 0) {
+      setSelectedSender(conversations[0].sender_id);
+    }
+  }, [conversations, selectedSender]);
 
   // Scroll to bottom when selecting conversation
   useEffect(() => {
@@ -760,7 +794,7 @@ const ConversationsTab = () => {
                   <Badge className="bg-purple-600 text-xs">{conversations.length}</Badge>
                 )}
               </CardTitle>
-              <Button size="icon" variant="ghost" onClick={loadConversations} className="h-7 w-7 text-gray-400">
+              <Button size="icon" variant="ghost" onClick={() => loadConversations()} className="h-7 w-7 text-gray-400">
                 <RefreshCw className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -966,14 +1000,27 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       const res = await api("get-logs");
       setLogs(res.logs);
     } catch (e: any) {
       toast.error(e.message);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (tab !== "logs") return;
+
+    loadLogs();
+    const intervalId = window.setInterval(() => {
+      loadLogs();
+    }, 3000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [tab, loadLogs]);
 
   const saveSettings = async () => {
     try {
@@ -1014,6 +1061,7 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
     try {
       await api("send-test-message", { recipient_id: testRecipient, message: testMessage });
       toast.success("Mensagem de teste enviada!");
+      loadLogs();
     } catch (e: any) {
       toast.error(e.message);
     }
