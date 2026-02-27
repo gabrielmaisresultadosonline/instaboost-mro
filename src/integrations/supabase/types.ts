@@ -1553,27 +1553,42 @@ export type Database = {
       mro_direct_settings: {
         Row: {
           created_at: string
+          follower_check_threshold: number | null
+          follower_count_baseline: number | null
+          follower_polling_active: boolean | null
           id: string
           instagram_account_id: string | null
+          instagram_username: string | null
           is_active: boolean | null
+          last_follower_check: string | null
           page_access_token: string | null
           updated_at: string
           webhook_verify_token: string | null
         }
         Insert: {
           created_at?: string
+          follower_check_threshold?: number | null
+          follower_count_baseline?: number | null
+          follower_polling_active?: boolean | null
           id?: string
           instagram_account_id?: string | null
+          instagram_username?: string | null
           is_active?: boolean | null
+          last_follower_check?: string | null
           page_access_token?: string | null
           updated_at?: string
           webhook_verify_token?: string | null
         }
         Update: {
           created_at?: string
+          follower_check_threshold?: number | null
+          follower_count_baseline?: number | null
+          follower_polling_active?: boolean | null
           id?: string
           instagram_account_id?: string | null
+          instagram_username?: string | null
           is_active?: boolean | null
+          last_follower_check?: string | null
           page_access_token?: string | null
           updated_at?: string
           webhook_verify_token?: string | null

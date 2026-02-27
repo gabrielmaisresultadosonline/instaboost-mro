@@ -300,6 +300,43 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── FOLLOWER POLLING ──
+    if (action === "follower-polling-status") {
+      const res = await fetch(`${supabaseUrl}/functions/v1/mro-direct-brightdata-followers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
+        body: JSON.stringify({ action: "status" }),
+      });
+      return new Response(await res.text(), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "follower-polling-activate") {
+      const res = await fetch(`${supabaseUrl}/functions/v1/mro-direct-brightdata-followers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
+        body: JSON.stringify({ action: "activate", username: data.username }),
+      });
+      return new Response(await res.text(), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "follower-polling-deactivate") {
+      const res = await fetch(`${supabaseUrl}/functions/v1/mro-direct-brightdata-followers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
+        body: JSON.stringify({ action: "deactivate" }),
+      });
+      return new Response(await res.text(), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "follower-polling-check") {
+      const res = await fetch(`${supabaseUrl}/functions/v1/mro-direct-brightdata-followers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseKey}` },
+        body: JSON.stringify({ action: "check" }),
+      });
+      return new Response(await res.text(), { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     return json({ error: "Ação não reconhecida" }, 400);
   } catch (error) {
     console.error("[mro-direct-api] Error:", error);
