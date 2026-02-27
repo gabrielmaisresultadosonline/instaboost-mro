@@ -304,6 +304,20 @@ Deno.serve(async (req) => {
     }
 
     // ── FOLLOWER WEBHOOK STATUS ──
+    // ── LIST INSTAGRAM POSTS ──
+    if (action === "list-posts") {
+      const { data: settings } = await supabase.from("mro_direct_settings").select("*").limit(1).single();
+      if (!settings?.page_access_token || !settings?.instagram_account_id) {
+        throw new Error("Token ou ID do Instagram não configurado");
+      }
+      const res = await fetch(
+        `https://graph.facebook.com/v21.0/${settings.instagram_account_id}/media?fields=id,caption,media_type,media_url,thumbnail_url,timestamp,like_count,comments_count&limit=25&access_token=${settings.page_access_token}`
+      );
+      const postsData = await res.json();
+      if (!res.ok) throw new Error(postsData.error?.message || "Erro ao buscar posts");
+      return json({ posts: postsData.data || [] });
+    }
+
     if (action === "follower-polling-status") {
       const { data: s } = await supabase.from("mro_direct_settings").select("*").limit(1).single();
       const { count: known } = await supabase
