@@ -35,92 +35,52 @@ Deno.serve(async (req) => {
         throw new Error("code e redirect_uri são obrigatórios");
       }
 
-      // Step 1: Exchange code for short-lived user access token
-      const tokenRes = await fetch("https://graph.facebook.com/v21.0/oauth/access_token", {
+      // Step 1: Exchange code for short-lived token via Instagram API
+      const tokenRes = await fetch("https://api.instagram.com/oauth/access_token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
-          grant_type: "authorization_code",
-          code,
-          redirect_uri,
           client_id: appId,
           client_secret: appSecret,
+          grant_type: "authorization_code",
+          redirect_uri,
+          code,
         }),
       });
 
       const tokenData = await tokenRes.json();
-      if (!tokenRes.ok || tokenData.error) {
-        console.error("Token exchange error:", tokenData);
-        throw new Error(tokenData.error?.message || "Erro ao trocar código por token");
+      console.log("[mro-direct-oauth] Token exchange response:", JSON.stringify(tokenData));
+
+      if (!tokenRes.ok || tokenData.error_type || tokenData.error_message) {
+        throw new Error(tokenData.error_message || "Erro ao trocar código por token");
       }
 
-      const userAccessToken = tokenData.access_token;
+      const shortLivedToken = tokenData.access_token;
+      const igUserId = tokenData.user_id;
 
-      // Step 2: Exchange for long-lived token
+      // Step 2: Exchange for long-lived token via Graph API
       const longLivedRes = await fetch(
-        `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${userAccessToken}`
+        `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${appSecret}&access_token=${shortLivedToken}`
       );
       const longLivedData = await longLivedRes.json();
-      const longLivedToken = longLivedData.access_token || userAccessToken;
+      console.log("[mro-direct-oauth] Long-lived token response:", JSON.stringify({ expires_in: longLivedData.expires_in }));
 
-      // Step 3: Get pages and find Instagram Business Account
-      const pagesRes = await fetch(
-        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${longLivedToken}`
-      );
-      const pagesData = await pagesRes.json();
+      const longLivedToken = longLivedData.access_token || shortLivedToken;
 
-      if (!pagesRes.ok || !pagesData.data) {
-        throw new Error(pagesData.error?.message || "Erro ao buscar páginas do Facebook");
-      }
-
-      // Find page with IG business account
-      let page = null;
-      for (const p of pagesData.data) {
-        if (p.instagram_business_account) {
-          page = p;
-          break;
-        }
-        // Try fetching individually
-        const igRes = await fetch(
-          `https://graph.facebook.com/v21.0/${p.id}?fields=instagram_business_account&access_token=${p.access_token}`
-        );
-        const igData = await igRes.json();
-        if (igData.instagram_business_account) {
-          page = { ...p, instagram_business_account: igData.instagram_business_account };
-          break;
-        }
-      }
-
-      if (!page || !page.instagram_business_account) {
-        // Return pages info for debugging
-        const pageNames = pagesData.data.map((p: any) => p.name);
-        throw new Error(
-          `Nenhuma conta Instagram Business encontrada. Páginas: ${pageNames.join(", ")}. Certifique-se que seu Instagram é Business/Creator e está vinculado a uma Página.`
-        );
-      }
-
-      const igAccountId = page.instagram_business_account.id;
-      const pageAccessToken = page.access_token;
-
-      // Step 4: Get Instagram profile info
+      // Step 3: Get Instagram profile info
       const profileRes = await fetch(
-        `https://graph.facebook.com/v21.0/${igAccountId}?fields=id,name,username,biography,profile_picture_url,followers_count,media_count&access_token=${pageAccessToken}`
+        `https://graph.instagram.com/v21.0/me?fields=user_id,username,name,profile_picture_url,followers_count,media_count&access_token=${longLivedToken}`
       );
       const profile = await profileRes.json();
+      console.log("[mro-direct-oauth] Profile response:", JSON.stringify(profile));
 
-      if (!profileRes.ok) {
-        // Fallback with fewer fields
-        const fallbackRes = await fetch(
-          `https://graph.facebook.com/v21.0/${igAccountId}?fields=id,name,username&access_token=${pageAccessToken}`
-        );
-        const fallbackProfile = await fallbackRes.json();
-        if (!fallbackRes.ok) {
-          throw new Error(fallbackProfile.error?.message || "Erro ao buscar perfil do Instagram");
-        }
-        Object.assign(profile, fallbackProfile);
+      if (!profileRes.ok || profile.error) {
+        throw new Error(profile.error?.message || "Erro ao buscar perfil do Instagram");
       }
 
-      // Step 5: Save settings to database
+      const igAccountId = profile.user_id || String(igUserId);
+
+      // Step 4: Save settings to database
       const { data: existing } = await supabase
         .from("mro_direct_settings")
         .select("id")
@@ -128,7 +88,7 @@ Deno.serve(async (req) => {
         .single();
 
       const settingsData = {
-        page_access_token: pageAccessToken,
+        page_access_token: longLivedToken,
         instagram_account_id: igAccountId,
         is_active: true,
         updated_at: new Date().toISOString(),
@@ -142,8 +102,14 @@ Deno.serve(async (req) => {
 
       return json({
         success: true,
-        profile,
-        page_name: page.name,
+        profile: {
+          id: igAccountId,
+          username: profile.username,
+          name: profile.name,
+          profile_picture_url: profile.profile_picture_url,
+          followers_count: profile.followers_count,
+          media_count: profile.media_count,
+        },
       });
     }
 
