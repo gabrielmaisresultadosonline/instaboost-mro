@@ -21,7 +21,6 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action || "check";
 
-    // Get settings
     const { data: settings } = await supabase
       .from("mro_direct_settings")
       .select("*")
@@ -32,77 +31,57 @@ Deno.serve(async (req) => {
       return json({ success: false, error: "Settings not configured" });
     }
 
-    // ── ACTIVATE: Set baseline and start polling ──
+    // ── ACTIVATE: Set baseline ──
     if (action === "activate") {
       const username = body.username || settings.instagram_username;
-      if (!username) {
-        return json({ success: false, error: "Instagram username required" });
-      }
+      if (!username) return json({ success: false, error: "Instagram username required" });
 
-      // Get current follower count from Graph API
       let currentCount = 0;
       if (settings.page_access_token && settings.instagram_account_id) {
-        const countRes = await fetch(
-          `https://graph.facebook.com/v21.0/${settings.instagram_account_id}?fields=followers_count&access_token=${settings.page_access_token}`
-        );
-        const countData = await countRes.json();
-        if (countRes.ok && countData.followers_count != null) {
-          currentCount = countData.followers_count;
-        }
+        currentCount = await getFollowerCount(settings.instagram_account_id, settings.page_access_token);
       }
 
-      // Seed the last 10 followers from Bright Data to establish baseline
-      log("Seeding last 10 followers via Bright Data...");
-      const allFollowers = await scrapeFollowers(username);
-      const followers = allFollowers.slice(0, 10); // Only last 10
-      
-      if (followers.length > 0) {
-        // Insert all current followers as "already welcomed" (baseline)
-        const inserts = followers.map((f: any) => ({
-          instagram_account_id: settings.instagram_account_id || "unknown",
-          follower_id: f.id || f.pk || f.username,
+      // Seed known followers from session/Bright Data
+      const followers = await scrapeFollowersList(username);
+      const seeded = followers.slice(0, 20);
+
+      if (seeded.length > 0 && settings.instagram_account_id) {
+        const inserts = seeded.map((f) => ({
+          instagram_account_id: settings.instagram_account_id!,
+          follower_id: f.id,
           follower_username: f.username,
-          welcomed: true, // baseline = already welcomed
+          welcomed: true,
         }));
 
-        for (const batch of chunkArray(inserts, 50)) {
+        for (let i = 0; i < inserts.length; i += 50) {
           await supabase
             .from("mro_direct_known_followers")
-            .upsert(batch, { onConflict: "instagram_account_id,follower_id", ignoreDuplicates: true });
+            .upsert(inserts.slice(i, i + 50), { onConflict: "instagram_account_id,follower_id", ignoreDuplicates: true });
         }
-        log(`Seeded ${followers.length} existing followers as baseline`);
       }
 
-      // Update settings
-      await supabase
-        .from("mro_direct_settings")
-        .update({
-          follower_polling_active: true,
-          follower_count_baseline: currentCount,
-          instagram_username: username,
-          last_follower_check: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", settings.id);
+      await supabase.from("mro_direct_settings").update({
+        follower_polling_active: true,
+        follower_count_baseline: currentCount,
+        instagram_username: username,
+        last_follower_check: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", settings.id);
 
       return json({
         success: true,
         baseline: currentCount,
-        seeded_followers: followers.length,
-        message: `Polling ativado! Baseline: ${currentCount} seguidores, ${followers.length} seguidores registrados.`,
+        seeded_followers: seeded.length,
+        message: `Polling ativado! Baseline: ${currentCount} seguidores, ${seeded.length} seguidores registrados.`,
       });
     }
 
     // ── DEACTIVATE ──
     if (action === "deactivate") {
-      await supabase
-        .from("mro_direct_settings")
-        .update({
-          follower_polling_active: false,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", settings.id);
-
+      await supabase.from("mro_direct_settings").update({
+        follower_polling_active: false,
+        updated_at: new Date().toISOString(),
+      }).eq("id", settings.id);
       return json({ success: true, message: "Polling desativado" });
     }
 
@@ -125,7 +104,7 @@ Deno.serve(async (req) => {
         baseline: settings.follower_count_baseline,
         last_check: settings.last_follower_check,
         username: settings.instagram_username,
-        threshold: settings.follower_check_threshold || 2,
+        threshold: settings.follower_check_threshold || 1,
         known_followers: knownCount || 0,
         pending_welcome: unwelcomedCount || 0,
       });
@@ -140,31 +119,27 @@ Deno.serve(async (req) => {
       return json({ success: false, error: "Token or IG ID not configured" });
     }
 
-    const threshold = settings.follower_check_threshold || 2;
+    const threshold = settings.follower_check_threshold || 1;
 
-    // Step 1: Get current follower count from Graph API (free, instant)
-    const countRes = await fetch(
-      `https://graph.facebook.com/v21.0/${settings.instagram_account_id}?fields=followers_count&access_token=${settings.page_access_token}`
-    );
-    const countData = await countRes.json();
-
-    if (!countRes.ok) {
-      log("Error fetching follower count", countData.error);
-      return json({ success: false, error: countData.error?.message || "Graph API error" });
+    // STEP 1: Check follower count via Meta Graph API (FREE - no credits)
+    const currentCount = await getFollowerCount(settings.instagram_account_id, settings.page_access_token);
+    
+    if (currentCount < 0) {
+      return json({ success: false, error: "Failed to fetch follower count from Meta API" });
     }
 
-    const currentCount = countData.followers_count;
     const baseline = settings.follower_count_baseline || 0;
     const diff = currentCount - baseline;
 
-    log(`Follower check: baseline=${baseline}, current=${currentCount}, diff=${diff}, threshold=${threshold}`);
+    log(`Count check: baseline=${baseline}, current=${currentCount}, diff=${diff}, threshold=${threshold}`);
 
-    // Update last check time
-    await supabase
-      .from("mro_direct_settings")
-      .update({ last_follower_check: new Date().toISOString(), updated_at: new Date().toISOString() })
-      .eq("id", settings.id);
+    // Always update last check time
+    await supabase.from("mro_direct_settings").update({
+      last_follower_check: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq("id", settings.id);
 
+    // If no increase, SKIP Bright Data (saves credits!)
     if (diff < threshold) {
       return json({
         success: true,
@@ -173,97 +148,90 @@ Deno.serve(async (req) => {
         current: currentCount,
         diff,
         threshold,
-        message: `Sem novos seguidores suficientes (${diff}/${threshold})`,
+        bright_data_called: false,
+        message: `Sem novos seguidores (${diff}/${threshold}). Bright Data NÃO chamado.`,
       });
     }
 
-    // Step 2: Follower count increased! Scrape followers list with Bright Data
-    log(`Follower increase detected! ${diff} new followers. Scraping list...`);
-    
+    // STEP 2: Count INCREASED! Now use Bright Data/session to get follower list
+    log(`🚀 ${diff} novos seguidores detectados! Buscando lista via Bright Data...`);
+
     const username = settings.instagram_username;
     if (!username) {
       return json({ success: false, error: "Instagram username not set" });
     }
 
-    const scrapedFollowers = await scrapeFollowers(username);
-    
+    const scrapedFollowers = await scrapeFollowersList(username);
+
     if (scrapedFollowers.length === 0) {
-      log("No followers returned from Bright Data");
-      return json({ success: true, checked: true, diff, scrape_failed: true });
+      log("Bright Data/session retornou 0 seguidores");
+      // Still update baseline to avoid re-triggering
+      await supabase.from("mro_direct_settings").update({
+        follower_count_baseline: currentCount,
+        updated_at: new Date().toISOString(),
+      }).eq("id", settings.id);
+      return json({ success: true, checked: true, diff, scrape_failed: true, bright_data_called: true });
     }
 
-    // Step 3: Compare with known followers
+    // STEP 3: Compare with known followers to find NEW ones
     const { data: knownFollowers } = await supabase
       .from("mro_direct_known_followers")
       .select("follower_id, follower_username")
       .eq("instagram_account_id", settings.instagram_account_id);
 
-    const knownIds = new Set((knownFollowers || []).map((f: any) => f.follower_id));
-    const knownUsernames = new Set((knownFollowers || []).map((f: any) => f.follower_username?.toLowerCase()));
+    const knownIds = new Set((knownFollowers || []).map((f) => f.follower_id));
+    const knownUsernames = new Set(
+      (knownFollowers || []).map((f) => f.follower_username?.toLowerCase()).filter(Boolean)
+    );
 
-    const newFollowers = scrapedFollowers.filter((f: any) => {
-      const id = f.id || f.pk || f.username;
-      return !knownIds.has(String(id)) && !knownUsernames.has(f.username?.toLowerCase());
+    const newFollowers = scrapedFollowers.filter((f) => {
+      return !knownIds.has(f.id) && !knownUsernames.has(f.username?.toLowerCase());
     });
 
-    log(`Found ${newFollowers.length} new followers out of ${scrapedFollowers.length} scraped`);
+    log(`${newFollowers.length} novos de ${scrapedFollowers.length} scrapeados`);
 
-    if (newFollowers.length === 0) {
-      // Update baseline even if no new detected (count drift)
-      await supabase
-        .from("mro_direct_settings")
-        .update({ follower_count_baseline: currentCount, updated_at: new Date().toISOString() })
-        .eq("id", settings.id);
+    // STEP 4: Insert new followers and try to get IGSID for DMs
+    const newRecords = [];
+    for (const follower of newFollowers.slice(0, 30)) {
+      let followerId = follower.id;
 
-      return json({ success: true, checked: true, new_followers: 0, baseline_updated: currentCount });
-    }
-
-    // Step 4: Try to get IGSID via Business Discovery and insert new followers
-    let welcomeSent = 0;
-    const newFollowerRecords = [];
-
-    for (const follower of newFollowers.slice(0, 20)) { // Limit to 20 per check
-      const followerUsername = follower.username;
-      let followerId = String(follower.id || follower.pk || follower.username);
-
-      // Try Business Discovery to get Instagram Scoped ID
-      try {
-        const discoveryRes = await fetch(
-          `https://graph.facebook.com/v21.0/${settings.instagram_account_id}?fields=business_discovery.fields(id,username,name)&business_discovery=@${followerUsername}&access_token=${settings.page_access_token}`
-        );
-        const discoveryData = await discoveryRes.json();
-        
-        if (discoveryRes.ok && discoveryData.business_discovery?.id) {
-          followerId = discoveryData.business_discovery.id;
-          log(`Resolved IGSID for @${followerUsername}: ${followerId}`);
+      // Try business_discovery to get IGSID (needed for DMs)
+      if (follower.username) {
+        try {
+          const discoveryRes = await fetch(
+            `https://graph.facebook.com/v21.0/${settings.instagram_account_id}?fields=business_discovery.fields(id,username)&business_discovery=@${follower.username}&access_token=${settings.page_access_token}`
+          );
+          const discoveryData = await discoveryRes.json();
+          if (discoveryRes.ok && discoveryData.business_discovery?.id) {
+            followerId = discoveryData.business_discovery.id;
+            log(`IGSID resolvido para @${follower.username}: ${followerId}`);
+          }
+        } catch (e) {
+          log(`Erro resolvendo IGSID de @${follower.username}`);
         }
-      } catch (e) {
-        log(`Could not resolve IGSID for @${followerUsername}`, { error: String(e) });
       }
 
-      // Insert as unwelcomed
-      newFollowerRecords.push({
+      newRecords.push({
         instagram_account_id: settings.instagram_account_id,
         follower_id: followerId,
-        follower_username: followerUsername,
+        follower_username: follower.username,
         welcomed: false,
       });
     }
 
-    // Batch insert new followers
-    if (newFollowerRecords.length > 0) {
+    if (newRecords.length > 0) {
       await supabase
         .from("mro_direct_known_followers")
-        .upsert(newFollowerRecords, { onConflict: "instagram_account_id,follower_id", ignoreDuplicates: true });
+        .upsert(newRecords, { onConflict: "instagram_account_id,follower_id", ignoreDuplicates: true });
     }
 
-    // Step 5: Update baseline
-    await supabase
-      .from("mro_direct_settings")
-      .update({ follower_count_baseline: currentCount, updated_at: new Date().toISOString() })
-      .eq("id", settings.id);
+    // STEP 5: Update baseline
+    await supabase.from("mro_direct_settings").update({
+      follower_count_baseline: currentCount,
+      updated_at: new Date().toISOString(),
+    }).eq("id", settings.id);
 
-    // Step 6: Trigger the existing poll-followers function to send DMs
+    // STEP 6: Trigger poll-followers to send welcome DMs
     try {
       await fetch(`${supabaseUrl}/functions/v1/mro-direct-poll-followers`, {
         method: "POST",
@@ -273,9 +241,9 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({}),
       });
-      log("Triggered poll-followers to send welcome DMs");
+      log("Triggered poll-followers para enviar DMs de boas-vindas");
     } catch (e) {
-      log("Error triggering poll-followers", { error: String(e) });
+      log("Erro ao triggerar poll-followers", { error: String(e) });
     }
 
     return json({
@@ -284,8 +252,9 @@ Deno.serve(async (req) => {
       baseline,
       current: currentCount,
       diff,
-      new_followers_detected: newFollowerRecords.length,
-      message: `Detectados ${newFollowerRecords.length} novos seguidores! DMs de boas-vindas sendo enviadas.`,
+      new_followers_detected: newRecords.length,
+      bright_data_called: true,
+      message: `🎉 ${newRecords.length} novos seguidores detectados e registrados! DMs sendo enviadas.`,
     });
 
   } catch (error) {
@@ -294,151 +263,63 @@ Deno.serve(async (req) => {
   }
 });
 
-// ── BRIGHT DATA SCRAPER ──
-async function scrapeFollowers(username: string): Promise<any[]> {
-  const apiToken = Deno.env.get("BRIGHTDATA_API_TOKEN");
-  const sessionId = Deno.env.get("INSTAGRAM_SESSION_ID");
-  
-  if (!apiToken) {
-    log("BRIGHTDATA_API_TOKEN not configured");
-    return [];
-  }
-
+// ── META GRAPH API: Get follower count (FREE) ──
+async function getFollowerCount(igAccountId: string, accessToken: string): Promise<number> {
   try {
-    // Method 1: Use Bright Data Web Unlocker to access Instagram's private API
-    const webUnlockerZone = Deno.env.get("BRIGHTDATA_WEB_UNLOCKER_ZONE") || "web_unlocker1";
-    
-    // First, get the user's PK from their profile
-    const profileUrl = `https://i.instagram.com/api/v1/users/web_profile_info/?username=${username}`;
-    
-    const headers: Record<string, string> = {
-      "User-Agent": "Instagram 275.0.0.27.98 Android (33/13; 420dpi; 1080x2400; samsung; SM-G991B; o1s; exynos2100; en_US; 458229258)",
-      "X-IG-App-ID": "936619743392459",
-    };
-    
-    if (sessionId) {
-      headers["Cookie"] = `sessionid=${sessionId}`;
-    }
-
-    // Get profile to extract PK
-    log("Fetching profile PK via Bright Data...");
-    const profileRes = await fetch(
-      `https://brd-customer-hl_4b49de84-zone-${webUnlockerZone}:${apiToken}@brd.superproxy.io:33335`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          url: profileUrl,
-          headers,
-        }),
-      }
-    ).catch(() => null);
-
-    // Alternative: Use Bright Data's SERP API directly
-    if (!profileRes || !profileRes.ok) {
-      log("Web Unlocker failed, trying direct scrape...");
-      return await scrapeFollowersDirect(username, apiToken, sessionId);
-    }
-
-    const profileData = await profileRes.json().catch(() => null);
-    const userPk = profileData?.data?.user?.id;
-
-    if (!userPk) {
-      log("Could not extract user PK, trying direct scrape...");
-      return await scrapeFollowersDirect(username, apiToken, sessionId);
-    }
-
-    log(`Got user PK: ${userPk}, fetching followers...`);
-
-    // Fetch followers using the private API
-    const followersUrl = `https://i.instagram.com/api/v1/friendships/${userPk}/followers/?count=50`;
-    
-    const followersRes = await fetch(
-      `https://brd-customer-hl_4b49de84-zone-${webUnlockerZone}:${apiToken}@brd.superproxy.io:33335`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url: followersUrl,
-          headers,
-        }),
-      }
-    ).catch(() => null);
-
-    if (!followersRes || !followersRes.ok) {
-      log("Followers fetch failed");
-      return await scrapeFollowersDirect(username, apiToken, sessionId);
-    }
-
-    const followersData = await followersRes.json().catch(() => null);
-    const users = followersData?.users || [];
-
-    log(`Got ${users.length} followers from private API`);
-
-    return users.map((u: any) => ({
-      id: String(u.pk || u.pk_id),
-      username: u.username,
-      full_name: u.full_name,
-    }));
-
-  } catch (error) {
-    log("Bright Data scrape error", { error: String(error) });
-    return [];
-  }
-}
-
-// Fallback: Direct HTML scrape approach
-async function scrapeFollowersDirect(username: string, apiToken: string, sessionId: string | undefined): Promise<any[]> {
-  try {
-    log("Trying Bright Data Web Scraper API for followers...");
-    
-    // Use Bright Data's dataset API to scrape the profile and get recent followers info
-    const res = await fetch("https://api.brightdata.com/datasets/v3/scrape", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiToken}`,
-      },
-      body: JSON.stringify([
-        {
-          url: `https://www.instagram.com/${username}/`,
-          dataset_id: "gd_l1vikfch901nx3by4", // Instagram Profiles dataset
-        },
-      ]),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      log("Bright Data dataset API failed", { status: res.status, body: errText });
-      return [];
-    }
-
+    const res = await fetch(
+      `https://graph.facebook.com/v21.0/${igAccountId}?fields=followers_count&access_token=${accessToken}`
+    );
     const data = await res.json();
-    log("Bright Data dataset response", { snapshot_id: data.snapshot_id });
-
-    // The dataset API is async - it returns a snapshot_id
-    // For immediate results, we need to poll. But for now, return empty
-    // and let the next check pick up results.
-    
-    // Alternative: try direct mobile API with session
-    if (sessionId) {
-      return await scrapeWithSession(username, sessionId);
+    if (res.ok && data.followers_count != null) {
+      log(`Meta API: followers_count = ${data.followers_count}`);
+      return data.followers_count;
     }
-
-    return [];
-  } catch (error) {
-    log("Direct scrape error", { error: String(error) });
-    return [];
+    log("Meta API error", data.error);
+    return -1;
+  } catch (e) {
+    log("Meta API exception", { error: String(e) });
+    return -1;
   }
 }
 
-// Direct mobile API with session cookie
-async function scrapeWithSession(username: string, sessionId: string): Promise<any[]> {
+// ── SCRAPE FOLLOWERS LIST (Session Cookie → Bright Data fallback) ──
+async function scrapeFollowersList(username: string): Promise<Array<{ id: string; username: string }>> {
+  const sessionId = Deno.env.get("INSTAGRAM_SESSION_ID");
+
+  // Method 1: Direct Instagram private API with session cookie
+  if (sessionId) {
+    log("Tentando via session cookie...");
+    const result = await fetchFollowersViaPrivateAPI(username, sessionId);
+    if (result.length > 0) {
+      log(`Session cookie: ${result.length} seguidores obtidos`);
+      return result;
+    }
+    log("Session cookie falhou, tentando Bright Data...");
+  }
+
+  // Method 2: Bright Data Web Unlocker
+  const apiToken = Deno.env.get("BRIGHTDATA_API_TOKEN");
+  if (apiToken) {
+    log("Tentando via Bright Data Web Unlocker...");
+    const result = await fetchFollowersViaBrightData(username, apiToken, sessionId);
+    if (result.length > 0) {
+      log(`Bright Data: ${result.length} seguidores obtidos`);
+      return result;
+    }
+  }
+
+  log("Nenhum método retornou seguidores");
+  return [];
+}
+
+// Direct Instagram private API
+async function fetchFollowersViaPrivateAPI(
+  username: string,
+  sessionId: string
+): Promise<Array<{ id: string; username: string }>> {
   try {
     const headers = {
-      "User-Agent": "Instagram 275.0.0.27.98 Android (33/13; 420dpi; 1080x2400; samsung; SM-G991B; o1s; exynos2100; en_US; en_US)",
+      "User-Agent": "Instagram 275.0.0.27.98 Android (33/13; 420dpi; 1080x2400; samsung; SM-G991B; o1s; exynos2100; en_US; 458229258)",
       "X-IG-App-ID": "936619743392459",
       Cookie: `sessionid=${sessionId}`,
     };
@@ -448,53 +329,162 @@ async function scrapeWithSession(username: string, sessionId: string): Promise<a
       `https://i.instagram.com/api/v1/users/web_profile_info/?username=${username}`,
       { headers }
     );
-
     if (!profileRes.ok) {
-      log("Direct profile fetch failed");
+      const t = await profileRes.text();
+      log("Profile fetch failed", { status: profileRes.status });
       return [];
     }
 
     const profileData = await profileRes.json();
     const userPk = profileData?.data?.user?.id;
-
     if (!userPk) {
-      log("No user PK in direct response");
+      log("No user PK found");
       return [];
     }
 
-    // Get followers
+    // Get followers list (most recent first)
     const followersRes = await fetch(
       `https://i.instagram.com/api/v1/friendships/${userPk}/followers/?count=50`,
       { headers }
     );
-
     if (!followersRes.ok) {
-      log("Direct followers fetch failed", { status: followersRes.status });
+      const t = await followersRes.text();
+      log("Followers fetch failed", { status: followersRes.status });
       return [];
     }
 
     const followersData = await followersRes.json();
     const users = followersData?.users || [];
 
-    log(`Got ${users.length} followers via direct session`);
-
     return users.map((u: any) => ({
       id: String(u.pk || u.pk_id),
       username: u.username,
-      full_name: u.full_name,
     }));
-  } catch (error) {
-    log("Session scrape error", { error: String(error) });
+  } catch (e) {
+    log("Private API error", { error: String(e) });
     return [];
   }
 }
 
-function chunkArray<T>(arr: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    chunks.push(arr.slice(i, i + size));
+// Bright Data Web Unlocker approach
+async function fetchFollowersViaBrightData(
+  username: string,
+  apiToken: string,
+  sessionId: string | undefined
+): Promise<Array<{ id: string; username: string }>> {
+  try {
+    const zone = Deno.env.get("BRIGHTDATA_WEB_UNLOCKER_ZONE") || "web_unlocker1";
+
+    const igHeaders: Record<string, string> = {
+      "User-Agent": "Instagram 275.0.0.27.98 Android (33/13; 420dpi; 1080x2400; samsung; SM-G991B; o1s; exynos2100; en_US; 458229258)",
+      "X-IG-App-ID": "936619743392459",
+    };
+    if (sessionId) {
+      igHeaders["Cookie"] = `sessionid=${sessionId}`;
+    }
+
+    // Step 1: Get user PK via Bright Data proxy
+    const profileUrl = `https://i.instagram.com/api/v1/users/web_profile_info/?username=${username}`;
+
+    // Use Bright Data's SERP/Web Unlocker API endpoint
+    const proxyAuth = btoa(`brd-customer-hl_4b49de84-zone-${zone}:${apiToken}`);
+
+    const profileRes = await fetch("https://brd.superproxy.io:33335", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Proxy-Authorization": `Basic ${proxyAuth}`,
+      },
+      body: JSON.stringify({
+        url: profileUrl,
+        headers: igHeaders,
+      }),
+    }).catch(() => null);
+
+    if (!profileRes || !profileRes.ok) {
+      // Fallback: try the Bright Data API directly
+      log("Bright Data proxy failed, trying API endpoint...");
+      return await fetchFollowersViaBrightDataAPI(username, apiToken);
+    }
+
+    const profileData = await profileRes.json().catch(() => null);
+    const userPk = profileData?.data?.user?.id;
+
+    if (!userPk) {
+      log("No PK from Bright Data proxy");
+      return await fetchFollowersViaBrightDataAPI(username, apiToken);
+    }
+
+    // Step 2: Get followers via Bright Data proxy
+    const followersUrl = `https://i.instagram.com/api/v1/friendships/${userPk}/followers/?count=50`;
+
+    const followersRes = await fetch("https://brd.superproxy.io:33335", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Proxy-Authorization": `Basic ${proxyAuth}`,
+      },
+      body: JSON.stringify({
+        url: followersUrl,
+        headers: igHeaders,
+      }),
+    }).catch(() => null);
+
+    if (!followersRes || !followersRes.ok) {
+      log("Bright Data followers fetch failed");
+      return [];
+    }
+
+    const followersData = await followersRes.json().catch(() => null);
+    const users = followersData?.users || [];
+
+    return users.map((u: any) => ({
+      id: String(u.pk || u.pk_id),
+      username: u.username,
+    }));
+  } catch (e) {
+    log("Bright Data error", { error: String(e) });
+    return [];
   }
-  return chunks;
+}
+
+// Bright Data Web Scraper API fallback (async trigger, stores snapshot)
+async function fetchFollowersViaBrightDataAPI(
+  username: string,
+  apiToken: string
+): Promise<Array<{ id: string; username: string }>> {
+  try {
+    // Use synchronous scrape endpoint for profile data
+    const res = await fetch(
+      "https://api.brightdata.com/datasets/v3/scrape?dataset_id=gd_l1vikfch901nx3by4&format=json",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiToken}`,
+        },
+        body: JSON.stringify([{ url: `https://www.instagram.com/${username}/` }]),
+      }
+    );
+
+    if (!res.ok) {
+      const errText = await res.text();
+      log("Bright Data API scrape failed", { status: res.status, body: errText.substring(0, 200) });
+      return [];
+    }
+
+    // The profiles dataset doesn't return follower list, just profile info
+    // This is a fallback that at least confirms the profile exists
+    const data = await res.json();
+    log("Bright Data API profile scraped", { records: Array.isArray(data) ? data.length : 0 });
+
+    // Profile scrape doesn't give us individual followers - return empty
+    // The main detection is done via Meta API count comparison
+    return [];
+  } catch (e) {
+    log("Bright Data API error", { error: String(e) });
+    return [];
+  }
 }
 
 function json(data: unknown, status = 200) {
