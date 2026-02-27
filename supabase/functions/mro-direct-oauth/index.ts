@@ -78,7 +78,11 @@ Deno.serve(async (req) => {
         throw new Error(profile.error?.message || "Erro ao buscar perfil do Instagram");
       }
 
-      const igAccountId = profile.user_id || String(igUserId);
+      // Use the API node ID (profile.id) for Graph API calls, NOT user_id
+      // profile.id = Instagram API node ID (works with graph.instagram.com/v21.0/{id})
+      // profile.user_id = IG-scoped user ID (used for messaging recipient.id)
+      const igAccountId = String(profile.id || igUserId);
+      const igScopedUserId = profile.user_id || String(igUserId);
 
       // Step 4: Save settings to database
       const { data: existing } = await supabase
@@ -90,6 +94,7 @@ Deno.serve(async (req) => {
       const settingsData = {
         page_access_token: longLivedToken,
         instagram_account_id: igAccountId,
+        instagram_user_id: igScopedUserId,
         is_active: true,
         updated_at: new Date().toISOString(),
       };
