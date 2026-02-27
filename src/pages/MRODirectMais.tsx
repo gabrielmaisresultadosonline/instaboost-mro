@@ -131,14 +131,12 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
 
       const redirectUri = `${window.location.origin}/mrodirectmais`;
       const scopes = [
-        "instagram_basic",
-        "instagram_manage_messages",
-        "pages_show_list",
-        "pages_read_engagement",
-        "pages_messaging",
+        "instagram_business_basic",
+        "instagram_business_manage_messages",
+        "instagram_business_manage_comments",
       ].join(",");
 
-      const authUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${appIdRes.app_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scopes}&state=${state}`;
+      const authUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${appIdRes.app_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
 
       window.location.href = authUrl;
     } catch (e: any) {
