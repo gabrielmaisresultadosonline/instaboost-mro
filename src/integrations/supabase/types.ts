@@ -1516,9 +1516,11 @@ export type Database = {
         Row: {
           automation_id: string | null
           created_at: string
+          direction: string
           error_message: string | null
           event_type: string
           id: string
+          incoming_text: string | null
           message_sent: string | null
           sender_id: string | null
           sender_username: string | null
@@ -1528,9 +1530,11 @@ export type Database = {
         Insert: {
           automation_id?: string | null
           created_at?: string
+          direction?: string
           error_message?: string | null
           event_type: string
           id?: string
+          incoming_text?: string | null
           message_sent?: string | null
           sender_id?: string | null
           sender_username?: string | null
@@ -1540,9 +1544,11 @@ export type Database = {
         Update: {
           automation_id?: string | null
           created_at?: string
+          direction?: string
           error_message?: string | null
           event_type?: string
           id?: string
+          incoming_text?: string | null
           message_sent?: string | null
           sender_id?: string | null
           sender_username?: string | null
