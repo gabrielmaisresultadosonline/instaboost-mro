@@ -5,6 +5,71 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper to resolve User Token → Page Token + IG Account ID
+async function resolveInstagramAccount(userToken: string) {
+  // Step 1: Get pages linked to the user
+  const pagesRes = await fetch(
+    `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${userToken}`
+  );
+  const pagesData = await pagesRes.json();
+  
+  if (!pagesRes.ok) {
+    throw new Error(pagesData.error?.message || "Erro ao buscar páginas do Facebook");
+  }
+  
+  if (!pagesData.data || pagesData.data.length === 0) {
+    throw new Error("Nenhuma página do Facebook encontrada. Certifique-se de ter uma página vinculada ao seu Instagram.");
+  }
+
+  // Find the first page with an Instagram Business Account
+  let page = null;
+  for (const p of pagesData.data) {
+    if (p.instagram_business_account) {
+      page = p;
+      break;
+    }
+  }
+
+  if (!page) {
+    // Try fetching IG account for each page individually
+    for (const p of pagesData.data) {
+      const igRes = await fetch(
+        `https://graph.facebook.com/v21.0/${p.id}?fields=instagram_business_account&access_token=${p.access_token}`
+      );
+      const igData = await igRes.json();
+      if (igData.instagram_business_account) {
+        page = { ...p, instagram_business_account: igData.instagram_business_account };
+        break;
+      }
+    }
+  }
+
+  if (!page || !page.instagram_business_account) {
+    throw new Error("Nenhuma conta Instagram Business vinculada às suas páginas do Facebook.");
+  }
+
+  const igAccountId = page.instagram_business_account.id;
+  const pageAccessToken = page.access_token;
+
+  // Step 2: Get Instagram profile info
+  const profileRes = await fetch(
+    `https://graph.facebook.com/v21.0/${igAccountId}?fields=id,name,biography,ig_id,followers_count,media_count&access_token=${pageAccessToken}`
+  );
+  const profile = await profileRes.json();
+
+  if (!profileRes.ok) {
+    throw new Error(profile.error?.message || "Erro ao buscar perfil do Instagram");
+  }
+
+  return {
+    profile,
+    igAccountId,
+    pageAccessToken,
+    pageName: page.name,
+    pageId: page.id,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -28,21 +93,29 @@ Deno.serve(async (req) => {
     }
 
     if (action === "save-settings") {
-      const { instagram_account_id, page_access_token, is_active } = data;
+      const { instagram_account_id, page_access_token, is_active, user_token } = data;
 
-      // Check if settings exist
       const { data: existing } = await supabase.from("mro_direct_settings").select("id").limit(1).single();
+
+      const updateData: any = { updated_at: new Date().toISOString() };
+      if (instagram_account_id !== undefined) updateData.instagram_account_id = instagram_account_id;
+      if (page_access_token !== undefined) updateData.page_access_token = page_access_token;
+      if (is_active !== undefined) updateData.is_active = is_active;
 
       if (existing) {
         const { error } = await supabase
           .from("mro_direct_settings")
-          .update({ instagram_account_id, page_access_token, is_active, updated_at: new Date().toISOString() })
+          .update(updateData)
           .eq("id", existing.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("mro_direct_settings")
-          .insert({ instagram_account_id, page_access_token, is_active });
+          .insert({ 
+            instagram_account_id: instagram_account_id || "",
+            page_access_token: page_access_token || "",
+            is_active: is_active ?? true,
+          });
         if (error) throw error;
       }
       return json({ success: true });
@@ -113,7 +186,7 @@ Deno.serve(async (req) => {
       const { recipient_id, message } = data;
 
       const igResponse = await fetch(
-        `https://graph.instagram.com/v21.0/${settings.instagram_account_id}/messages`,
+        `https://graph.facebook.com/v21.0/${settings.instagram_account_id}/messages`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -131,7 +204,6 @@ Deno.serve(async (req) => {
         throw new Error(result.error?.message || "Erro ao enviar mensagem");
       }
 
-      // Log it
       await supabase.from("mro_direct_logs").insert({
         event_type: "test_message",
         sender_id: recipient_id,
@@ -142,20 +214,46 @@ Deno.serve(async (req) => {
       return json({ success: true, result });
     }
 
-    // ── GET INSTAGRAM PROFILE INFO ──
+    // ── GET INSTAGRAM PROFILE INFO (supports User Token) ──
     if (action === "get-ig-info") {
       const { data: settings } = await supabase.from("mro_direct_settings").select("*").limit(1).single();
       if (!settings?.page_access_token) {
         throw new Error("Token não configurado");
       }
 
-      const res = await fetch(
-        `https://graph.instagram.com/v21.0/me?fields=id,name,username,profile_picture_url,followers_count&access_token=${settings.page_access_token}`
-      );
-      const info = await res.json();
-      if (!res.ok) throw new Error(info.error?.message || "Erro ao buscar perfil");
+      const token = settings.page_access_token;
 
-      return json({ info });
+      // Try resolving as a User Token first (gets pages → IG account)
+      try {
+        const resolved = await resolveInstagramAccount(token);
+        
+        // Update settings with the resolved Page Access Token and IG Account ID
+        await supabase
+          .from("mro_direct_settings")
+          .update({
+            page_access_token: resolved.pageAccessToken,
+            instagram_account_id: resolved.igAccountId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", settings.id);
+
+        return json({ 
+          info: resolved.profile,
+          resolved: true,
+          page_name: resolved.pageName,
+        });
+      } catch (resolveError) {
+        // If User Token resolution fails, try direct Instagram API call (Page Token)
+        console.log("User token resolution failed, trying as page token:", resolveError.message);
+        
+        const res = await fetch(
+          `https://graph.facebook.com/v21.0/me?fields=id,name&access_token=${token}`
+        );
+        const info = await res.json();
+        if (!res.ok) throw new Error(info.error?.message || "Erro ao buscar perfil");
+        
+        return json({ info });
+      }
     }
 
     // ── DASHBOARD STATS ──
