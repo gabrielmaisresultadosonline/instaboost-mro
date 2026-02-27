@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import {
   MessageCircle, Settings, BarChart3, Plus, Trash2, Send, Bot,
   Heart, AtSign, Zap, RefreshCw, Eye, CheckCircle2, XCircle, Clock,
-  Instagram, LogOut, ShieldCheck, Key, ArrowRight, Loader2, Users, Radar
+  Instagram, LogOut, ShieldCheck, ArrowRight, Loader2, Users,
+  Sparkles, Lock, MessageSquare, Image
 } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -24,16 +25,13 @@ function getOAuthRedirectUri() {
   const normalizedOrigin = origin === "https://www.maisresultadosonline.com.br"
     ? "https://maisresultadosonline.com.br"
     : origin;
-
   const allowedOrigins = new Set([
     "https://ig-mro-boost.lovable.app",
     "https://maisresultadosonline.com.br",
   ]);
-
   if (allowedOrigins.has(normalizedOrigin)) {
     return `${normalizedOrigin}/mrodirectmais`;
   }
-
   return OAUTH_REDIRECT_URI;
 }
 
@@ -52,11 +50,44 @@ async function api(action: string, data: Record<string, unknown> = {}) {
   return json;
 }
 
-const typeLabels: Record<string, { label: string; icon: typeof MessageCircle; color: string }> = {
-  dm_reply: { label: "Auto-Resposta DM", icon: MessageCircle, color: "bg-blue-500" },
-  comment_reply: { label: "Resposta Comentário", icon: AtSign, color: "bg-green-500" },
-  welcome_follower: { label: "Boas-vindas Seguidor", icon: Heart, color: "bg-pink-500" },
-};
+const automationSections = [
+  {
+    type: "comment_reply",
+    title: "Respostas a Comentários",
+    description: "Quando alguém comentar em um post, responde automaticamente no comentário e envia uma DM personalizada.",
+    icon: AtSign,
+    color: "from-green-600 to-emerald-600",
+    iconBg: "bg-green-500",
+    available: true,
+  },
+  {
+    type: "dm_reply",
+    title: "Atendimento via Direct",
+    description: "Responde automaticamente quem enviar DM. Use I.A com prompt personalizado ou mensagem fixa/funil.",
+    icon: MessageCircle,
+    color: "from-blue-600 to-indigo-600",
+    iconBg: "bg-blue-500",
+    available: true,
+  },
+  {
+    type: "story_reply",
+    title: "Respostas a Stories",
+    description: "Quando alguém responder ou mencionar seus Stories, envia uma resposta automática via DM.",
+    icon: Image,
+    color: "from-orange-600 to-pink-600",
+    iconBg: "bg-orange-500",
+    available: true,
+  },
+  {
+    type: "welcome_follower",
+    title: "Boas-vindas para Novos Seguidores",
+    description: "Envia uma mensagem de boas-vindas personalizada para cada novo seguidor automaticamente.",
+    icon: Heart,
+    color: "from-pink-600 to-rose-600",
+    iconBg: "bg-pink-500",
+    available: false,
+  },
+];
 
 // ─── LOGIN / CONNECT SCREEN ───
 const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void }) => {
@@ -64,7 +95,6 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [oauthError, setOauthError] = useState("");
 
-  // Handle OAuth callback code
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
@@ -72,17 +102,13 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
     const storedState = sessionStorage.getItem("mro_oauth_state");
 
     if (code) {
-      // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
-
       if (stateParam && storedState && stateParam !== storedState) {
         setOauthError("Erro de segurança (state inválido). Tente novamente.");
         setCheckingExisting(false);
         return;
       }
       sessionStorage.removeItem("mro_oauth_state");
-
-      // Exchange code for token
       setLoading(true);
       (async () => {
         try {
@@ -104,7 +130,6 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
       return;
     }
 
-    // Check if already connected
     (async () => {
       try {
         const settingsRes = await api("get-settings");
@@ -115,59 +140,38 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
             return;
           }
         }
-      } catch {
-        // No valid token
-      }
+      } catch { /* No valid token */ }
       setCheckingExisting(false);
     })();
   }, [onConnected]);
-
-  // Redirect to Facebook OAuth using the edge function's api helper
-  const apiOauth = async (action: string, data: Record<string, unknown> = {}) => {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/mro-direct-oauth`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-      },
-      body: JSON.stringify({ action, ...data }),
-    });
-    return res.json();
-  };
-
-
 
   const handleLogin = async () => {
     setLoading(true);
     setOauthError("");
     try {
-      const appIdRes = await apiOauth("get-app-id");
-      if (!appIdRes.app_id) throw new Error("App ID não configurado");
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/mro-direct-oauth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        body: JSON.stringify({ action: "get-app-id" }),
+      }).then(r => r.json());
+      if (!res.app_id) throw new Error("App ID não configurado");
 
       const state = crypto.randomUUID().replace(/-/g, "");
       sessionStorage.setItem("mro_oauth_state", state);
-
       const redirectUri = getOAuthRedirectUri();
       const scopes = [
         "instagram_business_basic",
         "instagram_business_manage_messages",
         "instagram_business_manage_comments",
       ].join(",");
-
-      const authUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${appIdRes.app_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
-
+      const authUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${res.app_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
       const popup = window.open(authUrl, "_blank", "noopener,noreferrer");
-      if (!popup) {
-        window.location.href = authUrl;
-      }
+      if (!popup) window.location.href = authUrl;
     } catch (e: any) {
       setOauthError(e.message || "Erro ao iniciar login");
       setLoading(false);
     }
   };
-
-
 
   if (checkingExisting || loading) {
     return (
@@ -183,23 +187,18 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo / Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 mb-5 shadow-2xl shadow-purple-500/30">
             <Instagram className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-            MRO Direct+
-          </h1>
-          <p className="text-gray-400 mt-2">Automação de DMs via Instagram Graph API</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">MRO Direct+</h1>
+          <p className="text-gray-400 mt-2">Automação Inteligente de DMs via Instagram</p>
         </div>
 
-        {/* Connect Card */}
         <Card className="bg-gray-900/80 border-white/10 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-white text-lg flex items-center gap-2">
-              <Instagram className="h-5 w-5 text-purple-400" />
-              Conectar Instagram
+              <Instagram className="h-5 w-5 text-purple-400" /> Conectar Instagram
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -208,45 +207,19 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
                 <ShieldCheck className="h-5 w-5 text-purple-400 mt-0.5 shrink-0" />
                 <div className="text-sm">
                   <p className="text-gray-300 font-medium mb-1">Login seguro com Instagram</p>
-                  <p className="text-gray-400 text-xs">
-                    Clique no botão abaixo para autorizar o acesso ao seu Instagram Business/Creator. 
-                    Você será redirecionado ao Facebook para fazer login e conceder as permissões necessárias.
-                  </p>
+                  <p className="text-gray-400 text-xs">Clique para autorizar o acesso ao seu Instagram Business/Creator.</p>
                 </div>
               </div>
             </div>
-
             {oauthError && (
               <div className="bg-red-900/30 border border-red-500/30 rounded-lg p-3">
-                <p className="text-red-300 text-sm flex items-center gap-2">
-                  <XCircle className="h-4 w-4 shrink-0" />
-                  {oauthError}
-                </p>
+                <p className="text-red-300 text-sm flex items-center gap-2"><XCircle className="h-4 w-4 shrink-0" />{oauthError}</p>
               </div>
             )}
-
-            <Button
-              onClick={handleLogin}
-              disabled={loading}
-              className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-base transition-all"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  Conectando...
-                </>
-              ) : (
-                <>
-                  <Instagram className="h-5 w-5 mr-2" />
-                  Entrar com Instagram
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </>
-              )}
+            <Button onClick={handleLogin} disabled={loading} className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-base">
+              {loading ? <><Loader2 className="h-5 w-5 animate-spin mr-2" />Conectando...</> : <><Instagram className="h-5 w-5 mr-2" />Entrar com Instagram<ArrowRight className="h-4 w-4 ml-2" /></>}
             </Button>
-
-            <p className="text-xs text-gray-500 text-center">
-              Seu perfil precisa ser <strong className="text-gray-400">Business</strong> ou <strong className="text-gray-400">Creator</strong> e estar vinculado a uma Página do Facebook.
-            </p>
+            <p className="text-xs text-gray-500 text-center">Seu perfil precisa ser <strong className="text-gray-400">Business</strong> ou <strong className="text-gray-400">Creator</strong>.</p>
           </CardContent>
         </Card>
       </div>
@@ -254,29 +227,307 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
   );
 };
 
+// ─── AUTOMATION SECTION CARD ───
+const AutomationSectionCard = ({
+  section,
+  automations,
+  onCreateOpen,
+  onToggle,
+  onDelete,
+}: {
+  section: typeof automationSections[0];
+  automations: any[];
+  onCreateOpen: (type: string) => void;
+  onToggle: (id: string, active: boolean) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const Icon = section.icon;
+  const sectionAutos = automations.filter(a => a.automation_type === section.type);
+
+  return (
+    <Card className="bg-gray-900/80 border-white/10 overflow-hidden">
+      <div className={`h-1 bg-gradient-to-r ${section.color}`} />
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-xl ${section.iconBg}`}>
+              <Icon className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-white text-base flex items-center gap-2">
+                {section.title}
+                {!section.available && (
+                  <Badge className="bg-amber-600/80 text-[10px] px-2 py-0.5 font-semibold">
+                    <Lock className="h-3 w-3 mr-1" /> EM BREVE
+                  </Badge>
+                )}
+              </CardTitle>
+              <p className="text-xs text-gray-400 mt-0.5">{section.description}</p>
+            </div>
+          </div>
+          {section.available && (
+            <Button size="sm" onClick={() => onCreateOpen(section.type)} className={`bg-gradient-to-r ${section.color} hover:opacity-90 text-white`}>
+              <Plus className="h-4 w-4 mr-1" /> Nova
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+
+      {section.available && (
+        <CardContent className="pt-0">
+          {sectionAutos.length === 0 ? (
+            <div className="bg-gray-800/50 rounded-lg p-6 text-center border border-dashed border-white/10">
+              <Bot className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">Nenhuma automação configurada</p>
+              <p className="text-xs text-gray-600">Clique em "Nova" para criar</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {sectionAutos.map((auto) => (
+                <div key={auto.id} className="bg-gray-800/60 rounded-lg p-3 flex items-start gap-3 border border-white/5">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <Badge variant={auto.is_active ? "default" : "secondary"} className={auto.is_active ? "bg-green-600 text-[10px]" : "text-[10px]"}>
+                        {auto.is_active ? "Ativo" : "Inativo"}
+                      </Badge>
+                      <Badge variant="outline" className="border-white/20 text-gray-300 text-[10px]">
+                        {auto.response_mode === "ai" ? (
+                          <><Sparkles className="h-3 w-3 mr-1 text-yellow-400" /> I.A</>
+                        ) : (
+                          <><MessageSquare className="h-3 w-3 mr-1" /> Manual</>
+                        )}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-300 line-clamp-2">
+                      {auto.response_mode === "ai"
+                        ? `Prompt: "${(auto.ai_prompt || "").substring(0, 80)}..."`
+                        : `"${auto.reply_message}"`}
+                    </p>
+                    <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
+                      {auto.trigger_keywords?.length > 0 && <span>Keywords: {auto.trigger_keywords.join(", ")}</span>}
+                      {auto.delay_seconds > 0 && <span>Delay: {auto.delay_seconds}s</span>}
+                      {auto.target_post_id && <span>Post: ...{auto.target_post_id.slice(-8)}</span>}
+                      {auto.comment_reply_text && <span>Resp. comentário: "{auto.comment_reply_text.substring(0, 30)}..."</span>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Switch checked={auto.is_active} onCheckedChange={(v) => onToggle(auto.id, v)} />
+                    <Button size="icon" variant="ghost" onClick={() => onDelete(auto.id)} className="text-red-400 hover:text-red-300 hover:bg-red-900/30 h-8 w-8">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      )}
+
+      {!section.available && (
+        <CardContent className="pt-0">
+          <div className="bg-amber-900/10 rounded-lg p-5 text-center border border-amber-500/20">
+            <Lock className="h-10 w-10 text-amber-500/50 mx-auto mb-3" />
+            <p className="text-sm text-amber-300/80 font-medium">Funcionalidade em desenvolvimento</p>
+            <p className="text-xs text-gray-500 mt-1">Em breve você poderá enviar DMs automáticas de boas-vindas para cada novo seguidor.</p>
+          </div>
+        </CardContent>
+      )}
+    </Card>
+  );
+};
+
+// ─── CREATE AUTOMATION DIALOG ───
+const CreateAutomationDialog = ({
+  open,
+  onOpenChange,
+  autoType,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  autoType: string;
+  onCreated: () => void;
+}) => {
+  const [responseMode, setResponseMode] = useState("manual");
+  const [message, setMessage] = useState("");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [keywords, setKeywords] = useState("");
+  const [postId, setPostId] = useState("");
+  const [delay, setDelay] = useState("0");
+  const [commentReplyText, setCommentReplyText] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const sectionInfo = automationSections.find(s => s.type === autoType);
+
+  const handleCreate = async () => {
+    if (responseMode === "manual" && !message.trim()) return toast.error("Mensagem é obrigatória no modo manual");
+    if (responseMode === "ai" && !aiPrompt.trim()) return toast.error("Prompt da I.A é obrigatório");
+    setSaving(true);
+    try {
+      await api("create-automation", {
+        automation_type: autoType,
+        reply_message: responseMode === "manual" ? message : "(via I.A)",
+        response_mode: responseMode,
+        ai_prompt: responseMode === "ai" ? aiPrompt : null,
+        trigger_keywords: keywords ? keywords.split(",").map(k => k.trim()) : [],
+        target_post_id: postId || null,
+        delay_seconds: parseInt(delay) || 0,
+        comment_reply_text: commentReplyText || null,
+      });
+      toast.success("Automação criada!");
+      onOpenChange(false);
+      setMessage(""); setAiPrompt(""); setKeywords(""); setPostId(""); setDelay("0"); setCommentReplyText(""); setResponseMode("manual");
+      onCreated();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+    setSaving(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-gray-900 border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {sectionInfo && <sectionInfo.icon className="h-5 w-5" />}
+            Nova Automação — {sectionInfo?.title}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Response Mode */}
+          <div>
+            <label className="text-sm text-gray-400 mb-2 block font-medium">Modo de Resposta</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setResponseMode("manual")}
+                className={`p-3 rounded-lg border text-left transition-all ${
+                  responseMode === "manual"
+                    ? "border-purple-500 bg-purple-900/30"
+                    : "border-white/10 bg-gray-800/50 hover:border-white/20"
+                }`}
+              >
+                <MessageSquare className="h-5 w-5 text-purple-400 mb-1" />
+                <p className="text-sm font-semibold text-white">Manual</p>
+                <p className="text-xs text-gray-400">Mensagem fixa ou fluxo/funil</p>
+              </button>
+              <button
+                onClick={() => setResponseMode("ai")}
+                className={`p-3 rounded-lg border text-left transition-all ${
+                  responseMode === "ai"
+                    ? "border-yellow-500 bg-yellow-900/20"
+                    : "border-white/10 bg-gray-800/50 hover:border-white/20"
+                }`}
+              >
+                <Sparkles className="h-5 w-5 text-yellow-400 mb-1" />
+                <p className="text-sm font-semibold text-white">Inteligência Artificial</p>
+                <p className="text-xs text-gray-400">Resposta via I.A com prompt</p>
+              </button>
+            </div>
+          </div>
+
+          {responseMode === "manual" ? (
+            <div>
+              <label className="text-sm text-gray-400 mb-1 block">Mensagem de Resposta (DM) *</label>
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Olá! Obrigado por entrar em contato. Temos uma oferta especial para você..."
+                className="bg-gray-800 border-white/10 text-white"
+                rows={4}
+              />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Prompt da I.A *</label>
+                <Textarea
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder={`Exemplo:\nVocê é a assistente virtual da loja XYZ.\nSeu objetivo é atender os clientes de forma simpática, responder dúvidas sobre os produtos e direcionar para o link de compra.\nProdutos: Camisetas R$49, Calças R$89.\nLink: www.loja.com\nTom: amigável e profissional.`}
+                  className="bg-gray-800 border-white/10 text-white"
+                  rows={6}
+                />
+              </div>
+              <div className="bg-yellow-900/20 border border-yellow-500/20 rounded-lg p-3">
+                <p className="text-xs text-yellow-300 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 shrink-0" />
+                  A I.A vai usar esse prompt para entender quem ela é, o que oferecer e como responder cada mensagem de forma personalizada.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Comment reply text (for comment_reply type) */}
+          {autoType === "comment_reply" && (
+            <div>
+              <label className="text-sm text-gray-400 mb-1 block">Resposta no Comentário (opcional)</label>
+              <Input
+                value={commentReplyText}
+                onChange={(e) => setCommentReplyText(e.target.value)}
+                placeholder="Acabei de te chamar no DM! 😊"
+                className="bg-gray-800 border-white/10 text-white"
+              />
+              <p className="text-xs text-gray-500 mt-1">Além de enviar DM, responde direto no comentário com essa mensagem.</p>
+            </div>
+          )}
+
+          <div>
+            <label className="text-sm text-gray-400 mb-1 block">Palavras-chave (separadas por vírgula, vazio = todas)</label>
+            <Input
+              value={keywords}
+              onChange={(e) => setKeywords(e.target.value)}
+              placeholder="preço, promoção, desconto, quero"
+              className="bg-gray-800 border-white/10 text-white"
+            />
+          </div>
+
+          {autoType === "comment_reply" && (
+            <div>
+              <label className="text-sm text-gray-400 mb-1 block">ID do Post (vazio = todos)</label>
+              <Input
+                value={postId}
+                onChange={(e) => setPostId(e.target.value)}
+                placeholder="ID do post no Instagram"
+                className="bg-gray-800 border-white/10 text-white"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="text-sm text-gray-400 mb-1 block">Atraso antes de responder (segundos)</label>
+            <Input
+              type="number"
+              value={delay}
+              onChange={(e) => setDelay(e.target.value)}
+              className="bg-gray-800 border-white/10 text-white w-32"
+            />
+          </div>
+
+          <Button onClick={handleCreate} disabled={saving} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+            Criar Automação
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // ─── MAIN DASHBOARD ───
 const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: () => void }) => {
-  const [tab, setTab] = useState("dashboard");
+  const [tab, setTab] = useState("automations");
   const [settings, setSettings] = useState<any>(null);
   const [automations, setAutomations] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const [showNewAuto, setShowNewAuto] = useState(false);
-  const [newType, setNewType] = useState("dm_reply");
-  const [newMessage, setNewMessage] = useState("");
-  const [newKeywords, setNewKeywords] = useState("");
-  const [newPostId, setNewPostId] = useState("");
-  const [newDelay, setNewDelay] = useState("0");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createType, setCreateType] = useState("dm_reply");
 
   const [testRecipient, setTestRecipient] = useState("");
   const [testMessage, setTestMessage] = useState("");
-
-  // Follower polling state
-  const [pollingStatus, setPollingStatus] = useState<any>(null);
-  const [pollingLoading, setPollingLoading] = useState(false);
-  const [pollingUsername, setPollingUsername] = useState("");
 
   // Settings form
   const [tokenInput, setTokenInput] = useState("");
@@ -305,52 +556,7 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadAll(); loadPollingStatus(); }, [loadAll]);
-
-  const loadPollingStatus = async () => {
-    try {
-      const res = await api("follower-polling-status");
-      setPollingStatus(res);
-      if (res.username) setPollingUsername(res.username);
-    } catch { /* ignore */ }
-  };
-
-  const activatePolling = async () => {
-    const username = pollingUsername.trim() || profile?.username || profile?.name;
-    if (!username) return toast.error("Username não detectado");
-    setPollingLoading(true);
-    try {
-      const res = await api("follower-polling-activate", { username: username.replace("@", "") });
-      toast.success(res.message || "Polling ativado!");
-      await loadPollingStatus();
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-    setPollingLoading(false);
-  };
-
-  const deactivatePolling = async () => {
-    setPollingLoading(true);
-    try {
-      await api("follower-polling-deactivate");
-      toast.success("Polling desativado");
-      await loadPollingStatus();
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-    setPollingLoading(false);
-  };
-
-  const refreshPollingStatus = async () => {
-    setPollingLoading(true);
-    try {
-      await loadPollingStatus();
-      toast.success("Status atualizado!");
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-    setPollingLoading(false);
-  };
+  useEffect(() => { loadAll(); }, [loadAll]);
 
   const loadLogs = async () => {
     try {
@@ -369,28 +575,6 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
         is_active: isActive,
       });
       toast.success("Configurações salvas!");
-      loadAll();
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  const createAutomation = async () => {
-    if (!newMessage.trim()) return toast.error("Mensagem é obrigatória");
-    try {
-      await api("create-automation", {
-        automation_type: newType,
-        reply_message: newMessage,
-        trigger_keywords: newKeywords ? newKeywords.split(",").map((k) => k.trim()) : [],
-        target_post_id: newPostId || null,
-        delay_seconds: parseInt(newDelay) || 0,
-      });
-      toast.success("Automação criada!");
-      setShowNewAuto(false);
-      setNewMessage("");
-      setNewKeywords("");
-      setNewPostId("");
-      setNewDelay("0");
       loadAll();
     } catch (e: any) {
       toast.error(e.message);
@@ -439,7 +623,7 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      {/* Header with profile */}
+      {/* Header */}
       <div className="bg-gradient-to-r from-purple-900/60 via-gray-950 to-pink-900/40 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
@@ -447,13 +631,9 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
               <Bot className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                MRO Direct+
-              </h1>
-              <p className="text-xs text-gray-400">Automação de DMs via Instagram Graph API</p>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">MRO Direct+</h1>
+              <p className="text-xs text-gray-400">Automação Inteligente de DMs</p>
             </div>
-
-            {/* Profile pill */}
             <div className="flex items-center gap-3 bg-gray-900/80 rounded-full px-4 py-2 border border-white/10">
               {profile.profile_picture_url ? (
                 <img src={profile.profile_picture_url} className="h-8 w-8 rounded-full ring-2 ring-purple-500" alt="" />
@@ -469,13 +649,7 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                 )}
               </div>
               <Badge className="bg-green-600/80 text-xs">Conectado</Badge>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 text-gray-400 hover:text-red-400"
-                onClick={onDisconnect}
-                title="Desconectar"
-              >
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-red-400" onClick={onDisconnect} title="Desconectar">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -486,11 +660,11 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="bg-gray-900 border border-white/10 mb-6">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-purple-600">
-              <BarChart3 className="h-4 w-4 mr-1" /> Dashboard
-            </TabsTrigger>
             <TabsTrigger value="automations" className="data-[state=active]:bg-purple-600">
               <Zap className="h-4 w-4 mr-1" /> Automações
+            </TabsTrigger>
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-purple-600">
+              <BarChart3 className="h-4 w-4 mr-1" /> Dashboard
             </TabsTrigger>
             <TabsTrigger value="logs" className="data-[state=active]:bg-purple-600" onClick={loadLogs}>
               <Eye className="h-4 w-4 mr-1" /> Logs
@@ -500,9 +674,31 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
             </TabsTrigger>
           </TabsList>
 
+          {/* ── AUTOMATIONS (Main View) ── */}
+          <TabsContent value="automations">
+            <div className="space-y-6">
+              {automationSections.map((section) => (
+                <AutomationSectionCard
+                  key={section.type}
+                  section={section}
+                  automations={automations}
+                  onCreateOpen={(type) => { setCreateType(type); setCreateDialogOpen(true); }}
+                  onToggle={toggleAutomation}
+                  onDelete={deleteAutomation}
+                />
+              ))}
+            </div>
+
+            <CreateAutomationDialog
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
+              autoType={createType}
+              onCreated={loadAll}
+            />
+          </TabsContent>
+
           {/* ── DASHBOARD ── */}
           <TabsContent value="dashboard">
-            {/* Profile Card */}
             <Card className="bg-gradient-to-r from-purple-900/40 to-pink-900/30 border-purple-500/20 mb-6">
               <CardContent className="p-5">
                 <div className="flex items-center gap-4">
@@ -528,7 +724,6 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
               </CardContent>
             </Card>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               {[
                 { label: "Mensagens Hoje", value: stats?.todaySent || 0, icon: Send, color: "text-blue-400" },
@@ -547,110 +742,6 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
               ))}
             </div>
 
-            {/* Follower Polling - Detecção de Novos Seguidores */}
-            <Card className="bg-gradient-to-r from-pink-900/40 to-purple-900/30 border-pink-500/20 mb-6">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <Radar className="h-5 w-5 text-pink-400" />
-                  Detecção de Novos Seguidores (Webhook Meta)
-                  {pollingStatus?.polling_active && (
-                    <Badge className="bg-green-600 ml-2 text-xs">Ativo</Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-400">
-                  Detecta novos seguidores em tempo real via Webhook da Meta (custo zero). Quando alguém segue, a DM de boas-vindas é enviada automaticamente.
-                </p>
-
-                {pollingStatus?.polling_active ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className="bg-gray-900/60 rounded-lg p-3 text-center">
-                        <p className="text-xl font-bold text-white">{pollingStatus.baseline || 0}</p>
-                        <p className="text-xs text-gray-400">Baseline</p>
-                      </div>
-                      <div className="bg-gray-900/60 rounded-lg p-3 text-center">
-                        <p className="text-xl font-bold text-white">{pollingStatus.known_followers || 0}</p>
-                        <p className="text-xs text-gray-400">Conhecidos</p>
-                      </div>
-                      <div className="bg-gray-900/60 rounded-lg p-3 text-center">
-                        <p className="text-xl font-bold text-pink-400">{pollingStatus.pending_welcome || 0}</p>
-                        <p className="text-xs text-gray-400">Pendentes</p>
-                      </div>
-                      <div className="bg-gray-900/60 rounded-lg p-3 text-center">
-                        <p className="text-xs font-medium text-white truncate">@{pollingStatus.username}</p>
-                        <p className="text-xs text-gray-400">Monitorando</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-3">
-                      <p className="text-sm text-green-300 flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Webhook ativo — novos seguidores são detectados em tempo real pela Meta
-                      </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={refreshPollingStatus}
-                        disabled={pollingLoading}
-                        className="bg-pink-600 hover:bg-pink-700 flex-1"
-                      >
-                        {pollingLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                        )}
-                        Atualizar Status
-                      </Button>
-                      <Button
-                        onClick={deactivatePolling}
-                        disabled={pollingLoading}
-                        variant="outline"
-                        className="border-red-500/30 text-red-400 hover:bg-red-900/20"
-                      >
-                        Desativar
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="bg-gray-900/60 rounded-lg p-3 flex items-center gap-3">
-                      <Users className="h-5 w-5 text-purple-400" />
-                      <div>
-                        <p className="text-sm text-white font-medium">@{profile.username || profile.name}</p>
-                        <p className="text-xs text-gray-400">
-                          {profile.followers_count != null ? `${profile.followers_count.toLocaleString()} seguidores` : "Perfil conectado"}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => {
-                        const username = profile.username || profile.name;
-                        if (username) {
-                          setPollingUsername(username);
-                          activatePolling();
-                        }
-                      }}
-                      disabled={pollingLoading}
-                      className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-                    >
-                      {pollingLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Radar className="h-4 w-4 mr-2" />
-                      )}
-                      Ativar Detecção via Webhook
-                    </Button>
-                    <p className="text-xs text-gray-500">
-                      Ao ativar, o sistema registra a contagem atual ({profile.followers_count || "?"} seguidores) como baseline. A partir daí, a Meta envia webhooks em tempo real quando alguém seguir — sem custo de API externa.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Send Test */}
             <Card className="bg-gray-900 border-white/10">
               <CardHeader>
@@ -659,159 +750,11 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Input
-                  placeholder="IGSID do destinatário (ex: 123456789)"
-                  value={testRecipient}
-                  onChange={(e) => setTestRecipient(e.target.value)}
-                  className="bg-gray-800 border-white/10 text-white"
-                />
-                <Textarea
-                  placeholder="Mensagem de teste..."
-                  value={testMessage}
-                  onChange={(e) => setTestMessage(e.target.value)}
-                  className="bg-gray-800 border-white/10 text-white"
-                />
-                <Button onClick={sendTest} className="bg-purple-600 hover:bg-purple-700">
-                  <Send className="h-4 w-4 mr-2" /> Enviar Teste
-                </Button>
+                <Input placeholder="IGSID do destinatário" value={testRecipient} onChange={(e) => setTestRecipient(e.target.value)} className="bg-gray-800 border-white/10 text-white" />
+                <Textarea placeholder="Mensagem de teste..." value={testMessage} onChange={(e) => setTestMessage(e.target.value)} className="bg-gray-800 border-white/10 text-white" />
+                <Button onClick={sendTest} className="bg-purple-600 hover:bg-purple-700"><Send className="h-4 w-4 mr-2" /> Enviar Teste</Button>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* ── AUTOMATIONS ── */}
-          <TabsContent value="automations">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-white">Automações Configuradas</h2>
-              <Dialog open={showNewAuto} onOpenChange={setShowNewAuto}>
-                <DialogTrigger asChild>
-                  <Button className="bg-purple-600 hover:bg-purple-700">
-                    <Plus className="h-4 w-4 mr-2" /> Nova Automação
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-gray-900 border-white/10 text-white max-w-lg">
-                  <DialogHeader>
-                    <DialogTitle>Criar Automação</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm text-gray-400 mb-1 block">Tipo</label>
-                      <Select value={newType} onValueChange={setNewType}>
-                        <SelectTrigger className="bg-gray-800 border-white/10 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-white/10 text-white">
-                          <SelectItem value="dm_reply">Auto-Resposta DM</SelectItem>
-                          <SelectItem value="comment_reply">Resposta a Comentário</SelectItem>
-                          <SelectItem value="welcome_follower">Boas-vindas Seguidor</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-400 mb-1 block">Mensagem de Resposta *</label>
-                      <Textarea
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Olá! Obrigado por entrar em contato..."
-                        className="bg-gray-800 border-white/10 text-white"
-                        rows={4}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-400 mb-1 block">
-                        Palavras-chave (separadas por vírgula, vazio = todas)
-                      </label>
-                      <Input
-                        value={newKeywords}
-                        onChange={(e) => setNewKeywords(e.target.value)}
-                        placeholder="preço, promoção, desconto"
-                        className="bg-gray-800 border-white/10 text-white"
-                      />
-                    </div>
-                    {newType === "comment_reply" && (
-                      <div>
-                        <label className="text-sm text-gray-400 mb-1 block">
-                          ID do Post (vazio = todos os posts)
-                        </label>
-                        <Input
-                          value={newPostId}
-                          onChange={(e) => setNewPostId(e.target.value)}
-                          placeholder="ID do post no Instagram"
-                          className="bg-gray-800 border-white/10 text-white"
-                        />
-                      </div>
-                    )}
-                    <div>
-                      <label className="text-sm text-gray-400 mb-1 block">Atraso (segundos)</label>
-                      <Input
-                        type="number"
-                        value={newDelay}
-                        onChange={(e) => setNewDelay(e.target.value)}
-                        className="bg-gray-800 border-white/10 text-white w-32"
-                      />
-                    </div>
-                    <Button onClick={createAutomation} className="w-full bg-purple-600 hover:bg-purple-700">
-                      Criar Automação
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {automations.length === 0 ? (
-              <Card className="bg-gray-900 border-white/10">
-                <CardContent className="p-12 text-center">
-                  <Bot className="h-12 w-12 text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-400">Nenhuma automação criada ainda</p>
-                  <p className="text-gray-500 text-sm">Clique em "Nova Automação" para começar</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {automations.map((auto) => {
-                  const info = typeLabels[auto.automation_type] || typeLabels.dm_reply;
-                  const Icon = info.icon;
-                  return (
-                    <Card key={auto.id} className="bg-gray-900 border-white/10">
-                      <CardContent className="p-4 flex items-start gap-4">
-                        <div className={`p-2 rounded-lg ${info.color}`}>
-                          <Icon className="h-5 w-5 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-white">{info.label}</span>
-                            <Badge variant={auto.is_active ? "default" : "secondary"} className={auto.is_active ? "bg-green-600" : ""}>
-                              {auto.is_active ? "Ativo" : "Inativo"}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-300 mb-1 line-clamp-2">"{auto.reply_message}"</p>
-                          <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                            {auto.trigger_keywords?.length > 0 && (
-                              <span>Keywords: {auto.trigger_keywords.join(", ")}</span>
-                            )}
-                            {auto.delay_seconds > 0 && <span>Delay: {auto.delay_seconds}s</span>}
-                            {auto.target_post_id && <span>Post: {auto.target_post_id}</span>}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={auto.is_active}
-                            onCheckedChange={(v) => toggleAutomation(auto.id, v)}
-                          />
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => deleteAutomation(auto.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
           </TabsContent>
 
           {/* ── LOGS ── */}
@@ -841,20 +784,12 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs border-white/20 text-gray-300">
-                            {log.event_type}
-                          </Badge>
-                          {log.sender_username && (
-                            <span className="text-xs text-gray-400">@{log.sender_username}</span>
-                          )}
-                          <span className="text-xs text-gray-500 ml-auto">
-                            {new Date(log.created_at).toLocaleString("pt-BR")}
-                          </span>
+                          <Badge variant="outline" className="text-xs border-white/20 text-gray-300">{log.event_type}</Badge>
+                          {log.sender_username && <span className="text-xs text-gray-400">@{log.sender_username}</span>}
+                          <span className="text-xs text-gray-500 ml-auto">{new Date(log.created_at).toLocaleString("pt-BR")}</span>
                         </div>
                         <p className="text-sm text-gray-300 truncate mt-1">{log.message_sent}</p>
-                        {log.error_message && (
-                          <p className="text-xs text-red-400 mt-1">{log.error_message}</p>
-                        )}
+                        {log.error_message && <p className="text-xs text-red-400 mt-1">{log.error_message}</p>}
                       </div>
                     </CardContent>
                   </Card>
@@ -867,86 +802,42 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
           <TabsContent value="settings">
             <div className="max-w-2xl space-y-6">
               <Card className="bg-gray-900 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white">Configurações da API</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle className="text-white">Configurações da API</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <label className="text-sm text-gray-400 mb-1 block">Instagram Account ID (IGSID)</label>
-                    <Input
-                      value={igIdInput}
-                      onChange={(e) => setIgIdInput(e.target.value)}
-                      placeholder="Ex: 17841400123456789"
-                      className="bg-gray-800 border-white/10 text-white"
-                    />
+                    <Input value={igIdInput} onChange={(e) => setIgIdInput(e.target.value)} placeholder="Ex: 17841400123456789" className="bg-gray-800 border-white/10 text-white" />
                   </div>
                   <div>
                     <label className="text-sm text-gray-400 mb-1 block">Page Access Token</label>
-                    <Textarea
-                      value={tokenInput}
-                      onChange={(e) => setTokenInput(e.target.value)}
-                      placeholder="Token de acesso da página..."
-                      className="bg-gray-800 border-white/10 text-white font-mono text-xs"
-                      rows={3}
-                    />
+                    <Textarea value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder="Token de acesso..." className="bg-gray-800 border-white/10 text-white font-mono text-xs" rows={3} />
                   </div>
                   <div className="flex items-center gap-3">
                     <Switch checked={isActive} onCheckedChange={setIsActive} />
                     <label className="text-sm text-gray-300">Sistema ativo (receber e responder webhooks)</label>
                   </div>
-                  <Button onClick={saveSettings} className="bg-purple-600 hover:bg-purple-700 w-full">
-                    Salvar Configurações
-                  </Button>
+                  <Button onClick={saveSettings} className="bg-purple-600 hover:bg-purple-700 w-full">Salvar Configurações</Button>
                 </CardContent>
               </Card>
 
               <Card className="bg-gray-900 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white">Webhook do Instagram</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle className="text-white">Webhook do Instagram</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                   <div>
                     <label className="text-sm text-gray-400 mb-1 block">Callback URL</label>
                     <div className="flex items-center gap-2">
                       <Input value={webhookUrl} readOnly className="bg-gray-800 border-white/10 text-white font-mono text-xs" />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-white/20 text-white shrink-0"
-                        onClick={() => {
-                          navigator.clipboard.writeText(webhookUrl);
-                          toast.success("URL copiada!");
-                        }}
-                      >
-                        Copiar
-                      </Button>
+                      <Button size="sm" variant="outline" className="border-white/20 text-white shrink-0" onClick={() => { navigator.clipboard.writeText(webhookUrl); toast.success("URL copiada!"); }}>Copiar</Button>
                     </div>
                   </div>
                   <div>
                     <label className="text-sm text-gray-400 mb-1 block">Verify Token</label>
                     <div className="flex items-center gap-2">
-                      <Input
-                        value={settings?.webhook_verify_token || ""}
-                        readOnly
-                        className="bg-gray-800 border-white/10 text-white font-mono text-xs"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-white/20 text-white shrink-0"
-                        onClick={() => {
-                          navigator.clipboard.writeText(settings?.webhook_verify_token || "");
-                          toast.success("Token copiado!");
-                        }}
-                      >
-                        Copiar
-                      </Button>
+                      <Input value={settings?.webhook_verify_token || ""} readOnly className="bg-gray-800 border-white/10 text-white font-mono text-xs" />
+                      <Button size="sm" variant="outline" className="border-white/20 text-white shrink-0" onClick={() => { navigator.clipboard.writeText(settings?.webhook_verify_token || ""); toast.success("Token copiado!"); }}>Copiar</Button>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Use esses valores no Facebook Developer → Webhooks → Instagram para configurar
-                    os eventos de <strong>messages</strong>, <strong>comments</strong> e <strong>messaging_optins</strong>.
-                  </p>
+                  <p className="text-xs text-gray-500">Configure no Facebook Developer → Webhooks → Instagram: <strong>messages</strong>, <strong>comments</strong> e <strong>messaging_optins</strong>.</p>
                 </CardContent>
               </Card>
             </div>
@@ -957,18 +848,14 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
   );
 };
 
-// ─── MAIN PAGE (state machine: connect → dashboard) ───
+// ─── MAIN PAGE ───
 const MRODirectMais = () => {
   const [profile, setProfile] = useState<any>(null);
 
   const handleDisconnect = async () => {
     if (!confirm("Deseja desconectar o Instagram?")) return;
     try {
-      await api("save-settings", {
-        page_access_token: "",
-        instagram_account_id: "",
-        is_active: false,
-      });
+      await api("save-settings", { page_access_token: "", instagram_account_id: "", is_active: false });
       setProfile(null);
       toast.success("Instagram desconectado");
     } catch (e: any) {
@@ -976,10 +863,7 @@ const MRODirectMais = () => {
     }
   };
 
-  if (!profile) {
-    return <ConnectScreen onConnected={setProfile} />;
-  }
-
+  if (!profile) return <ConnectScreen onConnected={setProfile} />;
   return <DashboardView profile={profile} onDisconnect={handleDisconnect} />;
 };
 

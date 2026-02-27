@@ -131,13 +131,16 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create-automation") {
-      const { automation_type, reply_message, trigger_keywords, target_post_id, delay_seconds } = data;
+      const { automation_type, reply_message, trigger_keywords, target_post_id, delay_seconds, response_mode, ai_prompt, comment_reply_text } = data;
       const { error } = await supabase.from("mro_direct_automations").insert({
         automation_type,
-        reply_message,
+        reply_message: reply_message || "(via I.A)",
         trigger_keywords: trigger_keywords || [],
         target_post_id: target_post_id || null,
         delay_seconds: delay_seconds || 0,
+        response_mode: response_mode || "manual",
+        ai_prompt: ai_prompt || null,
+        comment_reply_text: comment_reply_text || null,
       });
       if (error) throw error;
       return json({ success: true });
