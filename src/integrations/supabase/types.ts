@@ -1476,6 +1476,33 @@ export type Database = {
         }
         Relationships: []
       }
+      mro_direct_known_followers: {
+        Row: {
+          created_at: string
+          follower_id: string
+          follower_username: string | null
+          id: string
+          instagram_account_id: string
+          welcomed: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          follower_username?: string | null
+          id?: string
+          instagram_account_id: string
+          welcomed?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          follower_username?: string | null
+          id?: string
+          instagram_account_id?: string
+          welcomed?: boolean | null
+        }
+        Relationships: []
+      }
       mro_direct_logs: {
         Row: {
           automation_id: string | null
