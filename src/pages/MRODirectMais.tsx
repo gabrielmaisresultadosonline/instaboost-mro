@@ -316,10 +316,11 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
   };
 
   const activatePolling = async () => {
-    if (!pollingUsername.trim()) return toast.error("Digite o @ do Instagram");
+    const username = pollingUsername.trim() || profile?.username || profile?.name;
+    if (!username) return toast.error("Username não detectado");
     setPollingLoading(true);
     try {
-      const res = await api("follower-polling-activate", { username: pollingUsername.replace("@", "") });
+      const res = await api("follower-polling-activate", { username: username.replace("@", "") });
       toast.success(res.message || "Polling ativado!");
       await loadPollingStatus();
     } catch (e: any) {
@@ -619,29 +620,35 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div>
-                      <label className="text-sm text-gray-400 mb-1 block">Username do Instagram (sem @)</label>
-                      <Input
-                        value={pollingUsername}
-                        onChange={(e) => setPollingUsername(e.target.value.replace("@", ""))}
-                        placeholder="seuinstagram"
-                        className="bg-gray-800 border-white/10 text-white"
-                      />
+                    <div className="bg-gray-900/60 rounded-lg p-3 flex items-center gap-3">
+                      <Users className="h-5 w-5 text-purple-400" />
+                      <div>
+                        <p className="text-sm text-white font-medium">@{profile.username || profile.name}</p>
+                        <p className="text-xs text-gray-400">
+                          {profile.followers_count != null ? `${profile.followers_count.toLocaleString()} seguidores` : "Perfil conectado"}
+                        </p>
+                      </div>
                     </div>
                     <Button
-                      onClick={activatePolling}
-                      disabled={pollingLoading || !pollingUsername.trim()}
+                      onClick={() => {
+                        const username = profile.username || profile.name;
+                        if (username) {
+                          setPollingUsername(username);
+                          activatePolling();
+                        }
+                      }}
+                      disabled={pollingLoading}
                       className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
                     >
                       {pollingLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (
-                        <Users className="h-4 w-4 mr-2" />
+                        <Radar className="h-4 w-4 mr-2" />
                       )}
                       Ativar Detecção de Novos Seguidores
                     </Button>
                     <p className="text-xs text-gray-500">
-                      Ao ativar, o sistema vai memorizar seus seguidores atuais. Quando novos aparecerem, eles receberão a DM de boas-vindas automaticamente.
+                      Ao ativar, o sistema memoriza a contagem atual ({profile.followers_count || "?"} seguidores) e os últimos 10 seguidores via Bright Data. A partir daí, rastreia novos e envia DM de boas-vindas automaticamente.
                     </p>
                   </div>
                 )}
