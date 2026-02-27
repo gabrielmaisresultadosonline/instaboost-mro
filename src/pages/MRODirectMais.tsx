@@ -357,7 +357,38 @@ const CreateAutomationDialog = ({
   const [commentReplyText, setCommentReplyText] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Posts for selection
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [postsLoaded, setPostsLoaded] = useState(false);
+
   const sectionInfo = automationSections.find(s => s.type === autoType);
+
+  // Load posts when dialog opens for comment_reply type
+  useEffect(() => {
+    if (open && autoType === "comment_reply" && !postsLoaded) {
+      setLoadingPosts(true);
+      api("list-posts")
+        .then((res) => {
+          setPosts(res.posts || []);
+          setPostsLoaded(true);
+        })
+        .catch((e) => {
+          console.error("Erro ao carregar posts:", e);
+          toast.error("Não foi possível carregar os posts");
+        })
+        .finally(() => setLoadingPosts(false));
+    }
+  }, [open, autoType, postsLoaded]);
+
+  // Reset when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setPostsLoaded(false);
+      setPosts([]);
+      setPostId("");
+    }
+  }, [open]);
 
   const handleCreate = async () => {
     if (responseMode === "manual" && !message.trim()) return toast.error("Mensagem é obrigatória no modo manual");
@@ -382,6 +413,11 @@ const CreateAutomationDialog = ({
       toast.error(e.message);
     }
     setSaving(false);
+  };
+
+  const getPostThumbnail = (post: any) => {
+    if (post.media_type === "VIDEO") return post.thumbnail_url || "";
+    return post.media_url || "";
   };
 
   return (
@@ -482,15 +518,108 @@ const CreateAutomationDialog = ({
             />
           </div>
 
+          {/* Post selector for comment_reply */}
           {autoType === "comment_reply" && (
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">ID do Post (vazio = todos)</label>
-              <Input
-                value={postId}
-                onChange={(e) => setPostId(e.target.value)}
-                placeholder="ID do post no Instagram"
-                className="bg-gray-800 border-white/10 text-white"
-              />
+              <label className="text-sm text-gray-400 mb-2 block font-medium">Selecione o Post (vazio = todos os posts)</label>
+              {loadingPosts ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-6 w-6 text-purple-400 animate-spin" />
+                  <span className="text-sm text-gray-400 ml-2">Carregando posts...</span>
+                </div>
+              ) : posts.length === 0 ? (
+                <div className="bg-gray-800/50 rounded-lg p-4 text-center border border-dashed border-white/10">
+                  <Image className="h-6 w-6 text-gray-600 mx-auto mb-1" />
+                  <p className="text-xs text-gray-500">Nenhum post encontrado ou erro ao carregar.</p>
+                  <Input
+                    value={postId}
+                    onChange={(e) => setPostId(e.target.value)}
+                    placeholder="Cole o ID do post manualmente"
+                    className="bg-gray-800 border-white/10 text-white mt-2"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* All posts option */}
+                  <button
+                    onClick={() => setPostId("")}
+                    className={`w-full p-3 rounded-lg border text-left transition-all flex items-center gap-3 ${
+                      postId === ""
+                        ? "border-purple-500 bg-purple-900/30"
+                        : "border-white/10 bg-gray-800/50 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
+                      <AtSign className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white">Todos os Posts</p>
+                      <p className="text-xs text-gray-400">Ativa para qualquer comentário em qualquer post</p>
+                    </div>
+                    {postId === "" && <CheckCircle2 className="h-5 w-5 text-purple-400 ml-auto shrink-0" />}
+                  </button>
+
+                  {/* Posts grid */}
+                  <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-1">
+                    {posts.map((post) => {
+                      const thumb = getPostThumbnail(post);
+                      const isSelected = postId === post.id;
+                      return (
+                        <button
+                          key={post.id}
+                          onClick={() => setPostId(isSelected ? "" : post.id)}
+                          className={`relative rounded-lg overflow-hidden border-2 transition-all aspect-square group ${
+                            isSelected
+                              ? "border-purple-500 ring-2 ring-purple-500/40"
+                              : "border-transparent hover:border-white/30"
+                          }`}
+                        >
+                          {thumb ? (
+                            <img src={thumb} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                              <Image className="h-6 w-6 text-gray-600" />
+                            </div>
+                          )}
+                          {/* Overlay */}
+                          <div className={`absolute inset-0 flex flex-col justify-end p-1.5 transition-opacity ${
+                            isSelected ? "bg-purple-900/60" : "bg-black/40 opacity-0 group-hover:opacity-100"
+                          }`}>
+                            <div className="flex items-center gap-1 text-white text-[10px]">
+                              {post.like_count != null && (
+                                <span className="flex items-center gap-0.5">
+                                  <Heart className="h-2.5 w-2.5" />{post.like_count}
+                                </span>
+                              )}
+                              {post.comments_count != null && (
+                                <span className="flex items-center gap-0.5">
+                                  <MessageCircle className="h-2.5 w-2.5" />{post.comments_count}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-1 right-1">
+                              <CheckCircle2 className="h-5 w-5 text-purple-400 drop-shadow-lg" />
+                            </div>
+                          )}
+                          {post.media_type === "VIDEO" && (
+                            <div className="absolute top-1 left-1">
+                              <Badge className="bg-black/60 text-[9px] px-1 py-0">▶ Vídeo</Badge>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {postId && (
+                    <p className="text-xs text-purple-300 flex items-center gap-1 mt-1">
+                      <CheckCircle2 className="h-3 w-3" /> Post selecionado: ...{postId.slice(-12)}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
