@@ -139,11 +139,36 @@ async function handleDirectMessage(supabase: any, settings: any, messaging: any)
 
   console.log("[mro-direct-webhook] DM from:", senderId, "Text:", messageText);
 
+  // Log incoming message for real-time inbox
+  await supabase.from("mro_direct_logs").insert({
+    event_type: "dm_received",
+    sender_id: senderId,
+    sender_username: null,
+    trigger_content: messageText,
+    incoming_text: messageText,
+    direction: "incoming",
+    status: "received",
+    message_sent: null,
+  });
+
   // Register as known follower
   await supabase.from("mro_direct_known_followers").upsert(
     { instagram_account_id: settings.instagram_account_id, follower_id: senderId, follower_username: null, welcomed: false },
     { onConflict: "instagram_account_id,follower_id", ignoreDuplicates: true }
   );
+
+  // Check if AI is paused for this sender
+  const { data: pauseCheck } = await supabase
+    .from("mro_direct_ai_pauses")
+    .select("id")
+    .eq("sender_id", senderId)
+    .eq("is_paused", true)
+    .limit(1);
+
+  if (pauseCheck && pauseCheck.length > 0) {
+    console.log("[mro-direct-webhook] AI paused for sender:", senderId, "- skipping auto reply");
+    return;
+  }
 
   const { data: automations } = await supabase
     .from("mro_direct_automations")
@@ -208,6 +233,17 @@ async function handleStoryReply(supabase: any, settings: any, messaging: any) {
   const messageText = messaging.message.text || "(story reaction)";
 
   console.log("[mro-direct-webhook] Story reply from:", senderId, "Text:", messageText);
+
+  // Log incoming story reply
+  await supabase.from("mro_direct_logs").insert({
+    event_type: "story_received",
+    sender_id: senderId,
+    trigger_content: messageText,
+    incoming_text: messageText,
+    direction: "incoming",
+    status: "received",
+    message_sent: null,
+  });
 
   const { data: automations } = await supabase
     .from("mro_direct_automations")
