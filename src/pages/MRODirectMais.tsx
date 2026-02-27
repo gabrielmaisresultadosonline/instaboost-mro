@@ -17,6 +17,25 @@ import {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const OAUTH_REDIRECT_URI = "https://ig-mro-boost.lovable.app/mrodirectmais";
+
+function getOAuthRedirectUri() {
+  const origin = window.location.origin;
+  const normalizedOrigin = origin === "https://www.maisresultadosonline.com.br"
+    ? "https://maisresultadosonline.com.br"
+    : origin;
+
+  const allowedOrigins = new Set([
+    "https://ig-mro-boost.lovable.app",
+    "https://maisresultadosonline.com.br",
+  ]);
+
+  if (allowedOrigins.has(normalizedOrigin)) {
+    return `${normalizedOrigin}/mrodirectmais`;
+  }
+
+  return OAUTH_REDIRECT_URI;
+}
 
 async function api(action: string, data: Record<string, unknown> = {}) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/mro-direct-api`, {
@@ -67,7 +86,7 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
       setLoading(true);
       (async () => {
         try {
-          const redirectUri = `${window.location.origin}/mrodirectmais`;
+          const redirectUri = getOAuthRedirectUri();
           const res = await fetch(`${SUPABASE_URL}/functions/v1/mro-direct-oauth`, {
             method: "POST",
             headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
@@ -129,7 +148,7 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
       const state = crypto.randomUUID().replace(/-/g, "");
       sessionStorage.setItem("mro_oauth_state", state);
 
-      const redirectUri = `${window.location.origin}/mrodirectmais`;
+      const redirectUri = getOAuthRedirectUri();
       const scopes = [
         "instagram_business_basic",
         "instagram_business_manage_messages",
@@ -138,7 +157,10 @@ const ConnectScreen = ({ onConnected }: { onConnected: (profile: any) => void })
 
       const authUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${appIdRes.app_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
 
-      window.location.href = authUrl;
+      const popup = window.open(authUrl, "_blank", "noopener,noreferrer");
+      if (!popup) {
+        window.location.href = authUrl;
+      }
     } catch (e: any) {
       setOauthError(e.message || "Erro ao iniciar login");
       setLoading(false);
