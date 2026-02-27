@@ -1440,6 +1440,119 @@ export type Database = {
           },
         ]
       }
+      mro_direct_automations: {
+        Row: {
+          automation_type: string
+          created_at: string
+          delay_seconds: number | null
+          id: string
+          is_active: boolean | null
+          reply_message: string
+          target_post_id: string | null
+          trigger_keywords: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          automation_type: string
+          created_at?: string
+          delay_seconds?: number | null
+          id?: string
+          is_active?: boolean | null
+          reply_message: string
+          target_post_id?: string | null
+          trigger_keywords?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          automation_type?: string
+          created_at?: string
+          delay_seconds?: number | null
+          id?: string
+          is_active?: boolean | null
+          reply_message?: string
+          target_post_id?: string | null
+          trigger_keywords?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mro_direct_logs: {
+        Row: {
+          automation_id: string | null
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          message_sent: string | null
+          sender_id: string | null
+          sender_username: string | null
+          status: string | null
+          trigger_content: string | null
+        }
+        Insert: {
+          automation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          message_sent?: string | null
+          sender_id?: string | null
+          sender_username?: string | null
+          status?: string | null
+          trigger_content?: string | null
+        }
+        Update: {
+          automation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          message_sent?: string | null
+          sender_id?: string | null
+          sender_username?: string | null
+          status?: string | null
+          trigger_content?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mro_direct_logs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "mro_direct_automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mro_direct_settings: {
+        Row: {
+          created_at: string
+          id: string
+          instagram_account_id: string | null
+          is_active: boolean | null
+          page_access_token: string | null
+          updated_at: string
+          webhook_verify_token: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instagram_account_id?: string | null
+          is_active?: boolean | null
+          page_access_token?: string | null
+          updated_at?: string
+          webhook_verify_token?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instagram_account_id?: string | null
+          is_active?: boolean | null
+          page_access_token?: string | null
+          updated_at?: string
+          webhook_verify_token?: string | null
+        }
+        Relationships: []
+      }
       mro_euro_orders: {
         Row: {
           amount: number

@@ -229,3 +229,9 @@ verify_jwt = false
 
 [functions.prompts-mro-admin]
 verify_jwt = false
+
+[functions.mro-direct-api]
+verify_jwt = false
+
+[functions.mro-direct-webhook]
+verify_jwt = false
