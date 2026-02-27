@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   MessageCircle, Settings, BarChart3, Plus, Trash2, Send, Bot,
   Heart, AtSign, Zap, RefreshCw, Eye, CheckCircle2, XCircle, Clock,
-  Instagram, LogOut, ShieldCheck, Key, ArrowRight, Loader2
+  Instagram, LogOut, ShieldCheck, Key, ArrowRight, Loader2, Users, Radar
 } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -273,6 +273,11 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
   const [testRecipient, setTestRecipient] = useState("");
   const [testMessage, setTestMessage] = useState("");
 
+  // Follower polling state
+  const [pollingStatus, setPollingStatus] = useState<any>(null);
+  const [pollingLoading, setPollingLoading] = useState(false);
+  const [pollingUsername, setPollingUsername] = useState("");
+
   // Settings form
   const [tokenInput, setTokenInput] = useState("");
   const [igIdInput, setIgIdInput] = useState("");
@@ -300,7 +305,56 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadAll(); }, [loadAll]);
+  useEffect(() => { loadAll(); loadPollingStatus(); }, [loadAll]);
+
+  const loadPollingStatus = async () => {
+    try {
+      const res = await api("follower-polling-status");
+      setPollingStatus(res);
+      if (res.username) setPollingUsername(res.username);
+    } catch { /* ignore */ }
+  };
+
+  const activatePolling = async () => {
+    if (!pollingUsername.trim()) return toast.error("Digite o @ do Instagram");
+    setPollingLoading(true);
+    try {
+      const res = await api("follower-polling-activate", { username: pollingUsername.replace("@", "") });
+      toast.success(res.message || "Polling ativado!");
+      await loadPollingStatus();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+    setPollingLoading(false);
+  };
+
+  const deactivatePolling = async () => {
+    setPollingLoading(true);
+    try {
+      await api("follower-polling-deactivate");
+      toast.success("Polling desativado");
+      await loadPollingStatus();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+    setPollingLoading(false);
+  };
+
+  const checkFollowersNow = async () => {
+    setPollingLoading(true);
+    try {
+      const res = await api("follower-polling-check");
+      if (res.new_followers_detected) {
+        toast.success(`${res.new_followers_detected} novos seguidores detectados!`);
+      } else {
+        toast.info(res.message || `Verificado: ${res.diff || 0} novos seguidores`);
+      }
+      await loadPollingStatus();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+    setPollingLoading(false);
+  };
 
   const loadLogs = async () => {
     try {
@@ -496,6 +550,103 @@ const DashboardView = ({ profile, onDisconnect }: { profile: any; onDisconnect: 
                 </Card>
               ))}
             </div>
+
+            {/* Follower Polling - Detecção de Novos Seguidores */}
+            <Card className="bg-gradient-to-r from-pink-900/40 to-purple-900/30 border-pink-500/20 mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white text-lg flex items-center gap-2">
+                  <Radar className="h-5 w-5 text-pink-400" />
+                  Detecção de Novos Seguidores (Bright Data)
+                  {pollingStatus?.polling_active && (
+                    <Badge className="bg-green-600 ml-2 text-xs">Ativo</Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-400">
+                  Detecta automaticamente novos seguidores comparando a lista via Bright Data e envia DM de boas-vindas.
+                </p>
+
+                {pollingStatus?.polling_active ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="bg-gray-900/60 rounded-lg p-3 text-center">
+                        <p className="text-xl font-bold text-white">{pollingStatus.baseline || 0}</p>
+                        <p className="text-xs text-gray-400">Baseline</p>
+                      </div>
+                      <div className="bg-gray-900/60 rounded-lg p-3 text-center">
+                        <p className="text-xl font-bold text-white">{pollingStatus.known_followers || 0}</p>
+                        <p className="text-xs text-gray-400">Conhecidos</p>
+                      </div>
+                      <div className="bg-gray-900/60 rounded-lg p-3 text-center">
+                        <p className="text-xl font-bold text-pink-400">{pollingStatus.pending_welcome || 0}</p>
+                        <p className="text-xs text-gray-400">Pendentes</p>
+                      </div>
+                      <div className="bg-gray-900/60 rounded-lg p-3 text-center">
+                        <p className="text-xs font-medium text-white truncate">@{pollingStatus.username}</p>
+                        <p className="text-xs text-gray-400">Monitorando</p>
+                      </div>
+                    </div>
+
+                    {pollingStatus.last_check && (
+                      <p className="text-xs text-gray-500">
+                        Última verificação: {new Date(pollingStatus.last_check).toLocaleString("pt-BR")}
+                      </p>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={checkFollowersNow}
+                        disabled={pollingLoading}
+                        className="bg-pink-600 hover:bg-pink-700 flex-1"
+                      >
+                        {pollingLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Radar className="h-4 w-4 mr-2" />
+                        )}
+                        Verificar Agora
+                      </Button>
+                      <Button
+                        onClick={deactivatePolling}
+                        disabled={pollingLoading}
+                        variant="outline"
+                        className="border-red-500/30 text-red-400 hover:bg-red-900/20"
+                      >
+                        Desativar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm text-gray-400 mb-1 block">Username do Instagram (sem @)</label>
+                      <Input
+                        value={pollingUsername}
+                        onChange={(e) => setPollingUsername(e.target.value.replace("@", ""))}
+                        placeholder="seuinstagram"
+                        className="bg-gray-800 border-white/10 text-white"
+                      />
+                    </div>
+                    <Button
+                      onClick={activatePolling}
+                      disabled={pollingLoading || !pollingUsername.trim()}
+                      className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+                    >
+                      {pollingLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Users className="h-4 w-4 mr-2" />
+                      )}
+                      Ativar Detecção de Novos Seguidores
+                    </Button>
+                    <p className="text-xs text-gray-500">
+                      Ao ativar, o sistema vai memorizar seus seguidores atuais. Quando novos aparecerem, eles receberão a DM de boas-vindas automaticamente.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Send Test */}
             <Card className="bg-gray-900 border-white/10">
