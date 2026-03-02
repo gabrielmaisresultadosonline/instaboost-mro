@@ -129,6 +129,9 @@ const PromptsIN = () => {
             <span className="text-sm text-purple-200 font-medium">+1000 Professional Prompts</span>
           </div>
 
+          <div className="inline-block bg-green-500/20 border border-green-500/40 rounded-full px-6 py-2 mb-4">
+            <span className="text-green-400 font-bold text-sm uppercase tracking-wider">🎉 Start for Free</span>
+          </div>
           <h1 className="text-5xl md:text-7xl font-black mb-8 leading-[1.1] tracking-tight">
             Generate <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400">Stunning</span> AI Photos
           </h1>
