@@ -399,7 +399,7 @@ const PromptsINDashboard = () => {
               </h2>
               <p className="text-gray-400 text-sm mb-5">Watch the tutorial and use Gemini to generate</p>
               <div className="w-full aspect-video rounded-xl overflow-hidden bg-black/30 border border-white/10 mb-6">
-                <iframe src="https://www.youtube.com/embed/btICOskVlhY" title="How to generate AI photos" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" />
+                <iframe src="https://www.youtube.com/embed/UkDS8-sP4bQ" title="How to generate AI photos" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" />
               </div>
               <a href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"
                 className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-bold text-lg flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-blue-600/25">
