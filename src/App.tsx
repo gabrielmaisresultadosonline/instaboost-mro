@@ -77,6 +77,8 @@ import PromptsINAdmin from "./pages/PromptsINAdmin";
 import PromptsINDashboard from "./pages/PromptsINDashboard";
 import PoliticaDePrivacidadeIG from "./pages/PoliticaDePrivacidadeIG";
 import MRODirectMais from "./pages/MRODirectMais";
+import IAVendeMais from "./pages/IAVendeMais";
+import IAVendeMaisAdmin from "./pages/IAVendeMaisAdmin";
 
 const queryClient = new QueryClient();
 
@@ -162,6 +164,8 @@ const App = () => (
           <Route path="/promptsin/dashboard" element={<PromptsINDashboard />} />
           <Route path="/politicasdeprivacidadeig" element={<PoliticaDePrivacidadeIG />} />
           <Route path="/mrodirectmais" element={<MRODirectMais />} />
+          <Route path="/Iavendemais" element={<IAVendeMais />} />
+          <Route path="/Iavendemais/admin" element={<IAVendeMaisAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

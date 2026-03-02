@@ -363,6 +363,10 @@ const Ligacao = () => {
               style={{ width: '12rem', height: 'auto', marginBottom: '-2.5rem' }}
             />
 
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.75rem', maxWidth: '300px', fontStyle: 'italic' }}>
+              Uma ferramenta automática que vai trazer resultados incríveis para você, faça uma ligação agora com Gabriel. Vamos explicar melhor tudo e ver qual seria a melhor opção para você.
+            </p>
+
             <h1 style={{ color: '#fff', fontSize: '1.125rem', fontWeight: 'bold', fontStyle: 'italic', lineHeight: 1.3, marginBottom: '1rem', maxWidth: '280px' }}>
               <span style={{ color: '#facc15' }}>Gabriel</span> {callContent.landingTitle.replace(/^Gabriel\s*/i, '').replace('Gabriel', '')}
             </h1>
