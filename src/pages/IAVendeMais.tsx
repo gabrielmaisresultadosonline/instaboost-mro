@@ -210,12 +210,18 @@ const IAVendeMais = () => {
           <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)' }} />
           <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 1rem', textAlign: 'center' }}>
             <img src={gabrielImage} alt="Gabriel" style={{ width: '12rem', height: 'auto', marginBottom: '-2.5rem' }} />
+
+            <h1 style={{ color: '#facc15', fontSize: '1.5rem', fontWeight: 900, lineHeight: 1.2, marginBottom: '0.75rem', maxWidth: '320px', textTransform: 'uppercase', textShadow: '0 2px 10px rgba(250, 204, 21, 0.3)' }}>
+              Conheça a ferramenta para Instagram com I.A automática!
+            </h1>
+
             <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.75rem', maxWidth: '300px', fontStyle: 'italic' }}>
               Uma ferramenta automática que vai trazer resultados incríveis para você, faça uma ligação agora com Gabriel. Vamos explicar melhor tudo e ver qual seria a melhor opção para você.
             </p>
-            <h1 style={{ color: '#fff', fontSize: '1.125rem', fontWeight: 'bold', fontStyle: 'italic', lineHeight: 1.3, marginBottom: '1rem', maxWidth: '280px' }}>
-              <span style={{ color: '#facc15' }}>Gabriel</span> esta agora disponível para uma chamada, atenda para entender melhor!
-            </h1>
+
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+              <span style={{ color: '#4ade80', fontWeight: 700 }}>Gabriel</span> está disponível agora!
+            </p>
             <button
               onClick={handleReceiveCall}
               style={{
