@@ -268,61 +268,61 @@ const PromptsINDashboard = () => {
   const renderPaywall = () => {
     if (!blocked || isPaid) return null;
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm px-3 sm:px-4 overflow-y-auto">
-        <div className="bg-[#111118] border border-purple-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 max-w-md w-full text-center shadow-2xl shadow-purple-900/30 my-4">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-            <Lock className="w-7 h-7 sm:w-8 sm:h-8 text-red-400" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm px-2 sm:px-4 overflow-y-auto py-4">
+        <div className="bg-[#111118] border border-purple-500/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 max-w-md w-full text-center shadow-2xl shadow-purple-900/30 my-auto">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-3 sm:mb-6">
+            <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-red-400" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold mb-2">Limit Reached!</h2>
-          <p className="text-gray-400 mb-4 sm:mb-6 text-xs sm:text-sm">
+          <h2 className="text-lg sm:text-2xl font-bold mb-1.5 sm:mb-2">Limit Reached!</h2>
+          <p className="text-gray-400 mb-3 sm:mb-6 text-[11px] sm:text-sm leading-relaxed">
             You've used your <span className="text-white font-bold">{copiesLimit} free copies</span>. 
             To continue accessing all 1000+ prompts, unlock full access.
           </p>
-          <div className="grid grid-cols-2 gap-3 mb-4 sm:mb-6">
-            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
-              <div className="text-[10px] sm:text-xs text-gray-400 mb-1">Monthly</div>
-              <div className="flex items-baseline justify-center gap-0.5 mb-1">
-                <span className="text-2xl sm:text-3xl font-black text-white">$19.90</span>
-                <span className="text-gray-400 text-[10px] sm:text-xs">/mo</span>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-6">
+            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 text-center">
+              <div className="text-[9px] sm:text-xs text-gray-400 mb-0.5 sm:mb-1">Monthly</div>
+              <div className="flex items-baseline justify-center gap-0.5 mb-0.5 sm:mb-1">
+                <span className="text-xl sm:text-3xl font-black text-white leading-none">$19.90</span>
+                <span className="text-gray-400 text-[9px] sm:text-xs">/mo</span>
               </div>
-              <div className="text-[10px] text-gray-500 mb-2">30 days</div>
+              <div className="text-[9px] sm:text-[10px] text-gray-500 mb-1.5 sm:mb-2">30 days</div>
               {!paymentLink && (
                 <button onClick={() => handleCreatePayment('monthly')} disabled={creatingPayment}
-                  className="w-full py-2 sm:py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50">
-                  {creatingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-3.5 h-3.5" /> Subscribe</>}
+                  className="w-full py-1.5 sm:py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-[10px] sm:text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50">
+                  {creatingPayment ? <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" /> : <><CreditCard className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> <span className="truncate">Subscribe</span></>}
                 </button>
               )}
             </div>
-            <div className="bg-gradient-to-b from-purple-500/20 to-pink-500/10 border-2 border-purple-500/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center relative">
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">BEST</div>
-              <div className="text-[10px] sm:text-xs text-gray-400 mb-1">Annual</div>
-              <div className="flex items-baseline justify-center gap-0.5 mb-1">
-                <span className="text-2xl sm:text-3xl font-black text-white">$97</span>
-                <span className="text-gray-400 text-[10px] sm:text-xs">/yr</span>
+            <div className="bg-gradient-to-b from-purple-500/20 to-pink-500/10 border-2 border-purple-500/40 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 text-center relative">
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[8px] sm:text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">BEST</div>
+              <div className="text-[9px] sm:text-xs text-gray-400 mb-0.5 sm:mb-1">Annual</div>
+              <div className="flex items-baseline justify-center gap-0.5 mb-0.5 sm:mb-1">
+                <span className="text-xl sm:text-3xl font-black text-white leading-none">$97</span>
+                <span className="text-gray-400 text-[9px] sm:text-xs">/yr</span>
               </div>
-              <div className="text-[10px] text-green-400 mb-2">365 days • Save more!</div>
+              <div className="text-[9px] sm:text-[10px] text-green-400 mb-1.5 sm:mb-2">365 days • Save more!</div>
               {!paymentLink && (
                 <button onClick={() => handleCreatePayment('annual')} disabled={creatingPayment}
-                  className="w-full py-2 sm:py-2.5 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50">
-                  {creatingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-3.5 h-3.5" /> Subscribe</>}
+                  className="w-full py-1.5 sm:py-2.5 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-[10px] sm:text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50">
+                  {creatingPayment ? <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" /> : <><CreditCard className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> <span className="truncate">Subscribe</span></>}
                 </button>
               )}
             </div>
           </div>
           {paymentLink && (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <a href={paymentLink} target="_blank" rel="noopener noreferrer"
-                className="w-full py-3 sm:py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-green-600/25">
-                <CreditCard className="w-5 h-5" /> PAY NOW
+                className="w-full py-2.5 sm:py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 font-bold text-sm sm:text-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-green-600/25">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" /> PAY NOW
               </a>
               <button onClick={checkPaymentStatus} disabled={checkingPayment}
-                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-xs sm:text-sm text-gray-300 hover:text-white hover:border-purple-500/30 flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
-                {checkingPayment ? <><Loader2 className="w-4 h-4 animate-spin" /> Checking payment...</> : <><CheckCircle className="w-4 h-4" /> Already paid — Verify</>}
+                className="w-full py-2.5 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-[10px] sm:text-sm text-gray-300 hover:text-white hover:border-purple-500/30 flex items-center justify-center gap-1.5 sm:gap-2 transition-colors disabled:opacity-50">
+                {checkingPayment ? <><Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" /> Checking...</> : <><CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Already paid — Verify</>}
               </button>
-              <p className="text-xs text-gray-600">Auto-check every 15 seconds</p>
+              <p className="text-[10px] sm:text-xs text-gray-600">Auto-check every 15 seconds</p>
             </div>
           )}
-          <button onClick={handleLogout} className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 hover:text-gray-400 transition-colors">
+          <button onClick={handleLogout} className="mt-2 sm:mt-4 text-[10px] sm:text-sm text-gray-600 hover:text-gray-400 transition-colors">
             Sign out
           </button>
         </div>
