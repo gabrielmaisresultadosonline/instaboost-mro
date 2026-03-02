@@ -253,7 +253,7 @@ const IAVendeMais = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
               <span>Áudio de Instagram...</span>
             </div>
-            <h1 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 600 }}>{settings.profileUsername}</h1>
+            <h1 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 600 }}>Atender Gabriel MRO</h1>
           </div>
           <div style={{ paddingBottom: 'max(5rem, calc(env(safe-area-inset-bottom) + 3rem))', paddingLeft: '2rem', paddingRight: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '280px', margin: '0 auto' }}>
