@@ -136,7 +136,7 @@ const PromptsIN = () => {
           {/* Video */}
           <div className="max-w-2xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/20 aspect-video mb-10">
             <iframe
-              src="https://www.youtube.com/embed/btICOskVlhY"
+              src="https://www.youtube.com/embed/UkDS8-sP4bQ"
               title="AI Prompts"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
