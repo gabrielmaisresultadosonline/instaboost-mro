@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Camera, Wand2, Star, CheckCircle, ArrowRight, Users, Zap, Shield, Crown, Image, Layers, TrendingUp, Heart, LogIn, Loader2 } from "lucide-react";
 import promptsAreaPreview from "@/assets/prompts-area-preview.png";
 import { toast } from "sonner";
+import { trackPageView, trackViewContent } from "@/lib/facebookTracking";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -18,6 +19,11 @@ const PromptsIN = () => {
   const [loginPassword, setLoginPassword] = useState("");
   const [isLogging, setIsLogging] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+
+  useEffect(() => {
+    trackPageView('PromptsIN Sales');
+    trackViewContent('PromptsIN', 'Sales Page');
+  }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

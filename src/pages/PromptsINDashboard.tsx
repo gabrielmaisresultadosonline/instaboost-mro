@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle, Play, X, ExternalLink, Scissors } from "lucide-react";
 import ImageCropEditor from "@/components/ImageCropEditor";
 import { toast } from "sonner";
+import { trackPageView, trackPurchase, trackInitiateCheckout } from "@/lib/facebookTracking";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -49,6 +50,7 @@ const PromptsINDashboard = () => {
   const [activeTab, setActiveTab] = useState<"prompts" | "editar">("prompts");
 
   useEffect(() => {
+    trackPageView('PromptsIN Dashboard');
     const saved = sessionStorage.getItem("promptsin_user");
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -173,6 +175,7 @@ const PromptsINDashboard = () => {
       const data = await callAuth("create-payment", { user_id: user.id, plan_type: planType });
       if (data.success && data.payment_link) {
         setPaymentLink(data.payment_link);
+        trackInitiateCheckout(`PromptsIN ${planType}`, planType === 'monthly' ? 19.90 : 97);
         window.open(data.payment_link, "_blank");
       } else {
         toast.error("Error creating payment link");
@@ -195,6 +198,7 @@ const PromptsINDashboard = () => {
         setUser(updated);
         sessionStorage.setItem("promptsin_user", JSON.stringify(updated));
         toast.success("🎉 Payment confirmed! Access unlocked!");
+        trackPurchase(data.plan_type === 'annual' ? 97 : 19.90, `PromptsIN ${data.plan_type || 'subscription'}`);
       }
     } catch { /* silent */ }
     finally { setCheckingPayment(false); }
