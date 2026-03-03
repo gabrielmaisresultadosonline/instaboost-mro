@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Check, X, MessageCircle, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { trackLead } from '@/lib/facebookTracking';
 import profileImage from '@/assets/mro-profile-call.jpg';
 import fundoChamada from '@/assets/fundo-chamada.jpg';
 import gabrielPhoneImage from '@/assets/gabriel-phone.png';
@@ -468,6 +469,7 @@ const IAVendeMais = () => {
               Se você precisa de <span style={{ color: '#4ade80', fontWeight: 700 }}>resultados reais</span> investindo muito pouco, clique no WhatsApp abaixo.
             </p>
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+              onClick={() => trackLead('IAVendeMais WhatsApp')}
               style={{ padding: '1rem 2rem', backgroundColor: '#25d366', color: '#fff', fontWeight: 700, fontSize: '1.1rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', boxShadow: '0 10px 30px rgba(37, 211, 102, 0.4)', animation: 'pulse-green 2s infinite' }}>
               <MessageCircle style={{ width: '1.5rem', height: '1.5rem' }} />
               Falar no WhatsApp
