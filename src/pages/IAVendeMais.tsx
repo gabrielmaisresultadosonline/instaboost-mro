@@ -412,7 +412,7 @@ const IAVendeMais = () => {
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '2rem' }}>
               Mas pode seguir nossa página e acompanhar nosso conteúdo. Futuramente estaremos aqui para te ajudar! 🙌
             </p>
-            <a href={`https://instagram.com/${settings.profileUsername.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+            <a href={`https://instagram.com/${settings.profileUsername.replace('@', '').replace(/\s+/g, '')}`} target="_blank" rel="noopener noreferrer"
               style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)', color: '#fff', fontWeight: 700, fontSize: '1rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
               📱 Seguir no Instagram
             </a>
