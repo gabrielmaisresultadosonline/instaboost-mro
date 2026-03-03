@@ -18,6 +18,7 @@ const IAVendeMaisAdmin = () => {
   const audioPreviewRef = useRef<HTMLAudioElement>(null);
 
   const [settings, setSettings] = useState({
+    ringtoneUrl: '/ringtone.mp4',
     audio1Url: '/call-audio.mp3',
     audio2Url: '/call-audio.mp3',
     whatsappNumber: '5511999999999',
@@ -73,9 +74,10 @@ const IAVendeMaisAdmin = () => {
     }
   };
 
-  const handleUploadAudio = async (file: File, which: 'audio1Url' | 'audio2Url') => {
+  const handleUploadAudio = async (file: File, which: 'ringtoneUrl' | 'audio1Url' | 'audio2Url') => {
     try {
-      const fileName = `iavendemais/${which}-${Date.now()}.mp3`;
+      const ext = file.name.split('.').pop() || 'mp3';
+      const fileName = `iavendemais/${which}-${Date.now()}.${ext}`;
       const { data, error } = await supabase.storage.from('assets').upload(fileName, file, { upsert: true });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from('assets').getPublicUrl(fileName);
@@ -131,11 +133,29 @@ const IAVendeMaisAdmin = () => {
           <p style={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>Carregando...</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Ringtone */}
+            <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <h3 style={{ color: '#f97316', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>📞 Toque do Celular (Ringtone)</h3>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
+                Som que toca quando o celular está "tocando" antes de atender.
+              </p>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <Input value={settings.ringtoneUrl} onChange={e => setSettings(prev => ({ ...prev, ringtoneUrl: e.target.value }))} placeholder="URL do ringtone" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', flex: 1, fontSize: '0.8rem' }} />
+                <Button size="sm" variant="outline" onClick={() => togglePreview(settings.ringtoneUrl, 'rt')} style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                  {playingAudio === 'rt' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                </Button>
+              </div>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: '#1a1a2e', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', color: '#f97316' }}>
+                <Upload className="w-4 h-4" /> Enviar áudio
+                <input type="file" accept="audio/*,video/mp4" hidden onChange={e => e.target.files?.[0] && handleUploadAudio(e.target.files[0], 'ringtoneUrl')} />
+              </label>
+            </div>
+
             {/* Audio 1 */}
             <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <h3 style={{ color: '#4ade80', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 1 - Introdução</h3>
+              <h3 style={{ color: '#4ade80', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 1 - Após Atender</h3>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-                Primeiro áudio que toca ao entrar na página. Após terminar, aparece a primeira pergunta.
+                Primeiro áudio que toca depois que o usuário atende a ligação. Após terminar, aparece a primeira pergunta.
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <Input value={settings.audio1Url} onChange={e => setSettings(prev => ({ ...prev, audio1Url: e.target.value }))} placeholder="URL do áudio 1" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', flex: 1, fontSize: '0.8rem' }} />
@@ -151,9 +171,9 @@ const IAVendeMaisAdmin = () => {
 
             {/* Audio 2 */}
             <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <h3 style={{ color: '#eab308', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 2 - Proposta</h3>
+              <h3 style={{ color: '#eab308', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 2 - Após Confirmação</h3>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-                Segundo áudio que toca após a confirmação. Após terminar, aparece a tela de preços.
+                Segundo áudio que toca após a segunda confirmação (SIM). Após terminar, aparece a tela de preços.
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <Input value={settings.audio2Url} onChange={e => setSettings(prev => ({ ...prev, audio2Url: e.target.value }))} placeholder="URL do áudio 2" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', flex: 1, fontSize: '0.8rem' }} />
@@ -190,10 +210,11 @@ const IAVendeMaisAdmin = () => {
             <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(74,222,128,0.2)' }}>
               <h3 style={{ color: '#4ade80', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>📋 Passo a passo do funil</h3>
               <ol style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', lineHeight: 1.8, paddingLeft: '1.25rem', margin: 0 }}>
-                <li><strong style={{ color: '#4ade80' }}>Áudio 1</strong> toca automaticamente ao entrar na página</li>
-                <li>Após o áudio, aparece: "Você tem empresa? Vende produto? Presta serviço?"</li>
+                <li>Usuário clica em "Receber chamada" → <strong style={{ color: '#f97316' }}>Ringtone</strong> toca</li>
+                <li>Clica "Aceitar" → <strong style={{ color: '#4ade80' }}>Áudio 1</strong> toca (chamada conectada)</li>
+                <li>Após áudio 1, aparece: "Você tem empresa? Vende produto? Presta serviço?"</li>
                 <li>Se <strong style={{ color: '#22c55e' }}>SIM</strong> → Pede confirmação</li>
-                <li>Se confirma <strong style={{ color: '#22c55e' }}>SIM</strong> → <strong style={{ color: '#eab308' }}>Áudio 2</strong> toca</li>
+                <li>Se confirma <strong style={{ color: '#22c55e' }}>SIM</strong> → <strong style={{ color: '#eab308' }}>Áudio 2</strong> toca (chamada conectada)</li>
                 <li>Após áudio 2, aparece pergunta de preços (R$1.000 / R$12.000 / R$5.000)</li>
                 <li>Após selecionar → Redireciona para WhatsApp com mensagem pré-definida</li>
                 <li>Se <strong style={{ color: '#ef4444' }}>NÃO</strong> → Mensagem de rejeição</li>
