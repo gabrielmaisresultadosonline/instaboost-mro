@@ -21,6 +21,7 @@ const IAVendeMaisAdmin = () => {
     ringtoneUrl: '/ringtone.mp4',
     audio1Url: '/call-audio.mp3',
     audio2Url: '/call-audio.mp3',
+    audio3Url: '',
     whatsappNumber: '5511999999999',
     whatsappMessage: 'Olá gostaria de saber mais sobre o sistema inovador!',
     profileUsername: '@iavendemais',
@@ -74,7 +75,7 @@ const IAVendeMaisAdmin = () => {
     }
   };
 
-  const handleUploadAudio = async (file: File, which: 'ringtoneUrl' | 'audio1Url' | 'audio2Url') => {
+  const handleUploadAudio = async (file: File, which: 'ringtoneUrl' | 'audio1Url' | 'audio2Url' | 'audio3Url') => {
     try {
       const ext = file.name.split('.').pop() || 'mp3';
       const fileName = `iavendemais/${which}-${Date.now()}.${ext}`;
@@ -187,6 +188,24 @@ const IAVendeMaisAdmin = () => {
               </label>
             </div>
 
+            {/* Audio 3 */}
+            <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <h3 style={{ color: '#8b5cf6', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 3 - Tela do WhatsApp</h3>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
+                Áudio que toca automaticamente quando aparece o botão do WhatsApp (após selecionar preço).
+              </p>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <Input value={settings.audio3Url} onChange={e => setSettings(prev => ({ ...prev, audio3Url: e.target.value }))} placeholder="URL do áudio 3" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', flex: 1, fontSize: '0.8rem' }} />
+                <Button size="sm" variant="outline" onClick={() => togglePreview(settings.audio3Url, 'a3')} style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                  {playingAudio === 'a3' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                </Button>
+              </div>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: '#1a1a2e', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', color: '#8b5cf6' }}>
+                <Upload className="w-4 h-4" /> Enviar áudio
+                <input type="file" accept="audio/*" hidden onChange={e => e.target.files?.[0] && handleUploadAudio(e.target.files[0], 'audio3Url')} />
+              </label>
+            </div>
+
             {/* WhatsApp Settings */}
             <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
               <h3 style={{ color: '#25d366', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>💬 Configurações do WhatsApp</h3>
@@ -216,7 +235,8 @@ const IAVendeMaisAdmin = () => {
                 <li>Se <strong style={{ color: '#22c55e' }}>SIM</strong> → Pede confirmação</li>
                 <li>Se confirma <strong style={{ color: '#22c55e' }}>SIM</strong> → <strong style={{ color: '#eab308' }}>Áudio 2</strong> toca (chamada conectada)</li>
                 <li>Após áudio 2, aparece pergunta de preços (R$1.000 / R$12.000 / R$5.000)</li>
-                <li>Após selecionar → Redireciona para WhatsApp com mensagem pré-definida</li>
+                <li>Após selecionar preço → <strong style={{ color: '#8b5cf6' }}>Áudio 3</strong> toca automaticamente + botão WhatsApp</li>
+                <li>Clica no WhatsApp → Redireciona com mensagem pré-definida</li>
                 <li>Se <strong style={{ color: '#ef4444' }}>NÃO</strong> → Mensagem de rejeição</li>
               </ol>
             </div>

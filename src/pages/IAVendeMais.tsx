@@ -24,6 +24,7 @@ const IAVendeMais = () => {
   const [settings, setSettings] = useState({
     audio1Url: '/call-audio.mp3',
     audio2Url: '/call-audio.mp3',
+    audio3Url: '',
     whatsappNumber: '5511999999999',
     whatsappMessage: 'Olá gostaria de saber mais sobre o sistema inovador!',
     profileUsername: '@iavendemais',
@@ -31,6 +32,7 @@ const IAVendeMais = () => {
   });
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const audio3Ref = useRef<HTMLAudioElement>(null);
   const ringtoneVideoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -170,6 +172,17 @@ const IAVendeMais = () => {
   const handleSelectPrice = (price: string) => {
     setSelectedPrice(price);
     setState('final_whatsapp');
+    // Play audio 3 when WhatsApp screen appears
+    if (settings.audio3Url && audio3Ref.current) {
+      setTimeout(() => {
+        if (audio3Ref.current) {
+          audio3Ref.current.src = settings.audio3Url;
+          audio3Ref.current.currentTime = 0;
+          audio3Ref.current.volume = 1;
+          audio3Ref.current.play().catch(() => {});
+        }
+      }, 500);
+    }
   };
 
   const whatsappUrl = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(settings.whatsappMessage)}`;
@@ -194,6 +207,11 @@ const IAVendeMais = () => {
       <audio
         ref={audioRef}
         onEnded={handleAudioEnded}
+        preload="auto"
+        playsInline
+      />
+      <audio
+        ref={audio3Ref}
         preload="auto"
         playsInline
       />
