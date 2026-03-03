@@ -186,7 +186,7 @@ const IAVendeMais = () => {
       {/* Hidden ringtone video */}
       <video
         ref={ringtoneVideoRef}
-        src="/ringtone.mp4"
+        src={settings.ringtoneUrl || '/ringtone.mp4'}
         preload="auto"
         playsInline
         style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
