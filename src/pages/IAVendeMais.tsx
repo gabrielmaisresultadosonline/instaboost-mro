@@ -37,7 +37,7 @@ const IAVendeMais = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load settings from cloud
+  // Load settings from cloud and preload audio
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -45,7 +45,16 @@ const IAVendeMais = () => {
           body: { action: 'load' }
         });
         if (!error && data?.success && data?.data) {
-          setSettings(prev => ({ ...prev, ...data.data }));
+          const newSettings = { ...settings, ...data.data };
+          setSettings(newSettings);
+          // Preload all audio files
+          [newSettings.audio1Url, newSettings.audio2Url, newSettings.audio3Url, newSettings.ringtoneUrl].forEach(url => {
+            if (url) {
+              const a = new Audio();
+              a.preload = 'auto';
+              a.src = url;
+            }
+          });
         }
       } catch (err) {
         console.error('[IAVendeMais] Error loading settings:', err);
@@ -155,14 +164,12 @@ const IAVendeMais = () => {
       if (answer === 'sim') {
         setState('connected_audio2');
         startCallTimer();
-        setTimeout(() => {
-          if (audioRef.current) {
-            audioRef.current.src = settings.audio2Url;
-            audioRef.current.currentTime = 0;
-            audioRef.current.volume = 1;
-            audioRef.current.play().catch(() => {});
-          }
-        }, 500);
+        if (audioRef.current) {
+          audioRef.current.src = settings.audio2Url;
+          audioRef.current.currentTime = 0;
+          audioRef.current.volume = 1;
+          audioRef.current.play().catch(() => {});
+        }
       } else {
         setState('rejected');
       }
@@ -172,16 +179,12 @@ const IAVendeMais = () => {
   const handleSelectPrice = (price: string) => {
     setSelectedPrice(price);
     setState('final_whatsapp');
-    // Play audio 3 when WhatsApp screen appears
+    // Play audio 3 immediately when WhatsApp screen appears
     if (settings.audio3Url && audio3Ref.current) {
-      setTimeout(() => {
-        if (audio3Ref.current) {
-          audio3Ref.current.src = settings.audio3Url;
-          audio3Ref.current.currentTime = 0;
-          audio3Ref.current.volume = 1;
-          audio3Ref.current.play().catch(() => {});
-        }
-      }, 500);
+      audio3Ref.current.src = settings.audio3Url;
+      audio3Ref.current.currentTime = 0;
+      audio3Ref.current.volume = 1;
+      audio3Ref.current.play().catch(() => {});
     }
   };
 
