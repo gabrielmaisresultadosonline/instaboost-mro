@@ -253,7 +253,7 @@ const RendaExtraLigacao = () => {
           fontSize: `${size}rem`,
           opacity: 0.14,
           pointerEvents: 'none',
-          zIndex: 1,
+          zIndex: 9999,
           animation: `moneyFall ${duration}s linear ${delay}s infinite`,
           transform: `rotate(${rotate}deg)`,
         }}
