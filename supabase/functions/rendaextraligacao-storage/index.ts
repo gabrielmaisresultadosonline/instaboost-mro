@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { encode as base64Encode } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,62 +33,52 @@ const sendEmailViaSMTP = async (to: string, nome: string, groupLink: string) => 
     });
 
     const htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;line-height:1.6;color:#333;background-color:#f4f4f4;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
-<tr>
-<td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
-<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Parabéns! Seu acesso foi liberado!</h1>
-</td>
-</tr>
-<tr>
-<td style="padding:30px;background:#ffffff;">
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;padding:20px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:8px;overflow:hidden;">
 
-<div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:20px;border-radius:10px;margin-bottom:25px;text-align:center;">
-<p style="margin:0;color:#fff;font-size:18px;font-weight:bold;">✨ Você está no caminho certo para faturar com a MRO!</p>
-</div>
+<tr><td style="background:#FFD700;padding:25px;text-align:center;">
+<table cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="background:#000;color:#fff;padding:8px 20px;border-radius:6px;font-size:28px;font-weight:bold;letter-spacing:2px;">MRO</td></tr></table>
+<p style="color:#000;margin:12px 0 0;font-size:20px;font-weight:bold;">Parabens! Seu acesso foi liberado!</p>
+</td></tr>
 
-<p style="margin:0 0 20px 0;font-size:16px;">Olá <strong>${nome}</strong>!</p>
+<tr><td style="padding:30px;">
 
-<p style="margin:0 0 15px 0;font-size:16px;">Ficamos muito felizes em receber seu cadastro! Agora você tem acesso ao nosso grupo exclusivo da <strong>Live de Sexta-Feira</strong>. 🚀</p>
+<p style="font-size:16px;color:#333;margin:0 0 20px;">Ola <strong>${nome}</strong>,</p>
 
-<p style="margin:0 0 15px 0;font-size:16px;">Nessa live, você vai aprender:</p>
+<p style="font-size:16px;color:#333;margin:0 0 15px;">Ficamos muito felizes em receber seu cadastro! Agora voce tem acesso ao nosso grupo exclusivo da <strong>Live de Sexta-Feira</strong>.</p>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px 0;">
-<tr><td style="padding:8px 0;"><span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">💰</span><span style="color:#333;">Como faturar <strong>5k ou mais</strong> de renda extra</span></td></tr>
-<tr><td style="padding:8px 0;"><span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">🤖</span><span style="color:#333;">Como a ferramenta <strong>automática MRO</strong> funciona</span></td></tr>
-<tr><td style="padding:8px 0;"><span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">📈</span><span style="color:#333;">Resultados reais de nossos <strong>membros</strong></span></td></tr>
-<tr><td style="padding:8px 0;"><span style="display:inline-block;background:#FFD700;color:#000;padding:3px 10px;border-radius:15px;font-size:14px;margin-right:8px;">🎯</span><span style="color:#333;">Passo a passo para <strong>começar hoje</strong></span></td></tr>
+<p style="font-size:16px;color:#333;margin:0 0 15px;">Nessa live, voce vai aprender:</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">
+<tr><td style="padding:6px 0;font-size:15px;color:#333;">&#10148; Como faturar <strong>5k ou mais</strong> de renda extra</td></tr>
+<tr><td style="padding:6px 0;font-size:15px;color:#333;">&#10148; Como a ferramenta <strong>automatica MRO</strong> funciona</td></tr>
+<tr><td style="padding:6px 0;font-size:15px;color:#333;">&#10148; Resultados reais de nossos <strong>membros</strong></td></tr>
+<tr><td style="padding:6px 0;font-size:15px;color:#333;">&#10148; Passo a passo para <strong>comecar hoje</strong></td></tr>
 </table>
 
-<div style="background:#fff3cd;border-left:4px solid #ffc107;padding:15px;margin:20px 0;border-radius:0 8px 8px 0;">
-<p style="margin:0;color:#856404;font-size:15px;"><strong>⚠️ Importante!</strong><br>Entre no grupo do WhatsApp agora para não perder a live. As vagas são limitadas!</p>
-</div>
+<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#fff3cd;border-left:4px solid #ffc107;padding:12px 15px;border-radius:0 6px 6px 0;">
+<p style="margin:0;color:#856404;font-size:14px;"><strong>Importante:</strong> Entre no grupo do WhatsApp agora para nao perder a live. As vagas sao limitadas!</p>
+</td></tr></table>
 
-<div style="text-align:center;margin:30px 0;">
-<a href="${groupLink}" style="display:inline-block;background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;text-decoration:none;padding:18px 50px;border-radius:30px;font-size:18px;font-weight:bold;">
-👥 ENTRAR NO GRUPO DA LIVE
-</a>
-</div>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:25px 0;"><tr><td align="center">
+<a href="${groupLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:25px;font-size:16px;font-weight:bold;">ENTRAR NO GRUPO DA LIVE</a>
+</td></tr></table>
 
-<p style="margin:20px 0;font-size:14px;color:#666;text-align:center;">
-Fique atento ao grupo, é por lá que avisaremos quando a live começar!
-</p>
+<p style="font-size:13px;color:#999;text-align:center;margin:15px 0 0;">Fique atento ao grupo, e por la que avisaremos quando a live comecar!</p>
 
-</td>
-</tr>
-<tr>
-<td style="background:#1a1a1a;padding:20px;text-align:center;">
-<p style="color:#FFD700;margin:0 0 10px 0;font-weight:bold;">Bem-vindo à família MRO! 💛</p>
-<p style="color:#888;margin:0;font-size:12px;">© ${new Date().getFullYear()} MRO - Mais Resultados Online</p>
-<p style="color:#666;margin:10px 0 0 0;font-size:11px;">Este email foi enviado porque você se cadastrou na nossa página de Renda Extra.</p>
-</td>
-</tr>
+</td></tr>
+
+<tr><td style="background:#222;padding:20px;text-align:center;">
+<p style="color:#FFD700;margin:0 0 8px;font-weight:bold;font-size:14px;">Bem-vindo a familia MRO!</p>
+<p style="color:#888;margin:0;font-size:11px;">MRO - Mais Resultados Online</p>
+</td></tr>
+
+</table>
+</td></tr>
 </table>
 </body>
 </html>`;
@@ -95,8 +86,8 @@ Fique atento ao grupo, é por lá que avisaremos quando a live começar!
     await client.send({
       from: "MRO Renda Extra <suporte@maisresultadosonline.com.br>",
       to: to,
-      subject: "🎉 Parabéns! Seu acesso ao Grupo da Live foi liberado! - MRO",
-      content: "auto",
+      subject: "Parabens! Seu acesso ao Grupo da Live foi liberado - MRO",
+      content: "Seu acesso foi liberado! Entre no grupo: " + groupLink,
       html: htmlContent,
     });
 
