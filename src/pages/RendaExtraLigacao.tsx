@@ -534,6 +534,9 @@ const RendaExtraLigacao = () => {
       {state === 'final_group' && (
         <div style={{ ...fullscreenStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0a0a0a', overflowY: 'auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem', textAlign: 'center', width: '100%', maxWidth: '400px' }}>
+            <span style={{ color: '#4ade80', fontSize: '1.15rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', animation: 'aprendaPulse 2s ease-in-out infinite', display: 'inline-block', marginBottom: '0.5rem' }}>
+              🎯 PARTICIPE AGORA DO GRUPO!
+            </span>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
             <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.75rem', lineHeight: 1.3 }}>
               Parabéns! Seu acesso foi liberado!
@@ -541,9 +544,11 @@ const RendaExtraLigacao = () => {
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', lineHeight: 1.5, marginBottom: '0.5rem' }}>
               Enviamos um email para <span style={{ color: '#4ade80', fontWeight: 700 }}>{leadForm.email}</span> com todos os detalhes.
             </p>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '2rem' }}>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '1rem' }}>
               Clique no botão abaixo para entrar no grupo exclusivo da Live:
             </p>
+            {/* Arrow pointing down */}
+            <div style={{ fontSize: '2.5rem', animation: 'arrowBounce 1.2s ease-in-out infinite', marginBottom: '0.75rem' }}>⬇️</div>
             <a href={settings.groupLink} target="_blank" rel="noopener noreferrer"
               onClick={() => trackLead('RendaExtraLigacao Group')}
               style={{ padding: '1rem 2rem', backgroundColor: '#25d366', color: '#fff', fontWeight: 700, fontSize: '1.1rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', boxShadow: '0 10px 30px rgba(37, 211, 102, 0.4)', animation: 'pulse-green 2s infinite' }}>
@@ -555,6 +560,10 @@ const RendaExtraLigacao = () => {
               @keyframes pulse-green {
                 0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4); }
                 50% { transform: scale(1.05); box-shadow: 0 15px 40px rgba(37, 211, 102, 0.6); }
+              }
+              @keyframes arrowBounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(12px); }
               }
             `}</style>
           </div>
