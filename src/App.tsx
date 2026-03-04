@@ -79,6 +79,8 @@ import PoliticaDePrivacidadeIG from "./pages/PoliticaDePrivacidadeIG";
 import MRODirectMais from "./pages/MRODirectMais";
 import IAVendeMais from "./pages/IAVendeMais";
 import IAVendeMaisAdmin from "./pages/IAVendeMaisAdmin";
+import RendaExtraLigacao from "./pages/RendaExtraLigacao";
+import RendaExtraLigacaoAdmin from "./pages/RendaExtraLigacaoAdmin";
 
 const queryClient = new QueryClient();
 
