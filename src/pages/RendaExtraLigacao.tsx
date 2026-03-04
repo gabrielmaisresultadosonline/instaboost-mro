@@ -199,8 +199,18 @@ const RendaExtraLigacao = () => {
   const handleSubmitLead = async () => {
     if (!leadForm.nome.trim() || !leadForm.email.trim() || !leadForm.whatsapp.trim()) return;
     setIsSubmitting(true);
+
+    // Play audio3 IMMEDIATELY in user gesture context (before any await)
+    if (settings.audio3Url && audio3Ref.current) {
+      audio3Ref.current.src = settings.audio3Url;
+      audio3Ref.current.currentTime = 0;
+      audio3Ref.current.volume = 1;
+      audio3Ref.current.play().catch(() => {});
+    }
+
+    setState('final_group');
+
     try {
-      // Send welcome email
       await supabase.functions.invoke('rendaextraligacao-storage', {
         body: {
           action: 'register_lead',
@@ -214,16 +224,8 @@ const RendaExtraLigacao = () => {
         }
       });
       trackLead('RendaExtraLigacao Lead');
-      setState('final_group');
-      if (settings.audio3Url && audio3Ref.current) {
-        audio3Ref.current.src = settings.audio3Url;
-        audio3Ref.current.currentTime = 0;
-        audio3Ref.current.volume = 1;
-        audio3Ref.current.play().catch(() => {});
-      }
     } catch (err) {
       console.error('Error submitting lead:', err);
-      setState('final_group');
     } finally {
       setIsSubmitting(false);
     }
