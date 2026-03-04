@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Check, X, MessageCircle, ExternalLink, Users } from 'lucide-react';
+import { Check, X, MessageCircle, ExternalLink, Users, Youtube } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackLead } from '@/lib/facebookTracking';
 import profileImage from '@/assets/mro-profile-call.jpg';
