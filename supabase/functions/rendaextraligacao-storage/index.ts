@@ -21,6 +21,8 @@ serve(async (req) => {
 
     const BUCKET = "user-data";
     const FILE_PATH = "rendaextraligacao/settings.json";
+    const LEADS_PATH = "rendaextraligacao/leads.json";
+    const STATS_PATH = "rendaextraligacao/stats.json";
 
     if (action === "load") {
       const { data, error } = await supabase.storage
@@ -64,9 +66,28 @@ serve(async (req) => {
       );
     }
 
+    if (action === "track_no_notebook") {
+      let stats = { no_notebook_count: 0 };
+      try {
+        const { data: statsData } = await supabase.storage.from(BUCKET).download(STATS_PATH);
+        if (statsData) {
+          const text = await statsData.text();
+          stats = JSON.parse(text);
+        }
+      } catch (_) {}
+
+      stats.no_notebook_count = (stats.no_notebook_count || 0) + 1;
+
+      const blob = new Blob([JSON.stringify(stats)], { type: "application/json" });
+      await supabase.storage.from(BUCKET).upload(STATS_PATH, blob, { upsert: true, contentType: "application/json" });
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "register_lead") {
-      // Save lead to storage
-      const LEADS_PATH = "rendaextraligacao/leads.json";
       let existingLeads: any[] = [];
       
       try {
@@ -85,45 +106,10 @@ serve(async (req) => {
       const leadsBlob = new Blob([JSON.stringify(existingLeads)], { type: "application/json" });
       await supabase.storage.from(BUCKET).upload(LEADS_PATH, leadsBlob, { upsert: true, contentType: "application/json" });
 
-      // Send email to the lead
+      // Send email
       try {
         const smtpPassword = Deno.env.get("SMTP_PASSWORD");
         if (smtpPassword) {
-          // Use edge function to send email via SMTP
-          const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <div style="text-align: center; margin-bottom: 20px;">
-                <h1 style="color: #4ade80; margin: 0;">🎉 Bem-vindo(a), ${lead.nome}!</h1>
-              </div>
-              <div style="background: #f8f9fa; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
-                <h2 style="color: #333; margin-top: 0;">Vejo que você tem interesse!</h2>
-                <p style="color: #555; line-height: 1.6;">
-                  Ficamos muito felizes com seu interesse em nossa ferramenta com IA para Instagram. 
-                  Você está a um passo de transformar seus resultados!
-                </p>
-                <p style="color: #555; line-height: 1.6;">
-                  <strong>Participe da nossa Live exclusiva</strong> onde vamos mostrar na prática como a ferramenta 
-                  funciona e como você pode ter mais vendas, mais clientes e mais seguidores reais.
-                </p>
-              </div>
-              <div style="background: #25d366; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
-                <h3 style="color: #fff; margin-top: 0;">📱 Entre no grupo da Live</h3>
-                <p style="color: rgba(255,255,255,0.9); margin-bottom: 16px;">
-                  Clique no botão abaixo para entrar no grupo exclusivo:
-                </p>
-                <a href="https://chat.whatsapp.com/KIDNoL8cBlnFrHlifBqU7X" 
-                   style="display: inline-block; background: #fff; color: #25d366; font-weight: bold; 
-                          padding: 12px 32px; border-radius: 30px; text-decoration: none; font-size: 16px;">
-                  Entrar no Grupo
-                </a>
-              </div>
-              <div style="text-align: center; color: #999; font-size: 12px;">
-                <p>Equipe Gabriel MRO • Ferramenta com IA para Instagram</p>
-              </div>
-            </div>
-          `;
-
-          // Simple SMTP send via fetch to a mail API or log
           console.log(`[RendaExtraLigacao] Email would be sent to: ${lead.email}`);
           console.log(`[RendaExtraLigacao] Lead registered: ${JSON.stringify(lead)}`);
         }
@@ -133,6 +119,32 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "load_leads") {
+      let leads: any[] = [];
+      let stats = { no_notebook_count: 0 };
+
+      try {
+        const { data: leadsData } = await supabase.storage.from(BUCKET).download(LEADS_PATH);
+        if (leadsData) {
+          const text = await leadsData.text();
+          leads = JSON.parse(text);
+        }
+      } catch (_) {}
+
+      try {
+        const { data: statsData } = await supabase.storage.from(BUCKET).download(STATS_PATH);
+        if (statsData) {
+          const text = await statsData.text();
+          stats = JSON.parse(text);
+        }
+      } catch (_) {}
+
+      return new Response(
+        JSON.stringify({ success: true, leads, stats }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
