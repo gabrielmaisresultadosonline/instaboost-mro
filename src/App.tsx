@@ -79,6 +79,8 @@ import PoliticaDePrivacidadeIG from "./pages/PoliticaDePrivacidadeIG";
 import MRODirectMais from "./pages/MRODirectMais";
 import IAVendeMais from "./pages/IAVendeMais";
 import IAVendeMaisAdmin from "./pages/IAVendeMaisAdmin";
+import RendaExtraLigacao from "./pages/RendaExtraLigacao";
+import RendaExtraLigacaoAdmin from "./pages/RendaExtraLigacaoAdmin";
 
 const queryClient = new QueryClient();
 
@@ -166,6 +168,8 @@ const App = () => (
           <Route path="/mrodirectmais" element={<MRODirectMais />} />
           <Route path="/Iavendemais" element={<IAVendeMais />} />
           <Route path="/Iavendemais/admin" element={<IAVendeMaisAdmin />} />
+          <Route path="/rendaextraligacao" element={<RendaExtraLigacao />} />
+          <Route path="/rendaextraligacao/admin" element={<RendaExtraLigacaoAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
