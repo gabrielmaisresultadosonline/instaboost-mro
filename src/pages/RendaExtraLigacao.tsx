@@ -96,6 +96,13 @@ const RendaExtraLigacao = () => {
   };
 
   const handleReceiveCall = () => {
+    // Unlock audio elements on user gesture so they play instantly later
+    if (audioRef.current) {
+      audioRef.current.play().then(() => { audioRef.current!.pause(); audioRef.current!.currentTime = 0; }).catch(() => {});
+    }
+    if (audio3Ref.current) {
+      audio3Ref.current.play().then(() => { audio3Ref.current!.pause(); audio3Ref.current!.currentTime = 0; }).catch(() => {});
+    }
     const silentAudio = new Audio();
     silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
     silentAudio.play().catch(() => {});
@@ -136,7 +143,10 @@ const RendaExtraLigacao = () => {
     setState('connected_audio1');
     startCallTimer();
     if (audioRef.current) {
-      audioRef.current.src = settings.audio1Url;
+      // Audio is already preloaded with audio1Url src, just play
+      if (audioRef.current.src !== settings.audio1Url && !audioRef.current.src.includes(settings.audio1Url)) {
+        audioRef.current.src = settings.audio1Url;
+      }
       audioRef.current.currentTime = 0;
       audioRef.current.volume = 1;
       audioRef.current.play().catch(() => {});
