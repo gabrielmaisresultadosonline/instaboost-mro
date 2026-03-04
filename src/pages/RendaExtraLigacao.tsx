@@ -52,13 +52,16 @@ const RendaExtraLigacao = () => {
         if (!error && data?.success && data?.data) {
           const newSettings = { ...settings, ...data.data };
           setSettings(newSettings);
-          [newSettings.audio1Url, newSettings.audio2Url, newSettings.audio3Url, newSettings.ringtoneUrl].forEach(url => {
-            if (url) {
-              const a = new Audio();
-              a.preload = 'auto';
-              a.src = url;
-            }
-          });
+          // Preload audio1 directly into the ref so it's ready instantly
+          if (audioRef.current && newSettings.audio1Url) {
+            audioRef.current.src = newSettings.audio1Url;
+            audioRef.current.load();
+          }
+          // Preload audio3
+          if (audio3Ref.current && newSettings.audio3Url) {
+            audio3Ref.current.src = newSettings.audio3Url;
+            audio3Ref.current.load();
+          }
         }
       } catch (err) {
         console.error('[RendaExtraLigacao] Error loading settings:', err);
