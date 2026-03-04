@@ -161,6 +161,10 @@ const RendaExtraLigacao = () => {
         audioRef.current.play().catch(() => {});
       }
     } else {
+      // Track no-notebook rejection
+      supabase.functions.invoke('rendaextraligacao-storage', {
+        body: { action: 'track_no_notebook' }
+      }).catch(() => {});
       setState('rejected_notebook');
     }
   };
