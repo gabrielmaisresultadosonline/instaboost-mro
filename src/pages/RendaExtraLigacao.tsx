@@ -255,6 +255,10 @@ const RendaExtraLigacao = () => {
           90% { opacity: 0.14; }
           100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
         }
+        @keyframes aprendaPulse {
+          0%, 100% { transform: scale(1); text-shadow: 0 0 8px rgba(74,222,128,0.6); }
+          50% { transform: scale(1.08); text-shadow: 0 0 20px rgba(74,222,128,0.9), 0 0 40px rgba(74,222,128,0.4); }
+        }
       `}</style>
       {moneyEmojis}
       <video ref={ringtoneVideoRef} src={settings.ringtoneUrl || '/ringtone.mp4'} preload="auto" playsInline style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} />
@@ -267,6 +271,9 @@ const RendaExtraLigacao = () => {
           <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)' }} />
           <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 1rem', textAlign: 'center' }}>
             <img src={logoMro} alt="MRO" style={{ width: '8rem', height: 'auto', marginBottom: '0.75rem' }} />
+            <span style={{ color: '#4ade80', fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', animation: 'aprendaPulse 2s ease-in-out infinite', display: 'inline-block', marginBottom: '0.25rem' }}>
+              🎓 APRENDA GRÁTIS
+            </span>
             <h1 style={{ color: '#facc15', fontSize: '1.5rem', fontWeight: 900, lineHeight: 1.2, marginBottom: '0.5rem', maxWidth: '320px', textTransform: 'uppercase', textShadow: '0 2px 10px rgba(250, 204, 21, 0.3)' }}>
               Faça 5k mensal de renda extra com a MRO!
             </h1>
