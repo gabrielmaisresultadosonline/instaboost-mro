@@ -219,8 +219,44 @@ const RendaExtraLigacao = () => {
 
   const isConnected = state === 'connected_audio1' || state === 'connected_audio2';
 
+  // Money rain effect
+  const moneyEmojis = Array.from({ length: 18 }, (_, i) => {
+    const left = Math.random() * 100;
+    const delay = Math.random() * 6;
+    const duration = 4 + Math.random() * 4;
+    const size = 1.2 + Math.random() * 1.2;
+    const rotate = Math.random() * 360;
+    return (
+      <span
+        key={i}
+        style={{
+          position: 'fixed',
+          top: '-60px',
+          left: `${left}%`,
+          fontSize: `${size}rem`,
+          opacity: 0.14,
+          pointerEvents: 'none',
+          zIndex: 1,
+          animation: `moneyFall ${duration}s linear ${delay}s infinite`,
+          transform: `rotate(${rotate}deg)`,
+        }}
+      >
+        💵
+      </span>
+    );
+  });
+
   return (
     <>
+      <style>{`
+        @keyframes moneyFall {
+          0% { transform: translateY(-60px) rotate(0deg); opacity: 0.14; }
+          10% { opacity: 0.14; }
+          90% { opacity: 0.14; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+      `}</style>
+      {moneyEmojis}
       <video ref={ringtoneVideoRef} src={settings.ringtoneUrl || '/ringtone.mp4'} preload="auto" playsInline style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} />
       <audio ref={audioRef} onEnded={handleAudioEnded} preload="auto" playsInline />
       <audio ref={audio3Ref} preload="auto" playsInline />
