@@ -25,6 +25,7 @@ const RendaExtraLigacaoAdmin = () => {
     whatsappNumber: '5511999999999',
     whatsappMessage: 'Olá gostaria de saber mais sobre o sistema inovador!',
     profileUsername: '@iavendemais',
+    groupLink: 'https://chat.whatsapp.com/KIDNoL8cBlnFrHlifBqU7X',
   });
 
   const handleLogin = () => {
@@ -156,7 +157,7 @@ const RendaExtraLigacaoAdmin = () => {
             <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
               <h3 style={{ color: '#4ade80', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 1 - Após Atender</h3>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-                Primeiro áudio que toca depois que o usuário atende a ligação. Após terminar, aparece a primeira pergunta.
+                Primeiro áudio que toca depois que o usuário atende a ligação. Após terminar, aparece a pergunta do notebook.
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <Input value={settings.audio1Url} onChange={e => setSettings(prev => ({ ...prev, audio1Url: e.target.value }))} placeholder="URL do áudio 1" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', flex: 1, fontSize: '0.8rem' }} />
@@ -172,9 +173,9 @@ const RendaExtraLigacaoAdmin = () => {
 
             {/* Audio 2 */}
             <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <h3 style={{ color: '#eab308', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 2 - Após Confirmação</h3>
+              <h3 style={{ color: '#eab308', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 2 - Após Confirmar Notebook</h3>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-                Segundo áudio que toca após a segunda confirmação (SIM). Após terminar, aparece a tela de preços.
+                Segundo áudio que toca após o usuário confirmar que tem notebook. Após terminar, aparece a pergunta de CLT.
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <Input value={settings.audio2Url} onChange={e => setSettings(prev => ({ ...prev, audio2Url: e.target.value }))} placeholder="URL do áudio 2" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', flex: 1, fontSize: '0.8rem' }} />
@@ -190,9 +191,9 @@ const RendaExtraLigacaoAdmin = () => {
 
             {/* Audio 3 */}
             <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <h3 style={{ color: '#8b5cf6', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 3 - Tela do WhatsApp</h3>
+              <h3 style={{ color: '#8b5cf6', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>🔊 Áudio 3 - Tela do Grupo (opcional)</h3>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-                Áudio que toca automaticamente quando aparece o botão do WhatsApp (após selecionar preço).
+                Áudio que toca automaticamente quando aparece o botão do grupo (após formulário).
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <Input value={settings.audio3Url} onChange={e => setSettings(prev => ({ ...prev, audio3Url: e.target.value }))} placeholder="URL do áudio 3" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', flex: 1, fontSize: '0.8rem' }} />
@@ -206,20 +207,16 @@ const RendaExtraLigacaoAdmin = () => {
               </label>
             </div>
 
-            {/* WhatsApp Settings */}
+            {/* Group & Profile Settings */}
             <div style={{ backgroundColor: '#111', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <h3 style={{ color: '#25d366', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>💬 Configurações do WhatsApp</h3>
+              <h3 style={{ color: '#25d366', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>💬 Configurações do Grupo e Perfil</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '0.25rem', display: 'block' }}>Número WhatsApp (com DDI)</label>
-                  <Input value={settings.whatsappNumber} onChange={e => setSettings(prev => ({ ...prev, whatsappNumber: e.target.value }))} placeholder="5511999999999" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }} />
+                  <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '0.25rem', display: 'block' }}>Link do Grupo WhatsApp (Live)</label>
+                  <Input value={settings.groupLink} onChange={e => setSettings(prev => ({ ...prev, groupLink: e.target.value }))} placeholder="https://chat.whatsapp.com/..." style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }} />
                 </div>
                 <div>
-                  <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '0.25rem', display: 'block' }}>Mensagem automática</label>
-                  <Input value={settings.whatsappMessage} onChange={e => setSettings(prev => ({ ...prev, whatsappMessage: e.target.value }))} placeholder="Mensagem pré-definida" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }} />
-                </div>
-                <div>
-                  <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '0.25rem', display: 'block' }}>Username perfil</label>
+                  <label style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '0.25rem', display: 'block' }}>Username perfil (para rejeição)</label>
                   <Input value={settings.profileUsername} onChange={e => setSettings(prev => ({ ...prev, profileUsername: e.target.value }))} placeholder="@iavendemais" style={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }} />
                 </div>
               </div>
@@ -231,13 +228,15 @@ const RendaExtraLigacaoAdmin = () => {
               <ol style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', lineHeight: 1.8, paddingLeft: '1.25rem', margin: 0 }}>
                 <li>Usuário clica em "Receber chamada" → <strong style={{ color: '#f97316' }}>Ringtone</strong> toca</li>
                 <li>Clica "Aceitar" → <strong style={{ color: '#4ade80' }}>Áudio 1</strong> toca (chamada conectada)</li>
-                <li>Após áudio 1, aparece: "Você tem empresa? Vende produto? Presta serviço?"</li>
-                <li>Se <strong style={{ color: '#22c55e' }}>SIM</strong> → Pede confirmação</li>
-                <li>Se confirma <strong style={{ color: '#22c55e' }}>SIM</strong> → <strong style={{ color: '#eab308' }}>Áudio 2</strong> toca (chamada conectada)</li>
-                <li>Após áudio 2, aparece pergunta de preços (R$1.000 / R$12.000 / R$5.000)</li>
-                <li>Após selecionar preço → <strong style={{ color: '#8b5cf6' }}>Áudio 3</strong> toca automaticamente + botão WhatsApp</li>
-                <li>Clica no WhatsApp → Redireciona com mensagem pré-definida</li>
-                <li>Se <strong style={{ color: '#ef4444' }}>NÃO</strong> → Mensagem de rejeição</li>
+                <li>Após áudio 1, aparece: <strong style={{ color: '#facc15' }}>"Você tem notebook/computador/MacBook?"</strong></li>
+                <li>Se <strong style={{ color: '#ef4444' }}>NÃO</strong> → Mensagem: precisa ter notebook + seguir no Instagram</li>
+                <li>Se <strong style={{ color: '#22c55e' }}>SIM</strong> → <strong style={{ color: '#eab308' }}>Áudio 2</strong> toca (chamada conectada)</li>
+                <li>Após áudio 2 → Pergunta: <strong style={{ color: '#3b82f6' }}>"Você é CLT?"</strong></li>
+                <li>Se <strong style={{ color: '#22c55e' }}>SIM CLT</strong> → Pergunta média salarial (faixas)</li>
+                <li>Se <strong style={{ color: '#3b82f6' }}>NÃO CLT</strong> → Vai direto pro formulário</li>
+                <li>Após selecionar salário → <strong style={{ color: '#facc15' }}>Formulário de cadastro</strong> (nome, email, WhatsApp)</li>
+                <li>Após preencher → <strong style={{ color: '#8b5cf6' }}>Áudio 3</strong> toca + botão do <strong style={{ color: '#25d366' }}>Grupo da Live</strong></li>
+                <li>Lead recebe email profissional com detalhes da live</li>
               </ol>
             </div>
 
