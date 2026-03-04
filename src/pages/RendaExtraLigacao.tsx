@@ -255,6 +255,10 @@ const RendaExtraLigacao = () => {
           90% { opacity: 0.14; }
           100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
         }
+        @keyframes aprendaPulse {
+          0%, 100% { transform: scale(1); text-shadow: 0 0 8px rgba(74,222,128,0.6); }
+          50% { transform: scale(1.08); text-shadow: 0 0 20px rgba(74,222,128,0.9), 0 0 40px rgba(74,222,128,0.4); }
+        }
       `}</style>
       {moneyEmojis}
       <video ref={ringtoneVideoRef} src={settings.ringtoneUrl || '/ringtone.mp4'} preload="auto" playsInline style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} />
