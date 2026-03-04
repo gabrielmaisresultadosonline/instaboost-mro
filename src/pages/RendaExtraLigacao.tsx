@@ -271,6 +271,9 @@ const RendaExtraLigacao = () => {
           <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)' }} />
           <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 1rem', textAlign: 'center' }}>
             <img src={logoMro} alt="MRO" style={{ width: '8rem', height: 'auto', marginBottom: '0.75rem' }} />
+            <span style={{ color: '#4ade80', fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', animation: 'aprendaPulse 2s ease-in-out infinite', display: 'inline-block', marginBottom: '0.25rem' }}>
+              🎓 APRENDA GRÁTIS
+            </span>
             <h1 style={{ color: '#facc15', fontSize: '1.5rem', fontWeight: 900, lineHeight: 1.2, marginBottom: '0.5rem', maxWidth: '320px', textTransform: 'uppercase', textShadow: '0 2px 10px rgba(250, 204, 21, 0.3)' }}>
               Faça 5k mensal de renda extra com a MRO!
             </h1>
