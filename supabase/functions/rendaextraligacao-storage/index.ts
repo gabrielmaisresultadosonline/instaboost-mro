@@ -86,7 +86,7 @@ const sendEmailViaSMTP = async (to: string, nome: string, groupLink: string) => 
     await client.send({
       from: "MRO Renda Extra <suporte@maisresultadosonline.com.br>",
       to: to,
-      subject: "Parabens! Seu acesso ao Grupo da Live foi liberado - MRO",
+      subject: "LIVE GRATIS - Faca 5k mensal com a MRO! Participe agora",
       content: "Seu acesso foi liberado! Entre no grupo: " + groupLink,
       html: htmlContent,
     });
