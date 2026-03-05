@@ -279,7 +279,7 @@ const RendaExtraLigacao = () => {
           50% { transform: scale(1.08); text-shadow: 0 0 20px rgba(74,222,128,0.9), 0 0 40px rgba(74,222,128,0.4); }
         }
       `}</style>
-      {moneyEmojis}
+      {state === 'landing' && moneyEmojis}
       <video ref={ringtoneVideoRef} src={settings.ringtoneUrl || '/ringtone.mp4'} preload="auto" playsInline style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} />
       <audio ref={audioRef} onEnded={handleAudioEnded} preload="auto" playsInline />
       <audio ref={audio3Ref} preload="auto" playsInline />
