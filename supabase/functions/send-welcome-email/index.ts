@@ -13,7 +13,7 @@ const logStep = (step: string, details?: any) => {
 };
 
 const DEFAULT_WHATSAPP_GROUP = 'https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi';
-const SUPPORT_WHATSAPP = 'https://wa.me/5551920365400';
+const SUPPORT_WHATSAPP = 'https://maisresultadosonline.com.br/whatsapp';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
