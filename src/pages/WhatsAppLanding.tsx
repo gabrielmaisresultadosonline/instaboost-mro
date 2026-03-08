@@ -1,14 +1,35 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, CheckCircle } from "lucide-react";
+import { MessageCircle, CheckCircle, Headset, Sparkles, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackLead } from "@/lib/facebookTracking";
+
+const OPTIONS = [
+  {
+    icon: Sparkles,
+    label: "Quero saber sobre o Sistema Inovador para Instagram",
+    message: "Ola, vim pelo site e gostaria de saber mais sobre o sistema inovador para Instagram!",
+    color: "#FFD700",
+  },
+  {
+    icon: Headset,
+    label: "Preciso de Suporte",
+    message: "Ola, estou no site e gostaria de suporte, podem me ajudar?",
+    color: "#25D366",
+  },
+  {
+    icon: HelpCircle,
+    label: "Tenho outras dúvidas",
+    message: "Ola, vim pelo site e gostaria de tirar algumas duvidas!",
+    color: "#3B82F6",
+  },
+];
 
 const WhatsAppLanding = () => {
   const [settings, setSettings] = useState({
     whatsapp_number: "",
-    whatsapp_message: "Gostaria de saber sobre o sistema inovador!",
+    whatsapp_message: "",
     page_title: "Gabriel está disponível agora",
-    page_subtitle: "Gostaria de saber sobre o sistema inovador?",
+    page_subtitle: "Sobre o que gostaria de falar?",
     button_text: "FALAR COM GABRIEL AGORA",
   });
   const [loading, setLoading] = useState(true);
@@ -35,10 +56,10 @@ const WhatsAppLanding = () => {
     load();
   }, []);
 
-  const handleClick = () => {
-    trackLead("WhatsApp Landing - Falar com Gabriel");
+  const handleOptionClick = (option: typeof OPTIONS[0]) => {
+    trackLead(`WhatsApp Landing - ${option.label}`);
     const phone = settings.whatsapp_number.replace(/\D/g, "");
-    const msg = encodeURIComponent(settings.whatsapp_message);
+    const msg = encodeURIComponent(option.message);
     window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
   };
 
@@ -92,33 +113,33 @@ const WhatsAppLanding = () => {
           </p>
         </div>
 
-        {/* Benefits */}
-        <div className="space-y-2 sm:space-y-3 text-left mx-auto max-w-xs">
-          {[
-            "Atendimento direto e personalizado",
-            "Tire todas as suas dúvidas",
-            "Sem compromisso",
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-              <span className="text-gray-300 text-sm">{item}</span>
-            </div>
-          ))}
+        {/* Option Buttons */}
+        <div className="space-y-3 sm:space-y-4">
+          {OPTIONS.map((option, i) => {
+            const Icon = option.icon;
+            return (
+              <button
+                key={i}
+                onClick={() => handleOptionClick(option)}
+                className="w-full py-4 px-5 rounded-2xl font-semibold text-sm sm:text-base text-white flex items-center gap-4 transition-all duration-300 hover:scale-[1.03] active:scale-95 text-left border border-white/10 hover:border-white/20"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)",
+                }}
+              >
+                <div
+                  className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: option.color }}
+                >
+                  <Icon className="w-5 h-5 text-black" />
+                </div>
+                <span>{option.label}</span>
+                <MessageCircle className="w-5 h-5 text-green-400 ml-auto flex-shrink-0" />
+              </button>
+            );
+          })}
         </div>
 
-        {/* CTA Button */}
-        <button
-          onClick={handleClick}
-          className="w-full py-4 px-6 rounded-2xl font-bold text-base sm:text-lg text-white flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_25px_rgba(37,211,102,0.4)]"
-          style={{
-            background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
-          }}
-        >
-          <MessageCircle className="w-6 h-6 flex-shrink-0" />
-          {settings.button_text}
-        </button>
-
-        <p className="text-gray-500 text-xs">
+        <p className="text-gray-500 text-xs pt-2">
           Você será redirecionado para o WhatsApp
         </p>
       </div>
