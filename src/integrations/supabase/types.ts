@@ -2550,6 +2550,45 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_page_settings: {
+        Row: {
+          admin_email: string
+          admin_password: string
+          button_text: string
+          created_at: string
+          id: string
+          page_subtitle: string
+          page_title: string
+          updated_at: string
+          whatsapp_message: string
+          whatsapp_number: string
+        }
+        Insert: {
+          admin_email?: string
+          admin_password?: string
+          button_text?: string
+          created_at?: string
+          id?: string
+          page_subtitle?: string
+          page_title?: string
+          updated_at?: string
+          whatsapp_message?: string
+          whatsapp_number?: string
+        }
+        Update: {
+          admin_email?: string
+          admin_password?: string
+          button_text?: string
+          created_at?: string
+          id?: string
+          page_subtitle?: string
+          page_title?: string
+          updated_at?: string
+          whatsapp_message?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
       zapmro_orders: {
         Row: {
           amount: number
