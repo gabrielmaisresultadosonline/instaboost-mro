@@ -2550,6 +2550,42 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_page_options: {
+        Row: {
+          color: string
+          created_at: string
+          icon_type: string
+          id: string
+          is_active: boolean
+          label: string
+          message: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon_type?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          message: string
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon_type?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          message?: string
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       whatsapp_page_settings: {
         Row: {
           admin_email: string
