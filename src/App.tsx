@@ -50,6 +50,8 @@ import AdsNewsObrigado from "./pages/AdsNewsObrigado";
 import AdsNewsObrigadoSaldo from "./pages/AdsNewsObrigadoSaldo";
 import PoliticaCancelamento from "./pages/PoliticaCancelamento";
 import WhatsAppConnect from "./pages/WhatsAppConnect";
+import WhatsAppLanding from "./pages/WhatsAppLanding";
+import WhatsAppAdmin from "./pages/WhatsAppAdmin";
 import BemVindoMembroVip from "./pages/BemVindoMembroVip";
 import VendasCompletaPro from "./pages/VendasCompletaPro";
 import TesteGratis from "./pages/TesteGratis";
@@ -139,7 +141,9 @@ const App = () => (
           <Route path="/anuncios/obrigado" element={<AdsNewsObrigado />} />
           <Route path="/anuncios/obrigado-saldo" element={<AdsNewsObrigadoSaldo />} />
           <Route path="/politica-de-cancelamento" element={<PoliticaCancelamento />} />
-          <Route path="/whatsapp" element={<WhatsAppConnect />} />
+          <Route path="/whatsapp-connect" element={<WhatsAppConnect />} />
+          <Route path="/whatsapp" element={<WhatsAppLanding />} />
+          <Route path="/whatsapp/admin" element={<WhatsAppAdmin />} />
           <Route path="/seja-bem-vindo-membro-vip" element={<BemVindoMembroVip />} />
           <Route path="/instagram-nova-pro" element={<VendasCompletaPro />} />
           <Route path="/testegratis" element={<TesteGratis />} />
