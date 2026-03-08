@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { MessageCircle, Phone, CheckCircle } from "lucide-react";
+import { MessageCircle, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { trackPageView, trackLead } from "@/lib/facebookTracking";
 
 const WhatsAppLanding = () => {
   const [settings, setSettings] = useState({
@@ -13,6 +14,7 @@ const WhatsAppLanding = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    trackPageView("WhatsApp Landing");
     const load = async () => {
       const { data } = await supabase
         .from("whatsapp_page_settings")
@@ -34,6 +36,7 @@ const WhatsAppLanding = () => {
   }, []);
 
   const handleClick = () => {
+    trackLead("WhatsApp Landing - Falar com Gabriel");
     const phone = settings.whatsapp_number.replace(/\D/g, "");
     const msg = encodeURIComponent(settings.whatsapp_message);
     window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
@@ -48,8 +51,17 @@ const WhatsAppLanding = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex flex-col items-center px-4 py-6 sm:py-10">
+      {/* Logo MRO no topo */}
+      <div className="w-full flex justify-center mb-6 sm:mb-10">
+        <img
+          src="/logo-mro-4.png"
+          alt="MRO Logo"
+          className="h-10 sm:h-14 object-contain"
+        />
+      </div>
+
+      <div className="max-w-md w-full text-center space-y-6 sm:space-y-8 flex-1 flex flex-col justify-center">
         {/* Online indicator */}
         <div className="flex items-center justify-center gap-2">
           <span className="relative flex h-3 w-3">
@@ -61,7 +73,7 @@ const WhatsAppLanding = () => {
 
         {/* Avatar */}
         <div className="flex justify-center">
-          <div className="w-28 h-28 rounded-full border-4 border-green-500 overflow-hidden shadow-[0_0_30px_rgba(37,211,102,0.3)]">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-green-500 overflow-hidden shadow-[0_0_30px_rgba(37,211,102,0.3)]">
             <img
               src="/logo-mro-4.png"
               alt="Gabriel"
@@ -71,17 +83,17 @@ const WhatsAppLanding = () => {
         </div>
 
         {/* Title */}
-        <div className="space-y-3">
-          <h1 className="text-2xl md:text-3xl font-bold text-white">
+        <div className="space-y-2 sm:space-y-3">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight">
             {settings.page_title}
           </h1>
-          <p className="text-gray-300 text-lg">
+          <p className="text-gray-300 text-base sm:text-lg">
             {settings.page_subtitle}
           </p>
         </div>
 
         {/* Benefits */}
-        <div className="space-y-3 text-left mx-auto max-w-xs">
+        <div className="space-y-2 sm:space-y-3 text-left mx-auto max-w-xs">
           {[
             "Atendimento direto e personalizado",
             "Tire todas as suas dúvidas",
@@ -97,12 +109,12 @@ const WhatsAppLanding = () => {
         {/* CTA Button */}
         <button
           onClick={handleClick}
-          className="w-full py-4 px-6 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_25px_rgba(37,211,102,0.4)]"
+          className="w-full py-4 px-6 rounded-2xl font-bold text-base sm:text-lg text-white flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_25px_rgba(37,211,102,0.4)]"
           style={{
             background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
           }}
         >
-          <MessageCircle className="w-6 h-6" />
+          <MessageCircle className="w-6 h-6 flex-shrink-0" />
           {settings.button_text}
         </button>
 
