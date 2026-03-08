@@ -162,7 +162,13 @@ async function sendAccessEmail(
 </td>
 </tr>
 </table>
-<p style="color:#666;font-size:13px;text-align:center;margin:20px 0 0 0;">Dúvidas? WhatsApp: <strong>+55 51 9203-6540</strong></p>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:15px;">
+<tr>
+<td align="center">
+<a href="https://maisresultadosonline.com.br/whatsapp" style="display:inline-block;background:#128C7E;color:#fff;padding:14px 30px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;">📱 Falar no WhatsApp com Suporte</a>
+</td>
+</tr>
+</table>
 </td>
 </tr>
 <tr>
