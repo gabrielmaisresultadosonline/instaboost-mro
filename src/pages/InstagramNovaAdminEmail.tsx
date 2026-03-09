@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,10 @@ import {
   Clock,
   Users,
   Filter,
-  AlertTriangle
+  AlertTriangle,
+  History,
+  XCircle,
+  Trash2
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
@@ -44,6 +47,17 @@ interface EmailTemplate {
   name: string;
   subject: string;
   body: string;
+}
+
+interface EmailLog {
+  id: string;
+  recipient_email: string;
+  recipient_name: string | null;
+  subject: string;
+  body: string;
+  status: string;
+  error_message: string | null;
+  sent_at: string;
 }
 
 const DEFAULT_TEMPLATES: EmailTemplate[] = [
