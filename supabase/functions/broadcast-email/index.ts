@@ -34,6 +34,18 @@ serve(async (req) => {
       );
     }
 
+    // Replace WhatsApp button placeholder with actual HTML button
+    const whatsappButtonHtml = `
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="https://maisresultadosonline.com.br/whatsapp" 
+           style="display: inline-block; background-color: #25D366; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 32px; border-radius: 8px; letter-spacing: 0.5px;">
+          📱 Falar no WhatsApp
+        </a>
+      </div>
+    `;
+
+    const processedBody = body.replace(/\[BOTAO_WHATSAPP\]/g, whatsappButtonHtml);
+
     // Format body with proper HTML
     const htmlBody = `
 <!DOCTYPE html>
@@ -51,7 +63,7 @@ serve(async (req) => {
     ${userName ? `<p style="color: #333; font-size: 16px;">Olá, <strong>${userName}</strong>!</p>` : ''}
     
     <div style="color: #333; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">
-${body}
+${processedBody}
     </div>
     
     <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />

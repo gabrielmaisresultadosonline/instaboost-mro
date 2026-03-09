@@ -85,14 +85,16 @@ Equipe MRO`
   {
     id: "support",
     name: "Mudança de Suporte",
-    subject: "📞 Novo Número de Suporte - MRO Instagram",
+    subject: "📞 Novo Número de Suporte - MRO - Mais Resultados Online",
     body: `Olá!
 
 Informamos que nosso número de suporte foi atualizado.
 
-📱 Novo WhatsApp de Suporte: (11) 99999-9999
-
 O número anterior será desativado em breve, então salve nosso novo contato!
+
+Clique no botão abaixo para falar conosco no WhatsApp:
+
+[BOTAO_WHATSAPP]
 
 Estamos à disposição para ajudá-lo.
 
