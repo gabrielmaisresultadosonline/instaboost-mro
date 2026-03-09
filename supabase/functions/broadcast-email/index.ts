@@ -108,40 +108,53 @@ ${processedBody}
     };
 
     // Read greeting
-    await read();
+    const greeting = await read();
+    console.log(`SMTP Greeting: ${greeting.trim()}`);
 
     // EHLO
     await write(`EHLO maisresultadosonline.com.br`);
-    await read();
+    const ehloResp = await read();
+    console.log(`SMTP EHLO: ${ehloResp.trim()}`);
 
     // AUTH LOGIN
     await write("AUTH LOGIN");
-    await read();
+    const authPrompt = await read();
+    console.log(`SMTP AUTH: ${authPrompt.trim()}`);
 
     // Username (base64)
     await write(btoa(SMTP_USER));
-    await read();
+    const userResp = await read();
+    console.log(`SMTP USER: ${userResp.trim()}`);
 
     // Password (base64)
     await write(btoa(SMTP_PASSWORD));
     const authResponse = await read();
+    console.log(`SMTP AUTH RESULT: ${authResponse.trim()}`);
 
     if (!authResponse.includes("235")) {
       conn.close();
-      throw new Error("SMTP authentication failed");
+      throw new Error(`SMTP authentication failed: ${authResponse.trim()}`);
     }
 
     // MAIL FROM
     await write(`MAIL FROM:<${SMTP_USER}>`);
-    await read();
+    const mailFromResp = await read();
+    console.log(`SMTP MAIL FROM: ${mailFromResp.trim()}`);
 
     // RCPT TO
     await write(`RCPT TO:<${to}>`);
-    await read();
+    const rcptResp = await read();
+    console.log(`SMTP RCPT TO: ${rcptResp.trim()}`);
+
+    if (!rcptResp.includes("250") && !rcptResp.includes("251")) {
+      conn.close();
+      throw new Error(`SMTP recipient rejected: ${rcptResp.trim()}`);
+    }
 
     // DATA
     await write("DATA");
-    await read();
+    const dataResp = await read();
+    console.log(`SMTP DATA: ${dataResp.trim()}`);
 
     // Email headers and body
     const emailContent = [
@@ -156,13 +169,19 @@ ${processedBody}
     ].join("\r\n");
 
     await write(emailContent);
-    await read();
+    const sendResp = await read();
+    console.log(`SMTP SEND RESULT: ${sendResp.trim()}`);
+
+    if (!sendResp.includes("250")) {
+      conn.close();
+      throw new Error(`SMTP send failed: ${sendResp.trim()}`);
+    }
 
     // QUIT
     await write("QUIT");
     conn.close();
 
-    console.log(`Email sent successfully to ${to}`);
+    console.log(`Email CONFIRMED sent to ${to}`);
 
     return new Response(
       JSON.stringify({ success: true, message: "Email sent" }),
