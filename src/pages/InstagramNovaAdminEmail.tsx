@@ -372,10 +372,30 @@ export default function InstagramNovaAdminEmail() {
         
         if (error) throw error;
         
+        // Salvar no histórico
+        await supabase.from("broadcast_email_logs").insert({
+          recipient_email: user.email,
+          recipient_name: user.name,
+          subject: emailSubject,
+          body: emailBody,
+          status: "sent"
+        });
+        
         successCount++;
         setSendLogs(prev => [...prev, `✅ ${user.email} - Enviado com sucesso`]);
       } catch (error) {
         console.error(`Error sending to ${user.email}:`, error);
+        
+        // Salvar erro no histórico
+        await supabase.from("broadcast_email_logs").insert({
+          recipient_email: user.email,
+          recipient_name: user.name,
+          subject: emailSubject,
+          body: emailBody,
+          status: "error",
+          error_message: error instanceof Error ? error.message : "Erro desconhecido"
+        });
+        
         errorCount++;
         setSendLogs(prev => [...prev, `❌ ${user.email} - Erro ao enviar`]);
       }
