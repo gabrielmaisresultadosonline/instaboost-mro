@@ -720,6 +720,107 @@ export default function InstagramNovaAdminEmail() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Histórico de emails enviados */}
+        <Card className="mt-6 bg-gray-800/80 border-gray-700">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-white flex items-center gap-2">
+                <History className="w-5 h-5 text-orange-400" />
+                Histórico de Envios ({emailHistory.length})
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadEmailHistory}
+                  disabled={loadingHistory}
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loadingHistory ? "animate-spin" : ""}`} />
+                  Atualizar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearEmailHistory}
+                  className="border-red-600 text-red-400 hover:bg-red-900/30"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Limpar
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[400px]" ref={historyRef}>
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+                </div>
+              ) : emailHistory.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <Mail className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum email enviado ainda</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {emailHistory.map(log => (
+                    <div
+                      key={log.id}
+                      className={`p-4 rounded-lg border ${
+                        log.status === "sent" 
+                          ? "bg-green-900/20 border-green-700/50" 
+                          : "bg-red-900/20 border-red-700/50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            {log.status === "sent" ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                            )}
+                            <span className="text-white font-medium truncate">{log.recipient_email}</span>
+                            {log.recipient_name && (
+                              <span className="text-gray-400 text-sm">({log.recipient_name})</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-300 mb-1">
+                            <strong>Assunto:</strong> {log.subject}
+                          </p>
+                          <p className="text-xs text-gray-400 line-clamp-2">
+                            {log.body.substring(0, 150)}...
+                          </p>
+                          {log.error_message && (
+                            <p className="text-xs text-red-400 mt-1">
+                              <AlertTriangle className="w-3 h-3 inline mr-1" />
+                              {log.error_message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <Badge 
+                            className={log.status === "sent" 
+                              ? "bg-green-500/20 text-green-300" 
+                              : "bg-red-500/20 text-red-300"
+                            }
+                          >
+                            {log.status === "sent" ? "Enviado" : "Erro"}
+                          </Badge>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {format(new Date(log.sent_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
