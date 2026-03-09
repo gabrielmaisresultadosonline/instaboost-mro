@@ -1,0 +1,625 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  Loader2, 
+  Lock, 
+  LogOut, 
+  Search, 
+  RefreshCw, 
+  Mail,
+  User,
+  Send,
+  CheckCircle2,
+  Clock,
+  Users,
+  Filter,
+  AlertTriangle
+} from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+
+const ADMIN_EMAIL = "mro@gmail.com";
+const ADMIN_PASSWORD = "Ga145523@";
+
+interface UserEmail {
+  id: string;
+  email: string;
+  name: string | null;
+  source: "mro_orders" | "created_accesses";
+  created_at: string;
+}
+
+interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+}
+
+const DEFAULT_TEMPLATES: EmailTemplate[] = [
+  {
+    id: "update",
+    name: "Aviso de Atualização",
+    subject: "🚀 Nova Atualização Disponível - MRO Instagram",
+    body: `Olá!
+
+Temos novidades importantes para você!
+
+Acabamos de lançar uma nova atualização da ferramenta MRO Instagram com melhorias significativas:
+
+✅ Maior velocidade de processamento
+✅ Novas funcionalidades
+✅ Correções de bugs
+
+Acesse sua conta e aproveite todas as melhorias!
+
+Qualquer dúvida, estamos à disposição.
+
+Abraços,
+Equipe MRO`
+  },
+  {
+    id: "support",
+    name: "Mudança de Suporte",
+    subject: "📞 Novo Número de Suporte - MRO Instagram",
+    body: `Olá!
+
+Informamos que nosso número de suporte foi atualizado.
+
+📱 Novo WhatsApp de Suporte: (11) 99999-9999
+
+O número anterior será desativado em breve, então salve nosso novo contato!
+
+Estamos à disposição para ajudá-lo.
+
+Abraços,
+Equipe MRO`
+  },
+  {
+    id: "custom",
+    name: "Mensagem Personalizada",
+    subject: "",
+    body: ""
+  }
+];
+
+export default function InstagramNovaAdminEmail() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  
+  const [users, setUsers] = useState<UserEmail[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "mro_orders" | "created_accesses">("all");
+  
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
+  
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("update");
+  const [emailSubject, setEmailSubject] = useState(DEFAULT_TEMPLATES[0].subject);
+  const [emailBody, setEmailBody] = useState(DEFAULT_TEMPLATES[0].body);
+  
+  const [sending, setSending] = useState(false);
+  const [sendProgress, setSendProgress] = useState({ sent: 0, total: 0, current: "" });
+  const [sendLogs, setSendLogs] = useState<string[]>([]);
+  
+  // Min/Max delay em segundos
+  const [minDelay, setMinDelay] = useState(5);
+  const [maxDelay, setMaxDelay] = useState(15);
+
+  useEffect(() => {
+    const auth = localStorage.getItem("mro_admin_email_auth");
+    if (auth === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadUsers();
+    }
+  }, [isAuthenticated]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    
+    await new Promise(r => setTimeout(r, 500));
+    
+    if (loginEmail === ADMIN_EMAIL && loginPassword === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      localStorage.setItem("mro_admin_email_auth", "true");
+      toast.success("Login realizado com sucesso!");
+    } else {
+      toast.error("Email ou senha incorretos");
+    }
+    setLoginLoading(false);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("mro_admin_email_auth");
+  };
+
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      // Carregar usuários de mro_orders (pagos/completados)
+      const { data: mroOrders, error: mroError } = await supabase
+        .from("mro_orders")
+        .select("id, email, username, created_at")
+        .in("status", ["paid", "completed"]);
+      
+      if (mroError) throw mroError;
+      
+      // Carregar usuários de created_accesses
+      const { data: createdAccesses, error: accessError } = await supabase
+        .from("created_accesses")
+        .select("id, customer_email, customer_name, created_at");
+      
+      if (accessError) throw accessError;
+      
+      // Combinar e remover duplicatas por email
+      const emailMap = new Map<string, UserEmail>();
+      
+      mroOrders?.forEach(order => {
+        const email = order.email.toLowerCase();
+        if (!emailMap.has(email)) {
+          emailMap.set(email, {
+            id: order.id,
+            email: order.email,
+            name: order.username,
+            source: "mro_orders",
+            created_at: order.created_at
+          });
+        }
+      });
+      
+      createdAccesses?.forEach(access => {
+        const email = access.customer_email.toLowerCase();
+        if (!emailMap.has(email)) {
+          emailMap.set(email, {
+            id: access.id,
+            email: access.customer_email,
+            name: access.customer_name,
+            source: "created_accesses",
+            created_at: access.created_at
+          });
+        }
+      });
+      
+      const allUsers = Array.from(emailMap.values()).sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      
+      setUsers(allUsers);
+      toast.success(`${allUsers.length} usuários carregados`);
+    } catch (error) {
+      console.error("Error loading users:", error);
+      toast.error("Erro ao carregar usuários");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    const template = DEFAULT_TEMPLATES.find(t => t.id === templateId);
+    if (template) {
+      setEmailSubject(template.subject);
+      setEmailBody(template.body);
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.name?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+    const matchesSource = sourceFilter === "all" || user.source === sourceFilter;
+    return matchesSearch && matchesSource;
+  });
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      setSelectedUsers(new Set(filteredUsers.map(u => u.id)));
+    } else {
+      setSelectedUsers(new Set());
+    }
+  };
+
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    const newSelected = new Set(selectedUsers);
+    if (checked) {
+      newSelected.add(userId);
+    } else {
+      newSelected.delete(userId);
+    }
+    setSelectedUsers(newSelected);
+    setSelectAll(newSelected.size === filteredUsers.length);
+  };
+
+  const getRandomDelay = () => {
+    return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+  };
+
+  const sleep = (seconds: number) => new Promise(r => setTimeout(r, seconds * 1000));
+
+  const sendEmails = async () => {
+    if (selectedUsers.size === 0) {
+      toast.error("Selecione pelo menos um usuário");
+      return;
+    }
+    
+    if (!emailSubject.trim() || !emailBody.trim()) {
+      toast.error("Preencha o assunto e corpo do email");
+      return;
+    }
+    
+    setSending(true);
+    setSendLogs([]);
+    const usersToSend = filteredUsers.filter(u => selectedUsers.has(u.id));
+    setSendProgress({ sent: 0, total: usersToSend.length, current: "" });
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (let i = 0; i < usersToSend.length; i++) {
+      const user = usersToSend[i];
+      setSendProgress({ sent: i, total: usersToSend.length, current: user.email });
+      
+      try {
+        const { error } = await supabase.functions.invoke("broadcast-email", {
+          body: {
+            to: user.email,
+            subject: emailSubject,
+            body: emailBody,
+            userName: user.name || undefined
+          }
+        });
+        
+        if (error) throw error;
+        
+        successCount++;
+        setSendLogs(prev => [...prev, `✅ ${user.email} - Enviado com sucesso`]);
+      } catch (error) {
+        console.error(`Error sending to ${user.email}:`, error);
+        errorCount++;
+        setSendLogs(prev => [...prev, `❌ ${user.email} - Erro ao enviar`]);
+      }
+      
+      // Aguardar delay aleatório antes do próximo (exceto o último)
+      if (i < usersToSend.length - 1) {
+        const delay = getRandomDelay();
+        setSendLogs(prev => [...prev, `⏳ Aguardando ${delay}s antes do próximo...`]);
+        await sleep(delay);
+      }
+    }
+    
+    setSendProgress({ sent: usersToSend.length, total: usersToSend.length, current: "" });
+    setSending(false);
+    
+    if (errorCount === 0) {
+      toast.success(`Todos os ${successCount} emails foram enviados!`);
+    } else {
+      toast.warning(`${successCount} enviados, ${errorCount} com erro`);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-gray-800/80 border-gray-700 backdrop-blur">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mb-4">
+              <Lock className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-white text-2xl">Broadcast Email</CardTitle>
+            <p className="text-gray-400">Acesso restrito</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                  required
+                />
+              </div>
+              <div>
+                <Input
+                  type="password"
+                  placeholder="Senha"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                disabled={loginLoading}
+              >
+                {loginLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                Entrar
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Mail className="w-6 h-6 text-purple-400" />
+              Broadcast Email
+            </h1>
+            <p className="text-gray-400 text-sm">Envie avisos para seus clientes</p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadUsers}
+              disabled={loading}
+              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Lista de usuários */}
+          <Card className="bg-gray-800/80 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-400" />
+                Usuários ({filteredUsers.length})
+                {selectedUsers.size > 0 && (
+                  <Badge className="bg-purple-500/20 text-purple-300 ml-2">
+                    {selectedUsers.size} selecionados
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Filtros */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Buscar por email ou nome..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-gray-700/50 border-gray-600 text-white"
+                  />
+                </div>
+                <select
+                  value={sourceFilter}
+                  onChange={(e) => setSourceFilter(e.target.value as typeof sourceFilter)}
+                  className="px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-md text-white"
+                >
+                  <option value="all">Todas as fontes</option>
+                  <option value="mro_orders">Instagram Nova</option>
+                  <option value="created_accesses">Admin Usuário</option>
+                </select>
+              </div>
+
+              {/* Select All */}
+              <div className="flex items-center gap-2 p-2 bg-gray-700/30 rounded-lg">
+                <Checkbox
+                  id="selectAll"
+                  checked={selectAll}
+                  onCheckedChange={handleSelectAll}
+                />
+                <label htmlFor="selectAll" className="text-sm text-gray-300 cursor-pointer">
+                  Selecionar todos ({filteredUsers.length})
+                </label>
+              </div>
+
+              {/* Lista */}
+              <ScrollArea className="h-[400px] pr-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+                  </div>
+                ) : filteredUsers.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum usuário encontrado</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredUsers.map(user => (
+                      <div
+                        key={user.id}
+                        className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                          selectedUsers.has(user.id) 
+                            ? "bg-purple-500/20 border border-purple-500/30" 
+                            : "bg-gray-700/30 hover:bg-gray-700/50"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={selectedUsers.has(user.id)}
+                          onCheckedChange={(checked) => handleSelectUser(user.id, !!checked)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-white text-sm truncate">{user.email}</p>
+                            <Badge 
+                              variant="outline" 
+                              className={user.source === "mro_orders" 
+                                ? "border-blue-500/50 text-blue-400 text-xs" 
+                                : "border-green-500/50 text-green-400 text-xs"
+                              }
+                            >
+                              {user.source === "mro_orders" ? "MRO" : "Admin"}
+                            </Badge>
+                          </div>
+                          {user.name && (
+                            <p className="text-gray-400 text-xs">{user.name}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Composição do email */}
+          <Card className="bg-gray-800/80 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Send className="w-5 h-5 text-green-400" />
+                Compor Email
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Templates */}
+              <div className="space-y-2">
+                <Label className="text-gray-300">Template</Label>
+                <Tabs value={selectedTemplate} onValueChange={handleTemplateChange}>
+                  <TabsList className="grid grid-cols-3 bg-gray-700/50">
+                    {DEFAULT_TEMPLATES.map(template => (
+                      <TabsTrigger 
+                        key={template.id} 
+                        value={template.id}
+                        className="data-[state=active]:bg-purple-500"
+                      >
+                        {template.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              {/* Assunto */}
+              <div className="space-y-2">
+                <Label className="text-gray-300">Assunto</Label>
+                <Input
+                  placeholder="Assunto do email"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </div>
+
+              {/* Corpo */}
+              <div className="space-y-2">
+                <Label className="text-gray-300">Mensagem</Label>
+                <Textarea
+                  placeholder="Digite sua mensagem..."
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  className="bg-gray-700/50 border-gray-600 text-white min-h-[200px]"
+                />
+              </div>
+
+              {/* Configuração de delay */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-gray-300">Delay mínimo (s)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={minDelay}
+                    onChange={(e) => setMinDelay(Number(e.target.value))}
+                    className="bg-gray-700/50 border-gray-600 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-gray-300">Delay máximo (s)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={maxDelay}
+                    onChange={(e) => setMaxDelay(Number(e.target.value))}
+                    className="bg-gray-700/50 border-gray-600 text-white"
+                  />
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-400">
+                <Clock className="w-3 h-3 inline mr-1" />
+                Delay aleatório entre {minDelay}s e {maxDelay}s entre cada envio
+              </p>
+
+              {/* Botão enviar */}
+              <Button
+                onClick={sendEmails}
+                disabled={sending || selectedUsers.size === 0}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+              >
+                {sending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Enviando {sendProgress.sent}/{sendProgress.total}...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Enviar para {selectedUsers.size} usuário(s)
+                  </>
+                )}
+              </Button>
+
+              {/* Progress/Logs */}
+              {sendLogs.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-gray-300">Log de envio</Label>
+                  <ScrollArea className="h-[150px] bg-gray-900/50 rounded-lg p-3">
+                    <div className="space-y-1 font-mono text-xs">
+                      {sendLogs.map((log, i) => (
+                        <p key={i} className={
+                          log.startsWith("✅") ? "text-green-400" :
+                          log.startsWith("❌") ? "text-red-400" :
+                          "text-yellow-400"
+                        }>
+                          {log}
+                        </p>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
