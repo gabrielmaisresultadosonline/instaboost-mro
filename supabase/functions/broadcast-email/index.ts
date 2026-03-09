@@ -23,7 +23,7 @@ serve(async (req) => {
 
     const SMTP_HOST = "smtp.hostinger.com";
     const SMTP_PORT = 465;
-    const SMTP_USER = "mro@maisresultadosonline.com.br";
+    const SMTP_USER = "suporte@maisresultadosonline.com.br";
     const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD");
 
     if (!SMTP_PASSWORD) {
