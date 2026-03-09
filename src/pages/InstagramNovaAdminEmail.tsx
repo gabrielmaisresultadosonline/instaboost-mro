@@ -132,6 +132,11 @@ export default function InstagramNovaAdminEmail() {
   // Min/Max delay em segundos
   const [minDelay, setMinDelay] = useState(5);
   const [maxDelay, setMaxDelay] = useState(15);
+  
+  // Histórico de emails enviados
+  const [emailHistory, setEmailHistory] = useState<EmailLog[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const auth = localStorage.getItem("mro_admin_email_auth");
