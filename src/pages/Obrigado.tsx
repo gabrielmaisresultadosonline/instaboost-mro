@@ -37,7 +37,7 @@ const Obrigado = () => {
       `Olá! Acabei de comprar o MRO I.A + Automação!\n\nNome: ${nome.trim()}\nEmail: ${email.trim()}`
     );
     
-    window.open(`https://wa.me/555192036540?text=${message}`, "_blank");
+    window.open(`https://wa.me/5551996737695?text=${message}`, "_blank");
   };
 
   return (
