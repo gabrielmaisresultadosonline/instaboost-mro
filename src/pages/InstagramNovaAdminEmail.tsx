@@ -148,8 +148,70 @@ export default function InstagramNovaAdminEmail() {
   useEffect(() => {
     if (isAuthenticated) {
       loadUsers();
+      loadEmailHistory();
     }
   }, [isAuthenticated]);
+
+  // Realtime subscription para histórico de emails
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const channel = supabase
+      .channel('broadcast-email-logs')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'broadcast_email_logs'
+        },
+        (payload) => {
+          const newLog = payload.new as EmailLog;
+          setEmailHistory(prev => [newLog, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAuthenticated]);
+
+  const loadEmailHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from("broadcast_email_logs")
+        .select("*")
+        .order("sent_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      setEmailHistory(data || []);
+    } catch (error) {
+      console.error("Error loading email history:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const clearEmailHistory = async () => {
+    if (!confirm("Tem certeza que deseja limpar todo o histórico?")) return;
+    
+    try {
+      const { error } = await supabase
+        .from("broadcast_email_logs")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+
+      if (error) throw error;
+      setEmailHistory([]);
+      toast.success("Histórico limpo!");
+    } catch (error) {
+      console.error("Error clearing history:", error);
+      toast.error("Erro ao limpar histórico");
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
