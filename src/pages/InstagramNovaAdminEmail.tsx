@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,10 @@ import {
   Clock,
   Users,
   Filter,
-  AlertTriangle
+  AlertTriangle,
+  History,
+  XCircle,
+  Trash2
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
@@ -44,6 +47,17 @@ interface EmailTemplate {
   name: string;
   subject: string;
   body: string;
+}
+
+interface EmailLog {
+  id: string;
+  recipient_email: string;
+  recipient_name: string | null;
+  subject: string;
+  body: string;
+  status: string;
+  error_message: string | null;
+  sent_at: string;
 }
 
 const DEFAULT_TEMPLATES: EmailTemplate[] = [
@@ -118,6 +132,11 @@ export default function InstagramNovaAdminEmail() {
   // Min/Max delay em segundos
   const [minDelay, setMinDelay] = useState(5);
   const [maxDelay, setMaxDelay] = useState(15);
+  
+  // Histórico de emails enviados
+  const [emailHistory, setEmailHistory] = useState<EmailLog[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const auth = localStorage.getItem("mro_admin_email_auth");
@@ -129,8 +148,70 @@ export default function InstagramNovaAdminEmail() {
   useEffect(() => {
     if (isAuthenticated) {
       loadUsers();
+      loadEmailHistory();
     }
   }, [isAuthenticated]);
+
+  // Realtime subscription para histórico de emails
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const channel = supabase
+      .channel('broadcast-email-logs')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'broadcast_email_logs'
+        },
+        (payload) => {
+          const newLog = payload.new as EmailLog;
+          setEmailHistory(prev => [newLog, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAuthenticated]);
+
+  const loadEmailHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from("broadcast_email_logs")
+        .select("*")
+        .order("sent_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      setEmailHistory(data || []);
+    } catch (error) {
+      console.error("Error loading email history:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const clearEmailHistory = async () => {
+    if (!confirm("Tem certeza que deseja limpar todo o histórico?")) return;
+    
+    try {
+      const { error } = await supabase
+        .from("broadcast_email_logs")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+
+      if (error) throw error;
+      setEmailHistory([]);
+      toast.success("Histórico limpo!");
+    } catch (error) {
+      console.error("Error clearing history:", error);
+      toast.error("Erro ao limpar histórico");
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -291,10 +372,30 @@ export default function InstagramNovaAdminEmail() {
         
         if (error) throw error;
         
+        // Salvar no histórico
+        await supabase.from("broadcast_email_logs").insert({
+          recipient_email: user.email,
+          recipient_name: user.name,
+          subject: emailSubject,
+          body: emailBody,
+          status: "sent"
+        });
+        
         successCount++;
         setSendLogs(prev => [...prev, `✅ ${user.email} - Enviado com sucesso`]);
       } catch (error) {
         console.error(`Error sending to ${user.email}:`, error);
+        
+        // Salvar erro no histórico
+        await supabase.from("broadcast_email_logs").insert({
+          recipient_email: user.email,
+          recipient_name: user.name,
+          subject: emailSubject,
+          body: emailBody,
+          status: "error",
+          error_message: error instanceof Error ? error.message : "Erro desconhecido"
+        });
+        
         errorCount++;
         setSendLogs(prev => [...prev, `❌ ${user.email} - Erro ao enviar`]);
       }
@@ -619,6 +720,107 @@ export default function InstagramNovaAdminEmail() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Histórico de emails enviados */}
+        <Card className="mt-6 bg-gray-800/80 border-gray-700">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-white flex items-center gap-2">
+                <History className="w-5 h-5 text-orange-400" />
+                Histórico de Envios ({emailHistory.length})
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadEmailHistory}
+                  disabled={loadingHistory}
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loadingHistory ? "animate-spin" : ""}`} />
+                  Atualizar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearEmailHistory}
+                  className="border-red-600 text-red-400 hover:bg-red-900/30"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Limpar
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[400px]" ref={historyRef}>
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+                </div>
+              ) : emailHistory.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <Mail className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum email enviado ainda</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {emailHistory.map(log => (
+                    <div
+                      key={log.id}
+                      className={`p-4 rounded-lg border ${
+                        log.status === "sent" 
+                          ? "bg-green-900/20 border-green-700/50" 
+                          : "bg-red-900/20 border-red-700/50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            {log.status === "sent" ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                            )}
+                            <span className="text-white font-medium truncate">{log.recipient_email}</span>
+                            {log.recipient_name && (
+                              <span className="text-gray-400 text-sm">({log.recipient_name})</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-300 mb-1">
+                            <strong>Assunto:</strong> {log.subject}
+                          </p>
+                          <p className="text-xs text-gray-400 line-clamp-2">
+                            {log.body.substring(0, 150)}...
+                          </p>
+                          {log.error_message && (
+                            <p className="text-xs text-red-400 mt-1">
+                              <AlertTriangle className="w-3 h-3 inline mr-1" />
+                              {log.error_message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <Badge 
+                            className={log.status === "sent" 
+                              ? "bg-green-500/20 text-green-300" 
+                              : "bg-red-500/20 text-red-300"
+                            }
+                          >
+                            {log.status === "sent" ? "Enviado" : "Erro"}
+                          </Badge>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {format(new Date(log.sent_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

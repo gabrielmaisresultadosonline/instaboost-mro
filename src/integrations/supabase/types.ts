@@ -260,6 +260,42 @@ export type Database = {
         }
         Relationships: []
       }
+      broadcast_email_logs: {
+        Row: {
+          body: string
+          created_at: string
+          error_message: string | null
+          id: string
+          recipient_email: string
+          recipient_name: string | null
+          sent_at: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          recipient_name?: string | null
+          sent_at?: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_name?: string | null
+          sent_at?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       call_analytics: {
         Row: {
           created_at: string
