@@ -15,6 +15,7 @@ import MROObrigado from "./pages/MROObrigado";
 import Vendas from "./pages/Vendas";
 import VendasCompleta from "./pages/VendasCompleta";
 import InstagramNovaAdmin from "./pages/InstagramNovaAdmin";
+import InstagramNovaAdminEmail from "./pages/InstagramNovaAdminEmail";
 import InstagramNovaEuro from "./pages/InstagramNovaEuro";
 import InstagramNovaEuroAdmin from "./pages/InstagramNovaEuroAdmin";
 import InstagramNovaPromo from "./pages/InstagramNovaPromo";
