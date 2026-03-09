@@ -1,0 +1,166 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { to, subject, body, userName } = await req.json();
+
+    if (!to || !subject || !body) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: to, subject, body" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    const SMTP_HOST = "smtp.hostinger.com";
+    const SMTP_PORT = 465;
+    const SMTP_USER = "mro@maisresultadosonline.com.br";
+    const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD");
+
+    if (!SMTP_PASSWORD) {
+      console.error("SMTP_PASSWORD not configured");
+      return new Response(
+        JSON.stringify({ error: "Email service not configured" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
+    // Format body with proper HTML
+    const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+  <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <img src="https://maisresultadosonline.com.br/logo-mro-2.png" alt="MRO" style="height: 60px;" />
+    </div>
+    
+    ${userName ? `<p style="color: #333; font-size: 16px;">Olá, <strong>${userName}</strong>!</p>` : ''}
+    
+    <div style="color: #333; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">
+${body}
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+    
+    <p style="color: #888; font-size: 12px; text-align: center;">
+      Este email foi enviado por MRO - Mais Resultados Online
+    </p>
+  </div>
+</body>
+</html>
+    `;
+
+    // Use Deno's built-in SMTP (via fetch to external service or direct)
+    // For production, using a transactional email service
+    // Here we'll use the same pattern as send-welcome-email
+    
+    const emailData = {
+      from: `MRO Instagram <${SMTP_USER}>`,
+      to: to,
+      subject: subject,
+      html: htmlBody,
+    };
+
+    // Send via Hostinger SMTP using raw socket
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    const conn = await Deno.connectTls({
+      hostname: SMTP_HOST,
+      port: SMTP_PORT,
+    });
+
+    const read = async () => {
+      const buf = new Uint8Array(1024);
+      const n = await conn.read(buf);
+      if (n === null) return "";
+      return decoder.decode(buf.subarray(0, n));
+    };
+
+    const write = async (data: string) => {
+      await conn.write(encoder.encode(data + "\r\n"));
+    };
+
+    // Read greeting
+    await read();
+
+    // EHLO
+    await write(`EHLO maisresultadosonline.com.br`);
+    await read();
+
+    // AUTH LOGIN
+    await write("AUTH LOGIN");
+    await read();
+
+    // Username (base64)
+    await write(btoa(SMTP_USER));
+    await read();
+
+    // Password (base64)
+    await write(btoa(SMTP_PASSWORD));
+    const authResponse = await read();
+
+    if (!authResponse.includes("235")) {
+      conn.close();
+      throw new Error("SMTP authentication failed");
+    }
+
+    // MAIL FROM
+    await write(`MAIL FROM:<${SMTP_USER}>`);
+    await read();
+
+    // RCPT TO
+    await write(`RCPT TO:<${to}>`);
+    await read();
+
+    // DATA
+    await write("DATA");
+    await read();
+
+    // Email headers and body
+    const emailContent = [
+      `From: MRO Instagram <${SMTP_USER}>`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      "MIME-Version: 1.0",
+      'Content-Type: text/html; charset="UTF-8"',
+      "",
+      htmlBody,
+      ".",
+    ].join("\r\n");
+
+    await write(emailContent);
+    await read();
+
+    // QUIT
+    await write("QUIT");
+    conn.close();
+
+    console.log(`Email sent successfully to ${to}`);
+
+    return new Response(
+      JSON.stringify({ success: true, message: "Email sent" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || "Failed to send email" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
+  }
+});
