@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,8 +22,6 @@ serve(async (req) => {
       );
     }
 
-    const SMTP_HOST = "smtp.hostinger.com";
-    const SMTP_PORT = 465;
     const SMTP_USER = "suporte@maisresultadosonline.com.br";
     const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD");
 
@@ -76,128 +75,47 @@ ${processedBody}
 </html>
     `;
 
-    // Use Deno's built-in SMTP (via fetch to external service or direct)
-    // For production, using a transactional email service
-    // Here we'll use the same pattern as send-welcome-email
-    
-    const emailData = {
-      from: `MRO Instagram <${SMTP_USER}>`,
-      to: to,
-      subject: subject,
-      html: htmlBody,
-    };
-
-    // Send via Hostinger SMTP using raw socket
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
-
-    const conn = await Deno.connectTls({
-      hostname: SMTP_HOST,
-      port: SMTP_PORT,
+    // Use denomailer SMTPClient - same method that works in manage-user-access
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.hostinger.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: SMTP_USER,
+          password: SMTP_PASSWORD,
+        },
+      },
     });
 
-    const read = async () => {
-      const buf = new Uint8Array(4096);
-      const n = await conn.read(buf);
-      if (n === null) return "";
-      return decoder.decode(buf.subarray(0, n));
-    };
+    await client.send({
+      from: `MRO - Mais Resultados Online <${SMTP_USER}>`,
+      to: to,
+      subject: subject,
+      content: processedBody.replace(/<[^>]*>/g, ''), // Plain text fallback
+      html: htmlBody,
+    });
 
-    const write = async (data: string) => {
-      await conn.write(encoder.encode(data + "\r\n"));
-    };
+    await client.close();
 
-    const writeRaw = async (data: string) => {
-      await conn.write(encoder.encode(data));
-    };
+    console.log(`Email sent successfully to ${to}`);
 
-    // Read greeting
-    const greeting = await read();
-    console.log(`SMTP Greeting: ${greeting.trim()}`);
+    // Log to database
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // EHLO
-    await write(`EHLO maisresultadosonline.com.br`);
-    const ehloResp = await read();
-    console.log(`SMTP EHLO: ${ehloResp.trim()}`);
-
-    // AUTH LOGIN
-    await write("AUTH LOGIN");
-    const authPrompt = await read();
-    console.log(`SMTP AUTH: ${authPrompt.trim()}`);
-
-    await write(btoa(SMTP_USER));
-    const userResp = await read();
-    console.log(`SMTP USER: ${userResp.trim()}`);
-
-    await write(btoa(SMTP_PASSWORD));
-    const authResponse = await read();
-    console.log(`SMTP AUTH RESULT: ${authResponse.trim()}`);
-
-    if (!authResponse.includes("235")) {
-      conn.close();
-      throw new Error(`SMTP authentication failed: ${authResponse.trim()}`);
+      await supabase.from("broadcast_email_logs").insert({
+        recipient_email: to,
+        recipient_name: userName || null,
+        subject: subject,
+        body: body,
+        status: "sent",
+      });
+    } catch (logError) {
+      console.error("Failed to log email:", logError);
     }
-
-    // MAIL FROM with 8BITMIME
-    await write(`MAIL FROM:<${SMTP_USER}> BODY=8BITMIME`);
-    const mailFromResp = await read();
-    console.log(`SMTP MAIL FROM: ${mailFromResp.trim()}`);
-
-    // RCPT TO
-    await write(`RCPT TO:<${to}>`);
-    const rcptResp = await read();
-    console.log(`SMTP RCPT TO: ${rcptResp.trim()}`);
-
-    if (!rcptResp.includes("250") && !rcptResp.includes("251")) {
-      conn.close();
-      throw new Error(`SMTP recipient rejected: ${rcptResp.trim()}`);
-    }
-
-    // DATA
-    await write("DATA");
-    const dataResp = await read();
-    console.log(`SMTP DATA: ${dataResp.trim()}`);
-
-    // Generate proper email headers
-    const messageId = `<${crypto.randomUUID()}@maisresultadosonline.com.br>`;
-    const dateStr = new Date().toUTCString();
-
-    // Build email with 8bit encoding (no base64 corruption)
-    const emailMessage = [
-      `Date: ${dateStr}`,
-      `From: MRO - Mais Resultados Online <${SMTP_USER}>`,
-      `To: ${to}`,
-      `Reply-To: ${SMTP_USER}`,
-      `Return-Path: <${SMTP_USER}>`,
-      `Message-ID: ${messageId}`,
-      `Subject: ${subject}`,
-      `MIME-Version: 1.0`,
-      `Content-Type: text/html; charset=UTF-8`,
-      `Content-Transfer-Encoding: 8bit`,
-      `X-Mailer: MRO-Mailer/1.0`,
-      ``,
-      htmlBody,
-    ].join("\r\n");
-
-    // Escape any lone dots on a line (SMTP transparency)
-    const safeMessage = emailMessage.replace(/\r\n\.\r\n/g, "\r\n..\r\n");
-
-    // Send headers + body, then terminate with \r\n.\r\n
-    await writeRaw(safeMessage + "\r\n.\r\n");
-    
-    const sendResp = await read();
-    console.log(`SMTP SEND RESULT: ${sendResp.trim()}`);
-
-    if (!sendResp.includes("250")) {
-      conn.close();
-      throw new Error(`SMTP send failed: ${sendResp.trim()}`);
-    }
-
-    // QUIT
-    await write("QUIT");
-    conn.close();
-
-    console.log(`Email CONFIRMED sent to ${to}`);
 
     return new Response(
       JSON.stringify({ success: true, message: "Email sent" }),
@@ -205,6 +123,23 @@ ${processedBody}
     );
   } catch (error) {
     console.error("Error sending email:", error);
+
+    // Try to log failure
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const { to, subject, body } = await req.clone().json().catch(() => ({ to: '', subject: '', body: '' }));
+      
+      await supabase.from("broadcast_email_logs").insert({
+        recipient_email: to || 'unknown',
+        subject: subject || 'unknown',
+        body: body || '',
+        status: "failed",
+        error_message: error.message || "Unknown error",
+      });
+    } catch (_) {}
+
     return new Response(
       JSON.stringify({ error: error.message || "Failed to send email" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
