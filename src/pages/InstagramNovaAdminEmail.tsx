@@ -23,7 +23,9 @@ import {
   AlertTriangle,
   History,
   XCircle,
-  Trash2
+  Trash2,
+  Phone,
+  Download
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
@@ -38,6 +40,16 @@ interface UserEmail {
   id: string;
   email: string;
   name: string | null;
+  source: "mro_orders" | "created_accesses";
+  created_at: string;
+}
+
+interface ContactInfo {
+  id: string;
+  username: string;
+  phone: string;
+  email: string;
+  planType: string;
   source: "mro_orders" | "created_accesses";
   created_at: string;
 }
