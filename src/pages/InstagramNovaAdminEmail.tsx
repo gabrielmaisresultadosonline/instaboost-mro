@@ -944,6 +944,103 @@ export default function InstagramNovaAdminEmail() {
             </ScrollArea>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="contatos">
+            <Card className="bg-gray-800/80 border-gray-700">
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-green-400" />
+                    Contatos com Telefone ({filteredContacts.length})
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadContacts}
+                      disabled={loadingContacts}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${loadingContacts ? "animate-spin" : ""}`} />
+                      Atualizar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => generateVCard(filteredContacts)}
+                      disabled={filteredContacts.length === 0}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Exportar vCard ({filteredContacts.length})
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Buscar por nome, telefone ou email..."
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    className="pl-10 bg-gray-700/50 border-gray-600 text-white"
+                  />
+                </div>
+
+                <div className="bg-gray-700/30 rounded-lg p-3 text-sm text-gray-300">
+                  <p>📱 Os contatos serão salvos como: <strong className="text-white">CLIENTE nomeUsuario (ANUAL)</strong></p>
+                  <p className="text-xs text-gray-400 mt-1">Importe o arquivo .vcf no Gmail/Google Contatos para organizar seus clientes.</p>
+                </div>
+
+                <ScrollArea className="h-[500px]">
+                  {loadingContacts ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-green-400" />
+                    </div>
+                  ) : filteredContacts.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <Phone className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Nenhum contato com telefone encontrado</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredContacts.map(contact => (
+                        <div
+                          key={contact.id}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                            <User className="w-5 h-5 text-green-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-medium text-sm">
+                              CLIENTE {contact.username}
+                            </p>
+                            <p className="text-gray-400 text-xs flex items-center gap-2">
+                              <Phone className="w-3 h-3" />
+                              {contact.phone}
+                            </p>
+                            <p className="text-gray-500 text-xs">{contact.email}</p>
+                          </div>
+                          <Badge className={
+                            contact.planType === "VITALICIO" 
+                              ? "bg-yellow-500/20 text-yellow-300"
+                              : contact.planType === "ANUAL"
+                              ? "bg-blue-500/20 text-blue-300"
+                              : "bg-gray-500/20 text-gray-300"
+                          }>
+                            {contact.planType}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
