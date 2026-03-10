@@ -276,12 +276,18 @@ export default function InstagramNovaAdminEmail() {
       // Combinar e remover duplicatas por email
       const emailMap = new Map<string, UserEmail>();
       
+      // Helper: limpa prefixos como "mila:", "anderson:" etc dos emails
+      const cleanEmail = (rawEmail: string): string => {
+        const cleaned = rawEmail.includes(':') ? rawEmail.split(':').pop()!.trim() : rawEmail;
+        return cleaned;
+      };
+
       mroOrders?.forEach(order => {
-        const email = order.email.toLowerCase();
+        const email = cleanEmail(order.email).toLowerCase();
         if (!emailMap.has(email)) {
           emailMap.set(email, {
             id: order.id,
-            email: order.email,
+            email: cleanEmail(order.email),
             name: order.username,
             source: "mro_orders",
             created_at: order.created_at
@@ -290,11 +296,11 @@ export default function InstagramNovaAdminEmail() {
       });
       
       createdAccesses?.forEach(access => {
-        const email = access.customer_email.toLowerCase();
+        const email = cleanEmail(access.customer_email).toLowerCase();
         if (!emailMap.has(email)) {
           emailMap.set(email, {
             id: access.id,
-            email: access.customer_email,
+            email: cleanEmail(access.customer_email),
             name: access.customer_name,
             source: "created_accesses",
             created_at: access.created_at
