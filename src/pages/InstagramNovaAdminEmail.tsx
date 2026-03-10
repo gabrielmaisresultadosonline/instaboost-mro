@@ -23,7 +23,9 @@ import {
   AlertTriangle,
   History,
   XCircle,
-  Trash2
+  Trash2,
+  Phone,
+  Download
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
@@ -38,6 +40,16 @@ interface UserEmail {
   id: string;
   email: string;
   name: string | null;
+  source: "mro_orders" | "created_accesses";
+  created_at: string;
+}
+
+interface ContactInfo {
+  id: string;
+  username: string;
+  phone: string;
+  email: string;
+  planType: string;
   source: "mro_orders" | "created_accesses";
   created_at: string;
 }
@@ -140,6 +152,12 @@ export default function InstagramNovaAdminEmail() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
 
+  // Contatos
+  const [contacts, setContacts] = useState<ContactInfo[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [contactSearch, setContactSearch] = useState("");
+  const [mainTab, setMainTab] = useState("broadcast");
+
   useEffect(() => {
     const auth = localStorage.getItem("mro_admin_email_auth");
     if (auth === "true") {
@@ -151,6 +169,7 @@ export default function InstagramNovaAdminEmail() {
     if (isAuthenticated) {
       loadUsers();
       loadEmailHistory();
+      loadContacts();
     }
   }, [isAuthenticated]);
 
@@ -304,6 +323,94 @@ export default function InstagramNovaAdminEmail() {
       setEmailSubject(template.subject);
       setEmailBody(template.body);
     }
+  };
+
+  const loadContacts = async () => {
+    setLoadingContacts(true);
+    try {
+      const { data: mroOrders, error: mroError } = await supabase
+        .from("mro_orders")
+        .select("id, username, phone, email, plan_type, created_at")
+        .in("status", ["paid", "completed"])
+        .not("phone", "is", null);
+      
+      if (mroError) throw mroError;
+
+      const { data: createdAccesses, error: accessError } = await supabase
+        .from("created_accesses")
+        .select("id, username, customer_email, customer_name, access_type, created_at");
+      
+      if (accessError) throw accessError;
+
+      const allContacts: ContactInfo[] = [];
+      const seen = new Set<string>();
+
+      mroOrders?.forEach(order => {
+        if (order.phone && order.phone.trim()) {
+          const key = order.phone.replace(/\D/g, '');
+          if (!seen.has(key)) {
+            seen.add(key);
+            allContacts.push({
+              id: order.id,
+              username: order.username,
+              phone: order.phone,
+              email: order.email,
+              planType: order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "annual" ? "ANUAL" : "MENSAL",
+              source: "mro_orders",
+              created_at: order.created_at
+            });
+          }
+        }
+      });
+
+      // created_accesses doesn't have phone, but we include them for reference
+      // They won't have phone numbers
+
+      allContacts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setContacts(allContacts);
+      toast.success(`${allContacts.length} contatos com telefone carregados`);
+    } catch (error) {
+      console.error("Error loading contacts:", error);
+      toast.error("Erro ao carregar contatos");
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  const filteredContacts = contacts.filter(c => {
+    const term = contactSearch.toLowerCase();
+    return c.username.toLowerCase().includes(term) || 
+           c.phone.includes(term) || 
+           c.email.toLowerCase().includes(term);
+  });
+
+  const generateVCard = (contactsList: ContactInfo[]) => {
+    const vcards = contactsList.map(c => {
+      const fullName = `CLIENTE ${c.username} (${c.planType})`;
+      const phone = c.phone.replace(/\D/g, '');
+      const phoneFormatted = phone.startsWith('55') ? `+${phone}` : `+55${phone}`;
+      return [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        `FN:${fullName}`,
+        `N:${c.username};CLIENTE;;;`,
+        `TEL;TYPE=CELL:${phoneFormatted}`,
+        `EMAIL:${c.email}`,
+        `ORG:MRO - ${c.planType}`,
+        'END:VCARD'
+      ].join('\r\n');
+    }).join('\r\n');
+
+    const blob = new Blob([vcards], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contatos-mro-${format(new Date(), 'yyyy-MM-dd')}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`${contactsList.length} contatos exportados em vCard!`);
   };
 
   const filteredUsers = users.filter(user => {
@@ -503,6 +610,20 @@ export default function InstagramNovaAdminEmail() {
           </div>
         </div>
 
+        {/* Main Tabs */}
+        <Tabs value={mainTab} onValueChange={setMainTab} className="mb-6">
+          <TabsList className="grid grid-cols-2 bg-gray-700/50 w-full max-w-md">
+            <TabsTrigger value="broadcast" className="data-[state=active]:bg-purple-500 text-white">
+              <Mail className="w-4 h-4 mr-2" />
+              Broadcast
+            </TabsTrigger>
+            <TabsTrigger value="contatos" className="data-[state=active]:bg-purple-500 text-white">
+              <Phone className="w-4 h-4 mr-2" />
+              Contatos
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="broadcast">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Lista de usuários */}
           <Card className="bg-gray-800/80 border-gray-700">
@@ -823,6 +944,103 @@ export default function InstagramNovaAdminEmail() {
             </ScrollArea>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="contatos">
+            <Card className="bg-gray-800/80 border-gray-700">
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-green-400" />
+                    Contatos com Telefone ({filteredContacts.length})
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadContacts}
+                      disabled={loadingContacts}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${loadingContacts ? "animate-spin" : ""}`} />
+                      Atualizar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => generateVCard(filteredContacts)}
+                      disabled={filteredContacts.length === 0}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Exportar vCard ({filteredContacts.length})
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Buscar por nome, telefone ou email..."
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    className="pl-10 bg-gray-700/50 border-gray-600 text-white"
+                  />
+                </div>
+
+                <div className="bg-gray-700/30 rounded-lg p-3 text-sm text-gray-300">
+                  <p>📱 Os contatos serão salvos como: <strong className="text-white">CLIENTE nomeUsuario (ANUAL)</strong></p>
+                  <p className="text-xs text-gray-400 mt-1">Importe o arquivo .vcf no Gmail/Google Contatos para organizar seus clientes.</p>
+                </div>
+
+                <ScrollArea className="h-[500px]">
+                  {loadingContacts ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-green-400" />
+                    </div>
+                  ) : filteredContacts.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <Phone className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Nenhum contato com telefone encontrado</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredContacts.map(contact => (
+                        <div
+                          key={contact.id}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                            <User className="w-5 h-5 text-green-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-medium text-sm">
+                              CLIENTE {contact.username}
+                            </p>
+                            <p className="text-gray-400 text-xs flex items-center gap-2">
+                              <Phone className="w-3 h-3" />
+                              {contact.phone}
+                            </p>
+                            <p className="text-gray-500 text-xs">{contact.email}</p>
+                          </div>
+                          <Badge className={
+                            contact.planType === "VITALICIO" 
+                              ? "bg-yellow-500/20 text-yellow-300"
+                              : contact.planType === "ANUAL"
+                              ? "bg-blue-500/20 text-blue-300"
+                              : "bg-gray-500/20 text-gray-300"
+                          }>
+                            {contact.planType}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
