@@ -610,6 +610,20 @@ export default function InstagramNovaAdminEmail() {
           </div>
         </div>
 
+        {/* Main Tabs */}
+        <Tabs value={mainTab} onValueChange={setMainTab} className="mb-6">
+          <TabsList className="grid grid-cols-2 bg-gray-700/50 w-full max-w-md">
+            <TabsTrigger value="broadcast" className="data-[state=active]:bg-purple-500 text-white">
+              <Mail className="w-4 h-4 mr-2" />
+              Broadcast
+            </TabsTrigger>
+            <TabsTrigger value="contatos" className="data-[state=active]:bg-purple-500 text-white">
+              <Phone className="w-4 h-4 mr-2" />
+              Contatos
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="broadcast">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Lista de usuários */}
           <Card className="bg-gray-800/80 border-gray-700">
