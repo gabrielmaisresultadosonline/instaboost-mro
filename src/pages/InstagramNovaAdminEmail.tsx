@@ -325,6 +325,94 @@ export default function InstagramNovaAdminEmail() {
     }
   };
 
+  const loadContacts = async () => {
+    setLoadingContacts(true);
+    try {
+      const { data: mroOrders, error: mroError } = await supabase
+        .from("mro_orders")
+        .select("id, username, phone, email, plan_type, created_at")
+        .in("status", ["paid", "completed"])
+        .not("phone", "is", null);
+      
+      if (mroError) throw mroError;
+
+      const { data: createdAccesses, error: accessError } = await supabase
+        .from("created_accesses")
+        .select("id, username, customer_email, customer_name, access_type, created_at");
+      
+      if (accessError) throw accessError;
+
+      const allContacts: ContactInfo[] = [];
+      const seen = new Set<string>();
+
+      mroOrders?.forEach(order => {
+        if (order.phone && order.phone.trim()) {
+          const key = order.phone.replace(/\D/g, '');
+          if (!seen.has(key)) {
+            seen.add(key);
+            allContacts.push({
+              id: order.id,
+              username: order.username,
+              phone: order.phone,
+              email: order.email,
+              planType: order.plan_type === "lifetime" ? "VITALICIO" : order.plan_type === "annual" ? "ANUAL" : "MENSAL",
+              source: "mro_orders",
+              created_at: order.created_at
+            });
+          }
+        }
+      });
+
+      // created_accesses doesn't have phone, but we include them for reference
+      // They won't have phone numbers
+
+      allContacts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setContacts(allContacts);
+      toast.success(`${allContacts.length} contatos com telefone carregados`);
+    } catch (error) {
+      console.error("Error loading contacts:", error);
+      toast.error("Erro ao carregar contatos");
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  const filteredContacts = contacts.filter(c => {
+    const term = contactSearch.toLowerCase();
+    return c.username.toLowerCase().includes(term) || 
+           c.phone.includes(term) || 
+           c.email.toLowerCase().includes(term);
+  });
+
+  const generateVCard = (contactsList: ContactInfo[]) => {
+    const vcards = contactsList.map(c => {
+      const fullName = `CLIENTE ${c.username} (${c.planType})`;
+      const phone = c.phone.replace(/\D/g, '');
+      const phoneFormatted = phone.startsWith('55') ? `+${phone}` : `+55${phone}`;
+      return [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        `FN:${fullName}`,
+        `N:${c.username};CLIENTE;;;`,
+        `TEL;TYPE=CELL:${phoneFormatted}`,
+        `EMAIL:${c.email}`,
+        `ORG:MRO - ${c.planType}`,
+        'END:VCARD'
+      ].join('\r\n');
+    }).join('\r\n');
+
+    const blob = new Blob([vcards], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contatos-mro-${format(new Date(), 'yyyy-MM-dd')}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`${contactsList.length} contatos exportados em vCard!`);
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.name?.toLowerCase() || "").includes(searchTerm.toLowerCase());
