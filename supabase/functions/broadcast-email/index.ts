@@ -87,6 +87,25 @@ ${processedBody}
       html: htmlBody,
     };
 
+    // Helper: safe base64 encoding for large content
+    function safeBase64Encode(str: string): string {
+      const bytes = new TextEncoder().encode(str);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
+    // Helper: split base64 into 76-char lines (RFC 2045)
+    function splitBase64Lines(b64: string): string {
+      const lines = [];
+      for (let i = 0; i < b64.length; i += 76) {
+        lines.push(b64.substring(i, i + 76));
+      }
+      return lines.join("\r\n");
+    }
+
     // Send via Hostinger SMTP using raw socket
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
@@ -97,7 +116,7 @@ ${processedBody}
     });
 
     const read = async () => {
-      const buf = new Uint8Array(1024);
+      const buf = new Uint8Array(4096);
       const n = await conn.read(buf);
       if (n === null) return "";
       return decoder.decode(buf.subarray(0, n));
@@ -105,6 +124,11 @@ ${processedBody}
 
     const write = async (data: string) => {
       await conn.write(encoder.encode(data + "\r\n"));
+    };
+
+    // Raw write without extra \r\n
+    const writeRaw = async (data: string) => {
+      await conn.write(encoder.encode(data));
     };
 
     // Read greeting
@@ -121,7 +145,7 @@ ${processedBody}
     const authPrompt = await read();
     console.log(`SMTP AUTH: ${authPrompt.trim()}`);
 
-    // Username (base64)
+    // Username (base64) - ASCII only, safe to use btoa directly
     await write(btoa(SMTP_USER));
     const userResp = await read();
     console.log(`SMTP USER: ${userResp.trim()}`);
@@ -156,36 +180,30 @@ ${processedBody}
     const dataResp = await read();
     console.log(`SMTP DATA: ${dataResp.trim()}`);
 
-    // Generate proper email headers for deliverability
+    // Generate proper email headers
     const messageId = `<${crypto.randomUUID()}@maisresultadosonline.com.br>`;
     const dateStr = new Date().toUTCString();
-    
-    // Proper Base64 encoding for UTF-8 subject
-    const subjectBytes = new TextEncoder().encode(subject);
-    const subjectB64 = btoa(String.fromCharCode(...subjectBytes));
-    
-    // Email headers and body - use base64 for body to avoid encoding issues
-    const bodyBytes = new TextEncoder().encode(htmlBody);
-    const bodyB64 = btoa(String.fromCharCode(...bodyBytes));
-    
-    const emailContent = [
+    const subjectB64 = safeBase64Encode(subject);
+    const bodyB64 = splitBase64Lines(safeBase64Encode(htmlBody));
+
+    // Build complete email message
+    const emailLines = [
       `Date: ${dateStr}`,
-      `From: MRO Instagram <${SMTP_USER}>`,
+      `From: MRO - Mais Resultados Online <${SMTP_USER}>`,
       `To: ${to}`,
       `Reply-To: ${SMTP_USER}`,
       `Message-ID: ${messageId}`,
       `Subject: =?UTF-8?B?${subjectB64}?=`,
-      "MIME-Version: 1.0",
-      "Content-Type: text/html; charset=UTF-8",
-      "Content-Transfer-Encoding: base64",
-      "X-Mailer: MRO-Mailer/1.0",
-      "",
+      `MIME-Version: 1.0`,
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: base64`,
+      ``,
       bodyB64,
-      "",
-      ".",
-    ].join("\r\n");
+    ];
 
-    await write(emailContent);
+    // Send headers + body, then terminate with \r\n.\r\n
+    await writeRaw(emailLines.join("\r\n") + "\r\n.\r\n");
+    
     const sendResp = await read();
     console.log(`SMTP SEND RESULT: ${sendResp.trim()}`);
 
