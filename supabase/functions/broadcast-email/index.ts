@@ -156,13 +156,22 @@ ${processedBody}
     const dataResp = await read();
     console.log(`SMTP DATA: ${dataResp.trim()}`);
 
+    // Generate proper email headers for deliverability
+    const messageId = `<${crypto.randomUUID()}@maisresultadosonline.com.br>`;
+    const dateStr = new Date().toUTCString();
+    
     // Email headers and body
     const emailContent = [
+      `Date: ${dateStr}`,
       `From: MRO Instagram <${SMTP_USER}>`,
       `To: ${to}`,
-      `Subject: ${subject}`,
+      `Reply-To: ${SMTP_USER}`,
+      `Message-ID: ${messageId}`,
+      `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
       "MIME-Version: 1.0",
       'Content-Type: text/html; charset="UTF-8"',
+      "Content-Transfer-Encoding: quoted-printable",
+      "X-Mailer: MRO-Mailer/1.0",
       "",
       htmlBody,
       ".",
