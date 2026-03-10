@@ -152,6 +152,12 @@ export default function InstagramNovaAdminEmail() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
 
+  // Contatos
+  const [contacts, setContacts] = useState<ContactInfo[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [contactSearch, setContactSearch] = useState("");
+  const [mainTab, setMainTab] = useState("broadcast");
+
   useEffect(() => {
     const auth = localStorage.getItem("mro_admin_email_auth");
     if (auth === "true") {
