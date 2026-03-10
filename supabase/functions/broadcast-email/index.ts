@@ -160,20 +160,28 @@ ${processedBody}
     const messageId = `<${crypto.randomUUID()}@maisresultadosonline.com.br>`;
     const dateStr = new Date().toUTCString();
     
-    // Email headers and body
+    // Proper Base64 encoding for UTF-8 subject
+    const subjectBytes = new TextEncoder().encode(subject);
+    const subjectB64 = btoa(String.fromCharCode(...subjectBytes));
+    
+    // Email headers and body - use base64 for body to avoid encoding issues
+    const bodyBytes = new TextEncoder().encode(htmlBody);
+    const bodyB64 = btoa(String.fromCharCode(...bodyBytes));
+    
     const emailContent = [
       `Date: ${dateStr}`,
       `From: MRO Instagram <${SMTP_USER}>`,
       `To: ${to}`,
       `Reply-To: ${SMTP_USER}`,
       `Message-ID: ${messageId}`,
-      `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
+      `Subject: =?UTF-8?B?${subjectB64}?=`,
       "MIME-Version: 1.0",
-      'Content-Type: text/html; charset="UTF-8"',
-      "Content-Transfer-Encoding: quoted-printable",
+      "Content-Type: text/html; charset=UTF-8",
+      "Content-Transfer-Encoding: base64",
       "X-Mailer: MRO-Mailer/1.0",
       "",
-      htmlBody,
+      bodyB64,
+      "",
       ".",
     ].join("\r\n");
 
