@@ -77,6 +77,71 @@ export const fetchInstagramProfile = async (
 
     // Check for API error response
     if (!data.success) {
+      // FALLBACK: If age-restricted, check admin manual cache for this profile
+      if (data.isRestricted) {
+        console.log(`🔍 Perfil @${normalizedUsername} com restrição de idade - verificando cache manual do admin...`);
+        try {
+          const { data: adminData, error: adminError } = await supabase.functions.invoke('admin-data-storage', {
+            body: { action: 'load' }
+          });
+          
+          if (!adminError && adminData?.exists && adminData?.data?.profiles) {
+            const manualProfile = adminData.data.profiles.find(
+              (p: any) => p.username?.toLowerCase() === normalizedUsername && p.manuallyScraped
+            );
+            
+            if (manualProfile) {
+              console.log(`✅ Perfil @${normalizedUsername} encontrado no cache manual do admin!`);
+              
+              // Convert manual cache to InstagramProfile format
+              const recentPosts = (manualProfile.recentPosts || manualProfile.posts || []).map((post: any, idx: number) => ({
+                id: post.id || `manual-${idx}`,
+                imageUrl: post.imageUrl || '',
+                caption: post.caption || '',
+                likes: post.likes || 0,
+                comments: post.comments || 0,
+                timestamp: post.timestamp || new Date().toISOString(),
+                hasHumanFace: false
+              }));
+              
+              const totalLikes = recentPosts.reduce((sum: number, p: any) => sum + (p.likes || 0), 0);
+              const totalComments = recentPosts.reduce((sum: number, p: any) => sum + (p.comments || 0), 0);
+              const postCount = recentPosts.filter((p: any) => p.imageUrl).length || 1;
+              const avgLikes = manualProfile.avgLikes || Math.round(totalLikes / postCount);
+              const avgComments = manualProfile.avgComments || Math.round(totalComments / postCount);
+              const followers = manualProfile.followers || 0;
+              
+              const profile: InstagramProfile = {
+                username: manualProfile.username || normalizedUsername,
+                fullName: manualProfile.fullName || '',
+                bio: manualProfile.bio || '',
+                followers: followers,
+                following: manualProfile.following || 0,
+                posts: manualProfile.postsCount || manualProfile.posts?.length || 0,
+                profilePicUrl: manualProfile.profilePicture || manualProfile.profilePicUrl || '',
+                isBusinessAccount: true,
+                category: '',
+                externalUrl: manualProfile.externalUrl || '',
+                recentPosts: recentPosts,
+                engagement: followers > 0 ? (avgLikes / followers) * 100 : 0,
+                avgLikes,
+                avgComments,
+              };
+              
+              return {
+                success: true,
+                profile,
+                simulated: false,
+                fromCache: true,
+                message: 'Dados carregados do cache manual (perfil com restrição de idade)'
+              };
+            }
+          }
+        } catch (cacheError) {
+          console.error('Erro ao verificar cache manual:', cacheError);
+        }
+      }
+      
       return { 
         success: false, 
         error: data.error || 'Não foi possível buscar o perfil',
