@@ -466,15 +466,26 @@ export default function InstagramNovaAdminEmail() {
     setSending(true);
     setSendLogs([]);
     
-    // Buscar emails já enviados com o mesmo assunto para não repetir
-    const { data: alreadySent } = await supabase
-      .from("broadcast_email_logs")
-      .select("recipient_email")
-      .eq("subject", emailSubject)
-      .eq("status", "sent");
+    // Buscar TODOS os emails já enviados com o mesmo assunto para não repetir
+    // Paginar para garantir que pega mais de 1000 registros
+    let allAlreadySent: { recipient_email: string }[] = [];
+    let pageFrom = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data: batch } = await supabase
+        .from("broadcast_email_logs")
+        .select("recipient_email")
+        .eq("subject", emailSubject)
+        .eq("status", "sent")
+        .range(pageFrom, pageFrom + pageSize - 1);
+      if (!batch || batch.length === 0) break;
+      allAlreadySent = [...allAlreadySent, ...batch];
+      if (batch.length < pageSize) break;
+      pageFrom += pageSize;
+    }
     
     const alreadySentSet = new Set(
-      (alreadySent || []).map(r => r.recipient_email.toLowerCase())
+      allAlreadySent.map(r => r.recipient_email.toLowerCase())
     );
     
     const usersToSend = filteredUsers
