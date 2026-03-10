@@ -485,7 +485,7 @@ export default function InstagramNovaAdminEmail() {
     }
     
     const alreadySentSet = new Set(
-      (alreadySent || []).map(r => r.recipient_email.toLowerCase())
+      allAlreadySent.map(r => r.recipient_email.toLowerCase())
     );
     
     const usersToSend = filteredUsers
