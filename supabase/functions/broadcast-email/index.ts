@@ -33,49 +33,40 @@ serve(async (req) => {
       );
     }
 
-    // Replace WhatsApp button placeholder with actual HTML button
-    const whatsappButtonHtml = `
-      <div style="text-align: center; margin: 25px 0;">
-        <a href="https://maisresultadosonline.com.br/whatsapp" 
-           style="display: inline-block; background-color: #25D366; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 32px; border-radius: 8px; letter-spacing: 0.5px;">
-          📱 Falar no WhatsApp
-        </a>
-      </div>
-    `;
+    // Replace WhatsApp button placeholder
+    const whatsappButtonHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td style="text-align:center;padding:14px;background:#25D366;border-radius:8px;"><a href="https://maisresultadosonline.com.br/whatsapp" style="color:#ffffff;text-decoration:none;font-weight:bold;font-size:16px;">📱 Falar no WhatsApp</a></td></tr></table>';
 
     const processedBody = body.replace(/\[BOTAO_WHATSAPP\]/g, whatsappButtonHtml);
 
-    // Format body with proper HTML
-    const htmlBody = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
-  <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-    <div style="text-align: center; margin-bottom: 30px;">
-      <img src="https://maisresultadosonline.com.br/logo-mro-2.png" alt="MRO" style="height: 60px;" />
-    </div>
-    
-    ${userName ? `<p style="color: #333; font-size: 16px;">Olá, <strong>${userName}</strong>!</p>` : ''}
-    
-    <div style="color: #333; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">
-${processedBody}
-    </div>
-    
-    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-    
-    <p style="color: #888; font-size: 12px; text-align: center;">
-      Este email foi enviado por MRO - Mais Resultados Online
-    </p>
-  </div>
-</body>
-</html>
-    `;
+    // Convert plain text newlines to HTML paragraphs (skip if body already has HTML tags)
+    const hasHtml = /<[a-z][\s\S]*>/i.test(processedBody);
+    const formattedBody = hasHtml
+      ? processedBody
+      : processedBody.split('\n').filter(l => l.trim() !== '').map(l => '<p style="margin:0 0 12px 0;color:#333;font-size:15px;line-height:1.6;">' + l + '</p>').join('');
 
-    // Use denomailer SMTPClient - same method that works in manage-user-access
+    // Build table-based HTML email (same pattern as send-welcome-email that works)
+    const greetingHtml = userName ? '<p style="margin:0 0 15px 0;color:#333;font-size:16px;">Ol\u00e1, <strong>' + userName + '</strong>!</p>' : '';
+
+    const htmlBody = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
+      '<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">' +
+      '<tr><td style="padding:25px;text-align:center;border-bottom:3px solid #FFD700;">' +
+      '<div style="background:#000;color:#fff;display:inline-block;padding:8px 20px;border-radius:8px;font-size:28px;font-weight:bold;letter-spacing:2px;">MRO</div>' +
+      '</td></tr>' +
+      '<tr><td style="padding:30px;">' +
+      greetingHtml +
+      formattedBody +
+      '</td></tr>' +
+      '<tr><td style="padding:0 30px 20px 30px;"><hr style="border:none;border-top:1px solid #eee;margin:0;"></td></tr>' +
+      '<tr><td style="padding:0 30px 10px 30px;text-align:center;">' +
+      '<p style="color:#999;font-size:11px;margin:0;">Estamos \u00e0 disposi\u00e7\u00e3o para ajud\u00e1-lo.</p>' +
+      '<p style="color:#666;font-size:13px;margin:10px 0 0 0;">Abra\u00e7os,<br><strong>Equipe MRO</strong></p>' +
+      '</td></tr>' +
+      '<tr><td style="background:#1a1a1a;padding:15px;text-align:center;">' +
+      '<p style="color:#888;margin:0;font-size:11px;">\u00a9 ' + new Date().getFullYear() + ' MRO - Mais Resultados Online</p>' +
+      '</td></tr>' +
+      '</table></body></html>';
+
     const client = new SMTPClient({
       connection: {
         hostname: "smtp.hostinger.com",
@@ -92,7 +83,6 @@ ${processedBody}
       from: `MRO - Mais Resultados Online <${SMTP_USER}>`,
       to: to,
       subject: subject,
-      content: processedBody.replace(/<[^>]*>/g, ''), // Plain text fallback
       html: htmlBody,
     });
 
