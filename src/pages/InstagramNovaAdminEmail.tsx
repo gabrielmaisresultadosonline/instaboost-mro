@@ -465,7 +465,39 @@ export default function InstagramNovaAdminEmail() {
     
     setSending(true);
     setSendLogs([]);
-    const usersToSend = filteredUsers.filter(u => selectedUsers.has(u.id));
+    
+    // Buscar emails já enviados com o mesmo assunto para não repetir
+    const { data: alreadySent } = await supabase
+      .from("broadcast_email_logs")
+      .select("recipient_email")
+      .eq("subject", emailSubject)
+      .eq("status", "sent");
+    
+    const alreadySentSet = new Set(
+      (alreadySent || []).map(r => r.recipient_email.toLowerCase())
+    );
+    
+    const usersToSend = filteredUsers
+      .filter(u => selectedUsers.has(u.id))
+      .filter(u => {
+        if (alreadySentSet.has(u.email.toLowerCase())) {
+          setSendLogs(prev => [...prev, `⏭️ ${u.email} - Já enviado anteriormente, pulando...`]);
+          return false;
+        }
+        return true;
+      });
+    
+    if (usersToSend.length === 0) {
+      toast.info("Todos os selecionados já receberam este email. Nenhum envio necessário.");
+      setSending(false);
+      return;
+    }
+    
+    const skipped = filteredUsers.filter(u => selectedUsers.has(u.id)).length - usersToSend.length;
+    if (skipped > 0) {
+      setSendLogs(prev => [...prev, `ℹ️ ${skipped} já receberam este email. Enviando para ${usersToSend.length} restantes...`]);
+    }
+    
     setSendProgress({ sent: 0, total: usersToSend.length, current: "" });
     
     let successCount = 0;
@@ -487,7 +519,6 @@ export default function InstagramNovaAdminEmail() {
         
         if (error) throw error;
         
-        // Salvar no histórico
         await supabase.from("broadcast_email_logs").insert({
           recipient_email: user.email,
           recipient_name: user.name,
@@ -501,7 +532,6 @@ export default function InstagramNovaAdminEmail() {
       } catch (error) {
         console.error(`Error sending to ${user.email}:`, error);
         
-        // Salvar erro no histórico
         await supabase.from("broadcast_email_logs").insert({
           recipient_email: user.email,
           recipient_name: user.name,
@@ -515,7 +545,6 @@ export default function InstagramNovaAdminEmail() {
         setSendLogs(prev => [...prev, `❌ ${user.email} - Erro ao enviar`]);
       }
       
-      // Aguardar delay aleatório antes do próximo (exceto o último)
       if (i < usersToSend.length - 1) {
         const delay = getRandomDelay();
         setSendLogs(prev => [...prev, `⏳ Aguardando ${delay}s antes do próximo...`]);
@@ -527,7 +556,7 @@ export default function InstagramNovaAdminEmail() {
     setSending(false);
     
     if (errorCount === 0) {
-      toast.success(`Todos os ${successCount} emails foram enviados!`);
+      toast.success(`${successCount} enviados! ${skipped > 0 ? `(${skipped} já tinham recebido)` : ''}`);
     } else {
       toast.warning(`${successCount} enviados, ${errorCount} com erro`);
     }
