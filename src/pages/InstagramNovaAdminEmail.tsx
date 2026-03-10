@@ -169,6 +169,7 @@ export default function InstagramNovaAdminEmail() {
     if (isAuthenticated) {
       loadUsers();
       loadEmailHistory();
+      loadContacts();
     }
   }, [isAuthenticated]);
 
