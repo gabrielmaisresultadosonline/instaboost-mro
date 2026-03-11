@@ -392,15 +392,21 @@ serve(async (req) => {
         }
       }
 
-      // If still no data after all attempts, return error with retry option
+      // If still no data after all attempts, return a precise error type
       if (!profileData) {
-        console.log(`❌ Perfil @${cleanUsername} não encontrado após todas tentativas`);
-        return Response.json({ 
-          success: false, 
-          error: 'Este perfil possui restrição de idade e não pode ser acessado automaticamente.',
+        const isRestrictionConfirmed = detectedIsRestricted === true;
+        console.log(
+          `❌ Perfil @${cleanUsername} sem dados após tentativas (restrição confirmada: ${isRestrictionConfirmed})`
+        );
+
+        return Response.json({
+          success: false,
+          error: isRestrictionConfirmed
+            ? 'Este perfil possui restrição de idade e não pode ser acessado automaticamente.'
+            : 'Não foi possível acessar este perfil agora. Tente novamente em alguns instantes.',
           canRetry: true,
-          retryAfter: 60,
-          isRestricted: true,
+          retryAfter: isRestrictionConfirmed ? 60 : 30,
+          isRestricted: isRestrictionConfirmed,
           isPrivate: false
         }, { headers: corsHeaders });
       }

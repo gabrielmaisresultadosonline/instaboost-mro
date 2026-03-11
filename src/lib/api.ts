@@ -77,73 +77,109 @@ export const fetchInstagramProfile = async (
 
     // Check for API error response
     if (!data.success) {
-      // FALLBACK: If age-restricted, check admin manual cache for this profile
-      if (data.isRestricted) {
-        console.log(`🔍 Perfil @${normalizedUsername} com restrição de idade - verificando cache manual do admin...`);
+      const loadCachedAdminProfile = async (): Promise<InstagramProfile | null> => {
         try {
           const { data: adminData, error: adminError } = await supabase.functions.invoke('admin-data-storage', {
             body: { action: 'load' }
           });
-          
-          if (!adminError && adminData?.exists && adminData?.data?.profiles) {
-            const manualProfile = adminData.data.profiles.find(
-              (p: any) => p.username?.toLowerCase() === normalizedUsername && p.manuallyScraped
-            );
-            
-            if (manualProfile) {
-              console.log(`✅ Perfil @${normalizedUsername} encontrado no cache manual do admin!`);
-              
-              // Convert manual cache to InstagramProfile format
-              const recentPosts = (manualProfile.recentPosts || manualProfile.posts || []).map((post: any, idx: number) => ({
-                id: post.id || `manual-${idx}`,
-                imageUrl: post.imageUrl || '',
-                caption: post.caption || '',
-                likes: post.likes || 0,
-                comments: post.comments || 0,
-                timestamp: post.timestamp || new Date().toISOString(),
-                hasHumanFace: false
-              }));
-              
-              const totalLikes = recentPosts.reduce((sum: number, p: any) => sum + (p.likes || 0), 0);
-              const totalComments = recentPosts.reduce((sum: number, p: any) => sum + (p.comments || 0), 0);
-              const postCount = recentPosts.filter((p: any) => p.imageUrl).length || 1;
-              const avgLikes = manualProfile.avgLikes || Math.round(totalLikes / postCount);
-              const avgComments = manualProfile.avgComments || Math.round(totalComments / postCount);
-              const followers = manualProfile.followers || 0;
-              
-              const profile: InstagramProfile = {
-                username: manualProfile.username || normalizedUsername,
-                fullName: manualProfile.fullName || '',
-                bio: manualProfile.bio || '',
-                followers: followers,
-                following: manualProfile.following || 0,
-                posts: manualProfile.postsCount || manualProfile.posts?.length || 0,
-                profilePicUrl: manualProfile.profilePicture || manualProfile.profilePicUrl || '',
-                isBusinessAccount: true,
-                category: '',
-                externalUrl: manualProfile.externalUrl || '',
-                recentPosts: recentPosts,
-                engagement: followers > 0 ? (avgLikes / followers) * 100 : 0,
-                avgLikes,
-                avgComments,
-              };
-              
-              return {
-                success: true,
-                profile,
-                simulated: false,
-                fromCache: true,
-                message: 'Dados carregados do cache manual (perfil com restrição de idade)'
-              };
-            }
+
+          if (adminError || !adminData?.exists || !adminData?.data?.profiles) {
+            return null;
           }
+
+          const normalize = (value: string | undefined | null) =>
+            (value || '').toLowerCase().replace('@', '').trim();
+
+          const cachedProfile = adminData.data.profiles.find(
+            (p: any) => normalize(p.username) === normalizedUsername
+          );
+
+          if (!cachedProfile) {
+            return null;
+          }
+
+          const postsSource = Array.isArray(cachedProfile.recentPosts)
+            ? cachedProfile.recentPosts
+            : Array.isArray(cachedProfile.posts)
+              ? cachedProfile.posts
+              : [];
+
+          const numericPosts = typeof cachedProfile.posts === 'number' ? cachedProfile.posts : 0;
+          const followers = Number(cachedProfile.followers) || 0;
+          const postsCount = Number(cachedProfile.postsCount) || numericPosts || postsSource.length;
+
+          const hasUsefulData =
+            followers > 0 ||
+            postsCount > 0 ||
+            (cachedProfile.bio && String(cachedProfile.bio).trim().length > 0) ||
+            (cachedProfile.profilePicture && String(cachedProfile.profilePicture).length > 10) ||
+            (cachedProfile.profilePicUrl && String(cachedProfile.profilePicUrl).length > 10) ||
+            postsSource.length > 0;
+
+          if (!hasUsefulData) {
+            return null;
+          }
+
+          const recentPosts = postsSource.map((post: any, idx: number) => ({
+            id: post.id || `cached-${idx}`,
+            imageUrl: post.imageUrl || post.thumbnail || post.displayUrl || '',
+            caption: post.caption || '',
+            likes: Number(post.likes) || 0,
+            comments: Number(post.comments) || 0,
+            timestamp: post.timestamp || new Date().toISOString(),
+            hasHumanFace: false
+          }));
+
+          const totalLikes = recentPosts.reduce((sum: number, p: any) => sum + (p.likes || 0), 0);
+          const totalComments = recentPosts.reduce((sum: number, p: any) => sum + (p.comments || 0), 0);
+          const postCountForAverage = recentPosts.length || 1;
+
+          const avgLikes = Number(cachedProfile.avgLikes) || Math.round(totalLikes / postCountForAverage);
+          const avgComments = Number(cachedProfile.avgComments) || Math.round(totalComments / postCountForAverage);
+
+          return {
+            username: cachedProfile.username || normalizedUsername,
+            fullName: cachedProfile.fullName || '',
+            bio: cachedProfile.bio || '',
+            followers,
+            following: Number(cachedProfile.following) || 0,
+            posts: postsCount,
+            profilePicUrl: cachedProfile.profilePicture || cachedProfile.profilePicUrl || '',
+            isBusinessAccount: true,
+            category: '',
+            externalUrl: Array.isArray(cachedProfile.externalUrl)
+              ? cachedProfile.externalUrl[0] || ''
+              : cachedProfile.externalUrl || '',
+            recentPosts,
+            engagement:
+              Number(cachedProfile.engagementRate) ||
+              Number(cachedProfile.engagement) ||
+              (followers > 0 ? (avgLikes / followers) * 100 : 0),
+            avgLikes,
+            avgComments,
+          };
         } catch (cacheError) {
-          console.error('Erro ao verificar cache manual:', cacheError);
+          console.error('Erro ao verificar cache admin:', cacheError);
+          return null;
         }
+      };
+
+      const cachedAdminProfile = await loadCachedAdminProfile();
+      if (cachedAdminProfile) {
+        console.log(`✅ Perfil @${normalizedUsername} carregado do cache interno`);
+        return {
+          success: true,
+          profile: cachedAdminProfile,
+          simulated: false,
+          fromCache: true,
+          message: data.isRestricted
+            ? 'Dados carregados do cache interno (fallback para restrição)'
+            : 'Dados carregados do cache interno (fallback da API)'
+        };
       }
-      
-      return { 
-        success: false, 
+
+      return {
+        success: false,
         error: data.error || 'Não foi possível buscar o perfil',
         canRetry: data.canRetry || false,
         isPrivate: data.isPrivate || false,

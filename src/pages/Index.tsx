@@ -364,28 +364,39 @@ const Index = () => {
               console.log(`🔧 Usando dados do scraper manual para @${ig}`);
               setLoadingMessage(`Usando dados manuais para @${ig}...`);
               
-              // Convert manual profile to InstagramProfile format
+              // Convert cached profile to InstagramProfile format
+              const postsSource = Array.isArray(manualProfile.recentPosts)
+                ? manualProfile.recentPosts
+                : Array.isArray(manualProfile.posts)
+                  ? manualProfile.posts
+                  : [];
+
+              const manualPostsCount = Number(manualProfile.postsCount) ||
+                (typeof manualProfile.posts === 'number' ? manualProfile.posts : postsSource.length);
+
               const manualInstagramProfile: InstagramProfile = {
                 username: manualProfile.username,
                 fullName: manualProfile.fullName || manualProfile.username,
                 bio: manualProfile.bio || '',
-                profilePicUrl: manualProfile.profilePicture || `https://ui-avatars.com/api/?name=${manualProfile.username}&background=E1306C&color=fff`,
-                followers: manualProfile.followers || 0,
-                following: manualProfile.following || 0,
-                posts: manualProfile.postsCount || 0,
-                externalUrl: manualProfile.externalUrl || '',
+                profilePicUrl: manualProfile.profilePicture || manualProfile.profilePicUrl || `https://ui-avatars.com/api/?name=${manualProfile.username}&background=E1306C&color=fff`,
+                followers: Number(manualProfile.followers) || 0,
+                following: Number(manualProfile.following) || 0,
+                posts: manualPostsCount,
+                externalUrl: Array.isArray(manualProfile.externalUrl)
+                  ? manualProfile.externalUrl[0] || ''
+                  : (manualProfile.externalUrl || ''),
                 isBusinessAccount: false,
                 category: '',
-                engagement: manualProfile.engagementRate || 0,
-                avgLikes: manualProfile.avgLikes || 0,
-                avgComments: manualProfile.avgComments || 0,
-                recentPosts: (manualProfile.recentPosts || manualProfile.posts || []).map((p: any, idx: number) => ({
+                engagement: Number(manualProfile.engagementRate) || Number(manualProfile.engagement) || 0,
+                avgLikes: Number(manualProfile.avgLikes) || 0,
+                avgComments: Number(manualProfile.avgComments) || 0,
+                recentPosts: postsSource.map((p: any, idx: number) => ({
                   id: p.id || `manual-${idx}`,
-                  imageUrl: p.imageUrl || p.postUrl || '',
+                  imageUrl: p.imageUrl || p.postUrl || p.thumbnail || p.displayUrl || '',
                   postUrl: p.postUrl || '',
                   caption: p.caption || '',
-                  likes: p.likes || 0,
-                  comments: p.comments || 0,
+                  likes: Number(p.likes) || 0,
+                  comments: Number(p.comments) || 0,
                   timestamp: p.timestamp || new Date().toISOString(),
                   hasHumanFace: false
                 }))
