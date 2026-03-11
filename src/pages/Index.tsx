@@ -42,40 +42,47 @@ import {
 } from '@/lib/persistentStorage';
 import { supabase } from '@/integrations/supabase/client';
 
-// Helper function to check for manually scraped profiles in admin storage
+// Helper function to check for cached profiles in admin storage
 const checkManuallyScrapedProfile = async (username: string): Promise<any | null> => {
   try {
-    const normalizedUsername = username.toLowerCase().replace('@', '');
-    
+    const normalizedUsername = username.toLowerCase().replace('@', '').trim();
+
     const { data, error } = await supabase.functions.invoke('admin-data-storage', {
       body: { action: 'load' }
     });
-    
+
     if (error || !data?.exists || !data?.data?.profiles) {
       return null;
     }
-    
-    const manualProfile = data.data.profiles.find(
-      (p: any) => p.username?.toLowerCase() === normalizedUsername && p.manuallyScraped
+
+    const normalize = (value: string | undefined | null) =>
+      (value || '').toLowerCase().replace('@', '').trim();
+
+    const cachedProfile = data.data.profiles.find(
+      (p: any) => normalize(p.username) === normalizedUsername
     );
 
-    const hasUsefulManualData = !!manualProfile && (
-      (manualProfile.followers || 0) > 0 ||
-      (manualProfile.postsCount || 0) > 0 ||
-      (manualProfile.bio && manualProfile.bio.trim().length > 0) ||
-      (manualProfile.profilePicture && manualProfile.profilePicture.length > 10) ||
-      (manualProfile.recentPosts?.length || 0) > 0 ||
-      (manualProfile.posts?.length || 0) > 0
-    );
+    if (!cachedProfile) {
+      return null;
+    }
 
-    if (hasUsefulManualData) {
-      console.log(`🔧 Encontrado perfil manualmente scrapeado para @${normalizedUsername}`);
-      return manualProfile;
+    const hasUsefulCachedData =
+      (Number(cachedProfile.followers) || 0) > 0 ||
+      (Number(cachedProfile.postsCount) || (typeof cachedProfile.posts === 'number' ? cachedProfile.posts : 0)) > 0 ||
+      (cachedProfile.bio && String(cachedProfile.bio).trim().length > 0) ||
+      (cachedProfile.profilePicture && String(cachedProfile.profilePicture).length > 10) ||
+      (cachedProfile.profilePicUrl && String(cachedProfile.profilePicUrl).length > 10) ||
+      (Array.isArray(cachedProfile.recentPosts) && cachedProfile.recentPosts.length > 0) ||
+      (Array.isArray(cachedProfile.posts) && cachedProfile.posts.length > 0);
+
+    if (hasUsefulCachedData) {
+      console.log(`🔧 Encontrado perfil em cache admin para @${normalizedUsername}`);
+      return cachedProfile;
     }
 
     return null;
   } catch (error) {
-    console.error('Erro ao verificar perfil manualmente scrapeado:', error);
+    console.error('Erro ao verificar cache de perfil no admin:', error);
     return null;
   }
 };
@@ -357,28 +364,39 @@ const Index = () => {
               console.log(`🔧 Usando dados do scraper manual para @${ig}`);
               setLoadingMessage(`Usando dados manuais para @${ig}...`);
               
-              // Convert manual profile to InstagramProfile format
+              // Convert cached profile to InstagramProfile format
+              const postsSource = Array.isArray(manualProfile.recentPosts)
+                ? manualProfile.recentPosts
+                : Array.isArray(manualProfile.posts)
+                  ? manualProfile.posts
+                  : [];
+
+              const manualPostsCount = Number(manualProfile.postsCount) ||
+                (typeof manualProfile.posts === 'number' ? manualProfile.posts : postsSource.length);
+
               const manualInstagramProfile: InstagramProfile = {
                 username: manualProfile.username,
                 fullName: manualProfile.fullName || manualProfile.username,
                 bio: manualProfile.bio || '',
-                profilePicUrl: manualProfile.profilePicture || `https://ui-avatars.com/api/?name=${manualProfile.username}&background=E1306C&color=fff`,
-                followers: manualProfile.followers || 0,
-                following: manualProfile.following || 0,
-                posts: manualProfile.postsCount || 0,
-                externalUrl: manualProfile.externalUrl || '',
+                profilePicUrl: manualProfile.profilePicture || manualProfile.profilePicUrl || `https://ui-avatars.com/api/?name=${manualProfile.username}&background=E1306C&color=fff`,
+                followers: Number(manualProfile.followers) || 0,
+                following: Number(manualProfile.following) || 0,
+                posts: manualPostsCount,
+                externalUrl: Array.isArray(manualProfile.externalUrl)
+                  ? manualProfile.externalUrl[0] || ''
+                  : (manualProfile.externalUrl || ''),
                 isBusinessAccount: false,
                 category: '',
-                engagement: manualProfile.engagementRate || 0,
-                avgLikes: manualProfile.avgLikes || 0,
-                avgComments: manualProfile.avgComments || 0,
-                recentPosts: (manualProfile.recentPosts || manualProfile.posts || []).map((p: any, idx: number) => ({
+                engagement: Number(manualProfile.engagementRate) || Number(manualProfile.engagement) || 0,
+                avgLikes: Number(manualProfile.avgLikes) || 0,
+                avgComments: Number(manualProfile.avgComments) || 0,
+                recentPosts: postsSource.map((p: any, idx: number) => ({
                   id: p.id || `manual-${idx}`,
-                  imageUrl: p.imageUrl || p.postUrl || '',
+                  imageUrl: p.imageUrl || p.postUrl || p.thumbnail || p.displayUrl || '',
                   postUrl: p.postUrl || '',
                   caption: p.caption || '',
-                  likes: p.likes || 0,
-                  comments: p.comments || 0,
+                  likes: Number(p.likes) || 0,
+                  comments: Number(p.comments) || 0,
                   timestamp: p.timestamp || new Date().toISOString(),
                   hasHumanFace: false
                 }))
