@@ -271,15 +271,40 @@ serve(async (req) => {
         ];
         console.log('🍪 Added Instagram session cookie for authenticated request');
       }
-      
-      return await fetch(`${BRIGHTDATA_API_URL}?dataset_id=${INSTAGRAM_PROFILES_DATASET_ID}&format=json`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${BRIGHTDATA_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
+
+      const endpoint = `${BRIGHTDATA_API_URL}?dataset_id=${INSTAGRAM_PROFILES_DATASET_ID}&format=json`;
+      const baseHeaders = { 'Content-Type': 'application/json' };
+      const body = JSON.stringify(requestBody);
+
+      const authVariants: Record<string, string>[] = [
+        { Authorization: `Bearer ${BRIGHTDATA_TOKEN}` },
+        { Authorization: BRIGHTDATA_TOKEN },
+        { 'X-API-Key': BRIGHTDATA_TOKEN },
+      ];
+
+      let lastResponse: Response | null = null;
+
+      for (let i = 0; i < authVariants.length; i++) {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            ...baseHeaders,
+            ...authVariants[i],
+          },
+          body,
+        });
+
+        lastResponse = response;
+
+        if (response.status !== 401) {
+          return response;
+        }
+
+        const errorBody = await response.clone().text();
+        console.log(`⚠️ Bright auth variant ${i + 1} failed: ${errorBody.substring(0, 120)}`);
+      }
+
+      return lastResponse!;
     };
 
     // Helper function to process Bright Data response
