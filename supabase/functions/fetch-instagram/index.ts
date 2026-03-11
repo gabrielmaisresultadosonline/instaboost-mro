@@ -165,7 +165,11 @@ serve(async (req) => {
 
     console.log(`Fetching Instagram profile via Bright Data: ${cleanUsername} (onlyPosts: ${onlyPosts || false})`);
 
-    const BRIGHTDATA_TOKEN = Deno.env.get('BRIGHTDATA_API_TOKEN');
+    const BRIGHTDATA_TOKEN_RAW = Deno.env.get('BRIGHTDATA_API_TOKEN') || '';
+    const BRIGHTDATA_TOKEN = BRIGHTDATA_TOKEN_RAW
+      .trim()
+      .replace(/^"(.*)"$/, '$1')
+      .replace(/^'(.*)'$/, '$1');
     const INSTAGRAM_SESSION_ID = Deno.env.get('INSTAGRAM_SESSION_ID');
     
     if (!BRIGHTDATA_TOKEN) {
