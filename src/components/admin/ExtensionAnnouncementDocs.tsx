@@ -51,7 +51,7 @@ async function fetchExtensionAnnouncements() {
 }`;
 
   const displayLogicCode = `// 📋 Lógica de exibição de avisos
-const STORAGE_KEY = 'mro_extension_announcements';
+const STORAGE_KEY = '${storageKey}';
 
 function getViewedAnnouncements() {
   try {
