@@ -1041,6 +1041,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           setShowDocsForAnnouncement(null);
         }}
         announcementId={showDocsForAnnouncement || undefined}
+        targetArea={showDocsForAnnouncement ? (announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension2' ? 'extension2' : 'extension') : 'extension'}
       />
     </div>
   );
