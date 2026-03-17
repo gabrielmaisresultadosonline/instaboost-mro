@@ -934,6 +934,8 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                       ? 'bg-green-500/20 text-green-400'
                       : announcement.targetArea === 'extension'
                       ? 'bg-purple-500/20 text-purple-400'
+                      : announcement.targetArea === 'extension2'
+                      ? 'bg-cyan-500/20 text-cyan-400'
                       : 'bg-gray-500/20 text-gray-400'
                   }`}>
                     {announcement.targetArea === 'instagram' 
@@ -942,6 +944,8 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                       ? '💬 ZAPMRO'
                       : announcement.targetArea === 'extension'
                       ? '🧩 Extensão'
+                      : announcement.targetArea === 'extension2'
+                      ? '🧩 Extensão 2'
                       : '🌐 Todas'}
                   </span>
                   {/* Extension delay badge */}
