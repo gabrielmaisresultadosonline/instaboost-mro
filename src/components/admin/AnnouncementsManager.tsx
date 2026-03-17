@@ -949,7 +949,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                       : '🌐 Todas'}
                   </span>
                   {/* Extension delay badge */}
-                  {announcement.targetArea === 'extension' && announcement.delaySeconds && announcement.delaySeconds > 0 && (
+                  {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && announcement.delaySeconds && announcement.delaySeconds > 0 && (
                     <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {announcement.delaySeconds}s delay
