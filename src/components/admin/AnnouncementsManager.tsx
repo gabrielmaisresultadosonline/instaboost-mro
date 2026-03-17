@@ -980,7 +980,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Docs button for extension announcements */}
-                {announcement.targetArea === 'extension' && (
+                {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && (
                   <Button
                     variant="ghost"
                     size="sm"
