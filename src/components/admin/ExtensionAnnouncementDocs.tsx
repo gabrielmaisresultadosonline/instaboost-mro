@@ -250,9 +250,9 @@ interface ExtensionAnnouncement {
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Documentação - Avisos para Extensão</h2>
+              <h2 className="text-xl font-bold">Documentação - Avisos para {label}</h2>
               <p className="text-sm text-muted-foreground">
-                API e integração com extensão Chrome
+                API e integração com {label.toLowerCase()}
               </p>
             </div>
           </div>
