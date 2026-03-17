@@ -55,6 +55,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const [editingId, setEditingId] = useState<string | null>(null);
   const [thumbnailMode, setThumbnailMode] = useState<'url' | 'file' | 'paste'>('url');
   const [showExtensionDocs, setShowExtensionDocs] = useState(false);
+  const [showExtension2Docs, setShowExtension2Docs] = useState(false);
   const [showDocsForAnnouncement, setShowDocsForAnnouncement] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
@@ -447,7 +448,16 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             className="gap-2 text-purple-400 border-purple-400/30 hover:bg-purple-500/10"
           >
             <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">Docs Extensão</span>
+            <span className="hidden sm:inline">Docs Extensão 1</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowExtension2Docs(true)} 
+            className="gap-2 text-cyan-400 border-cyan-400/30 hover:bg-cyan-500/10"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Docs Extensão 2</span>
           </Button>
           <Button variant="outline" onClick={loadAnnouncements} className="gap-2">
             <RefreshCw className="w-4 h-4" />
@@ -1035,13 +1045,22 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
       {/* Extension Docs Modal */}
       <ExtensionAnnouncementDocs 
-        isOpen={showExtensionDocs || showDocsForAnnouncement !== null}
+        isOpen={showExtensionDocs || (showDocsForAnnouncement !== null && announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension')}
         onClose={() => {
           setShowExtensionDocs(false);
           setShowDocsForAnnouncement(null);
         }}
         announcementId={showDocsForAnnouncement || undefined}
-        targetArea={showDocsForAnnouncement ? (announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension2' ? 'extension2' : 'extension') : 'extension'}
+        targetArea="extension"
+      />
+      <ExtensionAnnouncementDocs 
+        isOpen={showExtension2Docs || (showDocsForAnnouncement !== null && announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension2')}
+        onClose={() => {
+          setShowExtension2Docs(false);
+          setShowDocsForAnnouncement(null);
+        }}
+        announcementId={showDocsForAnnouncement || undefined}
+        targetArea="extension2"
       />
     </div>
   );
