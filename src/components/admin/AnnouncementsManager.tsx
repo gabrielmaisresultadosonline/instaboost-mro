@@ -118,7 +118,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           const parsed = JSON.parse(text);
           const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
             ...a,
-            targetArea: extKey as const,
+            targetArea: extKey,
             forceRead: false,
             forceReadSeconds: 5,
             maxViews: 1,
