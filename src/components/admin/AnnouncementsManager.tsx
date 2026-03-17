@@ -143,7 +143,8 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
     try {
       // Separate extension announcements from regular announcements
       const extensionAnnouncements = data.filter(a => a.targetArea === 'extension');
-      const regularAnnouncements = data.filter(a => a.targetArea !== 'extension');
+      const extension2Announcements = data.filter(a => a.targetArea === 'extension2');
+      const regularAnnouncements = data.filter(a => a.targetArea !== 'extension' && a.targetArea !== 'extension2');
 
       // Save regular announcements
       const regularPayload: AnnouncementsData = {
@@ -162,34 +163,39 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
       if (regularError) throw regularError;
 
-      // Save extension announcements to separate file
-      const extensionPayload = {
-        announcements: extensionAnnouncements.map(a => ({
-          id: a.id,
-          title: a.title,
-          content: a.content,
-          thumbnailUrl: a.thumbnailUrl,
-          buttonText: a.buttonText,
-          buttonUrl: a.buttonUrl,
-          isActive: a.isActive,
-          delaySeconds: a.delaySeconds || 0,
-          frequencyType: a.frequencyType || 'once',
-          frequencyValue: a.frequencyValue || 1,
-          frequencyHours: a.frequencyHours || 1,
-          createdAt: a.createdAt,
-          updatedAt: a.updatedAt
-        })),
-        lastUpdated: new Date().toISOString()
-      };
+      // Save extension announcements to separate files
+      for (const [extAnnouncements, fileName] of [
+        [extensionAnnouncements, 'extension-announcements.json'],
+        [extension2Announcements, 'extension2-announcements.json']
+      ] as [Announcement[], string][]) {
+        const extensionPayload = {
+          announcements: extAnnouncements.map(a => ({
+            id: a.id,
+            title: a.title,
+            content: a.content,
+            thumbnailUrl: a.thumbnailUrl,
+            buttonText: a.buttonText,
+            buttonUrl: a.buttonUrl,
+            isActive: a.isActive,
+            delaySeconds: a.delaySeconds || 0,
+            frequencyType: a.frequencyType || 'once',
+            frequencyValue: a.frequencyValue || 1,
+            frequencyHours: a.frequencyHours || 1,
+            createdAt: a.createdAt,
+            updatedAt: a.updatedAt
+          })),
+          lastUpdated: new Date().toISOString()
+        };
 
-      const extensionBlob = new Blob([JSON.stringify(extensionPayload, null, 2)], { type: 'application/json' });
-      
-      await supabase.storage
-        .from('user-data')
-        .upload('admin/extension-announcements.json', extensionBlob, { 
-          upsert: true,
-          contentType: 'application/json'
-        });
+        const extensionBlob = new Blob([JSON.stringify(extensionPayload, null, 2)], { type: 'application/json' });
+        
+        await supabase.storage
+          .from('user-data')
+          .upload(`admin/${fileName}`, extensionBlob, { 
+            upsert: true,
+            contentType: 'application/json'
+          });
+      }
 
       toast({ title: 'Avisos salvos!', description: 'Alterações publicadas para usuários' });
       console.log('📢 Avisos salvos com sucesso');
