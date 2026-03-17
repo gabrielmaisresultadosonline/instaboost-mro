@@ -55,6 +55,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
   const [editingId, setEditingId] = useState<string | null>(null);
   const [thumbnailMode, setThumbnailMode] = useState<'url' | 'file' | 'paste'>('url');
   const [showExtensionDocs, setShowExtensionDocs] = useState(false);
+  const [showExtension2Docs, setShowExtension2Docs] = useState(false);
   const [showDocsForAnnouncement, setShowDocsForAnnouncement] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
