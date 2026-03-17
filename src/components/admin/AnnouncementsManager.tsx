@@ -27,7 +27,7 @@ export interface Announcement {
   createdAt: string;
   updatedAt: string;
   viewCount?: number;
-  targetArea?: 'all' | 'instagram' | 'zapmro' | 'extension';
+  targetArea?: 'all' | 'instagram' | 'zapmro' | 'extension' | 'extension2';
   // Extension-specific fields
   delaySeconds?: number;
   frequencyType?: 'once' | 'times_per_day' | 'times_per_hours';
