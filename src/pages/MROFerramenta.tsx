@@ -647,7 +647,7 @@ const MROFerramenta = () => {
                 type="button"
                 variant="ghost" 
                 size="sm" 
-                onClick={() => setSelectedContent(null)}
+                onClick={() => { setSelectedContent(null); setSelectedModule(null); }}
                 className="cursor-pointer"
               >
                 <X className="w-5 h-5" />
