@@ -672,6 +672,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                   <option value="instagram">Apenas Instagram (MRO)</option>
                   <option value="zapmro">Apenas ZAPMRO</option>
                   <option value="extension">🧩 Extensão Chrome (Externa)</option>
+                  <option value="extension2">🧩 Extensão Chrome 2 (Externa)</option>
                 </select>
               </div>
             </div>
