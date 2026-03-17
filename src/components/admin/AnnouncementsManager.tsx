@@ -448,7 +448,16 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             className="gap-2 text-purple-400 border-purple-400/30 hover:bg-purple-500/10"
           >
             <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">Docs Extensão</span>
+            <span className="hidden sm:inline">Docs Extensão 1</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowExtension2Docs(true)} 
+            className="gap-2 text-cyan-400 border-cyan-400/30 hover:bg-cyan-500/10"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Docs Extensão 2</span>
           </Button>
           <Button variant="outline" onClick={loadAnnouncements} className="gap-2">
             <RefreshCw className="w-4 h-4" />
