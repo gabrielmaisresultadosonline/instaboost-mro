@@ -10,6 +10,7 @@ interface ExtensionAnnouncementDocsProps {
   announcementId?: string;
   isOpen: boolean;
   onClose: () => void;
+  targetArea?: 'extension' | 'extension2';
 }
 
 const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose }: ExtensionAnnouncementDocsProps) => {
