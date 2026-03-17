@@ -857,7 +857,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             )}
 
             {/* Extension active toggle */}
-            {formData.targetArea === 'extension' && (
+            {(formData.targetArea === 'extension' || formData.targetArea === 'extension2') && (
               <div className="flex items-center gap-3">
                 <Switch
                   checked={formData.isActive ?? true}
