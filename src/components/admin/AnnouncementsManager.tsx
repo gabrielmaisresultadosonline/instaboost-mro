@@ -103,26 +103,29 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
       }
 
       // Load extension announcements
-      const { data: extensionData, error: extensionError } = await supabase.storage
-        .from('user-data')
-        .download('admin/extension-announcements.json');
-      
-      if (extensionError) {
-        if (!extensionError.message.includes('not found')) {
-          console.error('Erro ao carregar avisos da extensão:', extensionError);
+      for (const extKey of ['extension', 'extension2'] as const) {
+        const fileName = extKey === 'extension' ? 'extension-announcements.json' : 'extension2-announcements.json';
+        const { data: extensionData, error: extensionError } = await supabase.storage
+          .from('user-data')
+          .download(`admin/${fileName}`);
+        
+        if (extensionError) {
+          if (!extensionError.message.includes('not found')) {
+            console.error(`Erro ao carregar avisos da ${extKey}:`, extensionError);
+          }
+        } else {
+          const text = await extensionData.text();
+          const parsed = JSON.parse(text);
+          const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
+            ...a,
+            targetArea: extKey as const,
+            forceRead: false,
+            forceReadSeconds: 5,
+            maxViews: 1,
+            viewCount: 0
+          }));
+          allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
         }
-      } else {
-        const text = await extensionData.text();
-        const parsed = JSON.parse(text);
-        const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
-          ...a,
-          targetArea: 'extension' as const,
-          forceRead: false,
-          forceReadSeconds: 5,
-          maxViews: 1,
-          viewCount: 0
-        }));
-        allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
       }
 
       setAnnouncements(allAnnouncements);
