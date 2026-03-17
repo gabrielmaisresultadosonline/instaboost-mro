@@ -13,7 +13,7 @@ interface ExtensionAnnouncementDocsProps {
   targetArea?: 'extension' | 'extension2';
 }
 
-const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose }: ExtensionAnnouncementDocsProps) => {
+const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea = 'extension' }: ExtensionAnnouncementDocsProps) => {
   const { toast } = useToast();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
