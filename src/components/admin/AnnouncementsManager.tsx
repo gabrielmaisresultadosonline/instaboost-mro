@@ -678,7 +678,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             </div>
 
             {/* Extension-specific settings */}
-            {formData.targetArea === 'extension' && (
+            {(formData.targetArea === 'extension' || formData.targetArea === 'extension2') && (
               <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 space-y-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Chrome className="w-5 h-5 text-purple-400" />
