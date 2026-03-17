@@ -94,21 +94,18 @@ export const ProfileSelector = ({
                   {profile.id === activeProfileId && (
                     <Check className="w-4 h-4 text-primary" />
                   )}
-                  {/* Só mostra botão de remover se o print NÃO estiver bloqueado (menos de 2 uploads) */}
-                  {(profile.screenshotUploadCount ?? 0) < 2 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`Remover @${profile.profile.username} da sessão?`)) {
-                          onRemoveProfile(profile.id);
-                        }
-                      }}
-                      className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors"
-                      title="Remover perfil"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
+                   <button
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       if (confirm(`Remover @${profile.profile.username} da sessão?`)) {
+                         onRemoveProfile(profile.id);
+                       }
+                     }}
+                     className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive transition-colors"
+                     title="Remover perfil"
+                   >
+                     <X className="w-3 h-3" />
+                   </button>
                 </div>
               </DropdownMenuItem>
             ))}
