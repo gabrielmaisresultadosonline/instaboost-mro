@@ -802,7 +802,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             )}
 
             {/* Regular announcement settings (non-extension) */}
-            {formData.targetArea !== 'extension' && (
+            {formData.targetArea !== 'extension' && formData.targetArea !== 'extension2' && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-3">
