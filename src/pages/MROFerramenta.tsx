@@ -635,7 +635,7 @@ const MROFerramenta = () => {
       {selectedContent && (
         <div 
           className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
-          onClick={() => setSelectedContent(null)}
+          onClick={() => { setSelectedContent(null); setSelectedModule(null); }}
         >
           <div 
             className="w-full max-w-5xl my-8"
