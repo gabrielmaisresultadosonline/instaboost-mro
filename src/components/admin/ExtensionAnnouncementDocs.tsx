@@ -29,7 +29,10 @@ const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea
 
   if (!isOpen) return null;
 
-  const endpoint = `${supabaseUrl}/storage/v1/object/public/user-data/admin/extension-announcements.json`;
+  const fileName = targetArea === 'extension2' ? 'extension2-announcements.json' : 'extension-announcements.json';
+  const storageKey = targetArea === 'extension2' ? 'mro_extension2_announcements' : 'mro_extension_announcements';
+  const label = targetArea === 'extension2' ? 'Extensão Chrome 2' : 'Extensão Chrome';
+  const endpoint = `${supabaseUrl}/storage/v1/object/public/user-data/admin/${fileName}`;
 
   const fetchCode = `// 🔔 Buscar avisos da extensão
 const ANNOUNCEMENTS_URL = '${endpoint}';
