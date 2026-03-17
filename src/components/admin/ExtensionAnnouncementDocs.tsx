@@ -10,9 +10,10 @@ interface ExtensionAnnouncementDocsProps {
   announcementId?: string;
   isOpen: boolean;
   onClose: () => void;
+  targetArea?: 'extension' | 'extension2';
 }
 
-const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose }: ExtensionAnnouncementDocsProps) => {
+const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose, targetArea = 'extension' }: ExtensionAnnouncementDocsProps) => {
   const { toast } = useToast();
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
@@ -28,7 +29,10 @@ const ExtensionAnnouncementDocs = ({ announcementId, isOpen, onClose }: Extensio
 
   if (!isOpen) return null;
 
-  const endpoint = `${supabaseUrl}/storage/v1/object/public/user-data/admin/extension-announcements.json`;
+  const fileName = targetArea === 'extension2' ? 'extension2-announcements.json' : 'extension-announcements.json';
+  const storageKey = targetArea === 'extension2' ? 'mro_extension2_announcements' : 'mro_extension_announcements';
+  const label = targetArea === 'extension2' ? 'Extensão Chrome 2' : 'Extensão Chrome';
+  const endpoint = `${supabaseUrl}/storage/v1/object/public/user-data/admin/${fileName}`;
 
   const fetchCode = `// 🔔 Buscar avisos da extensão
 const ANNOUNCEMENTS_URL = '${endpoint}';
@@ -47,7 +51,7 @@ async function fetchExtensionAnnouncements() {
 }`;
 
   const displayLogicCode = `// 📋 Lógica de exibição de avisos
-const STORAGE_KEY = 'mro_extension_announcements';
+const STORAGE_KEY = '${storageKey}';
 
 function getViewedAnnouncements() {
   try {
@@ -246,9 +250,9 @@ interface ExtensionAnnouncement {
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Documentação - Avisos para Extensão</h2>
+              <h2 className="text-xl font-bold">Documentação - Avisos para {label}</h2>
               <p className="text-sm text-muted-foreground">
-                API e integração com extensão Chrome
+                API e integração com {label.toLowerCase()}
               </p>
             </div>
           </div>

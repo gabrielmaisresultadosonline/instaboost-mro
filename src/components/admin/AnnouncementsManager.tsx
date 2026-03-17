@@ -27,7 +27,7 @@ export interface Announcement {
   createdAt: string;
   updatedAt: string;
   viewCount?: number;
-  targetArea?: 'all' | 'instagram' | 'zapmro' | 'extension';
+  targetArea?: 'all' | 'instagram' | 'zapmro' | 'extension' | 'extension2';
   // Extension-specific fields
   delaySeconds?: number;
   frequencyType?: 'once' | 'times_per_day' | 'times_per_hours';
@@ -103,26 +103,29 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
       }
 
       // Load extension announcements
-      const { data: extensionData, error: extensionError } = await supabase.storage
-        .from('user-data')
-        .download('admin/extension-announcements.json');
-      
-      if (extensionError) {
-        if (!extensionError.message.includes('not found')) {
-          console.error('Erro ao carregar avisos da extensão:', extensionError);
+      for (const extKey of ['extension', 'extension2'] as const) {
+        const fileName = extKey === 'extension' ? 'extension-announcements.json' : 'extension2-announcements.json';
+        const { data: extensionData, error: extensionError } = await supabase.storage
+          .from('user-data')
+          .download(`admin/${fileName}`);
+        
+        if (extensionError) {
+          if (!extensionError.message.includes('not found')) {
+            console.error(`Erro ao carregar avisos da ${extKey}:`, extensionError);
+          }
+        } else {
+          const text = await extensionData.text();
+          const parsed = JSON.parse(text);
+          const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
+            ...a,
+            targetArea: extKey,
+            forceRead: false,
+            forceReadSeconds: 5,
+            maxViews: 1,
+            viewCount: 0
+          }));
+          allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
         }
-      } else {
-        const text = await extensionData.text();
-        const parsed = JSON.parse(text);
-        const extensionAnnouncements = (parsed.announcements || []).map((a: any) => ({
-          ...a,
-          targetArea: 'extension' as const,
-          forceRead: false,
-          forceReadSeconds: 5,
-          maxViews: 1,
-          viewCount: 0
-        }));
-        allAnnouncements = [...allAnnouncements, ...extensionAnnouncements];
       }
 
       setAnnouncements(allAnnouncements);
@@ -140,7 +143,8 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
     try {
       // Separate extension announcements from regular announcements
       const extensionAnnouncements = data.filter(a => a.targetArea === 'extension');
-      const regularAnnouncements = data.filter(a => a.targetArea !== 'extension');
+      const extension2Announcements = data.filter(a => a.targetArea === 'extension2');
+      const regularAnnouncements = data.filter(a => a.targetArea !== 'extension' && a.targetArea !== 'extension2');
 
       // Save regular announcements
       const regularPayload: AnnouncementsData = {
@@ -159,34 +163,39 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
       if (regularError) throw regularError;
 
-      // Save extension announcements to separate file
-      const extensionPayload = {
-        announcements: extensionAnnouncements.map(a => ({
-          id: a.id,
-          title: a.title,
-          content: a.content,
-          thumbnailUrl: a.thumbnailUrl,
-          buttonText: a.buttonText,
-          buttonUrl: a.buttonUrl,
-          isActive: a.isActive,
-          delaySeconds: a.delaySeconds || 0,
-          frequencyType: a.frequencyType || 'once',
-          frequencyValue: a.frequencyValue || 1,
-          frequencyHours: a.frequencyHours || 1,
-          createdAt: a.createdAt,
-          updatedAt: a.updatedAt
-        })),
-        lastUpdated: new Date().toISOString()
-      };
+      // Save extension announcements to separate files
+      for (const [extAnnouncements, fileName] of [
+        [extensionAnnouncements, 'extension-announcements.json'],
+        [extension2Announcements, 'extension2-announcements.json']
+      ] as [Announcement[], string][]) {
+        const extensionPayload = {
+          announcements: extAnnouncements.map(a => ({
+            id: a.id,
+            title: a.title,
+            content: a.content,
+            thumbnailUrl: a.thumbnailUrl,
+            buttonText: a.buttonText,
+            buttonUrl: a.buttonUrl,
+            isActive: a.isActive,
+            delaySeconds: a.delaySeconds || 0,
+            frequencyType: a.frequencyType || 'once',
+            frequencyValue: a.frequencyValue || 1,
+            frequencyHours: a.frequencyHours || 1,
+            createdAt: a.createdAt,
+            updatedAt: a.updatedAt
+          })),
+          lastUpdated: new Date().toISOString()
+        };
 
-      const extensionBlob = new Blob([JSON.stringify(extensionPayload, null, 2)], { type: 'application/json' });
-      
-      await supabase.storage
-        .from('user-data')
-        .upload('admin/extension-announcements.json', extensionBlob, { 
-          upsert: true,
-          contentType: 'application/json'
-        });
+        const extensionBlob = new Blob([JSON.stringify(extensionPayload, null, 2)], { type: 'application/json' });
+        
+        await supabase.storage
+          .from('user-data')
+          .upload(`admin/${fileName}`, extensionBlob, { 
+            upsert: true,
+            contentType: 'application/json'
+          });
+      }
 
       toast({ title: 'Avisos salvos!', description: 'Alterações publicadas para usuários' });
       console.log('📢 Avisos salvos com sucesso');
@@ -672,12 +681,13 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                   <option value="instagram">Apenas Instagram (MRO)</option>
                   <option value="zapmro">Apenas ZAPMRO</option>
                   <option value="extension">🧩 Extensão Chrome (Externa)</option>
+                  <option value="extension2">🧩 Extensão Chrome 2 (Externa)</option>
                 </select>
               </div>
             </div>
 
             {/* Extension-specific settings */}
-            {formData.targetArea === 'extension' && (
+            {(formData.targetArea === 'extension' || formData.targetArea === 'extension2') && (
               <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 space-y-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Chrome className="w-5 h-5 text-purple-400" />
@@ -801,7 +811,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             )}
 
             {/* Regular announcement settings (non-extension) */}
-            {formData.targetArea !== 'extension' && (
+            {formData.targetArea !== 'extension' && formData.targetArea !== 'extension2' && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-3">
@@ -856,7 +866,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
             )}
 
             {/* Extension active toggle */}
-            {formData.targetArea === 'extension' && (
+            {(formData.targetArea === 'extension' || formData.targetArea === 'extension2') && (
               <div className="flex items-center gap-3">
                 <Switch
                   checked={formData.isActive ?? true}
@@ -924,6 +934,8 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                       ? 'bg-green-500/20 text-green-400'
                       : announcement.targetArea === 'extension'
                       ? 'bg-purple-500/20 text-purple-400'
+                      : announcement.targetArea === 'extension2'
+                      ? 'bg-cyan-500/20 text-cyan-400'
                       : 'bg-gray-500/20 text-gray-400'
                   }`}>
                     {announcement.targetArea === 'instagram' 
@@ -932,10 +944,12 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                       ? '💬 ZAPMRO'
                       : announcement.targetArea === 'extension'
                       ? '🧩 Extensão'
+                      : announcement.targetArea === 'extension2'
+                      ? '🧩 Extensão 2'
                       : '🌐 Todas'}
                   </span>
                   {/* Extension delay badge */}
-                  {announcement.targetArea === 'extension' && announcement.delaySeconds && announcement.delaySeconds > 0 && (
+                  {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && announcement.delaySeconds && announcement.delaySeconds > 0 && (
                     <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {announcement.delaySeconds}s delay
@@ -952,7 +966,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Criado: {new Date(announcement.createdAt).toLocaleDateString('pt-BR')}
-                  {announcement.targetArea === 'extension' && announcement.frequencyType && (
+                  {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && announcement.frequencyType && (
                     <span className="ml-2 text-purple-400">
                       • {announcement.frequencyType === 'once' 
                         ? '1x total' 
@@ -966,7 +980,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Docs button for extension announcements */}
-                {announcement.targetArea === 'extension' && (
+                {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1027,6 +1041,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
           setShowDocsForAnnouncement(null);
         }}
         announcementId={showDocsForAnnouncement || undefined}
+        targetArea={showDocsForAnnouncement ? (announcements.find(a => a.id === showDocsForAnnouncement)?.targetArea === 'extension2' ? 'extension2' : 'extension') : 'extension'}
       />
     </div>
   );
