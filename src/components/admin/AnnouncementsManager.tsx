@@ -966,7 +966,7 @@ const AnnouncementsManager = ({ filterArea }: AnnouncementsManagerProps = {}) =>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Criado: {new Date(announcement.createdAt).toLocaleDateString('pt-BR')}
-                  {announcement.targetArea === 'extension' && announcement.frequencyType && (
+                  {(announcement.targetArea === 'extension' || announcement.targetArea === 'extension2') && announcement.frequencyType && (
                     <span className="ml-2 text-purple-400">
                       • {announcement.frequencyType === 'once' 
                         ? '1x total' 
