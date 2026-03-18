@@ -501,6 +501,22 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     toast({ title: "Módulo atualizado!" });
   };
 
+  const handleMoveModule = (moduleId: string, direction: 'up' | 'down') => {
+    const data = getLocalData();
+    const modules = data.modules || [];
+    const index = modules.findIndex(m => m.id === moduleId);
+    if (index < 0) return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === modules.length - 1) return;
+    const swapIndex = direction === 'up' ? index - 1 : index + 1;
+    [modules[index], modules[swapIndex]] = [modules[swapIndex], modules[index]];
+    modules.forEach((m, i) => m.order = i + 1);
+    data.modules = modules;
+    saveLocalData(data);
+    refreshData();
+    toast({ title: "Ordem atualizada!" });
+  };
+
   const handleDeleteModule = async (moduleId: string) => {
     if (confirm('Tem certeza que deseja excluir este módulo e todo seu conteúdo?')) {
       const module = adminData.modules?.find(m => m.id === moduleId);
