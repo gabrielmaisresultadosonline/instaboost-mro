@@ -17,7 +17,8 @@ import CoverUploader from './CoverUploader';
 import { 
   Plus, Trash2, Save, Check, X, Play, Video, Type, 
   ChevronDown, ChevronUp, Image as ImageIcon,
-  Edit2, Upload, Loader2, Link2, ExternalLink, LayoutList, Database, Download
+  Edit2, Upload, Loader2, Link2, ExternalLink, LayoutList, Database, Download,
+  ArrowUp, ArrowDown
 } from 'lucide-react';
 
 interface ModuleManagerProps {
