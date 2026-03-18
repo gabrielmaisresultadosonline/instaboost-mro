@@ -218,7 +218,7 @@ const MROFerramenta = () => {
         <div 
           ref={scrollContainerRef}
           onScroll={checkScroll}
-          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory touch-pan-x justify-start"
+          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory touch-pan-x justify-center"
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none', 
