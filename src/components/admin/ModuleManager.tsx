@@ -1266,6 +1266,26 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
                     type="button" 
                     variant="ghost" 
                     size="sm" 
+                    onClick={() => handleMoveModule(module.id, 'up')}
+                    className="cursor-pointer"
+                    disabled={adminData.modules.indexOf(module) === 0}
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleMoveModule(module.id, 'down')}
+                    className="cursor-pointer"
+                    disabled={adminData.modules.indexOf(module) === adminData.modules.length - 1}
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
                     onClick={() => startEditModule(module)}
                     className="cursor-pointer"
                   >
