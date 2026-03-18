@@ -17,7 +17,8 @@ import CoverUploader from './CoverUploader';
 import { 
   Plus, Trash2, Save, Check, X, Play, Video, Type, 
   ChevronDown, ChevronUp, Image as ImageIcon,
-  Edit2, Upload, Loader2, Link2, ExternalLink, LayoutList, Database, Download
+  Edit2, Upload, Loader2, Link2, ExternalLink, LayoutList, Database, Download,
+  ArrowUp, ArrowDown
 } from 'lucide-react';
 
 interface ModuleManagerProps {
@@ -498,6 +499,22 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
     setEditModuleData({});
     refreshData();
     toast({ title: "Módulo atualizado!" });
+  };
+
+  const handleMoveModule = (moduleId: string, direction: 'up' | 'down') => {
+    const data = getLocalData();
+    const modules = data.modules || [];
+    const index = modules.findIndex(m => m.id === moduleId);
+    if (index < 0) return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === modules.length - 1) return;
+    const swapIndex = direction === 'up' ? index - 1 : index + 1;
+    [modules[index], modules[swapIndex]] = [modules[swapIndex], modules[index]];
+    modules.forEach((m, i) => m.order = i + 1);
+    data.modules = modules;
+    saveLocalData(data);
+    refreshData();
+    toast({ title: "Ordem atualizada!" });
   };
 
   const handleDeleteModule = async (moduleId: string) => {
@@ -1245,6 +1262,26 @@ const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, pla
 
                 {/* Actions */}
                 <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleMoveModule(module.id, 'up')}
+                    className="cursor-pointer"
+                    disabled={adminData.modules.indexOf(module) === 0}
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleMoveModule(module.id, 'down')}
+                    className="cursor-pointer"
+                    disabled={adminData.modules.indexOf(module) === adminData.modules.length - 1}
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </Button>
                   <Button 
                     type="button" 
                     variant="ghost" 
