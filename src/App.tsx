@@ -177,6 +177,7 @@ const App = () => (
           <Route path="/Iavendemais/admin" element={<IAVendeMaisAdmin />} />
           <Route path="/rendaextraligacao" element={<RendaExtraLigacao />} />
           <Route path="/rendaextraligacao/admin" element={<RendaExtraLigacaoAdmin />} />
+          <Route path="/relatorios" element={<Relatorios />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
