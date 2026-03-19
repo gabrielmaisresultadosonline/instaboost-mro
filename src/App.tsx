@@ -84,6 +84,7 @@ import IAVendeMais from "./pages/IAVendeMais";
 import IAVendeMaisAdmin from "./pages/IAVendeMaisAdmin";
 import RendaExtraLigacao from "./pages/RendaExtraLigacao";
 import RendaExtraLigacaoAdmin from "./pages/RendaExtraLigacaoAdmin";
+import Relatorios from "./pages/Relatorios";
 
 const queryClient = new QueryClient();
 
