@@ -636,7 +636,7 @@ const DescontoAlunosRendaExtra = () => {
                 setShowCheckoutModal(true);
               }}
               disabled={promoTimeLeft.expired}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-green-500/30 disabled:opacity-50"
+              className="w-full btn-pulse-color text-white font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-green-500/30 disabled:opacity-50"
             >
               {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "QUERO GARANTIR AGORA"}
             </Button>
