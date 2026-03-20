@@ -88,6 +88,30 @@ const LiveAdmin = () => {
     }
   }, []);
 
+  // Poll real-time viewers for active sessions every 5 seconds
+  useEffect(() => {
+    if (!authenticated) return;
+    const activeSessions = sessions.filter(s => s.status === "active");
+    if (activeSessions.length === 0) return;
+
+    const pollViewers = async () => {
+      for (const s of activeSessions) {
+        try {
+          const { data } = await supabase.functions.invoke("live-admin", {
+            body: { action: "getRealtimeViewers", session_id: s.id },
+          });
+          if (data?.realtime) {
+            setRealtimeViewers(prev => ({ ...prev, [s.id]: data.realtime }));
+          }
+        } catch {}
+      }
+    };
+
+    pollViewers();
+    const interval = setInterval(pollViewers, 5000);
+    return () => clearInterval(interval);
+  }, [authenticated, sessions]);
+
   const loadSessions = async () => {
     const { data } = await supabase.functions.invoke("live-admin", {
       body: { action: "getAllSessions" },
