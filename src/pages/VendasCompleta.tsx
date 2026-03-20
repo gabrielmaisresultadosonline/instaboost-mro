@@ -293,10 +293,10 @@ const VendasCompleta = () => {
             <h2 className="text-3xl md:text-5xl font-black mb-4">
               NOVIDADES DA <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">V7+ PLUS</span>
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto mb-2">
               Totalmente otimizada com mais automação, mais inteligência e mais resultados
             </p>
-            <p className="text-xl md:text-2xl font-bold mt-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+            <p className="text-2xl md:text-3xl font-black mt-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
               🎁 O que você vai receber no Plano MRO!
             </p>
           </div>
