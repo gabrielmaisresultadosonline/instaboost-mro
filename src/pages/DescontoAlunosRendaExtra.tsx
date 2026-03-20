@@ -284,7 +284,7 @@ const DescontoAlunosRendaExtra = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
           <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
           <span className="text-xs sm:text-sm md:text-base font-bold text-white leading-tight">
-            🎁 VOCÊ RECEBEU UM DESCONTO ESPECIAL! Aproveite em{" "}
+            🎓 DESCONTO ESPECIAL PARA ALUNOS DO RENDA EXTRA! Aproveite em{" "}
             <span className="bg-black/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-yellow-300 font-mono text-xs sm:text-sm">
               {promoTimeLeft.expired ? "EXPIRADO" : 
                 `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
