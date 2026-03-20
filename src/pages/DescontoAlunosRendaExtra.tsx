@@ -476,6 +476,7 @@ const DescontoAlunosRendaExtra = () => {
               { id: "wfU12IHauN8", title: "Feedback 3" },
               { id: "8o8ut9yxmnk", title: "Feedback 4" },
               { id: "cZA5lEH8rpE", title: "Feedback 5" },
+              { id: "ct5U0Cp61YA", title: "Feedback 6" },
             ].map((video, i) => (
               <div
                 key={i}
