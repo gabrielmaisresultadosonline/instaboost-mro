@@ -19,6 +19,7 @@ const LiveAdmin = () => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [realtimeViewers, setRealtimeViewers] = useState<Record<string, { active: number; mobile: number; desktop: number }>>({});
   const [creating, setCreating] = useState(false);
   const [loading, setLoading] = useState(false);
 
