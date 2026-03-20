@@ -301,9 +301,9 @@ const DescontoAlunosRendaExtra = () => {
       <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Special Discount Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-bounce">
-            <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL LIBERADO!</span>
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-4 sm:mb-6 animate-bounce">
+            <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
+            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL PARA ALUNOS DO RENDA EXTRA</span>
           </div>
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
@@ -312,23 +312,23 @@ const DescontoAlunosRendaExtra = () => {
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
             <h1 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 px-2">
-              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">NÃO GASTE MAIS COM ANÚNCIOS</span>
+              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">FATURE MAIS DE R$5.000</span>
             </h1>
             <h2 className="relative text-lg sm:text-xl md:text-3xl lg:text-4xl font-black mb-3">
               <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                UTILIZE A MRO INTELIGENTE!
+                TRABALHANDO DE CASA!
               </span>
             </h2>
-            <p className="relative mt-3 text-sm md:text-base text-gray-400">
-              Instale em seu notebook, macbook ou computador de mesa!
+            <p className="relative mt-3 text-sm sm:text-base md:text-lg text-gray-300 max-w-3xl mx-auto">
+              Renda extra automática e real! Com apenas 1 computador ou notebook, instale a ferramenta MRO e comece a faturar de qualquer lugar do mundo.
             </p>
           </div>
 
-          {/* V7+ Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 rounded-full px-4 sm:px-6 py-2 mt-6">
-            <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 animate-pulse" />
-            <span className="text-white font-bold text-xs sm:text-sm">NOVA VERSÃO V7+ PLUS — A MAIS COMPLETA</span>
-            <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 animate-pulse" />
+          {/* Renda Extra Badge */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600/30 to-emerald-600/30 border border-green-500/50 rounded-full px-4 sm:px-6 py-2 mt-6">
+            <Laptop className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+            <span className="text-white font-bold text-xs sm:text-sm">20 MINUTOS ANTES DE DORMIR = RENDA EXTRA AUTOMÁTICA</span>
+            <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
           </div>
 
           {/* Countdown Timer Large */}
