@@ -19,6 +19,7 @@ const LiveAdmin = () => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [realtimeViewers, setRealtimeViewers] = useState<Record<string, { active: number; mobile: number; desktop: number }>>({});
   const [creating, setCreating] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -86,6 +87,30 @@ const LiveAdmin = () => {
       loadSettings();
     }
   }, []);
+
+  // Poll real-time viewers for active sessions every 5 seconds
+  useEffect(() => {
+    if (!authenticated) return;
+    const activeSessions = sessions.filter(s => s.status === "active");
+    if (activeSessions.length === 0) return;
+
+    const pollViewers = async () => {
+      for (const s of activeSessions) {
+        try {
+          const { data } = await supabase.functions.invoke("live-admin", {
+            body: { action: "getRealtimeViewers", session_id: s.id },
+          });
+          if (data?.realtime) {
+            setRealtimeViewers(prev => ({ ...prev, [s.id]: data.realtime }));
+          }
+        } catch {}
+      }
+    };
+
+    pollViewers();
+    const interval = setInterval(pollViewers, 5000);
+    return () => clearInterval(interval);
+  }, [authenticated, sessions]);
 
   const loadSessions = async () => {
     const { data } = await supabase.functions.invoke("live-admin", {
@@ -544,8 +569,27 @@ const LiveAdmin = () => {
                         Criada: {new Date(s.created_at).toLocaleString("pt-BR")}
                         {s.ended_at && ` • Encerrada: ${new Date(s.ended_at).toLocaleString("pt-BR")}`}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">Viewers: {s.fake_viewers_min} - {s.fake_viewers_max}</p>
+                      <p className="text-xs text-gray-500">Viewers fictícios: {s.fake_viewers_min} - {s.fake_viewers_max}</p>
+                      {s.status === "active" && realtimeViewers[s.id] && (
+                        <div className="flex items-center gap-3 mt-2">
+                          <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/30 rounded-full px-3 py-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            <Eye className="w-3.5 h-3.5 text-green-400" />
+                            <span className="text-green-400 font-bold text-sm">{realtimeViewers[s.id].active}</span>
+                            <span className="text-green-400/70 text-xs">assistindo agora</span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            📱 {realtimeViewers[s.id].mobile} · 💻 {realtimeViewers[s.id].desktop}
+                          </span>
+                        </div>
+                      )}
                       {s.video_url && <p className="text-xs text-blue-400 mt-1 truncate">🎥 {s.video_url}</p>}
+                      {s.status === "active" && !realtimeViewers[s.id] && (
+                        <div className="flex items-center gap-1.5 mt-2 text-gray-500 text-xs">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span>Carregando viewers em tempo real...</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex gap-2 flex-wrap">
