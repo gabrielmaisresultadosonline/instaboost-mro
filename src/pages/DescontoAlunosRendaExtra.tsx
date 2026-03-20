@@ -610,14 +610,23 @@ const DescontoAlunosRendaExtra = () => {
                 ou <span className="text-white font-bold">R$300 à vista</span>
               </p>
               
-              <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/50 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-3 sm:mb-4">
-                <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
-                <span className="text-red-400 font-bold text-sm sm:text-base">R$97 REAIS DE DESCONTO!</span>
+              {/* Animated discount highlight */}
+              <div className="relative inline-block mb-4">
+                <div className="absolute -inset-2 bg-gradient-to-r from-red-500/30 via-yellow-500/30 to-red-500/30 rounded-full blur-md animate-pulse" />
+                <div className="relative inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 border-2 border-yellow-400/60 rounded-full px-4 sm:px-6 py-2 sm:py-3 animate-bounce" style={{ animationDuration: '2s' }}>
+                  <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
+                  <span className="text-white font-black text-sm sm:text-lg tracking-wide">R$97 DE DESCONTO!</span>
+                  <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300 animate-pulse" />
+                </div>
               </div>
-              
-              <p className="text-yellow-400 text-xs sm:text-sm font-medium">
-                ⏰ Válido apenas nas próximas 8 horas
-              </p>
+
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-400 animate-pulse" />
+                <p className="text-yellow-400 text-xs sm:text-sm font-bold">
+                  ⏰ Válido apenas nas próximas 8 horas
+                </p>
+                <AlertTriangle className="w-4 h-4 text-yellow-400 animate-pulse" />
+              </div>
             </div>
             
             {/* Features */}
