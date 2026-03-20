@@ -251,10 +251,10 @@ const VendasCompleta = () => {
                 A versão mais completa, agora sem limites!
               </span>
             </h2>
-            <p className="relative text-base md:text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Se você quer crescer no Instagram, gerar vendas e aumentar seu engajamento <strong className="text-white">sem gastar com anúncios</strong>, chegou a ferramenta certa.
+            <p className="relative text-lg md:text-2xl text-gray-100 max-w-3xl mx-auto leading-relaxed font-semibold mt-4">
+              Venda mais no Instagram <strong className="text-white">sem gastar com anúncios</strong>, utilize a MRO Inteligente!
             </p>
-            <p className="relative mt-3 text-sm text-gray-500">
+            <p className="relative mt-3 text-sm md:text-base text-gray-400">
               Instale em seu notebook, macbook ou computador de mesa!
             </p>
           </div>
