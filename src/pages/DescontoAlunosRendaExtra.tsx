@@ -446,6 +446,24 @@ const DescontoAlunosRendaExtra = () => {
         </div>
       </section>
 
+      {/* === PASSO A PASSO PARA FATURAR 5 MIL === */}
+      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 sm:px-6 py-2 mb-6">
+            <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+            <span className="text-amber-400 font-bold text-xs sm:text-sm">BÔNUS EXCLUSIVO</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4">
+            Você vai receber o <span className="text-green-400">passo a passo completo</span> para faturar seus 5 mil!
+          </h2>
+          <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto mb-8 sm:mb-10">
+            Desde como se posicionar para começar, até fechar contratos e entregar testes ao cliente — além de materiais disponíveis para divulgação.
+          </p>
+          <div className="rounded-2xl overflow-hidden border-2 border-amber-500/30 shadow-2xl shadow-amber-500/10">
+            <img src={bonus5mil} alt="Passo a passo para faturar mais de 5 mil com a ferramenta MRO" className="w-full h-auto" />
+          </div>
+        </div>
+      </section>
 
       {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
