@@ -556,45 +556,6 @@ const DescontoAlunosRendaExtra = () => {
         </div>
       </section>
 
-      {/* Guarantee Section */}
-      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative bg-gradient-to-br from-green-950/80 to-black border-2 border-green-500/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-14 text-center shadow-2xl shadow-green-500/10 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 to-transparent pointer-events-none" />
-            <div className="relative flex items-center justify-center mb-6">
-              <div className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-green-500/10 animate-ping pointer-events-none" style={{animationDuration: '3s'}} />
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-green-500/20 border-2 border-green-500/40 flex items-center justify-center">
-                <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-green-400" />
-              </div>
-            </div>
-            <span className="text-green-400 font-bold text-[10px] sm:text-xs tracking-[0.3em] uppercase">GARANTIA TOTAL</span>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mt-3 mb-4 sm:mb-6 leading-tight">
-              30 Dias de Resultados <span className="text-green-400">Garantidos</span>
-            </h2>
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl sm:rounded-2xl px-4 sm:px-6 py-4 sm:py-5 max-w-2xl mx-auto mb-6 sm:mb-8">
-              <p className="text-white text-base sm:text-lg md:text-xl leading-relaxed">
-                Se em <strong className="text-green-400">30 dias</strong> não tiver os resultados prometidos, <strong className="text-white">devolvemos o seu dinheiro.</strong>
-              </p>
-              <p className="text-green-300 font-bold text-sm sm:text-lg mt-2">Nós garantimos resultados. Sem risco para você.</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 max-w-2xl mx-auto mb-6 sm:mb-8">
-              {[
-                { emoji: "🔒", label: "Compra 100% Segura" },
-                { emoji: "💰", label: "Reembolso Garantido" },
-                { emoji: "✅", label: "Satisfação ou Dinheiro de Volta" }
-              ].map((item, i) => (
-                <div key={i} className="bg-green-500/10 border border-green-500/20 rounded-xl px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2 justify-center">
-                  <span className="text-lg sm:text-xl">{item.emoji}</span>
-                  <span className="text-green-300 text-xs sm:text-sm font-semibold">{item.label}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-gray-500 text-xs sm:text-sm">Garantia válida por 30 dias após a data da compra.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* O que está incluso */}
       <section ref={pricingRef} className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-center mb-3 sm:mb-4">
