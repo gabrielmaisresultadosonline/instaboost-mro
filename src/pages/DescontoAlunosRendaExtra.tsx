@@ -392,7 +392,7 @@ const DescontoAlunosRendaExtra = () => {
               COMO VOCÊ VAI <span className="text-green-400">FATURAR</span>
             </h2>
             <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">
-              Seja uma <strong className="text-white">eAgência de Marketing Digital</strong> — preste serviço para empresas usando a ferramenta MRO e cobre mensalidade deles!
+              Seja uma <strong className="text-white">EUGência de Marketing Digital</strong> — preste serviço para empresas usando a ferramenta MRO e cobre mensalidade deles!
             </p>
           </div>
 
