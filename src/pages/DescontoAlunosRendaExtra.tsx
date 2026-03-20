@@ -49,7 +49,7 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 
-const InstagramNovaPromoo2 = () => {
+const DescontoAlunosRendaExtra = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
@@ -284,7 +284,7 @@ const InstagramNovaPromoo2 = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
           <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
           <span className="text-xs sm:text-sm md:text-base font-bold text-white leading-tight">
-            🎁 VOCÊ RECEBEU UM DESCONTO ESPECIAL! Aproveite em{" "}
+            🎓 DESCONTO ESPECIAL PARA ALUNOS DO RENDA EXTRA! Aproveite em{" "}
             <span className="bg-black/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-yellow-300 font-mono text-xs sm:text-sm">
               {promoTimeLeft.expired ? "EXPIRADO" : 
                 `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
@@ -301,9 +301,9 @@ const InstagramNovaPromoo2 = () => {
       <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Special Discount Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-bounce">
-            <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL LIBERADO!</span>
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-4 sm:mb-6 animate-bounce">
+            <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
+            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL PARA ALUNOS DO RENDA EXTRA</span>
           </div>
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
@@ -312,23 +312,23 @@ const InstagramNovaPromoo2 = () => {
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 blur-3xl rounded-full" />
             <h1 className="relative text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 px-2">
-              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">NÃO GASTE MAIS COM ANÚNCIOS</span>
+              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">FATURE MAIS DE R$5.000</span>
             </h1>
             <h2 className="relative text-lg sm:text-xl md:text-3xl lg:text-4xl font-black mb-3">
               <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
-                UTILIZE A MRO INTELIGENTE!
+                TRABALHANDO DE CASA!
               </span>
             </h2>
-            <p className="relative mt-3 text-sm md:text-base text-gray-400">
-              Instale em seu notebook, macbook ou computador de mesa!
+            <p className="relative mt-3 text-sm sm:text-base md:text-lg text-gray-300 max-w-3xl mx-auto">
+              Renda extra automática e real! Com apenas 1 computador ou notebook, instale a ferramenta MRO e comece a faturar de qualquer lugar do mundo.
             </p>
           </div>
 
-          {/* V7+ Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 rounded-full px-4 sm:px-6 py-2 mt-6">
-            <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 animate-pulse" />
-            <span className="text-white font-bold text-xs sm:text-sm">NOVA VERSÃO V7+ PLUS — A MAIS COMPLETA</span>
-            <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 animate-pulse" />
+          {/* Renda Extra Badge */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600/30 to-emerald-600/30 border border-green-500/50 rounded-full px-4 sm:px-6 py-2 mt-6">
+            <Laptop className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+            <span className="text-white font-bold text-xs sm:text-sm">20 MINUTOS ANTES DE DORMIR = RENDA EXTRA AUTOMÁTICA</span>
+            <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
           </div>
 
           {/* Countdown Timer Large */}
@@ -380,8 +380,73 @@ const InstagramNovaPromoo2 = () => {
         </div>
       </section>
 
+      {/* === COMO FUNCIONA A RENDA EXTRA === */}
+      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 sm:px-6 py-2 mb-4">
+              <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+              <span className="text-green-400 font-bold text-xs sm:text-sm">SUA RENDA EXTRA</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4">
+              COMO VOCÊ VAI <span className="text-green-400">FATURAR</span>
+            </h2>
+            <p className="text-gray-300 text-sm sm:text-lg max-w-3xl mx-auto">
+              Seja uma <strong className="text-white">eAgência de Marketing Digital</strong> — preste serviço para empresas usando a ferramenta MRO e cobre mensalidade deles!
+            </p>
+          </div>
+
+          {/* Business Model Cards */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
+            {[
+              { icon: Monitor, title: "Instale no seu computador", desc: "Com apenas 1 notebook ou PC, você já pode começar a trabalhar de casa ou de qualquer lugar", color: "from-blue-600 to-cyan-600", border: "border-blue-500/40" },
+              { icon: Clock, title: "20 min antes de dormir", desc: "Configure a ferramenta em 20 minutos, deixe rodando automaticamente durante toda a madrugada", color: "from-purple-600 to-pink-600", border: "border-purple-500/40" },
+              { icon: CreditCard, title: "Cobre mensalidade", desc: "Ofereça o serviço para empresas e cobre uma mensalidade para rodar a ferramenta na sua máquina", color: "from-green-600 to-emerald-600", border: "border-green-500/40" },
+            ].map((item, i) => (
+              <div key={i} className={`bg-gray-900/80 border-2 ${item.border} rounded-2xl p-6 sm:p-8 text-center`}>
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                  <item.icon className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="text-lg sm:text-xl font-bold text-white mb-2">{item.title}</h4>
+                <p className="text-gray-400 text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* What you offer to companies */}
+          <div className="bg-gradient-to-br from-amber-950/50 to-orange-950/50 border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10">
+            <div className="text-center mb-6">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-amber-300 mb-2">
+                💼 O que você oferece para empresas?
+              </h3>
+              <p className="text-gray-400 text-sm sm:text-base">Você traz resultados reais e elas pagam você por isso!</p>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {[
+                { icon: TrendingUp, text: "Mais vendas", color: "text-green-400" },
+                { icon: Users, text: "Mais clientes", color: "text-blue-400" },
+                { icon: UserPlus, text: "Mais seguidores", color: "text-purple-400" },
+                { icon: Brain, text: "Estratégias automáticas", color: "text-amber-400" },
+              ].map((item, i) => (
+                <div key={i} className="bg-black/40 border border-amber-500/20 rounded-xl p-4 sm:p-5 text-center">
+                  <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
+                    <item.icon className={`w-6 h-6 ${item.color}`} />
+                  </div>
+                  <span className="text-white font-bold text-sm sm:text-base">{item.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 sm:mt-8 bg-green-500/15 border border-green-500/30 rounded-xl p-4 text-center">
+              <p className="text-green-300 font-bold text-sm sm:text-lg">
+                💰 Com 5 clientes pagando R$1.000/mês cada, você já fatura R$5.000 de casa!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Active Clients */}
-      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
+      <section className="py-8 px-4 bg-gradient-to-b from-black to-gray-950">
         <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
       </section>
 
@@ -1094,4 +1159,4 @@ const InstagramNovaPromoo2 = () => {
   );
 };
 
-export default InstagramNovaPromoo2;
+export default DescontoAlunosRendaExtra;
