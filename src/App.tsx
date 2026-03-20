@@ -20,6 +20,7 @@ import InstagramNovaEuro from "./pages/InstagramNovaEuro";
 import InstagramNovaEuroAdmin from "./pages/InstagramNovaEuroAdmin";
 import InstagramNovaPromo from "./pages/InstagramNovaPromo";
 import InstagramNovaPromoo2 from "./pages/InstagramNovaPromoo2";
+import DescontoAlunosRendaExtra from "./pages/DescontoAlunosRendaExtra";
 import InstagramPromoMila from "./pages/InstagramPromoMila";
 import AffiliatePromoPage from "./pages/AffiliatePromoPage";
 import AffiliateResumo from "./pages/AffiliateResumo";
@@ -178,6 +179,7 @@ const App = () => (
           <Route path="/rendaextraligacao" element={<RendaExtraLigacao />} />
           <Route path="/rendaextraligacao/admin" element={<RendaExtraLigacaoAdmin />} />
           <Route path="/relatorios" element={<Relatorios />} />
+          <Route path="/descontoalunosrendaextra" element={<DescontoAlunosRendaExtra />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
