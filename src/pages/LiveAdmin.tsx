@@ -583,6 +583,7 @@ const LiveAdmin = () => {
                           </span>
                         </div>
                       )}
+                      {s.video_url && <p className="text-xs text-blue-400 mt-1 truncate">🎥 {s.video_url}</p>}
                       {s.status === "active" && !realtimeViewers[s.id] && (
                         <div className="flex items-center gap-1.5 mt-2 text-gray-500 text-xs">
                           <Loader2 className="w-3 h-3 animate-spin" />
