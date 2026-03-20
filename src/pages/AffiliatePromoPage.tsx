@@ -43,9 +43,17 @@ import {
   HelpCircle,
   Smartphone,
   TrendingUp,
-  ShoppingCart
+  ShoppingCart,
+  Send,
+  Filter,
+  Rocket,
+  Crown,
+  Flame,
+  MousePointerClick,
+  BarChart3
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
+import ActiveClientsSection from "@/components/ActiveClientsSection";
 
 interface AffiliateData {
   id: string;
