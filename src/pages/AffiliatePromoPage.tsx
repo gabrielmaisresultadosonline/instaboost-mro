@@ -488,6 +488,339 @@ const AffiliatePromoPage = () => {
         </div>
       </section>
 
+      {/* Active Clients */}
+      <section className="py-8 px-4 bg-gradient-to-b from-gray-950 to-black">
+        <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
+      </section>
+
+      {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
+      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-950">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full px-6 py-2 mb-4">
+              <Zap className="w-5 h-5 text-cyan-400" />
+              <span className="text-cyan-400 font-bold text-sm">COMO FUNCIONA</span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black mb-4">
+              COMO FUNCIONA <span className="text-cyan-400">NA PRÁTICA</span>
+            </h2>
+            <p className="text-gray-400 text-lg">A nova lógica está muito mais estratégica e assertiva</p>
+          </div>
+
+          <div className="relative">
+            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-cyan-500/50 via-amber-500/50 to-green-500/50 -translate-x-1/2" />
+            {[
+              { step: "01", icon: UserPlus, title: "Ative o seguir + curtir em massa", desc: "O sistema começa a interagir com perfis estratégicos automaticamente", color: "cyan" },
+              { step: "02", icon: Users, title: "Pessoas interessadas te seguem de volta", desc: "Quem se identifica com seu conteúdo e nicho passa a te seguir", color: "blue" },
+              { step: "03", icon: Filter, title: "O sistema identifica o público quente", desc: "Filtros inteligentes separam quem realmente tem interesse", color: "purple" },
+              { step: "04", icon: Send, title: "Envie Direct em massa automaticamente", desc: "Mensagens otimizadas são enviadas para leads qualificados", color: "amber" },
+              { step: "05", icon: Rocket, title: "Direcione para seu produto ou serviço", desc: "Converta seguidores em clientes reais com estratégia", color: "green" },
+            ].map((item, i) => (
+              <div key={i} className={`relative flex items-center gap-6 mb-8 ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
+                <div className={`flex-1 ${i % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
+                  <div className="bg-gray-900/80 border border-gray-700 rounded-2xl p-6 hover:border-gray-600 transition-colors">
+                    <div className="flex items-center gap-3 mb-2" style={{ justifyContent: i % 2 === 0 ? 'flex-end' : 'flex-start' }}>
+                      <span className="text-3xl font-black text-gray-700">{item.step}</span>
+                    </div>
+                    <h4 className="text-xl font-bold text-white mb-1">{item.title}</h4>
+                    <p className="text-gray-400">{item.desc}</p>
+                  </div>
+                </div>
+                <div className="hidden md:flex w-14 h-14 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600 items-center justify-center z-10 flex-shrink-0">
+                  <item.icon className="w-6 h-6 text-gray-300" />
+                </div>
+                <div className="flex-1 hidden md:block" />
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-green-500/10 border-2 border-amber-500/30 rounded-3xl p-8 text-center">
+            <p className="text-3xl md:text-4xl font-black mb-4">
+              💥 <span className="text-amber-400">RESULTADO</span>
+            </p>
+            <p className="text-xl md:text-2xl text-gray-200 font-bold">
+              Mais seguidores → Mais conversas → <span className="text-green-400">Mais vendas</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ====== O QUE HÁ DE NOVO NA V7+ PLUS ====== */}
+      <section className="py-20 px-4 bg-gradient-to-b from-black via-gray-950 to-black">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full px-6 py-2 mb-4">
+              <Lightbulb className="w-5 h-5 text-amber-400" />
+              <span className="text-amber-400 font-bold text-sm">O QUE HÁ DE NOVO</span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black mb-4">
+              NOVIDADES DA <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">V7+ PLUS</span>
+            </h2>
+            <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto mb-2">
+              Totalmente otimizada com mais automação, mais inteligência e mais resultados
+            </p>
+            <p className="text-2xl md:text-3xl font-black mt-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+              🎁 O que você vai receber no Plano MRO!
+            </p>
+          </div>
+
+          {/* DM em Massa */}
+          <div className="mb-10">
+            <div className="relative bg-gradient-to-br from-blue-950/60 to-blue-900/30 border-2 border-blue-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <Send className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="bg-blue-500 text-white text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">NOVO</div>
+                    <h3 className="text-2xl md:text-3xl font-black text-blue-300">Automação de Direct (DM) em Massa</h3>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {[
+                    { icon: UserPlus, text: "Envio automático para novos seguidores" },
+                    { icon: Users, text: "Envio para seus seguidores atuais" },
+                    { icon: Target, text: "Envio para seguidores de qualquer página" },
+                    { icon: Bot, text: "Copy otimizada com Corretor de IA exclusivo MRO" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 hover:bg-blue-500/15 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                        <item.icon className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <span className="text-gray-200 font-medium">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filtros Inteligentes */}
+          <div className="mb-10">
+            <div className="relative bg-gradient-to-br from-purple-950/60 to-purple-900/30 border-2 border-purple-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <Filter className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="bg-purple-500 text-white text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">NOVO</div>
+                    <h3 className="text-2xl md:text-3xl font-black text-purple-300">Filtros Inteligentes (Público Quente)</h3>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-4 bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
+                    <Target className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                    <span className="text-gray-200">Segmentação avançada para atingir quem realmente tem interesse</span>
+                  </div>
+                  <div className="flex items-center gap-4 bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
+                    <TrendingUp className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                    <span className="text-gray-200">Mais precisão = mais respostas e conversões</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Automação Completa de Crescimento */}
+          <div className="mb-10">
+            <div className="relative bg-gradient-to-br from-amber-950/60 to-amber-900/30 border-2 border-amber-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
+              <div className="absolute top-0 left-1/2 w-96 h-64 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none -translate-x-1/2" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                    <TrendingUp className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="bg-amber-500 text-black text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">PRINCIPAL</div>
+                    <h3 className="text-2xl md:text-3xl font-black text-amber-300">Automação Completa de Crescimento</h3>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { icon: UserPlus, text: "Seguir em massa", color: "text-green-400" },
+                    { icon: Heart, text: "Curtir fotos automaticamente", color: "text-pink-400" },
+                    { icon: Flame, text: "Curtir stories", color: "text-orange-400" },
+                    { icon: RefreshCw, text: "Deixar de seguir", color: "text-blue-400" },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5 text-center hover:scale-105 transition-transform">
+                      <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center mx-auto mb-3">
+                        <item.icon className={`w-6 h-6 ${item.color}`} />
+                      </div>
+                      <span className="text-gray-200 font-bold text-sm">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Captura Avançada de Público */}
+          <div className="mb-10">
+            <div className="relative bg-gradient-to-br from-green-950/60 to-green-900/30 border-2 border-green-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
+              <div className="absolute bottom-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+                    <MousePointerClick className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="bg-green-500 text-black text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">AVANÇADO</div>
+                    <h3 className="text-2xl md:text-3xl font-black text-green-300">Captura Avançada de Público</h3>
+                  </div>
+                </div>
+                <p className="text-gray-400 mb-5 text-lg">Extraia leads altamente qualificados:</p>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {["Pessoas que curtem posts", "Pessoas que comentam", "Seguidores de qualquer perfil", "Quem o perfil está seguindo"].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-xl p-4">
+                      <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-200">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 bg-green-500/15 border border-green-500/30 rounded-xl p-4 text-center">
+                  <p className="text-green-300 font-bold text-lg">👉 Você atinge exatamente quem já demonstra interesse.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Inteligência Artificial Exclusiva */}
+          <div className="mb-10">
+            <div className="relative bg-gradient-to-br from-pink-950/60 to-pink-900/30 border-2 border-pink-500/40 rounded-3xl p-8 md:p-10 overflow-hidden">
+              <div className="absolute top-0 left-0 w-64 h-64 bg-pink-500/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
+                    <Brain className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <div className="bg-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-full inline-block mb-1">IA EXCLUSIVA</div>
+                    <h3 className="text-2xl md:text-3xl font-black text-pink-300">Inteligência Artificial Exclusiva</h3>
+                  </div>
+                </div>
+                <p className="text-gray-300 mb-5 text-lg">A MRO V7+ vai além da automação:</p>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    { icon: Bot, text: "Análise completa do seu perfil", color: "text-pink-400" },
+                    { icon: FileText, text: "Estratégias de conteúdo", color: "text-blue-400" },
+                    { icon: BarChart3, text: "Estratégias de engajamento", color: "text-purple-400" },
+                    { icon: CreditCard, text: "Estratégias de vendas", color: "text-green-400" },
+                    { icon: Sparkles, text: "Otimização da BIO", color: "text-amber-400" },
+                    { icon: TrendingUp, text: "Relatórios e acompanhamento", color: "text-cyan-400" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-pink-500/10 border border-pink-500/20 rounded-xl p-4 hover:bg-pink-500/15 transition-colors">
+                      <item.icon className={`w-5 h-5 ${item.color} flex-shrink-0`} />
+                      <span className="text-gray-200 font-medium">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ====== MAIS RESULTADOS ZERO ANÚNCIOS ====== */}
+      <section className="py-16 px-4 bg-black">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-5xl font-black mb-4">
+              💰 MAIS RESULTADOS, <span className="text-red-400">ZERO ANÚNCIOS</span>
+            </h2>
+            <p className="text-gray-400 text-lg">Com a MRO Inteligente V7+ você:</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Rocket, text: "Aumenta seu engajamento", gradient: "from-blue-600 to-cyan-600", glow: "shadow-blue-500/30" },
+              { icon: Users, text: "Ganha seguidores qualificados", gradient: "from-purple-600 to-pink-600", glow: "shadow-purple-500/30" },
+              { icon: CreditCard, text: "Converte mais clientes", gradient: "from-green-600 to-emerald-600", glow: "shadow-green-500/30" },
+              { icon: X, text: "Sem tráfego pago", gradient: "from-red-600 to-orange-600", glow: "shadow-red-500/30" },
+            ].map((item, i) => (
+              <div key={i} className="text-center group">
+                <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mx-auto mb-4 shadow-xl ${item.glow} group-hover:scale-110 transition-transform`}>
+                  <item.icon className="w-10 h-10 text-white" />
+                </div>
+                <p className="text-white font-bold text-lg">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ====== RESUMO FINAL ====== */}
+      <section className="py-16 px-4 bg-gradient-to-b from-black to-gray-950">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative bg-gradient-to-br from-amber-950/50 to-orange-950/50 border-2 border-amber-500/50 rounded-3xl p-8 md:p-12 text-center overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 rounded-full px-6 py-2 mb-6">
+                <Flame className="w-5 h-5 text-amber-400" />
+                <span className="text-amber-400 font-bold text-sm">RESUMO FINAL</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-black mb-8">
+                A MRO Inteligente V7+ Plus é uma <span className="text-amber-400">máquina de crescimento e vendas</span> no Instagram
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { emoji: "👉", label: "Automática", desc: "Funciona 24/7" },
+                  { emoji: "👉", label: "Inteligente", desc: "IA exclusiva" },
+                  { emoji: "👉", label: "Escalável", desc: "Sem limites" },
+                  { emoji: "👉", label: "Sem limites", desc: "Uso ilimitado" },
+                ].map((item, i) => (
+                  <div key={i} className="bg-black/40 border border-amber-500/20 rounded-xl p-4">
+                    <span className="text-2xl">{item.emoji}</span>
+                    <p className="text-white font-bold mt-2">{item.label}</p>
+                    <p className="text-gray-500 text-xs mt-1">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Guarantee Section */}
+      <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-black">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative bg-gradient-to-br from-green-950/80 to-black border-2 border-green-500/50 rounded-3xl p-8 md:p-14 text-center shadow-2xl shadow-green-500/10 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 to-transparent pointer-events-none" />
+            <div className="relative flex items-center justify-center mb-6">
+              <div className="absolute w-28 h-28 rounded-full bg-green-500/10 animate-ping pointer-events-none" style={{animationDuration: '3s'}} />
+              <div className="relative w-24 h-24 rounded-full bg-green-500/20 border-2 border-green-500/40 flex items-center justify-center">
+                <Shield className="w-12 h-12 text-green-400" />
+              </div>
+            </div>
+            <span className="text-green-400 font-bold text-xs tracking-[0.3em] uppercase">GARANTIA TOTAL</span>
+            <h2 className="text-3xl md:text-5xl font-black mt-3 mb-6 leading-tight">
+              30 Dias de Resultados <span className="text-green-400">Garantidos</span>
+            </h2>
+            <div className="bg-green-500/10 border border-green-500/30 rounded-2xl px-6 py-5 max-w-2xl mx-auto mb-8">
+              <p className="text-white text-lg md:text-xl leading-relaxed">
+                Se em <strong className="text-green-400">30 dias</strong> não tiver os resultados prometidos, <strong className="text-white">devolvemos o seu dinheiro.</strong>
+              </p>
+              <p className="text-green-300 font-bold text-lg mt-2">Nós garantimos resultados. Sem risco para você.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+              {[
+                { emoji: "🔒", label: "Compra 100% Segura" },
+                { emoji: "💰", label: "Reembolso Garantido" },
+                { emoji: "✅", label: "Satisfação ou Dinheiro de Volta" }
+              ].map((item, i) => (
+                <div key={i} className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 flex items-center gap-2 justify-center">
+                  <span className="text-xl">{item.emoji}</span>
+                  <span className="text-green-300 text-sm font-semibold">{item.label}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-gray-500 text-sm">Garantia válida por 30 dias após a data da compra.</p>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section ref={pricingRef} className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto">
