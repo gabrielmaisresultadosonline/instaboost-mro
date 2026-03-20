@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -452,7 +453,55 @@ const DescontoAlunosRendaExtra = () => {
         </div>
       </section>
 
-      {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
+      {/* === FEEDBACKS DE ALUNOS - VÍDEO CARROSSEL === */}
+      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 sm:px-6 py-2 mb-4">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+              <span className="text-green-400 font-bold text-xs sm:text-sm">RESULTADOS REAIS</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3">
+              Alunos faturando <span className="text-green-400">mais de R$5.000</span>
+            </h2>
+            <p className="text-gray-400 text-sm sm:text-base">
+              Veja os feedbacks de quem já está lucrando com prestação de serviço usando a ferramenta MRO
+            </p>
+          </div>
+
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+            {[
+              { id: "eFEZ_jysYvU", title: "Feedback 1" },
+              { id: "gRe-VlScXjo", title: "Feedback 2" },
+              { id: "wfU12IHauN8", title: "Feedback 3" },
+              { id: "8o8ut9yxmnk", title: "Feedback 4" },
+              { id: "cZA5lEH8rpE", title: "Feedback 5" },
+            ].map((video, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-[180px] sm:w-[220px] md:w-[240px] snap-start cursor-pointer group"
+                onClick={() => openVideo(video.id)}
+              >
+                <div className="relative aspect-[9/16] rounded-xl sm:rounded-2xl overflow-hidden border-2 border-green-500/30 group-hover:border-green-400 transition-all shadow-lg group-hover:shadow-green-500/20">
+                  <img
+                    src={`https://img.youtube.com/vi/${video.id}/0.jpg`}
+                    alt={video.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-green-500/90 group-hover:bg-green-500 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                      <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white ml-1" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-gray-500 text-xs mt-3">← Arraste para ver mais feedbacks →</p>
+        </div>
+      </section>
+
+
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10 sm:mb-14">
@@ -724,10 +773,10 @@ const DescontoAlunosRendaExtra = () => {
           >
             <X className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
-          <div className="w-full max-w-5xl aspect-video" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm aspect-[9/16] max-h-[85vh]" onClick={e => e.stopPropagation()}>
             <iframe
               src={`https://www.youtube.com/embed/${currentVideoUrl}?autoplay=1&rel=0`}
-              className="w-full h-full rounded-lg"
+              className="w-full h-full rounded-xl"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
