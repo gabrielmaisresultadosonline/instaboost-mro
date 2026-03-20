@@ -531,37 +531,8 @@ const DescontoAlunosRendaExtra = () => {
         </div>
       </section>
 
-      {/* ====== RESUMO FINAL ====== */}
-      <section className="py-12 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative bg-gradient-to-br from-amber-950/50 to-orange-950/50 border-2 border-amber-500/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 rounded-full px-4 sm:px-6 py-2 mb-4 sm:mb-6">
-                <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
-                <span className="text-amber-400 font-bold text-xs sm:text-sm">RESUMO FINAL</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-6 sm:mb-8">
-                A MRO Inteligente V7+ Plus é uma <span className="text-amber-400">máquina de crescimento e vendas</span> no Instagram
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                {[
-                  { emoji: "👉", label: "Automática", desc: "Funciona 24/7" },
-                  { emoji: "👉", label: "Inteligente", desc: "IA exclusiva" },
-                  { emoji: "👉", label: "Escalável", desc: "Sem limites" },
-                  { emoji: "👉", label: "Sem limites", desc: "Uso ilimitado" },
-                ].map((item, i) => (
-                  <div key={i} className="bg-black/40 border border-amber-500/20 rounded-xl p-3 sm:p-4">
-                    <span className="text-xl sm:text-2xl">{item.emoji}</span>
-                    <p className="text-white font-bold mt-2 text-sm sm:text-base">{item.label}</p>
-                    <p className="text-gray-500 text-[10px] sm:text-xs mt-1">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+
+
 
       <section ref={pricingRef} className="py-10 sm:py-16 px-3 sm:px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="max-w-4xl mx-auto">
