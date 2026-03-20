@@ -773,10 +773,10 @@ const DescontoAlunosRendaExtra = () => {
           >
             <X className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
-          <div className="w-full max-w-5xl aspect-video" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm aspect-[9/16] max-h-[85vh]" onClick={e => e.stopPropagation()}>
             <iframe
               src={`https://www.youtube.com/embed/${currentVideoUrl}?autoplay=1&rel=0`}
-              className="w-full h-full rounded-lg"
+              className="w-full h-full rounded-xl"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
