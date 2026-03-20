@@ -508,13 +508,16 @@ const DescontoAlunosRendaExtra = () => {
           <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 text-white">
             Como funciona <span className="text-cyan-400">na prática</span>
           </h3>
+          <p className="text-center text-gray-300 text-sm sm:text-base mb-6 max-w-2xl mx-auto">
+            Você vai prestar esse serviço para <span className="text-green-400 font-semibold">empresas e negócios locais</span> — e eles vão te pagar uma <span className="text-green-400 font-semibold">mensalidade recorrente</span> pelo trabalho automático que a ferramenta faz por você.
+          </p>
           <div className="grid gap-3">
             {[
-              { step: "01", title: "Ative o seguir + curtir em massa", desc: "O sistema interage com perfis estratégicos automaticamente" },
-              { step: "02", title: "Pessoas interessadas te seguem de volta", desc: "Quem se identifica com seu conteúdo passa a te seguir" },
-              { step: "03", title: "O sistema identifica o público quente", desc: "Filtros inteligentes separam quem tem interesse real" },
-              { step: "04", title: "Envie Direct em massa automaticamente", desc: "Mensagens otimizadas para leads qualificados" },
-              { step: "05", title: "Direcione para seu produto ou serviço", desc: "Converta seguidores em clientes reais" },
+              { step: "01", title: "Feche um cliente (empresa/negócio local)", desc: "Ofereça o serviço de automação no Instagram e cobre uma mensalidade recorrente" },
+              { step: "02", title: "Ative o seguir + curtir em massa", desc: "O sistema interage com perfis estratégicos automaticamente para o cliente" },
+              { step: "03", title: "Pessoas interessadas seguem o cliente de volta", desc: "Quem se identifica com o conteúdo passa a seguir o perfil" },
+              { step: "04", title: "Envie Direct em massa automaticamente", desc: "Mensagens otimizadas são enviadas para leads qualificados" },
+              { step: "05", title: "O cliente vende mais e te paga todo mês", desc: "Resultado real = cliente satisfeito pagando mensalidade recorrente pra você" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3 bg-gray-900/60 border border-gray-800 rounded-xl p-3 sm:p-4">
                 <span className="text-cyan-400 font-black text-lg shrink-0">{item.step}</span>
