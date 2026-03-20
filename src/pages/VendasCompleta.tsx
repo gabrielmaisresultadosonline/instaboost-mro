@@ -296,6 +296,9 @@ const VendasCompleta = () => {
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
               Totalmente otimizada com mais automação, mais inteligência e mais resultados
             </p>
+            <p className="text-xl md:text-2xl font-bold mt-4 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+              🎁 O que você vai receber no Plano MRO!
+            </p>
           </div>
 
           {/* DM em Massa */}
