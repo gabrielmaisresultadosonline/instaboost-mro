@@ -188,6 +188,28 @@ serve(async (req) => {
       });
     }
 
+    if (action === "getRealtimeViewers") {
+      const { session_id } = params;
+      const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
+      const { data } = await supabase
+        .from("live_analytics")
+        .select("visitor_id, device_type, watch_percentage, updated_at")
+        .eq("session_id", session_id)
+        .gte("updated_at", thirtySecondsAgo);
+
+      const activeViewers = data?.length || 0;
+      const mobileCount = data?.filter((d: any) => d.device_type === "mobile").length || 0;
+      const desktopCount = activeViewers - mobileCount;
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          realtime: { active: activeViewers, mobile: mobileCount, desktop: desktopCount },
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "getAnalytics") {
       const { session_id } = params;
       const { data, error } = await supabase
