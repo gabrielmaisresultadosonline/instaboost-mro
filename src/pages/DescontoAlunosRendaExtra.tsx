@@ -445,10 +445,6 @@ const DescontoAlunosRendaExtra = () => {
         </div>
       </section>
 
-      {/* Active Clients */}
-      <section className="py-8 px-4 bg-gradient-to-b from-black to-gray-950">
-        <ActiveClientsSection title="Clientes Ativos" maxClients={15} />
-      </section>
 
       {/* ====== COMO FUNCIONA NA PRÁTICA ====== */}
       <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
