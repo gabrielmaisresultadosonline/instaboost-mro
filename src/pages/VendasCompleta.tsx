@@ -244,9 +244,9 @@ const VendasCompleta = () => {
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
             <h1 className="relative text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight">
-              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">Venda mais no Instagram sem gastar com anúncios</span>
-            </h1>
-            <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black mb-3">
+               <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">NÃO GASTE MAIS COM ANÚNCIOS</span>
+             </h1>
+             <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black mb-3">
               <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 bg-clip-text text-transparent">
                 Utilize a MRO Inteligente!
               </span>
