@@ -244,16 +244,13 @@ const VendasCompleta = () => {
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 blur-3xl rounded-full" />
             <h1 className="relative text-3xl md:text-5xl lg:text-6xl font-black mb-3 leading-tight">
-              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">MRO Inteligente V7+ Plus</span>
+              <span className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">Venda mais no Instagram sem gastar com anúncios</span>
             </h1>
             <h2 className="relative text-xl md:text-3xl lg:text-4xl font-black mb-3">
               <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 bg-clip-text text-transparent">
-                A versão mais completa, agora sem limites!
+                Utilize a MRO Inteligente!
               </span>
             </h2>
-            <p className="relative text-lg md:text-2xl text-gray-100 max-w-3xl mx-auto leading-relaxed font-semibold mt-4">
-              Venda mais no Instagram <strong className="text-white">sem gastar com anúncios</strong>, utilize a MRO Inteligente!
-            </p>
             <p className="relative mt-3 text-sm md:text-base text-gray-400">
               Instale em seu notebook, macbook ou computador de mesa!
             </p>
