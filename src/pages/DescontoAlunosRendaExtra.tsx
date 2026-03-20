@@ -1159,4 +1159,4 @@ const DescontoAlunosRendaExtra = () => {
   );
 };
 
-export default InstagramNovaPromoo2;
+export default DescontoAlunosRendaExtra;
