@@ -243,6 +243,16 @@ const DescontoAlunosRendaExtra = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      <style>{`
+        @keyframes btnPulseColor {
+          0%, 100% { background: linear-gradient(to right, #22c55e, #059669); }
+          50% { background: linear-gradient(to right, #f97316, #ea580c); }
+        }
+        .btn-pulse-color {
+          animation: btnPulseColor 2s ease-in-out infinite;
+          border: none;
+        }
+      `}</style>
       {/* Popup Desconto Encerrado */}
       {showDiscountEndedPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
