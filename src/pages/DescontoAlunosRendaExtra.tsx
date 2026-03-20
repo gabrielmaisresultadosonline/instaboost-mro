@@ -503,80 +503,31 @@ const DescontoAlunosRendaExtra = () => {
       </section>
 
 
-      <section className="py-16 sm:py-20 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10 sm:mb-14">
-            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full px-4 sm:px-6 py-2 mb-4">
-              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
-              <span className="text-cyan-400 font-bold text-xs sm:text-sm">COMO FUNCIONA</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4">
-              COMO FUNCIONA <span className="text-cyan-400">NA PRÁTICA</span>
-            </h2>
-            <p className="text-gray-400 text-sm sm:text-lg">A nova lógica está muito mais estratégica e assertiva</p>
-          </div>
-
-          <div className="relative">
-            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-cyan-500/50 via-amber-500/50 to-green-500/50 -translate-x-1/2" />
+      <section className="py-10 sm:py-12 px-3 sm:px-4 bg-gradient-to-b from-black to-gray-950">
+        <div className="max-w-3xl mx-auto">
+          <h3 className="text-xl sm:text-2xl font-bold text-center mb-6 text-white">
+            Como funciona <span className="text-cyan-400">na prática</span>
+          </h3>
+          <div className="grid gap-3">
             {[
-              { step: "01", icon: UserPlus, title: "Ative o seguir + curtir em massa", desc: "O sistema começa a interagir com perfis estratégicos automaticamente", color: "cyan" },
-              { step: "02", icon: Users, title: "Pessoas interessadas te seguem de volta", desc: "Quem se identifica com seu conteúdo e nicho passa a te seguir", color: "blue" },
-              { step: "03", icon: Filter, title: "O sistema identifica o público quente", desc: "Filtros inteligentes separam quem realmente tem interesse", color: "purple" },
-              { step: "04", icon: Send, title: "Envie Direct em massa automaticamente", desc: "Mensagens otimizadas são enviadas para leads qualificados", color: "amber" },
-              { step: "05", icon: Rocket, title: "Direcione para seu produto ou serviço", desc: "Converta seguidores em clientes reais com estratégia", color: "green" },
+              { step: "01", title: "Ative o seguir + curtir em massa", desc: "O sistema interage com perfis estratégicos automaticamente" },
+              { step: "02", title: "Pessoas interessadas te seguem de volta", desc: "Quem se identifica com seu conteúdo passa a te seguir" },
+              { step: "03", title: "O sistema identifica o público quente", desc: "Filtros inteligentes separam quem tem interesse real" },
+              { step: "04", title: "Envie Direct em massa automaticamente", desc: "Mensagens otimizadas para leads qualificados" },
+              { step: "05", title: "Direcione para seu produto ou serviço", desc: "Converta seguidores em clientes reais" },
             ].map((item, i) => (
-              <div key={i} className={`relative flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-                <div className={`flex-1 ${i % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
-                  <div className="bg-gray-900/80 border border-gray-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:border-gray-600 transition-colors">
-                    <div className="flex items-center gap-3 mb-2" style={{ justifyContent: i % 2 === 0 ? 'flex-end' : 'flex-start' }}>
-                      <span className="text-2xl sm:text-3xl font-black text-gray-700">{item.step}</span>
-                    </div>
-                    <h4 className="text-base sm:text-xl font-bold text-white mb-1">{item.title}</h4>
-                    <p className="text-gray-400 text-sm">{item.desc}</p>
-                  </div>
+              <div key={i} className="flex items-start gap-3 bg-gray-900/60 border border-gray-800 rounded-xl p-3 sm:p-4">
+                <span className="text-cyan-400 font-black text-lg shrink-0">{item.step}</span>
+                <div>
+                  <p className="text-white font-semibold text-sm sm:text-base">{item.title}</p>
+                  <p className="text-gray-500 text-xs sm:text-sm">{item.desc}</p>
                 </div>
-                <div className="hidden md:flex w-14 h-14 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600 items-center justify-center z-10 flex-shrink-0">
-                  <item.icon className="w-6 h-6 text-gray-300" />
-                </div>
-                <div className="flex-1 hidden md:block" />
               </div>
             ))}
           </div>
-
-          <div className="mt-8 sm:mt-12 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-green-500/10 border-2 border-amber-500/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-center">
-            <p className="text-2xl sm:text-3xl md:text-4xl font-black mb-4">
-              💥 <span className="text-amber-400">RESULTADO</span>
-            </p>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-200 font-bold">
-              Mais seguidores → Mais conversas → <span className="text-green-400">Mais vendas</span>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 sm:py-16 px-3 sm:px-4 bg-black">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-4">
-              💰 MAIS RESULTADOS, <span className="text-red-400">ZERO ANÚNCIOS</span>
-            </h2>
-            <p className="text-gray-400 text-sm sm:text-lg">Com a MRO Inteligente V7+ você:</p>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {[
-              { icon: Rocket, text: "Aumenta seu engajamento", gradient: "from-blue-600 to-cyan-600", glow: "shadow-blue-500/30" },
-              { icon: Users, text: "Ganha seguidores qualificados", gradient: "from-purple-600 to-pink-600", glow: "shadow-purple-500/30" },
-              { icon: CreditCard, text: "Converte mais clientes", gradient: "from-green-600 to-emerald-600", glow: "shadow-green-500/30" },
-              { icon: X, text: "Sem tráfego pago", gradient: "from-red-600 to-orange-600", glow: "shadow-red-500/30" },
-            ].map((item, i) => (
-              <div key={i} className="text-center group">
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-xl ${item.glow} group-hover:scale-110 transition-transform`}>
-                  <item.icon className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-                </div>
-                <p className="text-white font-bold text-sm sm:text-lg">{item.text}</p>
-              </div>
-            ))}
-          </div>
+          <p className="text-center text-sm sm:text-base text-gray-400 mt-5">
+            Mais seguidores → Mais conversas → <span className="text-green-400 font-bold">Mais vendas</span>
+          </p>
         </div>
       </section>
 
