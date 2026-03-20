@@ -35,9 +35,19 @@ import {
   Loader2,
   Phone,
   Timer,
-  AlertTriangle
+  AlertTriangle,
+  Send,
+  Filter,
+  TrendingUp,
+  BarChart3,
+  FileText,
+  Rocket,
+  Crown,
+  Flame,
+  MousePointerClick
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
+import ActiveClientsSection from "@/components/ActiveClientsSection";
 
 const InstagramNovaPromoo2 = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
