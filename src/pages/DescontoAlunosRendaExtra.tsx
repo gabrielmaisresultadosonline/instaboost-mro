@@ -469,36 +469,80 @@ const DescontoAlunosRendaExtra = () => {
             </p>
           </div>
 
-          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-            {[
-              { id: "eFEZ_jysYvU", title: "Feedback 1" },
-              { id: "gRe-VlScXjo", title: "Feedback 2" },
-              { id: "wfU12IHauN8", title: "Feedback 3" },
-              { id: "8o8ut9yxmnk", title: "Feedback 4" },
-              { id: "cZA5lEH8rpE", title: "Feedback 5" },
-              { id: "ct5U0Cp61YA", title: "Feedback 6" },
-            ].map((video, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-[180px] sm:w-[220px] md:w-[240px] snap-start cursor-pointer group"
-                onClick={() => openVideo(video.id)}
-              >
-                <div className="relative aspect-[9/16] rounded-xl sm:rounded-2xl overflow-hidden border-2 border-green-500/30 group-hover:border-green-400 transition-all shadow-lg group-hover:shadow-green-500/20">
-                  <img
-                    src={`https://img.youtube.com/vi/${video.id}/0.jpg`}
-                    alt={video.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-green-500/90 group-hover:bg-green-500 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                      <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white ml-1" />
+          <div className="relative">
+            <button
+              onClick={() => {
+                const el = document.getElementById('feedback-carousel');
+                if (el) el.scrollBy({ left: -260, behavior: 'smooth' });
+              }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-800/80 hover:bg-green-500/80 border border-gray-700 hover:border-green-400 flex items-center justify-center transition-all -ml-2 sm:-ml-4 shadow-lg"
+            >
+              <ChevronLeft className="w-5 h-5 text-white" />
+            </button>
+            <button
+              onClick={() => {
+                const el = document.getElementById('feedback-carousel');
+                if (el) el.scrollBy({ left: 260, behavior: 'smooth' });
+              }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-800/80 hover:bg-green-500/80 border border-gray-700 hover:border-green-400 flex items-center justify-center transition-all -mr-2 sm:-mr-4 shadow-lg"
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
+
+            <div
+              id="feedback-carousel"
+              className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory cursor-grab active:cursor-grabbing px-1"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+              onMouseDown={(e) => {
+                const el = e.currentTarget;
+                el.dataset.dragging = 'true';
+                el.dataset.startX = String(e.pageX - el.offsetLeft);
+                el.dataset.scrollLeft = String(el.scrollLeft);
+              }}
+              onMouseMove={(e) => {
+                const el = e.currentTarget;
+                if (el.dataset.dragging !== 'true') return;
+                e.preventDefault();
+                const x = e.pageX - el.offsetLeft;
+                const walk = (x - Number(el.dataset.startX)) * 1.5;
+                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
+              }}
+              onMouseUp={(e) => { e.currentTarget.dataset.dragging = 'false'; }}
+              onMouseLeave={(e) => { e.currentTarget.dataset.dragging = 'false'; }}
+            >
+              {[
+                { id: "eFEZ_jysYvU", title: "Feedback 1" },
+                { id: "gRe-VlScXjo", title: "Feedback 2" },
+                { id: "wfU12IHauN8", title: "Feedback 3" },
+                { id: "8o8ut9yxmnk", title: "Feedback 4" },
+                { id: "cZA5lEH8rpE", title: "Feedback 5" },
+                { id: "ct5U0Cp61YA", title: "Feedback 6" },
+              ].map((video, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 w-[180px] sm:w-[220px] md:w-[240px] snap-start cursor-pointer group select-none"
+                  onClick={(e) => {
+                    const el = document.getElementById('feedback-carousel');
+                    if (el?.dataset.dragging === 'true') return;
+                    openVideo(video.id);
+                  }}
+                >
+                  <div className="relative aspect-[9/16] rounded-xl sm:rounded-2xl overflow-hidden border-2 border-green-500/30 group-hover:border-green-400 transition-all shadow-lg group-hover:shadow-green-500/20">
+                    <img
+                      src={`https://img.youtube.com/vi/${video.id}/0.jpg`}
+                      alt={video.title}
+                      className="w-full h-full object-cover pointer-events-none"
+                    />
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-green-500/90 group-hover:bg-green-500 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                        <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white ml-1" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-          <p className="text-center text-gray-500 text-xs mt-3">← Arraste para ver mais feedbacks →</p>
         </div>
       </section>
 
