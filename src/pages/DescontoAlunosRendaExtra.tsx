@@ -332,29 +332,6 @@ const DescontoAlunosRendaExtra = () => {
             <Rocket className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
           </div>
 
-          {/* Countdown Timer Large */}
-          <div className="mt-6 sm:mt-8 flex items-center justify-center gap-2 sm:gap-4">
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.hours).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">HORAS</div>
-            </div>
-            <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.minutes).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">MINUTOS</div>
-            </div>
-            <span className="text-xl sm:text-3xl font-bold text-red-500">:</span>
-            <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-lg sm:rounded-xl p-2 sm:p-4 min-w-[60px] sm:min-w-[80px]">
-              <div className="text-2xl sm:text-3xl md:text-5xl font-bold font-mono">
-                {String(promoTimeLeft.seconds).padStart(2, '0')}
-              </div>
-              <div className="text-[10px] sm:text-xs text-red-200">SEGUNDOS</div>
-            </div>
-          </div>
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
