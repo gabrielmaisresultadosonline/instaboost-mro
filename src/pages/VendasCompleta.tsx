@@ -607,43 +607,6 @@ const VendasCompleta = () => {
         </div>
       </section>
 
-      {/* Bônus Section */}
-      <section className="py-16 px-4 bg-black">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/50 rounded-full px-6 py-3 mb-4">
-              <Gift className="w-5 h-5 text-amber-400" />
-              <span className="text-amber-400 font-bold">+ BÔNUS INCLUSOS</span>
-            </div>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-2 border-purple-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
-                <Brain className="w-8 h-8 text-purple-400" />
-              </div>
-              <div className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">BÔNUS #1</div>
-              <h3 className="text-xl font-bold mb-2 text-purple-300">Análise de I.A Completa</h3>
-              <p className="text-gray-400 text-sm">Nossa IA analisa seu perfil em profundidade: bio, posts, engajamento e identifica oportunidades de melhoria.</p>
-            </div>
-            <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
-                <RefreshCw className="w-8 h-8 text-green-400" />
-              </div>
-              <div className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">BÔNUS #2</div>
-              <h3 className="text-xl font-bold mb-2 text-green-300">Acompanhamento Anual</h3>
-              <p className="text-gray-400 text-sm">Suporte e acompanhamento durante todo o ano para garantir que você está sempre evoluindo.</p>
-            </div>
-            <div className="bg-gradient-to-br from-amber-900/30 to-amber-800/20 border-2 border-amber-500/50 rounded-2xl p-6 text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-amber-400" />
-              </div>
-              <div className="bg-amber-500 text-black text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">BÔNUS #3</div>
-              <h3 className="text-xl font-bold mb-2 text-amber-300">Estratégias Mensais</h3>
-              <p className="text-gray-400 text-sm">A cada 30 dias receba uma nova estratégia personalizada baseada no seu nicho.</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Pricing Section */}
       <section ref={pricingRef} className="py-20 px-4 bg-black relative">
