@@ -55,6 +55,7 @@ const RendaExtraOf = () => {
   // Mode selection: null = show buttons, 'free' = only video, 'buy' = full page
   const [pageMode, setPageMode] = useState<'free' | 'buy' | null>(null);
   const [showFullContent, setShowFullContent] = useState(false);
+  const [showDelayedCta, setShowDelayedCta] = useState(false);
   
   // YouTube custom player for free mode
   const ytPlayerRef = useRef<any>(null);
@@ -172,13 +173,16 @@ const RendaExtraOf = () => {
     }
   };
 
-  // Timer de 17 minutos para modo "free"
+  // Timer de 17 minutos para modo "free" + CTA após 1 minuto
   useEffect(() => {
     if (pageMode !== 'free') return;
     const timer = setTimeout(() => {
       setShowFullContent(true);
-    }, 17 * 60 * 1000); // 17 minutos
-    return () => clearTimeout(timer);
+    }, 17 * 60 * 1000);
+    const ctaTimer = setTimeout(() => {
+      setShowDelayedCta(true);
+    }, 60 * 1000);
+    return () => { clearTimeout(timer); clearTimeout(ctaTimer); };
   }, [pageMode]);
 
   // YouTube IFrame API for free mode
@@ -363,7 +367,7 @@ const RendaExtraOf = () => {
               </Button>
               
               <Button
-                onClick={() => setPageMode('buy')}
+                onClick={() => window.location.href = '/descontoalunosrendaextra'}
                 variant="outline"
                 className="w-full border-2 border-green-500/50 text-green-400 hover:bg-green-500/10 font-bold text-sm sm:text-base py-6 rounded-xl"
               >
@@ -540,6 +544,21 @@ const RendaExtraOf = () => {
                 )}
               </div>
             </div>
+
+            {/* Delayed CTA for free mode - appears after 1 minute */}
+            {pageMode === 'free' && showDelayedCta && !showFullContent && (
+              <div className="mt-6 sm:mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <p className="text-gray-300 text-sm sm:text-base mb-3">
+                  🔥 Gostaria de aproveitar o desconto e adquirir a ferramenta?
+                </p>
+                <Button
+                  onClick={() => window.location.href = '/descontoalunosrendaextra'}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30 animate-pulse"
+                >
+                  ADQUIRIR AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* CTA Button */}
