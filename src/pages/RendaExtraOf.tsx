@@ -55,6 +55,7 @@ const RendaExtraOf = () => {
   // Mode selection: null = show buttons, 'free' = only video, 'buy' = full page
   const [pageMode, setPageMode] = useState<'free' | 'buy' | null>(null);
   const [showFullContent, setShowFullContent] = useState(false);
+  const [showDelayedCta, setShowDelayedCta] = useState(false);
   
   // YouTube custom player for free mode
   const ytPlayerRef = useRef<any>(null);
