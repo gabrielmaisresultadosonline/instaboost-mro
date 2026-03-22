@@ -173,13 +173,16 @@ const RendaExtraOf = () => {
     }
   };
 
-  // Timer de 17 minutos para modo "free"
+  // Timer de 17 minutos para modo "free" + CTA após 1 minuto
   useEffect(() => {
     if (pageMode !== 'free') return;
     const timer = setTimeout(() => {
       setShowFullContent(true);
-    }, 17 * 60 * 1000); // 17 minutos
-    return () => clearTimeout(timer);
+    }, 17 * 60 * 1000);
+    const ctaTimer = setTimeout(() => {
+      setShowDelayedCta(true);
+    }, 60 * 1000);
+    return () => { clearTimeout(timer); clearTimeout(ctaTimer); };
   }, [pageMode]);
 
   // YouTube IFrame API for free mode
