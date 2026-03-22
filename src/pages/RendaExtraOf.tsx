@@ -544,6 +544,21 @@ const RendaExtraOf = () => {
                 )}
               </div>
             </div>
+
+            {/* Delayed CTA for free mode - appears after 1 minute */}
+            {pageMode === 'free' && showDelayedCta && !showFullContent && (
+              <div className="mt-6 sm:mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <p className="text-gray-300 text-sm sm:text-base mb-3">
+                  🔥 Gostaria de aproveitar o desconto e adquirir a ferramenta?
+                </p>
+                <Button
+                  onClick={() => window.location.href = '/descontoalunosrendaextra'}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30 animate-pulse"
+                >
+                  ADQUIRIR AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* CTA Button */}
