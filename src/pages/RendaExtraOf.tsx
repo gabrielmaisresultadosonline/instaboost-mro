@@ -367,7 +367,7 @@ const RendaExtraOf = () => {
               </Button>
               
               <Button
-                onClick={() => setPageMode('buy')}
+                onClick={() => window.location.href = '/descontoalunosrendaextra'}
                 variant="outline"
                 className="w-full border-2 border-green-500/50 text-green-400 hover:bg-green-500/10 font-bold text-sm sm:text-base py-6 rounded-xl"
               >
