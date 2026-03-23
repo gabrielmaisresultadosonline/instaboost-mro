@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView } from "@/lib/facebookTracking";
+import { trackPageView, trackInitiateCheckout, trackFacebookEvent } from "@/lib/facebookTracking";
 import { toast } from "sonner";
 import { 
   Sparkles, 
