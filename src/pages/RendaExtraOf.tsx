@@ -261,9 +261,13 @@ const RendaExtraOf = () => {
     ytPlayerRef.current.playVideo();
   }, []);
 
-  // Track PageView on mount
+  // Track PageView on mount + auto-enter free mode via URL param
   useEffect(() => {
     trackPageView('Sales Page - Renda Extra Oferta');
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'free') {
+      setPageMode('free');
+    }
   }, []);
 
   // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)
