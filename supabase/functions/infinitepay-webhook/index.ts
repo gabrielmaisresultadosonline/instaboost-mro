@@ -589,6 +589,13 @@ serve(async (req) => {
       }
 
       log("MRO order marked as PAID, triggering webhook", { orderId: mroOrder.id });
+
+      // Fire Meta Conversions API Purchase event
+      await sendMetaPurchaseEvent(
+        email || mroOrder.email,
+        mroOrder.amount || (paid_amount || amount) || 300,
+        `MRO ${mroOrder.plan_type === "lifetime" ? "Vitalício" : "Anual"}`
+      );
       
       // Salvar log de sucesso
       await saveWebhookLog(supabase, {
