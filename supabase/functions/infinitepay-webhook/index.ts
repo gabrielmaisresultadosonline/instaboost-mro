@@ -314,6 +314,13 @@ serve(async (req) => {
 
       log("PROMPTS order marked as PAID and user unlocked", { orderId: promptsOrder.id, planLabel, planDays });
 
+      // Fire Meta Conversions API Purchase event
+      await sendMetaPurchaseEvent(
+        promptsOrder.email,
+        promptsOrder.amount || 47,
+        `Prompts MRO ${planLabel}`
+      );
+
       // Send payment confirmation email
       try {
         const smtpPassword = Deno.env.get("SMTP_PASSWORD");
