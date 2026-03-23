@@ -545,6 +545,17 @@ const RendaExtraOf = () => {
               </div>
             </div>
 
+            {/* Banner image below video in free mode */}
+            {pageMode === 'free' && !showFullContent && (
+              <div className="mt-6 sm:mt-8">
+                <img 
+                  src={rendaExtraMroBanner} 
+                  alt="Renda Extra com a MRO - 5 mil mensal em casa em 20 minutos por dia" 
+                  className="w-full max-w-2xl mx-auto rounded-xl shadow-lg"
+                />
+              </div>
+            )}
+
             {/* Delayed CTA for free mode - appears after 1 minute */}
             {pageMode === 'free' && showDelayedCta && !showFullContent && (
               <div className="mt-6 sm:mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
