@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView } from "@/lib/facebookTracking";
+import { trackPageView, trackFacebookEvent } from "@/lib/facebookTracking";
 import { toast } from "sonner";
 import { 
   Sparkles, 
@@ -182,6 +182,13 @@ const RendaExtraOf = () => {
     }, 17 * 60 * 1000);
     const ctaTimer = setTimeout(() => {
       setShowDelayedCta(true);
+      // Fire AddToCart event when CTA appears
+      trackFacebookEvent('AddToCart', {
+        content_name: 'MRO Renda Extra - CTA Delayed',
+        content_category: 'Renda Extra',
+        value: 300,
+        currency: 'BRL'
+      });
     }, 60 * 1000);
     return () => { clearTimeout(timer); clearTimeout(ctaTimer); };
   }, [pageMode]);
@@ -261,9 +268,13 @@ const RendaExtraOf = () => {
     ytPlayerRef.current.playVideo();
   }, []);
 
-  // Track PageView on mount
+  // Track PageView on mount + auto-enter free mode via URL param
   useEffect(() => {
     trackPageView('Sales Page - Renda Extra Oferta');
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'free') {
+      setPageMode('free');
+    }
   }, []);
 
   // Countdown de 7 horas - SEMPRE reinicia quando entra na página (NUNCA expira)

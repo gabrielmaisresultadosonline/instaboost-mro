@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView } from "@/lib/facebookTracking";
+import { trackPageView, trackInitiateCheckout, trackFacebookEvent } from "@/lib/facebookTracking";
 import { toast } from "sonner";
 import { 
   Sparkles, 
@@ -145,8 +145,10 @@ const DescontoAlunosRendaExtra = () => {
         return;
       }
 
+      // Track InitiateCheckout when redirecting to payment
+      trackInitiateCheckout('MRO Renda Extra Desconto', 300);
+      
       // Redirecionar diretamente para o checkout (funciona melhor no mobile)
-      // Usar location.href ao invés de window.open para evitar bloqueio de popup
       window.location.href = checkData.payment_link;
       
       // Resetar form
