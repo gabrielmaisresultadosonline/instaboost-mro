@@ -182,6 +182,13 @@ const RendaExtraOf = () => {
     }, 17 * 60 * 1000);
     const ctaTimer = setTimeout(() => {
       setShowDelayedCta(true);
+      // Fire AddToCart event when CTA appears
+      trackFacebookEvent('AddToCart', {
+        content_name: 'MRO Renda Extra - CTA Delayed',
+        content_category: 'Renda Extra',
+        value: 300,
+        currency: 'BRL'
+      });
     }, 60 * 1000);
     return () => { clearTimeout(timer); clearTimeout(ctaTimer); };
   }, [pageMode]);
