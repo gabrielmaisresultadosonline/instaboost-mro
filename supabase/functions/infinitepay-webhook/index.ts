@@ -8,12 +8,56 @@ const corsHeaders = {
 };
 
 const INFINITEPAY_HANDLE = "paguemro";
+const META_PIXEL_ID = '569414052132145';
+const META_API_VERSION = 'v18.0';
 
 const log = (step: string, details?: unknown) => {
   const timestamp = new Date().toISOString();
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[${timestamp}] [INFINITEPAY-WEBHOOK] ${step}${detailsStr}`);
 };
+
+// Send Purchase event to Meta Conversions API
+async function sendMetaPurchaseEvent(email: string, value: number, contentName: string) {
+  try {
+    const accessToken = Deno.env.get('META_CONVERSIONS_API_TOKEN');
+    if (!accessToken) {
+      log("META: No access token configured, skipping Purchase event");
+      return;
+    }
+
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(email.toLowerCase().trim());
+    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashedEmail = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    const event = {
+      event_name: 'Purchase',
+      event_time: Math.floor(Date.now() / 1000),
+      action_source: 'website',
+      event_source_url: 'https://maisresultadosonline.com.br/mroobrigado',
+      user_data: { em: hashedEmail },
+      custom_data: {
+        content_name: contentName,
+        value: value,
+        currency: 'BRL',
+      },
+    };
+
+    const metaUrl = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events`;
+    const resp = await fetch(metaUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: [event], access_token: accessToken }),
+    });
+
+    const result = await resp.json();
+    log("META Purchase event sent", { email, value, contentName, success: resp.ok, result });
+  } catch (err) {
+    log("META Purchase event error (non-blocking)", { error: String(err) });
+  }
+}
 
 // Função para verificar pagamento via API da InfiniPay
 async function verifyPaymentWithAPI(orderNsu: string, transactionNsu?: string, slug?: string): Promise<{ paid: boolean; data?: any }> {
