@@ -44,6 +44,7 @@ import {
   MousePointerClick
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
+import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
 
 interface SalesSettings {
@@ -266,6 +267,14 @@ const VendasCompleta = () => {
                 allowFullScreen
               />
             </div>
+          </div>
+
+          <div className="mt-8 max-w-4xl mx-auto">
+            <img 
+              src={zeroAnunciosBanner} 
+              alt="Zero Anúncios. Resultados Reais." 
+              className="w-full h-auto rounded-2xl"
+            />
           </div>
 
           <div className="mt-10 animate-bounce">
@@ -606,7 +615,6 @@ const VendasCompleta = () => {
           </div>
         </div>
       </section>
-
 
       {/* Pricing Section */}
       <section ref={pricingRef} className="py-20 px-4 bg-black relative">
