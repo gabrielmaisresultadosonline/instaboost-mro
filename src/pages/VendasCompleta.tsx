@@ -614,6 +614,7 @@ const VendasCompleta = () => {
           </div>
         </div>
       </section>
+import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
 
 
       {/* Pricing Section */}
