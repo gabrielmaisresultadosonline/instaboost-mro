@@ -614,8 +614,6 @@ const VendasCompleta = () => {
           </div>
         </div>
       </section>
-import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
-
 
       {/* Pricing Section */}
       <section ref={pricingRef} className="py-20 px-4 bg-black relative">
