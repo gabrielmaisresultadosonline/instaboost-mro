@@ -736,6 +736,13 @@ serve(async (req) => {
       paid_amount
     });
 
+    // Fire Meta Conversions API Purchase event
+    await sendMetaPurchaseEvent(
+      order.email,
+      order.amount || (paid_amount || amount) || 300,
+      'MRO Payment'
+    );
+
     return new Response(
       JSON.stringify({
         success: true,
