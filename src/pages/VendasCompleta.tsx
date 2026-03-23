@@ -688,35 +688,88 @@ const VendasCompleta = () => {
         </div>
       </section>
 
-      {/* Bonus 5K Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-950">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 mb-4">
-              <Gift className="w-4 h-4 text-green-400" />
-              <span className="text-green-400 text-sm font-bold">BÔNUS GRÁTIS</span>
+      {/* Bonus 5K Section - Design único e diferenciado */}
+      <section className="relative py-24 px-4 overflow-hidden">
+        {/* Background gradiente especial */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-gray-950 to-emerald-950" />
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(245, 158, 11, 0.2) 0%, transparent 50%)' }} />
+        
+        {/* Borda brilhante superior e inferior */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
+        
+        <div className="relative max-w-5xl mx-auto">
+          {/* Badge exclusivo */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-3 bg-emerald-500/20 border-2 border-emerald-400/50 rounded-full px-6 py-3 mb-6 shadow-lg shadow-emerald-500/20">
+              <span className="text-2xl">💰</span>
+              <span className="text-emerald-300 text-base font-black tracking-wider uppercase">Bônus Exclusivo</span>
+              <span className="text-2xl">💰</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              FAÇA MAIS DE <span className="text-green-400">5 MIL MENSAL</span> PRESTANDO SERVIÇO COM ESSA FERRAMENTA
+            
+            <h2 className="text-4xl md:text-5xl font-black mb-3 leading-tight">
+              <span className="text-white">PRESTE SERVIÇO COM A MRO</span>
             </h2>
-            <p className="text-amber-400 font-medium text-lg">Rode esse sistema para outras empresas e fature mensalmente por isso!</p>
+            <h3 className="text-3xl md:text-4xl font-black mb-6">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400">FATURE MAIS DE R$5.000/MÊS</span>
+            </h3>
+            <p className="text-amber-400 font-bold text-xl max-w-2xl mx-auto">
+              Rode esse sistema para outras empresas e ganhe mensalmente com isso!
+            </p>
           </div>
-          <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 mb-10">
-            <div className="space-y-4 text-gray-400">
-              <p>Temos um método completo no qual você pode prestar serviços utilizando essa ferramenta, fechando contratos com empresas que buscam engajamento, clientes e vendas.</p>
-              <p>Você roda a ferramenta para o cliente, cobra uma mensalidade, e gera uma renda recorrente. Tudo pode ser feito de qualquer lugar do mundo com seu notebook.</p>
-              <p>Para quem deseja oferecer esse serviço, entregamos <strong className="text-white">4 contas vitalícias + 5 testes grátis por mês</strong> (de 1 dia cada).</p>
-              <p>Esses testes servem para apresentar o serviço: você roda a ferramenta por 1 dia, o cliente vê o resultado e você fecha um contrato mensal com ele.</p>
-              <p className="text-xl font-bold text-amber-400 text-center mt-6">OU SEJA, VOCÊ PODE FATURAR MAIS DE R$5.000,00 POR MÊS PRESTANDO SERVIÇO COM ESSA FERRAMENTA!</p>
-              <p className="text-center text-sm">Caso precise de mais contas no futuro, cobramos R$150 por conta adicional para quem já utiliza o sistema.</p>
+
+          {/* Cards informativos */}
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            <div className="bg-black/40 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 text-center hover:border-emerald-400/60 transition-all hover:scale-105">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                <Laptop className="w-7 h-7 text-emerald-400" />
+              </div>
+              <h4 className="text-white font-bold text-lg mb-2">Trabalhe de Qualquer Lugar</h4>
+              <p className="text-gray-400 text-sm">Tudo pode ser feito do seu notebook, de qualquer lugar do mundo</p>
+            </div>
+            <div className="bg-black/40 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 text-center hover:border-emerald-400/60 transition-all hover:scale-105">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                <Users className="w-7 h-7 text-emerald-400" />
+              </div>
+              <h4 className="text-white font-bold text-lg mb-2">4 Contas Vitalícias</h4>
+              <p className="text-gray-400 text-sm">+ 5 testes grátis por mês para apresentar o serviço aos clientes</p>
+            </div>
+            <div className="bg-black/40 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 text-center hover:border-emerald-400/60 transition-all hover:scale-105">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-7 h-7 text-emerald-400" />
+              </div>
+              <h4 className="text-white font-bold text-lg mb-2">Renda Recorrente</h4>
+              <p className="text-gray-400 text-sm">Cobra uma mensalidade dos clientes e gera renda recorrente</p>
             </div>
           </div>
+
+          {/* Bloco explicativo */}
+          <div className="bg-black/60 backdrop-blur-sm border border-emerald-500/20 rounded-3xl p-8 md:p-10 mb-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className="relative space-y-5 text-gray-300 text-lg leading-relaxed">
+              <p>Temos um <strong className="text-emerald-400">método completo</strong> no qual você pode prestar serviços utilizando essa ferramenta, fechando contratos com empresas que buscam engajamento, clientes e vendas.</p>
+              <p>Você roda a ferramenta para o cliente, cobra uma mensalidade, e gera uma <strong className="text-emerald-400">renda recorrente</strong>.</p>
+              <p>Os testes servem para apresentar o serviço: você roda a ferramenta por 1 dia, o cliente vê o resultado e você <strong className="text-white">fecha um contrato mensal</strong> com ele.</p>
+              
+              <div className="bg-gradient-to-r from-emerald-500/10 via-amber-500/10 to-emerald-500/10 border border-amber-400/30 rounded-2xl p-6 mt-8">
+                <p className="text-2xl md:text-3xl font-black text-center text-amber-400 leading-tight">
+                  OU SEJA, VOCÊ PODE FATURAR MAIS DE<br />
+                  <span className="text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">R$5.000,00/MÊS</span><br />
+                  <span className="text-xl text-amber-300">PRESTANDO SERVIÇO COM ESSA FERRAMENTA!</span>
+                </p>
+              </div>
+              
+              <p className="text-center text-gray-500 text-sm mt-4">Caso precise de mais contas no futuro, cobramos R$150 por conta adicional para quem já utiliza o sistema.</p>
+            </div>
+          </div>
+
+          {/* Vídeo */}
           <div className="max-w-3xl mx-auto">
-            <h4 className="text-center text-lg font-medium mb-4">CONFIRA UMA APRESENTAÇÃO DE COMO DESENVOLVEMOS ESSA SOLUÇÃO:</h4>
-            <div onClick={() => openVideo("WQwnAHNvSMU")} className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl border border-gray-700">
+            <h4 className="text-center text-xl font-bold mb-6 text-emerald-300">🎬 CONFIRA UMA APRESENTAÇÃO DE COMO DESENVOLVEMOS ESSA SOLUÇÃO:</h4>
+            <div onClick={() => openVideo("WQwnAHNvSMU")} className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-2xl shadow-emerald-500/10 border-2 border-emerald-500/30 hover:border-emerald-400/60 transition-all">
               <img src="https://img.youtube.com/vi/WQwnAHNvSMU/maxresdefault.jpg" alt="Video 5K" className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/40">
                   <Play className="w-8 h-8 text-white ml-1" fill="white" />
                 </div>
               </div>
