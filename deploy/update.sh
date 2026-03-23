@@ -168,6 +168,7 @@ if [ ! -f "$PROMPTS_NGINX" ]; then
   $SUDO tee "$PROMPTS_NGINX" > /dev/null <<EOF
 server {
     listen 80;
+    listen [::]:80;
     server_name $PROMPTS_DOMAIN;
     root $APP_DIR/dist;
     index index.html;

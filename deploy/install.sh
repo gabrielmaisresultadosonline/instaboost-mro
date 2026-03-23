@@ -138,6 +138,7 @@ echo -e "${YELLOW}Configurando Nginx...${NC}"
 sudo tee /etc/nginx/sites-available/$APP_NAME > /dev/null <<EOF
 server {
     listen 80;
+    listen [::]:80;
     server_name $DOMAIN www.$DOMAIN;
     root $APP_DIR/dist;
     index index.html;
