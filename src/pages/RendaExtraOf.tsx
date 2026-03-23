@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import logoMro from "@/assets/logo-mro.png";
 import MoneyParticles from "@/components/MoneyParticles";
+import rendaExtraMroBanner from "@/assets/renda-extra-mro-banner.jpeg";
 
 const RendaExtraOf = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
