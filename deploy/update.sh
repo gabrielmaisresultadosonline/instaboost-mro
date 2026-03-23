@@ -105,6 +105,7 @@ if ! $SUDO nginx -T 2>/dev/null | grep -q "location /whatsapp-api/"; then
   $SUDO tee "$NGINX_SITE" > /dev/null <<EOF
 server {
     listen 80;
+    listen [::]:80;
     server_name $DOMAIN www.$DOMAIN;
     root $APP_DIR/dist;
     index index.html;
@@ -167,6 +168,7 @@ if [ ! -f "$PROMPTS_NGINX" ]; then
   $SUDO tee "$PROMPTS_NGINX" > /dev/null <<EOF
 server {
     listen 80;
+    listen [::]:80;
     server_name $PROMPTS_DOMAIN;
     root $APP_DIR/dist;
     index index.html;
