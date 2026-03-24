@@ -253,12 +253,19 @@ const DescontoAlunosRendaExtra = () => {
           background: linear-gradient(to right, #facc15, #eab308) !important;
           border: none;
         }
-        @keyframes bounceArrow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(8px); }
+        @keyframes bounceArrowRight {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(8px); }
         }
-        .arrow-bounce {
-          animation: bounceArrow 1s ease-in-out infinite;
+        @keyframes bounceArrowLeft {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-8px); }
+        }
+        .arrow-bounce-right {
+          animation: bounceArrowRight 1s ease-in-out infinite;
+        }
+        .arrow-bounce-left {
+          animation: bounceArrowLeft 1s ease-in-out infinite;
         }
       `}</style>
       {/* Popup Desconto Encerrado */}
@@ -362,15 +369,15 @@ const DescontoAlunosRendaExtra = () => {
           </div>
 
           {/* CTA Button with arrows */}
-          <div className="relative mt-8 sm:mt-10 flex items-center justify-center gap-3">
-            <span className="arrow-bounce text-yellow-400 text-2xl sm:text-3xl rotate-[135deg]">➤</span>
+          <div className="relative mt-8 sm:mt-10 flex items-center justify-center gap-2 sm:gap-4">
+            <span className="arrow-bounce-right text-white text-2xl sm:text-3xl">▶</span>
             <Button 
               onClick={scrollToPricing}
               className="btn-pulse-color text-black font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-yellow-500/30"
             >
               GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
-            <span className="arrow-bounce text-yellow-400 text-2xl sm:text-3xl rotate-45">➤</span>
+            <span className="arrow-bounce-left text-white text-2xl sm:text-3xl">◀</span>
           </div>
         </div>
       </section>
@@ -665,10 +672,10 @@ const DescontoAlunosRendaExtra = () => {
             >
               {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "QUERO GARANTIR AGORA"}
             </Button>
-            <div className="flex justify-center gap-6 mt-2">
-              <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
-              <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
-              <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+            <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
+              <span className="arrow-bounce-right text-white text-xl sm:text-2xl">▶</span>
+              <span className="text-white text-xs sm:text-sm font-semibold">CLIQUE ACIMA</span>
+              <span className="arrow-bounce-left text-white text-xl sm:text-2xl">◀</span>
             </div>
             
             {/* Secure badges */}
@@ -739,10 +746,10 @@ const DescontoAlunosRendaExtra = () => {
           >
             {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
           </Button>
-          <div className="flex justify-center gap-6 mt-3">
-            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
-            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
-            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
+            <span className="arrow-bounce-right text-white text-xl sm:text-2xl">▶</span>
+            <span className="text-white text-xs sm:text-sm font-semibold">CLIQUE ACIMA</span>
+            <span className="arrow-bounce-left text-white text-xl sm:text-2xl">◀</span>
           </div>
         </div>
       </section>
