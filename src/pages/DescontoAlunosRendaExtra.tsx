@@ -253,6 +253,13 @@ const DescontoAlunosRendaExtra = () => {
           background: linear-gradient(to right, #facc15, #eab308) !important;
           border: none;
         }
+        @keyframes bounceArrow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(8px); }
+        }
+        .arrow-bounce {
+          animation: bounceArrow 1s ease-in-out infinite;
+        }
       `}</style>
       {/* Popup Desconto Encerrado */}
       {showDiscountEndedPopup && (
@@ -354,13 +361,17 @@ const DescontoAlunosRendaExtra = () => {
             </div>
           </div>
 
-          {/* CTA Button */}
-          <Button 
-            onClick={scrollToPricing}
-            className="mt-8 sm:mt-10 btn-pulse-color text-black font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-yellow-500/30"
-          >
-            GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
+          {/* CTA Button with arrows */}
+          <div className="relative mt-8 sm:mt-10 flex items-center justify-center gap-3">
+            <span className="arrow-bounce text-yellow-400 text-2xl sm:text-3xl rotate-[135deg]">➤</span>
+            <Button 
+              onClick={scrollToPricing}
+              className="btn-pulse-color text-black font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-yellow-500/30"
+            >
+              GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+            </Button>
+            <span className="arrow-bounce text-yellow-400 text-2xl sm:text-3xl rotate-45">➤</span>
+          </div>
         </div>
       </section>
 
@@ -654,6 +665,11 @@ const DescontoAlunosRendaExtra = () => {
             >
               {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "QUERO GARANTIR AGORA"}
             </Button>
+            <div className="flex justify-center gap-6 mt-2">
+              <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+              <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+              <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+            </div>
             
             {/* Secure badges */}
             <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 text-xs sm:text-sm text-gray-400 flex-wrap">
@@ -723,6 +739,11 @@ const DescontoAlunosRendaExtra = () => {
           >
             {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
           </Button>
+          <div className="flex justify-center gap-6 mt-3">
+            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+          </div>
         </div>
       </section>
 
