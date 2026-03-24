@@ -316,11 +316,6 @@ const DescontoAlunosRendaExtra = () => {
       {/* Hero Section */}
       <section className="relative pt-16 sm:pt-20 md:pt-24 pb-10 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Special Discount Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-4 sm:mb-6 animate-bounce">
-            <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-            <span className="font-bold text-sm sm:text-lg">DESCONTO ESPECIAL PARA ALUNOS DO RENDA EXTRA</span>
-          </div>
           
           <img src={logoMro} alt="MRO" className="h-16 sm:h-20 md:h-28 mx-auto mb-6 sm:mb-8 object-contain" />
           
