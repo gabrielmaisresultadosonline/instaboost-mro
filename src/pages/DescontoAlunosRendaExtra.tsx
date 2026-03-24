@@ -369,15 +369,15 @@ const DescontoAlunosRendaExtra = () => {
           </div>
 
           {/* CTA Button with arrows */}
-          <div className="relative mt-8 sm:mt-10 flex items-center justify-center gap-3">
-            <span className="arrow-bounce text-yellow-400 text-2xl sm:text-3xl rotate-[135deg]">➤</span>
+          <div className="relative mt-8 sm:mt-10 flex items-center justify-center gap-2 sm:gap-4">
+            <span className="arrow-bounce-right text-white text-2xl sm:text-3xl">▶</span>
             <Button 
               onClick={scrollToPricing}
               className="btn-pulse-color text-black font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-yellow-500/30"
             >
               GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
-            <span className="arrow-bounce text-yellow-400 text-2xl sm:text-3xl rotate-45">➤</span>
+            <span className="arrow-bounce-left text-white text-2xl sm:text-3xl">◀</span>
           </div>
         </div>
       </section>
