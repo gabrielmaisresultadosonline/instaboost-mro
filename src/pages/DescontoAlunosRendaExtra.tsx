@@ -249,12 +249,8 @@ const DescontoAlunosRendaExtra = () => {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <style>{`
-        @keyframes btnPulseColor {
-          0%, 100% { background: linear-gradient(to right, #22c55e, #059669); }
-          50% { background: linear-gradient(to right, #f97316, #ea580c); }
-        }
         .btn-pulse-color {
-          animation: btnPulseColor 2s ease-in-out infinite;
+          background: linear-gradient(to right, #facc15, #eab308) !important;
           border: none;
         }
       `}</style>
@@ -361,7 +357,7 @@ const DescontoAlunosRendaExtra = () => {
           {/* CTA Button */}
           <Button 
             onClick={scrollToPricing}
-            className="mt-8 sm:mt-10 btn-pulse-color text-white font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-green-500/30"
+            className="mt-8 sm:mt-10 btn-pulse-color text-black font-bold text-sm sm:text-lg px-6 sm:px-10 py-5 sm:py-6 rounded-full shadow-lg shadow-yellow-500/30"
           >
             GARANTIR MEU DESCONTO AGORA <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
@@ -654,7 +650,7 @@ const DescontoAlunosRendaExtra = () => {
                 setShowCheckoutModal(true);
               }}
               disabled={promoTimeLeft.expired}
-              className="w-full btn-pulse-color text-white font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-green-500/30 disabled:opacity-50"
+              className="w-full btn-pulse-color text-black font-bold text-base sm:text-xl py-5 sm:py-7 rounded-xl shadow-lg shadow-yellow-500/30 disabled:opacity-50"
             >
               {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "QUERO GARANTIR AGORA"}
             </Button>
@@ -723,7 +719,7 @@ const DescontoAlunosRendaExtra = () => {
               setShowCheckoutModal(true);
             }}
             disabled={promoTimeLeft.expired}
-            className="btn-pulse-color text-white font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-green-500/30 disabled:opacity-50"
+            className="btn-pulse-color text-black font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-yellow-500/30 disabled:opacity-50"
           >
             {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
           </Button>
