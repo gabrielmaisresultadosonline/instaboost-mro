@@ -746,10 +746,10 @@ const DescontoAlunosRendaExtra = () => {
           >
             {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
           </Button>
-          <div className="flex justify-center gap-6 mt-3">
-            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
-            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
-            <span className="arrow-bounce text-yellow-400 text-xl rotate-180">➤</span>
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
+            <span className="arrow-bounce-right text-white text-xl sm:text-2xl">▶</span>
+            <span className="text-white text-xs sm:text-sm font-semibold">CLIQUE ACIMA</span>
+            <span className="arrow-bounce-left text-white text-xl sm:text-2xl">◀</span>
           </div>
         </div>
       </section>
