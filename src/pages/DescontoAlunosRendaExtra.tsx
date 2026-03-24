@@ -253,12 +253,19 @@ const DescontoAlunosRendaExtra = () => {
           background: linear-gradient(to right, #facc15, #eab308) !important;
           border: none;
         }
-        @keyframes bounceArrow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(8px); }
+        @keyframes bounceArrowRight {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(8px); }
         }
-        .arrow-bounce {
-          animation: bounceArrow 1s ease-in-out infinite;
+        @keyframes bounceArrowLeft {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-8px); }
+        }
+        .arrow-bounce-right {
+          animation: bounceArrowRight 1s ease-in-out infinite;
+        }
+        .arrow-bounce-left {
+          animation: bounceArrowLeft 1s ease-in-out infinite;
         }
       `}</style>
       {/* Popup Desconto Encerrado */}
