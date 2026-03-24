@@ -249,12 +249,8 @@ const DescontoAlunosRendaExtra = () => {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <style>{`
-        @keyframes btnPulseColor {
-          0%, 100% { background: linear-gradient(to right, #22c55e, #059669); }
-          50% { background: linear-gradient(to right, #f97316, #ea580c); }
-        }
         .btn-pulse-color {
-          animation: btnPulseColor 2s ease-in-out infinite;
+          background: linear-gradient(to right, #facc15, #eab308) !important;
           border: none;
         }
       `}</style>
