@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera } from 'lucide-react';
+import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
