@@ -35,6 +35,12 @@ interface BgImageOverride {
   scale: number; // 1 = original
 }
 
+interface PersonPositionConfig {
+  scale: number; // multiplier, default 1
+  offsetX: number; // px offset from default position
+  offsetY: number; // px offset from default position
+}
+
 const CREATIVES: CreativeData[] = [
   { id: 1, headline: "VOCÊ POSTA TODO DIA…\nE NÃO VENDE?", highlightWord: "NÃO VENDE", highlightColor: "#ef4444", text: "O problema não é o conteúdo.\nÉ que você está falando com as pessoas erradas.", cta: "👉 Descubra como atrair clientes reais", category: 'dor', icon: '🚫', layout: 'left' },
   { id: 2, headline: "SEU CONCORRENTE ESTÁ\nPEGANDO SEUS CLIENTES", text: "E o pior… você está ajudando ele sem perceber.", cta: "👉 Aprenda a virar esse jogo", category: 'dor', icon: '⚔️', layout: 'center' },
@@ -286,7 +292,8 @@ const EstruturaRendaExtra = () => {
   const [showNumbers, setShowNumbers] = useState(false);
   const [showDecorations, setShowDecorations] = useState(true);
   const [showBadge, setShowBadge] = useState(false);
-  const [personImage, setPersonImage] = useState<PersonImage>('phone');
+  const [personImage, setPersonImage] = useState<PersonImage>('none');
+  const [effectsColor, setEffectsColor] = useState('#4a90ff');
   const [personOpacity, setPersonOpacity] = useState(0.15);
   const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
   // Per-creative logo overrides: { [creativeId]: { x: 0-1, y: 0-1 } }
@@ -295,6 +302,7 @@ const EstruturaRendaExtra = () => {
   const [personOverrides, setPersonOverrides] = useState<Record<number, PersonImage>>({});
   const [patternConfig, setPatternConfig] = useState<PatternConfig>({ type: 'auto', opacity: 1 });
   const [patternOverrides, setPatternOverrides] = useState<Record<number, PatternConfig>>({});
+  const [personPositionOverrides, setPersonPositionOverrides] = useState<Record<number, PersonPositionConfig>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
@@ -423,24 +431,24 @@ const EstruturaRendaExtra = () => {
         // Original category-based patterns
         if (catIndex === 0) {
           drawDiamondGrid(ctx, W, H, accentColor);
-          drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, '#ef4444');
-          drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, accentColor);
+          drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, effectsColor);
+          drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, effectsColor);
           drawCircuitLines(ctx, W, H, accentColor);
         } else if (catIndex === 1) {
           drawHexPattern(ctx, W, H, accentColor);
-          drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, accentColor);
+          drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, effectsColor);
           drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
         } else if (catIndex === 2) {
           drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
-          drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, accentColor);
+          drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, effectsColor);
         } else if (catIndex === 3) {
           drawCircuitLines(ctx, W, H, ctaColor);
-          drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, ctaColor);
+          drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, effectsColor);
           drawHexPattern(ctx, W, H, ctaColor);
         } else {
           drawDiamondGrid(ctx, W, H, accentColor);
           drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
-          drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, accentColor);
+          drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, effectsColor);
         }
       } else {
         // Specific pattern chosen
@@ -456,8 +464,8 @@ const EstruturaRendaExtra = () => {
         } else if (pType === 'rings') {
           drawConcentricRings(ctx, W * 0.5, H * 0.4, pColor, 350);
         }
-        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, pColor);
-        drawGlowOrb(ctx, W * 0.2, H * 0.8, 200, pColor);
+        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, effectsColor);
+        drawGlowOrb(ctx, W * 0.2, H * 0.8, 200, effectsColor);
       }
       drawFloatingShapes(ctx, W, H, accentColor, creative.id);
       ctx.globalAlpha = 1;
@@ -467,10 +475,11 @@ const EstruturaRendaExtra = () => {
     const effectivePersonImage = personOverrides[creative.id] !== undefined ? personOverrides[creative.id] : personImage;
     const selectedPerson = effectivePersonImage === 'phone' ? personPhoneLoaded : effectivePersonImage === 'laptop' ? personLaptopLoaded : null;
     if (selectedPerson && effectivePersonImage !== 'none') {
-      const personH = H * 0.7;
+      const posConfig = personPositionOverrides[creative.id] || { scale: 1, offsetX: 0, offsetY: 0 };
+      const personH = H * 0.7 * posConfig.scale;
       const personW = (selectedPerson.width / selectedPerson.height) * personH;
-      const px = W - personW + 60;
-      const py = H - personH;
+      const px = W - personW + 60 + posConfig.offsetX;
+      const py = H - personH + posConfig.offsetY;
       ctx.globalAlpha = personOpacity;
       ctx.drawImage(selectedPerson, px, py, personW, personH);
       ctx.globalAlpha = 1;
@@ -830,7 +839,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, effectsColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPositionOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -900,7 +909,7 @@ const EstruturaRendaExtra = () => {
           <div className="border-t border-border bg-card/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
               {/* Colors */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 <ColorPicker label="Fundo 1" value={bgColor1} onChange={setBgColor1} />
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -924,6 +933,7 @@ const EstruturaRendaExtra = () => {
                 <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
                 <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
                 <ColorPicker label="CTA" value={ctaColor} onChange={setCtaColor} />
+                <ColorPicker label="Efeitos de Luz" value={effectsColor} onChange={setEffectsColor} />
               </div>
 
               {/* Toggles row */}
@@ -1093,6 +1103,13 @@ const EstruturaRendaExtra = () => {
           onPatternReset={() => {
             setPatternOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
           }}
+          personPositionConfig={personPositionOverrides[previewId] || { scale: 1, offsetX: 0, offsetY: 0 }}
+          onPersonPositionChange={(cfg) => {
+            setPersonPositionOverrides(prev => ({ ...prev, [previewId]: cfg }));
+          }}
+          onPersonPositionReset={() => {
+            setPersonPositionOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
+          }}
         />
       )}
     </div>
@@ -1204,10 +1221,13 @@ const PreviewModal: React.FC<{
   onBgImageChange: (ovr: BgImageOverride | null) => void;
   personImageValue: PersonImage;
   onPersonImageChange: (val: PersonImage) => void;
+  personPositionConfig: PersonPositionConfig;
+  onPersonPositionChange: (cfg: PersonPositionConfig) => void;
+  onPersonPositionReset: () => void;
   patternValue: PatternConfig;
   onPatternChange: (cfg: PatternConfig) => void;
   onPatternReset: () => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, patternValue, onPatternChange, onPatternReset }) => {
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -1394,6 +1414,32 @@ const PreviewModal: React.FC<{
               <option value="phone">Celular (Foto Real)</option>
               <option value="laptop">Notebook (Foto Real)</option>
             </select>
+
+            {personImageValue !== 'none' && (
+              <div className="space-y-1.5 bg-muted/30 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <ZoomIn size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-14">Tamanho</span>
+                  <input type="range" min="0.3" max="2.5" step="0.05" value={personPositionConfig.scale} onChange={e => onPersonPositionChange({ ...personPositionConfig, scale: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{Math.round(personPositionConfig.scale * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Move size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-14">Pos. X</span>
+                  <input type="range" min="-500" max="500" step="10" value={personPositionConfig.offsetX} onChange={e => onPersonPositionChange({ ...personPositionConfig, offsetX: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{personPositionConfig.offsetX}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Move size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-14">Pos. Y</span>
+                  <input type="range" min="-500" max="500" step="10" value={personPositionConfig.offsetY} onChange={e => onPersonPositionChange({ ...personPositionConfig, offsetY: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{personPositionConfig.offsetY}</span>
+                </div>
+                <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onPersonPositionReset}>
+                  <RotateCcw size={10} /> Resetar posição
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Pattern controls */}
