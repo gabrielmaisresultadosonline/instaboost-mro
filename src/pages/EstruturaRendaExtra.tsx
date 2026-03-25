@@ -986,35 +986,25 @@ const EstruturaRendaExtra = () => {
               {/* Tool buttons */}
               <div className="p-5 md:p-8 flex flex-col gap-3">
                 {[
-                  { label: 'Posts Creator', icon: <Image className="h-5 w-5" />, gradient: 'from-purple-600 via-pink-500 to-orange-400 hover:from-purple-500 hover:via-pink-400 hover:to-orange-300', shadow: 'shadow-purple-500/20 hover:shadow-purple-500/35', action: () => setCurrentView('posts-creator') },
-                  { label: 'Gerando sua Foto Profissional', icon: <Camera className="h-5 w-5" />, gradient: 'from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:via-teal-400 hover:to-cyan-400', shadow: 'shadow-emerald-500/20 hover:shadow-emerald-500/35', action: () => {
+                  { label: 'Posts Creator', icon: <Image className="h-5 w-5" />, hoverGradient: 'hover:from-purple-600 hover:via-pink-500 hover:to-orange-400', hoverShadow: 'hover:shadow-purple-500/35', action: () => setCurrentView('posts-creator') },
+                  { label: 'Gerando sua Foto Profissional', icon: <Camera className="h-5 w-5" />, hoverGradient: 'hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500', hoverShadow: 'hover:shadow-emerald-500/35', action: () => {
                     const guestUser = { id: 'estrutura-guest', name: 'Membro EUGência', email: 'eugencia@membro.com', copies_count: 0, copies_limit: 99999, is_paid: true, days_remaining: 99999 };
                     sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
                     navigate('/prompts/dashboard');
                   }},
-                  { label: 'Materiais Disponíveis para Divulgação', icon: <Video className="h-5 w-5" />, gradient: 'from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400', shadow: 'shadow-blue-500/20 hover:shadow-blue-500/35', action: () => setCurrentView('materiais') },
-                  { label: 'Gere um Contrato para seu Cliente', icon: <FileText className="h-5 w-5" />, gradient: 'from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400', shadow: 'shadow-amber-500/20 hover:shadow-amber-500/35', action: () => setCurrentView('contrato') },
+                  { label: 'Materiais Disponíveis para Divulgação', icon: <Video className="h-5 w-5" />, hoverGradient: 'hover:from-blue-600 hover:to-cyan-500', hoverShadow: 'hover:shadow-blue-500/35', action: () => setCurrentView('materiais') },
+                  { label: 'Gere um Contrato para seu Cliente', icon: <FileText className="h-5 w-5" />, hoverGradient: 'hover:from-amber-500 hover:to-orange-500', hoverShadow: 'hover:shadow-amber-500/35', action: () => setCurrentView('contrato') },
                 ].map((tool, i) => (
                   <button
                     key={i}
                     onClick={tool.action}
-                    className={`group relative w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r ${tool.gradient} text-white font-bold text-sm md:text-base shadow-lg ${tool.shadow} transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden`}
+                    className={`group relative w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-[#1a1a2e] to-[#252540] ${tool.hoverGradient} text-white/80 hover:text-white font-bold text-sm md:text-base shadow-lg shadow-black/20 ${tool.hoverShadow} transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden border border-white/[0.08] hover:border-white/20`}
                   >
-                    <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
+                    <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
                     <span className="relative z-10">{tool.icon}</span>
                     <span className="relative z-10">{tool.label}</span>
                   </button>
                 ))}
-
-                {/* Tutorial button - special */}
-                <button
-                  onClick={() => setCurrentView('tutoriais')}
-                  className="group relative w-full flex items-center justify-center gap-3 px-6 py-5 rounded-xl bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 hover:from-yellow-300 hover:via-yellow-400 hover:to-amber-400 text-black font-extrabold text-base md:text-lg shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden mt-1"
-                >
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors duration-300" />
-                  <Play className="relative z-10 h-6 w-6" />
-                  <span className="relative z-10">🎓 Tutorial - Aprenda Como Fazer Tudo</span>
-                </button>
               </div>
             </div>
           </div>
