@@ -352,10 +352,7 @@ const EstruturaRendaExtra = () => {
 
     // ── Background ──
     if (useGradient) {
-      const grad = ctx.createLinearGradient(0, 0, W * 0.3, H);
-      grad.addColorStop(0, bgColor1);
-      grad.addColorStop(1, bgColor2);
-      ctx.fillStyle = grad;
+      ctx.fillStyle = makeGrad(ctx, W, H, bgColor1, bgColor2);
     } else {
       ctx.fillStyle = bgColor1;
     }
