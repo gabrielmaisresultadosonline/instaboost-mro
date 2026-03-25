@@ -769,7 +769,7 @@ const EstruturaRendaExtra = () => {
     } else if (layout === 'bold-stack') {
       // Full-width CTA bar
       ctx.fillStyle = hexToRgba(ctaColor, 0.15);
-      ctx.fillRect(60, ctaY, W - 120, 80);
+      ctx.fillRect(marginX - 20, ctaY, W - (marginX - 20) * 2, 80);
       ctx.fillStyle = ctaColor;
       ctx.textAlign = 'center';
       ctx.shadowColor = hexToRgba(ctaColor, 0.3);
@@ -778,19 +778,20 @@ const EstruturaRendaExtra = () => {
       ctx.shadowBlur = 0;
     } else {
       // Standard rounded CTA box
-      const ctaBoxX = isCenter ? (W - (W - 120)) / 2 : isRight ? 60 : 60;
+      const ctaBoxW = W - marginX * 2 + 40;
+      const ctaBoxX = (W - ctaBoxW) / 2;
       ctx.fillStyle = hexToRgba(accentColor, 0.08);
-      roundRect(ctx, ctaBoxX, ctaY, W - 120, 90, 18);
+      roundRect(ctx, ctaBoxX, ctaY, ctaBoxW, 90, 18);
       ctx.fill();
       ctx.strokeStyle = hexToRgba(accentColor, 0.2);
       ctx.lineWidth = 1;
-      roundRect(ctx, ctaBoxX, ctaY, W - 120, 90, 18);
+      roundRect(ctx, ctaBoxX, ctaY, ctaBoxW, 90, 18);
       ctx.stroke();
       ctx.fillStyle = ctaColor;
       ctx.shadowColor = hexToRgba(ctaColor, 0.3);
       ctx.shadowBlur = 15;
       ctx.textAlign = textAlign;
-      ctx.fillText(creative.cta, isCenter ? W / 2 : isRight ? W - 90 : 90, ctaY + 58);
+      ctx.fillText(creative.cta, isCenter ? W / 2 : isRight ? W - marginX - 10 : marginX + 10, ctaY + 58);
       ctx.shadowBlur = 0;
     }
 
