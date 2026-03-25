@@ -299,10 +299,29 @@ const EstruturaRendaExtra = () => {
 
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
   const [personLaptopLoaded, setPersonLaptopLoaded] = useState<HTMLImageElement | null>(null);
+  const [fontsReady, setFontsReady] = useState(false);
 
   useEffect(() => {
     loadImage(personPhoneImg).then(setPersonPhoneLoaded).catch(() => {});
     loadImage(personLaptopImg).then(setPersonLaptopLoaded).catch(() => {});
+
+    // Load Google Fonts for canvas
+    const fontDefs = [
+      { family: 'Bebas Neue', url: 'https://fonts.gstatic.com/s/bebasneue/v14/JTUSjIg69CK48gW7PXooxW5rygbi49c.woff2', weight: '400' },
+      { family: 'Anton', url: 'https://fonts.gstatic.com/s/anton/v25/1Ptgg87GROyAm3K8-C8CSKlv.woff2', weight: '400' },
+      { family: 'Oswald', url: 'https://fonts.gstatic.com/s/oswald/v53/TK3_WkUHHAIjg75cFRf3bXL8LICs1_FvsUZiZQ.woff2', weight: '700' },
+      { family: 'Playfair Display', url: 'https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQZNLo_U2r.woff2', weight: '900' },
+      { family: 'Dancing Script', url: 'https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7B1i0HTeB9ptDqpw.woff2', weight: '700' },
+      { family: 'Caveat', url: 'https://fonts.gstatic.com/s/caveat/v18/WnznHAc5bAfYB2QRah7pcpNvOx-pjfJ9SIKjYBxPigs.woff2', weight: '700' },
+      { family: 'Montserrat', url: 'https://fonts.gstatic.com/s/montserrat/v29/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w5aXo.woff2', weight: '900' },
+      { family: 'Raleway', url: 'https://fonts.gstatic.com/s/raleway/v34/1Ptxg8zYS_SKggPN4iEgvnHyvveLxVvaorCIPrQ.woff2', weight: '800' },
+    ];
+
+    Promise.all(fontDefs.map(async (fd) => {
+      const face = new FontFace(fd.family, `url(${fd.url})`, { weight: fd.weight });
+      const loaded = await face.load();
+      document.fonts.add(loaded);
+    })).then(() => setFontsReady(true)).catch(() => setFontsReady(true));
   }, []);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -517,23 +536,32 @@ const EstruturaRendaExtra = () => {
     const isRight = layout === 'right';
 
     // Font sizes per layout
-    const headlineFontSize = layout === 'impact-center' ? 90 : layout === 'bold-stack' ? 82 : layout === 'minimal-center' ? 68 : 74;
-    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 44 : layout === 'bold-stack' ? 38 : 40;
+    const headlineFontSize = layout === 'impact-center' ? 92 : layout === 'bold-stack' ? 84 : layout === 'minimal-center' ? 70 : layout === 'right' ? 76 : layout === 'center' ? 78 : 74;
+    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 42 : layout === 'bold-stack' ? 38 : 40;
     const ctaFontSize = layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 36;
-    const headlineSpacing = layout === 'impact-center' ? 110 : layout === 'bold-stack' ? 100 : layout === 'minimal-center' ? 85 : 95;
+    const headlineSpacing = layout === 'impact-center' ? 112 : layout === 'bold-stack' ? 102 : layout === 'minimal-center' ? 88 : 95;
 
-    // Font families per layout
-    const headlineFont = layout === 'impact-center' ? `bold ${headlineFontSize}px 'Arial Black', Impact, sans-serif`
-      : layout === 'bold-stack' ? `900 ${headlineFontSize}px 'Trebuchet MS', Verdana, sans-serif`
-      : layout === 'minimal-center' ? `300 ${headlineFontSize}px 'Georgia', serif`
-      : layout === 'right' ? `bold ${headlineFontSize}px 'Verdana', sans-serif`
-      : `bold ${headlineFontSize}px Arial, sans-serif`;
-    const bodyFont = layout === 'minimal-center' ? `${bodyFontSize}px 'Georgia', serif`
-      : layout === 'bold-stack' ? `${bodyFontSize}px 'Trebuchet MS', Verdana, sans-serif`
-      : `${bodyFontSize}px Arial, sans-serif`;
-    const ctaFont = layout === 'bold-stack' ? `bold ${ctaFontSize}px 'Trebuchet MS', Verdana, sans-serif`
-      : layout === 'minimal-center' ? `600 ${ctaFontSize}px 'Georgia', serif`
-      : `bold ${ctaFontSize}px Arial, sans-serif`;
+    // Font families - using loaded Google Fonts
+    const headlineFont = layout === 'impact-center' ? `400 ${headlineFontSize}px 'Bebas Neue', Impact, sans-serif`
+      : layout === 'bold-stack' ? `900 ${headlineFontSize}px 'Montserrat', sans-serif`
+      : layout === 'minimal-center' ? `900 ${headlineFontSize}px 'Playfair Display', serif`
+      : layout === 'right' ? `800 ${headlineFontSize}px 'Raleway', sans-serif`
+      : layout === 'center' ? `400 ${headlineFontSize}px 'Anton', sans-serif`
+      : `700 ${headlineFontSize}px 'Oswald', sans-serif`;
+
+    // Script/handwritten font for body text on some layouts
+    const bodyFont = layout === 'minimal-center' ? `700 ${bodyFontSize}px 'Dancing Script', cursive`
+      : layout === 'bold-stack' ? `700 ${bodyFontSize + 4}px 'Caveat', cursive`
+      : layout === 'center' ? `${bodyFontSize}px 'Raleway', sans-serif`
+      : layout === 'right' ? `${bodyFontSize}px 'Montserrat', sans-serif`
+      : layout === 'impact-center' ? `${bodyFontSize}px 'Oswald', sans-serif`
+      : `${bodyFontSize}px 'Raleway', sans-serif`;
+
+    const ctaFont = layout === 'bold-stack' ? `900 ${ctaFontSize}px 'Montserrat', sans-serif`
+      : layout === 'minimal-center' ? `900 ${ctaFontSize}px 'Playfair Display', serif`
+      : layout === 'impact-center' ? `400 ${ctaFontSize}px 'Bebas Neue', sans-serif`
+      : layout === 'center' ? `400 ${ctaFontSize}px 'Anton', sans-serif`
+      : `700 ${ctaFontSize}px 'Oswald', sans-serif`;
 
     // Alignment
     const textAlign: CanvasTextAlign = isCenter ? 'center' : isRight ? 'right' : 'left';
@@ -772,7 +800,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
