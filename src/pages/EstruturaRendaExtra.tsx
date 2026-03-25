@@ -1,9 +1,11 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles } from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
+import personPhoneImg from '@/assets/person-phone.png';
+import personLaptopImg from '@/assets/person-laptop.png';
 
 interface CreativeData {
   id: number;
@@ -57,7 +59,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   autoridade: '🔥 Prova / Autoridade (25-30)',
 };
 
-// ─── Professional drawing helpers ───
+type LogoPosition = 'bottom-right' | 'bottom-left' | 'top-center' | 'top-right' | 'none';
+type PersonImage = 'none' | 'phone' | 'laptop';
+
+// ─── Helpers ───
 
 function hexToRgba(hex: string, alpha: number) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -66,20 +71,40 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+// ─── Background effects ───
+
 function drawDiamondGrid(ctx: CanvasRenderingContext2D, W: number, H: number, color: string) {
   ctx.save();
   ctx.strokeStyle = hexToRgba(color, 0.06);
   ctx.lineWidth = 1;
   const spacing = 60;
   for (let i = -H; i < W + H; i += spacing) {
-    ctx.beginPath();
-    ctx.moveTo(i, 0);
-    ctx.lineTo(i + H, H);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(i + H, 0);
-    ctx.lineTo(i, H);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(i + H, 0); ctx.lineTo(i, H); ctx.stroke();
   }
   ctx.restore();
 }
@@ -117,8 +142,6 @@ function drawCircuitLines(ctx: CanvasRenderingContext2D, W: number, H: number, c
     [[W - 80, 300], [W - 250, 300], [W - 250, 550], [W - 400, 550]],
     [[100, H - 400], [350, H - 400], [350, H - 300]],
     [[W - 100, H - 500], [W - 300, H - 500], [W - 300, H - 350], [W - 500, H - 350]],
-    [[200, 100], [200, 350]],
-    [[W - 200, 150], [W - 200, 380]],
   ];
   for (const line of lines) {
     ctx.beginPath();
@@ -127,84 +150,11 @@ function drawCircuitLines(ctx: CanvasRenderingContext2D, W: number, H: number, c
       else ctx.lineTo(line[i][0], line[i][1]);
     }
     ctx.stroke();
-    // Node dots
     for (const pt of line) {
       ctx.beginPath();
       ctx.arc(pt[0], pt[1], 3, 0, Math.PI * 2);
       ctx.fillStyle = hexToRgba(color, 0.12);
       ctx.fill();
-    }
-  }
-  ctx.restore();
-}
-
-function drawConcentricRings(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string, maxR: number) {
-  ctx.save();
-  for (let r = 40; r < maxR; r += 30) {
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = hexToRgba(color, 0.04 + (r / maxR) * 0.03);
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawRadialBurst(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string) {
-  ctx.save();
-  const rays = 24;
-  for (let i = 0; i < rays; i++) {
-    const angle = (Math.PI * 2 / rays) * i;
-    const len = 80 + Math.random() * 120;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
-    ctx.strokeStyle = hexToRgba(color, 0.04);
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number, color: string, seed: number) {
-  ctx.save();
-  const shapes = [
-    { x: W * 0.1, y: H * 0.12, size: 45, type: 'tri' },
-    { x: W * 0.88, y: H * 0.08, size: 35, type: 'circle' },
-    { x: W * 0.05, y: H * 0.55, size: 25, type: 'diamond' },
-    { x: W * 0.92, y: H * 0.45, size: 30, type: 'tri' },
-    { x: W * 0.15, y: H * 0.82, size: 20, type: 'circle' },
-    { x: W * 0.85, y: H * 0.78, size: 40, type: 'diamond' },
-    { x: W * 0.5, y: H * 0.06, size: 28, type: 'circle' },
-    { x: W * 0.7, y: H * 0.92, size: 22, type: 'tri' },
-  ];
-
-  for (let i = 0; i < shapes.length; i++) {
-    const s = shapes[i];
-    const alpha = 0.06 + ((seed + i) % 5) * 0.015;
-    ctx.fillStyle = hexToRgba(color, alpha);
-    ctx.strokeStyle = hexToRgba(color, alpha * 1.5);
-    ctx.lineWidth = 1;
-
-    if (s.type === 'circle') {
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-      if (i % 2 === 0) ctx.fill(); else ctx.stroke();
-    } else if (s.type === 'tri') {
-      ctx.beginPath();
-      ctx.moveTo(s.x, s.y - s.size);
-      ctx.lineTo(s.x - s.size * 0.866, s.y + s.size * 0.5);
-      ctx.lineTo(s.x + s.size * 0.866, s.y + s.size * 0.5);
-      ctx.closePath();
-      if (i % 2 === 0) ctx.stroke(); else ctx.fill();
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(s.x, s.y - s.size);
-      ctx.lineTo(s.x + s.size, s.y);
-      ctx.lineTo(s.x, s.y + s.size);
-      ctx.lineTo(s.x - s.size, s.y);
-      ctx.closePath();
-      if (i % 2 === 0) ctx.fill(); else ctx.stroke();
     }
   }
   ctx.restore();
@@ -236,28 +186,55 @@ function drawDotMatrix(ctx: CanvasRenderingContext2D, x: number, y: number, cols
   ctx.restore();
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+function drawConcentricRings(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string, maxR: number) {
+  ctx.save();
+  for (let r = 40; r < maxR; r += 30) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = hexToRgba(color, 0.04);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
+function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number, color: string, seed: number) {
+  ctx.save();
+  const shapes = [
+    { x: W * 0.1, y: H * 0.12, size: 45, type: 'tri' },
+    { x: W * 0.88, y: H * 0.08, size: 35, type: 'circle' },
+    { x: W * 0.05, y: H * 0.55, size: 25, type: 'diamond' },
+    { x: W * 0.92, y: H * 0.45, size: 30, type: 'tri' },
+    { x: W * 0.15, y: H * 0.82, size: 20, type: 'circle' },
+    { x: W * 0.85, y: H * 0.78, size: 40, type: 'diamond' },
+  ];
+  for (let i = 0; i < shapes.length; i++) {
+    const s = shapes[i];
+    const alpha = 0.06 + ((seed + i) % 5) * 0.015;
+    ctx.fillStyle = hexToRgba(color, alpha);
+    ctx.strokeStyle = hexToRgba(color, alpha * 1.5);
+    ctx.lineWidth = 1;
+    if (s.type === 'circle') {
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      if (i % 2 === 0) ctx.fill(); else ctx.stroke();
+    } else if (s.type === 'tri') {
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y - s.size);
+      ctx.lineTo(s.x - s.size * 0.866, s.y + s.size * 0.5);
+      ctx.lineTo(s.x + s.size * 0.866, s.y + s.size * 0.5);
+      ctx.closePath();
+      if (i % 2 === 0) ctx.stroke(); else ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y - s.size);
+      ctx.lineTo(s.x + s.size, s.y);
+      ctx.lineTo(s.x, s.y + s.size);
+      ctx.lineTo(s.x - s.size, s.y);
+      ctx.closePath();
+      if (i % 2 === 0) ctx.fill(); else ctx.stroke();
+    }
+  }
+  ctx.restore();
 }
 
 // ─── Component ───
@@ -274,9 +251,21 @@ const EstruturaRendaExtra = () => {
   const [downloading, setDownloading] = useState(false);
   const [editorOpen, setEditorOpen] = useState(true);
   const [previewId, setPreviewId] = useState<number | null>(null);
-  const [showNumbers, setShowNumbers] = useState(true);
+  const [showNumbers, setShowNumbers] = useState(false);
   const [showDecorations, setShowDecorations] = useState(true);
+  const [showBadge, setShowBadge] = useState(false);
+  const [personImage, setPersonImage] = useState<PersonImage>('phone');
+  const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Preload person images
+  const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
+  const [personLaptopLoaded, setPersonLaptopLoaded] = useState<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    loadImage(personPhoneImg).then(setPersonPhoneLoaded).catch(() => {});
+    loadImage(personLaptopImg).then(setPersonLaptopLoaded).catch(() => {});
+  }, []);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -320,40 +309,53 @@ const EstruturaRendaExtra = () => {
     }
     ctx.fillRect(0, 0, W, H);
 
-    // ── Category-specific complex backgrounds ──
+    // ── Category-specific effects ──
     if (showDecorations) {
       const catIndex = ['dor', 'promessa', 'educativo', 'beneficio', 'autoridade'].indexOf(creative.category);
-      
-      if (catIndex === 0) { // Dor
+      if (catIndex === 0) {
         drawDiamondGrid(ctx, W, H, accentColor);
         drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, '#ef4444');
         drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, accentColor);
         drawCircuitLines(ctx, W, H, accentColor);
-      } else if (catIndex === 1) { // Promessa
+      } else if (catIndex === 1) {
         drawHexPattern(ctx, W, H, accentColor);
         drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, accentColor);
-        drawGlowOrb(ctx, W * 0.1, H * 0.9, 180, ctaColor);
         drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
-      } else if (catIndex === 2) { // Educativo
+      } else if (catIndex === 2) {
         drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
         drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, accentColor);
-        drawRadialBurst(ctx, W * 0.2, H * 0.7, accentColor);
-      } else if (catIndex === 3) { // Beneficio
+      } else if (catIndex === 3) {
         drawCircuitLines(ctx, W, H, ctaColor);
         drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, ctaColor);
-        drawGlowOrb(ctx, W * 0.8, H * 0.75, 200, accentColor);
         drawHexPattern(ctx, W, H, ctaColor);
-      } else { // Autoridade
+      } else {
         drawDiamondGrid(ctx, W, H, accentColor);
         drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
-        drawConcentricRings(ctx, W * 0.15, H * 0.88, accentColor, 180);
         drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, accentColor);
       }
-
       drawFloatingShapes(ctx, W, H, accentColor, creative.id);
     }
 
-    // ── Top accent bar (gradient) ──
+    // ── Person image (behind text, right side) ──
+    const selectedPerson = personImage === 'phone' ? personPhoneLoaded : personImage === 'laptop' ? personLaptopLoaded : null;
+    if (selectedPerson && personImage !== 'none') {
+      const personH = H * 0.65;
+      const personW = (selectedPerson.width / selectedPerson.height) * personH;
+      const px = W - personW + 40;
+      const py = H - personH;
+      // Draw with low opacity so it's a background element
+      ctx.globalAlpha = 0.12;
+      ctx.drawImage(selectedPerson, px, py, personW, personH);
+      ctx.globalAlpha = 1;
+      // Gradient overlay to blend person into background
+      const fadeGrad = ctx.createLinearGradient(px, py, px + personW * 0.4, py);
+      fadeGrad.addColorStop(0, useGradient ? bgColor2 : bgColor1);
+      fadeGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = fadeGrad;
+      ctx.fillRect(px, py, personW, personH);
+    }
+
+    // ── Top accent bar ──
     const topGrad = ctx.createLinearGradient(0, 0, W, 0);
     topGrad.addColorStop(0, accentColor);
     topGrad.addColorStop(0.6, hexToRgba(accentColor, 0.3));
@@ -369,25 +371,40 @@ const EstruturaRendaExtra = () => {
     ctx.fillStyle = sideGrad;
     ctx.fillRect(0, 0, 4, H);
 
+    // ── Logo at top-center ──
+    if (logoUrl && (logoPosition === 'top-center' || logoPosition === 'top-right')) {
+      try {
+        const img = await loadImage(logoUrl);
+        const lH = 70;
+        const lW = (img.width / img.height) * lH;
+        const lx = logoPosition === 'top-center' ? (W - lW) / 2 : W - lW - 70;
+        ctx.shadowColor = hexToRgba(accentColor, 0.3);
+        ctx.shadowBlur = 15;
+        ctx.drawImage(img, lx, 50, lW, lH);
+        ctx.shadowBlur = 0;
+      } catch { /* skip */ }
+    }
+
     // ── Category badge ──
-    const catLabel = creative.category.toUpperCase();
-    ctx.font = 'bold 22px Arial, sans-serif';
-    const badgeTextW = ctx.measureText(catLabel).width;
-    const badgeW = badgeTextW + 50;
-    // Badge bg
-    ctx.fillStyle = hexToRgba(accentColor, 0.12);
-    roundRect(ctx, 70, 60, badgeW, 42, 21);
-    ctx.fill();
-    // Badge border
-    ctx.strokeStyle = hexToRgba(accentColor, 0.3);
-    ctx.lineWidth = 1;
-    roundRect(ctx, 70, 60, badgeW, 42, 21);
-    ctx.stroke();
-    // Badge text
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 20px Arial, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(catLabel, 95, 87);
+    let badgeEndY = 60;
+    if (showBadge) {
+      const catLabel = creative.category.toUpperCase();
+      ctx.font = 'bold 22px Arial, sans-serif';
+      const badgeTextW = ctx.measureText(catLabel).width;
+      const badgeW = badgeTextW + 50;
+      ctx.fillStyle = hexToRgba(accentColor, 0.12);
+      roundRect(ctx, 70, 60, badgeW, 42, 21);
+      ctx.fill();
+      ctx.strokeStyle = hexToRgba(accentColor, 0.3);
+      ctx.lineWidth = 1;
+      roundRect(ctx, 70, 60, badgeW, 42, 21);
+      ctx.stroke();
+      ctx.fillStyle = accentColor;
+      ctx.font = 'bold 20px Arial, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(catLabel, 95, 87);
+      badgeEndY = 120;
+    }
 
     // ── Large watermark number ──
     if (showNumbers) {
@@ -400,31 +417,21 @@ const EstruturaRendaExtra = () => {
       ctx.textAlign = 'left';
     }
 
-    // ── Icon ──
-    if (showDecorations) {
-      ctx.font = '90px Arial';
-      ctx.textAlign = 'right';
-      ctx.fillText(creative.icon, W - 70, 100);
-      ctx.textAlign = 'left';
-    }
-
     // ── Headline ──
     const headlineLines = creative.headline.split('\n');
     ctx.font = 'bold 74px Arial, sans-serif';
-    let y = 380;
+    let y = Math.max(badgeEndY + 260, 380);
     for (const line of headlineLines) {
       if (creative.highlightWord && line.includes(creative.highlightWord)) {
         const before = line.substring(0, line.indexOf(creative.highlightWord));
         const highlight = creative.highlightWord;
         const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
         let x = 80;
-
         if (before) {
           ctx.fillStyle = textColor;
           ctx.fillText(before, x, y);
           x += ctx.measureText(before).width;
         }
-        // Highlight with glow effect
         const hlColor = creative.highlightColor || '#ef4444';
         ctx.shadowColor = hlColor;
         ctx.shadowBlur = 20;
@@ -443,19 +450,18 @@ const EstruturaRendaExtra = () => {
       y += 95;
     }
 
-    // ── Divider with dots ──
-    y += 30;
+    // ── Divider ──
+    y += 20;
     const divGrad = ctx.createLinearGradient(80, y, 500, y);
     divGrad.addColorStop(0, accentColor);
     divGrad.addColorStop(1, hexToRgba(accentColor, 0));
     ctx.fillStyle = divGrad;
     ctx.fillRect(80, y, 420, 3);
-    // Divider endpoint dot
     ctx.beginPath();
     ctx.arc(80, y + 1.5, 5, 0, Math.PI * 2);
     ctx.fillStyle = accentColor;
     ctx.fill();
-    y += 55;
+    y += 45;
 
     // ── Body text ──
     ctx.font = '40px Arial, sans-serif';
@@ -468,18 +474,16 @@ const EstruturaRendaExtra = () => {
     }
     ctx.globalAlpha = 1;
 
-    // ── CTA area ──
-    const ctaY = H - 270;
-    // CTA card bg
+    // ── CTA (closer to body text) ──
+    y += 25;
+    const ctaY = Math.min(y, H - 200);
     ctx.fillStyle = hexToRgba(accentColor, 0.08);
     roundRect(ctx, 60, ctaY, W - 120, 90, 18);
     ctx.fill();
-    // CTA card border
     ctx.strokeStyle = hexToRgba(accentColor, 0.2);
     ctx.lineWidth = 1;
     roundRect(ctx, 60, ctaY, W - 120, 90, 18);
     ctx.stroke();
-    // CTA text
     ctx.font = 'bold 36px Arial, sans-serif';
     ctx.fillStyle = ctaColor;
     ctx.shadowColor = hexToRgba(ctaColor, 0.3);
@@ -495,16 +499,16 @@ const EstruturaRendaExtra = () => {
     ctx.fillStyle = botGrad;
     ctx.fillRect(0, H - 6, W, 6);
 
-    // ── Logo ──
-    if (logoUrl) {
+    // ── Logo (bottom positions) ──
+    if (logoUrl && (logoPosition === 'bottom-right' || logoPosition === 'bottom-left')) {
       try {
         const img = await loadImage(logoUrl);
-        const logoH = 80;
-        const logoW = (img.width / img.height) * logoH;
-        // Logo glow
+        const lH = 80;
+        const lW = (img.width / img.height) * lH;
+        const lx = logoPosition === 'bottom-right' ? W - lW - 70 : 70;
         ctx.shadowColor = hexToRgba(accentColor, 0.3);
         ctx.shadowBlur = 15;
-        ctx.drawImage(img, W - logoW - 70, H - logoH - 70, logoW, logoH);
+        ctx.drawImage(img, lx, H - lH - 70, lW, lH);
         ctx.shadowBlur = 0;
       } catch { /* skip */ }
     }
@@ -514,10 +518,10 @@ const EstruturaRendaExtra = () => {
       ctx.font = 'bold 24px Arial, sans-serif';
       ctx.fillStyle = textColor;
       ctx.globalAlpha = 0.2;
-      ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 80);
+      ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations]);
+  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, logoPosition, personPhoneLoaded, personLaptopLoaded]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -585,15 +589,15 @@ const EstruturaRendaExtra = () => {
         {/* Editor */}
         {editorOpen && (
           <div className="border-t border-border bg-card/80 backdrop-blur-md">
-            <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
-              {/* Color row */}
+            <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+              {/* Colors */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 <ColorPicker label="Fundo 1" value={bgColor1} onChange={setBgColor1} />
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                     Fundo 2
                     <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted">
-                      {useGradient ? 'ON' : 'OFF'}
+                      {useGradient ? 'Degradê' : 'Sólido'}
                     </button>
                   </label>
                   <div className="flex items-center gap-2">
@@ -605,16 +609,46 @@ const EstruturaRendaExtra = () => {
                 <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
                 <ColorPicker label="CTA" value={ctaColor} onChange={setCtaColor} />
               </div>
-              {/* Toggle row */}
-              <div className="flex items-center gap-4 flex-wrap">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground">
-                  <input type="checkbox" checked={showNumbers} onChange={e => setShowNumbers(e.target.checked)} className="rounded" />
-                  <Hash size={14} /> Números
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground">
-                  <input type="checkbox" checked={showDecorations} onChange={e => setShowDecorations(e.target.checked)} className="rounded" />
-                  <Sparkles size={14} /> Decorações
-                </label>
+
+              {/* Toggles row */}
+              <div className="flex items-center gap-4 flex-wrap text-sm">
+                <ToggleOption icon={<Hash size={14} />} label="Números" checked={showNumbers} onChange={setShowNumbers} />
+                <ToggleOption icon={<Sparkles size={14} />} label="Efeitos" checked={showDecorations} onChange={setShowDecorations} />
+                <ToggleOption icon={<Tag size={14} />} label="Categoria" checked={showBadge} onChange={setShowBadge} />
+              </div>
+
+              {/* Person image + Logo position */}
+              <div className="flex items-center gap-4 flex-wrap text-sm">
+                <div className="flex items-center gap-2">
+                  <User size={14} className="text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs">Pessoa:</span>
+                  <select
+                    value={personImage}
+                    onChange={e => setPersonImage(e.target.value as PersonImage)}
+                    className="h-7 text-xs rounded border border-border bg-background px-2"
+                  >
+                    <option value="none">Nenhuma</option>
+                    <option value="phone">Celular</option>
+                    <option value="laptop">Notebook</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <MapPin size={14} className="text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs">Logo:</span>
+                  <select
+                    value={logoPosition}
+                    onChange={e => setLogoPosition(e.target.value as LogoPosition)}
+                    className="h-7 text-xs rounded border border-border bg-background px-2"
+                  >
+                    <option value="none">Sem logo</option>
+                    <option value="bottom-right">Inferior direito</option>
+                    <option value="bottom-left">Inferior esquerdo</option>
+                    <option value="top-center">Topo centro</option>
+                    <option value="top-right">Topo direito</option>
+                  </select>
+                </div>
+
                 <div className="ml-auto">
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                   {logoUrl ? (
@@ -623,8 +657,8 @@ const EstruturaRendaExtra = () => {
                       <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
                     </div>
                   ) : (
-                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => fileInputRef.current?.click()}>
-                      <Upload size={14} /> Logo
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
+                      <Upload size={14} /> Upload Logo
                     </Button>
                   )}
                 </div>
@@ -654,6 +688,7 @@ const EstruturaRendaExtra = () => {
                   ctaColor={ctaColor}
                   logoUrl={logoUrl}
                   showNumbers={showNumbers}
+                  showBadge={showBadge}
                 />
               ))}
             </div>
@@ -686,6 +721,14 @@ const ColorPicker: React.FC<{ label: string; value: string; onChange: (v: string
   </div>
 );
 
+const ToggleOption: React.FC<{ icon: React.ReactNode; label: string; checked: boolean; onChange: (v: boolean) => void }> = ({ icon, label, checked, onChange }) => (
+  <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground">
+    <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="rounded" />
+    {icon}
+    <span className="text-xs">{label}</span>
+  </label>
+);
+
 interface CreativeCardProps {
   creative: CreativeData;
   selected: boolean;
@@ -698,9 +741,10 @@ interface CreativeCardProps {
   ctaColor: string;
   logoUrl: string | null;
   showNumbers: boolean;
+  showBadge: boolean;
 }
 
-const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, bgStyle, textColor, accentColor, ctaColor, logoUrl, showNumbers }) => {
+const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, bgStyle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showBadge }) => {
   const firstLine = creative.headline.split('\n')[0];
   return (
     <div className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selected ? 'border-primary shadow-lg shadow-primary/20' : 'border-border hover:border-muted-foreground/30'}`}>
@@ -710,9 +754,11 @@ const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggl
         onClick={onPreview}
       >
         <div>
-          <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: hexToRgba(accentColor, 0.15), color: accentColor }}>
-            {creative.category.toUpperCase()}
-          </span>
+          {showBadge && (
+            <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: hexToRgba(accentColor, 0.15), color: accentColor }}>
+              {creative.category.toUpperCase()}
+            </span>
+          )}
           <div className="text-[10px] sm:text-xs font-bold mt-2 leading-tight" style={{ color: textColor }}>
             {firstLine}
           </div>
@@ -745,14 +791,12 @@ const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggl
   );
 };
 
-interface PreviewModalProps {
+const PreviewModal: React.FC<{
   creative: CreativeData;
   onClose: () => void;
   drawCreative: (c: CreativeData, canvas: HTMLCanvasElement) => Promise<void>;
   onDownload: () => void;
-}
-
-const PreviewModal: React.FC<PreviewModalProps> = ({ creative, onClose, drawCreative, onDownload }) => {
+}> = ({ creative, onClose, drawCreative, onDownload }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   React.useEffect(() => {
