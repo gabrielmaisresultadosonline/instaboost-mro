@@ -35,6 +35,12 @@ interface BgImageOverride {
   scale: number; // 1 = original
 }
 
+interface PersonPositionConfig {
+  scale: number; // multiplier, default 1
+  offsetX: number; // px offset from default position
+  offsetY: number; // px offset from default position
+}
+
 const CREATIVES: CreativeData[] = [
   { id: 1, headline: "VOCÊ POSTA TODO DIA…\nE NÃO VENDE?", highlightWord: "NÃO VENDE", highlightColor: "#ef4444", text: "O problema não é o conteúdo.\nÉ que você está falando com as pessoas erradas.", cta: "👉 Descubra como atrair clientes reais", category: 'dor', icon: '🚫', layout: 'left' },
   { id: 2, headline: "SEU CONCORRENTE ESTÁ\nPEGANDO SEUS CLIENTES", text: "E o pior… você está ajudando ele sem perceber.", cta: "👉 Aprenda a virar esse jogo", category: 'dor', icon: '⚔️', layout: 'center' },
