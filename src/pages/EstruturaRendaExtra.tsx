@@ -1171,34 +1171,32 @@ const EstruturaRendaExtra = () => {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-3 pb-2">
-                      <div className="flex items-center gap-4 flex-wrap text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                         <div className="flex items-center gap-2">
-                          <Sliders size={14} className="text-muted-foreground" />
-                          <span className="text-muted-foreground text-xs">Opacidade Fundo CTA:</span>
-                          <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => setCtaBgOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <Sliders size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground text-xs whitespace-nowrap">Opacidade CTA:</span>
+                          <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => setCtaBgOpacity(parseFloat(e.target.value))} className="flex-1 min-w-0 h-1.5 accent-primary" />
                           <span className="text-xs text-muted-foreground w-8">{Math.round(ctaBgOpacity * 100)}%</span>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4 flex-wrap text-sm">
                         <div className="flex items-center gap-2">
-                          <ZoomIn size={14} className="text-muted-foreground" />
-                          <span className="text-muted-foreground text-xs">Tamanho Conteúdo:</span>
-                          <input type="range" min="0.5" max="1.5" step="0.05" value={contentScale} onChange={e => setContentScale(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <ZoomIn size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground text-xs whitespace-nowrap">Tamanho:</span>
+                          <input type="range" min="0.5" max="1.5" step="0.05" value={contentScale} onChange={e => setContentScale(parseFloat(e.target.value))} className="flex-1 min-w-0 h-1.5 accent-primary" />
                           <span className="text-xs text-muted-foreground w-8">{Math.round(contentScale * 100)}%</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Move size={14} className="text-muted-foreground" />
-                          <span className="text-muted-foreground text-xs">Posição Vertical:</span>
-                          <input type="range" min="-400" max="400" step="10" value={contentOffsetY} onChange={e => setContentOffsetY(parseInt(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <Move size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground text-xs whitespace-nowrap">Posição V:</span>
+                          <input type="range" min="-400" max="400" step="10" value={contentOffsetY} onChange={e => setContentOffsetY(parseInt(e.target.value))} className="flex-1 min-w-0 h-1.5 accent-primary" />
                           <span className="text-xs text-muted-foreground w-10">{contentOffsetY > 0 ? '+' : ''}{contentOffsetY}px</span>
                           {(contentScale !== 1 || contentOffsetY !== 0) && (
-                            <button onClick={() => { setContentScale(1); setContentOffsetY(0); }} className="text-[10px] text-destructive hover:underline flex items-center gap-0.5">
+                            <button onClick={() => { setContentScale(1); setContentOffsetY(0); }} className="text-[10px] text-destructive hover:underline flex items-center gap-0.5 flex-shrink-0">
                               <RotateCcw size={10} /> Reset
                             </button>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 flex-wrap text-sm">
+                      <div className="flex items-center gap-3 sm:gap-4 flex-wrap text-sm">
                         <ToggleOption icon={<Hash size={14} />} label="Números" checked={showNumbers} onChange={setShowNumbers} />
                         <ToggleOption icon={<Sparkles size={14} />} label="Efeitos" checked={showDecorations} onChange={setShowDecorations} />
                         <ToggleOption icon={<Tag size={14} />} label="Categoria" checked={showBadge} onChange={setShowBadge} />
