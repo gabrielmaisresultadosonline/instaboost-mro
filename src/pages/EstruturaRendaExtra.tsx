@@ -270,6 +270,7 @@ const EstruturaRendaExtra = () => {
   // Per-creative logo overrides: { [creativeId]: { x: 0-1, y: 0-1 } }
   const [logoOverrides, setLogoOverrides] = useState<Record<number, LogoOverride>>({});
   const [bgImageOverrides, setBgImageOverrides] = useState<Record<number, BgImageOverride>>({});
+  const [personOverrides, setPersonOverrides] = useState<Record<number, PersonImage>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
@@ -387,8 +388,9 @@ const EstruturaRendaExtra = () => {
     }
 
     // ── Person image (real photo overlay) ──
-    const selectedPerson = personImage === 'phone' ? personPhoneLoaded : personImage === 'laptop' ? personLaptopLoaded : null;
-    if (selectedPerson && personImage !== 'none') {
+    const effectivePersonImage = personOverrides[creative.id] !== undefined ? personOverrides[creative.id] : personImage;
+    const selectedPerson = effectivePersonImage === 'phone' ? personPhoneLoaded : effectivePersonImage === 'laptop' ? personLaptopLoaded : null;
+    if (selectedPerson && effectivePersonImage !== 'none') {
       const personH = H * 0.7;
       const personW = (selectedPerson.width / selectedPerson.height) * personH;
       const px = W - personW + 60;
@@ -567,7 +569,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personPhoneLoaded, personLaptopLoaded, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPhoneLoaded, personLaptopLoaded, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -809,6 +811,14 @@ const EstruturaRendaExtra = () => {
               });
             }
           }}
+          personImageValue={personOverrides[previewId] !== undefined ? personOverrides[previewId] : personImage}
+          onPersonImageChange={(val) => {
+            if (val === personImage) {
+              setPersonOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
+            } else {
+              setPersonOverrides(prev => ({ ...prev, [previewId]: val }));
+            }
+          }}
         />
       )}
     </div>
@@ -914,7 +924,9 @@ const PreviewModal: React.FC<{
   onResetLogo: () => void;
   bgImageOverride?: BgImageOverride;
   onBgImageChange: (ovr: BgImageOverride | null) => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, bgImageOverride, onBgImageChange }) => {
+  personImageValue: PersonImage;
+  onPersonImageChange: (val: PersonImage) => void;
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -1049,6 +1061,20 @@ const PreviewModal: React.FC<{
                 </Button>
               </div>
             )}
+          </div>
+
+          {/* Person image control */}
+          <div className="space-y-2">
+            <span className="text-xs font-medium flex items-center gap-1"><User size={14} /> Pessoa no Fundo</span>
+            <select
+              value={personImageValue}
+              onChange={e => onPersonImageChange(e.target.value as PersonImage)}
+              className="w-full h-7 text-xs rounded border border-border bg-background px-2"
+            >
+              <option value="none">Sem pessoa</option>
+              <option value="phone">Celular (Foto Real)</option>
+              <option value="laptop">Notebook (Foto Real)</option>
+            </select>
           </div>
 
           {/* Logo controls */}
