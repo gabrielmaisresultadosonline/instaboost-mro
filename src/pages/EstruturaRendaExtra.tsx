@@ -276,7 +276,10 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
+type ViewMode = 'menu' | 'posts-creator';
+
 const EstruturaRendaExtra = () => {
+  const [currentView, setCurrentView] = useState<ViewMode>('menu');
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
