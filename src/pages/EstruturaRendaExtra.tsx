@@ -977,8 +977,8 @@ const EstruturaRendaExtra = () => {
               {/* Panel header */}
               <div className="border-b border-white/[0.06] bg-white/[0.02] px-6 py-5 md:py-6 text-center relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/[0.03] to-transparent" />
-                <h2 className="relative text-2xl md:text-3xl font-black tracking-tight">🚀 Estrutura Renda Extra</h2>
-                <p className="relative text-white/40 text-sm mt-1.5 font-medium">Selecione a ferramenta que deseja usar</p>
+                <h2 className="relative text-2xl md:text-3xl font-black tracking-tight">Tudo que você vai precisar.</h2>
+                <p className="relative text-white/40 text-sm mt-1.5 font-medium">Selecione abaixo...</p>
               </div>
 
               {/* Tool buttons */}
