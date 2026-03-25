@@ -1513,249 +1513,262 @@ const PreviewModal: React.FC<{
         </div>
 
         {/* Side editor panel */}
-        <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border p-4 w-72 overflow-y-auto space-y-4 flex-shrink-0 hidden md:block">
-          <h3 className="font-bold text-sm flex items-center gap-2">
+        <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border p-4 w-72 overflow-y-auto space-y-2 flex-shrink-0 hidden md:block max-h-[85vh]">
+          <h3 className="font-bold text-sm flex items-center gap-2 mb-3">
             <Palette size={16} /> Editor do Criativo #{creative.id}
           </h3>
 
-          {/* Background image section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium flex items-center gap-1"><ImagePlus size={14} /> Imagem de Fundo</span>
-              <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBgUpload} className="hidden" />
-              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => bgInputRef.current?.click()}>
-                <Upload size={10} /> Upload
-              </Button>
-            </div>
-
-            {bgImageOverride && (
-              <div className="space-y-2 bg-muted/30 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground">Imagem ativa</span>
-                  <button onClick={() => { onBgImageChange(null); setShowBgControls(false); }} className="text-destructive">
-                    <X size={12} />
-                  </button>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Sliders size={10} className="text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground w-14">Opacidade</span>
-                    <input type="range" min="0.05" max="1" step="0.05" value={bgImageOverride.opacity} onChange={e => updateBg({ opacity: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
-                    <span className="text-[10px] w-7 text-right">{Math.round(bgImageOverride.opacity * 100)}%</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <ZoomIn size={10} className="text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground w-14">Escala</span>
-                    <input type="range" min="0.2" max="4" step="0.1" value={bgImageOverride.scale} onChange={e => updateBg({ scale: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
-                    <span className="text-[10px] w-7 text-right">{bgImageOverride.scale.toFixed(1)}x</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Move size={10} className="text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground w-14">Pos. X</span>
-                    <input type="range" min={Math.round(-1080 * bgImageOverride.scale)} max={Math.round(1080 * bgImageOverride.scale)} step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
-                    <span className="text-[10px] w-7 text-right">{bgImageOverride.x}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Move size={10} className="text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground w-14">Pos. Y</span>
-                    <input type="range" min={Math.round(-1350 * bgImageOverride.scale)} max={Math.round(1350 * bgImageOverride.scale)} step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
-                    <span className="text-[10px] w-7 text-right">{bgImageOverride.y}</span>
-                  </div>
-                </div>
-
-                <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={() => updateBg({ x: 0, y: 0, scale: 1 })}>
-                  <RotateCcw size={10} /> Centralizar
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Person image control */}
-          <div className="space-y-2">
-            <span className="text-xs font-medium flex items-center gap-1"><User size={14} /> Pessoa no Fundo</span>
-            <select
-              value={personImageValue}
-              onChange={e => onPersonImageChange(e.target.value as PersonImage)}
-              className="w-full h-7 text-xs rounded border border-border bg-background px-2"
-            >
-              <option value="none">Sem pessoa</option>
-              <option value="phone">Celular (Foto Real)</option>
-              <option value="laptop">Notebook (Foto Real)</option>
-            </select>
-
-            {personImageValue !== 'none' && (
-              <div className="space-y-1.5 bg-muted/30 rounded-lg p-3">
-                <div className="flex items-center gap-2">
-                  <ZoomIn size={10} className="text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground w-14">Tamanho</span>
-                  <input type="range" min="0.3" max="2.5" step="0.05" value={personPositionConfig.scale} onChange={e => onPersonPositionChange({ ...personPositionConfig, scale: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
-                  <span className="text-[10px] w-7 text-right">{Math.round(personPositionConfig.scale * 100)}%</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Move size={10} className="text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground w-14">Pos. X</span>
-                  <input type="range" min="-500" max="500" step="10" value={personPositionConfig.offsetX} onChange={e => onPersonPositionChange({ ...personPositionConfig, offsetX: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
-                  <span className="text-[10px] w-7 text-right">{personPositionConfig.offsetX}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Move size={10} className="text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground w-14">Pos. Y</span>
-                  <input type="range" min="-500" max="500" step="10" value={personPositionConfig.offsetY} onChange={e => onPersonPositionChange({ ...personPositionConfig, offsetY: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
-                  <span className="text-[10px] w-7 text-right">{personPositionConfig.offsetY}</span>
-                </div>
-                <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onPersonPositionReset}>
-                  <RotateCcw size={10} /> Resetar posição
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Pattern controls */}
-          <div className="space-y-2">
-            <span className="text-xs font-medium flex items-center gap-1"><Sparkles size={14} /> Padrão de Fundo</span>
-            <select
-              value={patternValue.type}
-              onChange={e => onPatternChange({ ...patternValue, type: e.target.value as PatternType })}
-              className="w-full h-7 text-xs rounded border border-border bg-background px-2"
-            >
-              <option value="auto">Automático (por categoria)</option>
-              <option value="diamond">Diamante / Grade</option>
-              <option value="hex">Hexagonal</option>
-              <option value="circuit">Circuitos</option>
-              <option value="dots">Pontos</option>
-              <option value="rings">Anéis</option>
-              <option value="none">Sem padrão</option>
-            </select>
-            {patternValue.type !== 'none' && (
-              <div className="flex items-center gap-2">
-                <Sliders size={10} className="text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground w-14">Opacidade</span>
-                <input type="range" min="0.1" max="3" step="0.1" value={patternValue.opacity} onChange={e => onPatternChange({ ...patternValue, opacity: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
-                <span className="text-[10px] w-7 text-right">{Math.round(patternValue.opacity * 100)}%</span>
-              </div>
-            )}
-            <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onPatternReset}>
-              <RotateCcw size={10} /> Padrão original
-            </Button>
-          </div>
-
-          {/* Logo controls */}
-          {logoUrl && (
-            <div className="space-y-2">
-              <span className="text-xs font-medium flex items-center gap-1"><MapPin size={14} /> Logo</span>
-              <p className="text-[10px] text-muted-foreground">Clique no criativo para posicionar a logo</p>
+          {/* Content Position - per creative */}
+          <AccordionSection title="📐 Posição do Conteúdo" defaultOpen>
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <ZoomIn size={10} className="text-muted-foreground" />
                 <span className="text-[10px] text-muted-foreground w-14">Tamanho</span>
-                <input type="range" min="0.3" max="4" step="0.1" value={logoOverride?.scale ?? 1} onChange={e => onLogoScaleChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
-                <span className="text-[10px] w-7 text-right">{Math.round((logoOverride?.scale ?? 1) * 100)}%</span>
+                <input type="range" min="0.5" max="1.5" step="0.05" value={contentScaleValue} onChange={e => onContentScaleChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
+                <span className="text-[10px] w-7 text-right">{Math.round(contentScaleValue * 100)}%</span>
               </div>
-              {logoOverride && (
-                <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onResetLogo}>
-                  <RotateCcw size={10} /> Resetar posição e tamanho
+              <div className="flex items-center gap-2">
+                <Move size={10} className="text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground w-14">Vertical</span>
+                <input type="range" min="-400" max="400" step="10" value={contentOffsetYValue} onChange={e => onContentOffsetYChange(parseInt(e.target.value))} className="flex-1 h-1 accent-primary" />
+                <span className="text-[10px] w-10 text-right">{contentOffsetYValue > 0 ? '+' : ''}{contentOffsetYValue}px</span>
+              </div>
+              {(contentScaleValue !== 1 || contentOffsetYValue !== 0) && (
+                <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onContentPositionReset}>
+                  <RotateCcw size={10} /> Resetar posição
                 </Button>
               )}
             </div>
-          )}
+          </AccordionSection>
 
-          {/* Logo upload (for this creative only) */}
-          {!logoUrl && (
+          {/* Imagem de Fundo */}
+          <AccordionSection title="🖼️ Imagem de Fundo">
+            <div className="space-y-3">
+              <div className="flex justify-end">
+                <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBgUpload} className="hidden" />
+                <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => bgInputRef.current?.click()}>
+                  <Upload size={10} /> Upload
+                </Button>
+              </div>
+              {bgImageOverride && (
+                <div className="space-y-2 bg-muted/30 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-muted-foreground">Imagem ativa</span>
+                    <button onClick={() => { onBgImageChange(null); setShowBgControls(false); }} className="text-destructive"><X size={12} /></button>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Sliders size={10} className="text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground w-14">Opacidade</span>
+                      <input type="range" min="0.05" max="1" step="0.05" value={bgImageOverride.opacity} onChange={e => updateBg({ opacity: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                      <span className="text-[10px] w-7 text-right">{Math.round(bgImageOverride.opacity * 100)}%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ZoomIn size={10} className="text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground w-14">Escala</span>
+                      <input type="range" min="0.2" max="4" step="0.1" value={bgImageOverride.scale} onChange={e => updateBg({ scale: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                      <span className="text-[10px] w-7 text-right">{bgImageOverride.scale.toFixed(1)}x</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Move size={10} className="text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground w-14">Pos. X</span>
+                      <input type="range" min={Math.round(-1080 * bgImageOverride.scale)} max={Math.round(1080 * bgImageOverride.scale)} step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                      <span className="text-[10px] w-7 text-right">{bgImageOverride.x}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Move size={10} className="text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground w-14">Pos. Y</span>
+                      <input type="range" min={Math.round(-1350 * bgImageOverride.scale)} max={Math.round(1350 * bgImageOverride.scale)} step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                      <span className="text-[10px] w-7 text-right">{bgImageOverride.y}</span>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={() => updateBg({ x: 0, y: 0, scale: 1 })}>
+                    <RotateCcw size={10} /> Centralizar
+                  </Button>
+                </div>
+              )}
+            </div>
+          </AccordionSection>
+
+          {/* Pessoa no Fundo */}
+          <AccordionSection title="👤 Pessoa no Fundo">
             <div className="space-y-2">
-              <span className="text-xs font-medium flex items-center gap-1"><Upload size={14} /> Adicionar Logo</span>
-              <input type="file" accept="image/*" onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                  onLogoUpload(ev.target?.result as string);
-                  toast.success('Logo adicionada!');
-                };
-                reader.readAsDataURL(file);
-              }} className="w-full text-[10px]" />
+              <select
+                value={personImageValue}
+                onChange={e => onPersonImageChange(e.target.value as PersonImage)}
+                className="w-full h-7 text-xs rounded border border-border bg-background px-2"
+              >
+                <option value="none">Sem pessoa</option>
+                <option value="phone">Celular (Foto Real)</option>
+                <option value="laptop">Notebook (Foto Real)</option>
+              </select>
+              {personImageValue !== 'none' && (
+                <div className="space-y-1.5 bg-muted/30 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <ZoomIn size={10} className="text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground w-14">Tamanho</span>
+                    <input type="range" min="0.3" max="2.5" step="0.05" value={personPositionConfig.scale} onChange={e => onPersonPositionChange({ ...personPositionConfig, scale: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <span className="text-[10px] w-7 text-right">{Math.round(personPositionConfig.scale * 100)}%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Move size={10} className="text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground w-14">Pos. X</span>
+                    <input type="range" min="-500" max="500" step="10" value={personPositionConfig.offsetX} onChange={e => onPersonPositionChange({ ...personPositionConfig, offsetX: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <span className="text-[10px] w-7 text-right">{personPositionConfig.offsetX}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Move size={10} className="text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground w-14">Pos. Y</span>
+                    <input type="range" min="-500" max="500" step="10" value={personPositionConfig.offsetY} onChange={e => onPersonPositionChange({ ...personPositionConfig, offsetY: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <span className="text-[10px] w-7 text-right">{personPositionConfig.offsetY}</span>
+                  </div>
+                  <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onPersonPositionReset}>
+                    <RotateCcw size={10} /> Resetar posição
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+          </AccordionSection>
 
-          {/* Colors & Effects */}
-          <div className="space-y-3 border-t border-border pt-3">
-            <span className="text-xs font-bold flex items-center gap-1"><Palette size={14} /> Cores & Efeitos</span>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-muted-foreground block mb-1">Fundo 1</label>
-                <div className="flex items-center gap-1">
-                  <input type="color" value={bgColor1} onChange={e => onBgColor1Change(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
-                  <span className="text-[9px] text-muted-foreground">{bgColor1}</span>
+          {/* Padrão de Fundo */}
+          <AccordionSection title="✨ Padrão de Fundo">
+            <div className="space-y-2">
+              <select
+                value={patternValue.type}
+                onChange={e => onPatternChange({ ...patternValue, type: e.target.value as PatternType })}
+                className="w-full h-7 text-xs rounded border border-border bg-background px-2"
+              >
+                <option value="auto">Automático (por categoria)</option>
+                <option value="diamond">Diamante / Grade</option>
+                <option value="hex">Hexagonal</option>
+                <option value="circuit">Circuitos</option>
+                <option value="dots">Pontos</option>
+                <option value="rings">Anéis</option>
+                <option value="none">Sem padrão</option>
+              </select>
+              {patternValue.type !== 'none' && (
+                <div className="flex items-center gap-2">
+                  <Sliders size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-14">Opacidade</span>
+                  <input type="range" min="0.1" max="3" step="0.1" value={patternValue.opacity} onChange={e => onPatternChange({ ...patternValue, opacity: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{Math.round(patternValue.opacity * 100)}%</span>
                 </div>
-              </div>
-              <div>
-                <label className="text-[10px] text-muted-foreground block mb-1">
-                  Fundo 2
-                  <button onClick={() => onUseGradientChange(!useGradient)} className="ml-1 text-[9px] px-1 rounded bg-muted cursor-pointer">
-                    {useGradient ? 'Degradê' : 'Sólido'}
-                  </button>
-                </label>
-                <div className="flex items-center gap-1">
-                  <input type="color" value={bgColor2} onChange={e => onBgColor2Change(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" disabled={!useGradient} />
-                  <span className="text-[9px] text-muted-foreground">{bgColor2}</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] text-muted-foreground block mb-1">Texto</label>
-                <div className="flex items-center gap-1">
-                  <input type="color" value={textColor} onChange={e => onTextColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
-                  <span className="text-[9px] text-muted-foreground">{textColor}</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] text-muted-foreground block mb-1">Destaque</label>
-                <div className="flex items-center gap-1">
-                  <input type="color" value={accentColor} onChange={e => onAccentColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
-                  <span className="text-[9px] text-muted-foreground">{accentColor}</span>
-                </div>
-              </div>
+              )}
+              <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onPatternReset}>
+                <RotateCcw size={10} /> Padrão original
+              </Button>
             </div>
+          </AccordionSection>
 
-            {/* CTA Controls */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-medium">CTA (Botão)</span>
+          {/* Logo */}
+          <AccordionSection title="◎ Logo">
+            {logoUrl ? (
+              <div className="space-y-2">
+                <p className="text-[10px] text-muted-foreground">Clique no criativo para posicionar a logo</p>
+                <div className="flex items-center gap-2">
+                  <ZoomIn size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-14">Tamanho</span>
+                  <input type="range" min="0.3" max="4" step="0.1" value={logoOverride?.scale ?? 1} onChange={e => onLogoScaleChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{Math.round((logoOverride?.scale ?? 1) * 100)}%</span>
+                </div>
+                {logoOverride && (
+                  <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onResetLogo}>
+                    <RotateCcw size={10} /> Resetar posição e tamanho
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <span className="text-xs text-muted-foreground">Nenhuma logo carregada</span>
+                <input type="file" accept="image/*" onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    onLogoUpload(ev.target?.result as string);
+                    toast.success('Logo adicionada!');
+                  };
+                  reader.readAsDataURL(file);
+                }} className="w-full text-[10px]" />
+              </div>
+            )}
+          </AccordionSection>
+
+          {/* Cores & Efeitos */}
+          <AccordionSection title="🎨 Cores & Efeitos">
+            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-muted-foreground block mb-1">Texto CTA</label>
-                  <input type="color" value={ctaTextColor} onChange={e => onCtaTextColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                  <label className="text-[10px] text-muted-foreground block mb-1">Fundo 1</label>
+                  <div className="flex items-center gap-1">
+                    <input type="color" value={bgColor1} onChange={e => onBgColor1Change(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                    <span className="text-[9px] text-muted-foreground">{bgColor1}</span>
+                  </div>
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground block mb-1">Fundo CTA</label>
-                  <input type="color" value={ctaBgColor} onChange={e => onCtaBgColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                  <label className="text-[10px] text-muted-foreground block mb-1">
+                    Fundo 2
+                    <button onClick={() => onUseGradientChange(!useGradient)} className="ml-1 text-[9px] px-1 rounded bg-muted cursor-pointer">
+                      {useGradient ? 'Degradê' : 'Sólido'}
+                    </button>
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <input type="color" value={bgColor2} onChange={e => onBgColor2Change(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" disabled={!useGradient} />
+                    <span className="text-[9px] text-muted-foreground">{bgColor2}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground block mb-1">Texto</label>
+                  <div className="flex items-center gap-1">
+                    <input type="color" value={textColor} onChange={e => onTextColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                    <span className="text-[9px] text-muted-foreground">{textColor}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground block mb-1">Destaque</label>
+                  <div className="flex items-center gap-1">
+                    <input type="color" value={accentColor} onChange={e => onAccentColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                    <span className="text-[9px] text-muted-foreground">{accentColor}</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Sliders size={10} className="text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground w-16">Opac. CTA</span>
-                <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => onCtaBgOpacityChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
-                <span className="text-[10px] w-7 text-right">{Math.round(ctaBgOpacity * 100)}%</span>
-              </div>
-            </div>
 
-            {/* Light Effects */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-medium">Efeito de Luz</span>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-muted-foreground w-10">Cor</span>
-                <input type="color" value={effectsColor} onChange={e => onEffectsColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
-                <span className="text-[9px] text-muted-foreground">{effectsColor}</span>
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-medium">CTA (Botão)</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1">Texto CTA</label>
+                    <input type="color" value={ctaTextColor} onChange={e => onCtaTextColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1">Fundo CTA</label>
+                    <input type="color" value={ctaBgColor} onChange={e => onCtaBgColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Sliders size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-16">Opac. CTA</span>
+                  <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => onCtaBgOpacityChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{Math.round(ctaBgOpacity * 100)}%</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Sliders size={10} className="text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground w-10">Luz</span>
-                <input type="range" min="0" max="0.5" step="0.01" value={effectsOpacity} onChange={e => onEffectsOpacityChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
-                <span className="text-[10px] w-7 text-right">{Math.round(effectsOpacity * 100)}%</span>
+
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-medium">Efeito de Luz</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground w-10">Cor</span>
+                  <input type="color" value={effectsColor} onChange={e => onEffectsColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                  <span className="text-[9px] text-muted-foreground">{effectsColor}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Sliders size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-10">Luz</span>
+                  <input type="range" min="0" max="0.5" step="0.01" value={effectsOpacity} onChange={e => onEffectsOpacityChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{Math.round(effectsOpacity * 100)}%</span>
+                </div>
               </div>
             </div>
-          </div>
+          </AccordionSection>
         </div>
 
         {/* Mobile bottom controls */}
