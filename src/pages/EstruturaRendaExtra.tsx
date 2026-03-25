@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -16,6 +16,11 @@ interface CreativeData {
   cta: string;
   category: 'dor' | 'promessa' | 'educativo' | 'beneficio' | 'autoridade';
   icon: string;
+}
+
+interface LogoOverride {
+  x: number; // 0-1 percentage
+  y: number; // 0-1 percentage
 }
 
 const CREATIVES: CreativeData[] = [
@@ -59,10 +64,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   autoridade: '🔥 Prova / Autoridade (25-30)',
 };
 
-type LogoPosition = 'bottom-right' | 'bottom-left' | 'top-center' | 'top-right' | 'none';
+type LogoPosition = 'bottom-right' | 'bottom-left' | 'top-center' | 'top-right' | 'custom';
 type PersonImage = 'none' | 'phone' | 'laptop';
-
-// ─── Helpers ───
 
 function hexToRgba(hex: string, alpha: number) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -96,7 +99,6 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 // ─── Background effects ───
-
 function drawDiamondGrid(ctx: CanvasRenderingContext2D, W: number, H: number, color: string) {
   ctx.save();
   ctx.strokeStyle = hexToRgba(color, 0.06);
@@ -255,10 +257,12 @@ const EstruturaRendaExtra = () => {
   const [showDecorations, setShowDecorations] = useState(true);
   const [showBadge, setShowBadge] = useState(false);
   const [personImage, setPersonImage] = useState<PersonImage>('phone');
+  const [personOpacity, setPersonOpacity] = useState(0.15);
   const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
+  // Per-creative logo overrides: { [creativeId]: { x: 0-1, y: 0-1 } }
+  const [logoOverrides, setLogoOverrides] = useState<Record<number, LogoOverride>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Preload person images
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
   const [personLaptopLoaded, setPersonLaptopLoaded] = useState<HTMLImageElement | null>(null);
 
@@ -289,6 +293,20 @@ const EstruturaRendaExtra = () => {
   const selectAll = () => {
     if (selectedIds.size === 30) setSelectedIds(new Set());
     else setSelectedIds(new Set(CREATIVES.map(c => c.id)));
+  };
+
+  const getLogoCoords = (creativeId: number, W: number, H: number, lW: number, lH: number) => {
+    const override = logoOverrides[creativeId];
+    if (override) {
+      return { x: override.x * W, y: override.y * H };
+    }
+    switch (logoPosition) {
+      case 'bottom-right': return { x: W - lW - 70, y: H - lH - 70 };
+      case 'bottom-left': return { x: 70, y: H - lH - 70 };
+      case 'top-center': return { x: (W - lW) / 2, y: 50 };
+      case 'top-right': return { x: W - lW - 70, y: 50 };
+      default: return { x: W - lW - 70, y: H - lH - 70 };
+    }
   };
 
   const drawCreative = useCallback(async (creative: CreativeData, canvas: HTMLCanvasElement) => {
@@ -336,19 +354,18 @@ const EstruturaRendaExtra = () => {
       drawFloatingShapes(ctx, W, H, accentColor, creative.id);
     }
 
-    // ── Person image (behind text, right side) ──
+    // ── Person image (real photo overlay) ──
     const selectedPerson = personImage === 'phone' ? personPhoneLoaded : personImage === 'laptop' ? personLaptopLoaded : null;
     if (selectedPerson && personImage !== 'none') {
-      const personH = H * 0.65;
+      const personH = H * 0.7;
       const personW = (selectedPerson.width / selectedPerson.height) * personH;
-      const px = W - personW + 40;
+      const px = W - personW + 60;
       const py = H - personH;
-      // Draw with low opacity so it's a background element
-      ctx.globalAlpha = 0.12;
+      ctx.globalAlpha = personOpacity;
       ctx.drawImage(selectedPerson, px, py, personW, personH);
       ctx.globalAlpha = 1;
-      // Gradient overlay to blend person into background
-      const fadeGrad = ctx.createLinearGradient(px, py, px + personW * 0.4, py);
+      // Gradient fade from left to blend
+      const fadeGrad = ctx.createLinearGradient(px, py, px + personW * 0.5, py);
       fadeGrad.addColorStop(0, useGradient ? bgColor2 : bgColor1);
       fadeGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = fadeGrad;
@@ -370,20 +387,6 @@ const EstruturaRendaExtra = () => {
     sideGrad.addColorStop(1, 'transparent');
     ctx.fillStyle = sideGrad;
     ctx.fillRect(0, 0, 4, H);
-
-    // ── Logo at top-center ──
-    if (logoUrl && (logoPosition === 'top-center' || logoPosition === 'top-right')) {
-      try {
-        const img = await loadImage(logoUrl);
-        const lH = 70;
-        const lW = (img.width / img.height) * lH;
-        const lx = logoPosition === 'top-center' ? (W - lW) / 2 : W - lW - 70;
-        ctx.shadowColor = hexToRgba(accentColor, 0.3);
-        ctx.shadowBlur = 15;
-        ctx.drawImage(img, lx, 50, lW, lH);
-        ctx.shadowBlur = 0;
-      } catch { /* skip */ }
-    }
 
     // ── Category badge ──
     let badgeEndY = 60;
@@ -474,7 +477,7 @@ const EstruturaRendaExtra = () => {
     }
     ctx.globalAlpha = 1;
 
-    // ── CTA (closer to body text) ──
+    // ── CTA ──
     y += 25;
     const ctaY = Math.min(y, H - 200);
     ctx.fillStyle = hexToRgba(accentColor, 0.08);
@@ -499,16 +502,27 @@ const EstruturaRendaExtra = () => {
     ctx.fillStyle = botGrad;
     ctx.fillRect(0, H - 6, W, 6);
 
-    // ── Logo (bottom positions) ──
-    if (logoUrl && (logoPosition === 'bottom-right' || logoPosition === 'bottom-left')) {
+    // ── Logo ──
+    if (logoUrl && logoPosition !== 'custom' && !logoOverrides[creative.id]) {
       try {
         const img = await loadImage(logoUrl);
         const lH = 80;
         const lW = (img.width / img.height) * lH;
-        const lx = logoPosition === 'bottom-right' ? W - lW - 70 : 70;
+        const coords = getLogoCoords(creative.id, W, H, lW, lH);
         ctx.shadowColor = hexToRgba(accentColor, 0.3);
         ctx.shadowBlur = 15;
-        ctx.drawImage(img, lx, H - lH - 70, lW, lH);
+        ctx.drawImage(img, coords.x, coords.y, lW, lH);
+        ctx.shadowBlur = 0;
+      } catch { /* skip */ }
+    } else if (logoUrl && logoOverrides[creative.id]) {
+      try {
+        const img = await loadImage(logoUrl);
+        const lH = 80;
+        const lW = (img.width / img.height) * lH;
+        const coords = getLogoCoords(creative.id, W, H, lW, lH);
+        ctx.shadowColor = hexToRgba(accentColor, 0.3);
+        ctx.shadowBlur = 15;
+        ctx.drawImage(img, coords.x, coords.y, lW, lH);
         ctx.shadowBlur = 0;
       } catch { /* skip */ }
     }
@@ -521,7 +535,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, logoPosition, personPhoneLoaded, personLaptopLoaded]);
+  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, personPhoneLoaded, personLaptopLoaded, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -617,7 +631,7 @@ const EstruturaRendaExtra = () => {
                 <ToggleOption icon={<Tag size={14} />} label="Categoria" checked={showBadge} onChange={setShowBadge} />
               </div>
 
-              {/* Person image + Logo position */}
+              {/* Person image + opacity */}
               <div className="flex items-center gap-4 flex-wrap text-sm">
                 <div className="flex items-center gap-2">
                   <User size={14} className="text-muted-foreground" />
@@ -628,25 +642,58 @@ const EstruturaRendaExtra = () => {
                     className="h-7 text-xs rounded border border-border bg-background px-2"
                   >
                     <option value="none">Nenhuma</option>
-                    <option value="phone">Celular</option>
-                    <option value="laptop">Notebook</option>
+                    <option value="phone">Celular (Foto Real)</option>
+                    <option value="laptop">Notebook (Foto Real)</option>
                   </select>
                 </div>
 
+                {personImage !== 'none' && (
+                  <div className="flex items-center gap-2">
+                    <Sliders size={14} className="text-muted-foreground" />
+                    <span className="text-muted-foreground text-xs">Opacidade:</span>
+                    <input
+                      type="range"
+                      min="0.05"
+                      max="0.8"
+                      step="0.05"
+                      value={personOpacity}
+                      onChange={e => setPersonOpacity(parseFloat(e.target.value))}
+                      className="w-24 h-1.5 accent-primary"
+                    />
+                    <span className="text-xs text-muted-foreground w-8">{Math.round(personOpacity * 100)}%</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Logo position + upload */}
+              <div className="flex items-center gap-4 flex-wrap text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin size={14} className="text-muted-foreground" />
-                  <span className="text-muted-foreground text-xs">Logo:</span>
+                  <span className="text-muted-foreground text-xs">Logo (padrão):</span>
                   <select
                     value={logoPosition}
                     onChange={e => setLogoPosition(e.target.value as LogoPosition)}
                     className="h-7 text-xs rounded border border-border bg-background px-2"
                   >
-                    <option value="none">Sem logo</option>
                     <option value="bottom-right">Inferior direito</option>
                     <option value="bottom-left">Inferior esquerdo</option>
                     <option value="top-center">Topo centro</option>
                     <option value="top-right">Topo direito</option>
                   </select>
+                </div>
+
+                {Object.keys(logoOverrides).length > 0 && (
+                  <button
+                    onClick={() => { setLogoOverrides({}); toast.success('Posições personalizadas resetadas!'); }}
+                    className="text-xs text-destructive hover:underline flex items-center gap-1"
+                  >
+                    <X size={12} /> Resetar posições ({Object.keys(logoOverrides).length})
+                  </button>
+                )}
+
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Move size={12} />
+                  <span>Arraste a logo no preview para posicionar individualmente</span>
                 </div>
 
                 <div className="ml-auto">
@@ -689,6 +736,7 @@ const EstruturaRendaExtra = () => {
                   logoUrl={logoUrl}
                   showNumbers={showNumbers}
                   showBadge={showBadge}
+                  hasLogoOverride={!!logoOverrides[creative.id]}
                 />
               ))}
             </div>
@@ -696,13 +744,27 @@ const EstruturaRendaExtra = () => {
         ))}
       </div>
 
-      {/* Preview Modal */}
+      {/* Preview Modal with drag */}
       {previewId && (
         <PreviewModal
           creative={CREATIVES.find(c => c.id === previewId)!}
           onClose={() => setPreviewId(null)}
           drawCreative={drawCreative}
           onDownload={() => downloadSingle(CREATIVES.find(c => c.id === previewId)!)}
+          logoUrl={logoUrl}
+          onLogoMove={(x, y) => {
+            setLogoOverrides(prev => ({ ...prev, [previewId]: { x, y } }));
+            toast.success(`Logo posicionada no criativo #${previewId}`);
+          }}
+          logoOverride={logoOverrides[previewId]}
+          onResetLogo={() => {
+            setLogoOverrides(prev => {
+              const next = { ...prev };
+              delete next[previewId];
+              return next;
+            });
+            toast.success('Logo restaurada ao padrão');
+          }}
         />
       )}
     </div>
@@ -742,9 +804,10 @@ interface CreativeCardProps {
   logoUrl: string | null;
   showNumbers: boolean;
   showBadge: boolean;
+  hasLogoOverride: boolean;
 }
 
-const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, bgStyle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showBadge }) => {
+const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, bgStyle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showBadge, hasLogoOverride }) => {
   const firstLine = creative.headline.split('\n')[0];
   return (
     <div className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selected ? 'border-primary shadow-lg shadow-primary/20' : 'border-border hover:border-muted-foreground/30'}`}>
@@ -770,6 +833,11 @@ const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggl
           {logoUrl && <img src={logoUrl} className="h-3 mt-1 object-contain" alt="" />}
         </div>
         {showNumbers && <div className="absolute top-1 right-2 text-[8px] font-bold" style={{ color: textColor, opacity: 0.15 }}>#{String(creative.id).padStart(2, '0')}</div>}
+        {hasLogoOverride && (
+          <div className="absolute top-1 left-6 text-[8px]" title="Logo personalizada">
+            <Move size={10} className="text-primary" />
+          </div>
+        )}
       </div>
       <div className="absolute bottom-0 left-0 right-0 bg-card/90 backdrop-blur-sm flex items-center justify-between p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className="p-1 rounded hover:bg-muted">
@@ -796,8 +864,14 @@ const PreviewModal: React.FC<{
   onClose: () => void;
   drawCreative: (c: CreativeData, canvas: HTMLCanvasElement) => Promise<void>;
   onDownload: () => void;
-}> = ({ creative, onClose, drawCreative, onDownload }) => {
+  logoUrl: string | null;
+  onLogoMove: (x: number, y: number) => void;
+  logoOverride?: LogoOverride;
+  onResetLogo: () => void;
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   React.useEffect(() => {
     if (canvasRef.current) {
@@ -805,11 +879,45 @@ const PreviewModal: React.FC<{
     }
   }, [creative, drawCreative]);
 
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!logoUrl || !canvasRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = 1080 / rect.width;
+    const scaleY = 1350 / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+    // Position as percentage
+    onLogoMove(clickX / 1080, clickY / 1350);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging || !logoUrl || !canvasRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = 1080 / rect.width;
+    const scaleY = 1350 / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+    onLogoMove(mx / 1080, my / 1350);
+  };
+
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="relative max-w-md w-full" onClick={e => e.stopPropagation()}>
-        <canvas ref={canvasRef} className="w-full rounded-xl shadow-2xl" />
+      <div className="relative max-w-md w-full" onClick={e => e.stopPropagation()} ref={containerRef}>
+        <canvas
+          ref={canvasRef}
+          className={`w-full rounded-xl shadow-2xl ${logoUrl ? 'cursor-crosshair' : ''}`}
+          onClick={handleCanvasClick}
+          onMouseDown={() => setIsDragging(true)}
+          onMouseUp={() => setIsDragging(false)}
+          onMouseLeave={() => setIsDragging(false)}
+          onMouseMove={handleMouseMove}
+        />
         <div className="absolute top-3 right-3 flex gap-2">
+          {logoUrl && logoOverride && (
+            <Button size="sm" variant="outline" onClick={onResetLogo} className="text-xs">
+              <X size={12} /> Reset Logo
+            </Button>
+          )}
           <Button size="sm" onClick={onDownload} className="bg-primary text-primary-foreground">
             <Download size={14} /> Baixar
           </Button>
@@ -817,6 +925,12 @@ const PreviewModal: React.FC<{
             <X size={14} />
           </Button>
         </div>
+        {logoUrl && (
+          <div className="absolute bottom-3 left-3 right-3 bg-card/90 rounded-lg px-3 py-2 text-xs text-muted-foreground text-center backdrop-blur-sm">
+            <Move size={12} className="inline mr-1" />
+            Clique ou arraste no criativo para posicionar a logo
+          </div>
+        )}
       </div>
     </div>
   );
