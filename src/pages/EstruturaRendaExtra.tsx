@@ -936,8 +936,19 @@ const EstruturaRendaExtra = () => {
                 </div>
                 <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
                 <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
-                <ColorPicker label="CTA" value={ctaColor} onChange={setCtaColor} />
+                <ColorPicker label="Texto CTA" value={ctaTextColor} onChange={setCtaTextColor} />
+                <ColorPicker label="Fundo CTA" value={ctaBgColor} onChange={setCtaBgColor} />
                 <ColorPicker label="Efeitos de Luz" value={effectsColor} onChange={setEffectsColor} />
+              </div>
+
+              {/* CTA bg opacity */}
+              <div className="flex items-center gap-4 flex-wrap text-sm">
+                <div className="flex items-center gap-2">
+                  <Sliders size={14} className="text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs">Opacidade Fundo CTA:</span>
+                  <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => setCtaBgOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                  <span className="text-xs text-muted-foreground w-8">{Math.round(ctaBgOpacity * 100)}%</span>
+                </div>
               </div>
 
               {/* Toggles row */}
