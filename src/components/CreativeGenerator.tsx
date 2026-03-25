@@ -492,287 +492,311 @@ export const CreativeGenerator = ({
               </div>
             )}
 
-            {/* Business Type */}
-            <div className="space-y-2">
-              <Label htmlFor="businessType" className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4" />
-                Tipo de Negócio / Tema do Fundo
-              </Label>
-              <Input
-                id="businessType"
-                value={config.businessType}
-                onChange={(e) => setConfig(prev => ({ ...prev, businessType: e.target.value }))}
-                placeholder="Ex: agência de marketing digital, loja de roupas..."
-                className="bg-secondary/50"
-              />
-              <p className="text-xs text-muted-foreground">
-                Será usado para gerar um fundo contextualizado
-              </p>
-            </div>
-
-            {/* Color Selection */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2">
-                <Palette className="w-4 h-4" />
-                Cores do Criativo
-              </Label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {COLOR_PRESETS.map((preset) => (
-                  <button
-                    type="button"
-                    key={preset.name}
-                    onClick={() => handleColorSelect(preset.colors)}
-                    className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                      config.colors.primary === preset.colors.primary
-                        ? 'border-primary ring-2 ring-primary/50'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="flex gap-1 mb-2">
-                      <div 
-                        className="w-6 h-6 rounded-full" 
-                        style={{ backgroundColor: preset.colors.primary }}
-                      />
-                      <div 
-                        className="w-6 h-6 rounded-full" 
-                        style={{ backgroundColor: preset.colors.secondary }}
-                      />
-                    </div>
-                    <span className="text-xs">{preset.name}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Custom Colors */}
-              <div className="mt-3">
-                <p className="text-xs text-muted-foreground mb-2">Cores Personalizadas (máx. 4):</p>
-                <div className="flex flex-wrap gap-2 items-center">
-                  {config.customColors?.map((color, index) => (
-                    <div key={index} className="relative group">
-                      <div 
-                        className="w-10 h-10 rounded-full border-2 border-border cursor-pointer"
-                        style={{ backgroundColor: color }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeCustomColor(index)}
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full items-center justify-center hidden group-hover:flex cursor-pointer"
-                      >
-                        <X className="w-3 h-3 text-destructive-foreground" />
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {(config.customColors?.length || 0) < 4 && (
-                    showCustomColorInput ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={newCustomColor}
-                          onChange={(e) => setNewCustomColor(e.target.value)}
-                          className="w-10 h-10 rounded-full cursor-pointer"
-                        />
-                        <Button type="button" size="sm" onClick={addCustomColor} className="cursor-pointer">
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                        <Button type="button" size="sm" variant="ghost" onClick={() => setShowCustomColorInput(false)} className="cursor-pointer">
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setShowCustomColorInput(true)}
-                        className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors cursor-pointer"
-                      >
-                        <Plus className="w-5 h-5 text-muted-foreground" />
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Font Color Selection */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2">
-                <Type className="w-4 h-4" />
-                Cor da Fonte
-              </Label>
-              <div className="flex flex-wrap gap-2">
-                {FONT_COLORS.map((color) => (
-                  <button
-                    type="button"
-                    key={color.value}
-                    onClick={() => setConfig(prev => ({ ...prev, fontColor: color.value }))}
-                    className={`w-10 h-10 rounded-full border-2 transition-all cursor-pointer ${
-                      config.fontColor === color.value
-                        ? 'border-primary ring-2 ring-primary/50 scale-110'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
+            <Accordion type="multiple" defaultValue={["business", "colors"]} className="space-y-2">
+              {/* Business Type */}
+              <AccordionItem value="business" className="border border-border/50 rounded-lg px-4 overflow-hidden">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <ImageIcon className="w-4 h-4" />
+                    Tipo de Negócio / Tema do Fundo
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <Input
+                    id="businessType"
+                    value={config.businessType}
+                    onChange={(e) => setConfig(prev => ({ ...prev, businessType: e.target.value }))}
+                    placeholder="Ex: agência de marketing digital, loja de roupas..."
+                    className="bg-secondary/50"
                   />
-                ))}
-              </div>
-            </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Será usado para gerar um fundo contextualizado
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* Logo Selection */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                Logo do Criativo
-              </Label>
-              
-              <div className="grid grid-cols-3 gap-3">
-                {/* Profile Logo Option */}
-                <button
-                  type="button"
-                  onClick={() => setConfig(prev => ({ ...prev, logoType: 'profile' }))}
-                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
-                    config.logoType === 'profile'
-                      ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
-                    <img 
-                      src={profile.profilePicUrl} 
-                      alt="Profile" 
-                      className="w-12 h-12 rounded-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                      <span className="text-lg font-bold text-primary">{profile.username?.charAt(0).toUpperCase()}</span>
+              {/* Color Selection */}
+              <AccordionItem value="colors" className="border border-border/50 rounded-lg px-4 overflow-hidden">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <Palette className="w-4 h-4" />
+                    Cores do Criativo
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4 space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {COLOR_PRESETS.map((preset) => (
+                      <button
+                        type="button"
+                        key={preset.name}
+                        onClick={() => handleColorSelect(preset.colors)}
+                        className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                          config.colors.primary === preset.colors.primary
+                            ? 'border-primary ring-2 ring-primary/50'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="flex gap-1 mb-2">
+                          <div 
+                            className="w-6 h-6 rounded-full" 
+                            style={{ backgroundColor: preset.colors.primary }}
+                          />
+                          <div 
+                            className="w-6 h-6 rounded-full" 
+                            style={{ backgroundColor: preset.colors.secondary }}
+                          />
+                        </div>
+                        <span className="text-xs">{preset.name}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Custom Colors */}
+                  <div className="mt-3">
+                    <p className="text-xs text-muted-foreground mb-2">Cores Personalizadas (máx. 4):</p>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {config.customColors?.map((color, index) => (
+                        <div key={index} className="relative group">
+                          <div 
+                            className="w-10 h-10 rounded-full border-2 border-border cursor-pointer"
+                            style={{ backgroundColor: color }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeCustomColor(index)}
+                            className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full items-center justify-center hidden group-hover:flex cursor-pointer"
+                          >
+                            <X className="w-3 h-3 text-destructive-foreground" />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      {(config.customColors?.length || 0) < 4 && (
+                        showCustomColorInput ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={newCustomColor}
+                              onChange={(e) => setNewCustomColor(e.target.value)}
+                              className="w-10 h-10 rounded-full cursor-pointer"
+                            />
+                            <Button type="button" size="sm" onClick={addCustomColor} className="cursor-pointer">
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                            <Button type="button" size="sm" variant="ghost" onClick={() => setShowCustomColorInput(false)} className="cursor-pointer">
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowCustomColorInput(true)}
+                            className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center hover:border-primary/50 transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-5 h-5 text-muted-foreground" />
+                          </button>
+                        )
+                      )}
                     </div>
-                  )}
-                  <span className="text-xs text-center">Logo do Instagram</span>
-                </button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
 
-                {/* Custom Logo Option */}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
-                    config.logoType === 'custom'
-                      ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
-                      : 'border-border hover:border-primary/50 border-dashed'
-                  }`}
-                >
-                  {customLogoPreview ? (
-                    <>
-                      <div className="relative">
+              {/* Font Color Selection */}
+              <AccordionItem value="font" className="border border-border/50 rounded-lg px-4 overflow-hidden">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <Type className="w-4 h-4" />
+                    Cor da Fonte
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <div className="flex flex-wrap gap-2">
+                    {FONT_COLORS.map((color) => (
+                      <button
+                        type="button"
+                        key={color.value}
+                        onClick={() => setConfig(prev => ({ ...prev, fontColor: color.value }))}
+                        className={`w-10 h-10 rounded-full border-2 transition-all cursor-pointer ${
+                          config.fontColor === color.value
+                            ? 'border-primary ring-2 ring-primary/50 scale-110'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Logo Selection */}
+              <AccordionItem value="logo" className="border border-border/50 rounded-lg px-4 overflow-hidden">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <Upload className="w-4 h-4" />
+                    Logo do Criativo
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4 space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Profile Logo Option */}
+                    <button
+                      type="button"
+                      onClick={() => setConfig(prev => ({ ...prev, logoType: 'profile' }))}
+                      className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
+                        config.logoType === 'profile'
+                          ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      {profile.profilePicUrl && !profile.profilePicUrl.includes('dicebear') ? (
                         <img 
-                          src={customLogoPreview} 
-                          alt="Custom" 
+                          src={profile.profilePicUrl} 
+                          alt="Profile" 
                           className="w-12 h-12 rounded-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
-                        <button 
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                          <span className="text-lg font-bold text-primary">{profile.username?.charAt(0).toUpperCase()}</span>
+                        </div>
+                      )}
+                      <span className="text-xs text-center">Logo do Instagram</span>
+                    </button>
+
+                    {/* Custom Logo Option */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
+                        config.logoType === 'custom'
+                          ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
+                          : 'border-border hover:border-primary/50 border-dashed'
+                      }`}
+                    >
+                      {customLogoPreview ? (
+                        <>
+                          <div className="relative">
+                            <img 
+                              src={customLogoPreview} 
+                              alt="Custom" 
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                            <button 
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); clearCustomLogo(); }}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full flex items-center justify-center cursor-pointer"
+                            >
+                              <X className="w-3 h-3 text-destructive-foreground" />
+                            </button>
+                          </div>
+                          <span className="text-xs text-center">Logo Customizada</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-12 h-12 text-muted-foreground" />
+                          <span className="text-xs text-center">Fazer Upload</span>
+                        </>
+                      )}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+
+                    {/* No Logo Option */}
+                    <button
+                      type="button"
+                      onClick={() => setConfig(prev => ({ ...prev, logoType: 'none' }))}
+                      className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
+                        config.logoType === 'none'
+                          ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
+                        <X className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                      <span className="text-xs text-center">Sem Logo</span>
+                    </button>
+                  </div>
+
+                  {/* Logo Position */}
+                  {config.logoType !== 'none' && (
+                    <div className="mt-3">
+                      <p className="text-xs text-muted-foreground mb-2">Posição da Logo:</p>
+                      <div className="flex gap-2">
+                        <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); clearCustomLogo(); }}
-                          className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full flex items-center justify-center cursor-pointer"
+                          onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'left' }))}
+                          className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                            config.logoPosition === 'left'
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
                         >
-                          <X className="w-3 h-3 text-destructive-foreground" />
+                          <AlignLeft className="w-4 h-4" />
+                          <span className="text-xs">Esquerda</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'center' }))}
+                          className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                            config.logoPosition === 'center'
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <AlignCenter className="w-4 h-4" />
+                          <span className="text-xs">Centro</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'right' }))}
+                          className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                            config.logoPosition === 'right'
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <AlignRight className="w-4 h-4" />
+                          <span className="text-xs">Direita</span>
                         </button>
                       </div>
-                      <span className="text-xs text-center">Logo Customizada</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-12 h-12 text-muted-foreground" />
-                      <span className="text-xs text-center">Fazer Upload</span>
-                    </>
+                    </div>
                   )}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
+                </AccordionContent>
+              </AccordionItem>
 
-                {/* No Logo Option */}
-                <button
-                  type="button"
-                  onClick={() => setConfig(prev => ({ ...prev, logoType: 'none' }))}
-                  className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
-                    config.logoType === 'none'
-                      ? 'border-primary ring-2 ring-primary/50 bg-primary/10'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
-                    <X className="w-6 h-6 text-muted-foreground" />
+              {/* Preview */}
+              <AccordionItem value="preview" className="border border-border/50 rounded-lg px-4 overflow-hidden">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <Info className="w-4 h-4" />
+                    Pré-visualização do Prompt
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>🎨 <strong>Fundo:</strong> {config.businessType}</p>
+                    <p>🎯 <strong>Cores:</strong> {COLOR_PRESETS.find(p => p.colors.primary === config.colors.primary)?.name || 'Personalizada'}</p>
+                    {config.customColors && config.customColors.length > 0 && (
+                      <p>🌈 <strong>Cores extras:</strong> {config.customColors.length} cores personalizadas</p>
+                    )}
+                    <p>📌 <strong>Logo:</strong> {
+                      config.logoType === 'profile' ? 'Do Instagram' :
+                      config.logoType === 'custom' ? 'Customizada' : 'Sem logo'
+                    } {config.logoType !== 'none' && `(${config.logoPosition})`}</p>
+                    <p>✏️ <strong>Cor da fonte:</strong> <span style={{ color: config.fontColor }}>■</span> {FONT_COLORS.find(c => c.value === config.fontColor)?.name || 'Personalizada'}</p>
+                    <p>💬 <strong>CTA:</strong> Gerado pela I.A MRO com base na estratégia</p>
                   </div>
-                  <span className="text-xs text-center">Sem Logo</span>
-                </button>
-              </div>
-
-              {/* Logo Position */}
-              {config.logoType !== 'none' && (
-                <div className="mt-3">
-                  <p className="text-xs text-muted-foreground mb-2">Posição da Logo:</p>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'left' }))}
-                      className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                        config.logoPosition === 'left'
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <AlignLeft className="w-4 h-4" />
-                      <span className="text-xs">Esquerda</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'center' }))}
-                      className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                        config.logoPosition === 'center'
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <AlignCenter className="w-4 h-4" />
-                      <span className="text-xs">Centro</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfig(prev => ({ ...prev, logoPosition: 'right' }))}
-                      className={`flex-1 p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                        config.logoPosition === 'right'
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <AlignRight className="w-4 h-4" />
-                      <span className="text-xs">Direita</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Preview Area */}
-            <div className="p-4 rounded-lg bg-secondary/30 border border-border">
-              <p className="text-sm font-medium mb-3">Pré-visualização do Prompt:</p>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>🎨 <strong>Fundo:</strong> {config.businessType}</p>
-                <p>🎯 <strong>Cores:</strong> {COLOR_PRESETS.find(p => p.colors.primary === config.colors.primary)?.name || 'Personalizada'}</p>
-                {config.customColors && config.customColors.length > 0 && (
-                  <p>🌈 <strong>Cores extras:</strong> {config.customColors.length} cores personalizadas</p>
-                )}
-                <p>📌 <strong>Logo:</strong> {
-                  config.logoType === 'profile' ? 'Do Instagram' :
-                  config.logoType === 'custom' ? 'Customizada' : 'Sem logo'
-                } {config.logoType !== 'none' && `(${config.logoPosition})`}</p>
-                <p>✏️ <strong>Cor da fonte:</strong> <span style={{ color: config.fontColor }}>■</span> {FONT_COLORS.find(c => c.value === config.fontColor)?.name || 'Personalizada'}</p>
-                <p>💬 <strong>CTA:</strong> Gerado pela I.A MRO com base na estratégia</p>
-              </div>
-            </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
             <Button 
               type="button"
