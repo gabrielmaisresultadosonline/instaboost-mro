@@ -1,8 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play } from 'lucide-react';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { ContratoGenerator } from '@/components/ContratoGenerator';
+import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -279,7 +280,7 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
-type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato';
+type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'tutoriais';
 
 const EstruturaRendaExtra = () => {
   const navigate = useNavigate();
@@ -956,6 +957,15 @@ const EstruturaRendaExtra = () => {
               <FileText className="h-6 w-6" />
               Gere um Contrato para seu Cliente
             </Button>
+
+            <Button
+              size="xl"
+              className="w-full gap-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black border-0 text-lg font-extrabold shadow-lg shadow-yellow-500/30"
+              onClick={() => setCurrentView('tutoriais')}
+            >
+              <Play className="h-7 w-7" />
+              🎓 Tutorial - Aprenda Como Fazer Tudo
+            </Button>
           </div>
         </div>
       </div>
@@ -968,6 +978,10 @@ const EstruturaRendaExtra = () => {
 
   if (currentView === 'contrato') {
     return <ContratoGenerator onBack={() => setCurrentView('menu')} />;
+  }
+
+  if (currentView === 'tutoriais') {
+    return <EstruturaTutoriais onBack={() => setCurrentView('menu')} />;
   }
 
   return (

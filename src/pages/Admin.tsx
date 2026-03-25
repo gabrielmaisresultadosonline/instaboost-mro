@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import ManualScraper from '@/components/admin/ManualScraper';
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -192,6 +192,7 @@ const Admin = () => {
     { id: 'scraper', label: 'Scraper Manual', icon: <Globe className="w-4 h-4" /> },
     { id: 'tutorials', label: 'MRO Ferramenta', icon: <Video className="w-4 h-4" /> },
     { id: 'zapmro', label: 'ZAPMRO Ferramenta', icon: <MessageCircle className="w-4 h-4" /> },
+    { id: 'estrutura', label: 'Estrutura Tutoriais', icon: <Video className="w-4 h-4" /> },
     { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
     { id: 'pixel', label: 'Pixel & Ligação', icon: <ExternalLink className="w-4 h-4" /> },
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
@@ -898,6 +899,18 @@ const Admin = () => {
               toast({ title: "Link salvo!", description: "Link de download ZAPMRO salvo." });
             }}
             platform="zapmro"
+          />
+        )}
+
+        {/* Estrutura Tutoriais Tab */}
+        {activeTab === 'estrutura' && (
+          <ModuleManager 
+            downloadLink=""
+            onDownloadLinkChange={() => {}}
+            onSaveSettings={() => {
+              toast({ title: "Salvo!", description: "Tutoriais da Estrutura salvos." });
+            }}
+            platform="estrutura"
           />
         )}
 
