@@ -342,6 +342,29 @@ const EstruturaRendaExtra = () => {
     setCheckingAuth(false);
   }, []);
 
+  // Load person images and fonts
+  useEffect(() => {
+    loadImage(personPhoneImg).then(setPersonPhoneLoaded).catch(() => {});
+    loadImage(personLaptopImg).then(setPersonLaptopLoaded).catch(() => {});
+
+    const fontDefs = [
+      { family: 'Bebas Neue', url: 'https://fonts.gstatic.com/s/bebasneue/v14/JTUSjIg69CK48gW7PXooxW5rygbi49c.woff2', weight: '400' },
+      { family: 'Anton', url: 'https://fonts.gstatic.com/s/anton/v25/1Ptgg87GROyAm3K8-C8CSKlv.woff2', weight: '400' },
+      { family: 'Oswald', url: 'https://fonts.gstatic.com/s/oswald/v53/TK3_WkUHHAIjg75cFRf3bXL8LICs1_FvsUZiZQ.woff2', weight: '700' },
+      { family: 'Playfair Display', url: 'https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQZNLo_U2r.woff2', weight: '900' },
+      { family: 'Dancing Script', url: 'https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7B1i0HTeB9ptDqpw.woff2', weight: '700' },
+      { family: 'Caveat', url: 'https://fonts.gstatic.com/s/caveat/v18/WnznHAc5bAfYB2QRah7pcpNvOx-pjfJ9SIKjYBxPigs.woff2', weight: '700' },
+      { family: 'Montserrat', url: 'https://fonts.gstatic.com/s/montserrat/v29/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w5aXo.woff2', weight: '900' },
+      { family: 'Raleway', url: 'https://fonts.gstatic.com/s/raleway/v34/1Ptxg8zYS_SKggPN4iEgvnHyvveLxVvaorCIPrQ.woff2', weight: '800' },
+    ];
+
+    Promise.all(fontDefs.map(async (fd) => {
+      const face = new FontFace(fd.family, `url(${fd.url})`, { weight: fd.weight });
+      const loaded = await face.load();
+      document.fonts.add(loaded);
+    })).then(() => setFontsReady(true)).catch(() => setFontsReady(true));
+  }, []);
+
   const handleLoginSuccess = () => {
     const session = getUserSession();
     if (session.user) {
@@ -365,30 +388,6 @@ const EstruturaRendaExtra = () => {
   if (!isAuthenticated) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
-
-  useEffect(() => {
-    loadImage(personPhoneImg).then(setPersonPhoneLoaded).catch(() => {});
-    loadImage(personLaptopImg).then(setPersonLaptopLoaded).catch(() => {});
-
-    // Load Google Fonts for canvas
-    const fontDefs = [
-      { family: 'Bebas Neue', url: 'https://fonts.gstatic.com/s/bebasneue/v14/JTUSjIg69CK48gW7PXooxW5rygbi49c.woff2', weight: '400' },
-      { family: 'Anton', url: 'https://fonts.gstatic.com/s/anton/v25/1Ptgg87GROyAm3K8-C8CSKlv.woff2', weight: '400' },
-      { family: 'Oswald', url: 'https://fonts.gstatic.com/s/oswald/v53/TK3_WkUHHAIjg75cFRf3bXL8LICs1_FvsUZiZQ.woff2', weight: '700' },
-      { family: 'Playfair Display', url: 'https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQZNLo_U2r.woff2', weight: '900' },
-      { family: 'Dancing Script', url: 'https://fonts.gstatic.com/s/dancingscript/v25/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7B1i0HTeB9ptDqpw.woff2', weight: '700' },
-      { family: 'Caveat', url: 'https://fonts.gstatic.com/s/caveat/v18/WnznHAc5bAfYB2QRah7pcpNvOx-pjfJ9SIKjYBxPigs.woff2', weight: '700' },
-      { family: 'Montserrat', url: 'https://fonts.gstatic.com/s/montserrat/v29/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w5aXo.woff2', weight: '900' },
-      { family: 'Raleway', url: 'https://fonts.gstatic.com/s/raleway/v34/1Ptxg8zYS_SKggPN4iEgvnHyvveLxVvaorCIPrQ.woff2', weight: '800' },
-    ];
-
-    Promise.all(fontDefs.map(async (fd) => {
-      const face = new FontFace(fd.family, `url(${fd.url})`, { weight: fd.weight });
-      const loaded = await face.load();
-      document.fonts.add(loaded);
-    })).then(() => setFontsReady(true)).catch(() => setFontsReady(true));
-  }, []);
-
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
