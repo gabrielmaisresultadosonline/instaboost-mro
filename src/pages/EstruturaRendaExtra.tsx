@@ -260,6 +260,7 @@ const EstruturaRendaExtra = () => {
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
+  const [gradientAngle, setGradientAngle] = useState(160);
   const [textColor, setTextColor] = useState('#ffffff');
   const [accentColor, setAccentColor] = useState('#00d4aa');
   const [ctaColor, setCtaColor] = useState('#facc15');
