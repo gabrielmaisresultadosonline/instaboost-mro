@@ -21,6 +21,7 @@ interface CreativeData {
 interface LogoOverride {
   x: number; // 0-1 percentage
   y: number; // 0-1 percentage
+  scale?: number; // multiplier, default 1
 }
 
 interface BgImageOverride {
