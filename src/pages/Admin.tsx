@@ -24,6 +24,7 @@ import PixelAndCallSettings from '@/components/admin/PixelAndCallSettings';
 import CreativesProManager from '@/components/admin/CreativesProManager';
 import TicketsManager from '@/components/admin/TicketsManager';
 import UsersListPanel from '@/components/admin/UsersListPanel';
+import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
@@ -33,7 +34,7 @@ import {
 } from 'lucide-react';
 import ManualScraper from '@/components/admin/ManualScraper';
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
@@ -196,6 +197,7 @@ const Admin = () => {
     { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
     { id: 'pixel', label: 'Pixel & Ligação', icon: <ExternalLink className="w-4 h-4" /> },
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
+    { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
   ];
 
@@ -1055,6 +1057,10 @@ const Admin = () => {
               Salvar Todas as Configurações
             </Button>
           </div>
+        )}
+        {/* WhatsApp Settings Tab */}
+        {activeTab === 'whatsapp' && (
+          <WhatsAppSettingsTab />
         )}
         {/* Users List Tab */}
         {activeTab === 'userlist' && (
