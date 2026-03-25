@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle, Play, X, ExternalLink, Scissors } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle, Play, X, ExternalLink, Scissors, ArrowLeft } from "lucide-react";
 import ImageCropEditor from "@/components/ImageCropEditor";
 import { toast } from "sonner";
 
