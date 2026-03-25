@@ -172,8 +172,6 @@ serve(async (req) => {
         .single();
 
       const trialHours = settings?.trial_duration_hours || 6;
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + trialHours);
 
       // Create 6-hour trial via SquareCloud API /criarTesteMro
       log("Creating 6h trial via /criarTesteMro", { mro_username, instagram: normalizedIG });
