@@ -1881,10 +1881,17 @@ const PreviewModal: React.FC<{
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground block mb-1">Destaque</label>
+                  <label className="text-[10px] text-muted-foreground block mb-1">Destaque 1</label>
                   <div className="flex items-center gap-1">
                     <input type="color" value={accentColor} onChange={e => onAccentColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
                     <span className="text-[9px] text-muted-foreground">{accentColor}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground block mb-1">Destaque 2</label>
+                  <div className="flex items-center gap-1">
+                    <input type="color" value={highlight2Color} onChange={e => setHighlight2Color(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                    <span className="text-[9px] text-muted-foreground">{highlight2Color}</span>
                   </div>
                 </div>
               </div>
