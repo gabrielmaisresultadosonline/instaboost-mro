@@ -938,12 +938,11 @@ const EstruturaRendaExtra = () => {
 
             <Button
               size="xl"
-              className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0 opacity-60 cursor-not-allowed"
-              disabled
+              className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0"
+              onClick={() => setCurrentView('materiais')}
             >
               <Video className="h-6 w-6" />
               Materiais Disponíveis para Divulgação
-              <span className="text-xs opacity-75">(Em breve)</span>
             </Button>
 
             <Button
