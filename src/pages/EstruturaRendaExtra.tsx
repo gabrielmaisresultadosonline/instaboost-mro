@@ -302,6 +302,7 @@ const EstruturaRendaExtra = () => {
   const [personOverrides, setPersonOverrides] = useState<Record<number, PersonImage>>({});
   const [patternConfig, setPatternConfig] = useState<PatternConfig>({ type: 'auto', opacity: 1 });
   const [patternOverrides, setPatternOverrides] = useState<Record<number, PatternConfig>>({});
+  const [personPositionOverrides, setPersonPositionOverrides] = useState<Record<number, PersonPositionConfig>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
