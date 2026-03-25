@@ -947,6 +947,11 @@ const EstruturaRendaExtra = () => {
   if (currentView === 'menu') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
+        {/* Logged-in user indicator */}
+        <div className="absolute top-3 right-4 z-20 flex items-center gap-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-1.5 border border-white/10">
+          <User size={14} className="text-yellow-400" />
+          <span className="text-yellow-400 font-bold text-xs">{mroUsername}</span>
+        </div>
         {/* Animated background elements */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-yellow-500/[0.04] rounded-full blur-[150px] animate-pulse" />
