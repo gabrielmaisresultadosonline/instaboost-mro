@@ -175,29 +175,31 @@ serve(async (req) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + trialHours);
 
-      // Add Instagram to MRO account via SquareCloud API
-      log("Adding Instagram to MRO account", { mro_username, instagram: normalizedIG });
+      // Create 6-hour trial via SquareCloud API /criarTesteMro
+      log("Creating 6h trial via /criarTesteMro", { mro_username, instagram: normalizedIG });
 
+      let apiTrialResult: any = null;
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-        const addIgResponse = await fetch(`${SQUARE_API_URL}/adicionar-instagram`, {
+        const trialResponse = await fetch(`${SQUARE_API_URL}/criarTesteMro`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userName: mro_username,
-            igInstagram: normalizedIG
+            igAssociada: normalizedIG,
+            nameUserMro: mro_username
           }),
           signal: controller.signal
         });
 
         clearTimeout(timeoutId);
 
-        const responseText = await addIgResponse.text();
-        let addIgResult;
+        const responseText = await trialResponse.text();
+        log("API Response", { status: trialResponse.status, body: responseText.substring(0, 500) });
+
         try {
-          addIgResult = JSON.parse(responseText);
+          apiTrialResult = JSON.parse(responseText);
         } catch {
           return new Response(
             JSON.stringify({ success: false, message: 'Resposta inválida do servidor de automação' }),
@@ -205,9 +207,9 @@ serve(async (req) => {
           );
         }
 
-        if (!addIgResult.success) {
+        if (!apiTrialResult.success) {
           return new Response(
-            JSON.stringify({ success: false, message: addIgResult.message || 'Erro ao adicionar Instagram' }),
+            JSON.stringify({ success: false, message: apiTrialResult.message || 'Erro ao criar teste na plataforma' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
