@@ -851,6 +851,13 @@ const EstruturaRendaExtra = () => {
               setPersonOverrides(prev => ({ ...prev, [previewId]: val }));
             }
           }}
+          patternValue={patternOverrides[previewId] || patternConfig}
+          onPatternChange={(cfg) => {
+            setPatternOverrides(prev => ({ ...prev, [previewId]: cfg }));
+          }}
+          onPatternReset={() => {
+            setPatternOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
+          }}
         />
       )}
     </div>
