@@ -960,6 +960,10 @@ const EstruturaRendaExtra = () => {
     );
   }
 
+  if (currentView === 'materiais') {
+    return <MateriaisRendaExtra onBack={() => setCurrentView('menu')} />;
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
