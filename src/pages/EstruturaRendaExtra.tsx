@@ -961,7 +961,7 @@ const EstruturaRendaExtra = () => {
               </div>
 
               <div className="relative z-10 text-left lg:text-center">
-                <p className="text-white font-extrabold italic text-lg lg:text-xl leading-tight">
+                <p className="text-white font-black italic text-2xl lg:text-3xl leading-tight">
                   Aprenda como<br className="hidden lg:block" /> fazer tudo!
                 </p>
                 <p className="text-white/60 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5 font-bold italic">
