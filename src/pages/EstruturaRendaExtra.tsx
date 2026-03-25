@@ -824,6 +824,10 @@ const EstruturaRendaExtra = () => {
             });
             toast.success('Logo restaurada ao padrão');
           }}
+          onLogoScaleChange={(scale) => {
+            const existing = logoOverrides[previewId];
+            setLogoOverrides(prev => ({ ...prev, [previewId]: { x: existing?.x ?? 0.5, y: existing?.y ?? 0.5, scale } }));
+          }}
           bgImageOverride={bgImageOverrides[previewId]}
           onBgImageChange={(ovr) => {
             if (ovr) {
