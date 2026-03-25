@@ -1125,7 +1125,7 @@ const EstruturaRendaExtra = () => {
         {editorOpen && (
           <div className="border-t border-border bg-card/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 py-2">
-              <Accordion type="multiple" defaultValue={["cores"]} className="w-full">
+              <Accordion type="multiple" defaultValue={[]} className="w-full">
                 {/* Cores */}
                 <AccordionItem value="cores" className="border-border/50">
                   <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
@@ -1133,7 +1133,7 @@ const EstruturaRendaExtra = () => {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-3 pb-2">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
                         <ColorPicker label="Fundo 1" value={bgColor1} onChange={setBgColor1} />
                         <div>
                           <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -1171,34 +1171,32 @@ const EstruturaRendaExtra = () => {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-3 pb-2">
-                      <div className="flex items-center gap-4 flex-wrap text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                         <div className="flex items-center gap-2">
-                          <Sliders size={14} className="text-muted-foreground" />
-                          <span className="text-muted-foreground text-xs">Opacidade Fundo CTA:</span>
-                          <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => setCtaBgOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <Sliders size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground text-xs whitespace-nowrap">Opacidade CTA:</span>
+                          <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => setCtaBgOpacity(parseFloat(e.target.value))} className="flex-1 min-w-0 h-1.5 accent-primary" />
                           <span className="text-xs text-muted-foreground w-8">{Math.round(ctaBgOpacity * 100)}%</span>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4 flex-wrap text-sm">
                         <div className="flex items-center gap-2">
-                          <ZoomIn size={14} className="text-muted-foreground" />
-                          <span className="text-muted-foreground text-xs">Tamanho Conteúdo:</span>
-                          <input type="range" min="0.5" max="1.5" step="0.05" value={contentScale} onChange={e => setContentScale(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <ZoomIn size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground text-xs whitespace-nowrap">Tamanho:</span>
+                          <input type="range" min="0.5" max="1.5" step="0.05" value={contentScale} onChange={e => setContentScale(parseFloat(e.target.value))} className="flex-1 min-w-0 h-1.5 accent-primary" />
                           <span className="text-xs text-muted-foreground w-8">{Math.round(contentScale * 100)}%</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Move size={14} className="text-muted-foreground" />
-                          <span className="text-muted-foreground text-xs">Posição Vertical:</span>
-                          <input type="range" min="-400" max="400" step="10" value={contentOffsetY} onChange={e => setContentOffsetY(parseInt(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <Move size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground text-xs whitespace-nowrap">Posição V:</span>
+                          <input type="range" min="-400" max="400" step="10" value={contentOffsetY} onChange={e => setContentOffsetY(parseInt(e.target.value))} className="flex-1 min-w-0 h-1.5 accent-primary" />
                           <span className="text-xs text-muted-foreground w-10">{contentOffsetY > 0 ? '+' : ''}{contentOffsetY}px</span>
                           {(contentScale !== 1 || contentOffsetY !== 0) && (
-                            <button onClick={() => { setContentScale(1); setContentOffsetY(0); }} className="text-[10px] text-destructive hover:underline flex items-center gap-0.5">
+                            <button onClick={() => { setContentScale(1); setContentOffsetY(0); }} className="text-[10px] text-destructive hover:underline flex items-center gap-0.5 flex-shrink-0">
                               <RotateCcw size={10} /> Reset
                             </button>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 flex-wrap text-sm">
+                      <div className="flex items-center gap-3 sm:gap-4 flex-wrap text-sm">
                         <ToggleOption icon={<Hash size={14} />} label="Números" checked={showNumbers} onChange={setShowNumbers} />
                         <ToggleOption icon={<Sparkles size={14} />} label="Efeitos" checked={showDecorations} onChange={setShowDecorations} />
                         <ToggleOption icon={<Tag size={14} />} label="Categoria" checked={showBadge} onChange={setShowBadge} />
@@ -1221,14 +1219,14 @@ const EstruturaRendaExtra = () => {
                     <div className="flex items-center gap-2"><User size={16} className="text-primary" /> Pessoa</div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="flex items-center gap-4 flex-wrap text-sm pb-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm pb-2">
                       <div className="flex items-center gap-2">
-                        <User size={14} className="text-muted-foreground" />
+                        <User size={14} className="text-muted-foreground flex-shrink-0" />
                         <span className="text-muted-foreground text-xs">Pessoa:</span>
                         <select
                           value={personImage}
                           onChange={e => setPersonImage(e.target.value as PersonImage)}
-                          className="h-7 text-xs rounded border border-border bg-background px-2"
+                          className="h-7 text-xs rounded border border-border bg-background px-2 flex-1 min-w-0"
                         >
                           <option value="none">Nenhuma</option>
                           <option value="phone">Celular (Foto Real)</option>
@@ -1237,9 +1235,9 @@ const EstruturaRendaExtra = () => {
                       </div>
                       {personImage !== 'none' && (
                         <div className="flex items-center gap-2">
-                          <Sliders size={14} className="text-muted-foreground" />
+                          <Sliders size={14} className="text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground text-xs">Opacidade:</span>
-                          <input type="range" min="0.05" max="0.8" step="0.05" value={personOpacity} onChange={e => setPersonOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <input type="range" min="0.05" max="0.8" step="0.05" value={personOpacity} onChange={e => setPersonOpacity(parseFloat(e.target.value))} className="flex-1 min-w-0 h-1.5 accent-primary" />
                           <span className="text-xs text-muted-foreground w-8">{Math.round(personOpacity * 100)}%</span>
                         </div>
                       )}
@@ -1253,45 +1251,49 @@ const EstruturaRendaExtra = () => {
                     <div className="flex items-center gap-2"><MapPin size={16} className="text-primary" /> Logo</div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="flex items-center gap-4 flex-wrap text-sm pb-2">
-                      <div className="flex items-center gap-2">
-                        <MapPin size={14} className="text-muted-foreground" />
-                        <span className="text-muted-foreground text-xs">Logo (padrão):</span>
-                        <select
-                          value={logoPosition}
-                          onChange={e => setLogoPosition(e.target.value as LogoPosition)}
-                          className="h-7 text-xs rounded border border-border bg-background px-2"
-                        >
-                          <option value="bottom-right">Inferior direito</option>
-                          <option value="bottom-left">Inferior esquerdo</option>
-                          <option value="top-center">Topo centro</option>
-                          <option value="top-right">Topo direito</option>
-                        </select>
+                    <div className="space-y-3 text-sm pb-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="flex items-center gap-2">
+                          <MapPin size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground text-xs">Posição:</span>
+                          <select
+                            value={logoPosition}
+                            onChange={e => setLogoPosition(e.target.value as LogoPosition)}
+                            className="h-7 text-xs rounded border border-border bg-background px-2 flex-1 min-w-0"
+                          >
+                            <option value="bottom-right">Inferior direito</option>
+                            <option value="bottom-left">Inferior esquerdo</option>
+                            <option value="top-center">Topo centro</option>
+                            <option value="top-right">Topo direito</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                          {logoUrl ? (
+                            <div className="flex items-center gap-2">
+                              <img src={logoUrl} className="h-8 w-8 object-contain rounded" alt="logo" />
+                              <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
+                            </div>
+                          ) : (
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
+                              <Upload size={14} /> Upload Logo
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      {Object.keys(logoOverrides).length > 0 && (
-                        <button
-                          onClick={() => { setLogoOverrides({}); toast.success('Posições personalizadas resetadas!'); }}
-                          className="text-xs text-destructive hover:underline flex items-center gap-1"
-                        >
-                          <X size={12} /> Resetar posições ({Object.keys(logoOverrides).length})
-                        </button>
-                      )}
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Move size={12} />
-                        <span>Arraste a logo no preview para posicionar individualmente</span>
-                      </div>
-                      <div className="ml-auto">
-                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                        {logoUrl ? (
-                          <div className="flex items-center gap-2">
-                            <img src={logoUrl} className="h-8 w-8 object-contain rounded" alt="logo" />
-                            <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
-                          </div>
-                        ) : (
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
-                            <Upload size={14} /> Upload Logo
-                          </Button>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {Object.keys(logoOverrides).length > 0 && (
+                          <button
+                            onClick={() => { setLogoOverrides({}); toast.success('Posições personalizadas resetadas!'); }}
+                            className="text-xs text-destructive hover:underline flex items-center gap-1"
+                          >
+                            <X size={12} /> Resetar posições ({Object.keys(logoOverrides).length})
+                          </button>
                         )}
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Move size={12} />
+                          <span>Arraste a logo no preview para posicionar</span>
+                        </div>
                       </div>
                     </div>
                   </AccordionContent>
