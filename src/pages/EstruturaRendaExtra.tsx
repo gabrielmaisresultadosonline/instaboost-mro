@@ -886,18 +886,37 @@ interface CreativeCardProps {
 }
 
 const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, drawCreative, hasLogoOverride }) => {
-  const thumbRef = useRef<HTMLCanvasElement>(null);
+  const [thumbUrl, setThumbUrl] = useState<string>('');
 
   React.useEffect(() => {
-    if (thumbRef.current) {
-      drawCreative(creative, thumbRef.current);
-    }
+    let mounted = true;
+    const offscreen = document.createElement('canvas');
+
+    drawCreative(creative, offscreen)
+      .then(() => {
+        if (mounted) {
+          setThumbUrl(offscreen.toDataURL('image/png'));
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setThumbUrl('');
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, [creative, drawCreative]);
 
   return (
     <div className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selected ? 'border-primary shadow-lg shadow-primary/20' : 'border-border hover:border-muted-foreground/30'}`}>
       <div className="aspect-[1080/1350] relative" onClick={onPreview}>
-        <canvas ref={thumbRef} className="w-full h-full object-cover" />
+        {thumbUrl ? (
+          <img src={thumbUrl} alt={`Preview criativo ${creative.id}`} className="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <div className="w-full h-full bg-muted/30 animate-pulse" />
+        )}
         {hasLogoOverride && (
           <div className="absolute top-1 left-6 text-[8px]" title="Logo personalizada">
             <Move size={10} className="text-primary" />
