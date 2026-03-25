@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera } from 'lucide-react';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
+import { ContratoGenerator } from '@/components/ContratoGenerator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -278,7 +279,7 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
-type ViewMode = 'menu' | 'posts-creator' | 'materiais';
+type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato';
 
 const EstruturaRendaExtra = () => {
   const navigate = useNavigate();
@@ -949,12 +950,11 @@ const EstruturaRendaExtra = () => {
 
             <Button
               size="xl"
-              className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 opacity-60 cursor-not-allowed"
-              disabled
+              className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+              onClick={() => setCurrentView('contrato')}
             >
               <FileText className="h-6 w-6" />
               Gere um Contrato para seu Cliente
-              <span className="text-xs opacity-75">(Em breve)</span>
             </Button>
           </div>
         </div>
@@ -964,6 +964,10 @@ const EstruturaRendaExtra = () => {
 
   if (currentView === 'materiais') {
     return <MateriaisRendaExtra onBack={() => setCurrentView('menu')} />;
+  }
+
+  if (currentView === 'contrato') {
+    return <ContratoGenerator onBack={() => setCurrentView('menu')} />;
   }
 
   return (
