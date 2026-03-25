@@ -44,7 +44,7 @@ const deleteStorageFile = async (url: string) => {
 
 const ModuleManager = ({ downloadLink, onDownloadLinkChange, onSaveSettings, platform = 'mro' }: ModuleManagerProps) => {
   const { toast } = useToast();
-  const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : 'mro_admin_data';
+  const storageKey = platform === 'zapmro' ? 'mro_zapmro_modules' : platform === 'estrutura' ? 'mro_estrutura_modules' : 'mro_admin_data';
   
   // Default empty data for fresh state
   const getEmptyData = (): AdminData => ({
