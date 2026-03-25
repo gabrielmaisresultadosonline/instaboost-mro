@@ -86,6 +86,7 @@ import IAVendeMaisAdmin from "./pages/IAVendeMaisAdmin";
 import RendaExtraLigacao from "./pages/RendaExtraLigacao";
 import RendaExtraLigacaoAdmin from "./pages/RendaExtraLigacaoAdmin";
 import Relatorios from "./pages/Relatorios";
+import EstruturaRendaExtra from "./pages/EstruturaRendaExtra";
 
 const queryClient = new QueryClient();
 
@@ -180,6 +181,7 @@ const App = () => (
           <Route path="/rendaextraligacao/admin" element={<RendaExtraLigacaoAdmin />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/descontoalunosrendaextra" element={<DescontoAlunosRendaExtra />} />
+          <Route path="/estruturarendaextra" element={<EstruturaRendaExtra />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
