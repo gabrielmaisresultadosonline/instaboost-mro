@@ -916,7 +916,7 @@ const EstruturaRendaExtra = () => {
 
         {/* Hero Section */}
         <div className="relative z-10 pt-8 pb-4 md:pt-14 md:pb-8 px-4">
-          <div className="max-w-5xl mx-auto text-center">
+          <div className="w-full text-center">
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 mb-5 backdrop-blur-sm">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
@@ -924,7 +924,7 @@ const EstruturaRendaExtra = () => {
               </span>
               <span className="text-yellow-300 text-xs font-bold tracking-[0.2em] uppercase">Oportunidade Exclusiva</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] max-w-4xl mx-auto">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] w-full">
               <span className="bg-gradient-to-r from-yellow-200 via-yellow-400 to-orange-400 bg-clip-text text-transparent drop-shadow-lg">
                 Faturando mais de 5K mensal
               </span>
@@ -933,7 +933,7 @@ const EstruturaRendaExtra = () => {
                 prestando serviço com a MRO para empresas!
               </span>
             </h1>
-            <div className="mt-5 flex items-center justify-center gap-6 text-white/40 text-xs font-medium">
+            <div className="mt-5 flex items-center justify-center gap-4 sm:gap-6 flex-wrap text-white/40 text-xs font-medium">
               <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400"></span> Acesso Imediato</span>
               <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Suporte Incluído</span>
               <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span> 100% Online</span>
