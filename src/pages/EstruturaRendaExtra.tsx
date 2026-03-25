@@ -369,30 +369,54 @@ const EstruturaRendaExtra = () => {
     }
 
     // ── Category-specific effects ──
-    if (showDecorations) {
+    const pCfg = patternOverrides[creative.id] || patternConfig;
+    if (showDecorations && pCfg.type !== 'none') {
+      ctx.globalAlpha = pCfg.opacity;
+      const pType = pCfg.type;
       const catIndex = ['dor', 'promessa', 'educativo', 'beneficio', 'autoridade'].indexOf(creative.category);
-      if (catIndex === 0) {
-        drawDiamondGrid(ctx, W, H, accentColor);
-        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, '#ef4444');
-        drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, accentColor);
-        drawCircuitLines(ctx, W, H, accentColor);
-      } else if (catIndex === 1) {
-        drawHexPattern(ctx, W, H, accentColor);
-        drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, accentColor);
-        drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
-      } else if (catIndex === 2) {
-        drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
-        drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, accentColor);
-      } else if (catIndex === 3) {
-        drawCircuitLines(ctx, W, H, ctaColor);
-        drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, ctaColor);
-        drawHexPattern(ctx, W, H, ctaColor);
+
+      if (pType === 'auto') {
+        // Original category-based patterns
+        if (catIndex === 0) {
+          drawDiamondGrid(ctx, W, H, accentColor);
+          drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, '#ef4444');
+          drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, accentColor);
+          drawCircuitLines(ctx, W, H, accentColor);
+        } else if (catIndex === 1) {
+          drawHexPattern(ctx, W, H, accentColor);
+          drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, accentColor);
+          drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
+        } else if (catIndex === 2) {
+          drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
+          drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, accentColor);
+        } else if (catIndex === 3) {
+          drawCircuitLines(ctx, W, H, ctaColor);
+          drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, ctaColor);
+          drawHexPattern(ctx, W, H, ctaColor);
+        } else {
+          drawDiamondGrid(ctx, W, H, accentColor);
+          drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
+          drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, accentColor);
+        }
       } else {
-        drawDiamondGrid(ctx, W, H, accentColor);
-        drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
-        drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, accentColor);
+        // Specific pattern chosen
+        const pColor = catIndex === 3 ? ctaColor : accentColor;
+        if (pType === 'diamond') {
+          drawDiamondGrid(ctx, W, H, pColor);
+        } else if (pType === 'hex') {
+          drawHexPattern(ctx, W, H, pColor);
+        } else if (pType === 'circuit') {
+          drawCircuitLines(ctx, W, H, pColor);
+        } else if (pType === 'dots') {
+          drawDotMatrix(ctx, 60, 60, 20, 25, 50, pColor);
+        } else if (pType === 'rings') {
+          drawConcentricRings(ctx, W * 0.5, H * 0.4, pColor, 350);
+        }
+        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, pColor);
+        drawGlowOrb(ctx, W * 0.2, H * 0.8, 200, pColor);
       }
       drawFloatingShapes(ctx, W, H, accentColor, creative.id);
+      ctx.globalAlpha = 1;
     }
 
     // ── Person image (real photo overlay) ──
