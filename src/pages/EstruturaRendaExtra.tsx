@@ -475,10 +475,11 @@ const EstruturaRendaExtra = () => {
     const effectivePersonImage = personOverrides[creative.id] !== undefined ? personOverrides[creative.id] : personImage;
     const selectedPerson = effectivePersonImage === 'phone' ? personPhoneLoaded : effectivePersonImage === 'laptop' ? personLaptopLoaded : null;
     if (selectedPerson && effectivePersonImage !== 'none') {
-      const personH = H * 0.7;
+      const posConfig = personPositionOverrides[creative.id] || { scale: 1, offsetX: 0, offsetY: 0 };
+      const personH = H * 0.7 * posConfig.scale;
       const personW = (selectedPerson.width / selectedPerson.height) * personH;
-      const px = W - personW + 60;
-      const py = H - personH;
+      const px = W - personW + 60 + posConfig.offsetX;
+      const py = H - personH + posConfig.offsetY;
       ctx.globalAlpha = personOpacity;
       ctx.drawImage(selectedPerson, px, py, personW, personH);
       ctx.globalAlpha = 1;
