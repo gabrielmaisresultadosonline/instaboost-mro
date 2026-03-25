@@ -7,6 +7,8 @@ import JSZip from 'jszip';
 import personPhoneImg from '@/assets/person-phone.png';
 import personLaptopImg from '@/assets/person-laptop.png';
 
+type TextLayout = 'left' | 'center' | 'right' | 'impact-center' | 'minimal-center' | 'bold-stack';
+
 interface CreativeData {
   id: number;
   headline: string;
@@ -16,6 +18,7 @@ interface CreativeData {
   cta: string;
   category: 'dor' | 'promessa' | 'educativo' | 'beneficio' | 'autoridade';
   icon: string;
+  layout: TextLayout;
 }
 
 interface LogoOverride {
