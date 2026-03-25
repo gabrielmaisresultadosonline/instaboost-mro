@@ -292,6 +292,43 @@ const EstruturaRendaExtra = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [mroUsername, setMroUsername] = useState('');
   const [mroPassword, setMroPassword] = useState('');
+  const [bgColor1, setBgColor1] = useState('#0f0f1a');
+  const [bgColor2, setBgColor2] = useState('#1a1a3e');
+  const [useGradient, setUseGradient] = useState(true);
+  const [gradientAngle, setGradientAngle] = useState(160);
+  const [textColor, setTextColor] = useState('#ffffff');
+  const [accentColor, setAccentColor] = useState('#00d4aa');
+  const [ctaColor, setCtaColor] = useState('#facc15');
+  const [ctaBgColor, setCtaBgColor] = useState('#00d4aa');
+  const [ctaTextColor, setCtaTextColor] = useState('#000000');
+  const [ctaBgOpacity, setCtaBgOpacity] = useState(0.15);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [downloading, setDownloading] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(true);
+  const [previewId, setPreviewId] = useState<number | null>(null);
+  const [showNumbers, setShowNumbers] = useState(false);
+  const [showDecorations, setShowDecorations] = useState(true);
+  const [showBadge, setShowBadge] = useState(false);
+  const [personImage, setPersonImage] = useState<PersonImage>('none');
+  const [effectsColor, setEffectsColor] = useState('#4a90ff');
+  const [effectsOpacity, setEffectsOpacity] = useState(0.15);
+  const [personOpacity, setPersonOpacity] = useState(0.15);
+  const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
+  const [logoOverrides, setLogoOverrides] = useState<Record<number, LogoOverride>>({});
+  const [bgImageOverrides, setBgImageOverrides] = useState<Record<number, BgImageOverride>>({});
+  const [personOverrides, setPersonOverrides] = useState<Record<number, PersonImage>>({});
+  const [patternConfig, setPatternConfig] = useState<PatternConfig>({ type: 'auto', opacity: 1 });
+  const [patternOverrides, setPatternOverrides] = useState<Record<number, PatternConfig>>({});
+  const [personPositionOverrides, setPersonPositionOverrides] = useState<Record<number, PersonPositionConfig>>({});
+  const [contentScaleOverrides, setContentScaleOverrides] = useState<Record<number, number>>({});
+  const [contentOffsetYOverrides, setContentOffsetYOverrides] = useState<Record<number, number>>({});
+  const [contentScale, setContentScale] = useState(1);
+  const [contentOffsetY, setContentOffsetY] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
+  const [personLaptopLoaded, setPersonLaptopLoaded] = useState<HTMLImageElement | null>(null);
+  const [fontsReady, setFontsReady] = useState(false);
 
   // Check authentication on mount
   useEffect(() => {
@@ -299,7 +336,6 @@ const EstruturaRendaExtra = () => {
     if (session.isAuthenticated && session.user) {
       setIsAuthenticated(true);
       setMroUsername(session.user.username);
-      // Get password from sessionStorage
       const pwd = sessionStorage.getItem('mro_temp_pwd') || '';
       setMroPassword(pwd);
     }
@@ -329,45 +365,6 @@ const EstruturaRendaExtra = () => {
   if (!isAuthenticated) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
-  const [bgColor1, setBgColor1] = useState('#0f0f1a');
-  const [bgColor2, setBgColor2] = useState('#1a1a3e');
-  const [useGradient, setUseGradient] = useState(true);
-  const [gradientAngle, setGradientAngle] = useState(160);
-  const [textColor, setTextColor] = useState('#ffffff');
-  const [accentColor, setAccentColor] = useState('#00d4aa');
-  const [ctaColor, setCtaColor] = useState('#facc15');
-  const [ctaBgColor, setCtaBgColor] = useState('#00d4aa');
-  const [ctaTextColor, setCtaTextColor] = useState('#000000');
-  const [ctaBgOpacity, setCtaBgOpacity] = useState(0.15);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [downloading, setDownloading] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(true);
-  const [previewId, setPreviewId] = useState<number | null>(null);
-  const [showNumbers, setShowNumbers] = useState(false);
-  const [showDecorations, setShowDecorations] = useState(true);
-  const [showBadge, setShowBadge] = useState(false);
-  const [personImage, setPersonImage] = useState<PersonImage>('none');
-  const [effectsColor, setEffectsColor] = useState('#4a90ff');
-  const [effectsOpacity, setEffectsOpacity] = useState(0.15);
-  const [personOpacity, setPersonOpacity] = useState(0.15);
-  const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
-  // Per-creative logo overrides: { [creativeId]: { x: 0-1, y: 0-1 } }
-  const [logoOverrides, setLogoOverrides] = useState<Record<number, LogoOverride>>({});
-  const [bgImageOverrides, setBgImageOverrides] = useState<Record<number, BgImageOverride>>({});
-  const [personOverrides, setPersonOverrides] = useState<Record<number, PersonImage>>({});
-  const [patternConfig, setPatternConfig] = useState<PatternConfig>({ type: 'auto', opacity: 1 });
-  const [patternOverrides, setPatternOverrides] = useState<Record<number, PatternConfig>>({});
-  const [personPositionOverrides, setPersonPositionOverrides] = useState<Record<number, PersonPositionConfig>>({});
-  const [contentScaleOverrides, setContentScaleOverrides] = useState<Record<number, number>>({});
-  const [contentOffsetYOverrides, setContentOffsetYOverrides] = useState<Record<number, number>>({});
-  const [contentScale, setContentScale] = useState(1);
-  const [contentOffsetY, setContentOffsetY] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
-  const [personLaptopLoaded, setPersonLaptopLoaded] = useState<HTMLImageElement | null>(null);
-  const [fontsReady, setFontsReady] = useState(false);
 
   useEffect(() => {
     loadImage(personPhoneImg).then(setPersonPhoneLoaded).catch(() => {});
