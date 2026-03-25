@@ -536,23 +536,32 @@ const EstruturaRendaExtra = () => {
     const isRight = layout === 'right';
 
     // Font sizes per layout
-    const headlineFontSize = layout === 'impact-center' ? 90 : layout === 'bold-stack' ? 82 : layout === 'minimal-center' ? 68 : 74;
-    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 44 : layout === 'bold-stack' ? 38 : 40;
+    const headlineFontSize = layout === 'impact-center' ? 92 : layout === 'bold-stack' ? 84 : layout === 'minimal-center' ? 70 : layout === 'right' ? 76 : layout === 'center' ? 78 : 74;
+    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 42 : layout === 'bold-stack' ? 38 : 40;
     const ctaFontSize = layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 36;
-    const headlineSpacing = layout === 'impact-center' ? 110 : layout === 'bold-stack' ? 100 : layout === 'minimal-center' ? 85 : 95;
+    const headlineSpacing = layout === 'impact-center' ? 112 : layout === 'bold-stack' ? 102 : layout === 'minimal-center' ? 88 : 95;
 
-    // Font families per layout
-    const headlineFont = layout === 'impact-center' ? `bold ${headlineFontSize}px 'Arial Black', Impact, sans-serif`
-      : layout === 'bold-stack' ? `900 ${headlineFontSize}px 'Trebuchet MS', Verdana, sans-serif`
-      : layout === 'minimal-center' ? `300 ${headlineFontSize}px 'Georgia', serif`
-      : layout === 'right' ? `bold ${headlineFontSize}px 'Verdana', sans-serif`
-      : `bold ${headlineFontSize}px Arial, sans-serif`;
-    const bodyFont = layout === 'minimal-center' ? `${bodyFontSize}px 'Georgia', serif`
-      : layout === 'bold-stack' ? `${bodyFontSize}px 'Trebuchet MS', Verdana, sans-serif`
-      : `${bodyFontSize}px Arial, sans-serif`;
-    const ctaFont = layout === 'bold-stack' ? `bold ${ctaFontSize}px 'Trebuchet MS', Verdana, sans-serif`
-      : layout === 'minimal-center' ? `600 ${ctaFontSize}px 'Georgia', serif`
-      : `bold ${ctaFontSize}px Arial, sans-serif`;
+    // Font families - using loaded Google Fonts
+    const headlineFont = layout === 'impact-center' ? `400 ${headlineFontSize}px 'Bebas Neue', Impact, sans-serif`
+      : layout === 'bold-stack' ? `900 ${headlineFontSize}px 'Montserrat', sans-serif`
+      : layout === 'minimal-center' ? `900 ${headlineFontSize}px 'Playfair Display', serif`
+      : layout === 'right' ? `800 ${headlineFontSize}px 'Raleway', sans-serif`
+      : layout === 'center' ? `400 ${headlineFontSize}px 'Anton', sans-serif`
+      : `700 ${headlineFontSize}px 'Oswald', sans-serif`;
+
+    // Script/handwritten font for body text on some layouts
+    const bodyFont = layout === 'minimal-center' ? `700 ${bodyFontSize}px 'Dancing Script', cursive`
+      : layout === 'bold-stack' ? `700 ${bodyFontSize + 4}px 'Caveat', cursive`
+      : layout === 'center' ? `${bodyFontSize}px 'Raleway', sans-serif`
+      : layout === 'right' ? `${bodyFontSize}px 'Montserrat', sans-serif`
+      : layout === 'impact-center' ? `${bodyFontSize}px 'Oswald', sans-serif`
+      : `${bodyFontSize}px 'Raleway', sans-serif`;
+
+    const ctaFont = layout === 'bold-stack' ? `900 ${ctaFontSize}px 'Montserrat', sans-serif`
+      : layout === 'minimal-center' ? `900 ${ctaFontSize}px 'Playfair Display', serif`
+      : layout === 'impact-center' ? `400 ${ctaFontSize}px 'Bebas Neue', sans-serif`
+      : layout === 'center' ? `400 ${ctaFontSize}px 'Anton', sans-serif`
+      : `700 ${ctaFontSize}px 'Oswald', sans-serif`;
 
     // Alignment
     const textAlign: CanvasTextAlign = isCenter ? 'center' : isRight ? 'right' : 'left';
