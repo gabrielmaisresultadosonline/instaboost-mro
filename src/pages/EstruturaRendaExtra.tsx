@@ -74,6 +74,12 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 type LogoPosition = 'bottom-right' | 'bottom-left' | 'top-center' | 'top-right' | 'custom';
 type PersonImage = 'none' | 'phone' | 'laptop';
+type PatternType = 'auto' | 'diamond' | 'hex' | 'circuit' | 'dots' | 'rings' | 'none';
+
+interface PatternConfig {
+  type: PatternType;
+  opacity: number; // multiplier 0-2
+}
 
 function hexToRgba(hex: string, alpha: number) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -271,6 +277,8 @@ const EstruturaRendaExtra = () => {
   const [logoOverrides, setLogoOverrides] = useState<Record<number, LogoOverride>>({});
   const [bgImageOverrides, setBgImageOverrides] = useState<Record<number, BgImageOverride>>({});
   const [personOverrides, setPersonOverrides] = useState<Record<number, PersonImage>>({});
+  const [patternConfig, setPatternConfig] = useState<PatternConfig>({ type: 'auto', opacity: 1 });
+  const [patternOverrides, setPatternOverrides] = useState<Record<number, PatternConfig>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
@@ -361,30 +369,54 @@ const EstruturaRendaExtra = () => {
     }
 
     // ── Category-specific effects ──
-    if (showDecorations) {
+    const pCfg = patternOverrides[creative.id] || patternConfig;
+    if (showDecorations && pCfg.type !== 'none') {
+      ctx.globalAlpha = pCfg.opacity;
+      const pType = pCfg.type;
       const catIndex = ['dor', 'promessa', 'educativo', 'beneficio', 'autoridade'].indexOf(creative.category);
-      if (catIndex === 0) {
-        drawDiamondGrid(ctx, W, H, accentColor);
-        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, '#ef4444');
-        drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, accentColor);
-        drawCircuitLines(ctx, W, H, accentColor);
-      } else if (catIndex === 1) {
-        drawHexPattern(ctx, W, H, accentColor);
-        drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, accentColor);
-        drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
-      } else if (catIndex === 2) {
-        drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
-        drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, accentColor);
-      } else if (catIndex === 3) {
-        drawCircuitLines(ctx, W, H, ctaColor);
-        drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, ctaColor);
-        drawHexPattern(ctx, W, H, ctaColor);
+
+      if (pType === 'auto') {
+        // Original category-based patterns
+        if (catIndex === 0) {
+          drawDiamondGrid(ctx, W, H, accentColor);
+          drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, '#ef4444');
+          drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, accentColor);
+          drawCircuitLines(ctx, W, H, accentColor);
+        } else if (catIndex === 1) {
+          drawHexPattern(ctx, W, H, accentColor);
+          drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, accentColor);
+          drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
+        } else if (catIndex === 2) {
+          drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
+          drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, accentColor);
+        } else if (catIndex === 3) {
+          drawCircuitLines(ctx, W, H, ctaColor);
+          drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, ctaColor);
+          drawHexPattern(ctx, W, H, ctaColor);
+        } else {
+          drawDiamondGrid(ctx, W, H, accentColor);
+          drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
+          drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, accentColor);
+        }
       } else {
-        drawDiamondGrid(ctx, W, H, accentColor);
-        drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
-        drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, accentColor);
+        // Specific pattern chosen
+        const pColor = catIndex === 3 ? ctaColor : accentColor;
+        if (pType === 'diamond') {
+          drawDiamondGrid(ctx, W, H, pColor);
+        } else if (pType === 'hex') {
+          drawHexPattern(ctx, W, H, pColor);
+        } else if (pType === 'circuit') {
+          drawCircuitLines(ctx, W, H, pColor);
+        } else if (pType === 'dots') {
+          drawDotMatrix(ctx, 60, 60, 20, 25, 50, pColor);
+        } else if (pType === 'rings') {
+          drawConcentricRings(ctx, W * 0.5, H * 0.4, pColor, 350);
+        }
+        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, pColor);
+        drawGlowOrb(ctx, W * 0.2, H * 0.8, 200, pColor);
       }
       drawFloatingShapes(ctx, W, H, accentColor, creative.id);
+      ctx.globalAlpha = 1;
     }
 
     // ── Person image (real photo overlay) ──
@@ -569,7 +601,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPhoneLoaded, personLaptopLoaded, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -819,6 +851,13 @@ const EstruturaRendaExtra = () => {
               setPersonOverrides(prev => ({ ...prev, [previewId]: val }));
             }
           }}
+          patternValue={patternOverrides[previewId] || patternConfig}
+          onPatternChange={(cfg) => {
+            setPatternOverrides(prev => ({ ...prev, [previewId]: cfg }));
+          }}
+          onPatternReset={() => {
+            setPatternOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
+          }}
         />
       )}
     </div>
@@ -926,7 +965,10 @@ const PreviewModal: React.FC<{
   onBgImageChange: (ovr: BgImageOverride | null) => void;
   personImageValue: PersonImage;
   onPersonImageChange: (val: PersonImage) => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange }) => {
+  patternValue: PatternConfig;
+  onPatternChange: (cfg: PatternConfig) => void;
+  onPatternReset: () => void;
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, patternValue, onPatternChange, onPatternReset }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -1075,6 +1117,35 @@ const PreviewModal: React.FC<{
               <option value="phone">Celular (Foto Real)</option>
               <option value="laptop">Notebook (Foto Real)</option>
             </select>
+          </div>
+
+          {/* Pattern controls */}
+          <div className="space-y-2">
+            <span className="text-xs font-medium flex items-center gap-1"><Sparkles size={14} /> Padrão de Fundo</span>
+            <select
+              value={patternValue.type}
+              onChange={e => onPatternChange({ ...patternValue, type: e.target.value as PatternType })}
+              className="w-full h-7 text-xs rounded border border-border bg-background px-2"
+            >
+              <option value="auto">Automático (por categoria)</option>
+              <option value="diamond">Diamante / Grade</option>
+              <option value="hex">Hexagonal</option>
+              <option value="circuit">Circuitos</option>
+              <option value="dots">Pontos</option>
+              <option value="rings">Anéis</option>
+              <option value="none">Sem padrão</option>
+            </select>
+            {patternValue.type !== 'none' && (
+              <div className="flex items-center gap-2">
+                <Sliders size={10} className="text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground w-14">Opacidade</span>
+                <input type="range" min="0.1" max="3" step="0.1" value={patternValue.opacity} onChange={e => onPatternChange({ ...patternValue, opacity: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                <span className="text-[10px] w-7 text-right">{Math.round(patternValue.opacity * 100)}%</span>
+              </div>
+            )}
+            <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onPatternReset}>
+              <RotateCcw size={10} /> Padrão original
+            </Button>
           </div>
 
           {/* Logo controls */}
