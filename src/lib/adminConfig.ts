@@ -283,7 +283,7 @@ export const saveAdminData = (data: AdminData): void => {
 };
 
 // Platform type for module storage
-export type ModulePlatform = 'mro' | 'zapmro';
+export type ModulePlatform = 'mro' | 'zapmro' | 'estrutura';
 
 // Save modules to cloud storage
 export const saveModulesToCloud = async (
