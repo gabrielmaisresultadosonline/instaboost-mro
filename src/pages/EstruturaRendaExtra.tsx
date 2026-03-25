@@ -283,11 +283,52 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
-type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'tutoriais';
+type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'tutoriais' | 'testes';
 
 const EstruturaRendaExtra = () => {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<ViewMode>('menu');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [mroUsername, setMroUsername] = useState('');
+  const [mroPassword, setMroPassword] = useState('');
+
+  // Check authentication on mount
+  useEffect(() => {
+    const session = getUserSession();
+    if (session.isAuthenticated && session.user) {
+      setIsAuthenticated(true);
+      setMroUsername(session.user.username);
+      // Get password from sessionStorage
+      const pwd = sessionStorage.getItem('mro_temp_pwd') || '';
+      setMroPassword(pwd);
+    }
+    setCheckingAuth(false);
+  }, []);
+
+  const handleLoginSuccess = () => {
+    const session = getUserSession();
+    if (session.user) {
+      setMroUsername(session.user.username);
+      const pwd = sessionStorage.getItem('mro_temp_pwd') || '';
+      setMroPassword(pwd);
+    }
+    setIsAuthenticated(true);
+  };
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
