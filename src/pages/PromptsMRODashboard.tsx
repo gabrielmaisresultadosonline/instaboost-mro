@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle, Play, X, ExternalLink, Scissors } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Sparkles, LogOut, Copy, Check, Search, Image, Filter, Lock, CreditCard, Loader2, AlertTriangle, CheckCircle, Play, X, ExternalLink, Scissors, ArrowLeft } from "lucide-react";
 import ImageCropEditor from "@/components/ImageCropEditor";
 import { toast } from "sonner";
 
@@ -27,6 +28,7 @@ interface UserData {
 }
 
 const PromptsMRODashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<UserData | null>(null);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -382,7 +384,17 @@ const PromptsMRODashboard = () => {
             <Sparkles className="w-5 h-5 text-purple-400" />
             <span className="font-bold text-lg">PROMPTS <span className="text-purple-400">MRO</span></span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {user.id === 'estrutura-guest' && (
+              <button
+                onClick={() => navigate('/estruturarendaextra')}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black text-sm font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-yellow-500/25"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Voltar para Início</span>
+                <span className="sm:hidden">Voltar</span>
+              </button>
+            )}
             {!isPaid && (
               <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">
                 <AlertTriangle className="w-3 h-3" />
