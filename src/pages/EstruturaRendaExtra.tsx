@@ -924,7 +924,9 @@ const PreviewModal: React.FC<{
   onResetLogo: () => void;
   bgImageOverride?: BgImageOverride;
   onBgImageChange: (ovr: BgImageOverride | null) => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, bgImageOverride, onBgImageChange }) => {
+  personImageValue: PersonImage;
+  onPersonImageChange: (val: PersonImage) => void;
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
