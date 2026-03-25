@@ -670,7 +670,7 @@ const EstruturaRendaExtra = () => {
           const before = line.substring(0, line.indexOf(creative.highlightWord));
           const highlight = creative.highlightWord;
           const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
-          const hlColor = creative.highlightColor || '#ef4444';
+          const hlColor = highlight2Color;
 
           if (isCenter || isRight) {
             const fullW = ctx.measureText(line).width;
