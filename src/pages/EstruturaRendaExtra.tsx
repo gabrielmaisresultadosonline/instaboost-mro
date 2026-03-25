@@ -284,6 +284,9 @@ const EstruturaRendaExtra = () => {
   const [textColor, setTextColor] = useState('#ffffff');
   const [accentColor, setAccentColor] = useState('#00d4aa');
   const [ctaColor, setCtaColor] = useState('#facc15');
+  const [ctaBgColor, setCtaBgColor] = useState('#00d4aa');
+  const [ctaTextColor, setCtaTextColor] = useState('#000000');
+  const [ctaBgOpacity, setCtaBgOpacity] = useState(0.15);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [downloading, setDownloading] = useState(false);
