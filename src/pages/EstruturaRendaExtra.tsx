@@ -752,7 +752,7 @@ const EstruturaRendaExtra = () => {
     ctx.globalAlpha = layout === 'minimal-center' ? 0.7 : 0.8;
     ctx.textAlign = textAlign;
     const bodyLines = creative.text.split('\n');
-    const bodySpacing = layout === 'minimal-center' ? 62 : layout === 'bold-stack' ? 54 : 58;
+    const bodySpacing = Math.round((layout === 'minimal-center' ? 62 : layout === 'bold-stack' ? 54 : 58) * sc);
     for (const line of bodyLines) {
       ctx.fillText(line, textX, y);
       y += bodySpacing;
