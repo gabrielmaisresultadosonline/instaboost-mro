@@ -912,16 +912,38 @@ const PreviewModal: React.FC<{
   onLogoMove: (x: number, y: number) => void;
   logoOverride?: LogoOverride;
   onResetLogo: () => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo }) => {
+  bgImageOverride?: BgImageOverride;
+  onBgImageChange: (ovr: BgImageOverride | null) => void;
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, bgImageOverride, onBgImageChange }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showBgControls, setShowBgControls] = useState(!!bgImageOverride);
 
   React.useEffect(() => {
     if (canvasRef.current) {
       drawCreative(creative, canvasRef.current);
     }
   }, [creative, drawCreative]);
+
+  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string;
+      onBgImageChange({ url, x: 0, y: 0, opacity: 0.3, scale: 1 });
+      setShowBgControls(true);
+      toast.success('Imagem de fundo adicionada!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const updateBg = (partial: Partial<BgImageOverride>) => {
+    if (!bgImageOverride) return;
+    onBgImageChange({ ...bgImageOverride, ...partial });
+  };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!logoUrl || !canvasRef.current) return;
@@ -930,7 +952,6 @@ const PreviewModal: React.FC<{
     const scaleY = 1350 / rect.height;
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
-    // Position as percentage
     onLogoMove(clickX / 1080, clickY / 1350);
   };
 
@@ -946,35 +967,141 @@ const PreviewModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="relative max-w-md w-full" onClick={e => e.stopPropagation()} ref={containerRef}>
-        <canvas
-          ref={canvasRef}
-          className={`w-full rounded-xl shadow-2xl ${logoUrl ? 'cursor-crosshair' : ''}`}
-          onClick={handleCanvasClick}
-          onMouseDown={() => setIsDragging(true)}
-          onMouseUp={() => setIsDragging(false)}
-          onMouseLeave={() => setIsDragging(false)}
-          onMouseMove={handleMouseMove}
-        />
-        <div className="absolute top-3 right-3 flex gap-2">
-          {logoUrl && logoOverride && (
-            <Button size="sm" variant="outline" onClick={onResetLogo} className="text-xs">
-              <X size={12} /> Reset Logo
+      <div className="relative flex gap-4 max-w-4xl w-full max-h-[90vh]" onClick={e => e.stopPropagation()} ref={containerRef}>
+        {/* Canvas */}
+        <div className="relative flex-shrink-0" style={{ maxWidth: '400px' }}>
+          <canvas
+            ref={canvasRef}
+            className={`w-full rounded-xl shadow-2xl ${logoUrl ? 'cursor-crosshair' : ''}`}
+            onClick={handleCanvasClick}
+            onMouseDown={() => setIsDragging(true)}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseLeave={() => setIsDragging(false)}
+            onMouseMove={handleMouseMove}
+          />
+          <div className="absolute top-3 right-3 flex gap-2">
+            <Button size="sm" onClick={onDownload} className="bg-primary text-primary-foreground">
+              <Download size={14} /> Baixar
             </Button>
-          )}
-          <Button size="sm" onClick={onDownload} className="bg-primary text-primary-foreground">
-            <Download size={14} /> Baixar
-          </Button>
-          <Button size="sm" variant="outline" onClick={onClose}>
-            <X size={14} />
-          </Button>
-        </div>
-        {logoUrl && (
-          <div className="absolute bottom-3 left-3 right-3 bg-card/90 rounded-lg px-3 py-2 text-xs text-muted-foreground text-center backdrop-blur-sm">
-            <Move size={12} className="inline mr-1" />
-            Clique ou arraste no criativo para posicionar a logo
+            <Button size="sm" variant="outline" onClick={onClose}>
+              <X size={14} />
+            </Button>
           </div>
-        )}
+        </div>
+
+        {/* Side editor panel */}
+        <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border p-4 w-72 overflow-y-auto space-y-4 flex-shrink-0 hidden md:block">
+          <h3 className="font-bold text-sm flex items-center gap-2">
+            <Palette size={16} /> Editor do Criativo #{creative.id}
+          </h3>
+
+          {/* Background image section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium flex items-center gap-1"><ImagePlus size={14} /> Imagem de Fundo</span>
+              <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBgUpload} className="hidden" />
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => bgInputRef.current?.click()}>
+                <Upload size={10} /> Upload
+              </Button>
+            </div>
+
+            {bgImageOverride && (
+              <div className="space-y-2 bg-muted/30 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">Imagem ativa</span>
+                  <button onClick={() => { onBgImageChange(null); setShowBgControls(false); }} className="text-destructive">
+                    <X size={12} />
+                  </button>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Sliders size={10} className="text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground w-14">Opacidade</span>
+                    <input type="range" min="0.05" max="1" step="0.05" value={bgImageOverride.opacity} onChange={e => updateBg({ opacity: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <span className="text-[10px] w-7 text-right">{Math.round(bgImageOverride.opacity * 100)}%</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <ZoomIn size={10} className="text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground w-14">Escala</span>
+                    <input type="range" min="0.2" max="4" step="0.1" value={bgImageOverride.scale} onChange={e => updateBg({ scale: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <span className="text-[10px] w-7 text-right">{bgImageOverride.scale.toFixed(1)}x</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Move size={10} className="text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground w-14">Pos. X</span>
+                    <input type="range" min="-1080" max="1080" step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <span className="text-[10px] w-7 text-right">{bgImageOverride.x}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Move size={10} className="text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground w-14">Pos. Y</span>
+                    <input type="range" min="-1350" max="1350" step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <span className="text-[10px] w-7 text-right">{bgImageOverride.y}</span>
+                  </div>
+                </div>
+
+                <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={() => updateBg({ x: 0, y: 0, scale: 1 })}>
+                  <RotateCcw size={10} /> Centralizar
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Logo controls */}
+          {logoUrl && (
+            <div className="space-y-2">
+              <span className="text-xs font-medium flex items-center gap-1"><MapPin size={14} /> Logo</span>
+              <p className="text-[10px] text-muted-foreground">Clique no criativo para posicionar a logo</p>
+              {logoOverride && (
+                <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onResetLogo}>
+                  <RotateCcw size={10} /> Resetar posição
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Mobile bottom controls */}
+        <div className="absolute bottom-0 left-0 right-0 md:hidden">
+          {bgImageOverride ? (
+            <div className="bg-card/95 backdrop-blur-md rounded-t-xl border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium">Imagem de Fundo</span>
+                <button onClick={() => { onBgImageChange(null); }} className="text-destructive"><X size={14} /></button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Opac:</span>
+                  <input type="range" min="0.05" max="1" step="0.05" value={bgImageOverride.opacity} onChange={e => updateBg({ opacity: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Zoom:</span>
+                  <input type="range" min="0.2" max="4" step="0.1" value={bgImageOverride.scale} onChange={e => updateBg({ scale: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">X:</span>
+                  <input type="range" min="-1080" max="1080" step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">Y:</span>
+                  <input type="range" min="-1350" max="1350" step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-card/90 rounded-lg mx-3 mb-3 px-3 py-2 text-xs text-muted-foreground text-center backdrop-blur-sm flex items-center justify-center gap-2">
+              <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBgUpload} className="hidden" />
+              <Button size="sm" variant="outline" className="h-6 text-[10px]" onClick={() => bgInputRef.current?.click()}>
+                <ImagePlus size={10} /> Imagem de fundo
+              </Button>
+              {logoUrl && <span><Move size={12} className="inline mr-1" />Clique para posicionar logo</span>}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
