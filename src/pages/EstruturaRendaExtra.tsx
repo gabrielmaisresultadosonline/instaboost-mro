@@ -1219,6 +1219,17 @@ const EstruturaRendaExtra = () => {
           onPersonPositionReset={() => {
             setPersonPositionOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
           }}
+          bgColor1={bgColor1} onBgColor1Change={setBgColor1}
+          bgColor2={bgColor2} onBgColor2Change={setBgColor2}
+          useGradient={useGradient} onUseGradientChange={setUseGradient}
+          textColor={textColor} onTextColorChange={setTextColor}
+          accentColor={accentColor} onAccentColorChange={setAccentColor}
+          effectsColor={effectsColor} onEffectsColorChange={setEffectsColor}
+          effectsOpacity={effectsOpacity} onEffectsOpacityChange={setEffectsOpacity}
+          ctaTextColor={ctaTextColor} onCtaTextColorChange={setCtaTextColor}
+          ctaBgColor={ctaBgColor} onCtaBgColorChange={setCtaBgColor}
+          ctaBgOpacity={ctaBgOpacity} onCtaBgOpacityChange={setCtaBgOpacity}
+          onLogoUpload={(url) => setLogoUrl(url)}
         />
       )}
     </div>
