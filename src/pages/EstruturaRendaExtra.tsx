@@ -336,6 +336,29 @@ const EstruturaRendaExtra = () => {
     }
     ctx.fillRect(0, 0, W, H);
 
+    // ── Custom background image per creative ──
+    const bgOvr = bgImageOverrides[creative.id];
+    if (bgOvr) {
+      try {
+        const bgImg = await loadImage(bgOvr.url);
+        const bgW = bgImg.width * bgOvr.scale;
+        const bgH = bgImg.height * bgOvr.scale;
+        ctx.globalAlpha = bgOvr.opacity;
+        ctx.drawImage(bgImg, bgOvr.x, bgOvr.y, bgW, bgH);
+        ctx.globalAlpha = 1;
+        // Semi-transparent overlay to keep text readable
+        if (useGradient) {
+          const overlay = ctx.createLinearGradient(0, 0, W * 0.3, H);
+          overlay.addColorStop(0, hexToRgba(bgColor1, 0.6));
+          overlay.addColorStop(1, hexToRgba(bgColor2, 0.6));
+          ctx.fillStyle = overlay;
+        } else {
+          ctx.fillStyle = hexToRgba(bgColor1, 0.6);
+        }
+        ctx.fillRect(0, 0, W, H);
+      } catch { /* skip */ }
+    }
+
     // ── Category-specific effects ──
     if (showDecorations) {
       const catIndex = ['dor', 'promessa', 'educativo', 'beneficio', 'autoridade'].indexOf(creative.category);
