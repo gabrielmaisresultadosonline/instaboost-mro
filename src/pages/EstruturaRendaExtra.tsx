@@ -21,6 +21,7 @@ interface CreativeData {
 interface LogoOverride {
   x: number; // 0-1 percentage
   y: number; // 0-1 percentage
+  scale?: number; // multiplier, default 1
 }
 
 interface BgImageOverride {
@@ -569,21 +570,12 @@ const EstruturaRendaExtra = () => {
     ctx.fillRect(0, H - 6, W, 6);
 
     // ── Logo ──
-    if (logoUrl && logoPosition !== 'custom' && !logoOverrides[creative.id]) {
+    if (logoUrl) {
       try {
         const img = await loadImage(logoUrl);
-        const lH = 80;
-        const lW = (img.width / img.height) * lH;
-        const coords = getLogoCoords(creative.id, W, H, lW, lH);
-        ctx.shadowColor = hexToRgba(accentColor, 0.3);
-        ctx.shadowBlur = 15;
-        ctx.drawImage(img, coords.x, coords.y, lW, lH);
-        ctx.shadowBlur = 0;
-      } catch { /* skip */ }
-    } else if (logoUrl && logoOverrides[creative.id]) {
-      try {
-        const img = await loadImage(logoUrl);
-        const lH = 80;
+        const override = logoOverrides[creative.id];
+        const logoScale = override?.scale ?? 1;
+        const lH = 80 * logoScale;
         const lW = (img.width / img.height) * lH;
         const coords = getLogoCoords(creative.id, W, H, lW, lH);
         ctx.shadowColor = hexToRgba(accentColor, 0.3);
@@ -819,7 +811,8 @@ const EstruturaRendaExtra = () => {
           onDownload={() => downloadSingle(CREATIVES.find(c => c.id === previewId)!)}
           logoUrl={logoUrl}
           onLogoMove={(x, y) => {
-            setLogoOverrides(prev => ({ ...prev, [previewId]: { x, y } }));
+            const existing = logoOverrides[previewId];
+            setLogoOverrides(prev => ({ ...prev, [previewId]: { x, y, scale: existing?.scale ?? 1 } }));
             toast.success(`Logo posicionada no criativo #${previewId}`);
           }}
           logoOverride={logoOverrides[previewId]}
@@ -830,6 +823,10 @@ const EstruturaRendaExtra = () => {
               return next;
             });
             toast.success('Logo restaurada ao padrão');
+          }}
+          onLogoScaleChange={(scale) => {
+            const existing = logoOverrides[previewId];
+            setLogoOverrides(prev => ({ ...prev, [previewId]: { x: existing?.x ?? 0.5, y: existing?.y ?? 0.5, scale } }));
           }}
           bgImageOverride={bgImageOverrides[previewId]}
           onBgImageChange={(ovr) => {
@@ -961,6 +958,7 @@ const PreviewModal: React.FC<{
   onLogoMove: (x: number, y: number) => void;
   logoOverride?: LogoOverride;
   onResetLogo: () => void;
+  onLogoScaleChange: (scale: number) => void;
   bgImageOverride?: BgImageOverride;
   onBgImageChange: (ovr: BgImageOverride | null) => void;
   personImageValue: PersonImage;
@@ -968,7 +966,7 @@ const PreviewModal: React.FC<{
   patternValue: PatternConfig;
   onPatternChange: (cfg: PatternConfig) => void;
   onPatternReset: () => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, patternValue, onPatternChange, onPatternReset }) => {
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, patternValue, onPatternChange, onPatternReset }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -1153,9 +1151,15 @@ const PreviewModal: React.FC<{
             <div className="space-y-2">
               <span className="text-xs font-medium flex items-center gap-1"><MapPin size={14} /> Logo</span>
               <p className="text-[10px] text-muted-foreground">Clique no criativo para posicionar a logo</p>
+              <div className="flex items-center gap-2">
+                <ZoomIn size={10} className="text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground w-14">Tamanho</span>
+                <input type="range" min="0.3" max="4" step="0.1" value={logoOverride?.scale ?? 1} onChange={e => onLogoScaleChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
+                <span className="text-[10px] w-7 text-right">{Math.round((logoOverride?.scale ?? 1) * 100)}%</span>
+              </div>
               {logoOverride && (
                 <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onResetLogo}>
-                  <RotateCcw size={10} /> Resetar posição
+                  <RotateCcw size={10} /> Resetar posição e tamanho
                 </Button>
               )}
             </div>
