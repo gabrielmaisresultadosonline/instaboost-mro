@@ -1103,6 +1103,13 @@ const EstruturaRendaExtra = () => {
           onPatternReset={() => {
             setPatternOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
           }}
+          personPositionConfig={personPositionOverrides[previewId] || { scale: 1, offsetX: 0, offsetY: 0 }}
+          onPersonPositionChange={(cfg) => {
+            setPersonPositionOverrides(prev => ({ ...prev, [previewId]: cfg }));
+          }}
+          onPersonPositionReset={() => {
+            setPersonPositionOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
+          }}
         />
       )}
     </div>
