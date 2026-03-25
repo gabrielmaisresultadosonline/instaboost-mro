@@ -950,12 +950,11 @@ const EstruturaRendaExtra = () => {
 
             <Button
               size="xl"
-              className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 opacity-60 cursor-not-allowed"
-              disabled
+              className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+              onClick={() => setCurrentView('contrato')}
             >
               <FileText className="h-6 w-6" />
               Gere um Contrato para seu Cliente
-              <span className="text-xs opacity-75">(Em breve)</span>
             </Button>
           </div>
         </div>
