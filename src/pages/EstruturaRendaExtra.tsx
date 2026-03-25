@@ -511,79 +511,234 @@ const EstruturaRendaExtra = () => {
       ctx.textAlign = 'left';
     }
 
+    // ── Text rendering based on layout ──
+    const layout = creative.layout;
+    const isCenter = layout === 'center' || layout === 'impact-center' || layout === 'minimal-center' || layout === 'bold-stack';
+    const isRight = layout === 'right';
+
+    // Font sizes per layout
+    const headlineFontSize = layout === 'impact-center' ? 90 : layout === 'bold-stack' ? 82 : layout === 'minimal-center' ? 68 : 74;
+    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 44 : layout === 'bold-stack' ? 38 : 40;
+    const ctaFontSize = layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 36;
+    const headlineSpacing = layout === 'impact-center' ? 110 : layout === 'bold-stack' ? 100 : layout === 'minimal-center' ? 85 : 95;
+
+    // Font families per layout
+    const headlineFont = layout === 'impact-center' ? `bold ${headlineFontSize}px 'Arial Black', Impact, sans-serif`
+      : layout === 'bold-stack' ? `900 ${headlineFontSize}px 'Trebuchet MS', Verdana, sans-serif`
+      : layout === 'minimal-center' ? `300 ${headlineFontSize}px 'Georgia', serif`
+      : layout === 'right' ? `bold ${headlineFontSize}px 'Verdana', sans-serif`
+      : `bold ${headlineFontSize}px Arial, sans-serif`;
+    const bodyFont = layout === 'minimal-center' ? `${bodyFontSize}px 'Georgia', serif`
+      : layout === 'bold-stack' ? `${bodyFontSize}px 'Trebuchet MS', Verdana, sans-serif`
+      : `${bodyFontSize}px Arial, sans-serif`;
+    const ctaFont = layout === 'bold-stack' ? `bold ${ctaFontSize}px 'Trebuchet MS', Verdana, sans-serif`
+      : layout === 'minimal-center' ? `600 ${ctaFontSize}px 'Georgia', serif`
+      : `bold ${ctaFontSize}px Arial, sans-serif`;
+
+    // Alignment
+    const textAlign: CanvasTextAlign = isCenter ? 'center' : isRight ? 'right' : 'left';
+    const textX = isCenter ? W / 2 : isRight ? W - 80 : 80;
+
+    // Start Y position
+    const startY = layout === 'impact-center' ? 420 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 440 : Math.max(badgeEndY + 260, 380);
+
     // ── Headline ──
     const headlineLines = creative.headline.split('\n');
-    ctx.font = 'bold 74px Arial, sans-serif';
-    let y = Math.max(badgeEndY + 260, 380);
-    for (const line of headlineLines) {
-      if (creative.highlightWord && line.includes(creative.highlightWord)) {
-        const before = line.substring(0, line.indexOf(creative.highlightWord));
-        const highlight = creative.highlightWord;
-        const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
-        let x = 80;
-        if (before) {
-          ctx.fillStyle = textColor;
-          ctx.fillText(before, x, y);
-          x += ctx.measureText(before).width;
-        }
-        const hlColor = creative.highlightColor || '#ef4444';
-        ctx.shadowColor = hlColor;
-        ctx.shadowBlur = 20;
-        ctx.fillStyle = hlColor;
-        ctx.fillText(highlight, x, y);
-        ctx.shadowBlur = 0;
-        x += ctx.measureText(highlight).width;
-        if (after) {
-          ctx.fillStyle = textColor;
-          ctx.fillText(after, x, y);
-        }
-      } else {
+    ctx.font = headlineFont;
+    ctx.textAlign = textAlign;
+    let y = startY;
+
+    if (layout === 'bold-stack') {
+      // Each line gets its own colored background strip
+      for (const line of headlineLines) {
+        const metrics = ctx.measureText(line);
+        const lineW = metrics.width + 40;
+        const lineH = headlineFontSize + 20;
+        const stripX = isCenter ? (W - lineW) / 2 : isRight ? W - 80 - lineW : 60;
+        ctx.fillStyle = hexToRgba(accentColor, 0.15);
+        roundRect(ctx, stripX, y - headlineFontSize + 5, lineW, lineH, 8);
+        ctx.fill();
         ctx.fillStyle = textColor;
-        ctx.fillText(line, 80, y);
+        ctx.fillText(line, textX, y);
+        y += headlineSpacing;
       }
-      y += 95;
+    } else {
+      for (const line of headlineLines) {
+        if (creative.highlightWord && line.includes(creative.highlightWord)) {
+          // Highlight word handling
+          const before = line.substring(0, line.indexOf(creative.highlightWord));
+          const highlight = creative.highlightWord;
+          const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
+          
+          if (isCenter) {
+            // For centered: measure total, then draw parts
+            const fullW = ctx.measureText(line).width;
+            let x = (W - fullW) / 2;
+            ctx.textAlign = 'left';
+            if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
+            const hlColor = creative.highlightColor || '#ef4444';
+            ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
+            ctx.fillStyle = hlColor; ctx.fillText(highlight, x, y);
+            ctx.shadowBlur = 0; x += ctx.measureText(highlight).width;
+            if (after) { ctx.fillStyle = textColor; ctx.fillText(after, x, y); }
+            ctx.textAlign = textAlign;
+          } else if (isRight) {
+            const fullW = ctx.measureText(line).width;
+            let x = W - 80 - fullW;
+            ctx.textAlign = 'left';
+            if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
+            const hlColor = creative.highlightColor || '#ef4444';
+            ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
+            ctx.fillStyle = hlColor; ctx.fillText(highlight, x, y);
+            ctx.shadowBlur = 0; x += ctx.measureText(highlight).width;
+            if (after) { ctx.fillStyle = textColor; ctx.fillText(after, x, y); }
+            ctx.textAlign = textAlign;
+          } else {
+            let x = 80;
+            if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
+            const hlColor = creative.highlightColor || '#ef4444';
+            ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
+            ctx.fillStyle = hlColor;
+            ctx.textAlign = 'left';
+            ctx.fillText(highlight, x, y);
+            ctx.shadowBlur = 0; x += ctx.measureText(highlight).width;
+            if (after) { ctx.fillStyle = textColor; ctx.fillText(after, x, y); }
+            ctx.textAlign = textAlign;
+          }
+        } else {
+          ctx.fillStyle = textColor;
+          if (layout === 'impact-center') {
+            // Add text shadow for impact
+            ctx.shadowColor = hexToRgba(accentColor, 0.4);
+            ctx.shadowBlur = 25;
+          }
+          ctx.fillText(line, textX, y);
+          ctx.shadowBlur = 0;
+        }
+        y += headlineSpacing;
+      }
     }
 
     // ── Divider ──
     y += 20;
-    const divGrad = ctx.createLinearGradient(80, y, 500, y);
-    divGrad.addColorStop(0, accentColor);
-    divGrad.addColorStop(1, hexToRgba(accentColor, 0));
-    ctx.fillStyle = divGrad;
-    ctx.fillRect(80, y, 420, 3);
-    ctx.beginPath();
-    ctx.arc(80, y + 1.5, 5, 0, Math.PI * 2);
-    ctx.fillStyle = accentColor;
-    ctx.fill();
-    y += 45;
+    if (layout === 'minimal-center') {
+      // Centered thin line
+      const divW = 200;
+      ctx.fillStyle = hexToRgba(accentColor, 0.5);
+      ctx.fillRect((W - divW) / 2, y, divW, 2);
+      y += 40;
+    } else if (layout === 'impact-center') {
+      // No divider, just spacing
+      y += 10;
+    } else if (layout === 'bold-stack') {
+      // Small dot divider
+      for (let d = 0; d < 3; d++) {
+        ctx.beginPath();
+        ctx.arc(isCenter ? W / 2 - 20 + d * 20 : isRight ? W - 100 + d * 20 : 100 + d * 20, y + 2, 4, 0, Math.PI * 2);
+        ctx.fillStyle = accentColor;
+        ctx.fill();
+      }
+      y += 35;
+    } else if (isRight) {
+      const divGrad = ctx.createLinearGradient(W - 500, y, W - 80, y);
+      divGrad.addColorStop(0, hexToRgba(accentColor, 0));
+      divGrad.addColorStop(1, accentColor);
+      ctx.fillStyle = divGrad;
+      ctx.fillRect(W - 500, y, 420, 3);
+      ctx.beginPath();
+      ctx.arc(W - 80, y + 1.5, 5, 0, Math.PI * 2);
+      ctx.fillStyle = accentColor;
+      ctx.fill();
+      y += 45;
+    } else if (isCenter) {
+      const divW = 420;
+      const divGrad = ctx.createLinearGradient((W - divW) / 2, y, (W + divW) / 2, y);
+      divGrad.addColorStop(0, hexToRgba(accentColor, 0));
+      divGrad.addColorStop(0.5, accentColor);
+      divGrad.addColorStop(1, hexToRgba(accentColor, 0));
+      ctx.fillStyle = divGrad;
+      ctx.fillRect((W - divW) / 2, y, divW, 3);
+      y += 45;
+    } else {
+      const divGrad = ctx.createLinearGradient(80, y, 500, y);
+      divGrad.addColorStop(0, accentColor);
+      divGrad.addColorStop(1, hexToRgba(accentColor, 0));
+      ctx.fillStyle = divGrad;
+      ctx.fillRect(80, y, 420, 3);
+      ctx.beginPath();
+      ctx.arc(80, y + 1.5, 5, 0, Math.PI * 2);
+      ctx.fillStyle = accentColor;
+      ctx.fill();
+      y += 45;
+    }
 
     // ── Body text ──
-    ctx.font = '40px Arial, sans-serif';
+    ctx.font = bodyFont;
     ctx.fillStyle = textColor;
-    ctx.globalAlpha = 0.8;
+    ctx.globalAlpha = layout === 'minimal-center' ? 0.7 : 0.8;
+    ctx.textAlign = textAlign;
     const bodyLines = creative.text.split('\n');
+    const bodySpacing = layout === 'minimal-center' ? 62 : layout === 'bold-stack' ? 54 : 58;
     for (const line of bodyLines) {
-      ctx.fillText(line, 80, y);
-      y += 58;
+      ctx.fillText(line, textX, y);
+      y += bodySpacing;
     }
     ctx.globalAlpha = 1;
 
     // ── CTA ──
     y += 25;
     const ctaY = Math.min(y, H - 200);
-    ctx.fillStyle = hexToRgba(accentColor, 0.08);
-    roundRect(ctx, 60, ctaY, W - 120, 90, 18);
-    ctx.fill();
-    ctx.strokeStyle = hexToRgba(accentColor, 0.2);
-    ctx.lineWidth = 1;
-    roundRect(ctx, 60, ctaY, W - 120, 90, 18);
-    ctx.stroke();
-    ctx.font = 'bold 36px Arial, sans-serif';
-    ctx.fillStyle = ctaColor;
-    ctx.shadowColor = hexToRgba(ctaColor, 0.3);
-    ctx.shadowBlur = 15;
-    ctx.fillText(creative.cta, 90, ctaY + 58);
-    ctx.shadowBlur = 0;
+    ctx.font = ctaFont;
+    const ctaTextWidth = ctx.measureText(creative.cta).width;
+
+    if (layout === 'impact-center') {
+      // Pill-style CTA button
+      const pillW = ctaTextWidth + 80;
+      const pillH = 80;
+      const pillX = (W - pillW) / 2;
+      ctx.fillStyle = ctaColor;
+      roundRect(ctx, pillX, ctaY, pillW, pillH, 40);
+      ctx.fill();
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'center';
+      ctx.fillText(creative.cta, W / 2, ctaY + 54);
+    } else if (layout === 'minimal-center') {
+      // Underline-style CTA
+      ctx.fillStyle = ctaColor;
+      ctx.textAlign = 'center';
+      ctx.fillText(creative.cta, W / 2, ctaY + 58);
+      ctx.fillStyle = hexToRgba(ctaColor, 0.4);
+      ctx.fillRect((W - ctaTextWidth) / 2, ctaY + 65, ctaTextWidth, 2);
+    } else if (layout === 'bold-stack') {
+      // Full-width CTA bar
+      ctx.fillStyle = hexToRgba(ctaColor, 0.15);
+      ctx.fillRect(60, ctaY, W - 120, 80);
+      ctx.fillStyle = ctaColor;
+      ctx.textAlign = 'center';
+      ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+      ctx.shadowBlur = 15;
+      ctx.fillText(creative.cta, W / 2, ctaY + 54);
+      ctx.shadowBlur = 0;
+    } else {
+      // Standard rounded CTA box
+      const ctaBoxX = isCenter ? (W - (W - 120)) / 2 : isRight ? 60 : 60;
+      ctx.fillStyle = hexToRgba(accentColor, 0.08);
+      roundRect(ctx, ctaBoxX, ctaY, W - 120, 90, 18);
+      ctx.fill();
+      ctx.strokeStyle = hexToRgba(accentColor, 0.2);
+      ctx.lineWidth = 1;
+      roundRect(ctx, ctaBoxX, ctaY, W - 120, 90, 18);
+      ctx.stroke();
+      ctx.fillStyle = ctaColor;
+      ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+      ctx.shadowBlur = 15;
+      ctx.textAlign = textAlign;
+      ctx.fillText(creative.cta, isCenter ? W / 2 : isRight ? W - 90 : 90, ctaY + 58);
+      ctx.shadowBlur = 0;
+    }
+
+    // Reset text align
+    ctx.textAlign = 'left';
 
     // ── Bottom accent bar ──
     const botGrad = ctx.createLinearGradient(0, H - 6, W, H - 6);
