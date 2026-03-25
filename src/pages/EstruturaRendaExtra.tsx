@@ -948,28 +948,26 @@ const EstruturaRendaExtra = () => {
             {/* Tutorial Card - Left */}
             <button
               onClick={() => setCurrentView('tutoriais')}
-              className="group w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 relative overflow-hidden rounded-2xl border border-red-500/30 bg-gradient-to-br from-[#1a1020] via-[#15101d] to-[#1a0a15] hover:border-red-400/60 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center"
+              className="group w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 relative overflow-hidden rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-500 hover:border-red-400 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-red-600/20 hover:shadow-red-500/30"
             >
               {/* Glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-red-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[100px] bg-red-500/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-red-700/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
 
-              {/* Play button */}
-              <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br from-red-500/25 to-red-600/15 border border-red-500/25 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0 shadow-2xl shadow-red-500/10">
-                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-red-500/20 flex items-center justify-center backdrop-blur-sm">
-                  <Play className="w-7 h-7 lg:w-8 lg:h-8 text-red-400 group-hover:text-red-300 transition-colors drop-shadow-lg" fill="currentColor" />
+              {/* Play button - YouTube style */}
+              <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Play className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg" fill="currentColor" />
                 </div>
               </div>
 
               <div className="relative z-10 text-left lg:text-center">
-                <p className="text-red-400 font-bold text-xs lg:text-sm tracking-[0.15em] uppercase">Tutorial</p>
-                <p className="text-white font-extrabold text-lg lg:text-xl leading-tight mt-1.5">
+                <p className="text-white font-extrabold italic text-lg lg:text-xl leading-tight">
                   Aprenda como<br className="hidden lg:block" /> fazer tudo!
                 </p>
-                <p className="text-white/30 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5">
-                  <span className="w-4 h-[1px] bg-red-500/40"></span>
+                <p className="text-white/60 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5 font-bold italic">
+                  <span className="w-4 h-[1px] bg-white/40"></span>
                   Clique para acessar
-                  <span className="w-4 h-[1px] bg-red-500/40"></span>
+                  <span className="w-4 h-[1px] bg-white/40"></span>
                 </p>
               </div>
             </button>
