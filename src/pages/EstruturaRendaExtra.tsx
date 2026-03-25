@@ -901,117 +901,120 @@ const EstruturaRendaExtra = () => {
 
   if (currentView === 'menu') {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
-        {/* Hero header with gradient accent */}
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-orange-500/5 to-transparent pointer-events-none" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-yellow-500/8 rounded-full blur-[120px] pointer-events-none" />
-          <div className="relative z-10 pt-10 pb-6 md:pt-16 md:pb-10 px-4 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 mb-4 md:mb-6">
-              <span className="text-yellow-400 text-xs font-semibold tracking-wider uppercase">🔥 Oportunidade Exclusiva</span>
+      <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
+        {/* Animated background elements */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-yellow-500/[0.04] rounded-full blur-[150px] animate-pulse" />
+          <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-orange-500/[0.03] rounded-full blur-[180px] animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] bg-purple-500/[0.03] rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '4s' }} />
+          {/* Grid overlay */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px'
+          }} />
+        </div>
+
+        {/* Hero Section */}
+        <div className="relative z-10 pt-8 pb-4 md:pt-14 md:pb-8 px-4">
+          <div className="max-w-5xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 mb-5 backdrop-blur-sm">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400"></span>
+              </span>
+              <span className="text-yellow-300 text-xs font-bold tracking-[0.2em] uppercase">Oportunidade Exclusiva</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight max-w-4xl mx-auto">
-              <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-orange-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] max-w-4xl mx-auto">
+              <span className="bg-gradient-to-r from-yellow-200 via-yellow-400 to-orange-400 bg-clip-text text-transparent drop-shadow-lg">
                 Faturando mais de 5K mensal
               </span>
               <br />
-              <span className="text-foreground text-xl sm:text-2xl md:text-3xl lg:text-4xl">
+              <span className="text-white/90 text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mt-2 block">
                 prestando serviço com a MRO para empresas!
               </span>
             </h1>
+            <div className="mt-5 flex items-center justify-center gap-6 text-white/40 text-xs font-medium">
+              <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400"></span> Acesso Imediato</span>
+              <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Suporte Incluído</span>
+              <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span> 100% Online</span>
+            </div>
           </div>
         </div>
 
-        {/* Main content */}
-        <div className="flex-1 flex items-start justify-center px-4 pb-10 md:pb-16">
-          <div className="w-full max-w-5xl flex flex-col lg:flex-row items-stretch gap-6 lg:gap-10">
+        {/* Dashboard Content */}
+        <div className="relative z-10 flex-1 px-4 pb-10 md:pb-16">
+          <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-stretch gap-5 lg:gap-8">
 
-            {/* Tutorial card - left side */}
+            {/* Tutorial Card - Left */}
             <button
               onClick={() => setCurrentView('tutoriais')}
-              className="w-full lg:w-64 xl:w-72 flex-shrink-0 relative overflow-hidden rounded-2xl border border-red-500/40 bg-gradient-to-b from-card via-card to-red-950/20 hover:border-red-500/80 transition-all duration-300 cursor-pointer group p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-5 lg:justify-center shadow-lg shadow-red-500/5 hover:shadow-red-500/15"
+              className="group w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 relative overflow-hidden rounded-2xl border border-red-500/30 bg-gradient-to-br from-[#1a1020] via-[#15101d] to-[#1a0a15] hover:border-red-400/60 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center"
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br from-red-500/30 to-red-600/20 border border-red-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0 shadow-lg shadow-red-500/20">
-                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-red-500/20 flex items-center justify-center">
-                  <Play className="w-7 h-7 lg:w-8 lg:h-8 text-red-400 group-hover:text-red-300 transition-colors" fill="currentColor" />
+              {/* Glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-t from-red-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[100px] bg-red-500/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+              {/* Play button */}
+              <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br from-red-500/25 to-red-600/15 border border-red-500/25 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0 shadow-2xl shadow-red-500/10">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-red-500/20 flex items-center justify-center backdrop-blur-sm">
+                  <Play className="w-7 h-7 lg:w-8 lg:h-8 text-red-400 group-hover:text-red-300 transition-colors drop-shadow-lg" fill="currentColor" />
                 </div>
               </div>
+
               <div className="relative z-10 text-left lg:text-center">
-                <p className="text-red-400 font-bold text-sm lg:text-base tracking-wide uppercase">Tutorial</p>
-                <p className="text-foreground font-extrabold text-xl lg:text-2xl leading-tight mt-1">
-                  Aprenda como fazer tudo!
+                <p className="text-red-400 font-bold text-xs lg:text-sm tracking-[0.15em] uppercase">Tutorial</p>
+                <p className="text-white font-extrabold text-lg lg:text-xl leading-tight mt-1.5">
+                  Aprenda como<br className="hidden lg:block" /> fazer tudo!
                 </p>
-                <p className="text-muted-foreground text-xs mt-2 hidden lg:block">Clique para acessar</p>
+                <p className="text-white/30 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5">
+                  <span className="w-4 h-[1px] bg-red-500/40"></span>
+                  Clique para acessar
+                  <span className="w-4 h-[1px] bg-red-500/40"></span>
+                </p>
               </div>
             </button>
 
-            {/* Right side - dashboard panel */}
-            <div className="flex-1 rounded-2xl border border-border bg-card/60 backdrop-blur-sm shadow-xl overflow-hidden">
+            {/* Right Panel - Dashboard */}
+            <div className="flex-1 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#12121f] to-[#0e0e18] shadow-2xl overflow-hidden backdrop-blur-sm">
               {/* Panel header */}
-              <div className="border-b border-border bg-card/80 px-6 py-5 text-center">
-                <h2 className="text-2xl md:text-3xl font-bold">🚀 Estrutura Renda Extra</h2>
-                <p className="text-muted-foreground text-sm mt-1">Selecione a ferramenta que deseja usar</p>
+              <div className="border-b border-white/[0.06] bg-white/[0.02] px-6 py-5 md:py-6 text-center relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/[0.03] to-transparent" />
+                <h2 className="relative text-2xl md:text-3xl font-black tracking-tight">🚀 Estrutura Renda Extra</h2>
+                <p className="relative text-white/40 text-sm mt-1.5 font-medium">Selecione a ferramenta que deseja usar</p>
               </div>
 
-              {/* Panel body - tool buttons */}
-              <div className="p-5 md:p-8 flex flex-col gap-3.5">
-                <Button
-                  size="xl"
-                  className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-shadow"
-                  onClick={() => setCurrentView('posts-creator')}
-                >
-                  <Image className="h-6 w-6" />
-                  Posts Creator
-                </Button>
-
-                <Button
-                  size="xl"
-                  className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-shadow"
-                  onClick={() => {
-                    const guestUser = {
-                      id: 'estrutura-guest',
-                      name: 'Membro EUGência',
-                      email: 'eugencia@membro.com',
-                      copies_count: 0,
-                      copies_limit: 99999,
-                      is_paid: true,
-                      days_remaining: 99999,
-                    };
+              {/* Tool buttons */}
+              <div className="p-5 md:p-8 flex flex-col gap-3">
+                {[
+                  { label: 'Posts Creator', icon: <Image className="h-5 w-5" />, gradient: 'from-purple-600 via-pink-500 to-orange-400 hover:from-purple-500 hover:via-pink-400 hover:to-orange-300', shadow: 'shadow-purple-500/20 hover:shadow-purple-500/35', action: () => setCurrentView('posts-creator') },
+                  { label: 'Gerando sua Foto Profissional', icon: <Camera className="h-5 w-5" />, gradient: 'from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:via-teal-400 hover:to-cyan-400', shadow: 'shadow-emerald-500/20 hover:shadow-emerald-500/35', action: () => {
+                    const guestUser = { id: 'estrutura-guest', name: 'Membro EUGência', email: 'eugencia@membro.com', copies_count: 0, copies_limit: 99999, is_paid: true, days_remaining: 99999 };
                     sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
                     navigate('/prompts/dashboard');
-                  }}
-                >
-                  <Camera className="h-6 w-6" />
-                  Gerando sua Foto Profissional
-                </Button>
+                  }},
+                  { label: 'Materiais Disponíveis para Divulgação', icon: <Video className="h-5 w-5" />, gradient: 'from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400', shadow: 'shadow-blue-500/20 hover:shadow-blue-500/35', action: () => setCurrentView('materiais') },
+                  { label: 'Gere um Contrato para seu Cliente', icon: <FileText className="h-5 w-5" />, gradient: 'from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400', shadow: 'shadow-amber-500/20 hover:shadow-amber-500/35', action: () => setCurrentView('contrato') },
+                ].map((tool, i) => (
+                  <button
+                    key={i}
+                    onClick={tool.action}
+                    className={`group relative w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r ${tool.gradient} text-white font-bold text-sm md:text-base shadow-lg ${tool.shadow} transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden`}
+                  >
+                    <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
+                    <span className="relative z-10">{tool.icon}</span>
+                    <span className="relative z-10">{tool.label}</span>
+                  </button>
+                ))}
 
-                <Button
-                  size="xl"
-                  className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-shadow"
-                  onClick={() => setCurrentView('materiais')}
-                >
-                  <Video className="h-6 w-6" />
-                  Materiais Disponíveis para Divulgação
-                </Button>
-
-                <Button
-                  size="xl"
-                  className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-shadow"
-                  onClick={() => setCurrentView('contrato')}
-                >
-                  <FileText className="h-6 w-6" />
-                  Gere um Contrato para seu Cliente
-                </Button>
-
-                <Button
-                  size="xl"
-                  className="w-full gap-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black border-0 text-lg font-extrabold shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-shadow"
+                {/* Tutorial button - special */}
+                <button
                   onClick={() => setCurrentView('tutoriais')}
+                  className="group relative w-full flex items-center justify-center gap-3 px-6 py-5 rounded-xl bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 hover:from-yellow-300 hover:via-yellow-400 hover:to-amber-400 text-black font-extrabold text-base md:text-lg shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden mt-1"
                 >
-                  <Play className="h-7 w-7" />
-                  🎓 Tutorial - Aprenda Como Fazer Tudo
-                </Button>
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors duration-300" />
+                  <Play className="relative z-10 h-6 w-6" />
+                  <span className="relative z-10">🎓 Tutorial - Aprenda Como Fazer Tudo</span>
+                </button>
               </div>
             </div>
           </div>
