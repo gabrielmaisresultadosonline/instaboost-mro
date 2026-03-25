@@ -1394,6 +1394,7 @@ const EstruturaRendaExtra = () => {
           useGradient={useGradient} onUseGradientChange={setUseGradient}
           textColor={textColor} onTextColorChange={setTextColor}
           accentColor={accentColor} onAccentColorChange={setAccentColor}
+          highlight2Color={highlight2Color} onHighlight2ColorChange={setHighlight2Color}
           effectsColor={effectsColor} onEffectsColorChange={setEffectsColor}
           effectsOpacity={effectsOpacity} onEffectsOpacityChange={setEffectsOpacity}
           ctaTextColor={ctaTextColor} onCtaTextColorChange={setCtaTextColor}
