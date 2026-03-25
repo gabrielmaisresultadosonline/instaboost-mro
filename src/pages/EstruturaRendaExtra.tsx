@@ -370,9 +370,7 @@ const EstruturaRendaExtra = () => {
         ctx.globalAlpha = 1;
         // Semi-transparent overlay to keep text readable
         if (useGradient) {
-          const overlay = ctx.createLinearGradient(0, 0, W * 0.3, H);
-          overlay.addColorStop(0, hexToRgba(bgColor1, 0.6));
-          overlay.addColorStop(1, hexToRgba(bgColor2, 0.6));
+          const overlay = makeGrad(ctx, W, H, hexToRgba(bgColor1, 0.6), hexToRgba(bgColor2, 0.6));
           ctx.fillStyle = overlay;
         } else {
           ctx.fillStyle = hexToRgba(bgColor1, 0.6);
