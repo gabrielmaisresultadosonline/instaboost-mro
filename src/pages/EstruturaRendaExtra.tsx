@@ -901,93 +901,118 @@ const EstruturaRendaExtra = () => {
 
   if (currentView === 'menu') {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 md:p-6">
-        {/* Big headline */}
-        <h2 className="text-center text-xl md:text-2xl lg:text-3xl font-extrabold text-yellow-400 mb-6 md:mb-8 max-w-3xl leading-tight px-2">
-          🔥 Faturando mais de 5K mensal prestando serviço com a MRO para empresas!
-        </h2>
-
-        <div className="w-full max-w-4xl flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
-          {/* Tutorial card - left side */}
-          <button
-            onClick={() => setCurrentView('tutoriais')}
-            className="w-full md:w-52 lg:w-56 flex-shrink-0 flex flex-row md:flex-col items-center gap-4 md:gap-3 p-4 md:p-6 rounded-2xl border-2 border-red-500/60 bg-card/50 hover:bg-card/80 hover:border-red-500 transition-all cursor-pointer group"
-          >
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
-              <Play className="w-8 h-8 md:w-10 md:h-10 text-red-500" />
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        {/* Hero header with gradient accent */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-orange-500/5 to-transparent pointer-events-none" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-yellow-500/8 rounded-full blur-[120px] pointer-events-none" />
+          <div className="relative z-10 pt-10 pb-6 md:pt-16 md:pb-10 px-4 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 mb-4 md:mb-6">
+              <span className="text-yellow-400 text-xs font-semibold tracking-wider uppercase">🔥 Oportunidade Exclusiva</span>
             </div>
-            <div className="text-left md:text-center">
-              <p className="text-red-500 font-bold text-sm md:text-base">Tutorial</p>
-              <p className="text-foreground font-extrabold text-lg md:text-xl leading-tight">
-                Aprenda como fazer tudo!
-              </p>
-            </div>
-          </button>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight max-w-4xl mx-auto">
+              <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                Faturando mais de 5K mensal
+              </span>
+              <br />
+              <span className="text-foreground text-xl sm:text-2xl md:text-3xl lg:text-4xl">
+                prestando serviço com a MRO para empresas!
+              </span>
+            </h1>
+          </div>
+        </div>
 
-          {/* Right side - title + buttons */}
-          <div className="flex-1 w-full flex flex-col items-center gap-5">
-            <div className="text-center space-y-1">
-              <h1 className="text-2xl md:text-3xl font-bold">🚀 Estrutura Renda Extra</h1>
-              <p className="text-muted-foreground text-sm">Selecione a ferramenta que deseja usar</p>
-            </div>
+        {/* Main content */}
+        <div className="flex-1 flex items-start justify-center px-4 pb-10 md:pb-16">
+          <div className="w-full max-w-5xl flex flex-col lg:flex-row items-stretch gap-6 lg:gap-10">
 
-            <div className="w-full max-w-md flex flex-col gap-4">
-              <Button
-                size="xl"
-                className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0"
-                onClick={() => setCurrentView('posts-creator')}
-              >
-                <Image className="h-6 w-6" />
-                Posts Creator
-              </Button>
+            {/* Tutorial card - left side */}
+            <button
+              onClick={() => setCurrentView('tutoriais')}
+              className="w-full lg:w-64 xl:w-72 flex-shrink-0 relative overflow-hidden rounded-2xl border border-red-500/40 bg-gradient-to-b from-card via-card to-red-950/20 hover:border-red-500/80 transition-all duration-300 cursor-pointer group p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-5 lg:justify-center shadow-lg shadow-red-500/5 hover:shadow-red-500/15"
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br from-red-500/30 to-red-600/20 border border-red-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0 shadow-lg shadow-red-500/20">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <Play className="w-7 h-7 lg:w-8 lg:h-8 text-red-400 group-hover:text-red-300 transition-colors" fill="currentColor" />
+                </div>
+              </div>
+              <div className="relative z-10 text-left lg:text-center">
+                <p className="text-red-400 font-bold text-sm lg:text-base tracking-wide uppercase">Tutorial</p>
+                <p className="text-foreground font-extrabold text-xl lg:text-2xl leading-tight mt-1">
+                  Aprenda como fazer tudo!
+                </p>
+                <p className="text-muted-foreground text-xs mt-2 hidden lg:block">Clique para acessar</p>
+              </div>
+            </button>
 
-              <Button
-                size="xl"
-                className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0"
-                onClick={() => {
-                  const guestUser = {
-                    id: 'estrutura-guest',
-                    name: 'Membro EUGência',
-                    email: 'eugencia@membro.com',
-                    copies_count: 0,
-                    copies_limit: 99999,
-                    is_paid: true,
-                    days_remaining: 99999,
-                  };
-                  sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
-                  navigate('/prompts/dashboard');
-                }}
-              >
-                <Camera className="h-6 w-6" />
-                Gerando sua Foto Profissional
-              </Button>
+            {/* Right side - dashboard panel */}
+            <div className="flex-1 rounded-2xl border border-border bg-card/60 backdrop-blur-sm shadow-xl overflow-hidden">
+              {/* Panel header */}
+              <div className="border-b border-border bg-card/80 px-6 py-5 text-center">
+                <h2 className="text-2xl md:text-3xl font-bold">🚀 Estrutura Renda Extra</h2>
+                <p className="text-muted-foreground text-sm mt-1">Selecione a ferramenta que deseja usar</p>
+              </div>
 
-              <Button
-                size="xl"
-                className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0"
-                onClick={() => setCurrentView('materiais')}
-              >
-                <Video className="h-6 w-6" />
-                Materiais Disponíveis para Divulgação
-              </Button>
+              {/* Panel body - tool buttons */}
+              <div className="p-5 md:p-8 flex flex-col gap-3.5">
+                <Button
+                  size="xl"
+                  className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-shadow"
+                  onClick={() => setCurrentView('posts-creator')}
+                >
+                  <Image className="h-6 w-6" />
+                  Posts Creator
+                </Button>
 
-              <Button
-                size="xl"
-                className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
-                onClick={() => setCurrentView('contrato')}
-              >
-                <FileText className="h-6 w-6" />
-                Gere um Contrato para seu Cliente
-              </Button>
+                <Button
+                  size="xl"
+                  className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-shadow"
+                  onClick={() => {
+                    const guestUser = {
+                      id: 'estrutura-guest',
+                      name: 'Membro EUGência',
+                      email: 'eugencia@membro.com',
+                      copies_count: 0,
+                      copies_limit: 99999,
+                      is_paid: true,
+                      days_remaining: 99999,
+                    };
+                    sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
+                    navigate('/prompts/dashboard');
+                  }}
+                >
+                  <Camera className="h-6 w-6" />
+                  Gerando sua Foto Profissional
+                </Button>
 
-              <Button
-                size="xl"
-                className="w-full gap-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black border-0 text-lg font-extrabold shadow-lg shadow-yellow-500/30"
-                onClick={() => setCurrentView('tutoriais')}
-              >
-                <Play className="h-7 w-7" />
-                🎓 Tutorial - Aprenda Como Fazer Tudo
-              </Button>
+                <Button
+                  size="xl"
+                  className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-shadow"
+                  onClick={() => setCurrentView('materiais')}
+                >
+                  <Video className="h-6 w-6" />
+                  Materiais Disponíveis para Divulgação
+                </Button>
+
+                <Button
+                  size="xl"
+                  className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-shadow"
+                  onClick={() => setCurrentView('contrato')}
+                >
+                  <FileText className="h-6 w-6" />
+                  Gere um Contrato para seu Cliente
+                </Button>
+
+                <Button
+                  size="xl"
+                  className="w-full gap-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black border-0 text-lg font-extrabold shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-shadow"
+                  onClick={() => setCurrentView('tutoriais')}
+                >
+                  <Play className="h-7 w-7" />
+                  🎓 Tutorial - Aprenda Como Fazer Tudo
+                </Button>
+              </div>
             </div>
           </div>
         </div>
