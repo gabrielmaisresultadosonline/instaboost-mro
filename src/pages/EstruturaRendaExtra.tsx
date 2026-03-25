@@ -911,6 +911,16 @@ const EstruturaRendaExtra = () => {
               Posts Creator
             </Button>
 
+            <a href="https://maisresultadosonline.com.br/prompts/" target="_blank" rel="noopener noreferrer" className="w-full">
+              <Button
+                size="xl"
+                className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0"
+              >
+                <Camera className="h-6 w-6" />
+                Gerando sua Foto Profissional
+              </Button>
+            </a>
+
             <Button
               size="xl"
               className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0 opacity-60 cursor-not-allowed"
