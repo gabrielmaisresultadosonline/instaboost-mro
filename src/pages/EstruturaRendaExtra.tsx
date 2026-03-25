@@ -299,6 +299,7 @@ const EstruturaRendaExtra = () => {
   const [gradientAngle, setGradientAngle] = useState(160);
   const [textColor, setTextColor] = useState('#ffffff');
   const [accentColor, setAccentColor] = useState('#00d4aa');
+  const [highlight2Color, setHighlight2Color] = useState('#ef4444');
   const [ctaColor, setCtaColor] = useState('#facc15');
   const [ctaBgColor, setCtaBgColor] = useState('#00d4aa');
   const [ctaTextColor, setCtaTextColor] = useState('#000000');
@@ -669,7 +670,7 @@ const EstruturaRendaExtra = () => {
           const before = line.substring(0, line.indexOf(creative.highlightWord));
           const highlight = creative.highlightWord;
           const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
-          const hlColor = creative.highlightColor || '#ef4444';
+          const hlColor = highlight2Color;
 
           if (isCenter || isRight) {
             const fullW = ctx.measureText(line).width;
@@ -1155,7 +1156,8 @@ const EstruturaRendaExtra = () => {
                           )}
                         </div>
                         <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
-                        <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
+                        <ColorPicker label="Destaque 1" value={accentColor} onChange={setAccentColor} />
+                        <ColorPicker label="Destaque 2" value={highlight2Color} onChange={setHighlight2Color} />
                         <ColorPicker label="Texto CTA" value={ctaTextColor} onChange={setCtaTextColor} />
                         <ColorPicker label="Fundo CTA" value={ctaBgColor} onChange={setCtaBgColor} />
                         <ColorPicker label="Efeitos de Luz" value={effectsColor} onChange={setEffectsColor} />
@@ -1392,6 +1394,7 @@ const EstruturaRendaExtra = () => {
           useGradient={useGradient} onUseGradientChange={setUseGradient}
           textColor={textColor} onTextColorChange={setTextColor}
           accentColor={accentColor} onAccentColorChange={setAccentColor}
+          highlight2Color={highlight2Color} onHighlight2ColorChange={setHighlight2Color}
           effectsColor={effectsColor} onEffectsColorChange={setEffectsColor}
           effectsOpacity={effectsOpacity} onEffectsOpacityChange={setEffectsOpacity}
           ctaTextColor={ctaTextColor} onCtaTextColorChange={setCtaTextColor}
@@ -1544,6 +1547,7 @@ const PreviewModal: React.FC<{
   useGradient: boolean; onUseGradientChange: (v: boolean) => void;
   textColor: string; onTextColorChange: (v: string) => void;
   accentColor: string; onAccentColorChange: (v: string) => void;
+  highlight2Color: string; onHighlight2ColorChange: (v: string) => void;
   effectsColor: string; onEffectsColorChange: (v: string) => void;
   effectsOpacity: number; onEffectsOpacityChange: (v: number) => void;
   ctaTextColor: string; onCtaTextColorChange: (v: string) => void;
@@ -1553,7 +1557,7 @@ const PreviewModal: React.FC<{
   contentScaleValue: number; onContentScaleChange: (v: number) => void;
   contentOffsetYValue: number; onContentOffsetYChange: (v: number) => void;
   onContentPositionReset: () => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset, bgColor1, onBgColor1Change, bgColor2, onBgColor2Change, useGradient, onUseGradientChange, textColor, onTextColorChange, accentColor, onAccentColorChange, effectsColor, onEffectsColorChange, effectsOpacity, onEffectsOpacityChange, ctaTextColor, onCtaTextColorChange, ctaBgColor, onCtaBgColorChange, ctaBgOpacity, onCtaBgOpacityChange, onLogoUpload, contentScaleValue, onContentScaleChange, contentOffsetYValue, onContentOffsetYChange, onContentPositionReset }) => {
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset, bgColor1, onBgColor1Change, bgColor2, onBgColor2Change, useGradient, onUseGradientChange, textColor, onTextColorChange, accentColor, onAccentColorChange, highlight2Color, onHighlight2ColorChange, effectsColor, onEffectsColorChange, effectsOpacity, onEffectsOpacityChange, ctaTextColor, onCtaTextColorChange, ctaBgColor, onCtaBgColorChange, ctaBgOpacity, onCtaBgOpacityChange, onLogoUpload, contentScaleValue, onContentScaleChange, contentOffsetYValue, onContentOffsetYChange, onContentPositionReset }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -1879,10 +1883,17 @@ const PreviewModal: React.FC<{
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground block mb-1">Destaque</label>
+                  <label className="text-[10px] text-muted-foreground block mb-1">Destaque 1</label>
                   <div className="flex items-center gap-1">
                     <input type="color" value={accentColor} onChange={e => onAccentColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
                     <span className="text-[9px] text-muted-foreground">{accentColor}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground block mb-1">Destaque 2</label>
+                  <div className="flex items-center gap-1">
+                    <input type="color" value={highlight2Color} onChange={e => onHighlight2ColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                    <span className="text-[9px] text-muted-foreground">{highlight2Color}</span>
                   </div>
                 </div>
               </div>
