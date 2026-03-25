@@ -797,6 +797,18 @@ const EstruturaRendaExtra = () => {
             });
             toast.success('Logo restaurada ao padrão');
           }}
+          bgImageOverride={bgImageOverrides[previewId]}
+          onBgImageChange={(ovr) => {
+            if (ovr) {
+              setBgImageOverrides(prev => ({ ...prev, [previewId]: ovr }));
+            } else {
+              setBgImageOverrides(prev => {
+                const next = { ...prev };
+                delete next[previewId];
+                return next;
+              });
+            }
+          }}
         />
       )}
     </div>
