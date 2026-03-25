@@ -196,6 +196,7 @@ const Admin = () => {
     { id: 'announcements', label: 'Avisos', icon: <Bell className="w-4 h-4" /> },
     { id: 'pixel', label: 'Pixel & Ligação', icon: <ExternalLink className="w-4 h-4" /> },
     { id: 'settings', label: 'APIs', icon: <Settings className="w-4 h-4" /> },
+    { id: 'whatsapp', label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" /> },
     { id: 'userlist', label: 'Usuarios Lista', icon: <User className="w-4 h-4" /> },
   ];
 
