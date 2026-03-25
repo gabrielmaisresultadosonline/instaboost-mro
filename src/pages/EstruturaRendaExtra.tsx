@@ -1145,9 +1145,15 @@ const PreviewModal: React.FC<{
             <div className="space-y-2">
               <span className="text-xs font-medium flex items-center gap-1"><MapPin size={14} /> Logo</span>
               <p className="text-[10px] text-muted-foreground">Clique no criativo para posicionar a logo</p>
+              <div className="flex items-center gap-2">
+                <ZoomIn size={10} className="text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground w-14">Tamanho</span>
+                <input type="range" min="0.3" max="4" step="0.1" value={logoOverride?.scale ?? 1} onChange={e => onLogoScaleChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
+                <span className="text-[10px] w-7 text-right">{Math.round((logoOverride?.scale ?? 1) * 100)}%</span>
+              </div>
               {logoOverride && (
                 <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onResetLogo}>
-                  <RotateCcw size={10} /> Resetar posição
+                  <RotateCcw size={10} /> Resetar posição e tamanho
                 </Button>
               )}
             </div>
