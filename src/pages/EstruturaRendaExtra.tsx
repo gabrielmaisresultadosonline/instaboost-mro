@@ -1,9 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube } from 'lucide-react';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { ContratoGenerator } from '@/components/ContratoGenerator';
 import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
+import { EstruturaTrialDashboard } from '@/components/EstruturaTrialDashboard';
+import { LoginPage } from '@/components/LoginPage';
+import { getUserSession } from '@/lib/userStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -280,11 +283,15 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
-type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'tutoriais';
+type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'tutoriais' | 'testes';
 
 const EstruturaRendaExtra = () => {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<ViewMode>('menu');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [mroUsername, setMroUsername] = useState('');
+  const [mroPassword, setMroPassword] = useState('');
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
@@ -308,7 +315,6 @@ const EstruturaRendaExtra = () => {
   const [effectsOpacity, setEffectsOpacity] = useState(0.15);
   const [personOpacity, setPersonOpacity] = useState(0.15);
   const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
-  // Per-creative logo overrides: { [creativeId]: { x: 0-1, y: 0-1 } }
   const [logoOverrides, setLogoOverrides] = useState<Record<number, LogoOverride>>({});
   const [bgImageOverrides, setBgImageOverrides] = useState<Record<number, BgImageOverride>>({});
   const [personOverrides, setPersonOverrides] = useState<Record<number, PersonImage>>({});
@@ -320,16 +326,27 @@ const EstruturaRendaExtra = () => {
   const [contentScale, setContentScale] = useState(1);
   const [contentOffsetY, setContentOffsetY] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
   const [personLaptopLoaded, setPersonLaptopLoaded] = useState<HTMLImageElement | null>(null);
   const [fontsReady, setFontsReady] = useState(false);
 
+  // Check authentication on mount
+  useEffect(() => {
+    const session = getUserSession();
+    if (session.isAuthenticated && session.user) {
+      setIsAuthenticated(true);
+      setMroUsername(session.user.username);
+      const pwd = sessionStorage.getItem('mro_temp_pwd') || '';
+      setMroPassword(pwd);
+    }
+    setCheckingAuth(false);
+  }, []);
+
+  // Load person images and fonts
   useEffect(() => {
     loadImage(personPhoneImg).then(setPersonPhoneLoaded).catch(() => {});
     loadImage(personLaptopImg).then(setPersonLaptopLoaded).catch(() => {});
 
-    // Load Google Fonts for canvas
     const fontDefs = [
       { family: 'Bebas Neue', url: 'https://fonts.gstatic.com/s/bebasneue/v14/JTUSjIg69CK48gW7PXooxW5rygbi49c.woff2', weight: '400' },
       { family: 'Anton', url: 'https://fonts.gstatic.com/s/anton/v25/1Ptgg87GROyAm3K8-C8CSKlv.woff2', weight: '400' },
@@ -348,6 +365,17 @@ const EstruturaRendaExtra = () => {
     })).then(() => setFontsReady(true)).catch(() => setFontsReady(true));
   }, []);
 
+  const handleLoginSuccess = () => {
+    const session = getUserSession();
+    if (session.user) {
+      setMroUsername(session.user.username);
+      const pwd = sessionStorage.getItem('mro_temp_pwd') || '';
+      setMroPassword(pwd);
+    }
+    setIsAuthenticated(true);
+  };
+
+  // Auth checks moved to render section below (after all hooks)
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -899,9 +927,31 @@ const EstruturaRendaExtra = () => {
     return bgColor1;
   };
 
+  // Auth checks (after all hooks)
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  if (currentView === 'testes') {
+    return <EstruturaTrialDashboard onBack={() => setCurrentView('menu')} mroUsername={mroUsername} mroPassword={mroPassword} />;
+  }
+
   if (currentView === 'menu') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
+        {/* Logged-in user indicator */}
+        <div className="absolute top-3 right-4 z-20 flex items-center gap-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-1.5 border border-white/10">
+          <User size={14} className="text-yellow-400" />
+          <span className="text-yellow-400 font-bold text-xs">{mroUsername}</span>
+        </div>
         {/* Animated background elements */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-yellow-500/[0.04] rounded-full blur-[150px] animate-pulse" />
@@ -979,6 +1029,24 @@ const EstruturaRendaExtra = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/[0.03] to-transparent" />
                 <h2 className="relative text-2xl md:text-3xl font-black tracking-tight">Tudo que você vai precisar.</h2>
                 <p className="relative text-white/40 text-sm mt-1.5 font-medium">Selecione abaixo...</p>
+              </div>
+
+              {/* GERAR TESTE GRÁTIS - Big CTA button */}
+              <div className="p-5 md:p-8 pb-0 md:pb-0">
+                <button
+                  onClick={() => setCurrentView('testes')}
+                  className="group relative w-full flex flex-col items-center justify-center gap-2 px-6 py-6 rounded-2xl bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-500 text-black font-black text-lg md:text-xl shadow-xl shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden border-2 border-yellow-400/50"
+                >
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
+                  <div className="relative z-10 flex items-center gap-3">
+                    <TestTube className="h-6 w-6" />
+                    <span>GERAR TESTE GRÁTIS</span>
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <p className="relative z-10 text-black/60 text-xs md:text-sm font-medium max-w-md text-center leading-snug">
+                    Gere teste grátis antes de adicionar de forma fixa o perfil — aumenta 3x a conversão quando você libera um teste para o cliente!
+                  </p>
+                </button>
               </div>
 
               {/* Tool buttons */}
