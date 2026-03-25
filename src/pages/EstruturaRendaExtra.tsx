@@ -980,6 +980,10 @@ const EstruturaRendaExtra = () => {
     return <ContratoGenerator onBack={() => setCurrentView('menu')} />;
   }
 
+  if (currentView === 'tutoriais') {
+    return <EstruturaTutoriais onBack={() => setCurrentView('menu')} />;
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
