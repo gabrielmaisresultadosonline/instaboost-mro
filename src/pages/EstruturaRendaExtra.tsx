@@ -697,18 +697,18 @@ const EstruturaRendaExtra = () => {
       }
       y += 35;
     } else if (isRight) {
-      const divGrad = ctx.createLinearGradient(W - 500, y, W - 80, y);
+      const divGrad = ctx.createLinearGradient(W - 520, y, W - marginX, y);
       divGrad.addColorStop(0, hexToRgba(accentColor, 0));
       divGrad.addColorStop(1, accentColor);
       ctx.fillStyle = divGrad;
-      ctx.fillRect(W - 500, y, 420, 3);
+      ctx.fillRect(W - 520, y, 420, 3);
       ctx.beginPath();
-      ctx.arc(W - 80, y + 1.5, 5, 0, Math.PI * 2);
+      ctx.arc(W - marginX, y + 1.5, 5, 0, Math.PI * 2);
       ctx.fillStyle = accentColor;
       ctx.fill();
       y += 45;
     } else if (isCenter) {
-      const divW = 420;
+      const divW = 380;
       const divGrad = ctx.createLinearGradient((W - divW) / 2, y, (W + divW) / 2, y);
       divGrad.addColorStop(0, hexToRgba(accentColor, 0));
       divGrad.addColorStop(0.5, accentColor);
@@ -717,13 +717,13 @@ const EstruturaRendaExtra = () => {
       ctx.fillRect((W - divW) / 2, y, divW, 3);
       y += 45;
     } else {
-      const divGrad = ctx.createLinearGradient(80, y, 500, y);
+      const divGrad = ctx.createLinearGradient(marginX, y, marginX + 420, y);
       divGrad.addColorStop(0, accentColor);
       divGrad.addColorStop(1, hexToRgba(accentColor, 0));
       ctx.fillStyle = divGrad;
-      ctx.fillRect(80, y, 420, 3);
+      ctx.fillRect(marginX, y, 420, 3);
       ctx.beginPath();
-      ctx.arc(80, y + 1.5, 5, 0, Math.PI * 2);
+      ctx.arc(marginX, y + 1.5, 5, 0, Math.PI * 2);
       ctx.fillStyle = accentColor;
       ctx.fill();
       y += 45;
