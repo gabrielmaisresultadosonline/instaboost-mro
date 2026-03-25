@@ -964,7 +964,8 @@ const PreviewModal: React.FC<{
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
+  const rafRef = useRef<number>(0);
   const [showBgControls, setShowBgControls] = useState(!!bgImageOverride);
 
   React.useEffect(() => {
@@ -1001,14 +1002,30 @@ const PreviewModal: React.FC<{
     onLogoMove(clickX / 1080, clickY / 1350);
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDragging || !logoUrl || !canvasRef.current) return;
+  const computeLogoPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const scaleX = 1080 / rect.width;
-    const scaleY = 1350 / rect.height;
-    const mx = (e.clientX - rect.left) * scaleX;
-    const my = (e.clientY - rect.top) * scaleY;
+    const mx = (e.clientX - rect.left) * (1080 / rect.width);
+    const my = (e.clientY - rect.top) * (1350 / rect.height);
     onLogoMove(mx / 1080, my / 1350);
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!logoUrl) return;
+    isDraggingRef.current = true;
+    canvasRef.current?.setPointerCapture(e.pointerId);
+    computeLogoPos(e);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isDraggingRef.current || !logoUrl) return;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => computeLogoPos(e));
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    isDraggingRef.current = false;
+    canvasRef.current?.releasePointerCapture(e.pointerId);
   };
 
   return (
@@ -1018,12 +1035,12 @@ const PreviewModal: React.FC<{
         <div className="relative flex-shrink-0" style={{ maxWidth: '400px' }}>
           <canvas
             ref={canvasRef}
-            className={`w-full rounded-xl shadow-2xl ${logoUrl ? 'cursor-crosshair' : ''}`}
+            className={`w-full rounded-xl shadow-2xl ${logoUrl ? 'cursor-crosshair' : ''} touch-none`}
             onClick={handleCanvasClick}
-            onMouseDown={() => setIsDragging(true)}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseLeave={() => setIsDragging(false)}
-            onMouseMove={handleMouseMove}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
           />
           <div className="absolute top-3 right-3 flex gap-2">
             <Button size="sm" onClick={onDownload} className="bg-primary text-primary-foreground">
