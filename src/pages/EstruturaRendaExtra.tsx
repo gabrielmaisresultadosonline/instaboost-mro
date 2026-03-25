@@ -927,6 +927,23 @@ const EstruturaRendaExtra = () => {
     return bgColor1;
   };
 
+  // Auth checks (after all hooks)
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  if (currentView === 'testes') {
+    return <EstruturaTrialDashboard onBack={() => setCurrentView('menu')} mroUsername={mroUsername} mroPassword={mroPassword} />;
+  }
+
   if (currentView === 'menu') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
