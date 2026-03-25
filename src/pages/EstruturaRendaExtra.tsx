@@ -1336,7 +1336,19 @@ const PreviewModal: React.FC<{
   patternValue: PatternConfig;
   onPatternChange: (cfg: PatternConfig) => void;
   onPatternReset: () => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset }) => {
+  // Color & effects props
+  bgColor1: string; onBgColor1Change: (v: string) => void;
+  bgColor2: string; onBgColor2Change: (v: string) => void;
+  useGradient: boolean; onUseGradientChange: (v: boolean) => void;
+  textColor: string; onTextColorChange: (v: string) => void;
+  accentColor: string; onAccentColorChange: (v: string) => void;
+  effectsColor: string; onEffectsColorChange: (v: string) => void;
+  effectsOpacity: number; onEffectsOpacityChange: (v: number) => void;
+  ctaTextColor: string; onCtaTextColorChange: (v: string) => void;
+  ctaBgColor: string; onCtaBgColorChange: (v: string) => void;
+  ctaBgOpacity: number; onCtaBgOpacityChange: (v: number) => void;
+  onLogoUpload: (url: string) => void;
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset, bgColor1, onBgColor1Change, bgColor2, onBgColor2Change, useGradient, onUseGradientChange, textColor, onTextColorChange, accentColor, onAccentColorChange, effectsColor, onEffectsColorChange, effectsOpacity, onEffectsOpacityChange, ctaTextColor, onCtaTextColorChange, ctaBgColor, onCtaBgColorChange, ctaBgOpacity, onCtaBgOpacityChange, onLogoUpload }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
