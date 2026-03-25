@@ -329,6 +329,20 @@ const EstruturaRendaExtra = () => {
     }
   };
 
+  const makeGrad = (ctx: CanvasRenderingContext2D, w: number, h: number, c1: string, c2: string) => {
+    const rad = (gradientAngle - 90) * Math.PI / 180;
+    const cx = w / 2, cy = h / 2;
+    const len = Math.abs(w * Math.cos(rad)) + Math.abs(h * Math.sin(rad));
+    const x1 = cx - Math.cos(rad) * len / 2;
+    const y1 = cy - Math.sin(rad) * len / 2;
+    const x2 = cx + Math.cos(rad) * len / 2;
+    const y2 = cy + Math.sin(rad) * len / 2;
+    const g = ctx.createLinearGradient(x1, y1, x2, y2);
+    g.addColorStop(0, c1);
+    g.addColorStop(1, c2);
+    return g;
+  };
+
   const drawCreative = useCallback(async (creative: CreativeData, canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext('2d')!;
     const W = 1080;
