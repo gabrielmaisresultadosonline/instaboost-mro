@@ -678,7 +678,7 @@ const EstruturaRendaExtra = () => {
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                     Fundo 2
-                    <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted">
+                    <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted cursor-pointer">
                       {useGradient ? 'Degradê' : 'Sólido'}
                     </button>
                   </label>
@@ -686,6 +686,13 @@ const EstruturaRendaExtra = () => {
                     <input type="color" value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" disabled={!useGradient} />
                     <Input value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="h-8 text-xs" disabled={!useGradient} />
                   </div>
+                  {useGradient && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">Ângulo:</span>
+                      <input type="range" min={0} max={360} value={gradientAngle} onChange={e => setGradientAngle(Number(e.target.value))} className="flex-1 h-1.5 accent-primary" />
+                      <span className="text-[10px] text-muted-foreground w-8 text-right">{gradientAngle}°</span>
+                    </div>
+                  )}
                 </div>
                 <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
                 <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
