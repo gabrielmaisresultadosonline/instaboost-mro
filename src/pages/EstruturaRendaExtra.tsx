@@ -839,7 +839,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, effectsColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPositionOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
