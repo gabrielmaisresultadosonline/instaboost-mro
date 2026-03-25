@@ -223,7 +223,11 @@ serve(async (req) => {
         );
       }
 
-      // Save to database
+      // Save to database - use 6 hours from API
+      const trialHoursFromApi = apiTrialResult.timeLeft || trialHours;
+      const apiExpiresAt = new Date();
+      apiExpiresAt.setHours(apiExpiresAt.getHours() + trialHoursFromApi);
+
       const { error: insertError } = await supabase
         .from('free_trial_registrations')
         .insert({
@@ -232,39 +236,32 @@ serve(async (req) => {
           whatsapp: client_whatsapp || '00000000000',
           instagram_username: normalizedIG,
           generated_username: mro_username,
-          generated_password: mro_password,
+          generated_password: mro_password || '',
           mro_master_user: mro_username,
-          expires_at: expiresAt.toISOString(),
+          expires_at: apiExpiresAt.toISOString(),
           email_sent: false,
           instagram_removed: false,
         });
 
       if (insertError) {
         log("Insert error", { error: insertError });
-        // Rollback: remove Instagram
-        try {
-          await fetch(`${SQUARE_API_URL}/remover-instagram`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: mro_username, instagram: normalizedIG })
-          });
-        } catch {}
         return new Response(
           JSON.stringify({ success: false, message: 'Erro ao salvar registro' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         );
       }
 
-      log("Trial created", { instagram: normalizedIG, expires: expiresAt.toISOString() });
+      log("Trial created", { instagram: normalizedIG, expires: apiExpiresAt.toISOString(), timeLeft: trialHoursFromApi });
 
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Teste criado com sucesso!',
+          message: 'Teste de 6 horas criado com sucesso!',
           trial: {
             instagram_username: normalizedIG,
-            expires_at: expiresAt.toISOString(),
-            trial_duration_hours: trialHours,
+            expires_at: apiExpiresAt.toISOString(),
+            trial_duration_hours: trialHoursFromApi,
+            totalUserMes: apiTrialResult.totalUserMes,
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
