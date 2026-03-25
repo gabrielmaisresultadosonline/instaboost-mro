@@ -901,71 +901,94 @@ const EstruturaRendaExtra = () => {
 
   if (currentView === 'menu') {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-md flex flex-col items-center gap-8">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">🚀 Estrutura Renda Extra</h1>
-            <p className="text-muted-foreground text-sm">Selecione a ferramenta que deseja usar</p>
-          </div>
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 md:p-6">
+        {/* Big headline */}
+        <h2 className="text-center text-xl md:text-2xl lg:text-3xl font-extrabold text-yellow-400 mb-6 md:mb-8 max-w-3xl leading-tight px-2">
+          🔥 Faturando mais de 5K mensal prestando serviço com a MRO para empresas!
+        </h2>
 
-          <div className="w-full flex flex-col gap-4">
-            <Button
-              size="xl"
-              className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0"
-              onClick={() => setCurrentView('posts-creator')}
-            >
-              <Image className="h-6 w-6" />
-              Posts Creator
-            </Button>
+        <div className="w-full max-w-4xl flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+          {/* Tutorial card - left side */}
+          <button
+            onClick={() => setCurrentView('tutoriais')}
+            className="w-full md:w-52 lg:w-56 flex-shrink-0 flex flex-row md:flex-col items-center gap-4 md:gap-3 p-4 md:p-6 rounded-2xl border-2 border-red-500/60 bg-card/50 hover:bg-card/80 hover:border-red-500 transition-all cursor-pointer group"
+          >
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+              <Play className="w-8 h-8 md:w-10 md:h-10 text-red-500" />
+            </div>
+            <div className="text-left md:text-center">
+              <p className="text-red-500 font-bold text-sm md:text-base">Tutorial</p>
+              <p className="text-foreground font-extrabold text-lg md:text-xl leading-tight">
+                Aprenda como fazer tudo!
+              </p>
+            </div>
+          </button>
 
-            <Button
-              size="xl"
-              className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0"
-              onClick={() => {
-                // Set session so PromptsMRODashboard skips login
-                const guestUser = {
-                  id: 'estrutura-guest',
-                  name: 'Membro EUGência',
-                  email: 'eugencia@membro.com',
-                  copies_count: 0,
-                  copies_limit: 99999,
-                  is_paid: true,
-                  days_remaining: 99999,
-                };
-                sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
-                navigate('/prompts/dashboard');
-              }}
-            >
-              <Camera className="h-6 w-6" />
-              Gerando sua Foto Profissional
-            </Button>
+          {/* Right side - title + buttons */}
+          <div className="flex-1 w-full flex flex-col items-center gap-5">
+            <div className="text-center space-y-1">
+              <h1 className="text-2xl md:text-3xl font-bold">🚀 Estrutura Renda Extra</h1>
+              <p className="text-muted-foreground text-sm">Selecione a ferramenta que deseja usar</p>
+            </div>
 
-            <Button
-              size="xl"
-              className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0"
-              onClick={() => setCurrentView('materiais')}
-            >
-              <Video className="h-6 w-6" />
-              Materiais Disponíveis para Divulgação
-            </Button>
+            <div className="w-full max-w-md flex flex-col gap-4">
+              <Button
+                size="xl"
+                className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0"
+                onClick={() => setCurrentView('posts-creator')}
+              >
+                <Image className="h-6 w-6" />
+                Posts Creator
+              </Button>
 
-            <Button
-              size="xl"
-              className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
-              onClick={() => setCurrentView('contrato')}
-            >
-              <FileText className="h-6 w-6" />
-              Gere um Contrato para seu Cliente
-            </Button>
+              <Button
+                size="xl"
+                className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0"
+                onClick={() => {
+                  const guestUser = {
+                    id: 'estrutura-guest',
+                    name: 'Membro EUGência',
+                    email: 'eugencia@membro.com',
+                    copies_count: 0,
+                    copies_limit: 99999,
+                    is_paid: true,
+                    days_remaining: 99999,
+                  };
+                  sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
+                  navigate('/prompts/dashboard');
+                }}
+              >
+                <Camera className="h-6 w-6" />
+                Gerando sua Foto Profissional
+              </Button>
 
-            <Button
-              size="xl"
-              className="w-full gap-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black border-0 text-lg font-extrabold shadow-lg shadow-yellow-500/30"
-              onClick={() => setCurrentView('tutoriais')}
-            >
-              <Play className="h-7 w-7" />
-              🎓 Tutorial - Aprenda Como Fazer Tudo
-            </Button>
+              <Button
+                size="xl"
+                className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0"
+                onClick={() => setCurrentView('materiais')}
+              >
+                <Video className="h-6 w-6" />
+                Materiais Disponíveis para Divulgação
+              </Button>
+
+              <Button
+                size="xl"
+                className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+                onClick={() => setCurrentView('contrato')}
+              >
+                <FileText className="h-6 w-6" />
+                Gere um Contrato para seu Cliente
+              </Button>
+
+              <Button
+                size="xl"
+                className="w-full gap-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black border-0 text-lg font-extrabold shadow-lg shadow-yellow-500/30"
+                onClick={() => setCurrentView('tutoriais')}
+              >
+                <Play className="h-7 w-7" />
+                🎓 Tutorial - Aprenda Como Fazer Tudo
+              </Button>
+            </div>
           </div>
         </div>
       </div>
