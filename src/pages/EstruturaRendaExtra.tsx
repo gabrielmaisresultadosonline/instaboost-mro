@@ -431,24 +431,24 @@ const EstruturaRendaExtra = () => {
         // Original category-based patterns
         if (catIndex === 0) {
           drawDiamondGrid(ctx, W, H, accentColor);
-          drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, '#ef4444');
-          drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, accentColor);
+          drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, effectsColor);
+          drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, effectsColor);
           drawCircuitLines(ctx, W, H, accentColor);
         } else if (catIndex === 1) {
           drawHexPattern(ctx, W, H, accentColor);
-          drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, accentColor);
+          drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, effectsColor);
           drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
         } else if (catIndex === 2) {
           drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
-          drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, accentColor);
+          drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, effectsColor);
         } else if (catIndex === 3) {
           drawCircuitLines(ctx, W, H, ctaColor);
-          drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, ctaColor);
+          drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, effectsColor);
           drawHexPattern(ctx, W, H, ctaColor);
         } else {
           drawDiamondGrid(ctx, W, H, accentColor);
           drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
-          drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, accentColor);
+          drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, effectsColor);
         }
       } else {
         // Specific pattern chosen
@@ -464,8 +464,8 @@ const EstruturaRendaExtra = () => {
         } else if (pType === 'rings') {
           drawConcentricRings(ctx, W * 0.5, H * 0.4, pColor, 350);
         }
-        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, pColor);
-        drawGlowOrb(ctx, W * 0.2, H * 0.8, 200, pColor);
+        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, effectsColor);
+        drawGlowOrb(ctx, W * 0.2, H * 0.8, 200, effectsColor);
       }
       drawFloatingShapes(ctx, W, H, accentColor, creative.id);
       ctx.globalAlpha = 1;
