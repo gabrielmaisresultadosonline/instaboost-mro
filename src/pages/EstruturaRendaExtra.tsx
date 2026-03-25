@@ -388,8 +388,9 @@ const EstruturaRendaExtra = () => {
     }
 
     // ── Person image (real photo overlay) ──
-    const selectedPerson = personImage === 'phone' ? personPhoneLoaded : personImage === 'laptop' ? personLaptopLoaded : null;
-    if (selectedPerson && personImage !== 'none') {
+    const effectivePersonImage = personOverrides[creative.id] !== undefined ? personOverrides[creative.id] : personImage;
+    const selectedPerson = effectivePersonImage === 'phone' ? personPhoneLoaded : effectivePersonImage === 'laptop' ? personLaptopLoaded : null;
+    if (selectedPerson && effectivePersonImage !== 'none') {
       const personH = H * 0.7;
       const personW = (selectedPerson.width / selectedPerson.height) * personH;
       const px = W - personW + 60;
