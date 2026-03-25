@@ -811,6 +811,14 @@ const EstruturaRendaExtra = () => {
               });
             }
           }}
+          personImageValue={personOverrides[previewId] !== undefined ? personOverrides[previewId] : personImage}
+          onPersonImageChange={(val) => {
+            if (val === personImage) {
+              setPersonOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
+            } else {
+              setPersonOverrides(prev => ({ ...prev, [previewId]: val }));
+            }
+          }}
         />
       )}
     </div>
