@@ -787,13 +787,7 @@ const EstruturaRendaExtra = () => {
                   onToggle={() => toggleSelect(creative.id)}
                   onDownload={() => downloadSingle(creative)}
                   onPreview={() => setPreviewId(creative.id)}
-                  bgStyle={getPreviewBg()}
-                  textColor={textColor}
-                  accentColor={accentColor}
-                  ctaColor={ctaColor}
-                  logoUrl={logoUrl}
-                  showNumbers={showNumbers}
-                  showBadge={showBadge}
+                  drawCreative={drawCreative}
                   hasLogoOverride={!!logoOverrides[creative.id]}
                 />
               ))}
