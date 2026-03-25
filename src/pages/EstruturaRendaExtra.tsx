@@ -284,6 +284,9 @@ const EstruturaRendaExtra = () => {
   const [textColor, setTextColor] = useState('#ffffff');
   const [accentColor, setAccentColor] = useState('#00d4aa');
   const [ctaColor, setCtaColor] = useState('#facc15');
+  const [ctaBgColor, setCtaBgColor] = useState('#00d4aa');
+  const [ctaTextColor, setCtaTextColor] = useState('#000000');
+  const [ctaBgOpacity, setCtaBgOpacity] = useState(0.15);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [downloading, setDownloading] = useState(false);
@@ -763,26 +766,26 @@ const EstruturaRendaExtra = () => {
       const pillW = ctaTextWidth + 80;
       const pillH = 80;
       const pillX = (W - pillW) / 2;
-      ctx.fillStyle = ctaColor;
+      ctx.fillStyle = hexToRgba(ctaBgColor, ctaBgOpacity);
       roundRect(ctx, pillX, ctaY, pillW, pillH, 40);
       ctx.fill();
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = ctaTextColor;
       ctx.textAlign = 'center';
       ctx.fillText(creative.cta, W / 2, ctaY + 54);
     } else if (layout === 'minimal-center') {
       // Underline-style CTA
-      ctx.fillStyle = ctaColor;
+      ctx.fillStyle = ctaTextColor;
       ctx.textAlign = 'center';
       ctx.fillText(creative.cta, W / 2, ctaY + 58);
-      ctx.fillStyle = hexToRgba(ctaColor, 0.4);
+      ctx.fillStyle = hexToRgba(ctaBgColor, 0.4);
       ctx.fillRect((W - ctaTextWidth) / 2, ctaY + 65, ctaTextWidth, 2);
     } else if (layout === 'bold-stack') {
       // Full-width CTA bar
-      ctx.fillStyle = hexToRgba(ctaColor, 0.15);
+      ctx.fillStyle = hexToRgba(ctaBgColor, ctaBgOpacity);
       ctx.fillRect(marginX - 20, ctaY, W - (marginX - 20) * 2, 80);
-      ctx.fillStyle = ctaColor;
+      ctx.fillStyle = ctaTextColor;
       ctx.textAlign = 'center';
-      ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+      ctx.shadowColor = hexToRgba(ctaTextColor, 0.3);
       ctx.shadowBlur = 15;
       ctx.fillText(creative.cta, W / 2, ctaY + 54);
       ctx.shadowBlur = 0;
@@ -790,15 +793,15 @@ const EstruturaRendaExtra = () => {
       // Standard rounded CTA box
       const ctaBoxW = W - marginX * 2 + 40;
       const ctaBoxX = (W - ctaBoxW) / 2;
-      ctx.fillStyle = hexToRgba(accentColor, 0.08);
+      ctx.fillStyle = hexToRgba(ctaBgColor, ctaBgOpacity);
       roundRect(ctx, ctaBoxX, ctaY, ctaBoxW, 90, 18);
       ctx.fill();
-      ctx.strokeStyle = hexToRgba(accentColor, 0.2);
+      ctx.strokeStyle = hexToRgba(ctaBgColor, 0.3);
       ctx.lineWidth = 1;
       roundRect(ctx, ctaBoxX, ctaY, ctaBoxW, 90, 18);
       ctx.stroke();
-      ctx.fillStyle = ctaColor;
-      ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+      ctx.fillStyle = ctaTextColor;
+      ctx.shadowColor = hexToRgba(ctaTextColor, 0.3);
       ctx.shadowBlur = 15;
       ctx.textAlign = textAlign;
       ctx.fillText(creative.cta, isCenter ? W / 2 : isRight ? W - marginX - 10 : marginX + 10, ctaY + 58);
@@ -840,7 +843,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, effectsColor, effectsOpacity, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPositionOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, ctaBgColor, ctaTextColor, ctaBgOpacity, effectsColor, effectsOpacity, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPositionOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -933,8 +936,19 @@ const EstruturaRendaExtra = () => {
                 </div>
                 <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
                 <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
-                <ColorPicker label="CTA" value={ctaColor} onChange={setCtaColor} />
+                <ColorPicker label="Texto CTA" value={ctaTextColor} onChange={setCtaTextColor} />
+                <ColorPicker label="Fundo CTA" value={ctaBgColor} onChange={setCtaBgColor} />
                 <ColorPicker label="Efeitos de Luz" value={effectsColor} onChange={setEffectsColor} />
+              </div>
+
+              {/* CTA bg opacity */}
+              <div className="flex items-center gap-4 flex-wrap text-sm">
+                <div className="flex items-center gap-2">
+                  <Sliders size={14} className="text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs">Opacidade Fundo CTA:</span>
+                  <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => setCtaBgOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                  <span className="text-xs text-muted-foreground w-8">{Math.round(ctaBgOpacity * 100)}%</span>
+                </div>
               </div>
 
               {/* Toggles row */}
