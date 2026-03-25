@@ -535,11 +535,15 @@ const EstruturaRendaExtra = () => {
     const isCenter = layout === 'center' || layout === 'impact-center' || layout === 'minimal-center' || layout === 'bold-stack';
     const isRight = layout === 'right';
 
+    // Generous margins to prevent text from hugging edges
+    const marginX = 100;
+    const maxTextW = W - marginX * 2;
+
     // Font sizes per layout
-    const headlineFontSize = layout === 'impact-center' ? 92 : layout === 'bold-stack' ? 84 : layout === 'minimal-center' ? 70 : layout === 'right' ? 76 : layout === 'center' ? 78 : 74;
-    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 42 : layout === 'bold-stack' ? 38 : 40;
-    const ctaFontSize = layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 36;
-    const headlineSpacing = layout === 'impact-center' ? 112 : layout === 'bold-stack' ? 102 : layout === 'minimal-center' ? 88 : 95;
+    const headlineFontSize = layout === 'impact-center' ? 88 : layout === 'bold-stack' ? 80 : layout === 'minimal-center' ? 68 : layout === 'right' ? 72 : layout === 'center' ? 74 : 72;
+    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 40 : layout === 'bold-stack' ? 38 : 38;
+    const ctaFontSize = layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 34;
+    const headlineSpacing = layout === 'impact-center' ? 108 : layout === 'bold-stack' ? 98 : layout === 'minimal-center' ? 86 : 92;
 
     // Font families - using loaded Google Fonts
     const headlineFont = layout === 'impact-center' ? `400 ${headlineFontSize}px 'Bebas Neue', Impact, sans-serif`
@@ -565,26 +569,36 @@ const EstruturaRendaExtra = () => {
 
     // Alignment
     const textAlign: CanvasTextAlign = isCenter ? 'center' : isRight ? 'right' : 'left';
-    const textX = isCenter ? W / 2 : isRight ? W - 80 : 80;
+    const textX = isCenter ? W / 2 : isRight ? W - marginX : marginX;
 
-    // Start Y position
-    const startY = layout === 'impact-center' ? 420 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 440 : Math.max(badgeEndY + 260, 380);
+    // Start Y position - vertically centered
+    const startY = layout === 'impact-center' ? 400 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 420 : Math.max(badgeEndY + 240, 360);
+
+    // Helper: auto-shrink font if headline is too wide
+    const fitFont = (baseFontStr: string, baseSize: number, text: string): string => {
+      ctx.font = baseFontStr;
+      const w = ctx.measureText(text).width;
+      if (w <= maxTextW) return baseFontStr;
+      const ratio = maxTextW / w;
+      const newSize = Math.floor(baseSize * ratio);
+      return baseFontStr.replace(`${baseSize}px`, `${newSize}px`);
+    };
 
     // ── Headline ──
     const headlineLines = creative.headline.split('\n');
-    ctx.font = headlineFont;
     ctx.textAlign = textAlign;
     let y = startY;
 
     if (layout === 'bold-stack') {
       // Each line gets its own colored background strip
       for (const line of headlineLines) {
+        ctx.font = fitFont(headlineFont, headlineFontSize, line);
         const metrics = ctx.measureText(line);
-        const lineW = metrics.width + 40;
-        const lineH = headlineFontSize + 20;
-        const stripX = isCenter ? (W - lineW) / 2 : isRight ? W - 80 - lineW : 60;
+        const lineW = metrics.width + 50;
+        const lineH = headlineFontSize + 24;
+        const stripX = isCenter ? (W - lineW) / 2 : isRight ? W - marginX - lineW : marginX - 25;
         ctx.fillStyle = hexToRgba(accentColor, 0.15);
-        roundRect(ctx, stripX, y - headlineFontSize + 5, lineW, lineH, 8);
+        roundRect(ctx, stripX, y - headlineFontSize + 5, lineW, lineH, 10);
         ctx.fill();
         ctx.fillStyle = textColor;
         ctx.fillText(line, textX, y);
@@ -592,39 +606,28 @@ const EstruturaRendaExtra = () => {
       }
     } else {
       for (const line of headlineLines) {
+        ctx.font = fitFont(headlineFont, headlineFontSize, line);
+
         if (creative.highlightWord && line.includes(creative.highlightWord)) {
           // Highlight word handling
           const before = line.substring(0, line.indexOf(creative.highlightWord));
           const highlight = creative.highlightWord;
           const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
-          
-          if (isCenter) {
-            // For centered: measure total, then draw parts
+          const hlColor = creative.highlightColor || '#ef4444';
+
+          if (isCenter || isRight) {
             const fullW = ctx.measureText(line).width;
-            let x = (W - fullW) / 2;
+            let x = isCenter ? (W - fullW) / 2 : W - marginX - fullW;
             ctx.textAlign = 'left';
             if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
-            const hlColor = creative.highlightColor || '#ef4444';
-            ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
-            ctx.fillStyle = hlColor; ctx.fillText(highlight, x, y);
-            ctx.shadowBlur = 0; x += ctx.measureText(highlight).width;
-            if (after) { ctx.fillStyle = textColor; ctx.fillText(after, x, y); }
-            ctx.textAlign = textAlign;
-          } else if (isRight) {
-            const fullW = ctx.measureText(line).width;
-            let x = W - 80 - fullW;
-            ctx.textAlign = 'left';
-            if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
-            const hlColor = creative.highlightColor || '#ef4444';
             ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
             ctx.fillStyle = hlColor; ctx.fillText(highlight, x, y);
             ctx.shadowBlur = 0; x += ctx.measureText(highlight).width;
             if (after) { ctx.fillStyle = textColor; ctx.fillText(after, x, y); }
             ctx.textAlign = textAlign;
           } else {
-            let x = 80;
+            let x = marginX;
             if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
-            const hlColor = creative.highlightColor || '#ef4444';
             ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
             ctx.fillStyle = hlColor;
             ctx.textAlign = 'left';
@@ -634,14 +637,40 @@ const EstruturaRendaExtra = () => {
             ctx.textAlign = textAlign;
           }
         } else {
-          ctx.fillStyle = textColor;
-          if (layout === 'impact-center') {
-            // Add text shadow for impact
-            ctx.shadowColor = hexToRgba(accentColor, 0.4);
-            ctx.shadowBlur = 25;
+          // Make first word of each headline line bold/accent for visual hierarchy
+          const words = line.split(' ');
+          if (words.length > 1 && layout !== 'impact-center') {
+            const firstWord = words[0];
+            const rest = ' ' + words.slice(1).join(' ');
+            if (isCenter || isRight) {
+              const fullW = ctx.measureText(line).width;
+              let x = isCenter ? (W - fullW) / 2 : W - marginX - fullW;
+              ctx.textAlign = 'left';
+              ctx.fillStyle = accentColor;
+              ctx.fillText(firstWord, x, y);
+              x += ctx.measureText(firstWord).width;
+              ctx.fillStyle = textColor;
+              ctx.fillText(rest, x, y);
+              ctx.textAlign = textAlign;
+            } else {
+              let x = marginX;
+              ctx.textAlign = 'left';
+              ctx.fillStyle = accentColor;
+              ctx.fillText(firstWord, x, y);
+              x += ctx.measureText(firstWord).width;
+              ctx.fillStyle = textColor;
+              ctx.fillText(rest, x, y);
+              ctx.textAlign = textAlign;
+            }
+          } else {
+            ctx.fillStyle = textColor;
+            if (layout === 'impact-center') {
+              ctx.shadowColor = hexToRgba(accentColor, 0.4);
+              ctx.shadowBlur = 25;
+            }
+            ctx.fillText(line, textX, y);
+            ctx.shadowBlur = 0;
           }
-          ctx.fillText(line, textX, y);
-          ctx.shadowBlur = 0;
         }
         y += headlineSpacing;
       }
