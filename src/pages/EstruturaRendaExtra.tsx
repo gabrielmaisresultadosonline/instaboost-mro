@@ -951,7 +951,7 @@ const EstruturaRendaExtra = () => {
               disabled
             >
               <FileText className="h-6 w-6" />
-              Contrato para seu Cliente
+              Gere um Contrato para seu Cliente
               <span className="text-xs opacity-75">(Em breve)</span>
             </Button>
           </div>
