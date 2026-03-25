@@ -554,11 +554,12 @@ const EstruturaRendaExtra = () => {
     const marginX = 100;
     const maxTextW = W - marginX * 2;
 
-    // Font sizes per layout
-    const headlineFontSize = layout === 'impact-center' ? 88 : layout === 'bold-stack' ? 80 : layout === 'minimal-center' ? 68 : layout === 'right' ? 72 : layout === 'center' ? 74 : 72;
-    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 40 : layout === 'bold-stack' ? 38 : 38;
-    const ctaFontSize = layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 34;
-    const headlineSpacing = layout === 'impact-center' ? 108 : layout === 'bold-stack' ? 98 : layout === 'minimal-center' ? 86 : 92;
+    // Font sizes per layout (scaled by contentScale)
+    const sc = contentScale;
+    const headlineFontSize = Math.round((layout === 'impact-center' ? 88 : layout === 'bold-stack' ? 80 : layout === 'minimal-center' ? 68 : layout === 'right' ? 72 : layout === 'center' ? 74 : 72) * sc);
+    const bodyFontSize = Math.round((layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 40 : layout === 'bold-stack' ? 38 : 38) * sc);
+    const ctaFontSize = Math.round((layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 34) * sc);
+    const headlineSpacing = Math.round((layout === 'impact-center' ? 108 : layout === 'bold-stack' ? 98 : layout === 'minimal-center' ? 86 : 92) * sc);
 
     // Font families - using loaded Google Fonts
     const headlineFont = layout === 'impact-center' ? `400 ${headlineFontSize}px 'Bebas Neue', Impact, sans-serif`
@@ -586,8 +587,9 @@ const EstruturaRendaExtra = () => {
     const textAlign: CanvasTextAlign = isCenter ? 'center' : isRight ? 'right' : 'left';
     const textX = isCenter ? W / 2 : isRight ? W - marginX : marginX;
 
-    // Start Y position - vertically centered
-    const startY = layout === 'impact-center' ? 400 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 420 : Math.max(badgeEndY + 240, 360);
+    // Start Y position - vertically centered + offset
+    const baseStartY = layout === 'impact-center' ? 400 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 420 : Math.max(badgeEndY + 240, 360);
+    const startY = baseStartY + contentOffsetY;
 
     // Helper: auto-shrink font if headline is too wide
     const fitFont = (baseFontStr: string, baseSize: number, text: string): string => {
