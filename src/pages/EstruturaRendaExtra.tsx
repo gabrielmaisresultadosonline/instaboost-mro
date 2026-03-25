@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -276,7 +276,10 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
+type ViewMode = 'menu' | 'posts-creator';
+
 const EstruturaRendaExtra = () => {
+  const [currentView, setCurrentView] = useState<ViewMode>('menu');
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
@@ -889,12 +892,62 @@ const EstruturaRendaExtra = () => {
     return bgColor1;
   };
 
+  if (currentView === 'menu') {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6">
+        <div className="w-full max-w-md flex flex-col items-center gap-8">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold">🚀 Estrutura Renda Extra</h1>
+            <p className="text-muted-foreground text-sm">Selecione a ferramenta que deseja usar</p>
+          </div>
+
+          <div className="w-full flex flex-col gap-4">
+            <Button
+              size="xl"
+              className="w-full gap-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white border-0"
+              onClick={() => setCurrentView('posts-creator')}
+            >
+              <Image className="h-6 w-6" />
+              Posts Creator
+            </Button>
+
+            <Button
+              size="xl"
+              className="w-full gap-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white border-0 opacity-60 cursor-not-allowed"
+              disabled
+            >
+              <Video className="h-6 w-6" />
+              Materiais em Vídeo
+              <span className="text-xs opacity-75">(Em breve)</span>
+            </Button>
+
+            <Button
+              size="xl"
+              className="w-full gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 opacity-60 cursor-not-allowed"
+              disabled
+            >
+              <FileText className="h-6 w-6" />
+              Contrato para seu Cliente
+              <span className="text-xs opacity-75">(Em breve)</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <div className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <h1 className="text-lg md:text-xl font-bold">🎨 Gerador de Criativos Pro</h1>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setCurrentView('menu')} className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
+              <ArrowLeft size={16} />
+              <span className="ml-1">Voltar ao Início</span>
+            </Button>
+            <h1 className="text-lg md:text-xl font-bold">🎨 Gerador de Criativos Pro</h1>
+          </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={selectAll}>
               {selectedIds.size === 30 ? <CheckSquare size={16} /> : <Square size={16} />}
