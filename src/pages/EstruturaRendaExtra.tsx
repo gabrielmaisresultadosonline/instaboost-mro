@@ -957,6 +957,15 @@ const EstruturaRendaExtra = () => {
               <FileText className="h-6 w-6" />
               Gere um Contrato para seu Cliente
             </Button>
+
+            <Button
+              size="xl"
+              className="w-full gap-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black border-0 text-lg font-extrabold shadow-lg shadow-yellow-500/30"
+              onClick={() => setCurrentView('tutoriais')}
+            >
+              <Play className="h-7 w-7" />
+              🎓 Tutorial - Aprenda Como Fazer Tudo
+            </Button>
           </div>
         </div>
       </div>
