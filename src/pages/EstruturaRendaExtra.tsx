@@ -1547,6 +1547,7 @@ const PreviewModal: React.FC<{
   useGradient: boolean; onUseGradientChange: (v: boolean) => void;
   textColor: string; onTextColorChange: (v: string) => void;
   accentColor: string; onAccentColorChange: (v: string) => void;
+  highlight2Color: string; onHighlight2ColorChange: (v: string) => void;
   effectsColor: string; onEffectsColorChange: (v: string) => void;
   effectsOpacity: number; onEffectsOpacityChange: (v: number) => void;
   ctaTextColor: string; onCtaTextColorChange: (v: string) => void;
