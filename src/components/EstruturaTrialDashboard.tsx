@@ -65,8 +65,17 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
     loadTrials();
   }, [mroUsername]);
 
+  const normalizeIG = (input: string): string => {
+    let val = input.trim().toLowerCase();
+    // Handle Instagram URLs like https://instagram.com/username or https://www.instagram.com/username/
+    const urlMatch = val.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/);
+    if (urlMatch) return urlMatch[1];
+    // Remove @ prefix
+    return val.replace(/^@/, '');
+  };
+
   const handleCreateTrial = async () => {
-    const ig = instagramInput.trim().toLowerCase().replace(/^@/, '');
+    const ig = normalizeIG(instagramInput);
     if (!ig) {
       toast.error('Digite o Instagram do cliente');
       return;
