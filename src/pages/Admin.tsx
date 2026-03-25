@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import ManualScraper from '@/components/admin/ManualScraper';
 
-type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist';
+type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist';
 type UserFilter = 'all' | 'instagram' | 'connected';
 
 const Admin = () => {
