@@ -1414,6 +1414,32 @@ const PreviewModal: React.FC<{
               <option value="phone">Celular (Foto Real)</option>
               <option value="laptop">Notebook (Foto Real)</option>
             </select>
+
+            {personImageValue !== 'none' && (
+              <div className="space-y-1.5 bg-muted/30 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <ZoomIn size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-14">Tamanho</span>
+                  <input type="range" min="0.3" max="2.5" step="0.05" value={personPositionConfig.scale} onChange={e => onPersonPositionChange({ ...personPositionConfig, scale: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{Math.round(personPositionConfig.scale * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Move size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-14">Pos. X</span>
+                  <input type="range" min="-500" max="500" step="10" value={personPositionConfig.offsetX} onChange={e => onPersonPositionChange({ ...personPositionConfig, offsetX: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{personPositionConfig.offsetX}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Move size={10} className="text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground w-14">Pos. Y</span>
+                  <input type="range" min="-500" max="500" step="10" value={personPositionConfig.offsetY} onChange={e => onPersonPositionChange({ ...personPositionConfig, offsetY: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <span className="text-[10px] w-7 text-right">{personPositionConfig.offsetY}</span>
+                </div>
+                <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onPersonPositionReset}>
+                  <RotateCcw size={10} /> Resetar posição
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Pattern controls */}
