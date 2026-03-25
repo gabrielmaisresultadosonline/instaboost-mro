@@ -9,6 +9,7 @@ import { LoginPage } from '@/components/LoginPage';
 import { getUserSession } from '@/lib/userStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import personPhoneImg from '@/assets/person-phone.png';
@@ -1123,169 +1124,179 @@ const EstruturaRendaExtra = () => {
         {/* Editor */}
         {editorOpen && (
           <div className="border-t border-border bg-card/80 backdrop-blur-md">
-            <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
-              {/* Colors */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                <ColorPicker label="Fundo 1" value={bgColor1} onChange={setBgColor1} />
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                    Fundo 2
-                    <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted cursor-pointer">
-                      {useGradient ? 'Degradê' : 'Sólido'}
-                    </button>
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" disabled={!useGradient} />
-                    <Input value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="h-8 text-xs" disabled={!useGradient} />
-                  </div>
-                  {useGradient && (
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">Ângulo:</span>
-                      <input type="range" min={0} max={360} value={gradientAngle} onChange={e => setGradientAngle(Number(e.target.value))} className="flex-1 h-1.5 accent-primary" />
-                      <span className="text-[10px] text-muted-foreground w-8 text-right">{gradientAngle}°</span>
+            <div className="max-w-7xl mx-auto px-4 py-2">
+              <Accordion type="multiple" defaultValue={["cores"]} className="w-full">
+                {/* Cores */}
+                <AccordionItem value="cores" className="border-border/50">
+                  <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
+                    <div className="flex items-center gap-2"><Palette size={16} className="text-primary" /> Cores e Fundo</div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 pb-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                        <ColorPicker label="Fundo 1" value={bgColor1} onChange={setBgColor1} />
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                            Fundo 2
+                            <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted cursor-pointer">
+                              {useGradient ? 'Degradê' : 'Sólido'}
+                            </button>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input type="color" value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" disabled={!useGradient} />
+                            <Input value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="h-8 text-xs" disabled={!useGradient} />
+                          </div>
+                          {useGradient && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] text-muted-foreground whitespace-nowrap">Ângulo:</span>
+                              <input type="range" min={0} max={360} value={gradientAngle} onChange={e => setGradientAngle(Number(e.target.value))} className="flex-1 h-1.5 accent-primary" />
+                              <span className="text-[10px] text-muted-foreground w-8 text-right">{gradientAngle}°</span>
+                            </div>
+                          )}
+                        </div>
+                        <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
+                        <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
+                        <ColorPicker label="Texto CTA" value={ctaTextColor} onChange={setCtaTextColor} />
+                        <ColorPicker label="Fundo CTA" value={ctaBgColor} onChange={setCtaBgColor} />
+                        <ColorPicker label="Efeitos de Luz" value={effectsColor} onChange={setEffectsColor} />
+                      </div>
                     </div>
-                  )}
-                </div>
-                <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
-                <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
-                <ColorPicker label="Texto CTA" value={ctaTextColor} onChange={setCtaTextColor} />
-                <ColorPicker label="Fundo CTA" value={ctaBgColor} onChange={setCtaBgColor} />
-                <ColorPicker label="Efeitos de Luz" value={effectsColor} onChange={setEffectsColor} />
-              </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-              {/* CTA bg opacity */}
-              <div className="flex items-center gap-4 flex-wrap text-sm">
-                <div className="flex items-center gap-2">
-                  <Sliders size={14} className="text-muted-foreground" />
-                  <span className="text-muted-foreground text-xs">Opacidade Fundo CTA:</span>
-                  <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => setCtaBgOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
-                  <span className="text-xs text-muted-foreground w-8">{Math.round(ctaBgOpacity * 100)}%</span>
-                </div>
-              </div>
-
-              {/* Content position/scale */}
-              <div className="flex items-center gap-4 flex-wrap text-sm">
-                <div className="flex items-center gap-2">
-                  <ZoomIn size={14} className="text-muted-foreground" />
-                  <span className="text-muted-foreground text-xs">Tamanho Conteúdo:</span>
-                  <input type="range" min="0.5" max="1.5" step="0.05" value={contentScale} onChange={e => setContentScale(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
-                  <span className="text-xs text-muted-foreground w-8">{Math.round(contentScale * 100)}%</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Move size={14} className="text-muted-foreground" />
-                  <span className="text-muted-foreground text-xs">Posição Vertical:</span>
-                  <input type="range" min="-400" max="400" step="10" value={contentOffsetY} onChange={e => setContentOffsetY(parseInt(e.target.value))} className="w-24 h-1.5 accent-primary" />
-                  <span className="text-xs text-muted-foreground w-10">{contentOffsetY > 0 ? '+' : ''}{contentOffsetY}px</span>
-                  {(contentScale !== 1 || contentOffsetY !== 0) && (
-                    <button onClick={() => { setContentScale(1); setContentOffsetY(0); }} className="text-[10px] text-destructive hover:underline flex items-center gap-0.5">
-                      <RotateCcw size={10} /> Reset
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 flex-wrap text-sm">
-                <ToggleOption icon={<Hash size={14} />} label="Números" checked={showNumbers} onChange={setShowNumbers} />
-                <ToggleOption icon={<Sparkles size={14} />} label="Efeitos" checked={showDecorations} onChange={setShowDecorations} />
-                <ToggleOption icon={<Tag size={14} />} label="Categoria" checked={showBadge} onChange={setShowBadge} />
-
-                {showDecorations && (
-                  <div className="flex items-center gap-2">
-                    <Sliders size={14} className="text-muted-foreground" />
-                    <span className="text-muted-foreground text-xs">Luz:</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      value={effectsOpacity}
-                      onChange={e => setEffectsOpacity(parseFloat(e.target.value))}
-                      className="w-20 h-1.5 accent-primary"
-                    />
-                    <span className="text-xs text-muted-foreground w-8">{Math.round(effectsOpacity * 100)}%</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Person image + opacity */}
-              <div className="flex items-center gap-4 flex-wrap text-sm">
-                <div className="flex items-center gap-2">
-                  <User size={14} className="text-muted-foreground" />
-                  <span className="text-muted-foreground text-xs">Pessoa:</span>
-                  <select
-                    value={personImage}
-                    onChange={e => setPersonImage(e.target.value as PersonImage)}
-                    className="h-7 text-xs rounded border border-border bg-background px-2"
-                  >
-                    <option value="none">Nenhuma</option>
-                    <option value="phone">Celular (Foto Real)</option>
-                    <option value="laptop">Notebook (Foto Real)</option>
-                  </select>
-                </div>
-
-                {personImage !== 'none' && (
-                  <div className="flex items-center gap-2">
-                    <Sliders size={14} className="text-muted-foreground" />
-                    <span className="text-muted-foreground text-xs">Opacidade:</span>
-                    <input
-                      type="range"
-                      min="0.05"
-                      max="0.8"
-                      step="0.05"
-                      value={personOpacity}
-                      onChange={e => setPersonOpacity(parseFloat(e.target.value))}
-                      className="w-24 h-1.5 accent-primary"
-                    />
-                    <span className="text-xs text-muted-foreground w-8">{Math.round(personOpacity * 100)}%</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Logo position + upload */}
-              <div className="flex items-center gap-4 flex-wrap text-sm">
-                <div className="flex items-center gap-2">
-                  <MapPin size={14} className="text-muted-foreground" />
-                  <span className="text-muted-foreground text-xs">Logo (padrão):</span>
-                  <select
-                    value={logoPosition}
-                    onChange={e => setLogoPosition(e.target.value as LogoPosition)}
-                    className="h-7 text-xs rounded border border-border bg-background px-2"
-                  >
-                    <option value="bottom-right">Inferior direito</option>
-                    <option value="bottom-left">Inferior esquerdo</option>
-                    <option value="top-center">Topo centro</option>
-                    <option value="top-right">Topo direito</option>
-                  </select>
-                </div>
-
-                {Object.keys(logoOverrides).length > 0 && (
-                  <button
-                    onClick={() => { setLogoOverrides({}); toast.success('Posições personalizadas resetadas!'); }}
-                    className="text-xs text-destructive hover:underline flex items-center gap-1"
-                  >
-                    <X size={12} /> Resetar posições ({Object.keys(logoOverrides).length})
-                  </button>
-                )}
-
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Move size={12} />
-                  <span>Arraste a logo no preview para posicionar individualmente</span>
-                </div>
-
-                <div className="ml-auto">
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                  {logoUrl ? (
-                    <div className="flex items-center gap-2">
-                      <img src={logoUrl} className="h-8 w-8 object-contain rounded" alt="logo" />
-                      <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
+                {/* Ajustes */}
+                <AccordionItem value="ajustes" className="border-border/50">
+                  <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
+                    <div className="flex items-center gap-2"><Sliders size={16} className="text-primary" /> Ajustes e Posição</div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 pb-2">
+                      <div className="flex items-center gap-4 flex-wrap text-sm">
+                        <div className="flex items-center gap-2">
+                          <Sliders size={14} className="text-muted-foreground" />
+                          <span className="text-muted-foreground text-xs">Opacidade Fundo CTA:</span>
+                          <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => setCtaBgOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <span className="text-xs text-muted-foreground w-8">{Math.round(ctaBgOpacity * 100)}%</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 flex-wrap text-sm">
+                        <div className="flex items-center gap-2">
+                          <ZoomIn size={14} className="text-muted-foreground" />
+                          <span className="text-muted-foreground text-xs">Tamanho Conteúdo:</span>
+                          <input type="range" min="0.5" max="1.5" step="0.05" value={contentScale} onChange={e => setContentScale(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <span className="text-xs text-muted-foreground w-8">{Math.round(contentScale * 100)}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Move size={14} className="text-muted-foreground" />
+                          <span className="text-muted-foreground text-xs">Posição Vertical:</span>
+                          <input type="range" min="-400" max="400" step="10" value={contentOffsetY} onChange={e => setContentOffsetY(parseInt(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <span className="text-xs text-muted-foreground w-10">{contentOffsetY > 0 ? '+' : ''}{contentOffsetY}px</span>
+                          {(contentScale !== 1 || contentOffsetY !== 0) && (
+                            <button onClick={() => { setContentScale(1); setContentOffsetY(0); }} className="text-[10px] text-destructive hover:underline flex items-center gap-0.5">
+                              <RotateCcw size={10} /> Reset
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 flex-wrap text-sm">
+                        <ToggleOption icon={<Hash size={14} />} label="Números" checked={showNumbers} onChange={setShowNumbers} />
+                        <ToggleOption icon={<Sparkles size={14} />} label="Efeitos" checked={showDecorations} onChange={setShowDecorations} />
+                        <ToggleOption icon={<Tag size={14} />} label="Categoria" checked={showBadge} onChange={setShowBadge} />
+                        {showDecorations && (
+                          <div className="flex items-center gap-2">
+                            <Sliders size={14} className="text-muted-foreground" />
+                            <span className="text-muted-foreground text-xs">Luz:</span>
+                            <input type="range" min="0" max="1" step="0.05" value={effectsOpacity} onChange={e => setEffectsOpacity(parseFloat(e.target.value))} className="w-20 h-1.5 accent-primary" />
+                            <span className="text-xs text-muted-foreground w-8">{Math.round(effectsOpacity * 100)}%</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ) : (
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
-                      <Upload size={14} /> Upload Logo
-                    </Button>
-                  )}
-                </div>
-              </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Pessoa */}
+                <AccordionItem value="pessoa" className="border-border/50">
+                  <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
+                    <div className="flex items-center gap-2"><User size={16} className="text-primary" /> Pessoa</div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex items-center gap-4 flex-wrap text-sm pb-2">
+                      <div className="flex items-center gap-2">
+                        <User size={14} className="text-muted-foreground" />
+                        <span className="text-muted-foreground text-xs">Pessoa:</span>
+                        <select
+                          value={personImage}
+                          onChange={e => setPersonImage(e.target.value as PersonImage)}
+                          className="h-7 text-xs rounded border border-border bg-background px-2"
+                        >
+                          <option value="none">Nenhuma</option>
+                          <option value="phone">Celular (Foto Real)</option>
+                          <option value="laptop">Notebook (Foto Real)</option>
+                        </select>
+                      </div>
+                      {personImage !== 'none' && (
+                        <div className="flex items-center gap-2">
+                          <Sliders size={14} className="text-muted-foreground" />
+                          <span className="text-muted-foreground text-xs">Opacidade:</span>
+                          <input type="range" min="0.05" max="0.8" step="0.05" value={personOpacity} onChange={e => setPersonOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <span className="text-xs text-muted-foreground w-8">{Math.round(personOpacity * 100)}%</span>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Logo */}
+                <AccordionItem value="logo" className="border-b-0">
+                  <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
+                    <div className="flex items-center gap-2"><MapPin size={16} className="text-primary" /> Logo</div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex items-center gap-4 flex-wrap text-sm pb-2">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={14} className="text-muted-foreground" />
+                        <span className="text-muted-foreground text-xs">Logo (padrão):</span>
+                        <select
+                          value={logoPosition}
+                          onChange={e => setLogoPosition(e.target.value as LogoPosition)}
+                          className="h-7 text-xs rounded border border-border bg-background px-2"
+                        >
+                          <option value="bottom-right">Inferior direito</option>
+                          <option value="bottom-left">Inferior esquerdo</option>
+                          <option value="top-center">Topo centro</option>
+                          <option value="top-right">Topo direito</option>
+                        </select>
+                      </div>
+                      {Object.keys(logoOverrides).length > 0 && (
+                        <button
+                          onClick={() => { setLogoOverrides({}); toast.success('Posições personalizadas resetadas!'); }}
+                          className="text-xs text-destructive hover:underline flex items-center gap-1"
+                        >
+                          <X size={12} /> Resetar posições ({Object.keys(logoOverrides).length})
+                        </button>
+                      )}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Move size={12} />
+                        <span>Arraste a logo no preview para posicionar individualmente</span>
+                      </div>
+                      <div className="ml-auto">
+                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                        {logoUrl ? (
+                          <div className="flex items-center gap-2">
+                            <img src={logoUrl} className="h-8 w-8 object-contain rounded" alt="logo" />
+                            <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
+                            <Upload size={14} /> Upload Logo
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
           </div>
         )}
