@@ -1133,7 +1133,7 @@ const EstruturaRendaExtra = () => {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-3 pb-2">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
                         <ColorPicker label="Fundo 1" value={bgColor1} onChange={setBgColor1} />
                         <div>
                           <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
