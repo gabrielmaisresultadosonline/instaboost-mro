@@ -1528,11 +1528,11 @@ const PreviewModal: React.FC<{
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">X:</span>
-                  <input type="range" min="-1080" max="1080" step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <input type="range" min={Math.round(-1080 * bgImageOverride.scale)} max={Math.round(1080 * bgImageOverride.scale)} step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">Y:</span>
-                  <input type="range" min="-1350" max="1350" step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <input type="range" min={Math.round(-1350 * bgImageOverride.scale)} max={Math.round(1350 * bgImageOverride.scale)} step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
                 </div>
               </div>
             </div>
