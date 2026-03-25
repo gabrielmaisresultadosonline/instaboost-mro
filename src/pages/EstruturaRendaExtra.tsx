@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Download, Upload, CheckSquare, Square, Palette, Type, Image, Package, ChevronDown, ChevronUp, Eye, EyeOff, ThumbsDown, Rocket, Brain, DollarSign, Award, X } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -49,17 +49,222 @@ const CREATIVES: CreativeData[] = [
   { id: 30, headline: "VOCÊ ESTÁ\nATRASADO", text: "Se ainda depende de anúncios.", cta: "👉 Atualize sua estratégia", category: 'autoridade', icon: '⏰' },
 ];
 
-const CATEGORY_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
-  dor: { label: '🔥 Criativos de Dor (1-6)', icon: <ThumbsDown size={16} /> },
-  promessa: { label: '🚀 Criativos de Promessa (7-12)', icon: <Rocket size={16} /> },
-  educativo: { label: '🧠 Educativos (13-18)', icon: <Brain size={16} /> },
-  beneficio: { label: '💰 Benefícios (19-24)', icon: <DollarSign size={16} /> },
-  autoridade: { label: '🔥 Prova / Autoridade (25-30)', icon: <Award size={16} /> },
+const CATEGORY_LABELS: Record<string, string> = {
+  dor: '🔥 Criativos de Dor (1-6)',
+  promessa: '🚀 Criativos de Promessa (7-12)',
+  educativo: '🧠 Educativos (13-18)',
+  beneficio: '💰 Benefícios (19-24)',
+  autoridade: '🔥 Prova / Autoridade (25-30)',
 };
 
+// ─── Professional drawing helpers ───
+
+function hexToRgba(hex: string, alpha: number) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function drawDiamondGrid(ctx: CanvasRenderingContext2D, W: number, H: number, color: string) {
+  ctx.save();
+  ctx.strokeStyle = hexToRgba(color, 0.06);
+  ctx.lineWidth = 1;
+  const spacing = 60;
+  for (let i = -H; i < W + H; i += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i + H, H);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(i + H, 0);
+    ctx.lineTo(i, H);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawHexPattern(ctx: CanvasRenderingContext2D, W: number, H: number, color: string) {
+  ctx.save();
+  const size = 40;
+  const h = size * Math.sqrt(3);
+  ctx.strokeStyle = hexToRgba(color, 0.05);
+  ctx.lineWidth = 1;
+  for (let row = 0; row < H / h + 1; row++) {
+    for (let col = 0; col < W / (size * 1.5) + 1; col++) {
+      const cx = col * size * 1.5;
+      const cy = row * h + (col % 2 === 1 ? h / 2 : 0);
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 6;
+        const x = cx + size * 0.6 * Math.cos(angle);
+        const y = cy + size * 0.6 * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawCircuitLines(ctx: CanvasRenderingContext2D, W: number, H: number, color: string) {
+  ctx.save();
+  ctx.strokeStyle = hexToRgba(color, 0.07);
+  ctx.lineWidth = 1.5;
+  const lines = [
+    [[80, 200], [300, 200], [300, 400], [500, 400]],
+    [[W - 80, 300], [W - 250, 300], [W - 250, 550], [W - 400, 550]],
+    [[100, H - 400], [350, H - 400], [350, H - 300]],
+    [[W - 100, H - 500], [W - 300, H - 500], [W - 300, H - 350], [W - 500, H - 350]],
+    [[200, 100], [200, 350]],
+    [[W - 200, 150], [W - 200, 380]],
+  ];
+  for (const line of lines) {
+    ctx.beginPath();
+    for (let i = 0; i < line.length; i++) {
+      if (i === 0) ctx.moveTo(line[i][0], line[i][1]);
+      else ctx.lineTo(line[i][0], line[i][1]);
+    }
+    ctx.stroke();
+    // Node dots
+    for (const pt of line) {
+      ctx.beginPath();
+      ctx.arc(pt[0], pt[1], 3, 0, Math.PI * 2);
+      ctx.fillStyle = hexToRgba(color, 0.12);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawConcentricRings(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string, maxR: number) {
+  ctx.save();
+  for (let r = 40; r < maxR; r += 30) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = hexToRgba(color, 0.04 + (r / maxR) * 0.03);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawRadialBurst(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string) {
+  ctx.save();
+  const rays = 24;
+  for (let i = 0; i < rays; i++) {
+    const angle = (Math.PI * 2 / rays) * i;
+    const len = 80 + Math.random() * 120;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+    ctx.strokeStyle = hexToRgba(color, 0.04);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number, color: string, seed: number) {
+  ctx.save();
+  const shapes = [
+    { x: W * 0.1, y: H * 0.12, size: 45, type: 'tri' },
+    { x: W * 0.88, y: H * 0.08, size: 35, type: 'circle' },
+    { x: W * 0.05, y: H * 0.55, size: 25, type: 'diamond' },
+    { x: W * 0.92, y: H * 0.45, size: 30, type: 'tri' },
+    { x: W * 0.15, y: H * 0.82, size: 20, type: 'circle' },
+    { x: W * 0.85, y: H * 0.78, size: 40, type: 'diamond' },
+    { x: W * 0.5, y: H * 0.06, size: 28, type: 'circle' },
+    { x: W * 0.7, y: H * 0.92, size: 22, type: 'tri' },
+  ];
+
+  for (let i = 0; i < shapes.length; i++) {
+    const s = shapes[i];
+    const alpha = 0.06 + ((seed + i) % 5) * 0.015;
+    ctx.fillStyle = hexToRgba(color, alpha);
+    ctx.strokeStyle = hexToRgba(color, alpha * 1.5);
+    ctx.lineWidth = 1;
+
+    if (s.type === 'circle') {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      if (i % 2 === 0) ctx.fill(); else ctx.stroke();
+    } else if (s.type === 'tri') {
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y - s.size);
+      ctx.lineTo(s.x - s.size * 0.866, s.y + s.size * 0.5);
+      ctx.lineTo(s.x + s.size * 0.866, s.y + s.size * 0.5);
+      ctx.closePath();
+      if (i % 2 === 0) ctx.stroke(); else ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y - s.size);
+      ctx.lineTo(s.x + s.size, s.y);
+      ctx.lineTo(s.x, s.y + s.size);
+      ctx.lineTo(s.x - s.size, s.y);
+      ctx.closePath();
+      if (i % 2 === 0) ctx.fill(); else ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawGlowOrb(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, color: string) {
+  ctx.save();
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+  grad.addColorStop(0, hexToRgba(color, 0.15));
+  grad.addColorStop(0.5, hexToRgba(color, 0.05));
+  grad.addColorStop(1, hexToRgba(color, 0));
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawDotMatrix(ctx: CanvasRenderingContext2D, x: number, y: number, cols: number, rows: number, spacing: number, color: string) {
+  ctx.save();
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      ctx.beginPath();
+      ctx.arc(x + c * spacing, y + r * spacing, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = hexToRgba(color, 0.08);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+// ─── Component ───
+
 const EstruturaRendaExtra = () => {
-  const [bgColor1, setBgColor1] = useState('#1a1a2e');
-  const [bgColor2, setBgColor2] = useState('#16213e');
+  const [bgColor1, setBgColor1] = useState('#0f0f1a');
+  const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
   const [textColor, setTextColor] = useState('#ffffff');
   const [accentColor, setAccentColor] = useState('#00d4aa');
@@ -69,8 +274,9 @@ const EstruturaRendaExtra = () => {
   const [downloading, setDownloading] = useState(false);
   const [editorOpen, setEditorOpen] = useState(true);
   const [previewId, setPreviewId] = useState<number | null>(null);
+  const [showNumbers, setShowNumbers] = useState(true);
+  const [showDecorations, setShowDecorations] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,11 +298,8 @@ const EstruturaRendaExtra = () => {
   };
 
   const selectAll = () => {
-    if (selectedIds.size === 30) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(CREATIVES.map(c => c.id)));
-    }
+    if (selectedIds.size === 30) setSelectedIds(new Set());
+    else setSelectedIds(new Set(CREATIVES.map(c => c.id)));
   };
 
   const drawCreative = useCallback(async (creative: CreativeData, canvas: HTMLCanvasElement) => {
@@ -106,9 +309,9 @@ const EstruturaRendaExtra = () => {
     canvas.width = W;
     canvas.height = H;
 
-    // Background
+    // ── Background ──
     if (useGradient) {
-      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      const grad = ctx.createLinearGradient(0, 0, W * 0.3, H);
       grad.addColorStop(0, bgColor1);
       grad.addColorStop(1, bgColor2);
       ctx.fillStyle = grad;
@@ -117,54 +320,97 @@ const EstruturaRendaExtra = () => {
     }
     ctx.fillRect(0, 0, W, H);
 
-    // Decorative elements
-    ctx.globalAlpha = 0.05;
-    ctx.fillStyle = accentColor;
-    ctx.beginPath();
-    ctx.arc(W * 0.85, H * 0.15, 200, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(W * 0.1, H * 0.85, 150, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    // ── Category-specific complex backgrounds ──
+    if (showDecorations) {
+      const catIndex = ['dor', 'promessa', 'educativo', 'beneficio', 'autoridade'].indexOf(creative.category);
+      
+      if (catIndex === 0) { // Dor
+        drawDiamondGrid(ctx, W, H, accentColor);
+        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, '#ef4444');
+        drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, accentColor);
+        drawCircuitLines(ctx, W, H, accentColor);
+      } else if (catIndex === 1) { // Promessa
+        drawHexPattern(ctx, W, H, accentColor);
+        drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, accentColor);
+        drawGlowOrb(ctx, W * 0.1, H * 0.9, 180, ctaColor);
+        drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
+      } else if (catIndex === 2) { // Educativo
+        drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
+        drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, accentColor);
+        drawRadialBurst(ctx, W * 0.2, H * 0.7, accentColor);
+      } else if (catIndex === 3) { // Beneficio
+        drawCircuitLines(ctx, W, H, ctaColor);
+        drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, ctaColor);
+        drawGlowOrb(ctx, W * 0.8, H * 0.75, 200, accentColor);
+        drawHexPattern(ctx, W, H, ctaColor);
+      } else { // Autoridade
+        drawDiamondGrid(ctx, W, H, accentColor);
+        drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
+        drawConcentricRings(ctx, W * 0.15, H * 0.88, accentColor, 180);
+        drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, accentColor);
+      }
 
-    // Top accent line
-    const lineGrad = ctx.createLinearGradient(0, 0, W, 0);
-    lineGrad.addColorStop(0, accentColor);
-    lineGrad.addColorStop(1, accentColor + '00');
-    ctx.fillStyle = lineGrad;
-    ctx.fillRect(0, 0, W, 5);
+      drawFloatingShapes(ctx, W, H, accentColor, creative.id);
+    }
 
-    // Category badge
+    // ── Top accent bar (gradient) ──
+    const topGrad = ctx.createLinearGradient(0, 0, W, 0);
+    topGrad.addColorStop(0, accentColor);
+    topGrad.addColorStop(0.6, hexToRgba(accentColor, 0.3));
+    topGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, W, 6);
+
+    // ── Side accent stripe ──
+    const sideGrad = ctx.createLinearGradient(0, 0, 0, H);
+    sideGrad.addColorStop(0, accentColor);
+    sideGrad.addColorStop(0.5, hexToRgba(accentColor, 0.2));
+    sideGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = sideGrad;
+    ctx.fillRect(0, 0, 4, H);
+
+    // ── Category badge ──
     const catLabel = creative.category.toUpperCase();
-    ctx.font = 'bold 24px "Space Grotesk", Arial, sans-serif';
-    ctx.fillStyle = accentColor;
-    const badgeW = ctx.measureText(catLabel).width + 40;
-    ctx.globalAlpha = 0.15;
-    ctx.fillStyle = accentColor;
-    roundRect(ctx, 60, 60, badgeW, 44, 22);
+    ctx.font = 'bold 22px Arial, sans-serif';
+    const badgeTextW = ctx.measureText(catLabel).width;
+    const badgeW = badgeTextW + 50;
+    // Badge bg
+    ctx.fillStyle = hexToRgba(accentColor, 0.12);
+    roundRect(ctx, 70, 60, badgeW, 42, 21);
     ctx.fill();
-    ctx.globalAlpha = 1;
+    // Badge border
+    ctx.strokeStyle = hexToRgba(accentColor, 0.3);
+    ctx.lineWidth = 1;
+    roundRect(ctx, 70, 60, badgeW, 42, 21);
+    ctx.stroke();
+    // Badge text
     ctx.fillStyle = accentColor;
-    ctx.font = 'bold 22px "Space Grotesk", Arial, sans-serif';
-    ctx.fillText(catLabel, 80, 89);
-
-    // Icon
-    ctx.font = '80px Arial';
-    ctx.fillText(creative.icon, W - 150, 110);
-
-    // Number
-    ctx.font = 'bold 180px "Space Grotesk", Arial, sans-serif';
-    ctx.globalAlpha = 0.04;
-    ctx.fillStyle = textColor;
-    ctx.textAlign = 'right';
-    ctx.fillText(String(creative.id).padStart(2, '0'), W - 60, 280);
-    ctx.globalAlpha = 1;
+    ctx.font = 'bold 20px Arial, sans-serif';
     ctx.textAlign = 'left';
+    ctx.fillText(catLabel, 95, 87);
 
-    // Headline
+    // ── Large watermark number ──
+    if (showNumbers) {
+      ctx.font = 'bold 220px Arial, sans-serif';
+      ctx.globalAlpha = 0.03;
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'right';
+      ctx.fillText(String(creative.id).padStart(2, '0'), W - 40, 300);
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+    }
+
+    // ── Icon ──
+    if (showDecorations) {
+      ctx.font = '90px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText(creative.icon, W - 70, 100);
+      ctx.textAlign = 'left';
+    }
+
+    // ── Headline ──
     const headlineLines = creative.headline.split('\n');
-    ctx.font = 'bold 72px "Space Grotesk", Arial, sans-serif';
+    ctx.font = 'bold 74px Arial, sans-serif';
     let y = 380;
     for (const line of headlineLines) {
       if (creative.highlightWord && line.includes(creative.highlightWord)) {
@@ -172,13 +418,19 @@ const EstruturaRendaExtra = () => {
         const highlight = creative.highlightWord;
         const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
         let x = 80;
+
         if (before) {
           ctx.fillStyle = textColor;
           ctx.fillText(before, x, y);
           x += ctx.measureText(before).width;
         }
-        ctx.fillStyle = creative.highlightColor || '#ef4444';
+        // Highlight with glow effect
+        const hlColor = creative.highlightColor || '#ef4444';
+        ctx.shadowColor = hlColor;
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = hlColor;
         ctx.fillText(highlight, x, y);
+        ctx.shadowBlur = 0;
         x += ctx.measureText(highlight).width;
         if (after) {
           ctx.fillStyle = textColor;
@@ -188,63 +440,84 @@ const EstruturaRendaExtra = () => {
         ctx.fillStyle = textColor;
         ctx.fillText(line, 80, y);
       }
-      y += 90;
+      y += 95;
     }
 
-    // Divider
+    // ── Divider with dots ──
     y += 30;
-    const divGrad = ctx.createLinearGradient(80, y, 400, y);
+    const divGrad = ctx.createLinearGradient(80, y, 500, y);
     divGrad.addColorStop(0, accentColor);
-    divGrad.addColorStop(1, accentColor + '00');
+    divGrad.addColorStop(1, hexToRgba(accentColor, 0));
     ctx.fillStyle = divGrad;
-    ctx.fillRect(80, y, 320, 4);
-    y += 50;
+    ctx.fillRect(80, y, 420, 3);
+    // Divider endpoint dot
+    ctx.beginPath();
+    ctx.arc(80, y + 1.5, 5, 0, Math.PI * 2);
+    ctx.fillStyle = accentColor;
+    ctx.fill();
+    y += 55;
 
-    // Body text
-    ctx.font = '38px "Inter", Arial, sans-serif';
+    // ── Body text ──
+    ctx.font = '40px Arial, sans-serif';
     ctx.fillStyle = textColor;
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 0.8;
     const bodyLines = creative.text.split('\n');
     for (const line of bodyLines) {
       ctx.fillText(line, 80, y);
-      y += 55;
+      y += 58;
     }
     ctx.globalAlpha = 1;
 
-    // CTA area
-    const ctaY = H - 260;
-    // CTA background
-    ctx.globalAlpha = 0.1;
-    ctx.fillStyle = accentColor;
-    roundRect(ctx, 60, ctaY, W - 120, 80, 16);
+    // ── CTA area ──
+    const ctaY = H - 270;
+    // CTA card bg
+    ctx.fillStyle = hexToRgba(accentColor, 0.08);
+    roundRect(ctx, 60, ctaY, W - 120, 90, 18);
     ctx.fill();
-    ctx.globalAlpha = 1;
-
-    ctx.font = 'bold 34px "Space Grotesk", Arial, sans-serif';
+    // CTA card border
+    ctx.strokeStyle = hexToRgba(accentColor, 0.2);
+    ctx.lineWidth = 1;
+    roundRect(ctx, 60, ctaY, W - 120, 90, 18);
+    ctx.stroke();
+    // CTA text
+    ctx.font = 'bold 36px Arial, sans-serif';
     ctx.fillStyle = ctaColor;
-    ctx.fillText(creative.cta, 90, ctaY + 52);
+    ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+    ctx.shadowBlur = 15;
+    ctx.fillText(creative.cta, 90, ctaY + 58);
+    ctx.shadowBlur = 0;
 
-    // Bottom accent line
-    ctx.fillStyle = accentColor;
-    ctx.fillRect(0, H - 5, W, 5);
+    // ── Bottom accent bar ──
+    const botGrad = ctx.createLinearGradient(0, H - 6, W, H - 6);
+    botGrad.addColorStop(0, 'transparent');
+    botGrad.addColorStop(0.4, hexToRgba(accentColor, 0.3));
+    botGrad.addColorStop(1, accentColor);
+    ctx.fillStyle = botGrad;
+    ctx.fillRect(0, H - 6, W, 6);
 
-    // Logo
+    // ── Logo ──
     if (logoUrl) {
       try {
         const img = await loadImage(logoUrl);
         const logoH = 80;
         const logoW = (img.width / img.height) * logoH;
-        ctx.drawImage(img, W - logoW - 60, H - logoH - 60, logoW, logoH);
+        // Logo glow
+        ctx.shadowColor = hexToRgba(accentColor, 0.3);
+        ctx.shadowBlur = 15;
+        ctx.drawImage(img, W - logoW - 70, H - logoH - 70, logoW, logoH);
+        ctx.shadowBlur = 0;
       } catch { /* skip */ }
     }
 
-    // Watermark number
-    ctx.font = 'bold 28px "Space Grotesk", Arial, sans-serif';
-    ctx.fillStyle = textColor;
-    ctx.globalAlpha = 0.3;
-    ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 80);
-    ctx.globalAlpha = 1;
-  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl]);
+    // ── Small number bottom-left ──
+    if (showNumbers) {
+      ctx.font = 'bold 24px Arial, sans-serif';
+      ctx.fillStyle = textColor;
+      ctx.globalAlpha = 0.2;
+      ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 80);
+      ctx.globalAlpha = 1;
+    }
+  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -282,7 +555,7 @@ const EstruturaRendaExtra = () => {
   };
 
   const getPreviewBg = () => {
-    if (useGradient) return `linear-gradient(180deg, ${bgColor1}, ${bgColor2})`;
+    if (useGradient) return `linear-gradient(135deg, ${bgColor1}, ${bgColor2})`;
     return bgColor1;
   };
 
@@ -290,14 +563,12 @@ const EstruturaRendaExtra = () => {
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <div className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
-          <h1 className="text-lg md:text-xl font-bold font-['Space_Grotesk']">
-            🎨 Gerador de Criativos
-          </h1>
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <h1 className="text-lg md:text-xl font-bold">🎨 Gerador de Criativos Pro</h1>
           <div className="flex items-center gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={selectAll}>
               {selectedIds.size === 30 ? <CheckSquare size={16} /> : <Square size={16} />}
-              <span className="hidden sm:inline ml-1">{selectedIds.size === 30 ? 'Desmarcar' : 'Selecionar'} Todos</span>
+              <span className="hidden sm:inline ml-1">{selectedIds.size === 30 ? 'Desmarcar' : 'Todos'}</span>
             </Button>
             <Button size="sm" variant="outline" onClick={() => setEditorOpen(!editorOpen)}>
               <Palette size={16} />
@@ -306,82 +577,68 @@ const EstruturaRendaExtra = () => {
             </Button>
             <Button size="sm" onClick={downloadSelected} disabled={downloading} className="bg-primary text-primary-foreground">
               <Package size={16} />
-              <span className="ml-1">{downloading ? 'Gerando...' : `Baixar ${selectedIds.size > 0 ? selectedIds.size : 'Todos'} em ZIP`}</span>
+              <span className="ml-1">{downloading ? 'Gerando...' : `Baixar ${selectedIds.size > 0 ? selectedIds.size : 'Todos'}`}</span>
             </Button>
           </div>
         </div>
 
-        {/* Editor Panel */}
+        {/* Editor */}
         {editorOpen && (
           <div className="border-t border-border bg-card/80 backdrop-blur-md">
-            <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Fundo 1</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={bgColor1} onChange={e => setBgColor1(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
-                  <Input value={bgColor1} onChange={e => setBgColor1(e.target.value)} className="h-8 text-xs" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  Fundo 2
-                  <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted">
-                    {useGradient ? 'Degradê ON' : 'OFF'}
-                  </button>
-                </label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" disabled={!useGradient} />
-                  <Input value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="h-8 text-xs" disabled={!useGradient} />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Cor Texto</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={textColor} onChange={e => setTextColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
-                  <Input value={textColor} onChange={e => setTextColor(e.target.value)} className="h-8 text-xs" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Cor Destaque</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
-                  <Input value={accentColor} onChange={e => setAccentColor(e.target.value)} className="h-8 text-xs" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Cor CTA</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={ctaColor} onChange={e => setCtaColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
-                  <Input value={ctaColor} onChange={e => setCtaColor(e.target.value)} className="h-8 text-xs" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Logo</label>
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                {logoUrl ? (
-                  <div className="flex items-center gap-1">
-                    <img src={logoUrl} className="h-8 w-8 object-contain rounded" alt="logo" />
-                    <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
+            <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
+              {/* Color row */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                <ColorPicker label="Fundo 1" value={bgColor1} onChange={setBgColor1} />
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    Fundo 2
+                    <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted">
+                      {useGradient ? 'ON' : 'OFF'}
+                    </button>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" disabled={!useGradient} />
+                    <Input value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="h-8 text-xs" disabled={!useGradient} />
                   </div>
-                ) : (
-                  <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => fileInputRef.current?.click()}>
-                    <Upload size={14} /> Upload
-                  </Button>
-                )}
+                </div>
+                <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
+                <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
+                <ColorPicker label="CTA" value={ctaColor} onChange={setCtaColor} />
+              </div>
+              {/* Toggle row */}
+              <div className="flex items-center gap-4 flex-wrap">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground">
+                  <input type="checkbox" checked={showNumbers} onChange={e => setShowNumbers(e.target.checked)} className="rounded" />
+                  <Hash size={14} /> Números
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground">
+                  <input type="checkbox" checked={showDecorations} onChange={e => setShowDecorations(e.target.checked)} className="rounded" />
+                  <Sparkles size={14} /> Decorações
+                </label>
+                <div className="ml-auto">
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                  {logoUrl ? (
+                    <div className="flex items-center gap-2">
+                      <img src={logoUrl} className="h-8 w-8 object-contain rounded" alt="logo" />
+                      <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => fileInputRef.current?.click()}>
+                      <Upload size={14} /> Logo
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Canvas hidden */}
-      <canvas ref={canvasRef} className="hidden" />
-
       {/* Grid */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {(['dor', 'promessa', 'educativo', 'beneficio', 'autoridade'] as const).map(cat => (
           <div key={cat} className="mb-8">
-            <h2 className="text-lg font-bold mb-4 font-['Space_Grotesk']">{CATEGORY_LABELS[cat].label}</h2>
+            <h2 className="text-lg font-bold mb-4">{CATEGORY_LABELS[cat]}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {CREATIVES.filter(c => c.category === cat).map(creative => (
                 <CreativeCard
@@ -396,6 +653,7 @@ const EstruturaRendaExtra = () => {
                   accentColor={accentColor}
                   ctaColor={ctaColor}
                   logoUrl={logoUrl}
+                  showNumbers={showNumbers}
                 />
               ))}
             </div>
@@ -416,6 +674,18 @@ const EstruturaRendaExtra = () => {
   );
 };
 
+// ─── Sub-components ───
+
+const ColorPicker: React.FC<{ label: string; value: string; onChange: (v: string) => void }> = ({ label, value, onChange }) => (
+  <div>
+    <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+    <div className="flex items-center gap-2">
+      <input type="color" value={value} onChange={e => onChange(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
+      <Input value={value} onChange={e => onChange(e.target.value)} className="h-8 text-xs" />
+    </div>
+  </div>
+);
+
 interface CreativeCardProps {
   creative: CreativeData;
   selected: boolean;
@@ -427,39 +697,34 @@ interface CreativeCardProps {
   accentColor: string;
   ctaColor: string;
   logoUrl: string | null;
+  showNumbers: boolean;
 }
 
-const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, bgStyle, textColor, accentColor, ctaColor, logoUrl }) => {
+const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, bgStyle, textColor, accentColor, ctaColor, logoUrl, showNumbers }) => {
   const firstLine = creative.headline.split('\n')[0];
   return (
     <div className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selected ? 'border-primary shadow-lg shadow-primary/20' : 'border-border hover:border-muted-foreground/30'}`}>
-      {/* Mini preview */}
       <div
         className="aspect-[1080/1350] p-3 flex flex-col justify-between relative"
         style={{ background: bgStyle }}
         onClick={onPreview}
       >
-        {/* Top */}
         <div>
-          <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: accentColor + '22', color: accentColor }}>
+          <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: hexToRgba(accentColor, 0.15), color: accentColor }}>
             {creative.category.toUpperCase()}
           </span>
           <div className="text-[10px] sm:text-xs font-bold mt-2 leading-tight" style={{ color: textColor }}>
             {firstLine}
           </div>
         </div>
-        {/* Icon */}
         <div className="text-2xl text-center my-1">{creative.icon}</div>
-        {/* Bottom */}
         <div>
           <div className="text-[7px] sm:text-[8px] leading-tight mb-1" style={{ color: textColor, opacity: 0.7 }}>{creative.text.split('\n')[0]}</div>
           <div className="text-[7px] sm:text-[8px] font-bold" style={{ color: ctaColor }}>{creative.cta}</div>
           {logoUrl && <img src={logoUrl} className="h-3 mt-1 object-contain" alt="" />}
         </div>
-        {/* Number */}
-        <div className="absolute top-1 right-2 text-[8px] font-bold" style={{ color: textColor, opacity: 0.2 }}>#{String(creative.id).padStart(2, '0')}</div>
+        {showNumbers && <div className="absolute top-1 right-2 text-[8px] font-bold" style={{ color: textColor, opacity: 0.15 }}>#{String(creative.id).padStart(2, '0')}</div>}
       </div>
-      {/* Actions */}
       <div className="absolute bottom-0 left-0 right-0 bg-card/90 backdrop-blur-sm flex items-center justify-between p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className="p-1 rounded hover:bg-muted">
           {selected ? <CheckSquare size={14} className="text-primary" /> : <Square size={14} className="text-muted-foreground" />}
@@ -471,7 +736,6 @@ const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggl
           <Download size={14} className="text-muted-foreground" />
         </button>
       </div>
-      {/* Select indicator */}
       {selected && (
         <div className="absolute top-1 left-1">
           <CheckSquare size={16} className="text-primary drop-shadow" />
@@ -490,11 +754,10 @@ interface PreviewModalProps {
 
 const PreviewModal: React.FC<PreviewModalProps> = ({ creative, onClose, drawCreative, onDownload }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [rendered, setRendered] = useState(false);
 
   React.useEffect(() => {
     if (canvasRef.current) {
-      drawCreative(creative, canvasRef.current).then(() => setRendered(true));
+      drawCreative(creative, canvasRef.current);
     }
   }, [creative, drawCreative]);
 
@@ -514,30 +777,5 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ creative, onClose, drawCrea
     </div>
   );
 };
-
-// Helpers
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-}
-
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
 
 export default EstruturaRendaExtra;
