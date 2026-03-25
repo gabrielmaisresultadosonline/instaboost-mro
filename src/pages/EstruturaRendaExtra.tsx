@@ -951,6 +951,21 @@ const EstruturaRendaExtra = () => {
         <div className="absolute top-3 right-4 z-20 flex items-center gap-2 bg-white/5 backdrop-blur-sm rounded-full px-4 py-1.5 border border-white/10">
           <User size={14} className="text-yellow-400" />
           <span className="text-yellow-400 font-bold text-xs">{mroUsername}</span>
+          <button
+            onClick={async () => {
+              const { logoutUser } = await import('@/lib/userStorage');
+              await logoutUser();
+              sessionStorage.removeItem('mro_temp_pwd');
+              setIsAuthenticated(false);
+              setMroUsername('');
+              setMroPassword('');
+              setCurrentView('menu');
+            }}
+            className="ml-1 p-1 rounded-full hover:bg-white/10 transition-colors"
+            title="Sair"
+          >
+            <X size={12} className="text-red-400" />
+          </button>
         </div>
         {/* Animated background elements */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
