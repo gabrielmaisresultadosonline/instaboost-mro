@@ -887,17 +887,20 @@ interface CreativeCardProps {
   onToggle: () => void;
   onDownload: () => void;
   onPreview: () => void;
-  bgStyle: string;
-  textColor: string;
-  accentColor: string;
-  ctaColor: string;
-  logoUrl: string | null;
-  showNumbers: boolean;
-  showBadge: boolean;
+  drawCreative: (c: CreativeData, canvas: HTMLCanvasElement) => Promise<void>;
   hasLogoOverride: boolean;
 }
 
-const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, bgStyle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showBadge, hasLogoOverride }) => {
+const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, drawCreative, hasLogoOverride }) => {
+  const thumbRef = useRef<HTMLCanvasElement>(null);
+
+  React.useEffect(() => {
+    if (thumbRef.current) {
+      drawCreative(creative, thumbRef.current);
+    }
+  }, [creative, drawCreative]);
+
+  return (
   const firstLine = creative.headline.split('\n')[0];
   return (
     <div className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selected ? 'border-primary shadow-lg shadow-primary/20' : 'border-border hover:border-muted-foreground/30'}`}>
