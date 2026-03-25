@@ -294,6 +294,7 @@ const EstruturaRendaExtra = () => {
   const [showBadge, setShowBadge] = useState(false);
   const [personImage, setPersonImage] = useState<PersonImage>('none');
   const [effectsColor, setEffectsColor] = useState('#4a90ff');
+  const [effectsOpacity, setEffectsOpacity] = useState(0.15);
   const [personOpacity, setPersonOpacity] = useState(0.15);
   const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
   // Per-creative logo overrides: { [creativeId]: { x: 0-1, y: 0-1 } }
