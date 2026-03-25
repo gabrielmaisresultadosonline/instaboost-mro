@@ -269,6 +269,7 @@ const EstruturaRendaExtra = () => {
   const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
   // Per-creative logo overrides: { [creativeId]: { x: 0-1, y: 0-1 } }
   const [logoOverrides, setLogoOverrides] = useState<Record<number, LogoOverride>>({});
+  const [bgImageOverrides, setBgImageOverrides] = useState<Record<number, BgImageOverride>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
