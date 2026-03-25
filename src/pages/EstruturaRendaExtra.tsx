@@ -766,26 +766,26 @@ const EstruturaRendaExtra = () => {
       const pillW = ctaTextWidth + 80;
       const pillH = 80;
       const pillX = (W - pillW) / 2;
-      ctx.fillStyle = ctaColor;
+      ctx.fillStyle = hexToRgba(ctaBgColor, ctaBgOpacity);
       roundRect(ctx, pillX, ctaY, pillW, pillH, 40);
       ctx.fill();
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = ctaTextColor;
       ctx.textAlign = 'center';
       ctx.fillText(creative.cta, W / 2, ctaY + 54);
     } else if (layout === 'minimal-center') {
       // Underline-style CTA
-      ctx.fillStyle = ctaColor;
+      ctx.fillStyle = ctaTextColor;
       ctx.textAlign = 'center';
       ctx.fillText(creative.cta, W / 2, ctaY + 58);
-      ctx.fillStyle = hexToRgba(ctaColor, 0.4);
+      ctx.fillStyle = hexToRgba(ctaBgColor, 0.4);
       ctx.fillRect((W - ctaTextWidth) / 2, ctaY + 65, ctaTextWidth, 2);
     } else if (layout === 'bold-stack') {
       // Full-width CTA bar
-      ctx.fillStyle = hexToRgba(ctaColor, 0.15);
+      ctx.fillStyle = hexToRgba(ctaBgColor, ctaBgOpacity);
       ctx.fillRect(marginX - 20, ctaY, W - (marginX - 20) * 2, 80);
-      ctx.fillStyle = ctaColor;
+      ctx.fillStyle = ctaTextColor;
       ctx.textAlign = 'center';
-      ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+      ctx.shadowColor = hexToRgba(ctaTextColor, 0.3);
       ctx.shadowBlur = 15;
       ctx.fillText(creative.cta, W / 2, ctaY + 54);
       ctx.shadowBlur = 0;
@@ -793,15 +793,15 @@ const EstruturaRendaExtra = () => {
       // Standard rounded CTA box
       const ctaBoxW = W - marginX * 2 + 40;
       const ctaBoxX = (W - ctaBoxW) / 2;
-      ctx.fillStyle = hexToRgba(accentColor, 0.08);
+      ctx.fillStyle = hexToRgba(ctaBgColor, ctaBgOpacity);
       roundRect(ctx, ctaBoxX, ctaY, ctaBoxW, 90, 18);
       ctx.fill();
-      ctx.strokeStyle = hexToRgba(accentColor, 0.2);
+      ctx.strokeStyle = hexToRgba(ctaBgColor, 0.3);
       ctx.lineWidth = 1;
       roundRect(ctx, ctaBoxX, ctaY, ctaBoxW, 90, 18);
       ctx.stroke();
-      ctx.fillStyle = ctaColor;
-      ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+      ctx.fillStyle = ctaTextColor;
+      ctx.shadowColor = hexToRgba(ctaTextColor, 0.3);
       ctx.shadowBlur = 15;
       ctx.textAlign = textAlign;
       ctx.fillText(creative.cta, isCenter ? W / 2 : isRight ? W - marginX - 10 : marginX + 10, ctaY + 58);
