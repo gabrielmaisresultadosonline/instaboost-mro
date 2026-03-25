@@ -909,7 +909,7 @@ const EstruturaRendaExtra = () => {
           <div className="border-t border-border bg-card/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
               {/* Colors */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 <ColorPicker label="Fundo 1" value={bgColor1} onChange={setBgColor1} />
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
@@ -933,6 +933,7 @@ const EstruturaRendaExtra = () => {
                 <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
                 <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
                 <ColorPicker label="CTA" value={ctaColor} onChange={setCtaColor} />
+                <ColorPicker label="Efeitos de Luz" value={effectsColor} onChange={setEffectsColor} />
               </div>
 
               {/* Toggles row */}
