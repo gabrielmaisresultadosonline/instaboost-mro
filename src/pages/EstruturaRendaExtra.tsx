@@ -279,7 +279,7 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
-type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato';
+type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'tutoriais';
 
 const EstruturaRendaExtra = () => {
   const navigate = useNavigate();
