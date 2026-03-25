@@ -307,6 +307,8 @@ const EstruturaRendaExtra = () => {
   const [patternConfig, setPatternConfig] = useState<PatternConfig>({ type: 'auto', opacity: 1 });
   const [patternOverrides, setPatternOverrides] = useState<Record<number, PatternConfig>>({});
   const [personPositionOverrides, setPersonPositionOverrides] = useState<Record<number, PersonPositionConfig>>({});
+  const [contentScale, setContentScale] = useState(1);
+  const [contentOffsetY, setContentOffsetY] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [personPhoneLoaded, setPersonPhoneLoaded] = useState<HTMLImageElement | null>(null);
@@ -552,11 +554,12 @@ const EstruturaRendaExtra = () => {
     const marginX = 100;
     const maxTextW = W - marginX * 2;
 
-    // Font sizes per layout
-    const headlineFontSize = layout === 'impact-center' ? 88 : layout === 'bold-stack' ? 80 : layout === 'minimal-center' ? 68 : layout === 'right' ? 72 : layout === 'center' ? 74 : 72;
-    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 40 : layout === 'bold-stack' ? 38 : 38;
-    const ctaFontSize = layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 34;
-    const headlineSpacing = layout === 'impact-center' ? 108 : layout === 'bold-stack' ? 98 : layout === 'minimal-center' ? 86 : 92;
+    // Font sizes per layout (scaled by contentScale)
+    const sc = contentScale;
+    const headlineFontSize = Math.round((layout === 'impact-center' ? 88 : layout === 'bold-stack' ? 80 : layout === 'minimal-center' ? 68 : layout === 'right' ? 72 : layout === 'center' ? 74 : 72) * sc);
+    const bodyFontSize = Math.round((layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 40 : layout === 'bold-stack' ? 38 : 38) * sc);
+    const ctaFontSize = Math.round((layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 34) * sc);
+    const headlineSpacing = Math.round((layout === 'impact-center' ? 108 : layout === 'bold-stack' ? 98 : layout === 'minimal-center' ? 86 : 92) * sc);
 
     // Font families - using loaded Google Fonts
     const headlineFont = layout === 'impact-center' ? `400 ${headlineFontSize}px 'Bebas Neue', Impact, sans-serif`
@@ -584,8 +587,9 @@ const EstruturaRendaExtra = () => {
     const textAlign: CanvasTextAlign = isCenter ? 'center' : isRight ? 'right' : 'left';
     const textX = isCenter ? W / 2 : isRight ? W - marginX : marginX;
 
-    // Start Y position - vertically centered
-    const startY = layout === 'impact-center' ? 400 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 420 : Math.max(badgeEndY + 240, 360);
+    // Start Y position - vertically centered + offset
+    const baseStartY = layout === 'impact-center' ? 400 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 420 : Math.max(badgeEndY + 240, 360);
+    const startY = baseStartY + contentOffsetY;
 
     // Helper: auto-shrink font if headline is too wide
     const fitFont = (baseFontStr: string, baseSize: number, text: string): string => {
@@ -748,7 +752,7 @@ const EstruturaRendaExtra = () => {
     ctx.globalAlpha = layout === 'minimal-center' ? 0.7 : 0.8;
     ctx.textAlign = textAlign;
     const bodyLines = creative.text.split('\n');
-    const bodySpacing = layout === 'minimal-center' ? 62 : layout === 'bold-stack' ? 54 : 58;
+    const bodySpacing = Math.round((layout === 'minimal-center' ? 62 : layout === 'bold-stack' ? 54 : 58) * sc);
     for (const line of bodyLines) {
       ctx.fillText(line, textX, y);
       y += bodySpacing;
@@ -843,7 +847,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, ctaBgColor, ctaTextColor, ctaBgOpacity, effectsColor, effectsOpacity, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPositionOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, ctaBgColor, ctaTextColor, ctaBgOpacity, effectsColor, effectsOpacity, contentScale, contentOffsetY, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPositionOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -951,7 +955,27 @@ const EstruturaRendaExtra = () => {
                 </div>
               </div>
 
-              {/* Toggles row */}
+              {/* Content position/scale */}
+              <div className="flex items-center gap-4 flex-wrap text-sm">
+                <div className="flex items-center gap-2">
+                  <ZoomIn size={14} className="text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs">Tamanho Conteúdo:</span>
+                  <input type="range" min="0.5" max="1.5" step="0.05" value={contentScale} onChange={e => setContentScale(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                  <span className="text-xs text-muted-foreground w-8">{Math.round(contentScale * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Move size={14} className="text-muted-foreground" />
+                  <span className="text-muted-foreground text-xs">Posição Vertical:</span>
+                  <input type="range" min="-400" max="400" step="10" value={contentOffsetY} onChange={e => setContentOffsetY(parseInt(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                  <span className="text-xs text-muted-foreground w-10">{contentOffsetY > 0 ? '+' : ''}{contentOffsetY}px</span>
+                  {(contentScale !== 1 || contentOffsetY !== 0) && (
+                    <button onClick={() => { setContentScale(1); setContentOffsetY(0); }} className="text-[10px] text-destructive hover:underline flex items-center gap-0.5">
+                      <RotateCcw size={10} /> Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="flex items-center gap-4 flex-wrap text-sm">
                 <ToggleOption icon={<Hash size={14} />} label="Números" checked={showNumbers} onChange={setShowNumbers} />
                 <ToggleOption icon={<Sparkles size={14} />} label="Efeitos" checked={showDecorations} onChange={setShowDecorations} />
