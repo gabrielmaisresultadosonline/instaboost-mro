@@ -1035,21 +1035,6 @@ const EstruturaRendaExtra = () => {
                 </div>
               </button>
 
-              {/* Gerar Teste Grátis - 3D button */}
-              <button
-                onClick={() => setCurrentView('testes')}
-                className="group relative w-full rounded-2xl bg-gradient-to-b from-yellow-400 via-yellow-500 to-orange-500 text-black font-black text-lg px-6 py-5 cursor-pointer transition-all duration-300 hover:translate-y-[-3px] active:translate-y-[1px] overflow-hidden border-2 border-yellow-300/60"
-                style={{
-                  boxShadow: '0 8px 20px -4px rgba(234, 179, 8, 0.5), 0 4px 6px -2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',
-                }}
-              >
-                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/15 transition-colors duration-300 rounded-2xl" />
-                <div className="relative z-10 flex items-center justify-center gap-2">
-                  <TestTube className="h-5 w-5" />
-                  <span>Gerar teste grátis</span>
-                  <Sparkles className="h-5 w-5 opacity-70" />
-                </div>
-              </button>
             </div>
 
             {/* Right Panel - Dashboard */}
@@ -1074,6 +1059,7 @@ const EstruturaRendaExtra = () => {
                   }},
                   { label: 'Materiais Disponíveis para Divulgação', icon: <Video className="h-5 w-5" />, hoverGradient: 'hover:from-blue-600 hover:to-cyan-500', hoverShadow: 'hover:shadow-blue-500/35', action: () => setCurrentView('materiais') },
                   { label: 'Gere um Contrato para seu Cliente', icon: <FileText className="h-5 w-5" />, hoverGradient: 'hover:from-amber-500 hover:to-orange-500', hoverShadow: 'hover:shadow-amber-500/35', action: () => setCurrentView('contrato') },
+                  { label: 'Gerar Teste Grátis', icon: <TestTube className="h-5 w-5" />, hoverGradient: 'hover:from-yellow-500 hover:via-yellow-400 hover:to-orange-500', hoverShadow: 'hover:shadow-yellow-500/35', action: () => setCurrentView('testes') },
                 ].map((tool, i) => (
                   <button
                     key={i}
