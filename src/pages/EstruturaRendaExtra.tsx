@@ -1219,6 +1219,17 @@ const EstruturaRendaExtra = () => {
           onPersonPositionReset={() => {
             setPersonPositionOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
           }}
+          bgColor1={bgColor1} onBgColor1Change={setBgColor1}
+          bgColor2={bgColor2} onBgColor2Change={setBgColor2}
+          useGradient={useGradient} onUseGradientChange={setUseGradient}
+          textColor={textColor} onTextColorChange={setTextColor}
+          accentColor={accentColor} onAccentColorChange={setAccentColor}
+          effectsColor={effectsColor} onEffectsColorChange={setEffectsColor}
+          effectsOpacity={effectsOpacity} onEffectsOpacityChange={setEffectsOpacity}
+          ctaTextColor={ctaTextColor} onCtaTextColorChange={setCtaTextColor}
+          ctaBgColor={ctaBgColor} onCtaBgColorChange={setCtaBgColor}
+          ctaBgOpacity={ctaBgOpacity} onCtaBgOpacityChange={setCtaBgOpacity}
+          onLogoUpload={(url) => setLogoUrl(url)}
         />
       )}
     </div>
@@ -1336,7 +1347,19 @@ const PreviewModal: React.FC<{
   patternValue: PatternConfig;
   onPatternChange: (cfg: PatternConfig) => void;
   onPatternReset: () => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset }) => {
+  // Color & effects props
+  bgColor1: string; onBgColor1Change: (v: string) => void;
+  bgColor2: string; onBgColor2Change: (v: string) => void;
+  useGradient: boolean; onUseGradientChange: (v: boolean) => void;
+  textColor: string; onTextColorChange: (v: string) => void;
+  accentColor: string; onAccentColorChange: (v: string) => void;
+  effectsColor: string; onEffectsColorChange: (v: string) => void;
+  effectsOpacity: number; onEffectsOpacityChange: (v: number) => void;
+  ctaTextColor: string; onCtaTextColorChange: (v: string) => void;
+  ctaBgColor: string; onCtaBgColorChange: (v: string) => void;
+  ctaBgOpacity: number; onCtaBgOpacityChange: (v: number) => void;
+  onLogoUpload: (url: string) => void;
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset, bgColor1, onBgColor1Change, bgColor2, onBgColor2Change, useGradient, onUseGradientChange, textColor, onTextColorChange, accentColor, onAccentColorChange, effectsColor, onEffectsColorChange, effectsOpacity, onEffectsOpacityChange, ctaTextColor, onCtaTextColorChange, ctaBgColor, onCtaBgColorChange, ctaBgOpacity, onCtaBgOpacityChange, onLogoUpload }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -1598,6 +1621,101 @@ const PreviewModal: React.FC<{
               )}
             </div>
           )}
+
+          {/* Logo upload (for this creative only) */}
+          {!logoUrl && (
+            <div className="space-y-2">
+              <span className="text-xs font-medium flex items-center gap-1"><Upload size={14} /> Adicionar Logo</span>
+              <input type="file" accept="image/*" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  onLogoUpload(ev.target?.result as string);
+                  toast.success('Logo adicionada!');
+                };
+                reader.readAsDataURL(file);
+              }} className="w-full text-[10px]" />
+            </div>
+          )}
+
+          {/* Colors & Effects */}
+          <div className="space-y-3 border-t border-border pt-3">
+            <span className="text-xs font-bold flex items-center gap-1"><Palette size={14} /> Cores & Efeitos</span>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-muted-foreground block mb-1">Fundo 1</label>
+                <div className="flex items-center gap-1">
+                  <input type="color" value={bgColor1} onChange={e => onBgColor1Change(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                  <span className="text-[9px] text-muted-foreground">{bgColor1}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground block mb-1">
+                  Fundo 2
+                  <button onClick={() => onUseGradientChange(!useGradient)} className="ml-1 text-[9px] px-1 rounded bg-muted cursor-pointer">
+                    {useGradient ? 'Degradê' : 'Sólido'}
+                  </button>
+                </label>
+                <div className="flex items-center gap-1">
+                  <input type="color" value={bgColor2} onChange={e => onBgColor2Change(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" disabled={!useGradient} />
+                  <span className="text-[9px] text-muted-foreground">{bgColor2}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground block mb-1">Texto</label>
+                <div className="flex items-center gap-1">
+                  <input type="color" value={textColor} onChange={e => onTextColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                  <span className="text-[9px] text-muted-foreground">{textColor}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground block mb-1">Destaque</label>
+                <div className="flex items-center gap-1">
+                  <input type="color" value={accentColor} onChange={e => onAccentColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                  <span className="text-[9px] text-muted-foreground">{accentColor}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Controls */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-medium">CTA (Botão)</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-muted-foreground block mb-1">Texto CTA</label>
+                  <input type="color" value={ctaTextColor} onChange={e => onCtaTextColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground block mb-1">Fundo CTA</label>
+                  <input type="color" value={ctaBgColor} onChange={e => onCtaBgColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sliders size={10} className="text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground w-16">Opac. CTA</span>
+                <input type="range" min="0.05" max="1" step="0.05" value={ctaBgOpacity} onChange={e => onCtaBgOpacityChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
+                <span className="text-[10px] w-7 text-right">{Math.round(ctaBgOpacity * 100)}%</span>
+              </div>
+            </div>
+
+            {/* Light Effects */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-medium">Efeito de Luz</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground w-10">Cor</span>
+                <input type="color" value={effectsColor} onChange={e => onEffectsColorChange(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0" />
+                <span className="text-[9px] text-muted-foreground">{effectsColor}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sliders size={10} className="text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground w-10">Luz</span>
+                <input type="range" min="0" max="0.5" step="0.01" value={effectsOpacity} onChange={e => onEffectsOpacityChange(parseFloat(e.target.value))} className="flex-1 h-1 accent-primary" />
+                <span className="text-[10px] w-7 text-right">{Math.round(effectsOpacity * 100)}%</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Mobile bottom controls */}
