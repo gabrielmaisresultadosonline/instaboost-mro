@@ -9,6 +9,7 @@ import { LoginPage } from '@/components/LoginPage';
 import { getUserSession } from '@/lib/userStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import personPhoneImg from '@/assets/person-phone.png';
