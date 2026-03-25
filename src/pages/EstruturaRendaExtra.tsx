@@ -1156,7 +1156,8 @@ const EstruturaRendaExtra = () => {
                           )}
                         </div>
                         <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
-                        <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
+                        <ColorPicker label="Destaque 1" value={accentColor} onChange={setAccentColor} />
+                        <ColorPicker label="Destaque 2" value={highlight2Color} onChange={setHighlight2Color} />
                         <ColorPicker label="Texto CTA" value={ctaTextColor} onChange={setCtaTextColor} />
                         <ColorPicker label="Fundo CTA" value={ctaBgColor} onChange={setCtaBgColor} />
                         <ColorPicker label="Efeitos de Luz" value={effectsColor} onChange={setEffectsColor} />
