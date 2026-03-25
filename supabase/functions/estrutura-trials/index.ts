@@ -172,32 +172,32 @@ serve(async (req) => {
         .single();
 
       const trialHours = settings?.trial_duration_hours || 6;
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + trialHours);
 
-      // Add Instagram to MRO account via SquareCloud API
-      log("Adding Instagram to MRO account", { mro_username, instagram: normalizedIG });
+      // Create 6-hour trial via SquareCloud API /criarTesteMro
+      log("Creating 6h trial via /criarTesteMro", { mro_username, instagram: normalizedIG });
 
+      let apiTrialResult: any = null;
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-        const addIgResponse = await fetch(`${SQUARE_API_URL}/adicionar-instagram`, {
+        const trialResponse = await fetch(`${SQUARE_API_URL}/criarTesteMro`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userName: mro_username,
-            igInstagram: normalizedIG
+            igAssociada: normalizedIG,
+            nameUserMro: mro_username
           }),
           signal: controller.signal
         });
 
         clearTimeout(timeoutId);
 
-        const responseText = await addIgResponse.text();
-        let addIgResult;
+        const responseText = await trialResponse.text();
+        log("API Response", { status: trialResponse.status, body: responseText.substring(0, 500) });
+
         try {
-          addIgResult = JSON.parse(responseText);
+          apiTrialResult = JSON.parse(responseText);
         } catch {
           return new Response(
             JSON.stringify({ success: false, message: 'Resposta inválida do servidor de automação' }),
@@ -205,9 +205,9 @@ serve(async (req) => {
           );
         }
 
-        if (!addIgResult.success) {
+        if (!apiTrialResult.success) {
           return new Response(
-            JSON.stringify({ success: false, message: addIgResult.message || 'Erro ao adicionar Instagram' }),
+            JSON.stringify({ success: false, message: apiTrialResult.message || 'Erro ao criar teste na plataforma' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -221,7 +221,11 @@ serve(async (req) => {
         );
       }
 
-      // Save to database
+      // Save to database - use 6 hours from API
+      const trialHoursFromApi = apiTrialResult.timeLeft || trialHours;
+      const apiExpiresAt = new Date();
+      apiExpiresAt.setHours(apiExpiresAt.getHours() + trialHoursFromApi);
+
       const { error: insertError } = await supabase
         .from('free_trial_registrations')
         .insert({
@@ -230,39 +234,32 @@ serve(async (req) => {
           whatsapp: client_whatsapp || '00000000000',
           instagram_username: normalizedIG,
           generated_username: mro_username,
-          generated_password: mro_password,
+          generated_password: mro_password || '',
           mro_master_user: mro_username,
-          expires_at: expiresAt.toISOString(),
+          expires_at: apiExpiresAt.toISOString(),
           email_sent: false,
           instagram_removed: false,
         });
 
       if (insertError) {
         log("Insert error", { error: insertError });
-        // Rollback: remove Instagram
-        try {
-          await fetch(`${SQUARE_API_URL}/remover-instagram`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: mro_username, instagram: normalizedIG })
-          });
-        } catch {}
         return new Response(
           JSON.stringify({ success: false, message: 'Erro ao salvar registro' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         );
       }
 
-      log("Trial created", { instagram: normalizedIG, expires: expiresAt.toISOString() });
+      log("Trial created", { instagram: normalizedIG, expires: apiExpiresAt.toISOString(), timeLeft: trialHoursFromApi });
 
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Teste criado com sucesso!',
+          message: 'Teste de 6 horas criado com sucesso!',
           trial: {
             instagram_username: normalizedIG,
-            expires_at: expiresAt.toISOString(),
-            trial_duration_hours: trialHours,
+            expires_at: apiExpiresAt.toISOString(),
+            trial_duration_hours: trialHoursFromApi,
+            totalUserMes: apiTrialResult.totalUserMes,
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
