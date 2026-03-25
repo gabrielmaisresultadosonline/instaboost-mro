@@ -597,7 +597,7 @@ const EstruturaRendaExtra = () => {
 
     // Start Y position - vertically centered + offset
     const baseStartY = layout === 'impact-center' ? 400 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 420 : Math.max(badgeEndY + 240, 360);
-    const startY = baseStartY + contentOffsetY;
+    const startY = baseStartY + (contentOffsetYOverrides[creative.id] ?? contentOffsetY);
 
     // Helper: auto-shrink font if headline is too wide
     const fitFont = (baseFontStr: string, baseSize: number, text: string): string => {
