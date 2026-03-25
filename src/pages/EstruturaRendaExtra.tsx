@@ -1125,7 +1125,7 @@ const EstruturaRendaExtra = () => {
         {editorOpen && (
           <div className="border-t border-border bg-card/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 py-2">
-              <Accordion type="multiple" defaultValue={["cores"]} className="w-full">
+              <Accordion type="multiple" defaultValue={[]} className="w-full">
                 {/* Cores */}
                 <AccordionItem value="cores" className="border-border/50">
                   <AccordionTrigger className="py-3 text-sm font-semibold hover:no-underline">
