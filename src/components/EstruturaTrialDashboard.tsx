@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Loader2, Sparkles, Clock, CheckCircle2, XCircle, Instagram, Plus, RefreshCw, Zap } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Clock, CheckCircle2, XCircle, Instagram, Plus, RefreshCw, Zap, Wifi } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -39,6 +39,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
   const [creating, setCreating] = useState(false);
   const [instagramInput, setInstagramInput] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [justCreated, setJustCreated] = useState<string | null>(null);
 
   const loadTrials = async () => {
     setLoading(true);
@@ -65,12 +66,18 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
     loadTrials();
   }, [mroUsername]);
 
+  // Auto-dismiss justCreated after 10s
+  useEffect(() => {
+    if (justCreated) {
+      const t = setTimeout(() => setJustCreated(null), 10000);
+      return () => clearTimeout(t);
+    }
+  }, [justCreated]);
+
   const normalizeIG = (input: string): string => {
     let val = input.trim().toLowerCase();
-    // Handle Instagram URLs like https://instagram.com/username or https://www.instagram.com/username/
     const urlMatch = val.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/);
     if (urlMatch) return urlMatch[1];
-    // Remove @ prefix
     return val.replace(/^@/, '');
   };
 
@@ -95,7 +102,8 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
       if (error) throw error;
 
       if (result?.success) {
-        toast.success('Teste criado com sucesso! 🎉');
+        toast.success('Teste de 6 horas criado com sucesso! 🎉');
+        setJustCreated(ig);
         setInstagramInput('');
         setShowForm(false);
         await loadTrials();
@@ -133,13 +141,30 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Stats */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
           </div>
         ) : (
           <>
+            {/* Success banner after creating */}
+            {justCreated && (
+              <div className="bg-green-500/15 border border-green-500/40 rounded-2xl p-5 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle2 size={22} className="text-green-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-green-400 text-lg">Teste ativado com sucesso! ✅</h4>
+                    <p className="text-white/70 text-sm mt-1">
+                      A conta <span className="text-green-300 font-bold">@{justCreated}</span> já está ativa por 6 horas na ferramenta MRO. 
+                      O cliente pode utilizar normalmente a ferramenta agora.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Stats cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
@@ -177,7 +202,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
                   Criar Teste Grátis
                 </h3>
                 <p className="text-white/50 text-sm">
-                  Digite o Instagram do cliente. O perfil será adicionado à sua conta MRO por {data?.trial_duration_hours || 6} horas.
+                  Digite o Instagram do cliente. O perfil será adicionado à sua conta MRO por 6 horas.
                 </p>
                 <Input
                   value={instagramInput}
@@ -216,22 +241,33 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
                   Testes Ativos ({activeTrials.length})
                 </h3>
                 {activeTrials.map(trial => (
-                  <div key={trial.id} className="bg-[#12121f] rounded-xl border border-green-500/20 p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                        <Instagram size={18} className="text-green-400" />
+                  <div key={trial.id} className="bg-[#12121f] rounded-xl border border-green-500/20 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {/* Pulsing green icon */}
+                        <div className="relative w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                          <div className="absolute inset-0 rounded-full bg-green-500/30 animate-ping" />
+                          <Wifi size={18} className="text-green-400 relative z-10" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-white">@{trial.instagram_username}</p>
+                          <p className="text-white/40 text-xs">{new Date(trial.created_at).toLocaleString('pt-BR')}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-white">@{trial.instagram_username}</p>
-                        <p className="text-white/40 text-xs">{new Date(trial.created_at).toLocaleString('pt-BR')}</p>
+                      <div className="text-right">
+                        <div className="flex items-center gap-1 text-green-400 text-sm font-bold">
+                          <Clock size={14} />
+                          {trial.remaining_hours}h {trial.remaining_minutes}m
+                        </div>
+                        <p className="text-white/30 text-xs">restante</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 text-green-400 text-sm font-bold">
-                        <Clock size={14} />
-                        {trial.remaining_hours}h {trial.remaining_minutes}m
-                      </div>
-                      <p className="text-white/30 text-xs">restante</p>
+                    {/* Active message */}
+                    <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                      <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />
+                      <p className="text-green-300/90 text-xs">
+                        Conta ativa — o cliente pode utilizar normalmente a ferramenta MRO.
+                      </p>
                     </div>
                   </div>
                 ))}
