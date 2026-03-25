@@ -901,31 +901,9 @@ const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggl
   }, [creative, drawCreative]);
 
   return (
-  const firstLine = creative.headline.split('\n')[0];
-  return (
     <div className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selected ? 'border-primary shadow-lg shadow-primary/20' : 'border-border hover:border-muted-foreground/30'}`}>
-      <div
-        className="aspect-[1080/1350] p-3 flex flex-col justify-between relative"
-        style={{ background: bgStyle }}
-        onClick={onPreview}
-      >
-        <div>
-          {showBadge && (
-            <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: hexToRgba(accentColor, 0.15), color: accentColor }}>
-              {creative.category.toUpperCase()}
-            </span>
-          )}
-          <div className="text-[10px] sm:text-xs font-bold mt-2 leading-tight" style={{ color: textColor }}>
-            {firstLine}
-          </div>
-        </div>
-        <div className="text-2xl text-center my-1">{creative.icon}</div>
-        <div>
-          <div className="text-[7px] sm:text-[8px] leading-tight mb-1" style={{ color: textColor, opacity: 0.7 }}>{creative.text.split('\n')[0]}</div>
-          <div className="text-[7px] sm:text-[8px] font-bold" style={{ color: ctaColor }}>{creative.cta}</div>
-          {logoUrl && <img src={logoUrl} className="h-3 mt-1 object-contain" alt="" />}
-        </div>
-        {showNumbers && <div className="absolute top-1 right-2 text-[8px] font-bold" style={{ color: textColor, opacity: 0.15 }}>#{String(creative.id).padStart(2, '0')}</div>}
+      <div className="aspect-[1080/1350] relative" onClick={onPreview}>
+        <canvas ref={thumbRef} className="w-full h-full object-cover" />
         {hasLogoOverride && (
           <div className="absolute top-1 left-6 text-[8px]" title="Logo personalizada">
             <Move size={10} className="text-primary" />
