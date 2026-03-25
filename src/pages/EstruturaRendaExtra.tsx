@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -279,6 +280,7 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 type ViewMode = 'menu' | 'posts-creator';
 
 const EstruturaRendaExtra = () => {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<ViewMode>('menu');
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
@@ -911,15 +913,27 @@ const EstruturaRendaExtra = () => {
               Posts Creator
             </Button>
 
-            <a href="https://maisresultadosonline.com.br/prompts/" target="_blank" rel="noopener noreferrer" className="w-full">
-              <Button
-                size="xl"
-                className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0"
-              >
-                <Camera className="h-6 w-6" />
-                Gerando sua Foto Profissional
-              </Button>
-            </a>
+            <Button
+              size="xl"
+              className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0"
+              onClick={() => {
+                // Set session so PromptsMRODashboard skips login
+                const guestUser = {
+                  id: 'estrutura-guest',
+                  name: 'Membro EUGência',
+                  email: 'eugencia@membro.com',
+                  copies_count: 0,
+                  copies_limit: 99999,
+                  is_paid: true,
+                  days_remaining: 99999,
+                };
+                sessionStorage.setItem('prompts_mro_user', JSON.stringify(guestUser));
+                navigate('/prompts/dashboard');
+              }}
+            >
+              <Camera className="h-6 w-6" />
+              Gerando sua Foto Profissional
+            </Button>
 
             <Button
               size="xl"
