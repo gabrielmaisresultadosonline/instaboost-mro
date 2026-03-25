@@ -113,9 +113,9 @@ serve(async (req) => {
 
     // ── CREATE TRIAL ──
     if (action === 'create') {
-      if (!instagram_username || !mro_password) {
+      if (!instagram_username) {
         return new Response(
-          JSON.stringify({ success: false, message: 'Instagram e senha MRO são obrigatórios' }),
+          JSON.stringify({ success: false, message: 'Instagram é obrigatório' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }
