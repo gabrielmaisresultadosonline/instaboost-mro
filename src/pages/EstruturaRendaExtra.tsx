@@ -1365,6 +1365,22 @@ const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggl
   );
 };
 
+const AccordionSection: React.FC<{ title: string; defaultOpen?: boolean; children: React.ReactNode }> = ({ title, defaultOpen = false, children }) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="border border-border rounded-lg overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold hover:bg-muted/50 transition-colors"
+      >
+        <span>{title}</span>
+        {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {open && <div className="px-3 pb-3 pt-1">{children}</div>}
+    </div>
+  );
+};
+
 const PreviewModal: React.FC<{
   creative: CreativeData;
   onClose: () => void;
