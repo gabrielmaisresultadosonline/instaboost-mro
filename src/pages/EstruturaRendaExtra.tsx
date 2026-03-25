@@ -562,8 +562,8 @@ const EstruturaRendaExtra = () => {
     const marginX = 100;
     const maxTextW = W - marginX * 2;
 
-    // Font sizes per layout (scaled by contentScale)
-    const sc = contentScale;
+    // Font sizes per layout (scaled by contentScale, with per-creative override)
+    const sc = contentScaleOverrides[creative.id] ?? contentScale;
     const headlineFontSize = Math.round((layout === 'impact-center' ? 88 : layout === 'bold-stack' ? 80 : layout === 'minimal-center' ? 68 : layout === 'right' ? 72 : layout === 'center' ? 74 : 72) * sc);
     const bodyFontSize = Math.round((layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 40 : layout === 'bold-stack' ? 38 : 38) * sc);
     const ctaFontSize = Math.round((layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 34) * sc);
