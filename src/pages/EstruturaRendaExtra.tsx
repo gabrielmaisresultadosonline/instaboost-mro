@@ -23,6 +23,14 @@ interface LogoOverride {
   y: number; // 0-1 percentage
 }
 
+interface BgImageOverride {
+  url: string;
+  x: number; // offset in pixels (canvas coords)
+  y: number;
+  opacity: number; // 0-1
+  scale: number; // 1 = original
+}
+
 const CREATIVES: CreativeData[] = [
   { id: 1, headline: "VOCÊ POSTA TODO DIA…\nE NÃO VENDE?", highlightWord: "NÃO VENDE", highlightColor: "#ef4444", text: "O problema não é o conteúdo.\nÉ que você está falando com as pessoas erradas.", cta: "👉 Descubra como atrair clientes reais", category: 'dor', icon: '🚫' },
   { id: 2, headline: "SEU CONCORRENTE ESTÁ\nPEGANDO SEUS CLIENTES", text: "E o pior… você está ajudando ele sem perceber.", cta: "👉 Aprenda a virar esse jogo", category: 'dor', icon: '⚔️' },
