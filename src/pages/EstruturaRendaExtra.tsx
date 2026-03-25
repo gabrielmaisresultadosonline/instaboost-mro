@@ -1385,7 +1385,6 @@ const PreviewModal: React.FC<{
   patternValue: PatternConfig;
   onPatternChange: (cfg: PatternConfig) => void;
   onPatternReset: () => void;
-  // Color & effects props
   bgColor1: string; onBgColor1Change: (v: string) => void;
   bgColor2: string; onBgColor2Change: (v: string) => void;
   useGradient: boolean; onUseGradientChange: (v: boolean) => void;
@@ -1397,7 +1396,10 @@ const PreviewModal: React.FC<{
   ctaBgColor: string; onCtaBgColorChange: (v: string) => void;
   ctaBgOpacity: number; onCtaBgOpacityChange: (v: number) => void;
   onLogoUpload: (url: string) => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset, bgColor1, onBgColor1Change, bgColor2, onBgColor2Change, useGradient, onUseGradientChange, textColor, onTextColorChange, accentColor, onAccentColorChange, effectsColor, onEffectsColorChange, effectsOpacity, onEffectsOpacityChange, ctaTextColor, onCtaTextColorChange, ctaBgColor, onCtaBgColorChange, ctaBgOpacity, onCtaBgOpacityChange, onLogoUpload }) => {
+  contentScaleValue: number; onContentScaleChange: (v: number) => void;
+  contentOffsetYValue: number; onContentOffsetYChange: (v: number) => void;
+  onContentPositionReset: () => void;
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset, bgColor1, onBgColor1Change, bgColor2, onBgColor2Change, useGradient, onUseGradientChange, textColor, onTextColorChange, accentColor, onAccentColorChange, effectsColor, onEffectsColorChange, effectsOpacity, onEffectsOpacityChange, ctaTextColor, onCtaTextColorChange, ctaBgColor, onCtaBgColorChange, ctaBgOpacity, onCtaBgOpacityChange, onLogoUpload, contentScaleValue, onContentScaleChange, contentOffsetYValue, onContentOffsetYChange, onContentPositionReset }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
