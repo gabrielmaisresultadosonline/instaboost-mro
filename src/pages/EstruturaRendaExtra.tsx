@@ -197,11 +197,11 @@ function drawCircuitLines(ctx: CanvasRenderingContext2D, W: number, H: number, c
   ctx.restore();
 }
 
-function drawGlowOrb(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, color: string) {
+function drawGlowOrb(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, color: string, opacityMult: number = 1) {
   ctx.save();
   const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-  grad.addColorStop(0, hexToRgba(color, 0.15));
-  grad.addColorStop(0.5, hexToRgba(color, 0.05));
+  grad.addColorStop(0, hexToRgba(color, 0.15 * opacityMult));
+  grad.addColorStop(0.5, hexToRgba(color, 0.05 * opacityMult));
   grad.addColorStop(1, hexToRgba(color, 0));
   ctx.fillStyle = grad;
   ctx.beginPath();
@@ -294,6 +294,7 @@ const EstruturaRendaExtra = () => {
   const [showBadge, setShowBadge] = useState(false);
   const [personImage, setPersonImage] = useState<PersonImage>('none');
   const [effectsColor, setEffectsColor] = useState('#4a90ff');
+  const [effectsOpacity, setEffectsOpacity] = useState(0.15);
   const [personOpacity, setPersonOpacity] = useState(0.15);
   const [logoPosition, setLogoPosition] = useState<LogoPosition>('bottom-right');
   // Per-creative logo overrides: { [creativeId]: { x: 0-1, y: 0-1 } }
@@ -431,24 +432,24 @@ const EstruturaRendaExtra = () => {
         // Original category-based patterns
         if (catIndex === 0) {
           drawDiamondGrid(ctx, W, H, accentColor);
-          drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, effectsColor);
-          drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, effectsColor);
+          drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, effectsColor, effectsOpacity / 0.15);
+          drawGlowOrb(ctx, W * 0.15, H * 0.85, 200, effectsColor, effectsOpacity / 0.15);
           drawCircuitLines(ctx, W, H, accentColor);
         } else if (catIndex === 1) {
           drawHexPattern(ctx, W, H, accentColor);
-          drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, effectsColor);
+          drawGlowOrb(ctx, W * 0.85, H * 0.1, 300, effectsColor, effectsOpacity / 0.15);
           drawConcentricRings(ctx, W * 0.5, H * 0.35, accentColor, 250);
         } else if (catIndex === 2) {
           drawDotMatrix(ctx, 60, 60, 20, 25, 50, accentColor);
-          drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, effectsColor);
+          drawGlowOrb(ctx, W * 0.75, H * 0.2, 220, effectsColor, effectsOpacity / 0.15);
         } else if (catIndex === 3) {
           drawCircuitLines(ctx, W, H, ctaColor);
-          drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, effectsColor);
+          drawGlowOrb(ctx, W * 0.5, H * 0.15, 280, effectsColor, effectsOpacity / 0.15);
           drawHexPattern(ctx, W, H, ctaColor);
         } else {
           drawDiamondGrid(ctx, W, H, accentColor);
           drawConcentricRings(ctx, W * 0.85, H * 0.12, accentColor, 200);
-          drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, effectsColor);
+          drawGlowOrb(ctx, W * 0.5, H * 0.5, 350, effectsColor, effectsOpacity / 0.15);
         }
       } else {
         // Specific pattern chosen
@@ -464,8 +465,8 @@ const EstruturaRendaExtra = () => {
         } else if (pType === 'rings') {
           drawConcentricRings(ctx, W * 0.5, H * 0.4, pColor, 350);
         }
-        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, effectsColor);
-        drawGlowOrb(ctx, W * 0.2, H * 0.8, 200, effectsColor);
+        drawGlowOrb(ctx, W * 0.8, H * 0.15, 250, effectsColor, effectsOpacity / 0.15);
+        drawGlowOrb(ctx, W * 0.2, H * 0.8, 200, effectsColor, effectsOpacity / 0.15);
       }
       drawFloatingShapes(ctx, W, H, accentColor, creative.id);
       ctx.globalAlpha = 1;
@@ -839,7 +840,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, effectsColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPositionOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, effectsColor, effectsOpacity, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, personPositionOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, fontsReady, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -941,6 +942,23 @@ const EstruturaRendaExtra = () => {
                 <ToggleOption icon={<Hash size={14} />} label="Números" checked={showNumbers} onChange={setShowNumbers} />
                 <ToggleOption icon={<Sparkles size={14} />} label="Efeitos" checked={showDecorations} onChange={setShowDecorations} />
                 <ToggleOption icon={<Tag size={14} />} label="Categoria" checked={showBadge} onChange={setShowBadge} />
+
+                {showDecorations && (
+                  <div className="flex items-center gap-2">
+                    <Sliders size={14} className="text-muted-foreground" />
+                    <span className="text-muted-foreground text-xs">Luz:</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={effectsOpacity}
+                      onChange={e => setEffectsOpacity(parseFloat(e.target.value))}
+                      className="w-20 h-1.5 accent-primary"
+                    />
+                    <span className="text-xs text-muted-foreground w-8">{Math.round(effectsOpacity * 100)}%</span>
+                  </div>
+                )}
               </div>
 
               {/* Person image + opacity */}
@@ -1383,14 +1401,14 @@ const PreviewModal: React.FC<{
                   <div className="flex items-center gap-2">
                     <Move size={10} className="text-muted-foreground" />
                     <span className="text-[10px] text-muted-foreground w-14">Pos. X</span>
-                    <input type="range" min="-1080" max="1080" step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <input type="range" min={Math.round(-1080 * bgImageOverride.scale)} max={Math.round(1080 * bgImageOverride.scale)} step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
                     <span className="text-[10px] w-7 text-right">{bgImageOverride.x}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Move size={10} className="text-muted-foreground" />
                     <span className="text-[10px] text-muted-foreground w-14">Pos. Y</span>
-                    <input type="range" min="-1350" max="1350" step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                    <input type="range" min={Math.round(-1350 * bgImageOverride.scale)} max={Math.round(1350 * bgImageOverride.scale)} step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
                     <span className="text-[10px] w-7 text-right">{bgImageOverride.y}</span>
                   </div>
                 </div>
@@ -1510,11 +1528,11 @@ const PreviewModal: React.FC<{
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">X:</span>
-                  <input type="range" min="-1080" max="1080" step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <input type="range" min={Math.round(-1080 * bgImageOverride.scale)} max={Math.round(1080 * bgImageOverride.scale)} step="10" value={bgImageOverride.x} onChange={e => updateBg({ x: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground">Y:</span>
-                  <input type="range" min="-1350" max="1350" step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                  <input type="range" min={Math.round(-1350 * bgImageOverride.scale)} max={Math.round(1350 * bgImageOverride.scale)} step="10" value={bgImageOverride.y} onChange={e => updateBg({ y: parseInt(e.target.value) })} className="flex-1 h-1 accent-primary" />
                 </div>
               </div>
             </div>
