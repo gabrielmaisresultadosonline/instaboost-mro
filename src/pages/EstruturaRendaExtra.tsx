@@ -570,21 +570,12 @@ const EstruturaRendaExtra = () => {
     ctx.fillRect(0, H - 6, W, 6);
 
     // ── Logo ──
-    if (logoUrl && logoPosition !== 'custom' && !logoOverrides[creative.id]) {
+    if (logoUrl) {
       try {
         const img = await loadImage(logoUrl);
-        const lH = 80;
-        const lW = (img.width / img.height) * lH;
-        const coords = getLogoCoords(creative.id, W, H, lW, lH);
-        ctx.shadowColor = hexToRgba(accentColor, 0.3);
-        ctx.shadowBlur = 15;
-        ctx.drawImage(img, coords.x, coords.y, lW, lH);
-        ctx.shadowBlur = 0;
-      } catch { /* skip */ }
-    } else if (logoUrl && logoOverrides[creative.id]) {
-      try {
-        const img = await loadImage(logoUrl);
-        const lH = 80;
+        const override = logoOverrides[creative.id];
+        const logoScale = override?.scale ?? 1;
+        const lH = 80 * logoScale;
         const lW = (img.width / img.height) * lH;
         const coords = getLogoCoords(creative.id, W, H, lW, lH);
         ctx.shadowColor = hexToRgba(accentColor, 0.3);
