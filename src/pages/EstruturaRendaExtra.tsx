@@ -1063,6 +1063,20 @@ const PreviewModal: React.FC<{
             )}
           </div>
 
+          {/* Person image control */}
+          <div className="space-y-2">
+            <span className="text-xs font-medium flex items-center gap-1"><User size={14} /> Pessoa no Fundo</span>
+            <select
+              value={personImageValue}
+              onChange={e => onPersonImageChange(e.target.value as PersonImage)}
+              className="w-full h-7 text-xs rounded border border-border bg-background px-2"
+            >
+              <option value="none">Sem pessoa</option>
+              <option value="phone">Celular (Foto Real)</option>
+              <option value="laptop">Notebook (Foto Real)</option>
+            </select>
+          </div>
+
           {/* Logo controls */}
           {logoUrl && (
             <div className="space-y-2">
