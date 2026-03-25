@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -910,6 +910,16 @@ const EstruturaRendaExtra = () => {
               <Image className="h-6 w-6" />
               Posts Creator
             </Button>
+
+            <a href="https://maisresultadosonline.com.br/prompts/" target="_blank" rel="noopener noreferrer" className="w-full">
+              <Button
+                size="xl"
+                className="w-full gap-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white border-0"
+              >
+                <Camera className="h-6 w-6" />
+                Gerando sua Foto Profissional
+              </Button>
+            </a>
 
             <Button
               size="xl"
