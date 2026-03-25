@@ -23,7 +23,12 @@ serve(async (req) => {
     
     // Modules data is stored as separate files per platform
     // MRO uses the original path for backward compatibility
-    const baseName = platform === 'zapmro' ? 'zapmro-modules-data' : 'modules-data';
+    const getBaseName = (p: string) => {
+      if (p === 'zapmro') return 'zapmro-modules-data';
+      if (p === 'estrutura') return 'estrutura-modules-data';
+      return 'modules-data'; // default = mro
+    };
+    const baseName = getBaseName(platform || 'mro');
     const filePath = isBackup ? `admin/${baseName}-backup.json` : `admin/${baseName}.json`;
     const callSettingsPath = 'admin/call-settings.json';
     
