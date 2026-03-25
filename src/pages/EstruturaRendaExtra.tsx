@@ -1251,45 +1251,49 @@ const EstruturaRendaExtra = () => {
                     <div className="flex items-center gap-2"><MapPin size={16} className="text-primary" /> Logo</div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="flex items-center gap-4 flex-wrap text-sm pb-2">
-                      <div className="flex items-center gap-2">
-                        <MapPin size={14} className="text-muted-foreground" />
-                        <span className="text-muted-foreground text-xs">Logo (padrão):</span>
-                        <select
-                          value={logoPosition}
-                          onChange={e => setLogoPosition(e.target.value as LogoPosition)}
-                          className="h-7 text-xs rounded border border-border bg-background px-2"
-                        >
-                          <option value="bottom-right">Inferior direito</option>
-                          <option value="bottom-left">Inferior esquerdo</option>
-                          <option value="top-center">Topo centro</option>
-                          <option value="top-right">Topo direito</option>
-                        </select>
+                    <div className="space-y-3 text-sm pb-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="flex items-center gap-2">
+                          <MapPin size={14} className="text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground text-xs">Posição:</span>
+                          <select
+                            value={logoPosition}
+                            onChange={e => setLogoPosition(e.target.value as LogoPosition)}
+                            className="h-7 text-xs rounded border border-border bg-background px-2 flex-1 min-w-0"
+                          >
+                            <option value="bottom-right">Inferior direito</option>
+                            <option value="bottom-left">Inferior esquerdo</option>
+                            <option value="top-center">Topo centro</option>
+                            <option value="top-right">Topo direito</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                          {logoUrl ? (
+                            <div className="flex items-center gap-2">
+                              <img src={logoUrl} className="h-8 w-8 object-contain rounded" alt="logo" />
+                              <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
+                            </div>
+                          ) : (
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
+                              <Upload size={14} /> Upload Logo
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      {Object.keys(logoOverrides).length > 0 && (
-                        <button
-                          onClick={() => { setLogoOverrides({}); toast.success('Posições personalizadas resetadas!'); }}
-                          className="text-xs text-destructive hover:underline flex items-center gap-1"
-                        >
-                          <X size={12} /> Resetar posições ({Object.keys(logoOverrides).length})
-                        </button>
-                      )}
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Move size={12} />
-                        <span>Arraste a logo no preview para posicionar individualmente</span>
-                      </div>
-                      <div className="ml-auto">
-                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                        {logoUrl ? (
-                          <div className="flex items-center gap-2">
-                            <img src={logoUrl} className="h-8 w-8 object-contain rounded" alt="logo" />
-                            <button onClick={() => setLogoUrl(null)} className="text-destructive"><X size={14} /></button>
-                          </div>
-                        ) : (
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fileInputRef.current?.click()}>
-                            <Upload size={14} /> Upload Logo
-                          </Button>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {Object.keys(logoOverrides).length > 0 && (
+                          <button
+                            onClick={() => { setLogoOverrides({}); toast.success('Posições personalizadas resetadas!'); }}
+                            className="text-xs text-destructive hover:underline flex items-center gap-1"
+                          >
+                            <X size={12} /> Resetar posições ({Object.keys(logoOverrides).length})
+                          </button>
                         )}
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Move size={12} />
+                          <span>Arraste a logo no preview para posicionar</span>
+                        </div>
                       </div>
                     </div>
                   </AccordionContent>
