@@ -1221,10 +1221,13 @@ const PreviewModal: React.FC<{
   onBgImageChange: (ovr: BgImageOverride | null) => void;
   personImageValue: PersonImage;
   onPersonImageChange: (val: PersonImage) => void;
+  personPositionConfig: PersonPositionConfig;
+  onPersonPositionChange: (cfg: PersonPositionConfig) => void;
+  onPersonPositionReset: () => void;
   patternValue: PatternConfig;
   onPatternChange: (cfg: PatternConfig) => void;
   onPatternReset: () => void;
-}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, patternValue, onPatternChange, onPatternReset }) => {
+}> = ({ creative, onClose, drawCreative, onDownload, logoUrl, onLogoMove, logoOverride, onResetLogo, onLogoScaleChange, bgImageOverride, onBgImageChange, personImageValue, onPersonImageChange, personPositionConfig, onPersonPositionChange, onPersonPositionReset, patternValue, onPatternChange, onPatternReset }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
