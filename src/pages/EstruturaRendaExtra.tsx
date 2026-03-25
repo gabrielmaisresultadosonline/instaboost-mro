@@ -1119,6 +1119,35 @@ const PreviewModal: React.FC<{
             </select>
           </div>
 
+          {/* Pattern controls */}
+          <div className="space-y-2">
+            <span className="text-xs font-medium flex items-center gap-1"><Sparkles size={14} /> Padrão de Fundo</span>
+            <select
+              value={patternValue.type}
+              onChange={e => onPatternChange({ ...patternValue, type: e.target.value as PatternType })}
+              className="w-full h-7 text-xs rounded border border-border bg-background px-2"
+            >
+              <option value="auto">Automático (por categoria)</option>
+              <option value="diamond">Diamante / Grade</option>
+              <option value="hex">Hexagonal</option>
+              <option value="circuit">Circuitos</option>
+              <option value="dots">Pontos</option>
+              <option value="rings">Anéis</option>
+              <option value="none">Sem padrão</option>
+            </select>
+            {patternValue.type !== 'none' && (
+              <div className="flex items-center gap-2">
+                <Sliders size={10} className="text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground w-14">Opacidade</span>
+                <input type="range" min="0.1" max="3" step="0.1" value={patternValue.opacity} onChange={e => onPatternChange({ ...patternValue, opacity: parseFloat(e.target.value) })} className="flex-1 h-1 accent-primary" />
+                <span className="text-[10px] w-7 text-right">{Math.round(patternValue.opacity * 100)}%</span>
+              </div>
+            )}
+            <Button size="sm" variant="outline" className="w-full h-6 text-[10px]" onClick={onPatternReset}>
+              <RotateCcw size={10} /> Padrão original
+            </Button>
+          </div>
+
           {/* Logo controls */}
           {logoUrl && (
             <div className="space-y-2">
