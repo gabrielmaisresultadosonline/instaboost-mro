@@ -450,8 +450,150 @@ export const ContratoGenerator: React.FC<ContratoGeneratorProps> = ({ onBack }) 
           </div>
         </div>
 
-        {/* Generate button */}
+        {/* Live Preview */}
         <div className="mt-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Eye className="w-5 h-5 text-amber-400" />
+            <h2 className="font-bold text-lg">Pré-visualização do Contrato</h2>
+            <span className="text-xs text-gray-500 ml-2">Atualiza em tempo real</span>
+          </div>
+          <div className="bg-white text-black rounded-2xl p-6 md:p-10 shadow-2xl max-h-[600px] overflow-y-auto text-sm leading-relaxed">
+            {logoPreview && (
+              <div className="flex justify-center mb-6">
+                <img src={logoPreview} alt="Logo" className="max-h-16" />
+              </div>
+            )}
+            <h2 className="text-center font-bold text-base mb-1">CONTRATO DE PRESTAÇÃO DE SERVIÇOS</h2>
+            <h3 className="text-center font-bold text-base mb-6">DE MARKETING DIGITAL</h3>
+
+            <p className="mb-2"><strong>CONTRATANTE:</strong></p>
+            <p className="mb-4">{data.contratanteNome || <span className="text-gray-400">[NOME DO CONTRATANTE]</span>}, inscrito no CPF nº {data.contratanteCpf || <span className="text-gray-400">[CPF]</span>}, proprietário da empresa <strong>{data.empresaNome || <span className="text-gray-400">[EMPRESA]</span>}</strong>, doravante denominado simplesmente <strong>CONTRATANTE</strong>.</p>
+
+            <p className="mb-2"><strong>CONTRATADO:</strong></p>
+            <p className="mb-4">{data.contratadoNome || <span className="text-gray-400">[NOME DO CONTRATADO]</span>}, inscrito no CPF nº {data.contratadoCpf || <span className="text-gray-400">[CPF]</span>}, responsável pela agência <strong>{data.agenciaNome || <span className="text-gray-400">[AGÊNCIA]</span>}</strong>, doravante denominado simplesmente <strong>CONTRATADO</strong>.</p>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 1 – DO OBJETO</p>
+            <p className="mb-2">O presente contrato tem como objeto a prestação de serviços de gerenciamento e crescimento do perfil da empresa <strong>{data.empresaNome || '[EMPRESA]'}</strong> na rede social Instagram, com foco em:</p>
+            <ul className="list-disc pl-6 mb-2 space-y-0.5">
+              <li>Aumento de engajamento</li>
+              <li>Crescimento de seguidores</li>
+              <li>Geração de clientes e vendas</li>
+              <li>Posicionamento estratégico da marca</li>
+            </ul>
+            <p className="mb-2">Os serviços serão realizados sem investimento em anúncios pagos, utilizando exclusivamente estratégias orgânicas, incluindo:</p>
+            <ul className="list-disc pl-6 mb-4 space-y-0.5">
+              <li>Interações estratégicas com o público-alvo</li>
+              <li>Comunicação direcionada</li>
+              <li>Técnicas de alcance orgânico</li>
+              <li>Uso de inteligência artificial para potencialização de resultados</li>
+            </ul>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 2 – DAS ENTREGAS E RESULTADOS</p>
+            <p className="mb-2">O CONTRATADO compromete-se a:</p>
+            <ul className="list-disc pl-6 mb-2 space-y-0.5">
+              <li>Trabalhar estratégias para gerar mais de 1.000 visitas mensais no perfil do CONTRATANTE</li>
+              <li>Desenvolver crescimento contínuo do perfil</li>
+              <li>Melhorar o relacionamento com o público-alvo</li>
+              <li>Aplicar estratégias validadas de marketing digital</li>
+            </ul>
+            <p className="mb-4 italic text-gray-600">Parágrafo único: Os resultados podem variar conforme fatores externos, comportamento do público e algoritmo da plataforma.</p>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 3 – DO PRAZO</p>
+            <p className="mb-4">O presente contrato terá duração de <strong>{data.duracaoMeses || '___'} meses</strong>, iniciando-se na data de assinatura.</p>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 4 – DO VALOR E FORMA DE PAGAMENTO</p>
+            <p className="mb-2">Pelos serviços prestados, o CONTRATANTE pagará ao CONTRATADO o valor de:</p>
+            <ul className="list-disc pl-6 mb-2">
+              <li><strong>R$ {data.valorMensal || '___'}</strong> por mês, durante o período de {data.duracaoMeses || '___'} meses</li>
+            </ul>
+            <p className="mb-2">Totalizando:</p>
+            <ul className="list-disc pl-6 mb-2">
+              <li><strong>R$ {calcTotal()}</strong> ao final do contrato</li>
+            </ul>
+            <p className="mb-4">O pagamento deverá ser realizado mensalmente, conforme acordado entre as partes.</p>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 5 – DAS OBRIGAÇÕES DO CONTRATADO</p>
+            <ul className="list-disc pl-6 mb-4 space-y-0.5">
+              <li>Executar as estratégias de marketing acordadas</li>
+              <li>Manter profissionalismo e confidencialidade</li>
+              <li>Aplicar técnicas atualizadas do mercado</li>
+              <li>Buscar constantemente melhorias de desempenho</li>
+            </ul>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 6 – DAS OBRIGAÇÕES DO CONTRATANTE</p>
+            <ul className="list-disc pl-6 mb-4 space-y-0.5">
+              <li>Fornecer acesso necessário às redes sociais</li>
+              <li>Disponibilizar informações sobre o negócio</li>
+              <li>Manter comunicação ativa com o CONTRATADO</li>
+              <li>Cumprir os pagamentos mensais conforme acordado</li>
+              <li>Respeitar o prazo contratual mínimo de {data.duracaoMeses || '___'} meses</li>
+            </ul>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 7 – DA RESCISÃO</p>
+            <p className="mb-2">Este contrato não poderá ser rescindido antes do prazo mínimo de {data.duracaoMeses || '___'} meses, salvo acordo entre as partes.</p>
+            <p className="mb-4">Em caso de interrupção antecipada por parte do CONTRATANTE, poderá ser cobrado o valor proporcional restante do contrato.</p>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 8 – DAS ASSINATURAS DIGITAIS</p>
+            <p className="mb-2">As partes concordam que este contrato poderá ser assinado digitalmente através da plataforma oficial do Governo Federal, GOV.BR, possuindo validade jurídica, nos termos da legislação vigente.</p>
+            <p className="mb-4">A assinatura eletrônica terá a mesma validade que a assinatura física.</p>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 9 – DISPOSIÇÕES GERAIS</p>
+            <ul className="list-disc pl-6 mb-4 space-y-0.5">
+              <li>O CONTRATADO não garante resultados financeiros exatos, mas sim a execução de estratégias profissionais com alto potencial de crescimento.</li>
+              <li>Ambas as partes concordam com os termos aqui estabelecidos, visando uma parceria estratégica e de crescimento.</li>
+            </ul>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold mb-2">CLÁUSULA 10 – DO FORO</p>
+            <p className="mb-4">Fica eleito o foro da comarca de residência do CONTRATADO para dirimir quaisquer dúvidas oriundas deste contrato.</p>
+
+            <hr className="my-4 border-gray-300" />
+
+            <p className="font-bold text-center mb-4">ASSINATURA DAS PARTES</p>
+            <p className="mb-6 text-center text-gray-500">Por estarem de acordo, firmam o presente contrato:</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+              <div>
+                <p className="font-bold mb-2">CONTRATANTE:</p>
+                <p>Nome: {data.contratanteNome || '________________________'}</p>
+                <p>CPF: {data.contratanteCpf || '________________________'}</p>
+                <p>Empresa: {data.empresaNome || '________________________'}</p>
+                <p className="mt-4">Assinatura: ________________________</p>
+              </div>
+              <div>
+                <p className="font-bold mb-2">CONTRATADO:</p>
+                <p>{data.contratadoNome || '________________________'}</p>
+                <p>CPF: {data.contratadoCpf || '________________________'}</p>
+                <p>Agência {data.agenciaNome}</p>
+                <p className="mt-4">Assinatura: ________________________</p>
+              </div>
+            </div>
+
+            <p className="mt-6 text-center text-gray-500">Data: ____ / ____ / ______</p>
+          </div>
+        </div>
+
+        {/* Generate button */}
+        <div className="mt-8 mb-8">
           <Button
             onClick={generatePDF}
             disabled={generating}
