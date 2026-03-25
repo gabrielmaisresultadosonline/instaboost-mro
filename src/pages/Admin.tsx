@@ -902,6 +902,18 @@ const Admin = () => {
           />
         )}
 
+        {/* Estrutura Tutoriais Tab */}
+        {activeTab === 'estrutura' && (
+          <ModuleManager 
+            downloadLink=""
+            onDownloadLinkChange={() => {}}
+            onSaveSettings={() => {
+              toast({ title: "Salvo!", description: "Tutoriais da Estrutura salvos." });
+            }}
+            platform="estrutura"
+          />
+        )}
+
         {/* Scraper Manual Tab */}
         {activeTab === 'scraper' && (
           <ManualScraper />
