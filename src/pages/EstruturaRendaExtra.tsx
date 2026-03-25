@@ -74,6 +74,12 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 type LogoPosition = 'bottom-right' | 'bottom-left' | 'top-center' | 'top-right' | 'custom';
 type PersonImage = 'none' | 'phone' | 'laptop';
+type PatternType = 'auto' | 'diamond' | 'hex' | 'circuit' | 'dots' | 'rings' | 'none';
+
+interface PatternConfig {
+  type: PatternType;
+  opacity: number; // multiplier 0-2
+}
 
 function hexToRgba(hex: string, alpha: number) {
   const r = parseInt(hex.slice(1, 3), 16);
