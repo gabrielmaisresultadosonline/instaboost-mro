@@ -313,6 +313,8 @@ const EstruturaRendaExtra = () => {
   const [patternConfig, setPatternConfig] = useState<PatternConfig>({ type: 'auto', opacity: 1 });
   const [patternOverrides, setPatternOverrides] = useState<Record<number, PatternConfig>>({});
   const [personPositionOverrides, setPersonPositionOverrides] = useState<Record<number, PersonPositionConfig>>({});
+  const [contentScaleOverrides, setContentScaleOverrides] = useState<Record<number, number>>({});
+  const [contentOffsetYOverrides, setContentOffsetYOverrides] = useState<Record<number, number>>({});
   const [contentScale, setContentScale] = useState(1);
   const [contentOffsetY, setContentOffsetY] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
