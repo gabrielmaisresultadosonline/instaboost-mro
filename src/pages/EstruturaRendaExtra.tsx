@@ -811,7 +811,8 @@ const EstruturaRendaExtra = () => {
           onDownload={() => downloadSingle(CREATIVES.find(c => c.id === previewId)!)}
           logoUrl={logoUrl}
           onLogoMove={(x, y) => {
-            setLogoOverrides(prev => ({ ...prev, [previewId]: { x, y } }));
+            const existing = logoOverrides[previewId];
+            setLogoOverrides(prev => ({ ...prev, [previewId]: { x, y, scale: existing?.scale ?? 1 } }));
             toast.success(`Logo posicionada no criativo #${previewId}`);
           }}
           logoOverride={logoOverrides[previewId]}
