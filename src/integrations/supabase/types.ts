@@ -2415,6 +2415,42 @@ export type Database = {
         }
         Relationships: []
       }
+      renda_extra_materiais: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          id: string
+          is_active: boolean | null
+          order_index: number | null
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          title?: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       renda_extra_settings: {
         Row: {
           admin_email: string | null
