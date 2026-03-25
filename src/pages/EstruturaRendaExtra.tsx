@@ -641,7 +641,7 @@ const EstruturaRendaExtra = () => {
   };
 
   const getPreviewBg = () => {
-    if (useGradient) return `linear-gradient(135deg, ${bgColor1}, ${bgColor2})`;
+    if (useGradient) return `linear-gradient(${gradientAngle}deg, ${bgColor1}, ${bgColor2})`;
     return bgColor1;
   };
 
