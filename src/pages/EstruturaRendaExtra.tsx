@@ -941,7 +941,7 @@ const EstruturaRendaExtra = () => {
               disabled
             >
               <Video className="h-6 w-6" />
-              Materiais em Vídeo
+              Materiais Disponíveis para Divulgação
               <span className="text-xs opacity-75">(Em breve)</span>
             </Button>
 
@@ -951,7 +951,7 @@ const EstruturaRendaExtra = () => {
               disabled
             >
               <FileText className="h-6 w-6" />
-              Contrato para seu Cliente
+              Gere um Contrato para seu Cliente
               <span className="text-xs opacity-75">(Em breve)</span>
             </Button>
           </div>
