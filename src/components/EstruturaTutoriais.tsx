@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { TutorialModule, ModuleContent, ModuleVideo, ModuleText, ModuleButton, ModuleSection, ModuleColor, getYoutubeThumbnail, loadModulesFromCloud } from '@/lib/adminConfig';
 import { Button } from '@/components/ui/button';
-import { Play, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Gift, ArrowLeft } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Play, X, ChevronLeft, ChevronRight, Type, Loader2, ExternalLink, Gift, ArrowLeft, Settings, Lock } from 'lucide-react';
+import { toast } from 'sonner';
+import ModuleManager from '@/components/admin/ModuleManager';
+
+const ADMIN_EMAIL = 'mro@gmail.com';
+const ADMIN_PASSWORD = 'Ga145523@';
 
 const moduleColorClasses: Record<ModuleColor, { border: string; bg: string; accent: string }> = {
   default: { border: 'border-border', bg: 'bg-card', accent: 'bg-muted' },
@@ -24,23 +30,40 @@ export const EstruturaTutoriais = ({ onBack }: EstruturaTutoriaisProps) => {
   const [selectedModule, setSelectedModule] = useState<TutorialModule | null>(null);
   const [selectedContent, setSelectedContent] = useState<ModuleContent | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  
+  // Admin state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPass, setAdminPass] = useState('');
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const cloudData = await loadModulesFromCloud('estrutura');
+      if (cloudData) {
+        setModules(cloudData.modules || []);
+      }
+    } catch (error) {
+      console.error('[EstruturaTutoriais] Error loading modules:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadModules = async () => {
-      setIsLoading(true);
-      try {
-        const cloudData = await loadModulesFromCloud('estrutura');
-        if (cloudData) {
-          setModules(cloudData.modules || []);
-        }
-      } catch (error) {
-        console.error('[EstruturaTutoriais] Error loading modules:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadModules();
+    loadData();
   }, []);
+
+  const handleAdminLogin = () => {
+    if (adminEmail === ADMIN_EMAIL && adminPass === ADMIN_PASSWORD) {
+      setIsAdmin(true);
+      setShowAdminLogin(false);
+      toast.success('Admin autenticado!');
+    } else {
+      toast.error('Credenciais inválidas');
+    }
+  };
 
   const getYoutubeEmbedUrl = (url: string): string => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
@@ -192,15 +215,76 @@ export const EstruturaTutoriais = ({ onBack }: EstruturaTutoriaisProps) => {
     );
   };
 
+  // ─── Admin Mode ───
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-40 glass-card border-b border-border">
+          <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Button size="sm" onClick={() => { setIsAdmin(false); loadData(); }} className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold">
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Voltar aos Tutoriais
+              </Button>
+              <h1 className="text-lg md:text-xl font-bold">⚙️ Admin Tutoriais</h1>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setIsAdmin(false)} className="text-destructive border-destructive/50">
+              <Lock className="w-4 h-4 mr-1" />
+              Sair do Admin
+            </Button>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-6">
+          <ModuleManager
+            downloadLink=""
+            onDownloadLinkChange={() => {}}
+            onSaveSettings={() => {
+              toast.success('Tutoriais salvos com sucesso!');
+            }}
+            platform="estrutura"
+          />
+        </main>
+      </div>
+    );
+  }
+
+  // ─── Admin Login Modal ───
+  const adminLoginModal = showAdminLogin && (
+    <div className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowAdminLogin(false)}>
+      <div className="w-full max-w-sm bg-card rounded-2xl border border-border p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold flex items-center gap-2"><Lock className="w-5 h-5 text-primary" />Admin Login</h2>
+          <Button variant="ghost" size="icon" onClick={() => setShowAdminLogin(false)}><X className="w-5 h-5" /></Button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-1 block">E-mail</label>
+            <Input value={adminEmail} onChange={e => setAdminEmail(e.target.value)} placeholder="admin@email.com" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Senha</label>
+            <Input type="password" value={adminPass} onChange={e => setAdminPass(e.target.value)} placeholder="••••••••" onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} />
+          </div>
+          <Button className="w-full" onClick={handleAdminLogin}>Entrar como Admin</Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 glass-card border-b border-border">
-        <div className="container mx-auto px-4 py-3 md:py-4 flex items-center gap-4">
-          <Button size="sm" onClick={onBack} className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold">
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Voltar ao Início
+        <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Button size="sm" onClick={onBack} className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold">
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Voltar ao Início
+            </Button>
+            <h1 className="text-lg md:text-xl font-bold">📚 Tutoriais</h1>
+          </div>
+          <Button size="sm" variant="ghost" onClick={() => setShowAdminLogin(true)} className="text-muted-foreground hover:text-foreground">
+            <Settings className="w-4 h-4" />
           </Button>
-          <h1 className="text-lg md:text-xl font-bold">📚 Tutoriais</h1>
         </div>
       </header>
 
@@ -313,6 +397,8 @@ export const EstruturaTutoriais = ({ onBack }: EstruturaTutoriaisProps) => {
           </div>
         </div>
       )}
+
+      {adminLoginModal}
     </div>
   );
 };
