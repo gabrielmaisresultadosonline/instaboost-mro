@@ -942,6 +942,23 @@ const EstruturaRendaExtra = () => {
                 <ToggleOption icon={<Hash size={14} />} label="Números" checked={showNumbers} onChange={setShowNumbers} />
                 <ToggleOption icon={<Sparkles size={14} />} label="Efeitos" checked={showDecorations} onChange={setShowDecorations} />
                 <ToggleOption icon={<Tag size={14} />} label="Categoria" checked={showBadge} onChange={setShowBadge} />
+
+                {showDecorations && (
+                  <div className="flex items-center gap-2">
+                    <Sliders size={14} className="text-muted-foreground" />
+                    <span className="text-muted-foreground text-xs">Luz:</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={effectsOpacity}
+                      onChange={e => setEffectsOpacity(parseFloat(e.target.value))}
+                      className="w-20 h-1.5 accent-primary"
+                    />
+                    <span className="text-xs text-muted-foreground w-8">{Math.round(effectsOpacity * 100)}%</span>
+                  </div>
+                )}
               </div>
 
               {/* Person image + opacity */}
