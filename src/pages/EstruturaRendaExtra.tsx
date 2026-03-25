@@ -1011,31 +1011,46 @@ const EstruturaRendaExtra = () => {
           <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-stretch gap-5 lg:gap-8">
 
             {/* Tutorial Card - Left */}
-            <button
-              onClick={() => setCurrentView('tutoriais')}
-              className="group w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 relative overflow-hidden rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-500 hover:border-red-400 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-red-600/20 hover:shadow-red-500/30"
-            >
-              {/* Glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-red-700/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-
-              {/* Play button - YouTube style */}
-              <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
-                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/20 flex items-center justify-center">
-                  <Play className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg" fill="currentColor" />
+            <div className="w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 flex flex-col gap-4">
+              {/* Tutorial button */}
+              <button
+                onClick={() => setCurrentView('tutoriais')}
+                className="group w-full relative overflow-hidden rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-500 hover:border-red-400 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-red-600/20 hover:shadow-red-500/30"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-red-700/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
+                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Play className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg" fill="currentColor" />
+                  </div>
                 </div>
-              </div>
+                <div className="relative z-10 text-left lg:text-center">
+                  <p className="text-white font-black italic text-2xl lg:text-3xl leading-tight">
+                    Aprenda como<br className="hidden lg:block" /> fazer tudo!
+                  </p>
+                  <p className="text-white/60 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5 font-bold italic">
+                    <span className="w-4 h-[1px] bg-white/40"></span>
+                    Clique para acessar
+                    <span className="w-4 h-[1px] bg-white/40"></span>
+                  </p>
+                </div>
+              </button>
 
-              <div className="relative z-10 text-left lg:text-center">
-                <p className="text-white font-black italic text-2xl lg:text-3xl leading-tight">
-                  Aprenda como<br className="hidden lg:block" /> fazer tudo!
-                </p>
-                <p className="text-white/60 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5 font-bold italic">
-                  <span className="w-4 h-[1px] bg-white/40"></span>
-                  Clique para acessar
-                  <span className="w-4 h-[1px] bg-white/40"></span>
-                </p>
-              </div>
-            </button>
+              {/* Gerar Teste Grátis - 3D button */}
+              <button
+                onClick={() => setCurrentView('testes')}
+                className="group relative w-full rounded-2xl bg-gradient-to-b from-yellow-400 via-yellow-500 to-orange-500 text-black font-black text-lg px-6 py-5 cursor-pointer transition-all duration-300 hover:translate-y-[-3px] active:translate-y-[1px] overflow-hidden border-2 border-yellow-300/60"
+                style={{
+                  boxShadow: '0 8px 20px -4px rgba(234, 179, 8, 0.5), 0 4px 6px -2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',
+                }}
+              >
+                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/15 transition-colors duration-300 rounded-2xl" />
+                <div className="relative z-10 flex items-center justify-center gap-2">
+                  <TestTube className="h-5 w-5" />
+                  <span>Gerar teste grátis</span>
+                  <Sparkles className="h-5 w-5 opacity-70" />
+                </div>
+              </button>
+            </div>
 
             {/* Right Panel - Dashboard */}
             <div className="flex-1 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#12121f] to-[#0e0e18] shadow-2xl overflow-hidden backdrop-blur-sm">
@@ -1046,23 +1061,7 @@ const EstruturaRendaExtra = () => {
                 <p className="relative text-white/40 text-sm mt-1.5 font-medium">Selecione abaixo...</p>
               </div>
 
-              {/* GERAR TESTE GRÁTIS - Big CTA button */}
-              <div className="p-5 md:p-8 pb-0 md:pb-0">
-                <button
-                  onClick={() => setCurrentView('testes')}
-                  className="group relative w-full flex flex-col items-center justify-center gap-2 px-6 py-6 rounded-2xl bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-500 text-black font-black text-lg md:text-xl shadow-xl shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden border-2 border-yellow-400/50"
-                >
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
-                  <div className="relative z-10 flex items-center gap-3">
-                    <TestTube className="h-6 w-6" />
-                    <span>GERAR TESTE GRÁTIS</span>
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <p className="relative z-10 text-black/60 text-xs md:text-sm font-medium max-w-md text-center leading-snug">
-                    Gere teste grátis antes de adicionar de forma fixa o perfil — aumenta 3x a conversão quando você libera um teste para o cliente!
-                  </p>
-                </button>
-              </div>
+              {/* Tool buttons */}
 
               {/* Tool buttons */}
               <div className="p-5 md:p-8 flex flex-col gap-3">
