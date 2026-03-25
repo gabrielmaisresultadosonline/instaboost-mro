@@ -104,13 +104,24 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
+  const cacheHolder = window as unknown as { __mroImageCache?: Map<string, Promise<HTMLImageElement>> };
+  if (!cacheHolder.__mroImageCache) {
+    cacheHolder.__mroImageCache = new Map();
+  }
+
+  const cached = cacheHolder.__mroImageCache.get(src);
+  if (cached) return cached;
+
+  const promise = new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new window.Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = src;
   });
+
+  cacheHolder.__mroImageCache.set(src, promise);
+  return promise;
 }
 
 // ─── Background effects ───
@@ -806,6 +817,7 @@ const EstruturaRendaExtra = () => {
                   onPreview={() => setPreviewId(creative.id)}
                   drawCreative={drawCreative}
                   hasLogoOverride={!!logoOverrides[creative.id]}
+                  suspendRender={!!previewId}
                 />
               ))}
             </div>
@@ -824,7 +836,6 @@ const EstruturaRendaExtra = () => {
           onLogoMove={(x, y) => {
             const existing = logoOverrides[previewId];
             setLogoOverrides(prev => ({ ...prev, [previewId]: { x, y, scale: existing?.scale ?? 1 } }));
-            toast.success(`Logo posicionada no criativo #${previewId}`);
           }}
           logoOverride={logoOverrides[previewId]}
           onResetLogo={() => {
@@ -900,12 +911,15 @@ interface CreativeCardProps {
   onPreview: () => void;
   drawCreative: (c: CreativeData, canvas: HTMLCanvasElement) => Promise<void>;
   hasLogoOverride: boolean;
+  suspendRender: boolean;
 }
 
-const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, drawCreative, hasLogoOverride }) => {
+const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggle, onDownload, onPreview, drawCreative, hasLogoOverride, suspendRender }) => {
   const [thumbUrl, setThumbUrl] = useState<string>('');
 
   React.useEffect(() => {
+    if (suspendRender) return;
+
     let mounted = true;
     const offscreen = document.createElement('canvas');
 
@@ -924,7 +938,7 @@ const CreativeCard: React.FC<CreativeCardProps> = ({ creative, selected, onToggl
     return () => {
       mounted = false;
     };
-  }, [creative, drawCreative]);
+  }, [creative, drawCreative, suspendRender]);
 
   return (
     <div className={`relative group rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${selected ? 'border-primary shadow-lg shadow-primary/20' : 'border-border hover:border-muted-foreground/30'}`}>
@@ -983,6 +997,7 @@ const PreviewModal: React.FC<{
   const bgInputRef = useRef<HTMLInputElement>(null);
   const isDraggingRef = useRef(false);
   const rafRef = useRef<number>(0);
+  const pendingPointRef = useRef<{ clientX: number; clientY: number } | null>(null);
   const [showBgControls, setShowBgControls] = useState(!!bgImageOverride);
 
   React.useEffect(() => {
@@ -1019,30 +1034,50 @@ const PreviewModal: React.FC<{
     onLogoMove(clickX / 1080, clickY / 1350);
   };
 
-  const computeLogoPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const computeLogoPosFromClient = (clientX: number, clientY: number) => {
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) * (1080 / rect.width);
-    const my = (e.clientY - rect.top) * (1350 / rect.height);
+    const mx = (clientX - rect.left) * (1080 / rect.width);
+    const my = (clientY - rect.top) * (1350 / rect.height);
     onLogoMove(mx / 1080, my / 1350);
+  };
+
+  const flushDragMove = () => {
+    const point = pendingPointRef.current;
+    if (point) {
+      computeLogoPosFromClient(point.clientX, point.clientY);
+      pendingPointRef.current = null;
+    }
+    rafRef.current = 0;
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!logoUrl) return;
     isDraggingRef.current = true;
     canvasRef.current?.setPointerCapture(e.pointerId);
-    computeLogoPos(e);
+    computeLogoPosFromClient(e.clientX, e.clientY);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDraggingRef.current || !logoUrl) return;
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => computeLogoPos(e));
+    pendingPointRef.current = { clientX: e.clientX, clientY: e.clientY };
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(flushDragMove);
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
     isDraggingRef.current = false;
-    canvasRef.current?.releasePointerCapture(e.pointerId);
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    }
+    flushDragMove();
+    try {
+      canvasRef.current?.releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
   };
 
   return (
