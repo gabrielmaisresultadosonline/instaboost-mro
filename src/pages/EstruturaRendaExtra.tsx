@@ -260,6 +260,7 @@ const EstruturaRendaExtra = () => {
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
+  const [gradientAngle, setGradientAngle] = useState(160);
   const [textColor, setTextColor] = useState('#ffffff');
   const [accentColor, setAccentColor] = useState('#00d4aa');
   const [ctaColor, setCtaColor] = useState('#facc15');
@@ -328,6 +329,20 @@ const EstruturaRendaExtra = () => {
     }
   };
 
+  const makeGrad = (ctx: CanvasRenderingContext2D, w: number, h: number, c1: string, c2: string) => {
+    const rad = (gradientAngle - 90) * Math.PI / 180;
+    const cx = w / 2, cy = h / 2;
+    const len = Math.abs(w * Math.cos(rad)) + Math.abs(h * Math.sin(rad));
+    const x1 = cx - Math.cos(rad) * len / 2;
+    const y1 = cy - Math.sin(rad) * len / 2;
+    const x2 = cx + Math.cos(rad) * len / 2;
+    const y2 = cy + Math.sin(rad) * len / 2;
+    const g = ctx.createLinearGradient(x1, y1, x2, y2);
+    g.addColorStop(0, c1);
+    g.addColorStop(1, c2);
+    return g;
+  };
+
   const drawCreative = useCallback(async (creative: CreativeData, canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext('2d')!;
     const W = 1080;
@@ -337,10 +352,7 @@ const EstruturaRendaExtra = () => {
 
     // ── Background ──
     if (useGradient) {
-      const grad = ctx.createLinearGradient(0, 0, W * 0.3, H);
-      grad.addColorStop(0, bgColor1);
-      grad.addColorStop(1, bgColor2);
-      ctx.fillStyle = grad;
+      ctx.fillStyle = makeGrad(ctx, W, H, bgColor1, bgColor2);
     } else {
       ctx.fillStyle = bgColor1;
     }
@@ -358,9 +370,7 @@ const EstruturaRendaExtra = () => {
         ctx.globalAlpha = 1;
         // Semi-transparent overlay to keep text readable
         if (useGradient) {
-          const overlay = ctx.createLinearGradient(0, 0, W * 0.3, H);
-          overlay.addColorStop(0, hexToRgba(bgColor1, 0.6));
-          overlay.addColorStop(1, hexToRgba(bgColor2, 0.6));
+          const overlay = makeGrad(ctx, W, H, hexToRgba(bgColor1, 0.6), hexToRgba(bgColor2, 0.6));
           ctx.fillStyle = overlay;
         } else {
           ctx.fillStyle = hexToRgba(bgColor1, 0.6);
@@ -593,7 +603,7 @@ const EstruturaRendaExtra = () => {
       ctx.fillText(`#${String(creative.id).padStart(2, '0')}`, 80, H - 30);
       ctx.globalAlpha = 1;
     }
-  }, [bgColor1, bgColor2, useGradient, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, getLogoCoords]);
+  }, [bgColor1, bgColor2, useGradient, gradientAngle, textColor, accentColor, ctaColor, logoUrl, showNumbers, showDecorations, showBadge, personImage, personOpacity, logoPosition, logoOverrides, bgImageOverrides, personOverrides, patternConfig, patternOverrides, personPhoneLoaded, personLaptopLoaded, getLogoCoords]);
 
   const downloadSingle = async (creative: CreativeData) => {
     const canvas = document.createElement('canvas');
@@ -631,7 +641,7 @@ const EstruturaRendaExtra = () => {
   };
 
   const getPreviewBg = () => {
-    if (useGradient) return `linear-gradient(135deg, ${bgColor1}, ${bgColor2})`;
+    if (useGradient) return `linear-gradient(${gradientAngle}deg, ${bgColor1}, ${bgColor2})`;
     return bgColor1;
   };
 
@@ -668,7 +678,7 @@ const EstruturaRendaExtra = () => {
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                     Fundo 2
-                    <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted">
+                    <button onClick={() => setUseGradient(!useGradient)} className="text-[10px] px-1.5 py-0.5 rounded bg-muted cursor-pointer">
                       {useGradient ? 'Degradê' : 'Sólido'}
                     </button>
                   </label>
@@ -676,6 +686,13 @@ const EstruturaRendaExtra = () => {
                     <input type="color" value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" disabled={!useGradient} />
                     <Input value={bgColor2} onChange={e => setBgColor2(e.target.value)} className="h-8 text-xs" disabled={!useGradient} />
                   </div>
+                  {useGradient && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">Ângulo:</span>
+                      <input type="range" min={0} max={360} value={gradientAngle} onChange={e => setGradientAngle(Number(e.target.value))} className="flex-1 h-1.5 accent-primary" />
+                      <span className="text-[10px] text-muted-foreground w-8 text-right">{gradientAngle}°</span>
+                    </div>
+                  )}
                 </div>
                 <ColorPicker label="Texto" value={textColor} onChange={setTextColor} />
                 <ColorPicker label="Destaque" value={accentColor} onChange={setAccentColor} />
