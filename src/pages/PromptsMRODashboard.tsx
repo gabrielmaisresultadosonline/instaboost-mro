@@ -28,6 +28,7 @@ interface UserData {
 }
 
 const PromptsMRODashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<UserData | null>(null);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
