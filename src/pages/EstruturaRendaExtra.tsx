@@ -1219,14 +1219,14 @@ const EstruturaRendaExtra = () => {
                     <div className="flex items-center gap-2"><User size={16} className="text-primary" /> Pessoa</div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="flex items-center gap-4 flex-wrap text-sm pb-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm pb-2">
                       <div className="flex items-center gap-2">
-                        <User size={14} className="text-muted-foreground" />
+                        <User size={14} className="text-muted-foreground flex-shrink-0" />
                         <span className="text-muted-foreground text-xs">Pessoa:</span>
                         <select
                           value={personImage}
                           onChange={e => setPersonImage(e.target.value as PersonImage)}
-                          className="h-7 text-xs rounded border border-border bg-background px-2"
+                          className="h-7 text-xs rounded border border-border bg-background px-2 flex-1 min-w-0"
                         >
                           <option value="none">Nenhuma</option>
                           <option value="phone">Celular (Foto Real)</option>
@@ -1235,9 +1235,9 @@ const EstruturaRendaExtra = () => {
                       </div>
                       {personImage !== 'none' && (
                         <div className="flex items-center gap-2">
-                          <Sliders size={14} className="text-muted-foreground" />
+                          <Sliders size={14} className="text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground text-xs">Opacidade:</span>
-                          <input type="range" min="0.05" max="0.8" step="0.05" value={personOpacity} onChange={e => setPersonOpacity(parseFloat(e.target.value))} className="w-24 h-1.5 accent-primary" />
+                          <input type="range" min="0.05" max="0.8" step="0.05" value={personOpacity} onChange={e => setPersonOpacity(parseFloat(e.target.value))} className="flex-1 min-w-0 h-1.5 accent-primary" />
                           <span className="text-xs text-muted-foreground w-8">{Math.round(personOpacity * 100)}%</span>
                         </div>
                       )}
