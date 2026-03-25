@@ -964,7 +964,8 @@ const PreviewModal: React.FC<{
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
+  const rafRef = useRef<number>(0);
   const [showBgControls, setShowBgControls] = useState(!!bgImageOverride);
 
   React.useEffect(() => {
