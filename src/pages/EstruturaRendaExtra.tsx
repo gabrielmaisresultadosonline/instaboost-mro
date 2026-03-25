@@ -7,6 +7,8 @@ import JSZip from 'jszip';
 import personPhoneImg from '@/assets/person-phone.png';
 import personLaptopImg from '@/assets/person-laptop.png';
 
+type TextLayout = 'left' | 'center' | 'right' | 'impact-center' | 'minimal-center' | 'bold-stack';
+
 interface CreativeData {
   id: number;
   headline: string;
@@ -16,6 +18,7 @@ interface CreativeData {
   cta: string;
   category: 'dor' | 'promessa' | 'educativo' | 'beneficio' | 'autoridade';
   icon: string;
+  layout: TextLayout;
 }
 
 interface LogoOverride {
@@ -33,36 +36,36 @@ interface BgImageOverride {
 }
 
 const CREATIVES: CreativeData[] = [
-  { id: 1, headline: "VOCÊ POSTA TODO DIA…\nE NÃO VENDE?", highlightWord: "NÃO VENDE", highlightColor: "#ef4444", text: "O problema não é o conteúdo.\nÉ que você está falando com as pessoas erradas.", cta: "👉 Descubra como atrair clientes reais", category: 'dor', icon: '🚫' },
-  { id: 2, headline: "SEU CONCORRENTE ESTÁ\nPEGANDO SEUS CLIENTES", text: "E o pior… você está ajudando ele sem perceber.", cta: "👉 Aprenda a virar esse jogo", category: 'dor', icon: '⚔️' },
-  { id: 3, headline: "CURTIDAS NÃO\nPAGAM BOLETOS", text: "Você precisa de clientes.\nNão de números vazios.", cta: "👉 Transforme engajamento em vendas", category: 'dor', icon: '👎' },
-  { id: 4, headline: "SEU PERFIL\nESTÁ INVISÍVEL", text: "Quem realmente compra…\nnão está vendo você.", cta: "👉 Mude isso hoje", category: 'dor', icon: '👻' },
-  { id: 5, headline: "VOCÊ NÃO PRECISA\nDE MAIS POSTS", text: "Você precisa da estratégia certa.", cta: "👉 Descubra qual é", category: 'dor', icon: '📱' },
-  { id: 6, headline: "VOCÊ ESTÁ PERDENDO\nDINHEIRO", text: "Todos os dias…\npara seus concorrentes.", cta: "👉 Recupere seus clientes", category: 'dor', icon: '💸' },
-  { id: 7, headline: "+1000 VISITAS\nNO SEU PERFIL", text: "Sem gastar 1 real com anúncios.", cta: "👉 Quero isso agora", category: 'promessa', icon: '🚀' },
-  { id: 8, headline: "CLIENTES\nTODOS OS DIAS", text: "Sem depender de tráfego pago.", cta: "👉 Descubra como", category: 'promessa', icon: '📅' },
-  { id: 9, headline: "ROUBAMOS A ATENÇÃO\nDO SEU CONCORRENTE", text: "E transformamos em vendas pra você.", cta: "👉 Veja como funciona", category: 'promessa', icon: '🎯' },
-  { id: 10, headline: "PARE DE PAGAR\nPARA VENDER", text: "Existe um jeito mais inteligente.", cta: "👉 Conheça", category: 'promessa', icon: '🔌' },
-  { id: 11, headline: "MAIS VENDAS.\nZERO ANÚNCIOS.", text: "Sim, é possível.", cta: "👉 Começar agora", category: 'promessa', icon: '✨' },
-  { id: 12, headline: "CRESÇA SEM INVESTIR\nEM TRÁFEGO", text: "Estratégia > dinheiro", cta: "👉 Aplicar no meu negócio", category: 'promessa', icon: '🧠' },
-  { id: 13, headline: "ANÚNCIOS NÃO SÃO\nO PROBLEMA", text: "Depender deles é.", cta: "👉 Entenda isso", category: 'educativo', icon: '💡' },
-  { id: 14, headline: "O SEGREDO ESTÁ NO\nSEU CONCORRENTE", text: "O público já existe…\nvocê só precisa acessá-lo.", cta: "👉 Veja como fazemos", category: 'educativo', icon: '🔑' },
-  { id: 15, headline: "VOCÊ NÃO PRECISA\nDE MAIS ALCANCE", text: "Precisa de público certo.", cta: "👉 Aprenda isso", category: 'educativo', icon: '🎯' },
-  { id: 16, headline: "ENGAJAMENTO\nNÃO É SORTE", text: "É estratégia.", cta: "👉 Descubra a nossa", category: 'educativo', icon: '🎲' },
-  { id: 17, headline: "SEGUIDORES NÃO\nPAGAM CONTAS", text: "Clientes sim.", cta: "👉 Foque no que importa", category: 'educativo', icon: '📊' },
-  { id: 18, headline: "O ERRO QUE TRAVA\nSEU NEGÓCIO", text: "Falar com quem não compra.", cta: "👉 Corrigir isso", category: 'educativo', icon: '⚠️' },
-  { id: 19, headline: "MAIS CLIENTES\nQUALIFICADOS", text: "Todos os dias no seu perfil.", cta: "👉 Quero isso", category: 'beneficio', icon: '👥' },
-  { id: 20, headline: "VENDA MAIS\nGASTANDO MENOS", text: "Ou melhor… nada.", cta: "👉 Saiba como", category: 'beneficio', icon: '💰' },
-  { id: 21, headline: "CRESCIMENTO\nPREVISÍVEL", text: "Sem depender de anúncios.", cta: "👉 Começar", category: 'beneficio', icon: '📈' },
-  { id: 22, headline: "TRANSFORME VISITAS\nEM VENDAS", text: "Com público certo.", cta: "👉 Aplicar agora", category: 'beneficio', icon: '🔄' },
-  { id: 23, headline: "MAIS ENGAJAMENTO\nREAL", text: "De quem realmente compra.", cta: "👉 Descubra", category: 'beneficio', icon: '❤️' },
-  { id: 24, headline: "RESULTADOS\nSEM RISCO", text: "Sem investimento em ads.", cta: "👉 Quero testar", category: 'beneficio', icon: '🛡️' },
-  { id: 25, headline: "EMPRESAS JÁ ESTÃO\nUSANDO ISSO", text: "E crescendo todos os dias.", cta: "👉 Veja como", category: 'autoridade', icon: '🏢' },
-  { id: 26, headline: "+1.000 VISITAS\nEM POUCOS DIAS", text: "Sem anúncios.", cta: "👉 Entenda", category: 'autoridade', icon: '📊' },
-  { id: 27, headline: "O MÉTODO QUE ESTÁ\nFUNCIONANDO EM 2026", text: "E poucos conhecem.", cta: "👉 Acessar", category: 'autoridade', icon: '🔥' },
-  { id: 28, headline: "ENQUANTO VOCÊ\nPAGA ANÚNCIOS…", text: "Outros crescem de graça.", cta: "👉 Mude isso", category: 'autoridade', icon: '💡' },
-  { id: 29, headline: "RESULTADOS\nREAIS", text: "Sem depender de tráfego pago.", cta: "👉 Aplicar", category: 'autoridade', icon: '✅' },
-  { id: 30, headline: "VOCÊ ESTÁ\nATRASADO", text: "Se ainda depende de anúncios.", cta: "👉 Atualize sua estratégia", category: 'autoridade', icon: '⏰' },
+  { id: 1, headline: "VOCÊ POSTA TODO DIA…\nE NÃO VENDE?", highlightWord: "NÃO VENDE", highlightColor: "#ef4444", text: "O problema não é o conteúdo.\nÉ que você está falando com as pessoas erradas.", cta: "👉 Descubra como atrair clientes reais", category: 'dor', icon: '🚫', layout: 'left' },
+  { id: 2, headline: "SEU CONCORRENTE ESTÁ\nPEGANDO SEUS CLIENTES", text: "E o pior… você está ajudando ele sem perceber.", cta: "👉 Aprenda a virar esse jogo", category: 'dor', icon: '⚔️', layout: 'center' },
+  { id: 3, headline: "CURTIDAS NÃO\nPAGAM BOLETOS", text: "Você precisa de clientes.\nNão de números vazios.", cta: "👉 Transforme engajamento em vendas", category: 'dor', icon: '👎', layout: 'impact-center' },
+  { id: 4, headline: "SEU PERFIL\nESTÁ INVISÍVEL", text: "Quem realmente compra…\nnão está vendo você.", cta: "👉 Mude isso hoje", category: 'dor', icon: '👻', layout: 'bold-stack' },
+  { id: 5, headline: "VOCÊ NÃO PRECISA\nDE MAIS POSTS", text: "Você precisa da estratégia certa.", cta: "👉 Descubra qual é", category: 'dor', icon: '📱', layout: 'minimal-center' },
+  { id: 6, headline: "VOCÊ ESTÁ PERDENDO\nDINHEIRO", text: "Todos os dias…\npara seus concorrentes.", cta: "👉 Recupere seus clientes", category: 'dor', icon: '💸', layout: 'right' },
+  { id: 7, headline: "+1000 VISITAS\nNO SEU PERFIL", text: "Sem gastar 1 real com anúncios.", cta: "👉 Quero isso agora", category: 'promessa', icon: '🚀', layout: 'impact-center' },
+  { id: 8, headline: "CLIENTES\nTODOS OS DIAS", text: "Sem depender de tráfego pago.", cta: "👉 Descubra como", category: 'promessa', icon: '📅', layout: 'left' },
+  { id: 9, headline: "ROUBAMOS A ATENÇÃO\nDO SEU CONCORRENTE", text: "E transformamos em vendas pra você.", cta: "👉 Veja como funciona", category: 'promessa', icon: '🎯', layout: 'bold-stack' },
+  { id: 10, headline: "PARE DE PAGAR\nPARA VENDER", text: "Existe um jeito mais inteligente.", cta: "👉 Conheça", category: 'promessa', icon: '🔌', layout: 'center' },
+  { id: 11, headline: "MAIS VENDAS.\nZERO ANÚNCIOS.", text: "Sim, é possível.", cta: "👉 Começar agora", category: 'promessa', icon: '✨', layout: 'minimal-center' },
+  { id: 12, headline: "CRESÇA SEM INVESTIR\nEM TRÁFEGO", text: "Estratégia > dinheiro", cta: "👉 Aplicar no meu negócio", category: 'promessa', icon: '🧠', layout: 'right' },
+  { id: 13, headline: "ANÚNCIOS NÃO SÃO\nO PROBLEMA", text: "Depender deles é.", cta: "👉 Entenda isso", category: 'educativo', icon: '💡', layout: 'center' },
+  { id: 14, headline: "O SEGREDO ESTÁ NO\nSEU CONCORRENTE", text: "O público já existe…\nvocê só precisa acessá-lo.", cta: "👉 Veja como fazemos", category: 'educativo', icon: '🔑', layout: 'impact-center' },
+  { id: 15, headline: "VOCÊ NÃO PRECISA\nDE MAIS ALCANCE", text: "Precisa de público certo.", cta: "👉 Aprenda isso", category: 'educativo', icon: '🎯', layout: 'left' },
+  { id: 16, headline: "ENGAJAMENTO\nNÃO É SORTE", text: "É estratégia.", cta: "👉 Descubra a nossa", category: 'educativo', icon: '🎲', layout: 'bold-stack' },
+  { id: 17, headline: "SEGUIDORES NÃO\nPAGAM CONTAS", text: "Clientes sim.", cta: "👉 Foque no que importa", category: 'educativo', icon: '📊', layout: 'right' },
+  { id: 18, headline: "O ERRO QUE TRAVA\nSEU NEGÓCIO", text: "Falar com quem não compra.", cta: "👉 Corrigir isso", category: 'educativo', icon: '⚠️', layout: 'minimal-center' },
+  { id: 19, headline: "MAIS CLIENTES\nQUALIFICADOS", text: "Todos os dias no seu perfil.", cta: "👉 Quero isso", category: 'beneficio', icon: '👥', layout: 'bold-stack' },
+  { id: 20, headline: "VENDA MAIS\nGASTANDO MENOS", text: "Ou melhor… nada.", cta: "👉 Saiba como", category: 'beneficio', icon: '💰', layout: 'impact-center' },
+  { id: 21, headline: "CRESCIMENTO\nPREVISÍVEL", text: "Sem depender de anúncios.", cta: "👉 Começar", category: 'beneficio', icon: '📈', layout: 'center' },
+  { id: 22, headline: "TRANSFORME VISITAS\nEM VENDAS", text: "Com público certo.", cta: "👉 Aplicar agora", category: 'beneficio', icon: '🔄', layout: 'left' },
+  { id: 23, headline: "MAIS ENGAJAMENTO\nREAL", text: "De quem realmente compra.", cta: "👉 Descubra", category: 'beneficio', icon: '❤️', layout: 'minimal-center' },
+  { id: 24, headline: "RESULTADOS\nSEM RISCO", text: "Sem investimento em ads.", cta: "👉 Quero testar", category: 'beneficio', icon: '🛡️', layout: 'right' },
+  { id: 25, headline: "EMPRESAS JÁ ESTÃO\nUSANDO ISSO", text: "E crescendo todos os dias.", cta: "👉 Veja como", category: 'autoridade', icon: '🏢', layout: 'left' },
+  { id: 26, headline: "+1.000 VISITAS\nEM POUCOS DIAS", text: "Sem anúncios.", cta: "👉 Entenda", category: 'autoridade', icon: '📊', layout: 'impact-center' },
+  { id: 27, headline: "O MÉTODO QUE ESTÁ\nFUNCIONANDO EM 2026", text: "E poucos conhecem.", cta: "👉 Acessar", category: 'autoridade', icon: '🔥', layout: 'center' },
+  { id: 28, headline: "ENQUANTO VOCÊ\nPAGA ANÚNCIOS…", text: "Outros crescem de graça.", cta: "👉 Mude isso", category: 'autoridade', icon: '💡', layout: 'bold-stack' },
+  { id: 29, headline: "RESULTADOS\nREAIS", text: "Sem depender de tráfego pago.", cta: "👉 Aplicar", category: 'autoridade', icon: '✅', layout: 'minimal-center' },
+  { id: 30, headline: "VOCÊ ESTÁ\nATRASADO", text: "Se ainda depende de anúncios.", cta: "👉 Atualize sua estratégia", category: 'autoridade', icon: '⏰', layout: 'right' },
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -508,79 +511,234 @@ const EstruturaRendaExtra = () => {
       ctx.textAlign = 'left';
     }
 
+    // ── Text rendering based on layout ──
+    const layout = creative.layout;
+    const isCenter = layout === 'center' || layout === 'impact-center' || layout === 'minimal-center' || layout === 'bold-stack';
+    const isRight = layout === 'right';
+
+    // Font sizes per layout
+    const headlineFontSize = layout === 'impact-center' ? 90 : layout === 'bold-stack' ? 82 : layout === 'minimal-center' ? 68 : 74;
+    const bodyFontSize = layout === 'impact-center' ? 36 : layout === 'minimal-center' ? 44 : layout === 'bold-stack' ? 38 : 40;
+    const ctaFontSize = layout === 'impact-center' ? 34 : layout === 'bold-stack' ? 32 : 36;
+    const headlineSpacing = layout === 'impact-center' ? 110 : layout === 'bold-stack' ? 100 : layout === 'minimal-center' ? 85 : 95;
+
+    // Font families per layout
+    const headlineFont = layout === 'impact-center' ? `bold ${headlineFontSize}px 'Arial Black', Impact, sans-serif`
+      : layout === 'bold-stack' ? `900 ${headlineFontSize}px 'Trebuchet MS', Verdana, sans-serif`
+      : layout === 'minimal-center' ? `300 ${headlineFontSize}px 'Georgia', serif`
+      : layout === 'right' ? `bold ${headlineFontSize}px 'Verdana', sans-serif`
+      : `bold ${headlineFontSize}px Arial, sans-serif`;
+    const bodyFont = layout === 'minimal-center' ? `${bodyFontSize}px 'Georgia', serif`
+      : layout === 'bold-stack' ? `${bodyFontSize}px 'Trebuchet MS', Verdana, sans-serif`
+      : `${bodyFontSize}px Arial, sans-serif`;
+    const ctaFont = layout === 'bold-stack' ? `bold ${ctaFontSize}px 'Trebuchet MS', Verdana, sans-serif`
+      : layout === 'minimal-center' ? `600 ${ctaFontSize}px 'Georgia', serif`
+      : `bold ${ctaFontSize}px Arial, sans-serif`;
+
+    // Alignment
+    const textAlign: CanvasTextAlign = isCenter ? 'center' : isRight ? 'right' : 'left';
+    const textX = isCenter ? W / 2 : isRight ? W - 80 : 80;
+
+    // Start Y position
+    const startY = layout === 'impact-center' ? 420 : layout === 'bold-stack' ? 360 : layout === 'minimal-center' ? 440 : Math.max(badgeEndY + 260, 380);
+
     // ── Headline ──
     const headlineLines = creative.headline.split('\n');
-    ctx.font = 'bold 74px Arial, sans-serif';
-    let y = Math.max(badgeEndY + 260, 380);
-    for (const line of headlineLines) {
-      if (creative.highlightWord && line.includes(creative.highlightWord)) {
-        const before = line.substring(0, line.indexOf(creative.highlightWord));
-        const highlight = creative.highlightWord;
-        const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
-        let x = 80;
-        if (before) {
-          ctx.fillStyle = textColor;
-          ctx.fillText(before, x, y);
-          x += ctx.measureText(before).width;
-        }
-        const hlColor = creative.highlightColor || '#ef4444';
-        ctx.shadowColor = hlColor;
-        ctx.shadowBlur = 20;
-        ctx.fillStyle = hlColor;
-        ctx.fillText(highlight, x, y);
-        ctx.shadowBlur = 0;
-        x += ctx.measureText(highlight).width;
-        if (after) {
-          ctx.fillStyle = textColor;
-          ctx.fillText(after, x, y);
-        }
-      } else {
+    ctx.font = headlineFont;
+    ctx.textAlign = textAlign;
+    let y = startY;
+
+    if (layout === 'bold-stack') {
+      // Each line gets its own colored background strip
+      for (const line of headlineLines) {
+        const metrics = ctx.measureText(line);
+        const lineW = metrics.width + 40;
+        const lineH = headlineFontSize + 20;
+        const stripX = isCenter ? (W - lineW) / 2 : isRight ? W - 80 - lineW : 60;
+        ctx.fillStyle = hexToRgba(accentColor, 0.15);
+        roundRect(ctx, stripX, y - headlineFontSize + 5, lineW, lineH, 8);
+        ctx.fill();
         ctx.fillStyle = textColor;
-        ctx.fillText(line, 80, y);
+        ctx.fillText(line, textX, y);
+        y += headlineSpacing;
       }
-      y += 95;
+    } else {
+      for (const line of headlineLines) {
+        if (creative.highlightWord && line.includes(creative.highlightWord)) {
+          // Highlight word handling
+          const before = line.substring(0, line.indexOf(creative.highlightWord));
+          const highlight = creative.highlightWord;
+          const after = line.substring(line.indexOf(creative.highlightWord) + creative.highlightWord.length);
+          
+          if (isCenter) {
+            // For centered: measure total, then draw parts
+            const fullW = ctx.measureText(line).width;
+            let x = (W - fullW) / 2;
+            ctx.textAlign = 'left';
+            if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
+            const hlColor = creative.highlightColor || '#ef4444';
+            ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
+            ctx.fillStyle = hlColor; ctx.fillText(highlight, x, y);
+            ctx.shadowBlur = 0; x += ctx.measureText(highlight).width;
+            if (after) { ctx.fillStyle = textColor; ctx.fillText(after, x, y); }
+            ctx.textAlign = textAlign;
+          } else if (isRight) {
+            const fullW = ctx.measureText(line).width;
+            let x = W - 80 - fullW;
+            ctx.textAlign = 'left';
+            if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
+            const hlColor = creative.highlightColor || '#ef4444';
+            ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
+            ctx.fillStyle = hlColor; ctx.fillText(highlight, x, y);
+            ctx.shadowBlur = 0; x += ctx.measureText(highlight).width;
+            if (after) { ctx.fillStyle = textColor; ctx.fillText(after, x, y); }
+            ctx.textAlign = textAlign;
+          } else {
+            let x = 80;
+            if (before) { ctx.fillStyle = textColor; ctx.fillText(before, x, y); x += ctx.measureText(before).width; }
+            const hlColor = creative.highlightColor || '#ef4444';
+            ctx.shadowColor = hlColor; ctx.shadowBlur = 20;
+            ctx.fillStyle = hlColor;
+            ctx.textAlign = 'left';
+            ctx.fillText(highlight, x, y);
+            ctx.shadowBlur = 0; x += ctx.measureText(highlight).width;
+            if (after) { ctx.fillStyle = textColor; ctx.fillText(after, x, y); }
+            ctx.textAlign = textAlign;
+          }
+        } else {
+          ctx.fillStyle = textColor;
+          if (layout === 'impact-center') {
+            // Add text shadow for impact
+            ctx.shadowColor = hexToRgba(accentColor, 0.4);
+            ctx.shadowBlur = 25;
+          }
+          ctx.fillText(line, textX, y);
+          ctx.shadowBlur = 0;
+        }
+        y += headlineSpacing;
+      }
     }
 
     // ── Divider ──
     y += 20;
-    const divGrad = ctx.createLinearGradient(80, y, 500, y);
-    divGrad.addColorStop(0, accentColor);
-    divGrad.addColorStop(1, hexToRgba(accentColor, 0));
-    ctx.fillStyle = divGrad;
-    ctx.fillRect(80, y, 420, 3);
-    ctx.beginPath();
-    ctx.arc(80, y + 1.5, 5, 0, Math.PI * 2);
-    ctx.fillStyle = accentColor;
-    ctx.fill();
-    y += 45;
+    if (layout === 'minimal-center') {
+      // Centered thin line
+      const divW = 200;
+      ctx.fillStyle = hexToRgba(accentColor, 0.5);
+      ctx.fillRect((W - divW) / 2, y, divW, 2);
+      y += 40;
+    } else if (layout === 'impact-center') {
+      // No divider, just spacing
+      y += 10;
+    } else if (layout === 'bold-stack') {
+      // Small dot divider
+      for (let d = 0; d < 3; d++) {
+        ctx.beginPath();
+        ctx.arc(isCenter ? W / 2 - 20 + d * 20 : isRight ? W - 100 + d * 20 : 100 + d * 20, y + 2, 4, 0, Math.PI * 2);
+        ctx.fillStyle = accentColor;
+        ctx.fill();
+      }
+      y += 35;
+    } else if (isRight) {
+      const divGrad = ctx.createLinearGradient(W - 500, y, W - 80, y);
+      divGrad.addColorStop(0, hexToRgba(accentColor, 0));
+      divGrad.addColorStop(1, accentColor);
+      ctx.fillStyle = divGrad;
+      ctx.fillRect(W - 500, y, 420, 3);
+      ctx.beginPath();
+      ctx.arc(W - 80, y + 1.5, 5, 0, Math.PI * 2);
+      ctx.fillStyle = accentColor;
+      ctx.fill();
+      y += 45;
+    } else if (isCenter) {
+      const divW = 420;
+      const divGrad = ctx.createLinearGradient((W - divW) / 2, y, (W + divW) / 2, y);
+      divGrad.addColorStop(0, hexToRgba(accentColor, 0));
+      divGrad.addColorStop(0.5, accentColor);
+      divGrad.addColorStop(1, hexToRgba(accentColor, 0));
+      ctx.fillStyle = divGrad;
+      ctx.fillRect((W - divW) / 2, y, divW, 3);
+      y += 45;
+    } else {
+      const divGrad = ctx.createLinearGradient(80, y, 500, y);
+      divGrad.addColorStop(0, accentColor);
+      divGrad.addColorStop(1, hexToRgba(accentColor, 0));
+      ctx.fillStyle = divGrad;
+      ctx.fillRect(80, y, 420, 3);
+      ctx.beginPath();
+      ctx.arc(80, y + 1.5, 5, 0, Math.PI * 2);
+      ctx.fillStyle = accentColor;
+      ctx.fill();
+      y += 45;
+    }
 
     // ── Body text ──
-    ctx.font = '40px Arial, sans-serif';
+    ctx.font = bodyFont;
     ctx.fillStyle = textColor;
-    ctx.globalAlpha = 0.8;
+    ctx.globalAlpha = layout === 'minimal-center' ? 0.7 : 0.8;
+    ctx.textAlign = textAlign;
     const bodyLines = creative.text.split('\n');
+    const bodySpacing = layout === 'minimal-center' ? 62 : layout === 'bold-stack' ? 54 : 58;
     for (const line of bodyLines) {
-      ctx.fillText(line, 80, y);
-      y += 58;
+      ctx.fillText(line, textX, y);
+      y += bodySpacing;
     }
     ctx.globalAlpha = 1;
 
     // ── CTA ──
     y += 25;
     const ctaY = Math.min(y, H - 200);
-    ctx.fillStyle = hexToRgba(accentColor, 0.08);
-    roundRect(ctx, 60, ctaY, W - 120, 90, 18);
-    ctx.fill();
-    ctx.strokeStyle = hexToRgba(accentColor, 0.2);
-    ctx.lineWidth = 1;
-    roundRect(ctx, 60, ctaY, W - 120, 90, 18);
-    ctx.stroke();
-    ctx.font = 'bold 36px Arial, sans-serif';
-    ctx.fillStyle = ctaColor;
-    ctx.shadowColor = hexToRgba(ctaColor, 0.3);
-    ctx.shadowBlur = 15;
-    ctx.fillText(creative.cta, 90, ctaY + 58);
-    ctx.shadowBlur = 0;
+    ctx.font = ctaFont;
+    const ctaTextWidth = ctx.measureText(creative.cta).width;
+
+    if (layout === 'impact-center') {
+      // Pill-style CTA button
+      const pillW = ctaTextWidth + 80;
+      const pillH = 80;
+      const pillX = (W - pillW) / 2;
+      ctx.fillStyle = ctaColor;
+      roundRect(ctx, pillX, ctaY, pillW, pillH, 40);
+      ctx.fill();
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'center';
+      ctx.fillText(creative.cta, W / 2, ctaY + 54);
+    } else if (layout === 'minimal-center') {
+      // Underline-style CTA
+      ctx.fillStyle = ctaColor;
+      ctx.textAlign = 'center';
+      ctx.fillText(creative.cta, W / 2, ctaY + 58);
+      ctx.fillStyle = hexToRgba(ctaColor, 0.4);
+      ctx.fillRect((W - ctaTextWidth) / 2, ctaY + 65, ctaTextWidth, 2);
+    } else if (layout === 'bold-stack') {
+      // Full-width CTA bar
+      ctx.fillStyle = hexToRgba(ctaColor, 0.15);
+      ctx.fillRect(60, ctaY, W - 120, 80);
+      ctx.fillStyle = ctaColor;
+      ctx.textAlign = 'center';
+      ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+      ctx.shadowBlur = 15;
+      ctx.fillText(creative.cta, W / 2, ctaY + 54);
+      ctx.shadowBlur = 0;
+    } else {
+      // Standard rounded CTA box
+      const ctaBoxX = isCenter ? (W - (W - 120)) / 2 : isRight ? 60 : 60;
+      ctx.fillStyle = hexToRgba(accentColor, 0.08);
+      roundRect(ctx, ctaBoxX, ctaY, W - 120, 90, 18);
+      ctx.fill();
+      ctx.strokeStyle = hexToRgba(accentColor, 0.2);
+      ctx.lineWidth = 1;
+      roundRect(ctx, ctaBoxX, ctaY, W - 120, 90, 18);
+      ctx.stroke();
+      ctx.fillStyle = ctaColor;
+      ctx.shadowColor = hexToRgba(ctaColor, 0.3);
+      ctx.shadowBlur = 15;
+      ctx.textAlign = textAlign;
+      ctx.fillText(creative.cta, isCenter ? W / 2 : isRight ? W - 90 : 90, ctaY + 58);
+      ctx.shadowBlur = 0;
+    }
+
+    // Reset text align
+    ctx.textAlign = 'left';
 
     // ── Bottom accent bar ──
     const botGrad = ctx.createLinearGradient(0, H - 6, W, H - 6);
