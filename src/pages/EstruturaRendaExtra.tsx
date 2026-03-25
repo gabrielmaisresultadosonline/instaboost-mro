@@ -1031,6 +1031,24 @@ const EstruturaRendaExtra = () => {
                 <p className="relative text-white/40 text-sm mt-1.5 font-medium">Selecione abaixo...</p>
               </div>
 
+              {/* GERAR TESTE GRÁTIS - Big CTA button */}
+              <div className="p-5 md:p-8 pb-0 md:pb-0">
+                <button
+                  onClick={() => setCurrentView('testes')}
+                  className="group relative w-full flex flex-col items-center justify-center gap-2 px-6 py-6 rounded-2xl bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-500 text-black font-black text-lg md:text-xl shadow-xl shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden border-2 border-yellow-400/50"
+                >
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
+                  <div className="relative z-10 flex items-center gap-3">
+                    <TestTube className="h-6 w-6" />
+                    <span>GERAR TESTE GRÁTIS</span>
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <p className="relative z-10 text-black/60 text-xs md:text-sm font-medium max-w-md text-center leading-snug">
+                    Gere teste grátis antes de adicionar de forma fixa o perfil — aumenta 3x a conversão quando você libera um teste para o cliente!
+                  </p>
+                </button>
+              </div>
+
               {/* Tool buttons */}
               <div className="p-5 md:p-8 flex flex-col gap-3">
                 {[
