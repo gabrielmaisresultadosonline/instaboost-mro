@@ -375,19 +375,7 @@ const EstruturaRendaExtra = () => {
     setIsAuthenticated(true);
   };
 
-  // Show loading while checking auth
-  if (checkingAuth) {
-    return (
-      <div className="min-h-screen bg-[#0a0a14] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
-      </div>
-    );
-  }
-
-  // Show login if not authenticated
-  if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
-  }
+  // Auth checks moved to render section below (after all hooks)
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
