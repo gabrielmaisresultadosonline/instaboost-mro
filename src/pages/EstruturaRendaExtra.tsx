@@ -1260,6 +1260,14 @@ const EstruturaRendaExtra = () => {
           ctaBgColor={ctaBgColor} onCtaBgColorChange={setCtaBgColor}
           ctaBgOpacity={ctaBgOpacity} onCtaBgOpacityChange={setCtaBgOpacity}
           onLogoUpload={(url) => setLogoUrl(url)}
+          contentScaleValue={contentScaleOverrides[previewId] ?? contentScale}
+          onContentScaleChange={(v) => setContentScaleOverrides(prev => ({ ...prev, [previewId]: v }))}
+          contentOffsetYValue={contentOffsetYOverrides[previewId] ?? contentOffsetY}
+          onContentOffsetYChange={(v) => setContentOffsetYOverrides(prev => ({ ...prev, [previewId]: v }))}
+          onContentPositionReset={() => {
+            setContentScaleOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
+            setContentOffsetYOverrides(prev => { const n = { ...prev }; delete n[previewId]; return n; });
+          }}
         />
       )}
     </div>
