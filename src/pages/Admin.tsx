@@ -24,6 +24,7 @@ import PixelAndCallSettings from '@/components/admin/PixelAndCallSettings';
 import CreativesProManager from '@/components/admin/CreativesProManager';
 import TicketsManager from '@/components/admin/TicketsManager';
 import UsersListPanel from '@/components/admin/UsersListPanel';
+import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
