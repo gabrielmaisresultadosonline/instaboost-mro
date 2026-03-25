@@ -3,7 +3,8 @@ import { Strategy, Creative, InstagramProfile, CreativeConfig, CreativeColors } 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type, AlertCircle, Lock, Phone, Info } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Loader2, Download, Sparkles, Image as ImageIcon, Upload, X, Palette, AlignLeft, AlignCenter, AlignRight, Plus, Type, AlertCircle, Lock, Phone, Info, ChevronDown } from 'lucide-react';
 import { generateCreative, uploadCreativeImage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, markLifetimeCreativeUsed } from '@/lib/userStorage';
