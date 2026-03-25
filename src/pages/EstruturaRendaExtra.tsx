@@ -197,11 +197,11 @@ function drawCircuitLines(ctx: CanvasRenderingContext2D, W: number, H: number, c
   ctx.restore();
 }
 
-function drawGlowOrb(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, color: string) {
+function drawGlowOrb(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, color: string, opacityMult: number = 1) {
   ctx.save();
   const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-  grad.addColorStop(0, hexToRgba(color, 0.15));
-  grad.addColorStop(0.5, hexToRgba(color, 0.05));
+  grad.addColorStop(0, hexToRgba(color, 0.15 * opacityMult));
+  grad.addColorStop(0.5, hexToRgba(color, 0.05 * opacityMult));
   grad.addColorStop(1, hexToRgba(color, 0));
   ctx.fillStyle = grad;
   ctx.beginPath();
