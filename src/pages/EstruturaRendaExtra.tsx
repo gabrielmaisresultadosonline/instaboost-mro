@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube, PenTool, ExternalLink } from 'lucide-react';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { ContratoGenerator } from '@/components/ContratoGenerator';
 import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
@@ -293,6 +293,7 @@ const EstruturaRendaExtra = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [mroUsername, setMroUsername] = useState('');
   const [mroPassword, setMroPassword] = useState('');
+  const [showLogoPopup, setShowLogoPopup] = useState(false);
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
@@ -1053,6 +1054,7 @@ const EstruturaRendaExtra = () => {
               {/* Tool buttons */}
               <div className="p-5 md:p-8 flex flex-col gap-3">
                 {[
+                  { label: 'Crie sua Logomarca', icon: <PenTool className="h-5 w-5" />, hoverGradient: 'hover:from-rose-500 hover:via-fuchsia-500 hover:to-violet-500', hoverShadow: 'hover:shadow-rose-500/35', action: () => setShowLogoPopup(true) },
                   { label: 'Posts Creator', icon: <Image className="h-5 w-5" />, hoverGradient: 'hover:from-purple-600 hover:via-pink-500 hover:to-orange-400', hoverShadow: 'hover:shadow-purple-500/35', action: () => setCurrentView('posts-creator') },
                   { label: 'Gerando sua Foto Profissional', icon: <Camera className="h-5 w-5" />, hoverGradient: 'hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500', hoverShadow: 'hover:shadow-emerald-500/35', action: () => {
                     const guestUser = { id: 'estrutura-guest', name: 'Membro EUGência', email: 'eugencia@membro.com', copies_count: 0, copies_limit: 99999, is_paid: true, days_remaining: 99999 };
@@ -1077,6 +1079,43 @@ const EstruturaRendaExtra = () => {
             </div>
           </div>
         </div>
+
+        {/* Logo Popup */}
+        {showLogoPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowLogoPopup(false)}>
+            <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <PenTool className="h-5 w-5 text-fuchsia-400" />
+                  Crie sua Logomarca
+                </h3>
+                <button onClick={() => setShowLogoPopup(false)} className="text-white/60 hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-4">
+                <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
+                  <iframe
+                    src="https://www.youtube.com/embed/IizMcchcxuA"
+                    title="Tutorial Logomarca"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+                <a
+                  href="https://chatgpt.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Acessar ChatGPT
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
