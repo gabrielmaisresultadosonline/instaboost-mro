@@ -114,14 +114,26 @@ serve(async (req) => {
         };
       });
 
+      // Count trials in last 30 days
+      const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
+      const maxTrials = 5;
+
+      // Use API remaining if available, otherwise local calculation
+      const effectiveRemaining = apiRemaining !== null 
+        ? apiRemaining 
+        : Math.max(0, maxTrials - trialsLast30Days);
+      const effectiveMax = apiRemaining !== null 
+        ? (trialsLast30Days + apiRemaining) 
+        : maxTrials;
+
       return new Response(
         JSON.stringify({
           success: true,
           trials: mappedTrials,
           total_generated: (trials || []).length,
           trials_last_30_days: trialsLast30Days,
-          trials_remaining: Math.max(0, maxTrials - trialsLast30Days),
-          max_trials: maxTrials,
+          trials_remaining: effectiveRemaining,
+          max_trials: effectiveMax,
           trial_duration_hours: trialHours,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
