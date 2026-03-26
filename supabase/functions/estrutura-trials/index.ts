@@ -122,13 +122,12 @@ serve(async (req) => {
       // Count from Supabase as fallback
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const maxTrialsFallback = 5;
+      const monthlyMaxTrials = 5;
 
-      // Use API data if available
-      const effectiveRemaining = apiRemaining !== null ? apiRemaining : Math.max(0, maxTrialsFallback - trialsLast30Days);
-      const totalGenerated = apiRemaining !== null 
-        ? Object.keys(apiTestAccounts).length + (trials || []).length
-        : (trials || []).length;
+      // Use API data if available for remaining, but keep monthly max fixed at 5
+      const effectiveRemaining = apiRemaining !== null
+        ? Math.max(0, Math.min(apiRemaining, monthlyMaxTrials))
+        : Math.max(0, monthlyMaxTrials - trialsLast30Days);
 
       return new Response(
         JSON.stringify({
@@ -137,7 +136,7 @@ serve(async (req) => {
           total_generated: (trials || []).length,
           trials_last_30_days: trialsLast30Days,
           trials_remaining: effectiveRemaining,
-          max_trials: apiRemaining !== null ? (effectiveRemaining + trialsLast30Days) : maxTrialsFallback,
+          max_trials: monthlyMaxTrials,
           trial_duration_hours: trialHours,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
