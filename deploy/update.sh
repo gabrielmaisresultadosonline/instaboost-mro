@@ -44,8 +44,10 @@ npm run build
 echo ""
 echo "🧩 Verificando Nginx..."
 
-# Sempre garantir config limpa sem proxy whatsapp
-$SUDO tee "$NGINX_SITE" > /dev/null <<EOF
+# Só cria config Nginx se NÃO existir (preserva SSL/certbot)
+if [ ! -f "$NGINX_SITE" ]; then
+  echo "🛠️ Criando configuração Nginx inicial..."
+  $SUDO tee "$NGINX_SITE" > /dev/null <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -59,7 +61,7 @@ server {
     gzip_proxied expired no-cache no-store private auth;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json;
 
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)\$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
@@ -74,8 +76,11 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
 }
 EOF
-
-$SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
+  $SUDO ln -sf "$NGINX_SITE" "/etc/nginx/sites-enabled/$APP_NAME"
+  echo "✅ Nginx configurado. Rode: sudo certbot --nginx -d $DOMAIN -d www.$DOMAIN"
+else
+  echo "✅ Config Nginx já existe (preservando SSL/certbot)"
+fi
 
 # ============= Subdomínio prompts.maisresultadosonline.com.br =============
 PROMPTS_DOMAIN="prompts.$DOMAIN"
