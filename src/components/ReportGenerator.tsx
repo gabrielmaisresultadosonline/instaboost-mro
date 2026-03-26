@@ -403,12 +403,13 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.line(tableX, tableY + 5, tableX + tableW, tableY + 5);
 
       // Table rows
+      const segGanho = Math.max(0, report.seguidoresAtual - report.seguidoresInicial);
       const rows = [
-        { metric: '📊 Alcance Mensal', initial: formatNumber(report.alcanceInicial), current: formatNumber(report.alcanceAtual), percent: `+${alcP}%` },
-        { metric: '👁 Visitas ao Perfil', initial: formatNumber(report.visitasInicial), current: formatNumber(report.visitasAtual), percent: `+${visP}%` },
-        { metric: '👥 Novos Seguidores', initial: formatNumber(report.seguidoresInicial), current: formatNumber(report.seguidoresAtual), percent: `+${segP}%` },
-        { metric: '✉ Mensagens Enviadas', initial: '-', current: formatNumber(report.mensagensEnviadas), percent: '-' },
-        { metric: '🎯 Contas Alcançadas', initial: '-', current: formatNumber(report.totalContasAlcancadas), percent: '-' },
+        { metric: 'Alcance Mensal', initial: formatNumber(report.alcanceInicial), current: formatNumber(report.alcanceAtual), percent: `+${alcP}%` },
+        { metric: 'Visitas ao Perfil', initial: formatNumber(report.visitasInicial), current: formatNumber(report.visitasAtual), percent: `+${visP}%` },
+        { metric: 'Novos Seguidores', initial: formatNumber(report.seguidoresInicial), current: formatNumber(report.seguidoresAtual), percent: `+${segP}%` },
+        { metric: 'Mensagens Enviadas', initial: '-', current: formatNumber(report.mensagensEnviadas), percent: '-' },
+        { metric: 'Contas Alcancadas', initial: '-', current: formatNumber(report.totalContasAlcancadas), percent: '-' },
       ];
 
       rows.forEach((row, i) => {
