@@ -5,6 +5,7 @@ import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { ContratoGenerator } from '@/components/ContratoGenerator';
 import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
 import { EstruturaTrialDashboard } from '@/components/EstruturaTrialDashboard';
+import { ReportGenerator } from '@/components/ReportGenerator';
 import { LoginPage } from '@/components/LoginPage';
 import { getUserSession } from '@/lib/userStorage';
 import { Button } from '@/components/ui/button';
