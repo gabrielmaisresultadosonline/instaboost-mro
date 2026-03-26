@@ -63,9 +63,26 @@ serve(async (req) => {
       const now = new Date();
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      // Count trials in last 30 days
-      const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const maxTrials = 5; // Default max per 30 days
+      // Check API for available tests
+      let apiRemaining: number | null = null;
+      try {
+        const checkResponse = await fetch(`${SQUARE_API_URL}/contarTestesMro?nameUserMro=${encodeURIComponent(mro_username)}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (checkResponse.ok) {
+          const checkData = await checkResponse.json();
+          log("API availability (list)", checkData);
+          if (typeof checkData.restantes === 'number') {
+            apiRemaining = checkData.restantes;
+          } else if (typeof checkData.remaining === 'number') {
+            apiRemaining = checkData.remaining;
+          }
+        }
+      } catch (e) {
+        log("Could not check API availability on list", { error: e instanceof Error ? e.message : 'Unknown' });
+      }
+
 
       // Map trials with status
       const mappedTrials = (trials || []).map(t => {
@@ -97,14 +114,26 @@ serve(async (req) => {
         };
       });
 
+      // Count trials in last 30 days
+      const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
+      const maxTrials = 5;
+
+      // Use API remaining if available, otherwise local calculation
+      const effectiveRemaining = apiRemaining !== null 
+        ? apiRemaining 
+        : Math.max(0, maxTrials - trialsLast30Days);
+      const effectiveMax = apiRemaining !== null 
+        ? (trialsLast30Days + apiRemaining) 
+        : maxTrials;
+
       return new Response(
         JSON.stringify({
           success: true,
           trials: mappedTrials,
           total_generated: (trials || []).length,
           trials_last_30_days: trialsLast30Days,
-          trials_remaining: Math.max(0, maxTrials - trialsLast30Days),
-          max_trials: maxTrials,
+          trials_remaining: effectiveRemaining,
+          max_trials: effectiveMax,
           trial_duration_hours: trialHours,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -129,19 +158,19 @@ serve(async (req) => {
         );
       }
 
-      // Check if this Instagram was already tested
-      const { data: existingTrial } = await supabase
+      // Check how many times this Instagram was tested (allow up to 2)
+      const { data: existingTrials, count: igCount } = await supabase
         .from('free_trial_registrations')
-        .select('id, registered_at')
-        .eq('instagram_username', normalizedIG)
-        .single();
+        .select('id, registered_at', { count: 'exact', head: false })
+        .eq('instagram_username', normalizedIG);
 
-      if (existingTrial) {
+      const maxPerIG = 2;
+      if ((igCount || 0) >= maxPerIG) {
         return new Response(
           JSON.stringify({
             success: false,
             alreadyTested: true,
-            message: `Este Instagram já foi usado para teste em ${new Date(existingTrial.registered_at).toLocaleString('pt-BR')}`
+            message: `Esta página já usou ${maxPerIG} testes. Não é possível usar mais. Entre em contato com o admin.`
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -156,8 +185,36 @@ serve(async (req) => {
         .eq('mro_master_user', mro_username)
         .gte('created_at', thirtyDaysAgo.toISOString());
 
+      // First, check how many tests are available from the original API
+      let apiAvailable: number | null = null;
+      try {
+        const checkResponse = await fetch(`${SQUARE_API_URL}/contarTestesMro?nameUserMro=${encodeURIComponent(mro_username)}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (checkResponse.ok) {
+          const checkData = await checkResponse.json();
+          log("API availability check", checkData);
+          if (typeof checkData.restantes === 'number') {
+            apiAvailable = checkData.restantes;
+          } else if (typeof checkData.remaining === 'number') {
+            apiAvailable = checkData.remaining;
+          }
+        }
+      } catch (e) {
+        log("Could not check API availability", { error: e instanceof Error ? e.message : 'Unknown' });
+      }
+
+      // Use API limit if available, otherwise fallback to local count
       const maxTrials = 5;
-      if ((count || 0) >= maxTrials) {
+      const localUsed = count || 0;
+      if (apiAvailable !== null && apiAvailable <= 0) {
+        return new Response(
+          JSON.stringify({ success: false, message: `Limite de testes atingido. Sem testes disponíveis na plataforma.` }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (apiAvailable === null && localUsed >= maxTrials) {
         return new Response(
           JSON.stringify({ success: false, message: `Limite de ${maxTrials} testes por 30 dias atingido` }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
