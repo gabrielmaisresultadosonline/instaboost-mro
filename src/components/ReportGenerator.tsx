@@ -334,7 +334,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       // Footer
       pdf.setFontSize(7);
       pdf.setTextColor(50, 50, 60);
-      pdf.text('DOCUMENTO CONFIDENCIAL · ANÁLISE COMPARATIVA DE PERFORMANCE', W / 2, H - 8, { align: 'center' });
+      pdf.text('DOCUMENTO CONFIDENCIAL - ANALISE COMPARATIVA DE PERFORMANCE', W / 2, H - 8, { align: 'center' });
       addLogo();
 
       // ════════════ PAGE 2 - EVOLUÇÃO ════════════
