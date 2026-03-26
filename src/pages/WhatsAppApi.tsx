@@ -37,13 +37,13 @@ const WhatsAppApi = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-start px-4 pt-12 pb-8">
-      <Logo size="lg" className="mb-8" />
+    <div className="min-h-screen bg-black flex flex-col items-center justify-start px-4 pt-24 pb-8">
+      <Logo size="lg" className="mb-10" />
 
       <img
         src={bannerImg}
         alt="Zero Anúncios. Resultados Reais."
-        className="w-full max-w-lg rounded-2xl mb-10 shadow-2xl"
+        className="w-full max-w-xl rounded-2xl mb-12 shadow-2xl"
       />
 
       <button
