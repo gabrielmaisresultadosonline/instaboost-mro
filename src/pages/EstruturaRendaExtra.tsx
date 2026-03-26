@@ -1080,6 +1080,43 @@ const EstruturaRendaExtra = () => {
           </div>
         </div>
       </div>
+
+      {/* Logo Popup */}
+      {showLogoPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowLogoPopup(false)}>
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                <PenTool className="h-5 w-5 text-fuchsia-400" />
+                Crie sua Logomarca
+              </h3>
+              <button onClick={() => setShowLogoPopup(false)} className="text-white/60 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
+                <iframe
+                  src="https://www.youtube.com/embed/IizMcchcxuA"
+                  title="Tutorial Logomarca"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+              <a
+                href="https://chatgpt.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Acessar ChatGPT
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     );
   }
 
