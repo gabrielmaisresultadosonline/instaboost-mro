@@ -376,7 +376,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
       pdf.setTextColor(180, 180, 190);
-      const visionText = `Desde o início da gestão, o perfil @${report.instagramUsername} experimentou uma transformação significativa. Os números abaixo refletem o impacto direto das estratégias de conteúdo, interação e prospecção aplicadas.`;
+      const visionText = `Desde o inicio da gestao, o perfil @${report.instagramUsername} experimentou uma transformacao significativa. Os numeros abaixo refletem o impacto direto das estrategias de conteudo, interacao e prospeccao aplicadas.`;
       const splitVision = pdf.splitTextToSize(visionText, W - 60);
       pdf.text(splitVision, 30, 67);
 
