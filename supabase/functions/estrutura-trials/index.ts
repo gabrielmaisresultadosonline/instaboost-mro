@@ -129,10 +129,10 @@ serve(async (req) => {
         ? Math.max(0, apiRemaining)
         : Math.max(0, defaultMaxTrials - trialsLast30Days);
 
-      // Calculate max: if API says 4 remaining and user used 1 this month, max = 5
-      // But if admin increased limit on API, it could be higher
+      // Calculate max using API's own used count (igTesteUserMro entries), not Supabase records
+      const apiUsedCount = Object.keys(apiTestAccounts).length;
       const effectiveMax = apiRemaining !== null
-        ? (apiRemaining + trialsLast30Days)
+        ? (apiRemaining + apiUsedCount)
         : defaultMaxTrials;
 
       return new Response(
