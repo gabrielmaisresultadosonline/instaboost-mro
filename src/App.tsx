@@ -88,8 +88,6 @@ import RendaExtraLigacaoAdmin from "./pages/RendaExtraLigacaoAdmin";
 import Relatorios from "./pages/Relatorios";
 import EstruturaRendaExtra from "./pages/EstruturaRendaExtra";
 import WhatsAppApi from "./pages/WhatsAppApi";
-import ZapMROLogin from "./pages/ZapMROLogin";
-import ZapMROTool from "./pages/ZapMROTool";
 
 const queryClient = new QueryClient();
 
