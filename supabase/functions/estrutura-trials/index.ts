@@ -156,8 +156,36 @@ serve(async (req) => {
         .eq('mro_master_user', mro_username)
         .gte('created_at', thirtyDaysAgo.toISOString());
 
+      // First, check how many tests are available from the original API
+      let apiAvailable: number | null = null;
+      try {
+        const checkResponse = await fetch(`${SQUARE_API_URL}/contarTestesMro?nameUserMro=${encodeURIComponent(mro_username)}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (checkResponse.ok) {
+          const checkData = await checkResponse.json();
+          log("API availability check", checkData);
+          if (typeof checkData.restantes === 'number') {
+            apiAvailable = checkData.restantes;
+          } else if (typeof checkData.remaining === 'number') {
+            apiAvailable = checkData.remaining;
+          }
+        }
+      } catch (e) {
+        log("Could not check API availability", { error: e instanceof Error ? e.message : 'Unknown' });
+      }
+
+      // Use API limit if available, otherwise fallback to local count
       const maxTrials = 5;
-      if ((count || 0) >= maxTrials) {
+      const localUsed = count || 0;
+      if (apiAvailable !== null && apiAvailable <= 0) {
+        return new Response(
+          JSON.stringify({ success: false, message: `Limite de testes atingido. Sem testes disponíveis na plataforma.` }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (apiAvailable === null && localUsed >= maxTrials) {
         return new Response(
           JSON.stringify({ success: false, message: `Limite de ${maxTrials} testes por 30 dias atingido` }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
