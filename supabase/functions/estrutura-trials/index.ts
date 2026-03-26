@@ -45,7 +45,7 @@ serve(async (req) => {
 
       const trialHours = settings?.trial_duration_hours || 6;
 
-      // Get all trials for this MRO user
+      // Get all trials for this MRO user from Supabase
       const { data: trials, error } = await supabase
         .from('free_trial_registrations')
         .select('*')
@@ -61,28 +61,34 @@ serve(async (req) => {
       }
 
       const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      // Check API for available tests
+      // Fetch real data from SquareCloud API via /verificar-numero
       let apiRemaining: number | null = null;
+      let apiTestAccounts: Record<string, any> = {};
       try {
-        const checkResponse = await fetch(`${SQUARE_API_URL}/contarTestesMro?nameUserMro=${encodeURIComponent(mro_username)}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+        const body = new URLSearchParams({ nome: mro_username, numero: mro_username });
+        if (mro_password) body.set('numero', mro_password);
+        const checkResponse = await fetch(`${SQUARE_API_URL}/verificar-numero`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
         });
         if (checkResponse.ok) {
-          const checkData = await checkResponse.json();
-          log("API availability (list)", checkData);
-          if (typeof checkData.restantes === 'number') {
-            apiRemaining = checkData.restantes;
-          } else if (typeof checkData.remaining === 'number') {
-            apiRemaining = checkData.remaining;
+          const text = await checkResponse.text();
+          if (!text.trim().startsWith('<!')) {
+            const checkData = JSON.parse(text);
+            log("SquareCloud API data", { testsRemainingMonth: checkData.userData?.testsRemainingMonth, igTesteUserMro: checkData.userData?.igTesteUserMro });
+            if (typeof checkData.userData?.testsRemainingMonth === 'number') {
+              apiRemaining = checkData.userData.testsRemainingMonth;
+            }
+            if (checkData.userData?.igTesteUserMro) {
+              apiTestAccounts = checkData.userData.igTesteUserMro;
+            }
           }
         }
       } catch (e) {
-        log("Could not check API availability on list", { error: e instanceof Error ? e.message : 'Unknown' });
+        log("Could not check SquareCloud API", { error: e instanceof Error ? e.message : 'Unknown' });
       }
-
 
       // Map trials with status
       const mappedTrials = (trials || []).map(t => {
@@ -93,7 +99,6 @@ serve(async (req) => {
         let status = 'active';
         if (isExpired || isRemoved) status = 'expired';
 
-        // Calculate remaining time
         let remainingMs = expiresAt.getTime() - now.getTime();
         if (remainingMs < 0) remainingMs = 0;
         const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
@@ -114,17 +119,16 @@ serve(async (req) => {
         };
       });
 
-      // Count trials in last 30 days
+      // Count from Supabase as fallback
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const maxTrials = 5;
+      const maxTrialsFallback = 5;
 
-      // Use API remaining if available, otherwise local calculation
-      const effectiveRemaining = apiRemaining !== null 
-        ? apiRemaining 
-        : Math.max(0, maxTrials - trialsLast30Days);
-      const effectiveMax = apiRemaining !== null 
-        ? (trialsLast30Days + apiRemaining) 
-        : maxTrials;
+      // Use API data if available
+      const effectiveRemaining = apiRemaining !== null ? apiRemaining : Math.max(0, maxTrialsFallback - trialsLast30Days);
+      const totalGenerated = apiRemaining !== null 
+        ? Object.keys(apiTestAccounts).length + (trials || []).length
+        : (trials || []).length;
 
       return new Response(
         JSON.stringify({
@@ -133,7 +137,7 @@ serve(async (req) => {
           total_generated: (trials || []).length,
           trials_last_30_days: trialsLast30Days,
           trials_remaining: effectiveRemaining,
-          max_trials: effectiveMax,
+          max_trials: apiRemaining !== null ? (effectiveRemaining + trialsLast30Days) : maxTrialsFallback,
           trial_duration_hours: trialHours,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -185,20 +189,24 @@ serve(async (req) => {
         .eq('mro_master_user', mro_username)
         .gte('created_at', thirtyDaysAgo.toISOString());
 
-      // First, check how many tests are available from the original API
+      // Check how many tests are available from SquareCloud via /verificar-numero
       let apiAvailable: number | null = null;
       try {
-        const checkResponse = await fetch(`${SQUARE_API_URL}/contarTestesMro?nameUserMro=${encodeURIComponent(mro_username)}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+        const body = new URLSearchParams({ nome: mro_username, numero: mro_username });
+        if (mro_password) body.set('numero', mro_password);
+        const checkResponse = await fetch(`${SQUARE_API_URL}/verificar-numero`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
         });
         if (checkResponse.ok) {
-          const checkData = await checkResponse.json();
-          log("API availability check", checkData);
-          if (typeof checkData.restantes === 'number') {
-            apiAvailable = checkData.restantes;
-          } else if (typeof checkData.remaining === 'number') {
-            apiAvailable = checkData.remaining;
+          const text = await checkResponse.text();
+          if (!text.trim().startsWith('<!')) {
+            const checkData = JSON.parse(text);
+            log("API availability check", { testsRemainingMonth: checkData.userData?.testsRemainingMonth });
+            if (typeof checkData.userData?.testsRemainingMonth === 'number') {
+              apiAvailable = checkData.userData.testsRemainingMonth;
+            }
           }
         }
       } catch (e) {

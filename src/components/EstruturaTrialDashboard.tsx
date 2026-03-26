@@ -45,7 +45,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
-        body: { action: 'list', mro_username: mroUsername }
+        body: { action: 'list', mro_username: mroUsername, mro_password: mroPassword }
       });
 
       if (error) throw error;
