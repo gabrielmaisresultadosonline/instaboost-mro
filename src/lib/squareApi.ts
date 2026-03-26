@@ -117,16 +117,7 @@ export const canRegisterIG = async (
         };
       }
       
-      // Check if user has available slots (max 4 based on SquareCloud API)
-      const maxIGs = 4;
-      if (verifyResult.instagrams.length >= maxIGs) {
-        return { 
-          canRegister: false, 
-          alreadyExists: false,
-          registeredIGs: verifyResult.instagrams,
-          error: `Limite de ${maxIGs} perfis atingido. Você não pode cadastrar mais perfis.` 
-        };
-      }
+      // No client-side limit - SquareCloud API handles slot limits per account
       
       return { 
         canRegister: true, 
