@@ -127,8 +127,8 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
   }, [mroUsername]);
 
   const handleCreateReport = () => {
-    if (!newForm.companyName.trim()) {
-      toast.error('Nome da empresa é obrigatório');
+    if (!newForm.instagramUsername) {
+      toast.error('Selecione um perfil cadastrado');
       return;
     }
     const key = newForm.companyName.trim().toLowerCase().replace(/\s+/g, '-');
