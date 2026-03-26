@@ -371,7 +371,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(251, 191, 36);
-      pdf.text(`VISÃO GERAL DESDE ${startF.toUpperCase()}`, 30, 58);
+      pdf.text(`VISAO GERAL DESDE ${startF.toUpperCase()}`, 30, 58);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
