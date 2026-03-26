@@ -64,7 +64,6 @@ serve(async (req) => {
 
       // Fetch real data from SquareCloud API via /verificar-numero
       let apiRemaining: number | null = null;
-      let apiTestAccounts: Record<string, any> = {};
       try {
         const body = new URLSearchParams({ nome: mro_username, numero: mro_username });
         if (mro_password) body.set('numero', mro_password);
@@ -79,10 +78,7 @@ serve(async (req) => {
             const checkData = JSON.parse(text);
             log("SquareCloud API data", { testsRemainingMonth: checkData.userData?.testsRemainingMonth, igTesteUserMro: checkData.userData?.igTesteUserMro });
             if (typeof checkData.userData?.testsRemainingMonth === 'number') {
-              apiRemaining = checkData.userData.testsRemainingMonth;
-            }
-            if (checkData.userData?.igTesteUserMro) {
-              apiTestAccounts = checkData.userData.igTesteUserMro;
+              apiRemaining = Math.max(0, Math.min(5, checkData.userData.testsRemainingMonth));
             }
           }
         }
@@ -122,18 +118,15 @@ serve(async (req) => {
       // Count from Supabase as fallback
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const defaultMaxTrials = 5;
+      const monthlyMaxTrials = 5;
 
-      // Use real API data when available — trust the API value directly
+      // Use real API data when available, but never exceed the monthly ceiling
       const effectiveRemaining = apiRemaining !== null
-        ? Math.max(0, apiRemaining)
-        : Math.max(0, defaultMaxTrials - trialsLast30Days);
+        ? Math.max(0, Math.min(monthlyMaxTrials, apiRemaining))
+        : Math.max(0, monthlyMaxTrials - trialsLast30Days);
 
-      // Calculate max using API's own used count (igTesteUserMro entries), not Supabase records
-      const apiUsedCount = Object.keys(apiTestAccounts).length;
-      const effectiveMax = apiRemaining !== null
-        ? (apiRemaining + apiUsedCount)
-        : defaultMaxTrials;
+      // Fixed monthly limit (do not accumulate across renewals)
+      const effectiveMax = monthlyMaxTrials;
 
       return new Response(
         JSON.stringify({
@@ -210,7 +203,7 @@ serve(async (req) => {
             const checkData = JSON.parse(text);
             log("API availability check", { testsRemainingMonth: checkData.userData?.testsRemainingMonth });
             if (typeof checkData.userData?.testsRemainingMonth === 'number') {
-              apiAvailable = checkData.userData.testsRemainingMonth;
+              apiAvailable = Math.max(0, Math.min(5, checkData.userData.testsRemainingMonth));
             }
           }
         }
