@@ -21,6 +21,15 @@ const WhatsAppApi = () => {
 
   const handleClick = () => {
     if (!whatsappNumber) return;
+
+    // Facebook Pixel - Lead
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "Lead", {
+        content_name: "whatsappapi_click",
+        content_category: "whatsapp_funnel",
+      });
+    }
+
     window.open(
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Olá, vim pelo site!")}`,
       "_blank"
