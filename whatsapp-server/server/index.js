@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const puppeteer = require('puppeteer');
 const qrcode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
@@ -28,6 +29,53 @@ const qrCodes = new Map();
 const messageHistory = new Map(); // sessionId -> messages[]
 const flowsConfig = new Map(); // sessionId -> flows[]
 
+const BROWSER_CANDIDATES = [
+  '/usr/bin/google-chrome-stable',
+  '/usr/bin/google-chrome',
+  '/usr/bin/chromium-browser',
+  '/usr/bin/chromium'
+];
+
+function resolveBrowserExecutablePath() {
+  const customPath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  if (customPath && fs.existsSync(customPath)) return customPath;
+
+  try {
+    const bundledPath = puppeteer.executablePath();
+    if (bundledPath && fs.existsSync(bundledPath)) return bundledPath;
+  } catch (error) {
+    console.warn('Bundled Chromium not found, trying system browser...');
+  }
+
+  return BROWSER_CANDIDATES.find((browserPath) => fs.existsSync(browserPath)) || null;
+}
+
+function buildPuppeteerConfig() {
+  const executablePath = resolveBrowserExecutablePath();
+  const config = {
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+      '--single-process'
+    ]
+  };
+
+  if (executablePath) {
+    config.executablePath = executablePath;
+    console.log(`Using browser executable: ${executablePath}`);
+  } else {
+    console.warn('No browser executable found. Run: npm install && npx puppeteer browsers install chrome');
+  }
+
+  return config;
+}
+
 function generateSessionId() {
   return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
@@ -50,19 +98,7 @@ app.post('/api/create-session', (req, res) => {
 
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: sessionId }),
-    puppeteer: {
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu',
-        '--single-process'
-      ]
-    }
+    puppeteer: buildPuppeteerConfig()
   });
 
   activeClients.set(sessionId, {
@@ -128,6 +164,10 @@ app.post('/api/create-session', (req, res) => {
     io.emit('session-removed', { sessionId });
   });
 
+  client.on('error', (error) => {
+    console.error(`Client error (${sessionId}):`, error?.message || error);
+  });
+
   // Message handler - store + broadcast + check flows
   client.on('message', async (message) => {
     const msgObj = {
@@ -186,7 +226,18 @@ app.post('/api/create-session', (req, res) => {
     }
   });
 
-  client.initialize();
+  client.initialize().catch((error) => {
+    console.error(`Initialization error (${sessionId}):`, error?.message || error);
+    const data = activeClients.get(sessionId);
+    if (data) {
+      data.status = 'launch_failed';
+      io.emit('session-update', {
+        sessionId,
+        status: 'launch_failed',
+        error: error?.message || 'Failed to launch browser'
+      });
+    }
+  });
 
   res.json({ success: true, sessionId, message: 'Session created' });
 });
@@ -212,7 +263,12 @@ app.post('/api/disconnect-session', async (req, res) => {
   const data = activeClients.get(sessionId);
   if (data) {
     try {
-      await data.client.destroy();
+      if (data.client && typeof data.client.destroy === 'function') {
+        await data.client.destroy().catch((destroyError) => {
+          console.warn(`Destroy warning (${sessionId}):`, destroyError?.message || destroyError);
+        });
+      }
+
       activeClients.delete(sessionId);
       qrCodes.delete(sessionId);
       messageHistory.delete(sessionId);
@@ -221,6 +277,8 @@ app.post('/api/disconnect-session', async (req, res) => {
     } catch (error) {
       console.error('Disconnect error:', error);
       activeClients.delete(sessionId);
+      qrCodes.delete(sessionId);
+      messageHistory.delete(sessionId);
       res.json({ success: true, message: 'Force removed' });
     }
   } else {

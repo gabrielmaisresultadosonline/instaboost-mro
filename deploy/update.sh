@@ -35,19 +35,27 @@ npm run build
 
 # ============= WhatsApp Backend =============
 echo ""
-echo "📱 Configurando WhatsApp Multi Connect..."
+echo "📱 Configurando ZAP MRO Cloud..."
 
 if [ -d "$WHATSAPP_DIR" ]; then
   cd "$WHATSAPP_DIR"
 
   echo "📦 Instalando dependências do WhatsApp backend..."
   npm install
+  npx puppeteer browsers install chrome || true
 
-  # Criar .env se não existir
+  # Garantir .env
   if [ ! -f ".env" ]; then
     echo "PORT=3001" > .env
     echo "NODE_ENV=production" >> .env
   fi
+
+  BROWSER_PATH="$(command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+  if [ -n "$BROWSER_PATH" ]; then
+    grep -q '^PUPPETEER_EXECUTABLE_PATH=' .env 2>/dev/null || echo "PUPPETEER_EXECUTABLE_PATH=$BROWSER_PATH" >> .env
+  fi
+
+  mkdir -p .wwebjs_auth .wwebjs_cache
 
   # Garantir PM2 disponível (algumas VPS instalam npm global fora do PATH)
   NPM_GLOBAL_BIN="$(npm bin -g)"
@@ -75,13 +83,15 @@ if [ -d "$WHATSAPP_DIR" ]; then
     exit 1
   fi
 
-  # Reiniciar ou iniciar o processo
-  if "$PM2_BIN" list | grep -q "whatsapp-multi"; then
-    echo "🔄 Reiniciando WhatsApp backend..."
-    "$PM2_BIN" restart whatsapp-multi
+  # Padronizar processo e remover legado
+  "$PM2_BIN" delete whatsapp-multi 2>/dev/null || true
+
+  if "$PM2_BIN" list | grep -q "zapmro-cloud"; then
+    echo "🔄 Reiniciando ZAP MRO Cloud..."
+    "$PM2_BIN" restart zapmro-cloud
   else
-    echo "🚀 Iniciando WhatsApp backend..."
-    "$PM2_BIN" start server/index.js --name "whatsapp-multi"
+    echo "🚀 Iniciando ZAP MRO Cloud..."
+    "$PM2_BIN" start server/index.js --name "zapmro-cloud"
   fi
 
   "$PM2_BIN" save || true
