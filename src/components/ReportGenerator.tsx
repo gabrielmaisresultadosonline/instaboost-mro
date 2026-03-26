@@ -611,7 +611,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11);
       pdf.setTextColor(16, 185, 129);
-      pdf.text('PRÓXIMO CICLO', rightX + 8, colY + 14);
+      pdf.text('PROXIMO CICLO', rightX + 8, colY + 14);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(11);
