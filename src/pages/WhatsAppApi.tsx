@@ -31,7 +31,7 @@ const WhatsAppApi = () => {
     }
 
     window.open(
-      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Olá, vim pelo site!")}`,
+      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Vim pelo site, Gostaria de saber sobre o sistema inovador!")}`,
       "_blank"
     );
   };
