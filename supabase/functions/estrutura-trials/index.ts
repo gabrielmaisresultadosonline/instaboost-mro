@@ -122,12 +122,18 @@ serve(async (req) => {
       // Count from Supabase as fallback
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const monthlyMaxTrials = 5;
+      const defaultMaxTrials = 5;
 
-      // Use API data if available for remaining, but keep monthly max fixed at 5
+      // Use real API data when available — trust the API value directly
       const effectiveRemaining = apiRemaining !== null
-        ? Math.max(0, Math.min(apiRemaining, monthlyMaxTrials))
-        : Math.max(0, monthlyMaxTrials - trialsLast30Days);
+        ? Math.max(0, apiRemaining)
+        : Math.max(0, defaultMaxTrials - trialsLast30Days);
+
+      // Calculate max: if API says 4 remaining and user used 1 this month, max = 5
+      // But if admin increased limit on API, it could be higher
+      const effectiveMax = apiRemaining !== null
+        ? (apiRemaining + trialsLast30Days)
+        : defaultMaxTrials;
 
       return new Response(
         JSON.stringify({
@@ -136,7 +142,7 @@ serve(async (req) => {
           total_generated: (trials || []).length,
           trials_last_30_days: trialsLast30Days,
           trials_remaining: effectiveRemaining,
-          max_trials: monthlyMaxTrials,
+          max_trials: effectiveMax,
           trial_duration_hours: trialHours,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
