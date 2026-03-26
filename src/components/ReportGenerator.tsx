@@ -480,10 +480,10 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       const cardW = (W - 55) / 2;
       const cardH = 50;
       const cards = [
-        { label: 'ALCANCE TOTAL', value: formatNumber(report.alcanceAtual), sub: `↑ ${Math.abs(alcP)}% vs. Período Anterior`, color: [239, 68, 68] as [number, number, number] },
-        { label: 'VISITAS AO PERFIL', value: formatNumber(report.visitasAtual), sub: `↑ ${Math.abs(visP)}% vs. Período Anterior`, color: [251, 191, 36] as [number, number, number] },
-        { label: 'NOVOS SEGUIDORES', value: formatNumber(report.seguidoresAtual), sub: `↑ ${Math.abs(segP)}% vs. Período Anterior`, color: [16, 185, 129] as [number, number, number] },
-        { label: 'MENSAGENS ENVIADAS', value: formatNumber(report.mensagensEnviadas), sub: 'Público Quente / Leads Diretos', color: [139, 92, 246] as [number, number, number] },
+        { label: 'ALCANCE TOTAL', value: formatNumber(report.alcanceAtual), sub: `+${Math.abs(alcP)}% vs. Periodo Anterior`, color: [239, 68, 68] as [number, number, number] },
+        { label: 'VISITAS AO PERFIL', value: formatNumber(report.visitasAtual), sub: `+${Math.abs(visP)}% vs. Periodo Anterior`, color: [251, 191, 36] as [number, number, number] },
+        { label: 'NOVOS SEGUIDORES', value: formatNumber(segGanho), sub: `+${Math.abs(segP)}% vs. Periodo Anterior (${formatNumber(report.seguidoresInicial)} > ${formatNumber(report.seguidoresAtual)})`, color: [16, 185, 129] as [number, number, number] },
+        { label: 'MENSAGENS ENVIADAS', value: formatNumber(report.mensagensEnviadas), sub: 'Publico Quente / Leads Diretos', color: [139, 92, 246] as [number, number, number] },
       ];
 
       cards.forEach((card, i) => {
