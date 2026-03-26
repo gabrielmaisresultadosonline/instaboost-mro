@@ -37,7 +37,7 @@ const WhatsAppApi = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-start px-4 pt-12 pb-8">
       <Logo size="lg" className="mb-8" />
 
       <img
