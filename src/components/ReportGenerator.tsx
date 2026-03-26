@@ -528,7 +528,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(16, 185, 129);
-      pdf.text('INTERAÇÃO COM PÚBLICO DOS CONCORRENTES', 30, intY + 10);
+      pdf.text('INTERACAO COM PUBLICO DOS CONCORRENTES', 30, intY + 10);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
