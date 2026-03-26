@@ -568,7 +568,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(12);
       pdf.setTextColor(210, 210, 220);
-      const conclusionText = `O comparativo de ${startF} a ${currentF} comprova que a metodologia aplicada gerou um crescimento de +${alcP}% em alcance, +${visP}% em visitas e +${segP}% em seguidores. A presença digital do perfil @${report.instagramUsername} evoluiu de forma consistente e mensurável.`;
+      const conclusionText = `O comparativo de ${startF} a ${currentF} comprova que a metodologia aplicada gerou um crescimento de +${alcP}% em alcance, +${visP}% em visitas e +${segP}% em seguidores. A presenca digital do perfil @${report.instagramUsername} evoluiu de forma consistente e mensuravel.`;
       const splitC = pdf.splitTextToSize(conclusionText, W - 55);
       pdf.text(splitC, 28, 64);
 
