@@ -948,6 +948,10 @@ const EstruturaRendaExtra = () => {
     return <EstruturaTrialDashboard onBack={() => setCurrentView('menu')} mroUsername={mroUsername} mroPassword={mroPassword} />;
   }
 
+  if (currentView === 'relatorios') {
+    return <ReportGenerator onBack={() => setCurrentView('menu')} mroUsername={mroUsername} />;
+  }
+
   if (currentView === 'menu') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
