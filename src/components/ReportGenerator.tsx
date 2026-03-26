@@ -547,7 +547,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(139, 92, 246);
-      pdf.text('VISÃO ESTRATÉGICA', 20, 18);
+      pdf.text('VISAO ESTRATEGICA', 20, 18);
       pdf.setTextColor(100, 100, 110);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(9);
