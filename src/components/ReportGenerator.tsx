@@ -585,7 +585,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11);
       pdf.setTextColor(251, 191, 36);
-      pdf.text('DESTAQUES DA GESTÃO', 28, colY + 14);
+      pdf.text('DESTAQUES DA GESTAO', 28, colY + 14);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(11);
