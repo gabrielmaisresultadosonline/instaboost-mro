@@ -146,7 +146,7 @@ const App = () => (
           <Route path="/anuncios/obrigado" element={<AdsNewsObrigado />} />
           <Route path="/anuncios/obrigado-saldo" element={<AdsNewsObrigadoSaldo />} />
           <Route path="/politica-de-cancelamento" element={<PoliticaCancelamento />} />
-          <Route path="/whatsapp-connect" element={<WhatsAppConnect />} />
+          
           <Route path="/whatsapp" element={<WhatsAppLanding />} />
           <Route path="/whatsapp/admin" element={<WhatsAppAdmin />} />
           <Route path="/seja-bem-vindo-membro-vip" element={<BemVindoMembroVip />} />
