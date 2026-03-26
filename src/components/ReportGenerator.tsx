@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, FileText, Plus, Loader2, Download, Trash2, Edit3, Save, Building2, BarChart3, Calendar } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { ArrowLeft, FileText, Plus, Loader2, Download, Trash2, Edit3, Building2, BarChart3, Calendar, Upload, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,19 +42,30 @@ const formatDateBR = (dateStr: string): string => {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
 };
 
-const formatDateLongBR = (dateStr: string): string => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T00:00:00');
-  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  return `${months[d.getMonth()]} ${d.getFullYear()}`;
-};
-
 const getMonthRange = (startDate: string): string => {
   if (!startDate) return '';
   const start = new Date(startDate + 'T00:00:00');
   const now = new Date();
   const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   return `${months[start.getMonth()]} - ${months[now.getMonth()]} ${now.getFullYear()}`;
+};
+
+const loadImageAsBase64 = (url: string): Promise<string | null> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { resolve(null); return; }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
 };
 
 export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) => {
@@ -66,41 +77,42 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
   const [editingReport, setEditingReport] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ReportData | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [newForm, setNewForm] = useState<ReportData>({
-    companyName: '',
-    instagramUsername: '',
+    companyName: '', instagramUsername: '',
     startDate: new Date().toISOString().split('T')[0],
-    alcanceInicial: 0,
-    alcanceAtual: 0,
-    visitasInicial: 0,
-    visitasAtual: 0,
-    seguidoresInicial: 0,
-    seguidoresAtual: 0,
-    mensagensEnviadas: 0,
-    totalContasAlcancadas: 0,
-    createdAt: new Date().toISOString(),
-    lastGeneratedAt: '',
+    alcanceInicial: 0, alcanceAtual: 0, visitasInicial: 0, visitasAtual: 0,
+    seguidoresInicial: 0, seguidoresAtual: 0, mensagensEnviadas: 0, totalContasAlcancadas: 0,
+    createdAt: new Date().toISOString(), lastGeneratedAt: '',
   });
 
-  // Load profiles and reports
+  // Load data
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        // Load synced profiles
-        const profilesRes = await supabase.functions.invoke('squarecloud-profile-storage', {
-          body: { action: 'load', squarecloud_username: mroUsername }
-        });
-        if (profilesRes.data?.success) {
-          setProfiles(profilesRes.data.profiles || []);
-        }
+        const [profilesRes, reportsRes] = await Promise.all([
+          supabase.functions.invoke('squarecloud-profile-storage', {
+            body: { action: 'load', squarecloud_username: mroUsername }
+          }),
+          supabase.functions.invoke('report-storage', {
+            body: { action: 'load', squarecloud_username: mroUsername }
+          }),
+        ]);
+        if (profilesRes.data?.success) setProfiles(profilesRes.data.profiles || []);
+        if (reportsRes.data?.success) setReports(reportsRes.data.reports || {});
 
-        // Load saved reports
-        const reportsRes = await supabase.functions.invoke('report-storage', {
-          body: { action: 'load', squarecloud_username: mroUsername }
-        });
-        if (reportsRes.data?.success) {
-          setReports(reportsRes.data.reports || {});
+        // Load saved logo
+        const logoPath = `reports/${mroUsername.toLowerCase()}/logo.png`;
+        const { data: logoData } = supabase.storage.from('user-data').getPublicUrl(logoPath);
+        if (logoData?.publicUrl) {
+          // Check if file exists by trying to fetch
+          const testImg = new Image();
+          testImg.onload = () => setLogoUrl(logoData.publicUrl);
+          testImg.onerror = () => setLogoUrl(null);
+          testImg.src = logoData.publicUrl + '?t=' + Date.now();
         }
       } catch (err) {
         console.error('Error loading data:', err);
@@ -110,6 +122,31 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
     };
     loadData();
   }, [mroUsername]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.includes('png') && !file.type.includes('image')) {
+      toast.error('Envie uma imagem PNG de preferência');
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const logoPath = `reports/${mroUsername.toLowerCase()}/logo.png`;
+      const { error } = await supabase.storage.from('user-data').upload(logoPath, file, {
+        contentType: file.type, upsert: true,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from('user-data').getPublicUrl(logoPath);
+      setLogoUrl(data.publicUrl + '?t=' + Date.now());
+      toast.success('Logo salva com sucesso!');
+    } catch (err: any) {
+      console.error('Logo upload error:', err);
+      toast.error('Erro ao enviar logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const saveReports = useCallback(async (updatedReports: Record<string, ReportData>) => {
     setSaving(true);
@@ -156,6 +193,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
   };
 
   const handleDeleteReport = (key: string) => {
+    if (!confirm('Excluir este relatório?')) return;
     const updated = { ...reports };
     delete updated[key];
     saveReports(updated);
@@ -166,236 +204,285 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
     setEditForm({ ...reports[key] });
   };
 
-  const selectProfile = (ig: string) => {
-    const profile = profiles.find(p => p.instagram_username === ig);
-    if (profile?.profile_data) {
-      const pd = profile.profile_data;
-      setNewForm(prev => ({
-        ...prev,
-        instagramUsername: ig,
-        companyName: prev.companyName || ig,
-        seguidoresInicial: pd.followers || 0,
-        seguidoresAtual: pd.followers || 0,
-      }));
-    } else {
-      setNewForm(prev => ({ ...prev, instagramUsername: ig }));
-    }
-  };
-
-  // Generate PDF matching the template design
+  // ═══════════════ GENERATE PDF ═══════════════
   const generatePDF = async (key: string) => {
     const report = reports[key];
     if (!report) return;
     setGenerating(key);
 
     try {
-      const pdf = new jsPDF('l', 'mm', 'a4'); // landscape
-      const W = pdf.internal.pageSize.getWidth(); // ~297
-      const H = pdf.internal.pageSize.getHeight(); // ~210
+      // Load logo as base64 if available
+      let logoBase64: string | null = null;
+      if (logoUrl) {
+        logoBase64 = await loadImageAsBase64(logoUrl);
+      }
 
-      const alcancePercent = calcPercent(report.alcanceInicial, report.alcanceAtual);
-      const visitasPercent = calcPercent(report.visitasInicial, report.visitasAtual);
-      const seguidoresPercent = calcPercent(report.seguidoresInicial, report.seguidoresAtual);
-      const startFormatted = formatDateBR(report.startDate);
-      const currentFormatted = formatDateBR(new Date().toISOString().split('T')[0]);
-      const monthRange = getMonthRange(report.startDate);
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      const W = pdf.internal.pageSize.getWidth();
+      const H = pdf.internal.pageSize.getHeight();
+
+      const alcP = calcPercent(report.alcanceInicial, report.alcanceAtual);
+      const visP = calcPercent(report.visitasInicial, report.visitasAtual);
+      const segP = calcPercent(report.seguidoresInicial, report.seguidoresAtual);
+      const startF = formatDateBR(report.startDate);
+      const currentF = formatDateBR(new Date().toISOString().split('T')[0]);
+      const monthR = getMonthRange(report.startDate);
+
+      // Helper: draw page bg
+      const drawBg = () => {
+        pdf.setFillColor(8, 8, 16);
+        pdf.rect(0, 0, W, H, 'F');
+        // Subtle gradient overlay top
+        pdf.setFillColor(15, 10, 30);
+        pdf.rect(0, 0, W, 40, 'F');
+      };
+
+      // Helper: add logo to bottom-right
+      const addLogo = () => {
+        if (logoBase64) {
+          try {
+            pdf.addImage(logoBase64, 'PNG', W - 50, H - 22, 35, 14);
+          } catch (e) { /* ignore logo errors */ }
+        }
+      };
+
+      // Helper: page footer
+      const addFooter = (pageNum: number) => {
+        pdf.setFontSize(7);
+        pdf.setTextColor(60, 60, 70);
+        pdf.text(`${report.companyName.toUpperCase()} · RELATÓRIO CONFIDENCIAL`, 20, H - 8);
+        pdf.text(`${pageNum}/4`, W - 20, H - 8, { align: 'right' });
+        addLogo();
+      };
 
       // ════════════ PAGE 1 - COVER ════════════
-      pdf.setFillColor(10, 10, 14);
-      pdf.rect(0, 0, W, H, 'F');
+      drawBg();
+      // Extra dark gradient from bottom
+      pdf.setFillColor(5, 5, 12);
+      pdf.rect(0, H * 0.6, W, H * 0.4, 'F');
 
-      // Accent line
-      const lineY = 55;
-      pdf.setFillColor(239, 68, 68); // red
-      pdf.rect(W / 2 - 25, lineY, 20, 3, 'F');
-      pdf.setFillColor(251, 191, 36); // amber
-      pdf.rect(W / 2 - 5, lineY, 20, 3, 'F');
-      pdf.setFillColor(16, 185, 129); // green
-      pdf.rect(W / 2 + 15, lineY, 20, 3, 'F');
+      // Gold accent bars
+      const barY = 48;
+      pdf.setFillColor(239, 68, 68);
+      pdf.rect(W / 2 - 35, barY, 22, 4, 'F');
+      pdf.setFillColor(251, 191, 36);
+      pdf.rect(W / 2 - 11, barY, 22, 4, 'F');
+      pdf.setFillColor(16, 185, 129);
+      pdf.rect(W / 2 + 13, barY, 22, 4, 'F');
 
-      // Title
+      // Logo on cover (centered, larger)
+      if (logoBase64) {
+        try {
+          pdf.addImage(logoBase64, 'PNG', W / 2 - 22, 18, 44, 18);
+        } catch (e) { /* ignore */ }
+      }
+
+      // Title - HUGE
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(36);
+      pdf.setFontSize(42);
       pdf.setTextColor(255, 255, 255);
-      pdf.text('RELATÓRIO DE RESULTADOS', W / 2, 78, { align: 'center' });
-      
-      pdf.setFontSize(32);
-      pdf.setTextColor(255, 255, 255);
-      pdf.text(report.companyName.toUpperCase(), W / 2, 92, { align: 'center' });
+      pdf.text('RELATÓRIO DE', W / 2, 72, { align: 'center' });
+      pdf.text('RESULTADOS', W / 2, 86, { align: 'center' });
+
+      // Company name
+      pdf.setFontSize(28);
+      pdf.setTextColor(251, 191, 36);
+      pdf.text(report.companyName.toUpperCase(), W / 2, 102, { align: 'center' });
 
       // Subtitle
-      pdf.setFontSize(11);
-      pdf.setTextColor(160, 160, 160);
-      pdf.text('PERFORMANCE & EVOLUÇÃO', W / 2, 105, { align: 'center', charSpace: 3 });
+      pdf.setFontSize(12);
+      pdf.setTextColor(140, 140, 160);
+      pdf.text('PERFORMANCE & EVOLUÇÃO DIGITAL', W / 2, 115, { align: 'center', charSpace: 4 });
 
-      // Date
+      // Date badge
+      pdf.setFillColor(251, 191, 36);
+      const dateText = `${startF.toUpperCase()} → ${currentF.toUpperCase()}`;
+      const dtW = pdf.getTextWidth(dateText) + 20;
+      pdf.roundedRect(W / 2 - dtW / 2, 122, dtW, 10, 3, 3, 'F');
+      pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
-      pdf.setTextColor(200, 200, 200);
-      pdf.text(`INÍCIO: ${startFormatted.toUpperCase()} | ATUAL: ${currentFormatted.toUpperCase()}`, W / 2, 120, { align: 'center', charSpace: 2 });
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(dateText, W / 2, 129, { align: 'center' });
 
-      // 3 main percentages
+      // 3 big percentage cards
       const percY = 150;
-      const percSpacing = 55;
+      const percSpacing = 70;
       const percStartX = W / 2 - percSpacing;
-
-      const percentages = [
-        { value: `+${alcancePercent}%`, label: 'CRESC. ALCANCE' },
-        { value: `+${visitasPercent}%`, label: 'CRESC. VISITAS' },
-        { value: `+${seguidoresPercent}%`, label: 'CRESC. SEGUIDORES' },
+      const percs = [
+        { value: `+${alcP}%`, label: 'ALCANCE', color: [239, 68, 68] as [number, number, number] },
+        { value: `+${visP}%`, label: 'VISITAS', color: [251, 191, 36] as [number, number, number] },
+        { value: `+${segP}%`, label: 'SEGUIDORES', color: [16, 185, 129] as [number, number, number] },
       ];
-
-      percentages.forEach((p, i) => {
+      percs.forEach((p, i) => {
         const x = percStartX + i * percSpacing;
+        // Card bg
+        pdf.setFillColor(18, 18, 30);
+        pdf.setDrawColor(p.color[0], p.color[1], p.color[2]);
+        pdf.setLineWidth(0.6);
+        pdf.roundedRect(x - 28, percY - 12, 56, 32, 3, 3, 'FD');
+        // Value
         pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(22);
-        pdf.setTextColor(251, 191, 36); // amber/gold
-        pdf.text(p.value, x, percY, { align: 'center' });
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(7);
-        pdf.setTextColor(160, 160, 160);
-        pdf.text(p.label, x, percY + 7, { align: 'center' });
+        pdf.setFontSize(28);
+        pdf.setTextColor(p.color[0], p.color[1], p.color[2]);
+        pdf.text(p.value, x, percY + 5, { align: 'center' });
+        // Label
+        pdf.setFontSize(9);
+        pdf.setTextColor(160, 160, 170);
+        pdf.text(p.label, x, percY + 15, { align: 'center' });
       });
 
       // Footer
-      pdf.setFontSize(6);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text('DOCUMENTO CONFIDENCIAL · ANÁLISE COMPARATIVA DE PERFORMANCE 2026', W / 2, H - 10, { align: 'center' });
+      pdf.setFontSize(7);
+      pdf.setTextColor(50, 50, 60);
+      pdf.text('DOCUMENTO CONFIDENCIAL · ANÁLISE COMPARATIVA DE PERFORMANCE', W / 2, H - 8, { align: 'center' });
+      addLogo();
 
-      // ════════════ PAGE 2 - EVOLUÇÃO HISTÓRICA ════════════
+      // ════════════ PAGE 2 - EVOLUÇÃO ════════════
       pdf.addPage();
-      pdf.setFillColor(10, 10, 14);
-      pdf.rect(0, 0, W, H, 'F');
+      drawBg();
 
-      // Header
+      // Header bar
+      pdf.setFillColor(251, 191, 36);
+      pdf.rect(0, 0, W, 3, 'F');
+
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8);
-      pdf.setTextColor(239, 68, 119);
-      pdf.text('EVOLUÇÃO HISTÓRICA', 20, 20);
-      pdf.setTextColor(160, 160, 160);
+      pdf.setFontSize(10);
+      pdf.setTextColor(251, 191, 36);
+      pdf.text('EVOLUÇÃO HISTÓRICA', 20, 18);
+      pdf.setTextColor(100, 100, 110);
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      pdf.text(monthRange, W - 20, 20, { align: 'right' });
+      pdf.setFontSize(9);
+      pdf.text(monthR, W - 20, 18, { align: 'right' });
 
-      // Line
-      pdf.setDrawColor(60, 60, 60);
-      pdf.line(20, 24, W - 20, 24);
+      pdf.setDrawColor(40, 40, 50);
+      pdf.line(20, 22, W - 20, 22);
 
-      // Title
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(22);
+      pdf.setFontSize(28);
       pdf.setTextColor(255, 255, 255);
       pdf.text('Crescimento Consolidado', 20, 40);
 
       // Vision box
-      pdf.setFillColor(20, 20, 30);
-      pdf.roundedRect(20, 48, W - 40, 30, 2, 2, 'F');
-      pdf.setDrawColor(239, 68, 119);
-      pdf.setLineWidth(0.8);
-      pdf.line(22, 50, 22, 74);
+      pdf.setFillColor(15, 15, 28);
+      pdf.roundedRect(20, 48, W - 40, 35, 3, 3, 'F');
+      pdf.setFillColor(251, 191, 36);
+      pdf.rect(20, 48, 3, 35, 'F');
 
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8);
-      pdf.setTextColor(239, 68, 119);
-      pdf.text(`VISÃO GERAL DESDE ${startFormatted.toUpperCase()}`, 28, 56);
+      pdf.setFontSize(10);
+      pdf.setTextColor(251, 191, 36);
+      pdf.text(`VISÃO GERAL DESDE ${startF.toUpperCase()}`, 30, 58);
 
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      pdf.setTextColor(180, 180, 180);
-      const visionText = `Desde o início da nossa gestão, o perfil experimentou uma transformação radical. Saímos de uma base de interação limitada para um ecossistema de alto alcance e conversão constante. Os números abaixo refletem o impacto direto das nossas estratégias de conteúdo e interação.`;
-      const splitVision = pdf.splitTextToSize(visionText, W - 50);
-      pdf.text(splitVision, 28, 63);
+      pdf.setFontSize(10);
+      pdf.setTextColor(180, 180, 190);
+      const visionText = `Desde o início da gestão, o perfil @${report.instagramUsername} experimentou uma transformação significativa. Os números abaixo refletem o impacto direto das estratégias de conteúdo, interação e prospecção aplicadas.`;
+      const splitVision = pdf.splitTextToSize(visionText, W - 60);
+      pdf.text(splitVision, 30, 67);
 
       // Table
-      const tableY = 88;
-      const colWidths = [70, 55, 55, 55];
+      const tableY = 95;
+      const colWidths = [80, 60, 60, 55];
       const tableW = colWidths.reduce((a, b) => a + b, 0);
       const tableX = (W - tableW) / 2;
 
-      // Header row
-      pdf.setFillColor(18, 18, 28);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(7);
-      pdf.setTextColor(120, 120, 120);
-      const headers = ['MÉTRICA PRINCIPAL', `INÍCIO (${startFormatted})`, `ATUAL (${currentFormatted})`, 'EVOLUÇÃO'];
+      // Table header
+      pdf.setFillColor(18, 18, 30);
+      pdf.rect(tableX, tableY - 6, tableW, 12, 'F');
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 100, 120);
+      const headers = ['MÉTRICA', `INÍCIO (${startF})`, `ATUAL (${currentF})`, 'CRESCIMENTO'];
       let cx = tableX;
       headers.forEach((h, i) => {
-        pdf.text(h, cx + 5, tableY);
+        pdf.text(h, cx + 6, tableY + 1);
         cx += colWidths[i];
       });
 
-      pdf.setDrawColor(40, 40, 50);
-      pdf.line(tableX, tableY + 3, tableX + tableW, tableY + 3);
+      pdf.setDrawColor(40, 40, 55);
+      pdf.line(tableX, tableY + 5, tableX + tableW, tableY + 5);
 
-      // Data rows
+      // Table rows
       const rows = [
-        { metric: 'Alcance Mensal', initial: formatNumber(report.alcanceInicial), current: formatNumber(report.alcanceAtual), percent: `+${alcancePercent}%` },
-        { metric: 'Visitas ao Perfil', initial: formatNumber(report.visitasInicial), current: formatNumber(report.visitasAtual), percent: `+${visitasPercent}%` },
-        { metric: 'Novos Seguidores', initial: formatNumber(report.seguidoresInicial), current: formatNumber(report.seguidoresAtual), percent: `+${seguidoresPercent}%` },
+        { metric: '📊 Alcance Mensal', initial: formatNumber(report.alcanceInicial), current: formatNumber(report.alcanceAtual), percent: `+${alcP}%` },
+        { metric: '👁 Visitas ao Perfil', initial: formatNumber(report.visitasInicial), current: formatNumber(report.visitasAtual), percent: `+${visP}%` },
+        { metric: '👥 Novos Seguidores', initial: formatNumber(report.seguidoresInicial), current: formatNumber(report.seguidoresAtual), percent: `+${segP}%` },
+        { metric: '✉ Mensagens Enviadas', initial: '-', current: formatNumber(report.mensagensEnviadas), percent: '-' },
+        { metric: '🎯 Contas Alcançadas', initial: '-', current: formatNumber(report.totalContasAlcancadas), percent: '-' },
       ];
 
       rows.forEach((row, i) => {
-        const ry = tableY + 14 + i * 16;
+        const ry = tableY + 18 + i * 18;
         cx = tableX;
 
+        // Alternate row bg
+        if (i % 2 === 0) {
+          pdf.setFillColor(12, 12, 22);
+          pdf.rect(tableX, ry - 7, tableW, 18, 'F');
+        }
+
         pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(9);
-        pdf.setTextColor(230, 230, 230);
-        pdf.text(row.metric, cx + 5, ry);
+        pdf.setFontSize(12);
+        pdf.setTextColor(240, 240, 245);
+        pdf.text(row.metric, cx + 6, ry + 2);
         cx += colWidths[0];
 
         pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(180, 180, 180);
-        pdf.text(row.initial, cx + 5, ry);
+        pdf.setFontSize(12);
+        pdf.setTextColor(160, 160, 175);
+        pdf.text(row.initial, cx + 6, ry + 2);
         cx += colWidths[1];
 
-        pdf.text(row.current, cx + 5, ry);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(row.current, cx + 6, ry + 2);
         cx += colWidths[2];
 
-        // Badge
-        pdf.setFillColor(16, 60, 35);
-        pdf.roundedRect(cx + 3, ry - 4, 24, 7, 2, 2, 'F');
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(7);
-        pdf.setTextColor(34, 197, 94);
-        pdf.text(row.percent, cx + 15, ry + 0.5, { align: 'center' });
-
-        // Row separator
-        if (i < rows.length - 1) {
-          pdf.setDrawColor(35, 35, 45);
-          pdf.line(tableX, ry + 7, tableX + tableW, ry + 7);
+        // Growth badge
+        if (row.percent !== '-') {
+          pdf.setFillColor(16, 60, 35);
+          pdf.roundedRect(cx + 4, ry - 4, 30, 10, 3, 3, 'F');
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(11);
+          pdf.setTextColor(34, 197, 94);
+          pdf.text(row.percent, cx + 19, ry + 3, { align: 'center' });
         }
       });
 
-      // ════════════ PAGE 3 - PERFORMANCE RECENTE ════════════
+      addFooter(2);
+
+      // ════════════ PAGE 3 - PERFORMANCE ════════════
       pdf.addPage();
-      pdf.setFillColor(10, 10, 14);
-      pdf.rect(0, 0, W, H, 'F');
+      drawBg();
 
-      // Header
+      pdf.setFillColor(16, 185, 129);
+      pdf.rect(0, 0, W, 3, 'F');
+
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8);
-      pdf.setTextColor(239, 68, 119);
-      pdf.text('PERFORMANCE RECENTE', 20, 20);
-      pdf.setTextColor(160, 160, 160);
+      pdf.setFontSize(10);
+      pdf.setTextColor(16, 185, 129);
+      pdf.text('PERFORMANCE RECENTE', 20, 18);
+      pdf.setTextColor(100, 100, 110);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(monthRange, W - 20, 20, { align: 'right' });
+      pdf.setFontSize(9);
+      pdf.text(monthR, W - 20, 18, { align: 'right' });
 
-      pdf.setDrawColor(60, 60, 60);
-      pdf.line(20, 24, W - 20, 24);
+      pdf.setDrawColor(40, 40, 50);
+      pdf.line(20, 22, W - 20, 22);
 
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(22);
+      pdf.setFontSize(28);
       pdf.setTextColor(255, 255, 255);
-      pdf.text('Resultados Últimos 30 Dias', 20, 42);
+      pdf.text('Resultados do Período', 20, 42);
 
-      // 4 Metric cards
-      const cardW = (W - 60) / 2;
-      const cardH = 40;
+      // 4 big metric cards
+      const cardW = (W - 55) / 2;
+      const cardH = 50;
       const cards = [
-        { label: 'ALCANCE (30D)', value: formatNumber(report.alcanceAtual), sub: `↑ ${Math.abs(calcPercent(report.alcanceInicial, report.alcanceAtual))}% vs. Período Anterior` },
-        { label: 'VISITAS AO PERFIL (30D)', value: formatNumber(report.visitasAtual), sub: `↑ ${Math.abs(calcPercent(report.visitasInicial, report.visitasAtual))}% vs. Período Anterior` },
-        { label: 'NOVOS SEGUIDORES (30D)', value: formatNumber(report.seguidoresAtual), sub: `↑ ${Math.abs(calcPercent(report.seguidoresInicial, report.seguidoresAtual))}% vs. Período Anterior` },
-        { label: 'MENSAGENS ENVIADAS', value: formatNumber(report.mensagensEnviadas), sub: 'Público Quente / Leads' },
+        { label: 'ALCANCE TOTAL', value: formatNumber(report.alcanceAtual), sub: `↑ ${Math.abs(alcP)}% vs. Período Anterior`, color: [239, 68, 68] as [number, number, number] },
+        { label: 'VISITAS AO PERFIL', value: formatNumber(report.visitasAtual), sub: `↑ ${Math.abs(visP)}% vs. Período Anterior`, color: [251, 191, 36] as [number, number, number] },
+        { label: 'NOVOS SEGUIDORES', value: formatNumber(report.seguidoresAtual), sub: `↑ ${Math.abs(segP)}% vs. Período Anterior`, color: [16, 185, 129] as [number, number, number] },
+        { label: 'MENSAGENS ENVIADAS', value: formatNumber(report.mensagensEnviadas), sub: 'Público Quente / Leads Diretos', color: [139, 92, 246] as [number, number, number] },
       ];
 
       cards.forEach((card, i) => {
@@ -404,126 +491,149 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
         const cx = 20 + col * (cardW + 15);
         const cy = 52 + row * (cardH + 10);
 
-        pdf.setFillColor(20, 20, 30);
-        pdf.setDrawColor(50, 50, 60);
-        pdf.roundedRect(cx, cy, cardW, cardH, 2, 2, 'FD');
+        // Card
+        pdf.setFillColor(15, 15, 28);
+        pdf.roundedRect(cx, cy, cardW, cardH, 4, 4, 'F');
+        // Top accent line
+        pdf.setFillColor(card.color[0], card.color[1], card.color[2]);
+        pdf.rect(cx, cy, cardW, 2, 'F');
 
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(7);
-        pdf.setTextColor(120, 120, 120);
-        pdf.text(card.label, cx + 8, cy + 10);
-
+        // Label
         pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(22);
+        pdf.setFontSize(10);
+        pdf.setTextColor(card.color[0], card.color[1], card.color[2]);
+        pdf.text(card.label, cx + 10, cy + 14);
+
+        // Value - BIG
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(30);
         pdf.setTextColor(255, 255, 255);
-        pdf.text(card.value, cx + 8, cy + 26);
+        pdf.text(card.value, cx + 10, cy + 34);
 
+        // Sub
         pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(7);
+        pdf.setFontSize(9);
         pdf.setTextColor(34, 197, 94);
-        pdf.text(card.sub, cx + 8, cy + 34);
+        pdf.text(card.sub, cx + 10, cy + 44);
       });
 
-      // Interaction section
-      const intY = 160;
-      pdf.setFillColor(20, 20, 30);
-      pdf.roundedRect(20, intY, W - 40, 30, 2, 2, 'F');
-      pdf.setDrawColor(239, 68, 119);
-      pdf.setLineWidth(0.8);
-      pdf.line(22, intY + 2, 22, intY + 28);
+      // Bottom info box
+      const intY = 170;
+      pdf.setFillColor(15, 15, 28);
+      pdf.roundedRect(20, intY, W - 40, 25, 3, 3, 'F');
+      pdf.setFillColor(16, 185, 129);
+      pdf.rect(20, intY, 3, 25, 'F');
 
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8);
-      pdf.setTextColor(239, 68, 119);
-      pdf.text('INTERAÇÃO COM CONCORRENTES', 28, intY + 10);
+      pdf.setFontSize(10);
+      pdf.setTextColor(16, 185, 129);
+      pdf.text('INTERAÇÃO COM PÚBLICO DOS CONCORRENTES', 30, intY + 10);
 
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      pdf.setTextColor(180, 180, 180);
-      pdf.text('A MRO (Mais Resultados Online) trabalha ativamente na interação com o público dos concorrentes,', 28, intY + 18);
-      pdf.text('direcionando visitas qualificadas para o perfil da empresa.', 28, intY + 24);
+      pdf.setFontSize(10);
+      pdf.setTextColor(160, 160, 175);
+      pdf.text('Prospecção ativa com o público dos concorrentes, direcionando visitas qualificadas e gerando leads quentes.', 30, intY + 19);
+
+      addFooter(3);
 
       // ════════════ PAGE 4 - CONCLUSÃO ════════════
       pdf.addPage();
-      pdf.setFillColor(10, 10, 14);
-      pdf.rect(0, 0, W, H, 'F');
+      drawBg();
 
-      // Header
+      pdf.setFillColor(139, 92, 246);
+      pdf.rect(0, 0, W, 3, 'F');
+
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(8);
-      pdf.setTextColor(239, 68, 119);
-      pdf.text('VISÃO ESTRATÉGICA', 20, 20);
-      pdf.setTextColor(160, 160, 160);
+      pdf.setFontSize(10);
+      pdf.setTextColor(139, 92, 246);
+      pdf.text('VISÃO ESTRATÉGICA', 20, 18);
+      pdf.setTextColor(100, 100, 110);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(monthRange, W - 20, 20, { align: 'right' });
+      pdf.setFontSize(9);
+      pdf.text(monthR, W - 20, 18, { align: 'right' });
 
-      pdf.setDrawColor(60, 60, 60);
-      pdf.line(20, 24, W - 20, 24);
+      pdf.setDrawColor(40, 40, 50);
+      pdf.line(20, 22, W - 20, 22);
 
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(22);
+      pdf.setFontSize(28);
       pdf.setTextColor(255, 255, 255);
       pdf.text('Conclusão & Próximos Passos', 20, 42);
 
-      // Conclusion box
-      pdf.setFillColor(20, 20, 30);
-      pdf.roundedRect(20, 50, W - 40, 50, 2, 2, 'F');
+      // Summary box
+      pdf.setFillColor(15, 15, 28);
+      pdf.roundedRect(20, 50, W - 40, 40, 3, 3, 'F');
 
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(9);
-      pdf.setTextColor(200, 200, 200);
-      const conclusionText = `O comparativo de ${startFormatted} a ${currentFormatted} prova que a metodologia aplicada gerou um crescimento de +${alcancePercent}% em visibilidade. Saímos de uma operação inicial para uma presença digital robusta e lucrativa.`;
-      const splitConclusion = pdf.splitTextToSize(conclusionText, W - 50);
-      pdf.text(splitConclusion, 28, 62);
+      pdf.setFontSize(12);
+      pdf.setTextColor(210, 210, 220);
+      const conclusionText = `O comparativo de ${startF} a ${currentF} comprova que a metodologia aplicada gerou um crescimento de +${alcP}% em alcance, +${visP}% em visitas e +${segP}% em seguidores. A presença digital do perfil @${report.instagramUsername} evoluiu de forma consistente e mensurável.`;
+      const splitC = pdf.splitTextToSize(conclusionText, W - 55);
+      pdf.text(splitC, 28, 64);
 
       // Two columns
-      const colY = 80;
-      const halfW = (W - 50) / 2;
+      const colY = 100;
+      const halfW = (W - 55) / 2;
 
-      // Left - Destaques
+      // Left
+      pdf.setFillColor(15, 15, 28);
+      pdf.roundedRect(20, colY, halfW, 75, 3, 3, 'F');
+      pdf.setFillColor(251, 191, 36);
+      pdf.rect(20, colY, halfW, 2, 'F');
+
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(7);
-      pdf.setTextColor(239, 68, 119);
-      pdf.text('DESTAQUES DA GESTÃO', 28, colY);
+      pdf.setFontSize(11);
+      pdf.setTextColor(251, 191, 36);
+      pdf.text('DESTAQUES DA GESTÃO', 28, colY + 14);
 
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      pdf.setTextColor(200, 200, 200);
+      pdf.setFontSize(11);
+      pdf.setTextColor(200, 200, 210);
       const highlights = [
-        `Crescimento de Alcance: +${alcancePercent}% (de ${formatNumber(report.alcanceInicial)} para ${formatNumber(report.alcanceAtual)}).`,
-        `Conversão de Perfil: +${visitasPercent}% em visitas qualificadas.`,
-        `Engajamento Direto: ${formatNumber(report.mensagensEnviadas)} leads abordados no último mês.`,
+        `Crescimento de Alcance: +${alcP}%`,
+        `De ${formatNumber(report.alcanceInicial)} para ${formatNumber(report.alcanceAtual)}`,
+        `Conversão de Perfil: +${visP}% em visitas`,
+        `${formatNumber(report.mensagensEnviadas)} leads abordados`,
+        `${formatNumber(report.totalContasAlcancadas)} contas alcançadas`,
       ];
       highlights.forEach((h, i) => {
-        pdf.text(`• ${h}`, 28, colY + 8 + i * 7);
+        pdf.text(`•  ${h}`, 28, colY + 25 + i * 10);
       });
 
-      // Right - Planejamento
+      // Right
+      const rightX = 20 + halfW + 15;
+      pdf.setFillColor(15, 15, 28);
+      pdf.roundedRect(rightX, colY, halfW, 75, 3, 3, 'F');
+      pdf.setFillColor(16, 185, 129);
+      pdf.rect(rightX, colY, halfW, 2, 'F');
+
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(7);
-      pdf.setTextColor(239, 68, 119);
-      pdf.text('PLANEJAMENTO PRÓXIMO CICLO', 28 + halfW + 10, colY);
+      pdf.setFontSize(11);
+      pdf.setTextColor(16, 185, 129);
+      pdf.text('PRÓXIMO CICLO', rightX + 8, colY + 14);
 
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      pdf.setTextColor(200, 200, 200);
+      pdf.setFontSize(11);
+      pdf.setTextColor(200, 200, 210);
       const plans = [
-        'Escalar a prospecção ativa para público dos concorrentes.',
-        'Implementar funil de Direct automatizado para novos seguidores.',
-        `Focar em Reels de alta retenção para manter o alcance acima de ${formatNumber(report.alcanceAtual)}.`,
+        'Escalar prospecção ativa',
+        'Funil de Direct automatizado',
+        'Reels de alta retenção',
+        `Manter alcance acima de ${formatNumber(report.alcanceAtual)}`,
+        'Otimizar conversão de perfil',
       ];
       plans.forEach((p, i) => {
-        pdf.text(`• ${p}`, 28 + halfW + 10, colY + 8 + i * 7);
+        pdf.text(`•  ${p}`, rightX + 8, colY + 25 + i * 10);
       });
+
+      addFooter(4);
 
       // Save
       const fileName = `Relatorio_${report.companyName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
 
-      // Update last generated date
       const updated = { ...reports, [key]: { ...report, lastGeneratedAt: new Date().toISOString() } };
       saveReports(updated);
-
       toast.success('PDF gerado com sucesso!');
     } catch (err) {
       console.error('Error generating PDF:', err);
@@ -533,6 +643,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
     }
   };
 
+  // ═══════════════ FORM COMPONENT ═══════════════
   const ReportForm = ({ form, onChange, onSave, onCancel, title, saveLabel }: {
     form: ReportData;
     onChange: (f: ReportData) => void;
@@ -547,7 +658,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
         {title}
       </h3>
 
-      {/* Profile selector - click to select, no typing */}
+      {/* Profile selector */}
       <div>
         <label className="text-white/60 text-xs block mb-1.5">Selecionar Perfil Cadastrado *</label>
         {profiles.length > 0 ? (
@@ -668,9 +779,45 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
           <Button size="sm" onClick={onBack} className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold">
             <ArrowLeft size={16} />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-black">Relatórios de Empresas</h1>
             <p className="text-white/40 text-sm">Gere relatórios profissionais para seus clientes</p>
+          </div>
+        </div>
+
+        {/* Logo upload section */}
+        <div className="bg-[#12121f] border border-white/10 rounded-xl p-4 mb-6">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <ImageIcon className="h-5 w-5 text-yellow-400" />
+              <div>
+                <p className="text-white font-bold text-sm">Logo da Agência</p>
+                <p className="text-white/40 text-xs">PNG transparente · Aparece no PDF gerado</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 ml-auto">
+              {logoUrl && (
+                <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                  <img src={logoUrl} alt="Logo" className="h-10 max-w-[120px] object-contain" />
+                </div>
+              )}
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+              <Button
+                size="sm"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingLogo}
+                className="bg-white/10 hover:bg-white/20 text-white text-xs"
+              >
+                {uploadingLogo ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                {logoUrl ? 'Trocar Logo' : 'Enviar Logo'}
+              </Button>
+            </div>
           </div>
         </div>
 
