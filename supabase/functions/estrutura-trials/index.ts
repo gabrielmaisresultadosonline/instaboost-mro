@@ -189,20 +189,24 @@ serve(async (req) => {
         .eq('mro_master_user', mro_username)
         .gte('created_at', thirtyDaysAgo.toISOString());
 
-      // First, check how many tests are available from the original API
+      // Check how many tests are available from SquareCloud via /verificar-numero
       let apiAvailable: number | null = null;
       try {
-        const checkResponse = await fetch(`${SQUARE_API_URL}/contarTestesMro?nameUserMro=${encodeURIComponent(mro_username)}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+        const body = new URLSearchParams({ nome: mro_username, numero: mro_username });
+        if (mro_password) body.set('numero', mro_password);
+        const checkResponse = await fetch(`${SQUARE_API_URL}/verificar-numero`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
         });
         if (checkResponse.ok) {
-          const checkData = await checkResponse.json();
-          log("API availability check", checkData);
-          if (typeof checkData.restantes === 'number') {
-            apiAvailable = checkData.restantes;
-          } else if (typeof checkData.remaining === 'number') {
-            apiAvailable = checkData.remaining;
+          const text = await checkResponse.text();
+          if (!text.trim().startsWith('<!')) {
+            const checkData = JSON.parse(text);
+            log("API availability check", { testsRemainingMonth: checkData.userData?.testsRemainingMonth });
+            if (typeof checkData.userData?.testsRemainingMonth === 'number') {
+              apiAvailable = checkData.userData.testsRemainingMonth;
+            }
           }
         }
       } catch (e) {
