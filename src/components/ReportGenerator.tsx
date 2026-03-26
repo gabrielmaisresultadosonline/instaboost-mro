@@ -617,11 +617,11 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFontSize(11);
       pdf.setTextColor(200, 200, 210);
       const plans = [
-        'Escalar prospecção ativa',
+        'Escalar prospeccao ativa',
         'Funil de Direct automatizado',
-        'Reels de alta retenção',
+        'Reels de alta retencao',
         `Manter alcance acima de ${formatNumber(report.alcanceAtual)}`,
-        'Otimizar conversão de perfil',
+        'Otimizar conversao de perfil',
       ];
       plans.forEach((p, i) => {
         pdf.text(`•  ${p}`, rightX + 8, colY + 25 + i * 10);
