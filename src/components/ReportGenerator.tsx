@@ -292,7 +292,8 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       // Subtitle
       pdf.setFontSize(12);
       pdf.setTextColor(140, 140, 160);
-      pdf.text('PERFORMANCE & EVOLUCAO DIGITAL', W / 2, 115, { align: 'center', charSpace: 4 });
+      pdf.setFontSize(11);
+      pdf.text('PERFORMANCE & EVOLUCAO DIGITAL', W / 2, 115, { align: 'center', charSpace: 1.5 });
 
       // Date badge
       pdf.setFillColor(251, 191, 36);
