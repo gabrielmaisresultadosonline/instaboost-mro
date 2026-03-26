@@ -593,9 +593,9 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       const highlights = [
         `Crescimento de Alcance: +${alcP}%`,
         `De ${formatNumber(report.alcanceInicial)} para ${formatNumber(report.alcanceAtual)}`,
-        `Conversão de Perfil: +${visP}% em visitas`,
+        `Conversao de Perfil: +${visP}% em visitas`,
         `${formatNumber(report.mensagensEnviadas)} leads abordados`,
-        `${formatNumber(report.totalContasAlcancadas)} contas alcançadas`,
+        `${formatNumber(report.totalContasAlcancadas)} contas alcancadas`,
       ];
       highlights.forEach((h, i) => {
         pdf.text(`•  ${h}`, 28, colY + 25 + i * 10);
