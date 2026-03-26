@@ -250,7 +250,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       const addFooter = (pageNum: number) => {
         pdf.setFontSize(7);
         pdf.setTextColor(60, 60, 70);
-        pdf.text(`${report.companyName.toUpperCase()} · RELATÓRIO CONFIDENCIAL`, 20, H - 8);
+        pdf.text(`${report.companyName.toUpperCase()} - RELATORIO CONFIDENCIAL`, 20, H - 8);
         pdf.text(`${pageNum}/4`, W - 20, H - 8, { align: 'right' });
         addLogo();
       };
