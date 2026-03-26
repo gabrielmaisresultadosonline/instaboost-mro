@@ -55,7 +55,7 @@ const WhatsAppDireto = () => {
       <img
         src={bannerImg}
         alt="Zero anúncios, resultados reais"
-        className="w-full max-w-lg rounded-xl object-contain"
+        className="w-full max-w-[95vw] sm:max-w-lg rounded-xl object-contain"
       />
 
       {/* WhatsApp Button */}
