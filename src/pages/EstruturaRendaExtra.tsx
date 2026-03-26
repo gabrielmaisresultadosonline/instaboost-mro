@@ -1,10 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube, PenTool, ExternalLink } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3 } from 'lucide-react';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { ContratoGenerator } from '@/components/ContratoGenerator';
 import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
 import { EstruturaTrialDashboard } from '@/components/EstruturaTrialDashboard';
+import { ReportGenerator } from '@/components/ReportGenerator';
 import { LoginPage } from '@/components/LoginPage';
 import { getUserSession } from '@/lib/userStorage';
 import { Button } from '@/components/ui/button';
@@ -284,7 +285,7 @@ function drawFloatingShapes(ctx: CanvasRenderingContext2D, W: number, H: number,
 
 // ─── Component ───
 
-type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'tutoriais' | 'testes';
+type ViewMode = 'menu' | 'posts-creator' | 'materiais' | 'contrato' | 'tutoriais' | 'testes' | 'relatorios';
 
 const EstruturaRendaExtra = () => {
   const navigate = useNavigate();
@@ -947,6 +948,10 @@ const EstruturaRendaExtra = () => {
     return <EstruturaTrialDashboard onBack={() => setCurrentView('menu')} mroUsername={mroUsername} mroPassword={mroPassword} />;
   }
 
+  if (currentView === 'relatorios') {
+    return <ReportGenerator onBack={() => setCurrentView('menu')} mroUsername={mroUsername} />;
+  }
+
   if (currentView === 'menu') {
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col overflow-hidden">
@@ -1064,6 +1069,7 @@ const EstruturaRendaExtra = () => {
                   { label: 'Materiais Disponíveis para Divulgação', icon: <Video className="h-5 w-5" />, hoverGradient: 'hover:from-blue-600 hover:to-cyan-500', hoverShadow: 'hover:shadow-blue-500/35', action: () => setCurrentView('materiais') },
                   { label: 'Gere um Contrato para seu Cliente', icon: <FileText className="h-5 w-5" />, hoverGradient: 'hover:from-amber-500 hover:to-orange-500', hoverShadow: 'hover:shadow-amber-500/35', action: () => setCurrentView('contrato') },
                   { label: 'Gerar Teste Grátis', icon: <TestTube className="h-5 w-5" />, hoverGradient: 'hover:from-yellow-500 hover:via-yellow-400 hover:to-orange-500', hoverShadow: 'hover:shadow-yellow-500/35', action: () => setCurrentView('testes') },
+                  { label: 'Relatórios de Empresas', icon: <BarChart3 className="h-5 w-5" />, hoverGradient: 'hover:from-green-500 hover:via-emerald-500 hover:to-teal-500', hoverShadow: 'hover:shadow-green-500/35', action: () => setCurrentView('relatorios') },
                 ].map((tool, i) => (
                   <button
                     key={i}
