@@ -72,7 +72,10 @@ sudo apt install -y \
     lsb-release \
     xdg-utils \
     wget \
-    libgbm-dev || true
+    libgbm1 || true
+
+# Instalar navegador de fallback (caso Chromium do Puppeteer não exista)
+sudo apt install -y chromium-browser || sudo apt install -y chromium || true
 
 # Instalar Node.js 20 LTS
 echo -e "${YELLOW}Instalando Node.js 20 LTS...${NC}"
@@ -117,18 +120,24 @@ echo -e "${YELLOW}Configurando ZAP MRO Cloud (WhatsApp CRM)...${NC}"
 
 if [ -d "$WHATSAPP_DIR" ]; then
     cd $WHATSAPP_DIR
-    
-    # Instalar puppeteer e dependências do Chromium
+
+    # Instalar dependências e forçar download do browser correto do Puppeteer
     npm install
-    
+    npx puppeteer browsers install chrome || true
+
     # Criar .env
     echo "PORT=3001" > .env
     echo "NODE_ENV=production" >> .env
-    
-    # Criar diretório de sessões
-    mkdir -p server/.wwebjs_auth
-    mkdir -p server/.wwebjs_cache
-    
+
+    BROWSER_PATH="$(command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+    if [ -n "$BROWSER_PATH" ]; then
+        echo "PUPPETEER_EXECUTABLE_PATH=$BROWSER_PATH" >> .env
+    fi
+
+    # Criar diretórios de sessões/cache no caminho correto do LocalAuth
+    mkdir -p .wwebjs_auth
+    mkdir -p .wwebjs_cache
+
     # Iniciar com PM2
     pm2 delete zapmro-cloud 2>/dev/null || true
     pm2 delete whatsapp-multi 2>/dev/null || true
