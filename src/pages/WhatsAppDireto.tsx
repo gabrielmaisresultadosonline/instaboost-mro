@@ -43,7 +43,7 @@ const WhatsAppDireto = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4 py-8 gap-8">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-8 gap-8">
       {/* Logo */}
       <img
         src={logoMroWhite}
