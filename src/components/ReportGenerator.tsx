@@ -533,7 +533,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
       pdf.setTextColor(160, 160, 175);
-      pdf.text('Prospecção ativa com o público dos concorrentes, direcionando visitas qualificadas e gerando leads quentes.', 30, intY + 19);
+      pdf.text('Prospeccao ativa com o publico dos concorrentes, direcionando visitas qualificadas e gerando leads quentes.', 30, intY + 19);
 
       addFooter(3);
 
