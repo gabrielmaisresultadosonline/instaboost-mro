@@ -559,7 +559,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(28);
       pdf.setTextColor(255, 255, 255);
-      pdf.text('Conclusão & Próximos Passos', 20, 42);
+      pdf.text('Conclusao & Proximos Passos', 20, 42);
 
       // Summary box
       pdf.setFillColor(15, 15, 28);
