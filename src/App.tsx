@@ -186,6 +186,8 @@ const App = () => (
           <Route path="/descontoalunosrendaextra" element={<DescontoAlunosRendaExtra />} />
           <Route path="/estruturarendaextra" element={<EstruturaRendaExtra />} />
           <Route path="/whatsappapi" element={<WhatsAppApi />} />
+          <Route path="/zapmrologin" element={<ZapMROLogin />} />
+          <Route path="/zapmro-tool" element={<ZapMROTool />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
