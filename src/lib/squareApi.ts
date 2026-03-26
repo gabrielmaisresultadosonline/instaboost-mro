@@ -218,17 +218,16 @@ export const saveEmailAndPrint = async (
   }
 };
 
-// Check how many IGs user can register
+// Check how many IGs user can register (no hardcoded limit - API manages it)
 export const getAvailableIGSlots = async (
   username: string
 ): Promise<{ available: number; total: number }> => {
   try {
     const result = await verifyRegisteredIGs(username);
     const registered = result.instagrams?.length || 0;
-    // Assuming max 6 IGs per user
-    const maxIGs = 6;
-    return { available: maxIGs - registered, total: maxIGs };
+    // No hardcoded limit - SquareCloud API manages slots per account
+    return { available: 999, total: 999 };
   } catch {
-    return { available: 0, total: 6 };
+    return { available: 999, total: 999 };
   }
 };
