@@ -348,7 +348,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(251, 191, 36);
-      pdf.text('EVOLUÇÃO HISTÓRICA', 20, 18);
+      pdf.text('EVOLUCAO HISTORICA', 20, 18);
       pdf.setTextColor(100, 100, 110);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(9);
