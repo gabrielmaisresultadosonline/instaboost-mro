@@ -36,14 +36,14 @@ const WhatsAppDireto = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4 py-8 gap-8">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-8 gap-8">
       {/* Logo */}
       <img
         src={logoMroWhite}
@@ -55,7 +55,7 @@ const WhatsAppDireto = () => {
       <img
         src={bannerImg}
         alt="Zero anúncios, resultados reais"
-        className="w-full max-w-lg rounded-xl object-contain"
+        className="w-full max-w-[95vw] sm:max-w-lg rounded-xl object-contain"
       />
 
       {/* WhatsApp Button */}
