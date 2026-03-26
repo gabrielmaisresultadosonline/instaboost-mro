@@ -250,7 +250,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       const addFooter = (pageNum: number) => {
         pdf.setFontSize(7);
         pdf.setTextColor(60, 60, 70);
-        pdf.text(`${report.companyName.toUpperCase()} · RELATÓRIO CONFIDENCIAL`, 20, H - 8);
+        pdf.text(`${report.companyName.toUpperCase()} - RELATORIO CONFIDENCIAL`, 20, H - 8);
         pdf.text(`${pageNum}/4`, W - 20, H - 8, { align: 'right' });
         addLogo();
       };
@@ -292,11 +292,11 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       // Subtitle
       pdf.setFontSize(12);
       pdf.setTextColor(140, 140, 160);
-      pdf.text('PERFORMANCE & EVOLUÇÃO DIGITAL', W / 2, 115, { align: 'center', charSpace: 4 });
+      pdf.text('PERFORMANCE & EVOLUCAO DIGITAL', W / 2, 115, { align: 'center', charSpace: 4 });
 
       // Date badge
       pdf.setFillColor(251, 191, 36);
-      const dateText = `${startF.toUpperCase()} → ${currentF.toUpperCase()}`;
+      const dateText = `${startF.toUpperCase()} > ${currentF.toUpperCase()}`;
       const dtW = pdf.getTextWidth(dateText) + 20;
       pdf.roundedRect(W / 2 - dtW / 2, 122, dtW, 10, 3, 3, 'F');
       pdf.setFont('helvetica', 'bold');
@@ -334,7 +334,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       // Footer
       pdf.setFontSize(7);
       pdf.setTextColor(50, 50, 60);
-      pdf.text('DOCUMENTO CONFIDENCIAL · ANÁLISE COMPARATIVA DE PERFORMANCE', W / 2, H - 8, { align: 'center' });
+      pdf.text('DOCUMENTO CONFIDENCIAL - ANALISE COMPARATIVA DE PERFORMANCE', W / 2, H - 8, { align: 'center' });
       addLogo();
 
       // ════════════ PAGE 2 - EVOLUÇÃO ════════════
@@ -348,7 +348,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(251, 191, 36);
-      pdf.text('EVOLUÇÃO HISTÓRICA', 20, 18);
+      pdf.text('EVOLUCAO HISTORICA', 20, 18);
       pdf.setTextColor(100, 100, 110);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(9);
@@ -371,12 +371,12 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(251, 191, 36);
-      pdf.text(`VISÃO GERAL DESDE ${startF.toUpperCase()}`, 30, 58);
+      pdf.text(`VISAO GERAL DESDE ${startF.toUpperCase()}`, 30, 58);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
       pdf.setTextColor(180, 180, 190);
-      const visionText = `Desde o início da gestão, o perfil @${report.instagramUsername} experimentou uma transformação significativa. Os números abaixo refletem o impacto direto das estratégias de conteúdo, interação e prospecção aplicadas.`;
+      const visionText = `Desde o inicio da gestao, o perfil @${report.instagramUsername} experimentou uma transformacao significativa. Os numeros abaixo refletem o impacto direto das estrategias de conteudo, interacao e prospeccao aplicadas.`;
       const splitVision = pdf.splitTextToSize(visionText, W - 60);
       pdf.text(splitVision, 30, 67);
 
@@ -403,12 +403,13 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.line(tableX, tableY + 5, tableX + tableW, tableY + 5);
 
       // Table rows
+      const segGanho = Math.max(0, report.seguidoresAtual - report.seguidoresInicial);
       const rows = [
-        { metric: '📊 Alcance Mensal', initial: formatNumber(report.alcanceInicial), current: formatNumber(report.alcanceAtual), percent: `+${alcP}%` },
-        { metric: '👁 Visitas ao Perfil', initial: formatNumber(report.visitasInicial), current: formatNumber(report.visitasAtual), percent: `+${visP}%` },
-        { metric: '👥 Novos Seguidores', initial: formatNumber(report.seguidoresInicial), current: formatNumber(report.seguidoresAtual), percent: `+${segP}%` },
-        { metric: '✉ Mensagens Enviadas', initial: '-', current: formatNumber(report.mensagensEnviadas), percent: '-' },
-        { metric: '🎯 Contas Alcançadas', initial: '-', current: formatNumber(report.totalContasAlcancadas), percent: '-' },
+        { metric: 'Alcance Mensal', initial: formatNumber(report.alcanceInicial), current: formatNumber(report.alcanceAtual), percent: `+${alcP}%` },
+        { metric: 'Visitas ao Perfil', initial: formatNumber(report.visitasInicial), current: formatNumber(report.visitasAtual), percent: `+${visP}%` },
+        { metric: 'Novos Seguidores', initial: formatNumber(report.seguidoresInicial), current: formatNumber(report.seguidoresAtual), percent: `+${segP}%` },
+        { metric: 'Mensagens Enviadas', initial: '-', current: formatNumber(report.mensagensEnviadas), percent: '-' },
+        { metric: 'Contas Alcancadas', initial: '-', current: formatNumber(report.totalContasAlcancadas), percent: '-' },
       ];
 
       rows.forEach((row, i) => {
@@ -479,10 +480,10 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       const cardW = (W - 55) / 2;
       const cardH = 50;
       const cards = [
-        { label: 'ALCANCE TOTAL', value: formatNumber(report.alcanceAtual), sub: `↑ ${Math.abs(alcP)}% vs. Período Anterior`, color: [239, 68, 68] as [number, number, number] },
-        { label: 'VISITAS AO PERFIL', value: formatNumber(report.visitasAtual), sub: `↑ ${Math.abs(visP)}% vs. Período Anterior`, color: [251, 191, 36] as [number, number, number] },
-        { label: 'NOVOS SEGUIDORES', value: formatNumber(report.seguidoresAtual), sub: `↑ ${Math.abs(segP)}% vs. Período Anterior`, color: [16, 185, 129] as [number, number, number] },
-        { label: 'MENSAGENS ENVIADAS', value: formatNumber(report.mensagensEnviadas), sub: 'Público Quente / Leads Diretos', color: [139, 92, 246] as [number, number, number] },
+        { label: 'ALCANCE TOTAL', value: formatNumber(report.alcanceAtual), sub: `+${Math.abs(alcP)}% vs. Periodo Anterior`, color: [239, 68, 68] as [number, number, number] },
+        { label: 'VISITAS AO PERFIL', value: formatNumber(report.visitasAtual), sub: `+${Math.abs(visP)}% vs. Periodo Anterior`, color: [251, 191, 36] as [number, number, number] },
+        { label: 'NOVOS SEGUIDORES', value: formatNumber(segGanho), sub: `+${Math.abs(segP)}% vs. Periodo Anterior (${formatNumber(report.seguidoresInicial)} > ${formatNumber(report.seguidoresAtual)})`, color: [16, 185, 129] as [number, number, number] },
+        { label: 'MENSAGENS ENVIADAS', value: formatNumber(report.mensagensEnviadas), sub: 'Publico Quente / Leads Diretos', color: [139, 92, 246] as [number, number, number] },
       ];
 
       cards.forEach((card, i) => {
@@ -527,12 +528,12 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(16, 185, 129);
-      pdf.text('INTERAÇÃO COM PÚBLICO DOS CONCORRENTES', 30, intY + 10);
+      pdf.text('INTERACAO COM PUBLICO DOS CONCORRENTES', 30, intY + 10);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
       pdf.setTextColor(160, 160, 175);
-      pdf.text('Prospecção ativa com o público dos concorrentes, direcionando visitas qualificadas e gerando leads quentes.', 30, intY + 19);
+      pdf.text('Prospeccao ativa com o publico dos concorrentes, direcionando visitas qualificadas e gerando leads quentes.', 30, intY + 19);
 
       addFooter(3);
 
@@ -546,7 +547,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(10);
       pdf.setTextColor(139, 92, 246);
-      pdf.text('VISÃO ESTRATÉGICA', 20, 18);
+      pdf.text('VISAO ESTRATEGICA', 20, 18);
       pdf.setTextColor(100, 100, 110);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(9);
@@ -558,7 +559,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(28);
       pdf.setTextColor(255, 255, 255);
-      pdf.text('Conclusão & Próximos Passos', 20, 42);
+      pdf.text('Conclusao & Proximos Passos', 20, 42);
 
       // Summary box
       pdf.setFillColor(15, 15, 28);
@@ -567,7 +568,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(12);
       pdf.setTextColor(210, 210, 220);
-      const conclusionText = `O comparativo de ${startF} a ${currentF} comprova que a metodologia aplicada gerou um crescimento de +${alcP}% em alcance, +${visP}% em visitas e +${segP}% em seguidores. A presença digital do perfil @${report.instagramUsername} evoluiu de forma consistente e mensurável.`;
+      const conclusionText = `O comparativo de ${startF} a ${currentF} comprova que a metodologia aplicada gerou um crescimento de +${alcP}% em alcance, +${visP}% em visitas e +${segP}% em seguidores. A presenca digital do perfil @${report.instagramUsername} evoluiu de forma consistente e mensuravel.`;
       const splitC = pdf.splitTextToSize(conclusionText, W - 55);
       pdf.text(splitC, 28, 64);
 
@@ -584,7 +585,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11);
       pdf.setTextColor(251, 191, 36);
-      pdf.text('DESTAQUES DA GESTÃO', 28, colY + 14);
+      pdf.text('DESTAQUES DA GESTAO', 28, colY + 14);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(11);
@@ -592,9 +593,9 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       const highlights = [
         `Crescimento de Alcance: +${alcP}%`,
         `De ${formatNumber(report.alcanceInicial)} para ${formatNumber(report.alcanceAtual)}`,
-        `Conversão de Perfil: +${visP}% em visitas`,
+        `Conversao de Perfil: +${visP}% em visitas`,
         `${formatNumber(report.mensagensEnviadas)} leads abordados`,
-        `${formatNumber(report.totalContasAlcancadas)} contas alcançadas`,
+        `${formatNumber(report.totalContasAlcancadas)} contas alcancadas`,
       ];
       highlights.forEach((h, i) => {
         pdf.text(`•  ${h}`, 28, colY + 25 + i * 10);
@@ -610,17 +611,17 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11);
       pdf.setTextColor(16, 185, 129);
-      pdf.text('PRÓXIMO CICLO', rightX + 8, colY + 14);
+      pdf.text('PROXIMO CICLO', rightX + 8, colY + 14);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(11);
       pdf.setTextColor(200, 200, 210);
       const plans = [
-        'Escalar prospecção ativa',
+        'Escalar prospeccao ativa',
         'Funil de Direct automatizado',
-        'Reels de alta retenção',
+        'Reels de alta retencao',
         `Manter alcance acima de ${formatNumber(report.alcanceAtual)}`,
-        'Otimizar conversão de perfil',
+        'Otimizar conversao de perfil',
       ];
       plans.forEach((p, i) => {
         pdf.text(`•  ${p}`, rightX + 8, colY + 25 + i * 10);
