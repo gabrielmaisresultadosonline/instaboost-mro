@@ -51,7 +51,6 @@ import AdsNewsAdmin from "./pages/AdsNewsAdmin";
 import AdsNewsObrigado from "./pages/AdsNewsObrigado";
 import AdsNewsObrigadoSaldo from "./pages/AdsNewsObrigadoSaldo";
 import PoliticaCancelamento from "./pages/PoliticaCancelamento";
-import WhatsAppConnect from "./pages/WhatsAppConnect";
 import WhatsAppLanding from "./pages/WhatsAppLanding";
 import WhatsAppAdmin from "./pages/WhatsAppAdmin";
 import BemVindoMembroVip from "./pages/BemVindoMembroVip";
