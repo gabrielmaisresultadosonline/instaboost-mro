@@ -129,19 +129,19 @@ serve(async (req) => {
         );
       }
 
-      // Check if this Instagram was already tested
-      const { data: existingTrial } = await supabase
+      // Check how many times this Instagram was tested (allow up to 2)
+      const { data: existingTrials, count: igCount } = await supabase
         .from('free_trial_registrations')
-        .select('id, registered_at')
-        .eq('instagram_username', normalizedIG)
-        .single();
+        .select('id, registered_at', { count: 'exact', head: false })
+        .eq('instagram_username', normalizedIG);
 
-      if (existingTrial) {
+      const maxPerIG = 2;
+      if ((igCount || 0) >= maxPerIG) {
         return new Response(
           JSON.stringify({
             success: false,
             alreadyTested: true,
-            message: `Este Instagram já foi usado para teste em ${new Date(existingTrial.registered_at).toLocaleString('pt-BR')}`
+            message: `Esta página já usou ${maxPerIG} testes. Não é possível usar mais. Entre em contato com o admin.`
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
