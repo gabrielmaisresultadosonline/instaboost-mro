@@ -1117,6 +1117,7 @@ const EstruturaRendaExtra = () => {
           </div>
         </div>
       )}
+    </>
     );
   }
 
