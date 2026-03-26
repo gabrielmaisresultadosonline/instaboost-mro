@@ -127,8 +127,8 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
   }, [mroUsername]);
 
   const handleCreateReport = () => {
-    if (!newForm.companyName.trim()) {
-      toast.error('Nome da empresa é obrigatório');
+    if (!newForm.instagramUsername) {
+      toast.error('Selecione um perfil cadastrado');
       return;
     }
     const key = newForm.companyName.trim().toLowerCase().replace(/\s+/g, '-');
@@ -547,25 +547,25 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
         {title}
       </h3>
 
-      {/* Profile selector */}
-      {profiles.length > 0 && (
-        <div>
-          <label className="text-white/60 text-xs block mb-1.5">Selecionar Perfil Cadastrado</label>
+      {/* Profile selector - click to select, no typing */}
+      <div>
+        <label className="text-white/60 text-xs block mb-1.5">Selecionar Perfil Cadastrado *</label>
+        {profiles.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {profiles.map((p: any) => (
               <button
                 key={p.instagram_username}
                 onClick={() => {
-                  onChange({ ...form, instagramUsername: p.instagram_username, companyName: form.companyName || p.instagram_username });
-                  if (p.profile_data) {
-                    onChange({
-                      ...form,
-                      instagramUsername: p.instagram_username,
-                      companyName: form.companyName || p.instagram_username,
-                      seguidoresInicial: form.seguidoresInicial || p.profile_data.followers || 0,
-                      seguidoresAtual: p.profile_data.followers || form.seguidoresAtual,
-                    });
-                  }
+                  const pd = p.profile_data || {};
+                  onChange({
+                    ...form,
+                    instagramUsername: p.instagram_username,
+                    companyName: p.instagram_username,
+                    seguidoresInicial: pd.followers || 0,
+                    seguidoresAtual: pd.followers || 0,
+                    alcanceInicial: pd.reach || pd.avgLikes || 0,
+                    alcanceAtual: pd.reach || pd.avgLikes || 0,
+                  });
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   form.instagramUsername === p.instagram_username
@@ -577,19 +577,23 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
               </button>
             ))}
           </div>
+        ) : (
+          <p className="text-white/30 text-xs">Nenhum perfil cadastrado. Cadastre perfis na aba Instagram primeiro.</p>
+        )}
+      </div>
+
+      {form.instagramUsername && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-white/60 text-xs block mb-1">Empresa (perfil selecionado)</label>
+            <div className="bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white text-sm font-medium">@{form.companyName}</div>
+          </div>
+          <div>
+            <label className="text-white/60 text-xs block mb-1">Data de Início</label>
+            <Input type="date" value={form.startDate} onChange={e => onChange({ ...form, startDate: e.target.value })} className="bg-white/5 border-white/10 text-white" />
+          </div>
         </div>
       )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="text-white/60 text-xs block mb-1">Nome da Empresa *</label>
-          <Input value={form.companyName} onChange={e => onChange({ ...form, companyName: e.target.value })} className="bg-white/5 border-white/10 text-white" placeholder="Ex: Pizzaria do João" />
-        </div>
-        <div>
-          <label className="text-white/60 text-xs block mb-1">Data de Início</label>
-          <Input type="date" value={form.startDate} onChange={e => onChange({ ...form, startDate: e.target.value })} className="bg-white/5 border-white/10 text-white" />
-        </div>
-      </div>
 
       <div className="border-t border-white/10 pt-3">
         <p className="text-yellow-400 text-xs font-bold mb-3 flex items-center gap-1"><BarChart3 size={14} /> Métricas Iniciais vs Atuais</p>
