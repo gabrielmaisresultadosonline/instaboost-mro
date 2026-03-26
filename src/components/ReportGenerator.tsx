@@ -296,7 +296,7 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
 
       // Date badge
       pdf.setFillColor(251, 191, 36);
-      const dateText = `${startF.toUpperCase()} → ${currentF.toUpperCase()}`;
+      const dateText = `${startF.toUpperCase()} > ${currentF.toUpperCase()}`;
       const dtW = pdf.getTextWidth(dateText) + 20;
       pdf.roundedRect(W / 2 - dtW / 2, 122, dtW, 10, 3, 3, 'F');
       pdf.setFont('helvetica', 'bold');
