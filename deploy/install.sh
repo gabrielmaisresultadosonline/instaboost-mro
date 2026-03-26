@@ -112,21 +112,27 @@ npm install
 echo -e "${YELLOW}Fazendo build do frontend...${NC}"
 npm run build
 
-# ============= WhatsApp Backend =============
-echo -e "${YELLOW}Configurando WhatsApp Multi Connect...${NC}"
+# ============= WhatsApp Backend (ZAP MRO Cloud) =============
+echo -e "${YELLOW}Configurando ZAP MRO Cloud (WhatsApp CRM)...${NC}"
 
 if [ -d "$WHATSAPP_DIR" ]; then
     cd $WHATSAPP_DIR
     
+    # Instalar puppeteer e dependências do Chromium
     npm install
     
     # Criar .env
     echo "PORT=3001" > .env
     echo "NODE_ENV=production" >> .env
     
+    # Criar diretório de sessões
+    mkdir -p server/.wwebjs_auth
+    mkdir -p server/.wwebjs_cache
+    
     # Iniciar com PM2
+    pm2 delete zapmro-cloud 2>/dev/null || true
     pm2 delete whatsapp-multi 2>/dev/null || true
-    pm2 start server/index.js --name "whatsapp-multi"
+    pm2 start server/index.js --name "zapmro-cloud" --max-memory-restart 500M
     pm2 save
     pm2 startup | tail -1 | bash || true
     
