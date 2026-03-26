@@ -1069,6 +1069,7 @@ const EstruturaRendaExtra = () => {
                   { label: 'Materiais Disponíveis para Divulgação', icon: <Video className="h-5 w-5" />, hoverGradient: 'hover:from-blue-600 hover:to-cyan-500', hoverShadow: 'hover:shadow-blue-500/35', action: () => setCurrentView('materiais') },
                   { label: 'Gere um Contrato para seu Cliente', icon: <FileText className="h-5 w-5" />, hoverGradient: 'hover:from-amber-500 hover:to-orange-500', hoverShadow: 'hover:shadow-amber-500/35', action: () => setCurrentView('contrato') },
                   { label: 'Gerar Teste Grátis', icon: <TestTube className="h-5 w-5" />, hoverGradient: 'hover:from-yellow-500 hover:via-yellow-400 hover:to-orange-500', hoverShadow: 'hover:shadow-yellow-500/35', action: () => setCurrentView('testes') },
+                  { label: 'Relatórios de Empresas', icon: <BarChart3 className="h-5 w-5" />, hoverGradient: 'hover:from-green-500 hover:via-emerald-500 hover:to-teal-500', hoverShadow: 'hover:shadow-green-500/35', action: () => setCurrentView('relatorios') },
                 ].map((tool, i) => (
                   <button
                     key={i}
