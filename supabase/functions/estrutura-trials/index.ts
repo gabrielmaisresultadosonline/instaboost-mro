@@ -63,9 +63,26 @@ serve(async (req) => {
       const now = new Date();
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      // Count trials in last 30 days
-      const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const maxTrials = 5; // Default max per 30 days
+      // Check API for available tests
+      let apiRemaining: number | null = null;
+      try {
+        const checkResponse = await fetch(`${SQUARE_API_URL}/contarTestesMro?nameUserMro=${encodeURIComponent(mro_username)}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (checkResponse.ok) {
+          const checkData = await checkResponse.json();
+          log("API availability (list)", checkData);
+          if (typeof checkData.restantes === 'number') {
+            apiRemaining = checkData.restantes;
+          } else if (typeof checkData.remaining === 'number') {
+            apiRemaining = checkData.remaining;
+          }
+        }
+      } catch (e) {
+        log("Could not check API availability on list", { error: e instanceof Error ? e.message : 'Unknown' });
+      }
+
 
       // Map trials with status
       const mappedTrials = (trials || []).map(t => {
