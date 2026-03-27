@@ -33,6 +33,7 @@ serve(async (req) => {
       let messageType = 'text';
       let content = payload.text?.message || payload.text || '';
       let mediaUrl = null;
+      let metadata = null;
 
       if (payload.image) {
         messageType = 'image';
@@ -49,6 +50,31 @@ serve(async (req) => {
         messageType = 'video';
         mediaUrl = payload.video.videoUrl || payload.video.url;
         content = payload.video.caption || '';
+      } else if (payload.buttonsResponseMessage) {
+        messageType = 'button_response';
+        content = payload.buttonsResponseMessage.selectedButtonId || '';
+        metadata = {
+          selectedButtonId: payload.buttonsResponseMessage.selectedButtonId,
+          selectedButtonText: payload.buttonsResponseMessage.selectedDisplayText || content,
+        };
+      } else if (payload.listResponseMessage) {
+        messageType = 'button_response';
+        content = payload.listResponseMessage.title || '';
+        metadata = {
+          selectedButtonId: payload.listResponseMessage.listType?.toString(),
+          selectedButtonText: payload.listResponseMessage.title || content,
+        };
+      } else if (payload.buttonMessage) {
+        messageType = 'buttons';
+        content = payload.buttonMessage.message || payload.buttonMessage.contentText || '';
+        metadata = {
+          buttons: (payload.buttonMessage.buttons || []).map((b: any) => ({
+            id: b.buttonId || b.id || '',
+            label: b.buttonText?.displayText || b.label || b.buttonId || '',
+          })),
+          title: payload.buttonMessage.title || null,
+          footer: payload.buttonMessage.footerText || null,
+        };
       }
 
       // Determine direction
