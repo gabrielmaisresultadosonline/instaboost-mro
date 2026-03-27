@@ -1167,6 +1167,17 @@ const EstruturaRendaExtra = () => {
           </div>
         </div>
 
+        {/* Tutorial Button */}
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <VideoTutorialButton
+            youtubeUrl="https://youtu.be/N3yHdsqGLwA"
+            title="🎬 TUTORIAL - Aprenda como gerar seus posts"
+            variant="pulse"
+            size="lg"
+            className="w-full text-base md:text-lg bg-red-600 hover:bg-red-700"
+          />
+        </div>
+
         {/* Editor */}
         {editorOpen && (
           <div className="border-t border-border bg-card/80 backdrop-blur-md">
