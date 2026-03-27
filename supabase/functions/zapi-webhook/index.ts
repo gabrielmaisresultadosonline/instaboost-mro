@@ -21,7 +21,7 @@ serve(async (req) => {
     console.log('Z-API Webhook received:', JSON.stringify(payload));
 
     // Determine event type
-    const isMessage = payload.phone && (payload.text || payload.image || payload.audio || payload.document);
+    const isMessage = payload.phone && (payload.text || payload.image || payload.audio || payload.document || payload.video || payload.buttonsResponseMessage || payload.listResponseMessage || payload.buttonMessage);
     const isStatus = payload.type === 'DeliveryCallback' || payload.type === 'MessageStatusCallback';
     const isConnection = payload.connected !== undefined;
 
