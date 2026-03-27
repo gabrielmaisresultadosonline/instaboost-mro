@@ -1024,6 +1024,7 @@ serve(async (req) => {
               wait_timeout_seconds: step.wait_timeout_seconds || 300,
               button_text: step.button_text || null,
               button_options: step.button_options || [],
+              button_actions: step.button_actions || [],
               wait_indefinitely: step.wait_indefinitely || false,
               followup_enabled: step.followup_enabled || false,
               followup_delay_seconds: step.followup_delay_seconds || 600,
