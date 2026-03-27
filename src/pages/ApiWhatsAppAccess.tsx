@@ -587,6 +587,7 @@ export default function ApiWhatsAppAccess() {
     setContactInfo(null);
     await loadMessages(normalizedContact.phone);
     await loadActiveExecutions(normalizedContact.phone);
+  };
 
   const selectContactByPhone = async (phone: string) => {
     const normalizedPhone = getContactKey(phone);
