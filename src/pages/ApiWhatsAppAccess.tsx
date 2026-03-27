@@ -77,6 +77,10 @@ export default function ApiWhatsAppAccess() {
   const [clientToken, setClientToken] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [newChatPhone, setNewChatPhone] = useState('');
+  const hasSyncedRef = useRef(false);
+
   // Load settings on mount
   useEffect(() => {
     loadSettings();
