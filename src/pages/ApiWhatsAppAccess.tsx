@@ -750,6 +750,8 @@ export default function ApiWhatsAppAccess() {
                       <div className="w-12 h-12 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0 overflow-hidden relative">
                         {contact.profile_pic_url ? (
                           <img src={contact.profile_pic_url} alt="" className="w-full h-full object-cover" />
+                        ) : contact.is_group ? (
+                          <Users className="w-6 h-6 text-white/60" />
                         ) : (
                           <User className="w-6 h-6 text-white/60" />
                         )}
