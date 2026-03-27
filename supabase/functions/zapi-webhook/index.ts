@@ -26,8 +26,12 @@ serve(async (req) => {
     const isConnection = payload.connected !== undefined;
 
     if (isMessage) {
-      // Incoming message
-      const phone = payload.phone?.replace(/\D/g, '');
+      // Incoming message - handle both individual and group chats
+      const rawPhone = payload.phone || '';
+      const chatIsGroup = rawPhone.includes('@g.us') || rawPhone.includes('-');
+      const phone = chatIsGroup
+        ? rawPhone.split('@')[0]
+        : rawPhone.replace(/\D/g, '');
       const senderName = payload.senderName || payload.chatName || phone;
       
       let messageType = 'text';
@@ -99,6 +103,7 @@ serve(async (req) => {
       const contactData: Record<string, unknown> = {
         phone,
         name: senderName,
+        is_group: chatIsGroup,
         last_message_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

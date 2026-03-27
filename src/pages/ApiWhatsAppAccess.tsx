@@ -24,6 +24,7 @@ interface Contact {
   tags?: string[];
   crm_status?: string;
   is_hot_lead?: boolean;
+  is_group?: boolean;
 }
 
 interface Message {
@@ -749,6 +750,8 @@ export default function ApiWhatsAppAccess() {
                       <div className="w-12 h-12 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0 overflow-hidden relative">
                         {contact.profile_pic_url ? (
                           <img src={contact.profile_pic_url} alt="" className="w-full h-full object-cover" />
+                        ) : contact.is_group ? (
+                          <Users className="w-6 h-6 text-white/60" />
                         ) : (
                           <User className="w-6 h-6 text-white/60" />
                         )}
@@ -803,7 +806,11 @@ export default function ApiWhatsAppAccess() {
                         <ArrowLeft className="w-5 h-5" />
                       </Button>
                       <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0">
-                        <User className="w-5 h-5 text-white/60" />
+                        {selectedContact.is_group ? (
+                          <Users className="w-5 h-5 text-white/60" />
+                        ) : (
+                          <User className="w-5 h-5 text-white/60" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm font-medium truncate">{selectedContact.name || formatPhone(selectedContact.phone)}</p>
@@ -849,6 +856,10 @@ export default function ApiWhatsAppAccess() {
                               ? 'bg-[#005c4b] text-white rounded-tr-none'
                               : 'bg-[#202c33] text-white rounded-tl-none'
                           }`}>
+                            {/* Show sender name in group chats */}
+                            {selectedContact?.is_group && msg.direction === 'incoming' && msg.contact_name && (
+                              <p className="text-xs font-semibold text-[#00a884] mb-0.5">{msg.contact_name}</p>
+                            )}
                             {msg.message_type === 'image' && msg.media_url && (
                               <img src={msg.media_url} alt="Mídia" className="rounded max-w-full mb-1 max-h-64 object-contain" />
                             )}
