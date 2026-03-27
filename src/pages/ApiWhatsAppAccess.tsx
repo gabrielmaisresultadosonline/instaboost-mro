@@ -259,7 +259,141 @@ export default function ApiWhatsAppAccess() {
     }
   };
 
-  const executeFlow = async (flowId: string) => {
+  // Upload file to Supabase storage and return public URL
+  const uploadToStorage = async (file: Blob, fileName: string): Promise<string> => {
+    const path = `whatsapp/${Date.now()}_${fileName}`;
+    const { data, error } = await supabase.storage.from('assets').upload(path, file, { cacheControl: '3600', upsert: false });
+    if (error) throw new Error('Erro ao fazer upload: ' + error.message);
+    const { data: urlData } = supabase.storage.from('assets').getPublicUrl(data.path);
+    return urlData.publicUrl;
+  };
+
+  // Audio recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      mediaRecorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); };
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+    } catch {
+      toast({ title: 'Sem acesso ao microfone', description: 'Permita o acesso ao microfone no navegador', variant: 'destructive' });
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!mediaRecorderRef.current || !selectedContact) return;
+    setIsRecording(false);
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    
+    return new Promise<void>((resolve) => {
+      mediaRecorderRef.current!.onstop = async () => {
+        mediaRecorderRef.current!.stream.getTracks().forEach(t => t.stop());
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
+        if (audioBlob.size < 1000) { resolve(); return; }
+        
+        setUploadingMedia(true);
+        try {
+          const url = await uploadToStorage(audioBlob, 'audio.ogg');
+          await callProxy('send-audio', { phone: normalizePhone(selectedContact!.phone), audio: url });
+          await loadMessages(selectedContact!.phone, true);
+          toast({ title: 'Áudio enviado!' });
+        } catch { toast({ title: 'Erro ao enviar áudio', variant: 'destructive' }); }
+        finally { setUploadingMedia(false); }
+        resolve();
+      };
+      mediaRecorderRef.current!.stop();
+    });
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    audioChunksRef.current = [];
+  };
+
+  // Ctrl+V paste handler
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          setPastedFile(file);
+          setPastedPreview(URL.createObjectURL(file));
+        }
+        return;
+      }
+    }
+  };
+
+  const sendPastedImage = async () => {
+    if (!pastedFile || !selectedContact) return;
+    setUploadingMedia(true);
+    try {
+      const ext = pastedFile.type.split('/')[1] || 'png';
+      const url = await uploadToStorage(pastedFile, `pasted.${ext}`);
+      await callProxy('send-image', { phone: normalizePhone(selectedContact.phone), image: url, caption: messageText || '' });
+      setPastedFile(null);
+      setPastedPreview(null);
+      setMessageText('');
+      await loadMessages(selectedContact.phone, true);
+      toast({ title: 'Imagem enviada!' });
+    } catch { toast({ title: 'Erro ao enviar imagem', variant: 'destructive' }); }
+    finally { setUploadingMedia(false); }
+  };
+
+  const cancelPaste = () => {
+    if (pastedPreview) URL.revokeObjectURL(pastedPreview);
+    setPastedFile(null);
+    setPastedPreview(null);
+  };
+
+  // File input handler (for audio/image/video files)
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedContact) return;
+    setUploadingMedia(true);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const url = await uploadToStorage(file, `upload.${ext}`);
+      const phone = normalizePhone(selectedContact.phone);
+      
+      if (file.type.startsWith('image/')) {
+        await callProxy('send-image', { phone, image: url, caption: '' });
+        toast({ title: 'Imagem enviada!' });
+      } else if (file.type.startsWith('audio/')) {
+        await callProxy('send-audio', { phone, audio: url });
+        toast({ title: 'Áudio enviado!' });
+      } else if (file.type.startsWith('video/')) {
+        await callProxy('send-video', { phone, video: url });
+        toast({ title: 'Vídeo enviado!' });
+      } else {
+        await callProxy('send-document', { phone, document: url, fileName: file.name });
+        toast({ title: 'Documento enviado!' });
+      }
+      await loadMessages(selectedContact.phone, true);
+    } catch { toast({ title: 'Erro ao enviar arquivo', variant: 'destructive' }); }
+    finally { setUploadingMedia(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+  };
+
+  const formatRecordingTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
     if (!selectedContact) return;
     setExecutingFlow(true);
     try {
