@@ -110,6 +110,51 @@ serve(async (req) => {
       });
     }
 
+    if (action === "cleanup-contacts") {
+      const { data: allContacts } = await supabase
+        .from("zapi_contacts")
+        .select("id, phone, name");
+      
+      const removed: string[] = [];
+      const merged: string[] = [];
+      
+      if (allContacts) {
+        for (const c of allContacts) {
+          if (!isRealPhone(c.phone)) {
+            const { error } = await supabase.from("zapi_contacts").delete().eq("id", c.id);
+            if (!error) removed.push(c.phone);
+            else console.error("Delete error:", c.phone, error);
+          } else {
+            const normalized = normalizeBrazilianPhone(c.phone);
+            if (normalized !== c.phone) {
+              const { data: existing } = await supabase
+                .from("zapi_contacts")
+                .select("id")
+                .eq("phone", normalized)
+                .maybeSingle();
+              if (existing) {
+                await supabase.from("zapi_messages").update({ phone: normalized }).eq("phone", c.phone);
+                const { error } = await supabase.from("zapi_contacts").delete().eq("id", c.id);
+                if (!error) merged.push(`${c.phone} → ${normalized}`);
+              } else {
+                await supabase.from("zapi_contacts").update({ phone: normalized }).eq("id", c.id);
+                merged.push(`${c.phone} → ${normalized}`);
+              }
+            }
+          }
+        }
+      }
+      
+      const { data: remaining } = await supabase
+        .from("zapi_contacts")
+        .select("phone, name")
+        .order("last_message_at", { ascending: false });
+      
+      return new Response(JSON.stringify({ removed, merged, remaining: remaining ?? [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "get-db-contacts") {
       const { data: contacts, error } = await supabase
         .from("zapi_contacts")
