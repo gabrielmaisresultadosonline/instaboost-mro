@@ -199,6 +199,8 @@ export default function ApiWhatsAppAccess() {
   const [showContactInfo, setShowContactInfo] = useState(false);
   const [contactInfo, setContactInfo] = useState<any>(null);
   const [loadingContactInfo, setLoadingContactInfo] = useState(false);
+  const [activeExecutions, setActiveExecutions] = useState<any[]>([]);
+  const [cancellingExec, setCancellingExec] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
