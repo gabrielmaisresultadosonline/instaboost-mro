@@ -1193,6 +1193,42 @@ const EstruturaRendaExtra = () => {
     );
   }
   if (currentView === 'gerenciador-windows') {
+    const GerenciadorVideoCard = ({ title, videoId }: { title: string; videoId: string }) => {
+      const [isPlaying, setIsPlaying] = useState(false);
+      const thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+      return (
+        <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl overflow-hidden">
+          <div className="p-3 border-b border-white/10">
+            <h3 className="text-white font-bold text-sm flex items-center gap-2">
+              <Play className="h-4 w-4 text-red-500" />
+              {title}
+            </h3>
+          </div>
+          {isPlaying ? (
+            <div className="aspect-video w-full">
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                title={title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          ) : (
+            <button onClick={() => setIsPlaying(true)} className="relative w-full cursor-pointer group">
+              <img src={thumbUrl} alt={title} className="w-full h-auto object-cover" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+                <div className="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <Play className="h-6 w-6 text-white fill-white ml-1" />
+                </div>
+              </div>
+            </button>
+          )}
+        </div>
+      );
+    };
+
     return (
       <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col">
         <div className="max-w-3xl mx-auto w-full px-4 py-6 space-y-6">
@@ -1212,42 +1248,9 @@ const EstruturaRendaExtra = () => {
             Use o gerenciador para organizar mais de 10 contas no seu ambiente de trabalho.
           </p>
 
-          {/* Tutorial 1 */}
-          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-white/10">
-              <h3 className="text-white font-bold flex items-center gap-2">
-                <Play className="h-5 w-5 text-red-500" />
-                Instalador Windows App MRO
-              </h3>
-            </div>
-            <div className="aspect-video w-full">
-              <iframe
-                src="https://www.youtube.com/embed/uqqlR_UXCoQ"
-                title="Instalador Windows App MRO"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
-          </div>
-
-          {/* Tutorial 2 */}
-          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-white/10">
-              <h3 className="text-white font-bold flex items-center gap-2">
-                <Play className="h-5 w-5 text-red-500" />
-                Utilizando o App Windows MRO
-              </h3>
-            </div>
-            <div className="aspect-video w-full">
-              <iframe
-                src="https://www.youtube.com/embed/9R4I4_iEiSI"
-                title="Utilizando o App Windows MRO"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <GerenciadorVideoCard title="Instalador Windows App MRO" videoId="uqqlR_UXCoQ" />
+            <GerenciadorVideoCard title="Utilizando o App Windows MRO" videoId="9R4I4_iEiSI" />
           </div>
 
           {/* Download Button */}
