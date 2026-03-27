@@ -770,19 +770,42 @@ export default function ApiWhatsAppAccess() {
                     </div>
                   </ScrollArea>
 
-                  {/* Media Input */}
-                  {showMediaInput && (
+                  {/* Pasted Image Preview */}
+                  {pastedPreview && (
+                    <div className="bg-[#1a2730] px-4 py-3 border-t border-white/5">
+                      <div className="flex items-start gap-3">
+                        <img src={pastedPreview} alt="Preview" className="max-h-40 rounded-lg object-contain border border-white/10" />
+                        <div className="flex-1 space-y-2">
+                          <p className="text-white/60 text-xs">Imagem colada (Ctrl+V)</p>
+                          <Input value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Legenda (opcional)"
+                            className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
+                          />
+                          <div className="flex gap-2">
+                            <Button onClick={sendPastedImage} disabled={uploadingMedia} className="bg-[#00a884] hover:bg-[#00a884]/80 text-white text-sm h-8">
+                              {uploadingMedia ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Send className="w-3 h-3 mr-1" />}
+                              Enviar
+                            </Button>
+                            <Button onClick={cancelPaste} variant="ghost" className="text-white/40 hover:text-white/60 text-sm h-8">
+                              <X className="w-3 h-3 mr-1" /> Cancelar
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Media Input (URL mode) */}
+                  {showMediaInput && !pastedPreview && (
                     <div className="bg-[#1a2730] px-4 py-3 border-t border-white/5 space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex gap-2">
-                          <button onClick={() => setMediaType('image')}
-                            className={`px-3 py-1 rounded-full text-xs ${mediaType === 'image' ? 'bg-[#00a884] text-white' : 'bg-[#2a3942] text-white/40'}`}>
-                            <Image className="w-3 h-3 inline mr-1" />Imagem
-                          </button>
-                          <button onClick={() => setMediaType('audio')}
-                            className={`px-3 py-1 rounded-full text-xs ${mediaType === 'audio' ? 'bg-[#00a884] text-white' : 'bg-[#2a3942] text-white/40'}`}>
-                            <Mic className="w-3 h-3 inline mr-1" />Áudio
-                          </button>
+                          {(['image', 'audio', 'video'] as const).map(t => (
+                            <button key={t} onClick={() => setMediaType(t)}
+                              className={`px-3 py-1 rounded-full text-xs flex items-center gap-1 ${mediaType === t ? 'bg-[#00a884] text-white' : 'bg-[#2a3942] text-white/40'}`}>
+                              {t === 'image' ? <Image className="w-3 h-3" /> : t === 'audio' ? <Mic className="w-3 h-3" /> : <Video className="w-3 h-3" />}
+                              {t === 'image' ? 'Imagem' : t === 'audio' ? 'Áudio' : 'Vídeo'}
+                            </button>
+                          ))}
                         </div>
                         <button onClick={() => setShowMediaInput(false)} className="text-white/30 hover:text-white/60">
                           <X className="w-4 h-4" />
@@ -798,30 +821,74 @@ export default function ApiWhatsAppAccess() {
                       )}
                       <Button onClick={sendMedia} disabled={!mediaUrl.trim() || sendingMessage} className="w-full bg-[#00a884] hover:bg-[#00a884]/80 text-white text-sm h-9">
                         {sendingMessage ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
-                        Enviar {mediaType === 'image' ? 'Imagem' : 'Áudio'}
+                        Enviar {mediaType === 'image' ? 'Imagem' : mediaType === 'audio' ? 'Áudio' : 'Vídeo'}
                       </Button>
                     </div>
                   )}
 
-                  {/* Message Input */}
-                  <div className="bg-[#202c33] px-4 py-3 flex items-end gap-2 border-t border-white/5 shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => setShowMediaInput(!showMediaInput)}
-                      className={`text-white/40 hover:text-white h-10 w-10 shrink-0 ${showMediaInput ? 'text-[#00a884]' : ''}`}>
-                      <Paperclip className="w-5 h-5" />
-                    </Button>
-                    <div className="flex-1">
-                      <Textarea value={messageText} onChange={(e) => setMessageText(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                        placeholder="Digite uma mensagem"
-                        className="bg-[#2a3942] border-0 text-white placeholder:text-white/30 rounded-lg resize-none min-h-[40px] max-h-[120px] py-2.5 text-sm"
-                        rows={1}
-                      />
+                  {/* Recording UI */}
+                  {isRecording && (
+                    <div className="bg-[#1a2730] px-4 py-3 flex items-center gap-3 border-t border-white/5 shrink-0">
+                      <button onClick={cancelRecording} className="text-red-400 hover:text-red-300 transition-colors">
+                        <X className="w-5 h-5" />
+                      </button>
+                      <div className="flex-1 flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-white/70 text-sm font-mono">{formatRecordingTime(recordingTime)}</span>
+                        <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full bg-red-500 rounded-full animate-pulse" style={{ width: `${Math.min(recordingTime * 2, 100)}%` }} />
+                        </div>
+                      </div>
+                      <button onClick={stopRecording}
+                        className="bg-[#00a884] hover:bg-[#00a884]/80 text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors">
+                        <Send className="w-5 h-5" />
+                      </button>
                     </div>
-                    <Button onClick={sendMessage} disabled={!messageText.trim() || sendingMessage}
-                      className="bg-[#00a884] hover:bg-[#00a884]/80 text-white rounded-full w-10 h-10 p-0 shrink-0">
-                      {sendingMessage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                    </Button>
-                  </div>
+                  )}
+
+                  {/* Message Input */}
+                  {!isRecording && !pastedPreview && (
+                    <div className="bg-[#202c33] px-4 py-3 flex items-end gap-2 border-t border-white/5 shrink-0">
+                      {/* Hidden file input */}
+                      <input ref={fileInputRef} type="file" accept="image/*,audio/*,video/*" onChange={handleFileSelect} className="hidden" />
+                      
+                      {/* Attachment button */}
+                      <Button variant="ghost" size="icon" onClick={() => setShowMediaInput(!showMediaInput)}
+                        className={`text-white/40 hover:text-white h-10 w-10 shrink-0 ${showMediaInput ? 'text-[#00a884]' : ''}`}>
+                        <Paperclip className="w-5 h-5" />
+                      </Button>
+
+                      {/* Upload file button */}
+                      <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} disabled={uploadingMedia}
+                        className="text-white/40 hover:text-white h-10 w-10 shrink-0">
+                        {uploadingMedia ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                      </Button>
+
+                      {/* Text area with paste handler */}
+                      <div className="flex-1">
+                        <Textarea value={messageText} onChange={(e) => setMessageText(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                          onPaste={handlePaste}
+                          placeholder="Digite uma mensagem ou cole uma imagem (Ctrl+V)"
+                          className="bg-[#2a3942] border-0 text-white placeholder:text-white/30 rounded-lg resize-none min-h-[40px] max-h-[120px] py-2.5 text-sm"
+                          rows={1}
+                        />
+                      </div>
+
+                      {/* Send or Record button */}
+                      {messageText.trim() ? (
+                        <Button onClick={sendMessage} disabled={sendingMessage}
+                          className="bg-[#00a884] hover:bg-[#00a884]/80 text-white rounded-full w-10 h-10 p-0 shrink-0">
+                          {sendingMessage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                        </Button>
+                      ) : (
+                        <Button onClick={startRecording} disabled={uploadingMedia}
+                          className="bg-[#00a884] hover:bg-[#00a884]/80 text-white rounded-full w-10 h-10 p-0 shrink-0">
+                          <Mic className="w-5 h-5" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>
