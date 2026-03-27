@@ -80,6 +80,94 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
   const [saving, setSaving] = useState(false);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const [newKeyword, setNewKeyword] = useState('');
+  const [uploadingStep, setUploadingStep] = useState<number | null>(null);
+  const [recordingStep, setRecordingStep] = useState<number | null>(null);
+  const [recordedPreview, setRecordedPreview] = useState<{ stepIndex: number; url: string; blob: Blob } | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeFileStep, setActiveFileStep] = useState<number | null>(null);
+
+  const uploadMediaFile = async (file: File, stepIndex: number, field: 'media_url' | 'followup_media_url' = 'media_url') => {
+    setUploadingStep(stepIndex);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `whatsapp/flow_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { data, error } = await supabase.storage.from('assets').upload(path, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('assets').getPublicUrl(data.path);
+      if (field === 'followup_media_url') {
+        updateStep(stepIndex, { followup_media_url: urlData.publicUrl });
+      } else {
+        updateStep(stepIndex, { media_url: urlData.publicUrl });
+      }
+      toast({ title: 'Arquivo enviado com sucesso!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao enviar arquivo', description: e.message, variant: 'destructive' });
+    } finally {
+      setUploadingStep(null);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && activeFileStep !== null) {
+      uploadMediaFile(file, activeFileStep);
+    }
+    e.target.value = '';
+    setActiveFileStep(null);
+  };
+
+  const startRecording = async (stepIndex: number) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      recorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
+        const url = URL.createObjectURL(blob);
+        setRecordedPreview({ stepIndex, url, blob });
+        setRecordingStep(null);
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setRecordingStep(stepIndex);
+    } catch {
+      toast({ title: 'Erro ao acessar microfone', variant: 'destructive' });
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+  };
+
+  const saveRecordedAudio = async () => {
+    if (!recordedPreview) return;
+    setUploadingStep(recordedPreview.stepIndex);
+    try {
+      const path = `whatsapp/flow_audio_${Date.now()}.ogg`;
+      const { data, error } = await supabase.storage.from('assets').upload(path, recordedPreview.blob);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('assets').getPublicUrl(data.path);
+      updateStep(recordedPreview.stepIndex, { media_url: urlData.publicUrl });
+      toast({ title: 'Áudio salvo com sucesso!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar áudio', description: e.message, variant: 'destructive' });
+    } finally {
+      setUploadingStep(null);
+      URL.revokeObjectURL(recordedPreview.url);
+      setRecordedPreview(null);
+    }
+  };
+
+  const cancelRecording = () => {
+    if (recordedPreview) {
+      URL.revokeObjectURL(recordedPreview.url);
+      setRecordedPreview(null);
+    }
+  };
 
   const loadFlows = async () => {
     setLoading(true);
