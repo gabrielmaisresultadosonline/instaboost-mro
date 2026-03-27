@@ -1185,8 +1185,164 @@ serve(async (req) => {
 
         const currentStep = Number(pausedExecution.current_step ?? -1);
         const startIndex = flowSteps.findIndex((step) => Number(step.step_order ?? 0) > currentStep);
+        const hasRemainingSteps = startIndex !== -1;
 
-        if (startIndex === -1) {
+        // IMPORTANT: Process button actions BEFORE checking remaining steps,
+        // because the buttons step might be the last step but still needs to trigger a flow/action
+        const pausedStepData = flowSteps.find((s) => Number(s.step_order ?? 0) === currentStep);
+        let shouldSkipRemainingSteps = false;
+
+        if (pausedStepData?.step_type === "buttons" && pausedStepData.button_actions) {
+          const buttonActions: any[] = Array.isArray(pausedStepData.button_actions) ? pausedStepData.button_actions : [];
+          const buttonOptions: string[] = Array.isArray(pausedStepData.button_options) ? pausedStepData.button_options : [];
+
+          const { data: lastMsg } = await supabase
+            .from("zapi_messages")
+            .select("content, metadata")
+            .eq("phone", pausedExecution.phone)
+            .eq("direction", "incoming")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          const responseText = (lastMsg?.content || "").toLowerCase().trim();
+          const selectedButtonId = (lastMsg?.metadata as any)?.selectedButtonId || "";
+          const selectedDisplayText = (lastMsg?.metadata as any)?.selectedDisplayText || "";
+
+          console.log("[Resume] Matching button response:", JSON.stringify({
+            responseText, selectedButtonId, selectedDisplayText, buttonOptions
+          }));
+
+          let matchedActionIndex = -1;
+          for (let bi = 0; bi < buttonOptions.length; bi++) {
+            const optLower = buttonOptions[bi].toLowerCase().trim();
+            if (
+              responseText === optLower ||
+              selectedButtonId === buttonOptions[bi] ||
+              selectedButtonId.toLowerCase().trim() === optLower ||
+              selectedDisplayText.toLowerCase().trim() === optLower
+            ) {
+              matchedActionIndex = bi;
+              break;
+            }
+          }
+
+          console.log("[Resume] Matched action index:", matchedActionIndex);
+
+          if (matchedActionIndex >= 0 && buttonActions[matchedActionIndex]) {
+            const btnAction = buttonActions[matchedActionIndex];
+            const execPhoneNorm = pausedExecution.phone;
+
+            console.log("[Resume] Executing button action:", btnAction.action_type);
+
+            if (btnAction.action_type === "text" && btnAction.content) {
+              await callZapi("/send-text", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhoneNorm, message: btnAction.content }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhoneNorm, direction: "outgoing", message_type: "text",
+                content: btnAction.content, status: "sent", timestamp: Date.now(),
+              });
+            } else if (btnAction.action_type === "audio" && btnAction.media_url) {
+              await callZapi("/send-audio", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhoneNorm, audio: btnAction.media_url }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhoneNorm, direction: "outgoing", message_type: "audio",
+                media_url: btnAction.media_url, status: "sent", timestamp: Date.now(),
+              });
+            } else if (btnAction.action_type === "image" && btnAction.media_url) {
+              await callZapi("/send-image", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhoneNorm, image: btnAction.media_url, caption: btnAction.content || "" }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhoneNorm, direction: "outgoing", message_type: "image",
+                content: btnAction.content || "", media_url: btnAction.media_url, status: "sent", timestamp: Date.now(),
+              });
+            } else if (btnAction.action_type === "video" && btnAction.media_url) {
+              await callZapi("/send-video", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhoneNorm, video: btnAction.media_url, caption: btnAction.content || "" }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhoneNorm, direction: "outgoing", message_type: "video",
+                content: btnAction.content || "", media_url: btnAction.media_url, status: "sent", timestamp: Date.now(),
+              });
+            } else if (btnAction.action_type === "flow" && btnAction.flow_id) {
+              shouldSkipRemainingSteps = true;
+              console.log("[Resume] Triggering target flow:", btnAction.flow_id);
+
+              const nowIso = new Date().toISOString();
+              await supabase
+                .from("zapi_flow_executions")
+                .update({
+                  status: "completed",
+                  completed_at: nowIso,
+                  paused_at: null,
+                  last_step_at: nowIso,
+                })
+                .eq("id", pausedExecution.id);
+
+              // Check no other execution is running
+              const { data: targetRunning } = await supabase
+                .from("zapi_flow_executions")
+                .select("id")
+                .eq("phone", execPhoneNorm)
+                .eq("status", "running")
+                .limit(1)
+                .maybeSingle();
+
+              if (!targetRunning?.id) {
+                const { data: targetSteps } = await supabase
+                  .from("zapi_flow_steps")
+                  .select("*")
+                  .eq("flow_id", btnAction.flow_id)
+                  .order("step_order", { ascending: true });
+
+                if (targetSteps && targetSteps.length > 0) {
+                  const { data: targetExec } = await supabase
+                    .from("zapi_flow_executions")
+                    .insert({ flow_id: btnAction.flow_id, phone: execPhoneNorm, status: "running" })
+                    .select("id")
+                    .single();
+
+                  if (targetExec?.id) {
+                    try {
+                      const targetResult = await executeFlowSteps(targetExec.id, execPhoneNorm, targetSteps, 0);
+                      console.log("[Resume] Target flow result:", targetResult.status, targetResult.stepsExecuted);
+                    } catch (e) {
+                      console.error("[Resume] Target flow error:", e);
+                      await supabase.from("zapi_flow_executions").update({
+                        status: "failed", completed_at: new Date().toISOString(),
+                      }).eq("id", targetExec.id);
+                    }
+                  }
+                } else {
+                  console.error("[Resume] Target flow has no steps:", btnAction.flow_id);
+                }
+              } else {
+                console.log("[Resume] Skipped: another execution already running");
+              }
+            } else if (btnAction.action_type === "continue") {
+              console.log("[Resume] Continue action, proceeding with remaining steps");
+            }
+          } else {
+            console.log("[Resume] No matching button action, proceeding with remaining steps");
+          }
+        }
+
+        // If we switched to another flow, we're done
+        if (shouldSkipRemainingSteps) {
+          return new Response(JSON.stringify({
+            success: true, executionId: pausedExecution.id, status: "completed", note: "Switched to another flow",
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
+        // No more steps to execute
+        if (!hasRemainingSteps) {
           await supabase
             .from("zapi_flow_executions")
             .update({
