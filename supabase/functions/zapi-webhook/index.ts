@@ -292,48 +292,88 @@ serve(async (req) => {
             .maybeSingle();
 
           if (!runningExec) {
-            // Find active keyword flows
-            const { data: keywordFlows } = await supabase
+            let matchedFlowId: string | null = null;
+
+            // 1) Check first_message flows - only if contact has NO previous messages
+            const { data: firstMsgFlows } = await supabase
               .from('zapi_flows')
-              .select('id, trigger_keywords, trigger_specific_text')
+              .select('id')
               .eq('is_active', true)
-              .eq('trigger_type', 'keyword');
+              .eq('trigger_type', 'first_message');
 
-            if (keywordFlows && keywordFlows.length > 0) {
-              let matchedFlowId: string | null = null;
+            if (firstMsgFlows && firstMsgFlows.length > 0) {
+              // Count previous incoming messages from this phone (excluding the one we just saved)
+              const { count: previousMsgCount } = await supabase
+                .from('zapi_messages')
+                .select('id', { count: 'exact', head: true })
+                .eq('phone', phone)
+                .eq('direction', 'incoming');
 
-              for (const flow of keywordFlows) {
-                // Check specific text first
-                if (flow.trigger_specific_text && flow.trigger_specific_text.trim().length > 0) {
-                  if (contentLower !== flow.trigger_specific_text.toLowerCase().trim()) continue;
-                }
+              // If this is the first incoming message (count === 1, the one we just inserted)
+              if (previousMsgCount !== null && previousMsgCount <= 1) {
+                matchedFlowId = firstMsgFlows[0].id;
+                console.log(`[Webhook] First message detected! Triggering flow ${matchedFlowId} for ${phone}`);
+              }
+            }
 
-                const keywords: string[] = Array.isArray(flow.trigger_keywords) ? flow.trigger_keywords : [];
-                if (keywords.length === 0) continue;
+            // 2) Check keyword flows if no first_message match
+            if (!matchedFlowId) {
+              const { data: keywordFlows } = await supabase
+                .from('zapi_flows')
+                .select('id, trigger_keywords, trigger_specific_text')
+                .eq('is_active', true)
+                .eq('trigger_type', 'keyword');
 
-                const matched = keywords.some((kw: string) => contentLower.includes(kw.toLowerCase().trim()));
-                if (matched) {
-                  matchedFlowId = flow.id;
-                  break;
+              if (keywordFlows && keywordFlows.length > 0) {
+                for (const flow of keywordFlows) {
+                  if (flow.trigger_specific_text && flow.trigger_specific_text.trim().length > 0) {
+                    if (contentLower !== flow.trigger_specific_text.toLowerCase().trim()) continue;
+                  }
+
+                  const keywords: string[] = Array.isArray(flow.trigger_keywords) ? flow.trigger_keywords : [];
+                  if (keywords.length === 0) continue;
+
+                  const matched = keywords.some((kw: string) => contentLower.includes(kw.toLowerCase().trim()));
+                  if (matched) {
+                    matchedFlowId = flow.id;
+                    break;
+                  }
                 }
               }
+            }
 
-              if (matchedFlowId) {
-                console.log(`[Webhook] Keyword match! Triggering flow ${matchedFlowId} for ${phone}`);
+            // 3) Prevent duplicate: check if this flow already ran for this phone
+            if (matchedFlowId) {
+              const { data: alreadyRan } = await supabase
+                .from('zapi_flow_executions')
+                .select('id')
+                .eq('phone', phone)
+                .eq('flow_id', matchedFlowId)
+                .in('status', ['completed', 'running', 'paused'])
+                .limit(1)
+                .maybeSingle();
 
-                fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${serviceKey}`,
-                    'apikey': serviceKey,
-                  },
-                  body: JSON.stringify({
-                    action: 'execute-flow',
-                    data: { flowId: matchedFlowId, phone },
-                  }),
-                }).catch(err => console.error('[Webhook] Flow trigger error:', err));
+              if (alreadyRan) {
+                console.log(`[Webhook] Flow ${matchedFlowId} already executed for ${phone}, skipping duplicate`);
+                matchedFlowId = null;
               }
+            }
+
+            if (matchedFlowId) {
+              console.log(`[Webhook] Triggering flow ${matchedFlowId} for ${phone}`);
+
+              fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${serviceKey}`,
+                  'apikey': serviceKey,
+                },
+                body: JSON.stringify({
+                  action: 'execute-flow',
+                  data: { flowId: matchedFlowId, phone },
+                }),
+              }).catch(err => console.error('[Webhook] Flow trigger error:', err));
             }
           } else {
             console.log(`[Webhook] Skipping keyword trigger - already running flow for ${phone}`);
