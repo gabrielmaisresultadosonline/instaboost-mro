@@ -87,6 +87,7 @@ import RendaExtraLigacaoAdmin from "./pages/RendaExtraLigacaoAdmin";
 import Relatorios from "./pages/Relatorios";
 import EstruturaRendaExtra from "./pages/EstruturaRendaExtra";
 import WhatsAppDireto from "./pages/WhatsAppDireto";
+import ApiWhatsAppAccess from "./pages/ApiWhatsAppAccess";
 
 
 const queryClient = new QueryClient();
