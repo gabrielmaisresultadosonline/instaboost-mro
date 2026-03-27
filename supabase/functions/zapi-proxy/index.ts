@@ -390,14 +390,17 @@ serve(async (req) => {
         }
 
         // Try fetching messages with normalized phone first, then with denormalized (with extra 9)
+        console.log(`[sync-messages] phone=${phone} rawSyncPhone=${rawSyncPhone}`);
         let { payload } = await callZapi(`/get-messages/${phone}`);
         let msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
+        console.log(`[sync-messages] try1 (${phone}): ${Array.isArray(msgList) ? msgList.length : 0} messages`);
         
         // If no messages found and phone was normalized (removed the 9), try with original format
         if ((!Array.isArray(msgList) || msgList.length === 0) && phone !== rawSyncPhone) {
           const retryResult = await callZapi(`/get-messages/${rawSyncPhone}`);
           payload = retryResult.payload;
           msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
+          console.log(`[sync-messages] try2 (${rawSyncPhone}): ${Array.isArray(msgList) ? msgList.length : 0} messages`);
         }
         
         // Also try denormalized format: add the 9 back for Brazilian numbers
@@ -408,6 +411,7 @@ serve(async (req) => {
           const retryResult = await callZapi(`/get-messages/${denormalized}`);
           payload = retryResult.payload;
           msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
+          console.log(`[sync-messages] try3 denormalized (${denormalized}): ${Array.isArray(msgList) ? msgList.length : 0} messages`);
         }
         const messages = msgList;
 
