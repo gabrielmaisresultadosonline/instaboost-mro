@@ -298,6 +298,7 @@ const EstruturaRendaExtra = () => {
   const [mroPassword, setMroPassword] = useState('');
   const [showLogoPopup, setShowLogoPopup] = useState(false);
   const [showGerenciadorPopup, setShowGerenciadorPopup] = useState(false);
+  const [showRendaExtraVideo, setShowRendaExtraVideo] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('');
 
   useEffect(() => {
