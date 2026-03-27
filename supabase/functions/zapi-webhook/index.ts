@@ -107,6 +107,7 @@ serve(async (req) => {
       const rawPhone = payload.phone || '';
       const chatIsGroup = isGroupId(rawPhone);
       const rawNormalized = normalizePhone(rawPhone);
+      const rawDigits = rawNormalized.replace(/\D/g, '');
 
       // Resolve LID chats to real phone whenever possible
       let phone = chatIsGroup
@@ -117,6 +118,12 @@ serve(async (req) => {
         const resolvedPhone = await resolvePhoneFromLid(supabase, rawPhone);
         if (resolvedPhone) {
           phone = resolvedPhone;
+
+          // Backfill old LID messages/contacts so historical chat appears in the right thread
+          if (rawDigits.length >= 15) {
+            await supabase.from('zapi_messages').update({ phone: resolvedPhone }).eq('phone', rawDigits);
+            await supabase.from('zapi_contacts').delete().eq('phone', rawDigits);
+          }
         }
       }
 
