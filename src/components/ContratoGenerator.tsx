@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { ArrowLeft, FileText, Upload, Download, Loader2, X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
