@@ -662,9 +662,12 @@ export default function ApiWhatsAppAccess() {
   }, [view, loadContacts, checkStatus]);
   useEffect(() => {
     if (!selectedContact || view !== 'main' || activeTab !== 'chats') return;
-    const interval = setInterval(() => { loadMessages(selectedContact.phone, true); }, 5000);
+    const interval = setInterval(() => {
+      loadMessages(selectedContact.phone, true);
+      loadActiveExecutions(selectedContact.phone);
+    }, 5000);
     return () => clearInterval(interval);
-  }, [selectedContact, view, activeTab, loadMessages]);
+  }, [selectedContact, view, activeTab, loadMessages, loadActiveExecutions]);
 
   const filteredContacts = dedupeContacts(contacts).filter(c =>
     (c.name || c.phone).toLowerCase().includes(searchTerm.toLowerCase()),
