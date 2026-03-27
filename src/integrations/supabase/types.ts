@@ -2925,6 +2925,7 @@ export type Database = {
           media_url: string | null
           message_id: string | null
           message_type: string
+          metadata: Json | null
           phone: string
           status: string | null
           timestamp: number | null
@@ -2939,6 +2940,7 @@ export type Database = {
           media_url?: string | null
           message_id?: string | null
           message_type?: string
+          metadata?: Json | null
           phone: string
           status?: string | null
           timestamp?: number | null
@@ -2953,6 +2955,7 @@ export type Database = {
           media_url?: string | null
           message_id?: string | null
           message_type?: string
+          metadata?: Json | null
           phone?: string
           status?: string | null
           timestamp?: number | null

@@ -413,15 +413,46 @@ serve(async (req) => {
             ? "document"
             : msg?.video
             ? "video"
+            : msg?.buttonsResponseMessage || msg?.listResponseMessage
+            ? "button_response"
+            : msg?.buttonMessage
+            ? "buttons"
             : "text";
 
-          const content =
+          let content =
             msg?.text?.message ||
             msg?.text ||
             msg?.image?.caption ||
             msg?.video?.caption ||
             msg?.document?.fileName ||
+            msg?.buttonsResponseMessage?.selectedDisplayText ||
+            msg?.buttonsResponseMessage?.selectedButtonId ||
+            msg?.listResponseMessage?.title ||
+            msg?.buttonMessage?.message ||
+            msg?.buttonMessage?.contentText ||
             "";
+
+          let metadata = null;
+          if (msg?.buttonsResponseMessage) {
+            metadata = {
+              selectedButtonId: msg.buttonsResponseMessage.selectedButtonId,
+              selectedButtonText: msg.buttonsResponseMessage.selectedDisplayText || msg.buttonsResponseMessage.selectedButtonId,
+            };
+          } else if (msg?.listResponseMessage) {
+            metadata = {
+              selectedButtonId: msg.listResponseMessage.listType?.toString(),
+              selectedButtonText: msg.listResponseMessage.title,
+            };
+          } else if (msg?.buttonMessage) {
+            metadata = {
+              buttons: (msg.buttonMessage.buttons || []).map((b: any) => ({
+                id: b.buttonId || b.id || "",
+                label: b.buttonText?.displayText || b.label || b.buttonId || "",
+              })),
+              title: msg.buttonMessage.title || null,
+              footer: msg.buttonMessage.footerText || null,
+            };
+          }
 
           const mediaUrl =
             msg?.image?.imageUrl ||
@@ -444,6 +475,7 @@ serve(async (req) => {
             message_type: messageType,
             content,
             media_url: mediaUrl,
+            metadata,
             status: direction === "incoming" ? "received" : "sent",
             is_read: direction === "outgoing",
             timestamp: Number(msg?.momment || msg?.timestamp || Date.now()),
@@ -864,8 +896,9 @@ serve(async (req) => {
                   body: JSON.stringify({ phone: execPhone, message: step.content }),
                 });
                 await supabase.from("zapi_messages").insert({
-                  phone: execPhone, direction: "outgoing", message_type: "text",
+                  phone: execPhone, direction: "outgoing", message_type: "buttons",
                   content: step.content, status: "sent", timestamp: Date.now(),
+                  metadata: buttons.length > 0 ? { buttons } : null,
                 });
               }
               break;
