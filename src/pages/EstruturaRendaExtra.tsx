@@ -1131,6 +1131,34 @@ const EstruturaRendaExtra = () => {
           </div>
         </div>
 
+        {/* Renda Extra Video Popup */}
+        {showRendaExtraVideo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowRendaExtraVideo(false)}>
+            <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <Play className="h-5 w-5 text-yellow-400" />
+                  Entenda sobre a Renda Extra
+                </h3>
+                <button onClick={() => setShowRendaExtraVideo(false)} className="text-white/60 hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-4">
+                <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
+                  <iframe
+                    src="https://www.youtube.com/embed/WQwnAHNvSMU?autoplay=1"
+                    title="Entenda sobre a Renda Extra"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Logo Popup */}
         {showLogoPopup && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowLogoPopup(false)}>
