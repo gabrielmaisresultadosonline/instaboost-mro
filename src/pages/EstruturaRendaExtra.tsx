@@ -1147,6 +1147,57 @@ const EstruturaRendaExtra = () => {
             </div>
           </div>
         )}
+
+        {/* Conta FIXA Popup */}
+        {showContaFixaPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowContaFixaPopup(false)}>
+            <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <User className="h-5 w-5 text-orange-400" />
+                  Cadastrar Conta FIXA
+                </h3>
+                <button onClick={() => setShowContaFixaPopup(false)} className="text-white/60 hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                  <p className="text-orange-300 font-bold text-sm mb-2">⚠️ Atenção antes de cadastrar:</p>
+                  <p className="text-white/80 text-sm leading-relaxed">
+                    Só cadastre a <strong className="text-orange-400">conta fixa</strong> caso você tenha certeza de que deseja mantê-la permanentemente. 
+                    Essa conta <strong className="text-white">não poderá ser removida</strong> depois de cadastrada.
+                  </p>
+                  <p className="text-white/70 text-sm leading-relaxed mt-3">
+                    Se ainda não tem certeza, utilize os <strong className="text-yellow-400">testes grátis</strong> disponíveis no menu para testar antes de adicionar de forma fixa usando dos seus adicionais.
+                  </p>
+                </div>
+
+                <p className="text-white/60 text-xs text-center font-medium">Assista o vídeo abaixo para entender o processo completo:</p>
+
+                <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
+                  <iframe
+                    src="https://www.youtube.com/embed/N3yHdsqGLwA"
+                    title="Tutorial Conta FIXA"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+
+                <a
+                  href="https://maisresultadosonline.com.br/instagram"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Cadastrar na Área do Instagram
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
