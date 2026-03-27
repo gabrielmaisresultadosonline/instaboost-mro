@@ -367,14 +367,22 @@ serve(async (req) => {
       }
 
       case "get-messages": {
-        const phone = normalizePhone(data.phone);
-        if (!phone) {
+        const rawMsgPhone = normalizePhone(data.phone);
+        // Denormalize for Z-API: add 9 back for 12-digit Brazilian numbers
+        let apiPhone = rawMsgPhone;
+        const digits = rawMsgPhone.replace(/\D/g, "");
+        if (digits.length === 12 && digits.startsWith("55")) {
+          const ddd = digits.slice(2, 4);
+          const subscriber = digits.slice(4);
+          apiPhone = `55${ddd}9${subscriber}`;
+        }
+        if (!rawMsgPhone) {
           return new Response(JSON.stringify([]), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
-        const { payload: messagesData } = await callZapi(`/get-messages/${phone}`);
+        const { payload: messagesData } = await callZapi(`/chat-messages/${apiPhone}`);
         return new Response(JSON.stringify(messagesData), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
