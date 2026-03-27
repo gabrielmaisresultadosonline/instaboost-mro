@@ -187,16 +187,22 @@ export default function ApiWhatsAppAccess() {
 
       if (chatList.length > 0) {
         for (const chat of chatList) {
-          const phone = chat.phone?.replace(/\D/g, '') || chat.id?.replace(/\D/g, '');
+          const rawIdentifier = chat.phone || chat.id || chat.lid || chat.chatId || chat.waId;
+          const phone = rawIdentifier ? String(rawIdentifier).trim() : '';
           if (!phone) continue;
+
+          const lastMessageRaw = chat.lastMessageTimestamp || chat.lastMessageTime || chat.last_message_at;
+          const lastMessageMs = Number(lastMessageRaw);
+          const unreadCount = Number(chat.unreadMessages ?? chat.messagesUnread ?? chat.unread ?? 0) || 0;
+
           await supabase.from('zapi_contacts').upsert({
             phone,
-            name: chat.name || chat.chatName || phone,
-            profile_pic_url: chat.profileThumbnail || chat.imgUrl || null,
-            last_message_at: chat.lastMessageTimestamp
-              ? new Date(chat.lastMessageTimestamp * 1000).toISOString()
+            name: chat.name || chat.chatName || chat.pushName || phone,
+            profile_pic_url: chat.profileThumbnail || chat.imgUrl || chat.profilePicUrl || null,
+            last_message_at: Number.isFinite(lastMessageMs)
+              ? new Date(lastMessageMs > 1e12 ? lastMessageMs : lastMessageMs * 1000).toISOString()
               : new Date().toISOString(),
-            unread_count: chat.unreadMessages || 0,
+            unread_count: unreadCount,
           }, { onConflict: 'phone' });
         }
         await loadContacts();
