@@ -6,9 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/hooks/use-toast';
 import {
-  MessageSquare, Send, Settings, Phone, Image, FileText,
+  MessageSquare, Send, Settings, Image, FileText,
   Mic, Search, ArrowLeft, Check, CheckCheck, Wifi, WifiOff,
-  QrCode, Loader2, User, Paperclip, X, RefreshCw
+  QrCode, Loader2, User, RefreshCw, Plus
 } from 'lucide-react';
 
 interface Contact {
@@ -45,7 +45,6 @@ interface ZApiSettings {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
 const callProxy = async (action: string, data: Record<string, unknown> = {}) => {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/zapi-proxy`, {
@@ -75,107 +74,26 @@ export default function ApiWhatsAppAccess() {
   const [instanceId, setInstanceId] = useState('');
   const [token, setToken] = useState('');
   const [clientToken, setClientToken] = useState('');
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [newChatPhone, setNewChatPhone] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasSyncedRef = useRef(false);
 
-  // Load settings on mount
-  useEffect(() => {
-    loadSettings();
-  }, []);
+  // ── helpers ──
 
-  // Realtime subscription for new messages
-  useEffect(() => {
-    const channel = supabase
-      .channel('zapi-messages-realtime')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'zapi_messages',
-      }, (payload) => {
-        const newMsg = payload.new as Message;
-        if (selectedContact && newMsg.phone === selectedContact.phone) {
-          setMessages(prev => {
-            if (prev.some(m => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
-        }
-        loadContacts();
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [selectedContact]);
-
-  // Scroll to bottom on new messages
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const loadSettings = async () => {
-    try {
-      const result = await callProxy('get-settings');
-      if (result.settings) {
-        setSettings(result.settings);
-        setInstanceId(result.settings.instance_id || '');
-        setToken(result.settings.token || '');
-        setClientToken(result.settings.client_token || '');
-        setConnected(result.settings.is_connected || false);
-        if (result.settings.instance_id && result.settings.token) {
-          setView('chats');
-          loadContacts();
-          checkStatus();
-        }
-      }
-    } catch (e) {
-      console.error('Error loading settings:', e);
-    }
+  const formatPhone = (phone: string) => {
+    if (!phone) return '';
+    if (phone.length === 13) return `+${phone.slice(0,2)} (${phone.slice(2,4)}) ${phone.slice(4,9)}-${phone.slice(9)}`;
+    if (phone.length === 12) return `+${phone.slice(0,2)} (${phone.slice(2,4)}) ${phone.slice(4,8)}-${phone.slice(8)}`;
+    return phone;
   };
 
-  const saveSettings = async () => {
-    setLoading(true);
-    try {
-      await callProxy('save-settings', {
-        instance_id: instanceId,
-        token,
-        client_token: clientToken,
-      });
-      toast({ title: 'Configurações salvas!' });
-
-      // Set webhook URL
-      const webhookUrl = `${SUPABASE_URL}/functions/v1/zapi-webhook`;
-      await callProxy('set-webhook', { webhookUrl });
-      toast({ title: 'Webhook configurado!' });
-
-      await loadSettings();
-      setView('chats');
-    } catch (e) {
-      toast({ title: 'Erro ao salvar', description: String(e), variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
+  const formatTime = (msg: Message) => {
+    const date = msg.timestamp ? new Date(msg.timestamp) : new Date(msg.created_at);
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const checkStatus = async () => {
-    try {
-      const result = await callProxy('get-status');
-      setConnected(result?.connected === true);
-      if (!result?.connected) {
-        getQrCode();
-      }
-    } catch (e) {
-      console.error('Status error:', e);
-    }
-  };
-
-  const getQrCode = async () => {
-    try {
-      const result = await callProxy('get-qrcode');
-      if (result?.value) {
-        setQrCode(result.value);
-      }
-    } catch (e) {
-      console.error('QR error:', e);
-    }
-  };
+  // ── data loading ──
 
   const loadContacts = useCallback(async () => {
     try {
@@ -198,12 +116,11 @@ export default function ApiWhatsAppAccess() {
         .order('created_at', { ascending: true });
       if (data) setMessages(data as Message[]);
 
-      // Also try to fetch from Z-API if empty
+      // Fetch from Z-API if DB is empty
       if (!data || data.length === 0) {
         setLoading(true);
         const apiMessages = await callProxy('get-messages', { phone });
         if (Array.isArray(apiMessages)) {
-          // Save to DB and reload
           for (const msg of apiMessages.slice(-50)) {
             await supabase.from('zapi_messages').insert({
               message_id: msg.messageId || msg.zaapId,
@@ -227,38 +144,31 @@ export default function ApiWhatsAppAccess() {
         setLoading(false);
       }
 
-      // Mark as read
-      await supabase
-        .from('zapi_contacts')
-        .update({ unread_count: 0 })
-        .eq('phone', phone);
+      await supabase.from('zapi_contacts').update({ unread_count: 0 }).eq('phone', phone);
       loadContacts();
     } catch (e) {
       console.error('Error loading messages:', e);
     }
   };
 
-  const selectContact = (contact: Contact) => {
-    setSelectedContact(contact);
-    setShowMobileChat(true);
-    loadMessages(contact.phone);
+  // ── Z-API actions ──
+
+  const checkStatus = async () => {
+    try {
+      const result = await callProxy('get-status');
+      setConnected(result?.connected === true);
+      if (!result?.connected) getQrCode();
+    } catch (e) {
+      console.error('Status error:', e);
+    }
   };
 
-  const sendMessage = async () => {
-    if (!messageText.trim() || !selectedContact) return;
-    setSendingMessage(true);
+  const getQrCode = async () => {
     try {
-      await callProxy('send-text', {
-        phone: selectedContact.phone,
-        message: messageText,
-      });
-      setMessageText('');
-      // Reload messages
-      setTimeout(() => loadMessages(selectedContact.phone), 500);
+      const result = await callProxy('get-qrcode');
+      if (result?.value) setQrCode(result.value);
     } catch (e) {
-      toast({ title: 'Erro ao enviar', variant: 'destructive' });
-    } finally {
-      setSendingMessage(false);
+      console.error('QR error:', e);
     }
   };
 
@@ -266,22 +176,34 @@ export default function ApiWhatsAppAccess() {
     setLoading(true);
     try {
       const chats = await callProxy('get-chats');
+      console.log('Z-API get-chats response:', chats);
+
+      let chatList: any[] = [];
       if (Array.isArray(chats)) {
-        for (const chat of chats) {
+        chatList = chats;
+      } else if (chats && typeof chats === 'object' && !chats.error) {
+        chatList = chats.chats || chats.data || [];
+      }
+
+      if (chatList.length > 0) {
+        for (const chat of chatList) {
           const phone = chat.phone?.replace(/\D/g, '') || chat.id?.replace(/\D/g, '');
           if (!phone) continue;
           await supabase.from('zapi_contacts').upsert({
             phone,
             name: chat.name || chat.chatName || phone,
-            profile_pic_url: chat.profileThumbnail || null,
-            last_message_at: chat.lastMessageTimestamp ? new Date(chat.lastMessageTimestamp * 1000).toISOString() : new Date().toISOString(),
+            profile_pic_url: chat.profileThumbnail || chat.imgUrl || null,
+            last_message_at: chat.lastMessageTimestamp
+              ? new Date(chat.lastMessageTimestamp * 1000).toISOString()
+              : new Date().toISOString(),
             unread_count: chat.unreadMessages || 0,
           }, { onConflict: 'phone' });
         }
         await loadContacts();
-        toast({ title: 'Conversas sincronizadas!' });
+        toast({ title: `${chatList.length} conversas sincronizadas!` });
       } else {
-        toast({ title: 'Nenhuma conversa encontrada', variant: 'destructive' });
+        console.log('Z-API chats raw:', JSON.stringify(chats).slice(0, 500));
+        toast({ title: 'Nenhuma conversa encontrada', description: 'Envie uma mensagem para iniciar.', variant: 'destructive' });
       }
     } catch (e) {
       toast({ title: 'Erro ao sincronizar', variant: 'destructive' });
@@ -290,17 +212,128 @@ export default function ApiWhatsAppAccess() {
     }
   };
 
-  const formatPhone = (phone: string) => {
-    if (!phone) return '';
-    if (phone.length === 13) return `+${phone.slice(0,2)} (${phone.slice(2,4)}) ${phone.slice(4,9)}-${phone.slice(9)}`;
-    if (phone.length === 12) return `+${phone.slice(0,2)} (${phone.slice(2,4)}) ${phone.slice(4,8)}-${phone.slice(8)}`;
-    return phone;
+  const saveSettings = async () => {
+    setLoading(true);
+    try {
+      await callProxy('save-settings', { instance_id: instanceId, token, client_token: clientToken });
+      toast({ title: 'Configurações salvas!' });
+      const webhookUrl = `${SUPABASE_URL}/functions/v1/zapi-webhook`;
+      await callProxy('set-webhook', { webhookUrl });
+      toast({ title: 'Webhook configurado!' });
+      await loadSettings();
+      setView('chats');
+    } catch (e) {
+      toast({ title: 'Erro ao salvar', description: String(e), variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const formatTime = (msg: Message) => {
-    const date = msg.timestamp ? new Date(msg.timestamp) : new Date(msg.created_at);
-    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const loadSettings = async () => {
+    try {
+      const result = await callProxy('get-settings');
+      if (result.settings) {
+        setSettings(result.settings);
+        setInstanceId(result.settings.instance_id || '');
+        setToken(result.settings.token || '');
+        setClientToken(result.settings.client_token || '');
+        setConnected(result.settings.is_connected || false);
+        if (result.settings.instance_id && result.settings.token) {
+          setView('chats');
+          // Check if DB has contacts, if not auto-sync from Z-API
+          const { data: existingContacts } = await supabase
+            .from('zapi_contacts')
+            .select('phone')
+            .limit(1);
+          if (!existingContacts || existingContacts.length === 0) {
+            if (!hasSyncedRef.current) {
+              hasSyncedRef.current = true;
+              setTimeout(() => syncChats(), 300);
+            }
+          } else {
+            loadContacts();
+          }
+          checkStatus();
+        }
+      }
+    } catch (e) {
+      console.error('Error loading settings:', e);
+    }
   };
+
+  // ── user actions ──
+
+  const selectContact = (contact: Contact) => {
+    setSelectedContact(contact);
+    setShowMobileChat(true);
+    loadMessages(contact.phone);
+  };
+
+  const startNewChat = () => {
+    const phone = newChatPhone.replace(/\D/g, '');
+    if (!phone || phone.length < 10) {
+      toast({ title: 'Número inválido', description: 'Use formato: 5511999999999', variant: 'destructive' });
+      return;
+    }
+    const contact: Contact = { phone, name: formatPhone(phone), unread_count: 0 };
+    selectContact(contact);
+    setShowNewChat(false);
+    setNewChatPhone('');
+  };
+
+  const sendMessage = async () => {
+    if (!messageText.trim() || !selectedContact) return;
+    setSendingMessage(true);
+    try {
+      await callProxy('send-text', { phone: selectedContact.phone, message: messageText });
+      setMessageText('');
+      setTimeout(() => loadMessages(selectedContact.phone), 500);
+    } catch (e) {
+      toast({ title: 'Erro ao enviar', variant: 'destructive' });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // ── effects ──
+
+  useEffect(() => { loadSettings(); }, []);
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('zapi-messages-realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'zapi_messages',
+      }, (payload) => {
+        const newMsg = payload.new as Message;
+        if (selectedContact && newMsg.phone === selectedContact.phone) {
+          setMessages(prev => {
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+        }
+        loadContacts();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [selectedContact, loadContacts]);
+
+  // Scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Periodic polling
+  useEffect(() => {
+    if (!connected || view !== 'chats') return;
+    const interval = setInterval(loadContacts, 10000);
+    return () => clearInterval(interval);
+  }, [connected, view, loadContacts]);
+
+  // ── derived ──
 
   const filteredContacts = contacts.filter(c =>
     (c.name || c.phone).toLowerCase().includes(searchTerm.toLowerCase())
@@ -312,7 +345,7 @@ export default function ApiWhatsAppAccess() {
     return <Check className="w-3.5 h-3.5 text-white/40" />;
   };
 
-  // Settings View
+  // ── Settings View ──
   if (view === 'settings') {
     return (
       <div className="min-h-screen bg-[#111b21] flex items-center justify-center p-4">
@@ -326,45 +359,23 @@ export default function ApiWhatsAppAccess() {
               <p className="text-white/50 text-sm">Configure sua instância</p>
             </div>
           </div>
-
           <div className="space-y-4">
             <div>
               <label className="text-white/70 text-sm mb-1 block">Instance ID</label>
-              <Input
-                value={instanceId}
-                onChange={e => setInstanceId(e.target.value)}
-                placeholder="Ex: 3C9E1B2..."
-                className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30"
-              />
+              <Input value={instanceId} onChange={e => setInstanceId(e.target.value)} placeholder="Ex: 3C9E1B2..." className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30" />
             </div>
             <div>
               <label className="text-white/70 text-sm mb-1 block">Token</label>
-              <Input
-                value={token}
-                onChange={e => setToken(e.target.value)}
-                placeholder="Seu token da instância"
-                className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30"
-              />
+              <Input value={token} onChange={e => setToken(e.target.value)} placeholder="Seu token da instância" className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30" />
             </div>
             <div>
               <label className="text-white/70 text-sm mb-1 block">Client Token (Segurança)</label>
-              <Input
-                value={clientToken}
-                onChange={e => setClientToken(e.target.value)}
-                placeholder="Token de segurança da conta"
-                className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30"
-              />
+              <Input value={clientToken} onChange={e => setClientToken(e.target.value)} placeholder="Token de segurança da conta" className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30" />
             </div>
-
-            <Button
-              onClick={saveSettings}
-              disabled={!instanceId || !token || loading}
-              className="w-full bg-[#00a884] hover:bg-[#00a884]/80 text-white font-bold h-12"
-            >
+            <Button onClick={saveSettings} disabled={!instanceId || !token || loading} className="w-full bg-[#00a884] hover:bg-[#00a884]/80 text-white font-bold h-12">
               {loading ? <Loader2 className="animate-spin mr-2" /> : null}
               Conectar Instância
             </Button>
-
             <p className="text-white/30 text-xs text-center mt-4">
               Acesse <a href="https://z-api.io" target="_blank" rel="noopener" className="text-[#00a884] underline">z-api.io</a> para criar sua conta e instância
             </p>
@@ -374,7 +385,7 @@ export default function ApiWhatsAppAccess() {
     );
   }
 
-  // Main Chat View
+  // ── Main Chat View ──
   return (
     <div className="h-screen bg-[#111b21] flex flex-col overflow-hidden">
       {/* Header */}
@@ -390,10 +401,13 @@ export default function ApiWhatsAppAccess() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => setShowNewChat(true)} className="text-white/60 hover:text-white hover:bg-white/10">
+            <Plus className="w-4 h-4" />
+          </Button>
           <Button variant="ghost" size="icon" onClick={syncChats} className="text-white/60 hover:text-white hover:bg-white/10">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => { checkStatus(); }} className="text-white/60 hover:text-white hover:bg-white/10">
+          <Button variant="ghost" size="icon" onClick={checkStatus} className="text-white/60 hover:text-white hover:bg-white/10">
             <QrCode className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => setView('settings')} className="text-white/60 hover:text-white hover:bg-white/10">
@@ -409,12 +423,29 @@ export default function ApiWhatsAppAccess() {
             <h2 className="text-white text-lg font-bold mb-2">Escaneie o QR Code</h2>
             <p className="text-white/50 text-sm mb-4">Abra o WhatsApp no celular e escaneie</p>
             <img src={qrCode} alt="QR Code" className="mx-auto rounded-lg bg-white p-2 max-w-[250px]" />
-            <Button onClick={() => { setQrCode(null); checkStatus(); }} className="mt-4 bg-[#00a884] hover:bg-[#00a884]/80 text-white">
-              Já escaneei
-            </Button>
-            <Button variant="ghost" onClick={() => setQrCode(null)} className="mt-2 text-white/50">
-              Fechar
-            </Button>
+            <Button onClick={() => { setQrCode(null); checkStatus(); }} className="mt-4 bg-[#00a884] hover:bg-[#00a884]/80 text-white">Já escaneei</Button>
+            <Button variant="ghost" onClick={() => setQrCode(null)} className="mt-2 text-white/50">Fechar</Button>
+          </div>
+        </div>
+      )}
+
+      {/* New Chat Dialog */}
+      {showNewChat && (
+        <div className="absolute inset-0 z-50 bg-black/80 flex items-center justify-center">
+          <div className="bg-[#202c33] rounded-2xl p-6 max-w-sm mx-4 w-full">
+            <h2 className="text-white text-lg font-bold mb-4">Nova Conversa</h2>
+            <p className="text-white/50 text-sm mb-3">Digite o número com código do país (ex: 5511999999999)</p>
+            <Input
+              value={newChatPhone}
+              onChange={e => setNewChatPhone(e.target.value)}
+              placeholder="5511999999999"
+              className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 mb-4"
+              onKeyDown={e => e.key === 'Enter' && startNewChat()}
+            />
+            <div className="flex gap-2">
+              <Button onClick={startNewChat} className="flex-1 bg-[#00a884] hover:bg-[#00a884]/80 text-white">Iniciar Conversa</Button>
+              <Button variant="ghost" onClick={() => { setShowNewChat(false); setNewChatPhone(''); }} className="text-white/50">Cancelar</Button>
+            </div>
           </div>
         </div>
       )}
@@ -422,7 +453,6 @@ export default function ApiWhatsAppAccess() {
       <div className="flex flex-1 overflow-hidden">
         {/* Contact List */}
         <div className={`${showMobileChat && selectedContact ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-96 bg-[#111b21] border-r border-white/5`}>
-          {/* Search */}
           <div className="p-3 bg-[#111b21]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
@@ -435,14 +465,21 @@ export default function ApiWhatsAppAccess() {
             </div>
           </div>
 
-          {/* Contacts */}
           <ScrollArea className="flex-1">
-            {filteredContacts.length === 0 ? (
+            {loading && contacts.length === 0 ? (
+              <div className="text-center py-12">
+                <Loader2 className="w-8 h-8 text-[#00a884] animate-spin mx-auto mb-3" />
+                <p className="text-white/40 text-sm">Sincronizando conversas...</p>
+              </div>
+            ) : filteredContacts.length === 0 ? (
               <div className="text-center py-12">
                 <MessageSquare className="w-12 h-12 text-white/10 mx-auto mb-3" />
                 <p className="text-white/30 text-sm">Nenhuma conversa</p>
                 <Button onClick={syncChats} variant="ghost" className="mt-2 text-[#00a884] text-sm">
-                  <RefreshCw className="w-3 h-3 mr-1" /> Sincronizar conversas
+                  <RefreshCw className="w-3 h-3 mr-1" /> Sincronizar
+                </Button>
+                <Button onClick={() => setShowNewChat(true)} variant="ghost" className="mt-1 text-[#00a884] text-sm">
+                  <Plus className="w-3 h-3 mr-1" /> Nova conversa
                 </Button>
               </div>
             ) : (
@@ -499,12 +536,7 @@ export default function ApiWhatsAppAccess() {
             <>
               {/* Chat Header */}
               <div className="bg-[#202c33] h-14 flex items-center gap-3 px-4 border-b border-white/5 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden text-white/60 hover:text-white shrink-0"
-                  onClick={() => { setShowMobileChat(false); setSelectedContact(null); }}
-                >
+                <Button variant="ghost" size="icon" className="md:hidden text-white/60 hover:text-white shrink-0" onClick={() => { setShowMobileChat(false); setSelectedContact(null); }}>
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0 overflow-hidden">
@@ -524,7 +556,7 @@ export default function ApiWhatsAppAccess() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 bg-[#0b141a]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'200\' height=\'200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg opacity=\'0.03\'%3E%3Cpath d=\'M20 20h10v10H20z\' fill=\'%23fff\'/%3E%3Cpath d=\'M50 40h10v10H50z\' fill=\'%23fff\'/%3E%3Cpath d=\'M80 20h10v10H80z\' fill=\'%23fff\'/%3E%3Cpath d=\'M110 50h10v10h-10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M140 30h10v10h-10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M170 60h10v10h-10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M30 80h10v10H30z\' fill=\'%23fff\'/%3E%3Cpath d=\'M60 100h10v10H60z\' fill=\'%23fff\'/%3E%3Cpath d=\'M90 80h10v10H90z\' fill=\'%23fff\'/%3E%3Cpath d=\'M120 110h10v10h-10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M150 90h10v10h-10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M180 120h10v10h-10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M10 140h10v10H10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M40 160h10v10H40z\' fill=\'%23fff\'/%3E%3Cpath d=\'M70 140h10v10H70z\' fill=\'%23fff\'/%3E%3Cpath d=\'M100 170h10v10h-10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M130 150h10v10h-10z\' fill=\'%23fff\'/%3E%3Cpath d=\'M160 180h10v10h-10z\' fill=\'%23fff\'/%3E%3C/g%3E%3C/svg%3E")' }}>
+              <ScrollArea className="flex-1 bg-[#0b141a]">
                 <div className="p-4 space-y-1 min-h-full flex flex-col justify-end">
                   {loading && messages.length === 0 && (
                     <div className="text-center py-8">
@@ -532,14 +564,9 @@ export default function ApiWhatsAppAccess() {
                     </div>
                   )}
                   {messages.map(msg => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`max-w-[75%] rounded-lg px-3 py-1.5 relative ${
-                        msg.direction === 'outgoing'
-                          ? 'bg-[#005c4b] text-white rounded-tr-none'
-                          : 'bg-[#202c33] text-white rounded-tl-none'
+                    <div key={msg.id} className={`flex ${msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[75%] rounded-lg px-3 py-1.5 ${
+                        msg.direction === 'outgoing' ? 'bg-[#005c4b] text-white rounded-tr-none' : 'bg-[#202c33] text-white rounded-tl-none'
                       }`}>
                         {msg.message_type === 'image' && msg.media_url && (
                           <img src={msg.media_url} alt="" className="rounded max-w-full mb-1 max-h-64 object-contain" />
