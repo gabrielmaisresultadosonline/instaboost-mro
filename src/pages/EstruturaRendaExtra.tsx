@@ -1181,7 +1181,7 @@ const EstruturaRendaExtra = () => {
             href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent('Tô na área de renda extra, preciso de ajuda')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold text-sm shadow-lg shadow-green-500/30 hover:scale-105 transition-all duration-300 animate-bounce"
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold text-sm shadow-lg shadow-green-500/30 hover:scale-105 transition-all duration-300 animate-bounce"
             style={{ animationDuration: '2s', animationIterationCount: '3' }}
           >
             <MessageCircle className="h-5 w-5" />
