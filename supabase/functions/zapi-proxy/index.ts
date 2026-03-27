@@ -409,9 +409,7 @@ serve(async (req) => {
           payload = retryResult.payload;
           msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
         }
-        const messages = Array.isArray(payload)
-          ? payload
-          : (payload?.messages || payload?.data || []);
+        const messages = msgList;
 
         if (!Array.isArray(messages) || messages.length === 0) {
           return new Response(JSON.stringify({ inserted: 0 }), {
