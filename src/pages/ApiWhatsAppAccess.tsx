@@ -9,7 +9,8 @@ import {
   MessageSquare, Send, Settings, FileText,
   Mic, MicOff, Search, ArrowLeft, Check, CheckCheck, Wifi, WifiOff,
   QrCode, Loader2, User, RefreshCw, Plus, Zap, BarChart3,
-  Image, Paperclip, X, Play, Users, Square, Upload, Video, Smile
+  Image, Paperclip, X, Play, Users, Square, Upload, Video, Smile,
+  Info, Instagram, Globe, Phone, Mail, Building2, MapPin
 } from 'lucide-react';
 import FlowBuilder from '@/components/whatsapp/FlowBuilder';
 import CRMPanel from '@/components/whatsapp/CRMPanel';
