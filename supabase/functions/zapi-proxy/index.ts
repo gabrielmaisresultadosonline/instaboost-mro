@@ -777,6 +777,13 @@ serve(async (req) => {
               wait_timeout_seconds: step.wait_timeout_seconds || 300,
               button_text: step.button_text || null,
               button_options: step.button_options || [],
+              wait_indefinitely: step.wait_indefinitely || false,
+              followup_enabled: step.followup_enabled || false,
+              followup_delay_seconds: step.followup_delay_seconds || 600,
+              followup_type: step.followup_type || 'text',
+              followup_content: step.followup_content || null,
+              followup_media_url: step.followup_media_url || null,
+              followup_flow_id: step.followup_flow_id || null,
             });
           }
         }
