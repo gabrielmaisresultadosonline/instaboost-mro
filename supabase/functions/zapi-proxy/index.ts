@@ -397,30 +397,18 @@ serve(async (req) => {
           });
         }
 
-        // Try fetching messages with normalized phone first, then with denormalized (with extra 9)
-        console.log(`[sync-messages] phone=${phone} rawSyncPhone=${rawSyncPhone}`);
-        let { payload } = await callZapi(`/get-messages/${phone}`);
-        let msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
-        console.log(`[sync-messages] try1 (${phone}): ${Array.isArray(msgList) ? msgList.length : 0} messages`);
-        
-        // If no messages found and phone was normalized (removed the 9), try with original format
-        if ((!Array.isArray(msgList) || msgList.length === 0) && phone !== rawSyncPhone) {
-          const retryResult = await callZapi(`/get-messages/${rawSyncPhone}`);
-          payload = retryResult.payload;
-          msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
-          console.log(`[sync-messages] try2 (${rawSyncPhone}): ${Array.isArray(msgList) ? msgList.length : 0} messages`);
-        }
-        
-        // Also try denormalized format: add the 9 back for Brazilian numbers
-        if ((!Array.isArray(msgList) || msgList.length === 0) && phone.length === 12 && phone.startsWith("55")) {
+        // Denormalize phone for Z-API call (add 9 back for Brazilian numbers)
+        let syncApiPhone = phone;
+        if (phone.length === 12 && phone.startsWith("55")) {
           const ddd = phone.slice(2, 4);
           const subscriber = phone.slice(4);
-          const denormalized = `55${ddd}9${subscriber}`;
-          const retryResult = await callZapi(`/get-messages/${denormalized}`);
-          payload = retryResult.payload;
-          msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
-          console.log(`[sync-messages] try3 denormalized (${denormalized}): ${Array.isArray(msgList) ? msgList.length : 0} messages`);
+          syncApiPhone = `55${ddd}9${subscriber}`;
         }
+
+        console.log(`[sync-messages] phone=${phone} apiPhone=${syncApiPhone}`);
+        const { payload } = await callZapi(`/chat-messages/${syncApiPhone}`);
+        let msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
+        console.log(`[sync-messages] got ${Array.isArray(msgList) ? msgList.length : 0} messages from Z-API`);
         const messages = msgList;
 
         if (!Array.isArray(messages) || messages.length === 0) {
