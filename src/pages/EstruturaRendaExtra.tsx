@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3 } from 'lucide-react';
+import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { ContratoGenerator } from '@/components/ContratoGenerator';
 import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
@@ -297,6 +298,13 @@ const EstruturaRendaExtra = () => {
   const [mroPassword, setMroPassword] = useState('');
   const [showLogoPopup, setShowLogoPopup] = useState(false);
   const [showGerenciadorPopup, setShowGerenciadorPopup] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+
+  useEffect(() => {
+    supabase.from('whatsapp_page_settings').select('whatsapp_number').limit(1).single().then(({ data }) => {
+      if (data) setWhatsappNumber(data.whatsapp_number);
+    });
+  }, []);
   
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
@@ -1165,6 +1173,20 @@ const EstruturaRendaExtra = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Floating WhatsApp Help Button */}
+        {whatsappNumber && (
+          <a
+            href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent('Tô na área de renda extra, preciso de ajuda')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold text-sm shadow-lg shadow-green-500/30 hover:scale-105 transition-all duration-300 animate-bounce"
+            style={{ animationDuration: '2s', animationIterationCount: '3' }}
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span className="hidden sm:inline">Ajuda</span>
+          </a>
         )}
 
       </div>
