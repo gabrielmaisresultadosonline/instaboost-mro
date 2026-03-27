@@ -556,6 +556,8 @@ export default function ApiWhatsAppAccess() {
     setSelectedContact(normalizedContact);
     setShowMobileChat(true);
     setActiveTab('chats');
+    setShowContactInfo(false);
+    setContactInfo(null);
     await loadMessages(normalizedContact.phone);
   };
 
@@ -567,6 +569,44 @@ export default function ApiWhatsAppAccess() {
     } else {
       const contact: Contact = { phone: normalizedPhone, name: formatPhone(normalizedPhone), unread_count: 0 };
       await selectContact(contact);
+    }
+  };
+
+  const fetchContactInfo = async () => {
+    if (!selectedContact) return;
+    setShowContactInfo(true);
+    setLoadingContactInfo(true);
+    try {
+      // Fetch profile pic if not already available
+      const result = await callProxy('get-contact-info', { phone: selectedContact.phone });
+      setContactInfo(result);
+      // Update profile pic in contact if found
+      if (result?.profile_pic && selectedContact) {
+        setSelectedContact(prev => prev ? { ...prev, profile_pic_url: result.profile_pic } : prev);
+        setContacts(prev => prev.map(c => 
+          c.phone === selectedContact.phone ? { ...c, profile_pic_url: result.profile_pic } : c
+        ));
+      }
+    } catch (e) {
+      console.error('Error fetching contact info:', e);
+    } finally {
+      setLoadingContactInfo(false);
+    }
+  };
+
+  const fetchProfilePic = async (phone: string) => {
+    try {
+      const result = await callProxy('get-profile-pic', { phone });
+      if (result?.url) {
+        setContacts(prev => prev.map(c => 
+          c.phone === phone ? { ...c, profile_pic_url: result.url } : c
+        ));
+        if (selectedContact?.phone === phone) {
+          setSelectedContact(prev => prev ? { ...prev, profile_pic_url: result.url } : prev);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching profile pic:', e);
     }
   };
 
