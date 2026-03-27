@@ -170,15 +170,25 @@ serve(async (req) => {
         metadata = {
           selectedButtonId: btnId || legacyId || '',
           selectedDisplayText: btnMessage || btnDisplayText || '',
-          selectedButtonId: btnId,
-          selectedButtonText: btnDisplayText || btnId,
+          selectedButtonText: btnMessage || btnDisplayText || btnId || legacyId || '',
         };
       } else if (payload.listResponseMessage) {
         messageType = 'button_response';
-        content = payload.listResponseMessage.title || '';
+        const selectedRowId =
+          payload.listResponseMessage.singleSelectReply?.selectedRowId ||
+          payload.listResponseMessage.selectedRowId ||
+          payload.listResponseMessage.listType?.toString() ||
+          '';
+        const selectedTitle =
+          payload.listResponseMessage.title ||
+          payload.listResponseMessage.singleSelectReply?.title ||
+          payload.listResponseMessage.message ||
+          '';
+        content = selectedTitle || selectedRowId || '';
         metadata = {
-          selectedButtonId: payload.listResponseMessage.listType?.toString(),
-          selectedButtonText: payload.listResponseMessage.title || content,
+          selectedButtonId: selectedRowId,
+          selectedDisplayText: selectedTitle || content,
+          selectedButtonText: selectedTitle || content,
         };
       } else if (payload.buttonMessage) {
         messageType = 'buttons';
@@ -198,7 +208,10 @@ serve(async (req) => {
         content = (content as any).message || JSON.stringify(content);
       }
 
-      const direction = payload.fromMe ? 'outgoing' : 'incoming';
+      // Some interactive replies (list/buttons) may come with fromMe=true in Z-API;
+      // they must still be treated as incoming user replies for flow progression.
+      const isInteractiveReply = messageType === 'button_response';
+      const direction = isInteractiveReply ? 'incoming' : (payload.fromMe ? 'outgoing' : 'incoming');
       const messageId = payload.messageId || payload.zaapId || null;
 
       // Idempotency: same webhook message must be processed only once
@@ -262,6 +275,46 @@ serve(async (req) => {
       if (direction === 'incoming' && typeof content === 'string' && content.trim().length > 0) {
         const contentLower = content.toLowerCase().trim();
 
+        let matchedKeywordFlowId: string | null = null;
+        const { data: keywordFlows } = await supabase
+          .from('zapi_flows')
+          .select('id, trigger_keywords, trigger_specific_text')
+          .eq('is_active', true)
+          .eq('trigger_type', 'keyword');
+
+        if (keywordFlows && keywordFlows.length > 0) {
+          for (const flow of keywordFlows) {
+            if (flow.trigger_specific_text && flow.trigger_specific_text.trim().length > 0) {
+              if (contentLower !== flow.trigger_specific_text.toLowerCase().trim()) continue;
+            }
+
+            const keywords: string[] = Array.isArray(flow.trigger_keywords) ? flow.trigger_keywords : [];
+            if (keywords.length === 0) continue;
+
+            const matched = keywords.some((kw: string) => contentLower.includes(kw.toLowerCase().trim()));
+            if (matched) {
+              matchedKeywordFlowId = flow.id;
+              break;
+            }
+          }
+        }
+
+        // Prevent duplicate executions of the same keyword-triggered flow for the same contact
+        if (matchedKeywordFlowId) {
+          const { data: alreadyRan } = await supabase
+            .from('zapi_flow_executions')
+            .select('id')
+            .eq('phone', phone)
+            .eq('flow_id', matchedKeywordFlowId)
+            .in('status', ['completed', 'running', 'paused'])
+            .limit(1)
+            .maybeSingle();
+
+          if (alreadyRan) {
+            matchedKeywordFlowId = null;
+          }
+        }
+
         // First priority: if there is a paused execution (wait for reply), resume it
         const { data: pausedExec } = await supabase
           .from('zapi_flow_executions')
@@ -276,20 +329,52 @@ serve(async (req) => {
         const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
         if (pausedExec?.id) {
-          console.log(`[Webhook] Resuming paused flow execution ${pausedExec.id} for ${phone}`);
+          const isButtonReply = messageType === 'button_response';
 
-          fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${serviceKey}`,
-              'apikey': serviceKey,
-            },
-            body: JSON.stringify({
-              action: 'resume-execution',
-              data: { executionId: pausedExec.id, phone },
-            }),
-          }).catch(err => console.error('[Webhook] Flow resume error:', err));
+          // If user clicked a button/list option that maps to a keyword trigger,
+          // prioritize the new trigger instead of keeping the old paused flow.
+          if (isButtonReply && matchedKeywordFlowId) {
+            console.log(`[Webhook] Button reply matched keyword flow ${matchedKeywordFlowId}; switching from paused execution ${pausedExec.id}`);
+
+            const nowIso = new Date().toISOString();
+            await supabase
+              .from('zapi_flow_executions')
+              .update({
+                status: 'completed',
+                completed_at: nowIso,
+                paused_at: null,
+                last_step_at: nowIso,
+              })
+              .eq('id', pausedExec.id);
+
+            fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${serviceKey}`,
+                'apikey': serviceKey,
+              },
+              body: JSON.stringify({
+                action: 'execute-flow',
+                data: { flowId: matchedKeywordFlowId, phone },
+              }),
+            }).catch(err => console.error('[Webhook] Flow trigger error (button->keyword):', err));
+          } else {
+            console.log(`[Webhook] Resuming paused flow execution ${pausedExec.id} for ${phone}`);
+
+            fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${serviceKey}`,
+                'apikey': serviceKey,
+              },
+              body: JSON.stringify({
+                action: 'resume-execution',
+                data: { executionId: pausedExec.id, phone },
+              }),
+            }).catch(err => console.error('[Webhook] Flow resume error:', err));
+          }
         } else {
           // If no paused execution, check running (don't stack flows)
           const { data: runningExec } = await supabase
@@ -301,31 +386,10 @@ serve(async (req) => {
             .maybeSingle();
 
           if (!runningExec) {
-            let matchedFlowId: string | null = null;
+            let matchedFlowId: string | null = matchedKeywordFlowId;
 
-            // 1) Check keyword flows FIRST (higher priority - ads, specific triggers)
-            const { data: keywordFlows } = await supabase
-              .from('zapi_flows')
-              .select('id, trigger_keywords, trigger_specific_text')
-              .eq('is_active', true)
-              .eq('trigger_type', 'keyword');
-
-            if (keywordFlows && keywordFlows.length > 0) {
-              for (const flow of keywordFlows) {
-                if (flow.trigger_specific_text && flow.trigger_specific_text.trim().length > 0) {
-                  if (contentLower !== flow.trigger_specific_text.toLowerCase().trim()) continue;
-                }
-
-                const keywords: string[] = Array.isArray(flow.trigger_keywords) ? flow.trigger_keywords : [];
-                if (keywords.length === 0) continue;
-
-                const matched = keywords.some((kw: string) => contentLower.includes(kw.toLowerCase().trim()));
-                if (matched) {
-                  matchedFlowId = flow.id;
-                  console.log(`[Webhook] Keyword match! Triggering flow ${matchedFlowId} for ${phone}`);
-                  break;
-                }
-              }
+            if (matchedFlowId) {
+              console.log(`[Webhook] Keyword match! Triggering flow ${matchedFlowId} for ${phone}`);
             }
 
             // 2) Check first_message flows ONLY if no keyword matched
@@ -347,23 +411,6 @@ serve(async (req) => {
                   matchedFlowId = firstMsgFlows[0].id;
                   console.log(`[Webhook] First message detected! Triggering flow ${matchedFlowId} for ${phone}`);
                 }
-              }
-            }
-
-            // 3) Prevent duplicate: check if this flow already ran for this phone
-            if (matchedFlowId) {
-              const { data: alreadyRan } = await supabase
-                .from('zapi_flow_executions')
-                .select('id')
-                .eq('phone', phone)
-                .eq('flow_id', matchedFlowId)
-                .in('status', ['completed', 'running', 'paused'])
-                .limit(1)
-                .maybeSingle();
-
-              if (alreadyRan) {
-                console.log(`[Webhook] Flow ${matchedFlowId} already executed for ${phone}, skipping duplicate`);
-                matchedFlowId = null;
               }
             }
 
