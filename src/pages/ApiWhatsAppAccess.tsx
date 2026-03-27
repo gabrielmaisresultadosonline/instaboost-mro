@@ -941,6 +941,33 @@ export default function ApiWhatsAppAccess() {
                         {executingFlow && <Loader2 className="w-3 h-3 text-[#00a884] animate-spin shrink-0" />}
                       </div>
                     )}
+
+                    {/* Active Flow Executions */}
+                    {activeExecutions.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {activeExecutions.map(exec => (
+                          <div key={exec.id} className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-1.5">
+                            <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shrink-0" />
+                            <Zap className="w-3 h-3 text-yellow-400 shrink-0" />
+                            <span className="text-yellow-300 text-[11px] font-medium truncate flex-1">
+                              🤖 {exec.flow_name} — {exec.status === 'running' ? 'Executando' : 'Pausado (aguardando resposta)'}
+                            </span>
+                            <button
+                              onClick={() => cancelExecution(exec.id)}
+                              disabled={cancellingExec === exec.id}
+                              className="flex items-center gap-1 bg-red-500/20 hover:bg-red-500/40 text-red-400 px-2 py-0.5 rounded text-[10px] font-medium transition-all shrink-0"
+                            >
+                              {cancellingExec === exec.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <><Square className="w-2.5 h-2.5" /> Cancelar</>
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                        <p className="text-white/30 text-[9px] px-1">Cancele para assumir o atendimento manualmente</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Messages */}
