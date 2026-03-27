@@ -806,7 +806,11 @@ export default function ApiWhatsAppAccess() {
                         <ArrowLeft className="w-5 h-5" />
                       </Button>
                       <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0">
-                        <User className="w-5 h-5 text-white/60" />
+                        {selectedContact.is_group ? (
+                          <Users className="w-5 h-5 text-white/60" />
+                        ) : (
+                          <User className="w-5 h-5 text-white/60" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm font-medium truncate">{selectedContact.name || formatPhone(selectedContact.phone)}</p>
