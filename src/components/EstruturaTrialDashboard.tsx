@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Loader2, Sparkles, Clock, CheckCircle2, XCircle, Instagram, Plus, RefreshCw, Zap, Wifi } from 'lucide-react';
@@ -138,6 +139,9 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             <RefreshCw size={14} />
           </Button>
         </div>
+      </div>
+      <div className="max-w-4xl mx-auto px-4 pt-3">
+        <VideoTutorialButton youtubeUrl="https://youtu.be/TlE_VLHfR_M" title="🎬 Tutorial - Como gerar teste grátis" variant="pulse" size="default" className="w-full bg-red-600 hover:bg-red-700 text-xs sm:text-sm whitespace-normal leading-tight" />
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">

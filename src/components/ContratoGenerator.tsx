@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { ArrowLeft, FileText, Upload, Download, Loader2, X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -356,7 +357,10 @@ export const ContratoGenerator: React.FC<ContratoGeneratorProps> = ({ onBack }) 
             <span className="font-bold text-lg">Gerador de <span className="text-amber-400">Contrato</span></span>
           </div>
         </div>
-      </header>
+       </header>
+       <div className="max-w-4xl mx-auto px-4 pt-3">
+         <VideoTutorialButton youtubeUrl="https://youtu.be/SC7YSIP4jLU" title="🎬 Tutorial - Como gerar contratos" variant="pulse" size="default" className="w-full bg-red-600 hover:bg-red-700 text-xs sm:text-sm whitespace-normal leading-tight" />
+       </div>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
