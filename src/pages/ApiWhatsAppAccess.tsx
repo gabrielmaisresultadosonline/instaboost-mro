@@ -856,6 +856,10 @@ export default function ApiWhatsAppAccess() {
                               ? 'bg-[#005c4b] text-white rounded-tr-none'
                               : 'bg-[#202c33] text-white rounded-tl-none'
                           }`}>
+                            {/* Show sender name in group chats */}
+                            {selectedContact?.is_group && msg.direction === 'incoming' && msg.contact_name && (
+                              <p className="text-xs font-semibold text-[#00a884] mb-0.5">{msg.contact_name}</p>
+                            )}
                             {msg.message_type === 'image' && msg.media_url && (
                               <img src={msg.media_url} alt="Mídia" className="rounded max-w-full mb-1 max-h-64 object-contain" />
                             )}
