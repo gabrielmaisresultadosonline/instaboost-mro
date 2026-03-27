@@ -1085,6 +1085,20 @@ const EstruturaRendaExtra = () => {
                   </button>
                 ))}
               </div>
+
+              {/* Gerenciador Windows Section */}
+              <div className="mt-10 pt-8 border-t border-white/10">
+                <button
+                  onClick={() => setShowGerenciadorPopup(true)}
+                  className="group w-full relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 border-2 border-orange-400/50 hover:border-orange-300 transition-all duration-500 cursor-pointer p-6 flex items-center justify-center gap-4 shadow-xl shadow-orange-600/20 hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
+                  <Download className="h-6 w-6 relative z-10" />
+                  <span className="relative z-10 font-bold text-base md:text-lg uppercase tracking-wide">
+                    Utilizando mais de 10 contas ao mesmo tempo!
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
