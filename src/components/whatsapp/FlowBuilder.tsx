@@ -314,7 +314,8 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
   const removeButtonOption = (stepIndex: number, optIndex: number) => {
     if (!selectedFlow) return;
     const opts = selectedFlow.steps[stepIndex].button_options.filter((_, i) => i !== optIndex);
-    updateStep(stepIndex, { button_options: opts });
+    const actions = (selectedFlow.steps[stepIndex].button_actions || []).filter((_, i) => i !== optIndex);
+    updateStep(stepIndex, { button_options: opts, button_actions: actions });
   };
 
   if (selectedFlow) {
