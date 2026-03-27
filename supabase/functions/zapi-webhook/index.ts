@@ -159,10 +159,12 @@ serve(async (req) => {
         content = payload.video.caption || '';
       } else if (payload.buttonsResponseMessage) {
         messageType = 'button_response';
-        content = payload.buttonsResponseMessage.selectedButtonId || '';
+        const btnDisplayText = payload.buttonsResponseMessage.selectedDisplayText || payload.buttonsResponseMessage.selectedButtonText || '';
+        const btnId = payload.buttonsResponseMessage.selectedButtonId || '';
+        content = btnDisplayText || btnId || 'Botão selecionado';
         metadata = {
-          selectedButtonId: payload.buttonsResponseMessage.selectedButtonId,
-          selectedButtonText: payload.buttonsResponseMessage.selectedDisplayText || content,
+          selectedButtonId: btnId,
+          selectedButtonText: btnDisplayText || btnId,
         };
       } else if (payload.listResponseMessage) {
         messageType = 'button_response';
