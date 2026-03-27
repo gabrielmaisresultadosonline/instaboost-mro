@@ -314,6 +314,14 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
   if (selectedFlow) {
     return (
       <div className="h-full flex flex-col bg-[#111b21]">
+        {/* Hidden file input for media uploads */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/jpeg,image/png,image/webp,audio/mpeg,audio/ogg,audio/mp3,audio/wav,video/mp4,video/webm"
+          onChange={handleFileSelect}
+        />
         {/* Header */}
         <div className="bg-[#202c33] px-4 py-3 flex items-center justify-between border-b border-white/5 shrink-0">
           <div className="flex items-center gap-3">
