@@ -303,50 +303,49 @@ serve(async (req) => {
           if (!runningExec) {
             let matchedFlowId: string | null = null;
 
-            // 1) Check first_message flows - only if contact has NO previous messages
-            const { data: firstMsgFlows } = await supabase
+            // 1) Check keyword flows FIRST (higher priority - ads, specific triggers)
+            const { data: keywordFlows } = await supabase
               .from('zapi_flows')
-              .select('id')
+              .select('id, trigger_keywords, trigger_specific_text')
               .eq('is_active', true)
-              .eq('trigger_type', 'first_message');
+              .eq('trigger_type', 'keyword');
 
-            if (firstMsgFlows && firstMsgFlows.length > 0) {
-              // Count previous incoming messages from this phone (excluding the one we just saved)
-              const { count: previousMsgCount } = await supabase
-                .from('zapi_messages')
-                .select('id', { count: 'exact', head: true })
-                .eq('phone', phone)
-                .eq('direction', 'incoming');
+            if (keywordFlows && keywordFlows.length > 0) {
+              for (const flow of keywordFlows) {
+                if (flow.trigger_specific_text && flow.trigger_specific_text.trim().length > 0) {
+                  if (contentLower !== flow.trigger_specific_text.toLowerCase().trim()) continue;
+                }
 
-              // If this is the first incoming message (count === 1, the one we just inserted)
-              if (previousMsgCount !== null && previousMsgCount <= 1) {
-                matchedFlowId = firstMsgFlows[0].id;
-                console.log(`[Webhook] First message detected! Triggering flow ${matchedFlowId} for ${phone}`);
+                const keywords: string[] = Array.isArray(flow.trigger_keywords) ? flow.trigger_keywords : [];
+                if (keywords.length === 0) continue;
+
+                const matched = keywords.some((kw: string) => contentLower.includes(kw.toLowerCase().trim()));
+                if (matched) {
+                  matchedFlowId = flow.id;
+                  console.log(`[Webhook] Keyword match! Triggering flow ${matchedFlowId} for ${phone}`);
+                  break;
+                }
               }
             }
 
-            // 2) Check keyword flows if no first_message match
+            // 2) Check first_message flows ONLY if no keyword matched
             if (!matchedFlowId) {
-              const { data: keywordFlows } = await supabase
+              const { data: firstMsgFlows } = await supabase
                 .from('zapi_flows')
-                .select('id, trigger_keywords, trigger_specific_text')
+                .select('id')
                 .eq('is_active', true)
-                .eq('trigger_type', 'keyword');
+                .eq('trigger_type', 'first_message');
 
-              if (keywordFlows && keywordFlows.length > 0) {
-                for (const flow of keywordFlows) {
-                  if (flow.trigger_specific_text && flow.trigger_specific_text.trim().length > 0) {
-                    if (contentLower !== flow.trigger_specific_text.toLowerCase().trim()) continue;
-                  }
+              if (firstMsgFlows && firstMsgFlows.length > 0) {
+                const { count: previousMsgCount } = await supabase
+                  .from('zapi_messages')
+                  .select('id', { count: 'exact', head: true })
+                  .eq('phone', phone)
+                  .eq('direction', 'incoming');
 
-                  const keywords: string[] = Array.isArray(flow.trigger_keywords) ? flow.trigger_keywords : [];
-                  if (keywords.length === 0) continue;
-
-                  const matched = keywords.some((kw: string) => contentLower.includes(kw.toLowerCase().trim()));
-                  if (matched) {
-                    matchedFlowId = flow.id;
-                    break;
-                  }
+                if (previousMsgCount !== null && previousMsgCount <= 1) {
+                  matchedFlowId = firstMsgFlows[0].id;
+                  console.log(`[Webhook] First message detected! Triggering flow ${matchedFlowId} for ${phone}`);
                 }
               }
             }
