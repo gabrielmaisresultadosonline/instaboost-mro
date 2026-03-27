@@ -58,6 +58,30 @@ interface FlowBuilderProps {
   onFlowsChange?: () => void;
 }
 
+const getPreferredAudioMimeType = (): string => {
+  if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder.isTypeSupported !== 'function') {
+    return 'audio/webm';
+  }
+
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/mp4;codecs=mp4a.40.2',
+    'audio/mp4',
+    'audio/ogg;codecs=opus',
+  ];
+
+  return candidates.find((mime) => MediaRecorder.isTypeSupported(mime)) || 'audio/webm';
+};
+
+const getAudioExtensionFromMimeType = (mimeType: string): string => {
+  const lower = (mimeType || '').toLowerCase();
+  if (lower.includes('ogg') || lower.includes('opus')) return 'ogg';
+  if (lower.includes('mp4') || lower.includes('m4a')) return 'm4a';
+  if (lower.includes('wav')) return 'wav';
+  return 'webm';
+};
+
 const STEP_TYPES = [
   { value: 'text', label: 'Texto', icon: Type, color: '#00a884' },
   { value: 'image', label: 'Imagem', icon: Image, color: '#7c5cfc' },
@@ -88,7 +112,7 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
   const [newKeyword, setNewKeyword] = useState('');
   const [uploadingStep, setUploadingStep] = useState<number | null>(null);
   const [recordingStep, setRecordingStep] = useState<number | null>(null);
-  const [recordedPreview, setRecordedPreview] = useState<{ stepIndex: number; url: string; blob: Blob } | null>(null);
+  const [recordedPreview, setRecordedPreview] = useState<{ stepIndex: number; url: string; blob: Blob; mimeType: string } | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,14 +151,16 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
   const startRecording = async (stepIndex: number) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      const selectedMimeType = getPreferredAudioMimeType();
+      const recorder = new MediaRecorder(stream, selectedMimeType ? { mimeType: selectedMimeType } : undefined);
       audioChunksRef.current = [];
       recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
       recorder.onstop = () => {
         stream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
+        const resolvedMimeType = recorder.mimeType || audioChunksRef.current[0]?.type || selectedMimeType || 'audio/webm';
+        const blob = new Blob(audioChunksRef.current, { type: resolvedMimeType });
         const url = URL.createObjectURL(blob);
-        setRecordedPreview({ stepIndex, url, blob });
+        setRecordedPreview({ stepIndex, url, blob, mimeType: resolvedMimeType });
         setRecordingStep(null);
       };
       mediaRecorderRef.current = recorder;
@@ -153,8 +179,11 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
     if (!recordedPreview) return;
     setUploadingStep(recordedPreview.stepIndex);
     try {
-      const path = `whatsapp/flow_audio_${Date.now()}.ogg`;
-      const { data, error } = await supabase.storage.from('assets').upload(path, recordedPreview.blob);
+      const ext = getAudioExtensionFromMimeType(recordedPreview.mimeType);
+      const path = `whatsapp/flow_audio_${Date.now()}.${ext}`;
+      const { data, error } = await supabase.storage.from('assets').upload(path, recordedPreview.blob, {
+        contentType: recordedPreview.mimeType || undefined,
+      });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from('assets').getPublicUrl(data.path);
       updateStep(recordedPreview.stepIndex, { media_url: urlData.publicUrl });
