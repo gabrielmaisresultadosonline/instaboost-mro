@@ -855,7 +855,7 @@ serve(async (req) => {
 
         const { payload: audioResult } = await callZapi("/send-audio", {
           method: "POST",
-          body: JSON.stringify({ phone, audio }),
+          body: JSON.stringify({ phone, audio, waveform: true }),
         });
 
         await supabase.from("zapi_messages").insert({
