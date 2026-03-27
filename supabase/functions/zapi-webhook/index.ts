@@ -159,10 +159,17 @@ serve(async (req) => {
         content = payload.video.caption || '';
       } else if (payload.buttonsResponseMessage) {
         messageType = 'button_response';
+        // Z-API sends buttonId and message fields (not selectedDisplayText/selectedButtonId)
+        const btnMessage = payload.buttonsResponseMessage.message || '';
+        const btnId = payload.buttonsResponseMessage.buttonId || '';
+        // Fallback to legacy field names for compatibility
         const btnDisplayText = payload.buttonsResponseMessage.selectedDisplayText || payload.buttonsResponseMessage.selectedButtonText || '';
-        const btnId = payload.buttonsResponseMessage.selectedButtonId || '';
-        content = btnDisplayText || btnId || 'Botão selecionado';
+        const legacyId = payload.buttonsResponseMessage.selectedButtonId || '';
+        content = btnMessage || btnDisplayText || btnId || legacyId || 'Botão selecionado';
+        console.log(`[Webhook] Button response: message="${btnMessage}", buttonId="${btnId}", content="${content}"`);
         metadata = {
+          selectedButtonId: btnId || legacyId || '',
+          selectedDisplayText: btnMessage || btnDisplayText || '',
           selectedButtonId: btnId,
           selectedButtonText: btnDisplayText || btnId,
         };

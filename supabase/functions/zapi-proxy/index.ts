@@ -1209,6 +1209,8 @@ serve(async (req) => {
 
         // Check if paused step was a buttons step with actions configured
         const pausedStepData = flowSteps.find((s) => Number(s.step_order ?? 0) === currentStep);
+        let shouldSkipRemainingSteps = false;
+
         if (pausedStepData?.step_type === "buttons" && pausedStepData.button_actions) {
           const buttonActions: any[] = Array.isArray(pausedStepData.button_actions) ? pausedStepData.button_actions : [];
           const buttonOptions: string[] = Array.isArray(pausedStepData.button_options) ? pausedStepData.button_options : [];
@@ -1225,19 +1227,34 @@ serve(async (req) => {
 
           const responseText = (lastMsg?.content || "").toLowerCase().trim();
           const selectedButtonId = (lastMsg?.metadata as any)?.selectedButtonId || "";
+          const selectedDisplayText = (lastMsg?.metadata as any)?.selectedDisplayText || "";
+
+          console.log("[Resume] Matching button response:", JSON.stringify({
+            responseText, selectedButtonId, selectedDisplayText, buttonOptions
+          }));
 
           let matchedActionIndex = -1;
           for (let bi = 0; bi < buttonOptions.length; bi++) {
             const optLower = buttonOptions[bi].toLowerCase().trim();
-            if (responseText === optLower || selectedButtonId === buttonOptions[bi]) {
+            // Match by: content text, selectedButtonId, selectedDisplayText, or buttonId from Z-API
+            if (
+              responseText === optLower ||
+              selectedButtonId === buttonOptions[bi] ||
+              selectedButtonId.toLowerCase().trim() === optLower ||
+              selectedDisplayText.toLowerCase().trim() === optLower
+            ) {
               matchedActionIndex = bi;
               break;
             }
           }
 
+          console.log("[Resume] Matched action index:", matchedActionIndex);
+
           if (matchedActionIndex >= 0 && buttonActions[matchedActionIndex]) {
             const btnAction = buttonActions[matchedActionIndex];
             const execPhoneNorm = pausedExecution.phone;
+
+            console.log("[Resume] Executing button action:", btnAction.action_type);
 
             if (btnAction.action_type === "text" && btnAction.content) {
               await callZapi("/send-text", {
@@ -1276,7 +1293,20 @@ serve(async (req) => {
                 content: btnAction.content || "", media_url: btnAction.media_url, status: "sent", timestamp: Date.now(),
               });
             } else if (btnAction.action_type === "flow" && btnAction.flow_id) {
-              // Trigger another flow
+              // Trigger another flow - complete current execution first
+              shouldSkipRemainingSteps = true;
+              console.log("[Resume] Triggering flow:", btnAction.flow_id);
+
+              await supabase
+                .from("zapi_flow_executions")
+                .update({
+                  status: "completed",
+                  completed_at: new Date().toISOString(),
+                  paused_at: null,
+                  last_step_at: new Date().toISOString(),
+                })
+                .eq("id", pausedExecution.id);
+
               const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
               const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
               fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
@@ -1292,10 +1322,24 @@ serve(async (req) => {
                 }),
               }).catch(err => console.error("[Resume] Button flow trigger error:", err));
             } else if (btnAction.action_type === "continue") {
-              // "Continue" means just proceed with remaining steps — no special action needed
               console.log("[Resume] Button action is 'continue', proceeding with remaining steps");
             }
+          } else {
+            console.log("[Resume] No matching button action found, proceeding with remaining steps");
           }
+        }
+
+        // If action was "flow", we already completed the execution
+        if (shouldSkipRemainingSteps) {
+          return new Response(JSON.stringify({
+            success: true,
+            executionId: pausedExecution.id,
+            status: "completed",
+            stepsExecuted: 0,
+            note: "Switched to another flow",
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
         }
 
         try {
