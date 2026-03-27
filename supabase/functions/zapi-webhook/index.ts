@@ -190,10 +190,28 @@ serve(async (req) => {
       }
 
       const direction = payload.fromMe ? 'outgoing' : 'incoming';
+      const messageId = payload.messageId || payload.zaapId || null;
+
+      // Idempotency: same webhook message must be processed only once
+      if (messageId) {
+        const { data: existingMessage } = await supabase
+          .from('zapi_messages')
+          .select('id')
+          .eq('message_id', messageId)
+          .limit(1)
+          .maybeSingle();
+
+        if (existingMessage) {
+          console.log(`[Webhook] Duplicate message ignored: ${messageId}`);
+          return new Response(JSON.stringify({ success: true, skipped: 'duplicate_message' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
 
       // Save message
       const { error: msgError } = await supabase.from('zapi_messages').insert({
-        message_id: payload.messageId || payload.zaapId || null,
+        message_id: messageId,
         phone,
         contact_name: senderName,
         direction,
