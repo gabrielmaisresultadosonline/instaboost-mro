@@ -251,6 +251,179 @@ serve(async (req) => {
       return { response, payload };
     };
 
+    const executeFlowSteps = async (
+      executionId: string,
+      execPhone: string,
+      flowSteps: any[],
+      startIndex = 0,
+    ) => {
+      let stepsExecuted = 0;
+
+      for (let index = startIndex; index < flowSteps.length; index++) {
+        const step = flowSteps[index];
+        const currentStep = Number(step?.step_order ?? index);
+
+        if (step.wait_for_reply) {
+          await supabase
+            .from("zapi_flow_executions")
+            .update({
+              status: "paused",
+              current_step: currentStep,
+              paused_at: new Date().toISOString(),
+              last_step_at: new Date().toISOString(),
+            })
+            .eq("id", executionId);
+
+          return { stepsExecuted, status: "paused" as const, current_step: currentStep };
+        }
+
+        if (step.delay_seconds > 0) {
+          await new Promise((r) => setTimeout(r, step.delay_seconds * 1000));
+        }
+
+        if (step.simulate_typing && step.typing_duration_ms > 0) {
+          try {
+            await callZapi("/send-typing", {
+              method: "POST",
+              body: JSON.stringify({ phone: execPhone }),
+            });
+            await new Promise((r) => setTimeout(r, Math.min(step.typing_duration_ms, 5000)));
+            await callZapi("/send-typing-stop", {
+              method: "POST",
+              body: JSON.stringify({ phone: execPhone }),
+            });
+          } catch {
+            // Ignore typing simulation errors; continue sending message
+          }
+        }
+
+        switch (step.step_type) {
+          case "text":
+            if (step.content) {
+              await callZapi("/send-text", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhone, message: step.content }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhone,
+                direction: "outgoing",
+                message_type: "text",
+                content: step.content,
+                status: "sent",
+                timestamp: Date.now(),
+              });
+            }
+            break;
+
+          case "image":
+            if (step.media_url) {
+              await callZapi("/send-image", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhone, image: step.media_url, caption: step.content || "" }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhone,
+                direction: "outgoing",
+                message_type: "image",
+                content: step.content || "",
+                media_url: step.media_url,
+                status: "sent",
+                timestamp: Date.now(),
+              });
+            }
+            break;
+
+          case "audio":
+            if (step.media_url) {
+              await callZapi("/send-audio", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhone, audio: step.media_url }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhone,
+                direction: "outgoing",
+                message_type: "audio",
+                media_url: step.media_url,
+                status: "sent",
+                timestamp: Date.now(),
+              });
+            }
+            break;
+
+          case "video":
+            if (step.media_url) {
+              await callZapi("/send-video", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhone, video: step.media_url, caption: step.content || "" }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhone,
+                direction: "outgoing",
+                message_type: "video",
+                content: step.content || "",
+                media_url: step.media_url,
+                status: "sent",
+                timestamp: Date.now(),
+              });
+            }
+            break;
+
+          case "buttons":
+            if (step.content) {
+              const buttons = (step.button_options || []).map((b: string) => ({ id: b, label: b }));
+              if (buttons.length > 0) {
+                await callZapi("/send-button-list", {
+                  method: "POST",
+                  body: JSON.stringify({
+                    phone: execPhone,
+                    message: step.content,
+                    buttonList: { buttons },
+                  }),
+                });
+              } else {
+                await callZapi("/send-text", {
+                  method: "POST",
+                  body: JSON.stringify({ phone: execPhone, message: step.content }),
+                });
+              }
+
+              await supabase.from("zapi_messages").insert({
+                phone: execPhone,
+                direction: "outgoing",
+                message_type: "buttons",
+                content: step.content,
+                status: "sent",
+                timestamp: Date.now(),
+                metadata: buttons.length > 0 ? { buttons } : null,
+              });
+            }
+            break;
+        }
+
+        stepsExecuted++;
+
+        await supabase
+          .from("zapi_flow_executions")
+          .update({
+            current_step: currentStep,
+            last_step_at: new Date().toISOString(),
+          })
+          .eq("id", executionId);
+      }
+
+      await supabase
+        .from("zapi_flow_executions")
+        .update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+          paused_at: null,
+          last_step_at: new Date().toISOString(),
+        })
+        .eq("id", executionId);
+
+      return { stepsExecuted, status: "completed" as const, current_step: flowSteps.length - 1 };
+    };
+
     switch (action) {
       case "enable-sent-by-me": {
         const { payload: sentByMeResult } = await callZapi("/update-notify-sent-by-me", {
@@ -890,6 +1063,20 @@ serve(async (req) => {
           });
         }
 
+        const { data: existingRunning } = await supabase
+          .from("zapi_flow_executions")
+          .select("id")
+          .eq("phone", execPhone)
+          .eq("status", "running")
+          .limit(1)
+          .maybeSingle();
+
+        if (existingRunning) {
+          return new Response(JSON.stringify({ success: true, skipped: "already_running", executionId: existingRunning.id }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
         const { data: flowSteps } = await supabase
           .from("zapi_flow_steps")
           .select("*")
@@ -902,115 +1089,129 @@ serve(async (req) => {
           });
         }
 
-        await supabase.from("zapi_flow_executions").insert({
+        const { data: executionRow, error: executionError } = await supabase.from("zapi_flow_executions").insert({
           flow_id: execFlowId,
           phone: execPhone,
           status: "running",
-        });
+        }).select("id").single();
 
-        let stepsExecuted = 0;
-        for (const step of flowSteps) {
-          if (step.wait_for_reply) break;
-
-          if (step.delay_seconds > 0) {
-            await new Promise(r => setTimeout(r, step.delay_seconds * 1000));
-          }
-
-          if (step.simulate_typing && step.typing_duration_ms > 0) {
-            try {
-              await callZapi("/send-typing", {
-                method: "POST",
-                body: JSON.stringify({ phone: execPhone }),
-              });
-              await new Promise(r => setTimeout(r, Math.min(step.typing_duration_ms, 5000)));
-              await callZapi("/send-typing-stop", {
-                method: "POST",
-                body: JSON.stringify({ phone: execPhone }),
-              });
-            } catch { /* ignore typing errors */ }
-          }
-
-          switch (step.step_type) {
-            case "text":
-              if (step.content) {
-                await callZapi("/send-text", {
-                  method: "POST",
-                  body: JSON.stringify({ phone: execPhone, message: step.content }),
-                });
-                await supabase.from("zapi_messages").insert({
-                  phone: execPhone, direction: "outgoing", message_type: "buttons",
-                  content: step.content, status: "sent", timestamp: Date.now(),
-                  metadata: buttons.length > 0 ? { buttons } : null,
-                });
-              }
-              break;
-            case "image":
-              if (step.media_url) {
-                await callZapi("/send-image", {
-                  method: "POST",
-                  body: JSON.stringify({ phone: execPhone, image: step.media_url, caption: step.content || "" }),
-                });
-                await supabase.from("zapi_messages").insert({
-                  phone: execPhone, direction: "outgoing", message_type: "image",
-                  content: step.content || "", media_url: step.media_url, status: "sent", timestamp: Date.now(),
-                });
-              }
-              break;
-            case "audio":
-              if (step.media_url) {
-                await callZapi("/send-audio", {
-                  method: "POST",
-                  body: JSON.stringify({ phone: execPhone, audio: step.media_url }),
-                });
-                await supabase.from("zapi_messages").insert({
-                  phone: execPhone, direction: "outgoing", message_type: "audio",
-                  media_url: step.media_url, status: "sent", timestamp: Date.now(),
-                });
-              }
-              break;
-            case "video":
-              if (step.media_url) {
-                await callZapi("/send-video", {
-                  method: "POST",
-                  body: JSON.stringify({ phone: execPhone, video: step.media_url, caption: step.content || "" }),
-                });
-                await supabase.from("zapi_messages").insert({
-                  phone: execPhone, direction: "outgoing", message_type: "video",
-                  content: step.content || "", media_url: step.media_url, status: "sent", timestamp: Date.now(),
-                });
-              }
-              break;
-            case "buttons":
-              if (step.content) {
-                const buttons = (step.button_options || []).map((b: string) => ({ id: b, label: b }));
-                if (buttons.length > 0) {
-                  await callZapi("/send-button-list", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      phone: execPhone,
-                      message: step.content,
-                      buttonList: { buttons },
-                    }),
-                  });
-                } else {
-                  await callZapi("/send-text", {
-                    method: "POST",
-                    body: JSON.stringify({ phone: execPhone, message: step.content }),
-                  });
-                }
-                await supabase.from("zapi_messages").insert({
-                  phone: execPhone, direction: "outgoing", message_type: "text",
-                  content: step.content, status: "sent", timestamp: Date.now(),
-                });
-              }
-              break;
-          }
-          stepsExecuted++;
+        if (executionError || !executionRow?.id) {
+          throw executionError || new Error("Não foi possível criar execução do fluxo.");
         }
 
-        return new Response(JSON.stringify({ success: true, stepsExecuted }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        try {
+          const result = await executeFlowSteps(executionRow.id, execPhone, flowSteps, 0);
+
+          return new Response(JSON.stringify({
+            success: true,
+            executionId: executionRow.id,
+            stepsExecuted: result.stepsExecuted,
+            status: result.status,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (runError) {
+          await supabase
+            .from("zapi_flow_executions")
+            .update({
+              status: "failed",
+              completed_at: new Date().toISOString(),
+              last_step_at: new Date().toISOString(),
+            })
+            .eq("id", executionRow.id);
+
+          throw runError;
+        }
+      }
+
+      case "resume-execution": {
+        const inputExecutionId = typeof data.executionId === "string" ? data.executionId : null;
+        const inputPhone = data.phone ? normalizeBrazilianPhone(normalizePhone(data.phone)) : null;
+
+        let executionQuery = supabase
+          .from("zapi_flow_executions")
+          .select("id, flow_id, phone, current_step, status")
+          .eq("status", "paused")
+          .order("started_at", { ascending: false })
+          .limit(1);
+
+        if (inputExecutionId) {
+          executionQuery = executionQuery.eq("id", inputExecutionId);
+        } else if (inputPhone) {
+          executionQuery = executionQuery.eq("phone", inputPhone);
+        }
+
+        const { data: pausedExecution, error: pausedExecutionError } = await executionQuery.maybeSingle();
+
+        if (pausedExecutionError) throw pausedExecutionError;
+
+        if (!pausedExecution) {
+          return new Response(JSON.stringify({ success: false, error: "Nenhuma execução pausada encontrada." }), {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { data: flowSteps } = await supabase
+          .from("zapi_flow_steps")
+          .select("*")
+          .eq("flow_id", pausedExecution.flow_id)
+          .order("step_order", { ascending: true });
+
+        if (!flowSteps || flowSteps.length === 0) {
+          return new Response(JSON.stringify({ error: "Fluxo sem passos" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const currentStep = Number(pausedExecution.current_step ?? -1);
+        const startIndex = flowSteps.findIndex((step) => Number(step.step_order ?? 0) > currentStep);
+
+        if (startIndex === -1) {
+          await supabase
+            .from("zapi_flow_executions")
+            .update({
+              status: "completed",
+              completed_at: new Date().toISOString(),
+              paused_at: null,
+              last_step_at: new Date().toISOString(),
+            })
+            .eq("id", pausedExecution.id);
+
+          return new Response(JSON.stringify({ success: true, executionId: pausedExecution.id, status: "completed", stepsExecuted: 0 }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        await supabase
+          .from("zapi_flow_executions")
+          .update({ status: "running", paused_at: null })
+          .eq("id", pausedExecution.id);
+
+        try {
+          const result = await executeFlowSteps(pausedExecution.id, pausedExecution.phone, flowSteps, startIndex);
+
+          return new Response(JSON.stringify({
+            success: true,
+            executionId: pausedExecution.id,
+            stepsExecuted: result.stepsExecuted,
+            status: result.status,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (runError) {
+          await supabase
+            .from("zapi_flow_executions")
+            .update({
+              status: "failed",
+              completed_at: new Date().toISOString(),
+              last_step_at: new Date().toISOString(),
+            })
+            .eq("id", pausedExecution.id);
+
+          throw runError;
+        }
       }
 
       case "sync-whatsapp-contacts": {
