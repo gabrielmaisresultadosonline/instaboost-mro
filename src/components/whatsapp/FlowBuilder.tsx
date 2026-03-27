@@ -749,7 +749,7 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                                 />
                               </div>
                               <div>
-                                <label className="text-white/50 text-xs mb-1 block">Digitando (ms)</label>
+                                <label className="text-white/50 text-xs mb-1 block">{step.step_type === 'audio' ? 'Gravando áudio (ms)' : 'Digitando (ms)'}</label>
                                 <Input
                                   type="number"
                                   value={step.typing_duration_ms}
@@ -760,7 +760,7 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                               </div>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-white/50 text-xs">Simular digitando</span>
+                              <span className="text-white/50 text-xs">{step.step_type === 'audio' ? 'Simular gravando áudio' : 'Simular digitando'}</span>
                               <button onClick={() => updateStep(index, { simulate_typing: !step.simulate_typing })}>
                                 {step.simulate_typing
                                   ? <ToggleRight className="w-7 h-7 text-[#00a884]" />
