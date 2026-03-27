@@ -1030,9 +1030,31 @@ const EstruturaRendaExtra = () => {
         <div className="relative z-10 flex-1 px-4 pb-10 md:pb-16">
           <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-stretch gap-5 lg:gap-8">
 
-            {/* Tutorial Card - Left */}
+            {/* Left Cards */}
             <div className="w-full lg:w-[280px] xl:w-[300px] flex-shrink-0 flex flex-col gap-4">
-              {/* Tutorial button */}
+              {/* Entenda sobre a Renda Extra - FIRST */}
+              <button
+                onClick={() => setShowRendaExtraVideo(true)}
+                className="group w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 border-2 border-yellow-400/50 hover:border-yellow-300 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-yellow-600/20 hover:shadow-yellow-500/30"
+              >
+                <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
+                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/25 flex items-center justify-center">
+                    <Play className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg" fill="currentColor" />
+                  </div>
+                </div>
+                <div className="relative z-10 text-left lg:text-center">
+                  <p className="text-white font-black text-2xl lg:text-3xl leading-tight">
+                    Entenda sobre<br className="hidden lg:block" /> a Renda Extra
+                  </p>
+                  <p className="text-white/70 text-xs mt-3 font-medium">Clique para assistir</p>
+                </div>
+              </button>
+
+              <p className="text-center text-white/50 text-xs font-bold italic">
+                ⬇️ Aprenda como fazer tudo isso! ⬇️
+              </p>
+
+              {/* Aprenda como fazer tudo - SECOND */}
               <button
                 onClick={() => setCurrentView('tutoriais')}
                 className="group w-full relative overflow-hidden rounded-2xl bg-red-600 hover:bg-red-500 border-2 border-red-500 hover:border-red-400 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-red-600/20 hover:shadow-red-500/30"
@@ -1054,26 +1076,6 @@ const EstruturaRendaExtra = () => {
                   </p>
                 </div>
               </button>
-
-              {/* Entenda sobre a Renda Extra */}
-              <button
-                onClick={() => setShowRendaExtraVideo(true)}
-                className="group w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 border-2 border-yellow-400/50 hover:border-yellow-300 transition-all duration-500 cursor-pointer p-5 flex flex-row lg:flex-col items-center gap-4 lg:gap-4 lg:justify-center shadow-xl shadow-yellow-600/20 hover:shadow-yellow-500/30"
-              >
-                <div className="relative z-10 w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center group-hover:scale-110 transition-all duration-500 flex-shrink-0">
-                  <Play className="w-7 h-7 text-white drop-shadow-lg" fill="currentColor" />
-                </div>
-                <div className="relative z-10 text-left lg:text-center">
-                  <p className="text-white font-black text-lg lg:text-xl leading-tight">
-                    Entenda sobre a Renda Extra
-                  </p>
-                  <p className="text-white/70 text-xs mt-1 font-medium">Clique para assistir</p>
-                </div>
-              </button>
-
-              <p className="text-center text-white/50 text-xs font-bold italic mt-1">
-                ⬇️ Aprenda como fazer tudo isso! ⬇️
-              </p>
             </div>
 
             {/* Right Panel - Dashboard */}
