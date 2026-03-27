@@ -1055,6 +1055,25 @@ const EstruturaRendaExtra = () => {
                 </div>
               </button>
 
+              {/* Entenda sobre a Renda Extra */}
+              <button
+                onClick={() => setShowRendaExtraVideo(true)}
+                className="group w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 border-2 border-yellow-400/50 hover:border-yellow-300 transition-all duration-500 cursor-pointer p-5 flex flex-row lg:flex-col items-center gap-4 lg:gap-4 lg:justify-center shadow-xl shadow-yellow-600/20 hover:shadow-yellow-500/30"
+              >
+                <div className="relative z-10 w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center group-hover:scale-110 transition-all duration-500 flex-shrink-0">
+                  <Play className="w-7 h-7 text-white drop-shadow-lg" fill="currentColor" />
+                </div>
+                <div className="relative z-10 text-left lg:text-center">
+                  <p className="text-white font-black text-lg lg:text-xl leading-tight">
+                    Entenda sobre a Renda Extra
+                  </p>
+                  <p className="text-white/70 text-xs mt-1 font-medium">Clique para assistir</p>
+                </div>
+              </button>
+
+              <p className="text-center text-white/50 text-xs font-bold italic mt-1">
+                ⬇️ Aprenda como fazer tudo isso! ⬇️
+              </p>
             </div>
 
             {/* Right Panel - Dashboard */}
