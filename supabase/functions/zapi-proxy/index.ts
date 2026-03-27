@@ -1293,34 +1293,81 @@ serve(async (req) => {
                 content: btnAction.content || "", media_url: btnAction.media_url, status: "sent", timestamp: Date.now(),
               });
             } else if (btnAction.action_type === "flow" && btnAction.flow_id) {
-              // Trigger another flow - complete current execution first
+              // Trigger another flow immediately in-process (more reliable than HTTP self-call)
               shouldSkipRemainingSteps = true;
               console.log("[Resume] Triggering flow:", btnAction.flow_id);
 
-              await supabase
+              const nowIso = new Date().toISOString();
+              const { error: completeCurrentError } = await supabase
                 .from("zapi_flow_executions")
                 .update({
                   status: "completed",
-                  completed_at: new Date().toISOString(),
+                  completed_at: nowIso,
                   paused_at: null,
-                  last_step_at: new Date().toISOString(),
+                  last_step_at: nowIso,
                 })
                 .eq("id", pausedExecution.id);
 
-              const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-              const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-              fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${serviceKey}`,
-                  "apikey": serviceKey,
-                },
-                body: JSON.stringify({
-                  action: "execute-flow",
-                  data: { flowId: btnAction.flow_id, phone: execPhoneNorm },
-                }),
-              }).catch(err => console.error("[Resume] Button flow trigger error:", err));
+              if (completeCurrentError) {
+                console.error("[Resume] Error completing current execution before flow switch:", completeCurrentError);
+              }
+
+              const { data: targetRunning } = await supabase
+                .from("zapi_flow_executions")
+                .select("id")
+                .eq("phone", execPhoneNorm)
+                .eq("status", "running")
+                .limit(1)
+                .maybeSingle();
+
+              if (targetRunning?.id) {
+                console.log("[Resume] Skipped target flow start because another execution is already running:", targetRunning.id);
+              } else {
+                const { data: targetSteps, error: targetStepsError } = await supabase
+                  .from("zapi_flow_steps")
+                  .select("*")
+                  .eq("flow_id", btnAction.flow_id)
+                  .order("step_order", { ascending: true });
+
+                if (targetStepsError) {
+                  console.error("[Resume] Error loading target flow steps:", targetStepsError);
+                } else if (!targetSteps || targetSteps.length === 0) {
+                  console.error("[Resume] Target flow has no steps:", btnAction.flow_id);
+                } else {
+                  const { data: targetExecutionRow, error: targetExecutionError } = await supabase
+                    .from("zapi_flow_executions")
+                    .insert({
+                      flow_id: btnAction.flow_id,
+                      phone: execPhoneNorm,
+                      status: "running",
+                    })
+                    .select("id")
+                    .single();
+
+                  if (targetExecutionError || !targetExecutionRow?.id) {
+                    console.error("[Resume] Error creating target flow execution:", targetExecutionError);
+                  } else {
+                    try {
+                      const targetResult = await executeFlowSteps(targetExecutionRow.id, execPhoneNorm, targetSteps, 0);
+                      console.log("[Resume] Target flow started successfully:", {
+                        executionId: targetExecutionRow.id,
+                        status: targetResult.status,
+                        stepsExecuted: targetResult.stepsExecuted,
+                      });
+                    } catch (targetRunError) {
+                      console.error("[Resume] Error running target flow steps:", targetRunError);
+                      await supabase
+                        .from("zapi_flow_executions")
+                        .update({
+                          status: "failed",
+                          completed_at: new Date().toISOString(),
+                          last_step_at: new Date().toISOString(),
+                        })
+                        .eq("id", targetExecutionRow.id);
+                    }
+                  }
+                }
+              }
             } else if (btnAction.action_type === "continue") {
               console.log("[Resume] Button action is 'continue', proceeding with remaining steps");
             }
