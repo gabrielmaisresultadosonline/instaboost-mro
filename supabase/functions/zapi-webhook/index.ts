@@ -33,6 +33,57 @@ const normalizeBrazilianPhone = (phone: string): string => {
   return d;
 };
 
+const safeJson = async (response: Response) => {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
+};
+
+const resolvePhoneFromLid = async (
+  supabase: ReturnType<typeof createClient>,
+  lid: string,
+): Promise<string | null> => {
+  const lidValue = lid.trim();
+  if (!lidValue.includes("@lid")) return null;
+
+  const { data: settings } = await supabase
+    .from("zapi_settings")
+    .select("instance_id, token, client_token")
+    .limit(1)
+    .maybeSingle();
+
+  if (!settings?.instance_id || !settings?.token) return null;
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (settings.client_token) headers["Client-Token"] = settings.client_token;
+
+  const chatsRes = await fetch(
+    `https://api.z-api.io/instances/${settings.instance_id}/token/${settings.token}/chats`,
+    { headers },
+  );
+  const chatsPayload = await safeJson(chatsRes);
+  const chatList = Array.isArray(chatsPayload)
+    ? chatsPayload
+    : (chatsPayload?.chats || chatsPayload?.data || []);
+
+  if (!Array.isArray(chatList)) return null;
+
+  const chat = chatList.find((item: any) => {
+    const itemLid = item?.lid || item?.chatLid || "";
+    const itemPhone = item?.phone || item?.chatId || item?.waId || "";
+    return typeof itemLid === "string" && itemLid === lidValue && typeof itemPhone === "string" && itemPhone.length > 0;
+  });
+
+  if (!chat?.phone) return null;
+  const resolved = normalizeBrazilianPhone(normalizePhone(chat.phone));
+  if (!resolved || resolved.replace(/\D/g, "").length >= 15) return null;
+  return resolved;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -55,16 +106,32 @@ serve(async (req) => {
     if (isMessage) {
       const rawPhone = payload.phone || '';
       const chatIsGroup = isGroupId(rawPhone);
-      // Normalize phone consistently with zapi-proxy
-      const phone = chatIsGroup
-        ? normalizePhone(rawPhone)
-        : normalizeBrazilianPhone(normalizePhone(rawPhone));
-      
-      // Skip Z-API LID identifiers (15+ digit numbers that aren't real phones)
+      const rawNormalized = normalizePhone(rawPhone);
+      const rawDigits = rawNormalized.replace(/\D/g, '');
+
+      // Resolve LID chats to real phone whenever possible
+      let phone = chatIsGroup
+        ? rawNormalized
+        : normalizeBrazilianPhone(rawNormalized);
+
+      if (!chatIsGroup && rawPhone.includes('@lid')) {
+        const resolvedPhone = await resolvePhoneFromLid(supabase, rawPhone);
+        if (resolvedPhone) {
+          phone = resolvedPhone;
+
+          // Backfill old LID messages/contacts so historical chat appears in the right thread
+          if (rawDigits.length >= 15) {
+            await supabase.from('zapi_messages').update({ phone: resolvedPhone }).eq('phone', rawDigits);
+            await supabase.from('zapi_contacts').delete().eq('phone', rawDigits);
+          }
+        }
+      }
+
+      // If still unresolved LID, skip to avoid duplicate fake contacts
       const phoneDigits = phone.replace(/\D/g, '');
       if (!chatIsGroup && phoneDigits.length >= 15) {
-        console.log('Skipping LID contact:', phone);
-        return new Response(JSON.stringify({ success: true, skipped: 'lid' }), {
+        console.log('Skipping unresolved LID contact:', phone);
+        return new Response(JSON.stringify({ success: true, skipped: 'lid_unresolved' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
