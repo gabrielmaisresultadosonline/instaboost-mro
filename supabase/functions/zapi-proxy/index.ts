@@ -13,6 +13,24 @@ const normalizePhone = (value: unknown): string => {
   return digits || base;
 };
 
+const normalizeBrazilianPhone = (phone: string): string => {
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 13 && d.startsWith("55")) {
+    const ddd = d.slice(2, 4);
+    const rest = d.slice(4);
+    if (rest.startsWith("9") && rest.length === 9) {
+      return `55${ddd}${rest.slice(1)}`;
+    }
+  }
+  return d;
+};
+
+const isRealPhone = (phone: string): boolean => {
+  const d = phone.replace(/\D/g, "");
+  // Real phone numbers: 10-13 digits. Z-API lids are typically 15+ digits
+  return d.length >= 10 && d.length <= 13;
+};
+
 const safeJson = async (response: Response) => {
   const text = await response.text();
   if (!text) return null;
@@ -92,6 +110,51 @@ serve(async (req) => {
       });
     }
 
+    if (action === "cleanup-contacts") {
+      const { data: allContacts } = await supabase
+        .from("zapi_contacts")
+        .select("id, phone, name");
+      
+      const removed: string[] = [];
+      const merged: string[] = [];
+      
+      if (allContacts) {
+        for (const c of allContacts) {
+          if (!isRealPhone(c.phone)) {
+            const { error } = await supabase.from("zapi_contacts").delete().eq("id", c.id);
+            if (!error) removed.push(c.phone);
+            else console.error("Delete error:", c.phone, error);
+          } else {
+            const normalized = normalizeBrazilianPhone(c.phone);
+            if (normalized !== c.phone) {
+              const { data: existing } = await supabase
+                .from("zapi_contacts")
+                .select("id")
+                .eq("phone", normalized)
+                .maybeSingle();
+              if (existing) {
+                await supabase.from("zapi_messages").update({ phone: normalized }).eq("phone", c.phone);
+                const { error } = await supabase.from("zapi_contacts").delete().eq("id", c.id);
+                if (!error) merged.push(`${c.phone} → ${normalized}`);
+              } else {
+                await supabase.from("zapi_contacts").update({ phone: normalized }).eq("id", c.id);
+                merged.push(`${c.phone} → ${normalized}`);
+              }
+            }
+          }
+        }
+      }
+      
+      const { data: remaining } = await supabase
+        .from("zapi_contacts")
+        .select("phone, name")
+        .order("last_message_at", { ascending: false });
+      
+      return new Response(JSON.stringify({ removed, merged, remaining: remaining ?? [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "get-db-contacts") {
       const { data: contacts, error } = await supabase
         .from("zapi_contacts")
@@ -106,17 +169,21 @@ serve(async (req) => {
     }
 
     if (action === "get-db-messages") {
-      const phone = normalizePhone(data.phone);
+      const rawPhone = normalizePhone(data.phone);
+      const phone = normalizeBrazilianPhone(rawPhone);
       if (!phone) {
         return new Response(JSON.stringify({ messages: [] }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
+      const phonesToQuery = [phone];
+      if (rawPhone && rawPhone !== phone) phonesToQuery.push(rawPhone);
+
       const { data: messages, error } = await supabase
         .from("zapi_messages")
         .select("*")
-        .eq("phone", phone)
+        .in("phone", phonesToQuery)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
@@ -127,7 +194,7 @@ serve(async (req) => {
     }
 
     if (action === "mark-read") {
-      const phone = normalizePhone(data.phone);
+      const phone = normalizeBrazilianPhone(normalizePhone(data.phone));
       if (phone) {
         await supabase
           .from("zapi_contacts")
@@ -185,10 +252,14 @@ serve(async (req) => {
         }
 
         let synced = 0;
+        const seenPhones = new Set<string>();
 
         for (const chat of chatList) {
-          const phone = normalizePhone(chat?.phone || chat?.id || chat?.lid || chat?.chatId || chat?.waId);
-          if (!phone) continue;
+          const rawPhone = normalizePhone(chat?.phone || chat?.chatId || chat?.waId || chat?.id);
+          if (!rawPhone || !isRealPhone(rawPhone)) continue;
+          const phone = normalizeBrazilianPhone(rawPhone);
+          if (seenPhones.has(phone)) continue;
+          seenPhones.add(phone);
 
           const lastMessageRaw = Number(chat?.lastMessageTimestamp ?? chat?.lastMessageTime ?? chat?.last_message_at ?? Date.now());
           const lastMessageAt = Number.isFinite(lastMessageRaw)
@@ -209,6 +280,33 @@ serve(async (req) => {
             }, { onConflict: "phone" });
 
           if (!error) synced += 1;
+        }
+
+        // Clean up invalid contacts (internal IDs / duplicates)
+        const { data: allContacts } = await supabase
+          .from("zapi_contacts")
+          .select("id, phone");
+        if (allContacts) {
+          for (const c of allContacts) {
+            if (!isRealPhone(c.phone)) {
+              await supabase.from("zapi_contacts").delete().eq("id", c.id);
+            } else {
+              const normalized = normalizeBrazilianPhone(c.phone);
+              if (normalized !== c.phone) {
+                const { data: existing } = await supabase
+                  .from("zapi_contacts")
+                  .select("id")
+                  .eq("phone", normalized)
+                  .maybeSingle();
+                if (existing) {
+                  await supabase.from("zapi_messages").update({ phone: normalized }).eq("phone", c.phone);
+                  await supabase.from("zapi_contacts").delete().eq("id", c.id);
+                } else {
+                  await supabase.from("zapi_contacts").update({ phone: normalized, updated_at: new Date().toISOString() }).eq("id", c.id);
+                }
+              }
+            }
+          }
         }
 
         const { data: contacts } = await supabase
@@ -267,14 +365,15 @@ serve(async (req) => {
       }
 
       case "sync-messages": {
-        const phone = normalizePhone(data.phone);
+        const rawSyncPhone = normalizePhone(data.phone);
+        const phone = normalizeBrazilianPhone(rawSyncPhone);
         if (!phone) {
           return new Response(JSON.stringify({ inserted: 0 }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
-        const { payload } = await callZapi(`/get-messages/${phone}`);
+        const { payload } = await callZapi(`/get-messages/${rawSyncPhone || phone}`);
         const messages = Array.isArray(payload)
           ? payload
           : (payload?.messages || payload?.data || []);
@@ -335,11 +434,11 @@ serve(async (req) => {
             msg?.document?.url ||
             null;
 
-          const messagePhone = normalizePhone(msg?.phone || phone);
+          const messagePhone = normalizeBrazilianPhone(normalizePhone(msg?.phone || phone));
 
           const { error } = await supabase.from("zapi_messages").insert({
             message_id: messageId,
-            phone: messagePhone || phone,
+            phone: messagePhone,
             contact_name: msg?.senderName || msg?.chatName || null,
             direction,
             message_type: messageType,
@@ -369,7 +468,7 @@ serve(async (req) => {
       }
 
       case "send-text": {
-        const phone = normalizePhone(data.phone);
+        const phone = normalizeBrazilianPhone(normalizePhone(data.phone));
         const message = typeof data.message === "string" ? data.message : "";
 
         if (!phone || !message.trim()) {
@@ -407,7 +506,7 @@ serve(async (req) => {
       }
 
       case "send-image": {
-        const phone = normalizePhone(data.phone);
+        const phone = normalizeBrazilianPhone(normalizePhone(data.phone));
         const image = typeof data.image === "string" ? data.image : "";
         const caption = typeof data.caption === "string" ? data.caption : "";
 
@@ -433,7 +532,7 @@ serve(async (req) => {
       }
 
       case "send-audio": {
-        const phone = normalizePhone(data.phone);
+        const phone = normalizeBrazilianPhone(normalizePhone(data.phone));
         const audio = typeof data.audio === "string" ? data.audio : "";
 
         const { payload: audioResult } = await callZapi("/send-audio", {
@@ -457,7 +556,7 @@ serve(async (req) => {
       }
 
       case "send-document": {
-        const phone = normalizePhone(data.phone);
+        const phone = normalizeBrazilianPhone(normalizePhone(data.phone));
         const docUrl = typeof data.document === "string" ? data.document : "";
         const fileName = typeof data.fileName === "string" ? data.fileName : "";
 
@@ -483,7 +582,7 @@ serve(async (req) => {
       }
 
       case "get-profile-picture": {
-        const picPhone = normalizePhone(data.phone);
+        const picPhone = normalizeBrazilianPhone(normalizePhone(data.phone));
         const { payload: picData } = await callZapi(`/profile-picture/${picPhone}`);
         return new Response(JSON.stringify(picData), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
