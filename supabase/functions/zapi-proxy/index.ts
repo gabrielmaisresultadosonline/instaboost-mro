@@ -27,7 +27,8 @@ const normalizeBrazilianPhone = (phone: string): string => {
 
 const isRealPhone = (phone: string): boolean => {
   const d = phone.replace(/\D/g, "");
-  return d.length >= 10 && d.length <= 15;
+  // Real phone numbers: 10-13 digits. Z-API lids are typically 15+ digits
+  return d.length >= 10 && d.length <= 13;
 };
 
 const safeJson = async (response: Response) => {
