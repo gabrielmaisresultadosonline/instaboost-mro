@@ -50,7 +50,7 @@ export const VideoTutorialButton = ({
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black border-border">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl p-0 overflow-hidden bg-black border-border">
           <DialogHeader className="p-4 flex flex-row items-center justify-between">
             <DialogTitle className="text-foreground">{title}</DialogTitle>
             <Button
