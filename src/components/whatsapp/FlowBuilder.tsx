@@ -488,6 +488,65 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                                 className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
                               />
                             </div>
+
+                            {/* Upload / Record buttons */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={uploadingStep === index}
+                                onClick={() => {
+                                  setActiveFileStep(index);
+                                  fileInputRef.current?.click();
+                                }}
+                                className="text-white/60 hover:text-white bg-[#2a3942] text-xs h-8"
+                              >
+                                {uploadingStep === index ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
+                                {step.step_type === 'audio' ? 'Subir áudio (.mp3, .ogg)' : step.step_type === 'video' ? 'Subir vídeo (.mp4)' : 'Subir imagem (.jpg, .png)'}
+                              </Button>
+
+                              {step.step_type === 'audio' && (
+                                <>
+                                  {recordingStep === index ? (
+                                    <Button variant="ghost" size="sm" onClick={stopRecording} className="text-red-400 hover:text-red-300 bg-red-400/10 text-xs h-8 animate-pulse">
+                                      <Square className="w-3 h-3 mr-1" /> Parar gravação
+                                    </Button>
+                                  ) : (
+                                    <Button variant="ghost" size="sm" onClick={() => startRecording(index)} className="text-orange-400 hover:text-orange-300 bg-orange-400/10 text-xs h-8"
+                                      disabled={recordingStep !== null}>
+                                      <Mic className="w-3 h-3 mr-1" /> Gravar áudio
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            {/* Recorded audio preview */}
+                            {recordedPreview && recordedPreview.stepIndex === index && (
+                              <div className="bg-[#1a2730] rounded-lg p-3 space-y-2">
+                                <p className="text-white/50 text-xs">Pré-visualização do áudio gravado:</p>
+                                <audio controls src={recordedPreview.url} className="w-full h-8" />
+                                <div className="flex gap-2">
+                                  <Button size="sm" onClick={saveRecordedAudio} disabled={uploadingStep === index} className="bg-[#00a884] hover:bg-[#00a884]/80 text-white text-xs h-7">
+                                    {uploadingStep === index ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
+                                    Salvar
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={cancelRecording} className="text-white/40 hover:text-white/60 text-xs h-7">
+                                    <X className="w-3 h-3 mr-1" /> Cancelar
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Media preview */}
+                            {step.media_url && (
+                              <div className="bg-[#1a2730] rounded-lg p-2">
+                                {step.step_type === 'image' && <img src={step.media_url} alt="Preview" className="max-h-32 rounded object-contain" />}
+                                {step.step_type === 'audio' && <audio controls src={step.media_url} className="w-full h-8" />}
+                                {step.step_type === 'video' && <video controls src={step.media_url} className="max-h-32 rounded" />}
+                              </div>
+                            )}
+
                             <div>
                               <label className="text-white/50 text-xs mb-1 block">Legenda (opcional)</label>
                               <Input
