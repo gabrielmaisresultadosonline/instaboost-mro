@@ -370,14 +370,21 @@ serve(async (req) => {
 
           case "buttons":
             if (step.content) {
-              const buttons = (step.button_options || []).map((b: string) => ({ id: b, label: b }));
+              const buttonOptions: string[] = step.button_options || [];
+              const buttons = buttonOptions.map((b: string, idx: number) => ({ id: String(idx + 1), label: b }));
               if (buttons.length > 0) {
-                await callZapi("/send-button-list", {
+                // Use send-button-actions with REPLY type for mobile + desktop compatibility
+                const buttonActions = buttons.map((b) => ({
+                  id: b.id,
+                  type: "REPLY",
+                  label: b.label,
+                }));
+                await callZapi("/send-button-actions", {
                   method: "POST",
                   body: JSON.stringify({
                     phone: execPhone,
                     message: step.content,
-                    buttonList: { buttons },
+                    buttonActions,
                   }),
                 });
               } else {
@@ -1216,10 +1223,12 @@ serve(async (req) => {
           let matchedActionIndex = -1;
           for (let bi = 0; bi < buttonOptions.length; bi++) {
             const optLower = buttonOptions[bi].toLowerCase().trim();
+            const numericId = String(bi + 1); // buttons sent with id "1","2","3"
             if (
               responseText === optLower ||
               selectedButtonId === buttonOptions[bi] ||
               selectedButtonId.toLowerCase().trim() === optLower ||
+              selectedButtonId === numericId ||
               selectedDisplayText.toLowerCase().trim() === optLower
             ) {
               matchedActionIndex = bi;
