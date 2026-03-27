@@ -291,6 +291,7 @@ serve(async (req) => {
               profile_pic_url: chat?.profileThumbnail || chat?.imgUrl || chat?.profilePicUrl || null,
               last_message_at: lastMessageAt,
               unread_count: unreadCount,
+              is_group: chatIsGroup,
               updated_at: new Date().toISOString(),
             }, { onConflict: "phone" });
 
