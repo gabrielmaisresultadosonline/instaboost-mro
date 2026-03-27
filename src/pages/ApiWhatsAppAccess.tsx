@@ -394,6 +394,7 @@ export default function ApiWhatsAppAccess() {
     return `${m}:${s}`;
   };
 
+  const executeFlow = async (flowId: string) => {
     if (!selectedContact) return;
     setExecutingFlow(true);
     try {
