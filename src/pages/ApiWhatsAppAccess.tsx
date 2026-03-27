@@ -98,8 +98,18 @@ export default function ApiWhatsAppAccess() {
   const [executingFlow, setExecutingFlow] = useState(false);
   const [showMediaInput, setShowMediaInput] = useState(false);
   const [mediaUrl, setMediaUrl] = useState('');
-  const [mediaType, setMediaType] = useState<'image' | 'audio'>('image');
+  const [mediaType, setMediaType] = useState<'image' | 'audio' | 'video'>('image');
   const [syncingContacts, setSyncingContacts] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [pastedFile, setPastedFile] = useState<File | null>(null);
+  const [pastedPreview, setPastedPreview] = useState<string | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const formatPhone = (phone: string) => {
