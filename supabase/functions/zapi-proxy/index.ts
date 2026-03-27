@@ -1096,6 +1096,61 @@ serve(async (req) => {
         });
       }
 
+      case "get-active-executions": {
+        const execPhone = data.phone ? normalizeBrazilianPhone(normalizePhone(data.phone)) : null;
+        
+        let query = supabase
+          .from("zapi_flow_executions")
+          .select("id, flow_id, phone, current_step, status, started_at, paused_at")
+          .in("status", ["running", "paused"])
+          .order("started_at", { ascending: false });
+
+        if (execPhone) {
+          query = query.eq("phone", execPhone);
+        }
+
+        const { data: executions, error } = await query;
+        if (error) throw error;
+
+        // Enrich with flow names
+        const enriched = [];
+        for (const exec of (executions ?? [])) {
+          const { data: flow } = await supabase
+            .from("zapi_flows")
+            .select("name")
+            .eq("id", exec.flow_id)
+            .maybeSingle();
+          enriched.push({
+            ...exec,
+            flow_name: flow?.name || "Fluxo desconhecido",
+          });
+        }
+
+        return new Response(JSON.stringify({ executions: enriched }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "cancel-execution": {
+        const cancelId = data.executionId;
+        if (!cancelId) {
+          return new Response(JSON.stringify({ error: "executionId obrigatório" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { error } = await supabase
+          .from("zapi_flow_executions")
+          .update({ status: "cancelled", completed_at: new Date().toISOString() })
+          .eq("id", cancelId);
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       default:
         return new Response(JSON.stringify({ error: `Ação desconhecida: ${action}` }), {
           status: 400,
