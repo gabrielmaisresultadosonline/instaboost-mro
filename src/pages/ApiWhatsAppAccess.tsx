@@ -870,6 +870,20 @@ export default function ApiWhatsAppAccess() {
                             {(msg.message_type === 'text' || msg.content) && msg.message_type !== 'document' && (
                               <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                             )}
+                            {/* Button message rendering */}
+                            {msg.metadata?.buttons && msg.metadata.buttons.length > 0 && (
+                              <div className="mt-1.5 space-y-1">
+                                {msg.metadata.buttons.map((btn: { id: string; label: string }, i: number) => (
+                                  <div key={i} className="text-center border border-[#00a884]/40 rounded-md py-1.5 px-2">
+                                    <span className="text-[#00a884] text-sm font-medium">{btn.label}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {/* Button response rendering */}
+                            {msg.metadata?.selectedButtonText && !msg.content && (
+                              <p className="text-sm whitespace-pre-wrap break-words">{msg.metadata.selectedButtonText}</p>
+                            )}
                             <div className={`flex items-center gap-1 mt-0.5 ${msg.direction === 'outgoing' ? 'justify-end' : ''}`}>
                               <span className="text-[10px] text-white/40">{formatTime(msg)}</span>
                               {msg.direction === 'outgoing' && <StatusIcon status={msg.status} />}
