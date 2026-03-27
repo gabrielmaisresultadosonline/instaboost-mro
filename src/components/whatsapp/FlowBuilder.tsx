@@ -26,6 +26,12 @@ interface FlowStep {
   wait_timeout_seconds: number;
   button_text?: string;
   button_options: string[];
+  button_actions?: Array<{
+    action_type: 'text' | 'audio' | 'image' | 'video' | 'flow';
+    content?: string;
+    media_url?: string;
+    flow_id?: string;
+  }>;
   wait_indefinitely?: boolean;
   followup_enabled?: boolean;
   followup_delay_seconds?: number;
