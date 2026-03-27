@@ -2697,6 +2697,120 @@ export type Database = {
         }
         Relationships: []
       }
+      zapi_contacts: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          name: string | null
+          phone: string
+          profile_pic_url: string | null
+          unread_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          phone: string
+          profile_pic_url?: string | null
+          unread_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          phone?: string
+          profile_pic_url?: string | null
+          unread_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      zapi_messages: {
+        Row: {
+          contact_name: string | null
+          content: string | null
+          created_at: string
+          direction: string
+          id: string
+          is_read: boolean | null
+          media_url: string | null
+          message_id: string | null
+          message_type: string
+          phone: string
+          status: string | null
+          timestamp: number | null
+        }
+        Insert: {
+          contact_name?: string | null
+          content?: string | null
+          created_at?: string
+          direction?: string
+          id?: string
+          is_read?: boolean | null
+          media_url?: string | null
+          message_id?: string | null
+          message_type?: string
+          phone: string
+          status?: string | null
+          timestamp?: number | null
+        }
+        Update: {
+          contact_name?: string | null
+          content?: string | null
+          created_at?: string
+          direction?: string
+          id?: string
+          is_read?: boolean | null
+          media_url?: string | null
+          message_id?: string | null
+          message_type?: string
+          phone?: string
+          status?: string | null
+          timestamp?: number | null
+        }
+        Relationships: []
+      }
+      zapi_settings: {
+        Row: {
+          client_token: string | null
+          created_at: string
+          id: string
+          instance_id: string | null
+          is_connected: boolean | null
+          phone_number: string | null
+          token: string | null
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          client_token?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          is_connected?: boolean | null
+          phone_number?: string | null
+          token?: string | null
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          client_token?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          is_connected?: boolean | null
+          phone_number?: string | null
+          token?: string | null
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       zapmro_orders: {
         Row: {
           amount: number
