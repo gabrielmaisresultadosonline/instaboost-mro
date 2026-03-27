@@ -866,20 +866,27 @@ export default function ApiWhatsAppAccess() {
                   <div className="bg-[#202c33] px-4 py-2 border-b border-white/5 shrink-0">
                     <div className="flex items-center gap-3">
                       <Button variant="ghost" size="icon" className="md:hidden text-white/60 hover:text-white h-8 w-8"
-                        onClick={() => { setShowMobileChat(false); setSelectedContact(null); }}>
+                        onClick={() => { setShowMobileChat(false); setSelectedContact(null); setShowContactInfo(false); }}>
                         <ArrowLeft className="w-5 h-5" />
                       </Button>
-                      <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0">
-                        {selectedContact.is_group ? (
+                      <div className="w-10 h-10 rounded-full bg-[#6b7b8d] flex items-center justify-center shrink-0 overflow-hidden cursor-pointer"
+                        onClick={fetchContactInfo}>
+                        {selectedContact.profile_pic_url ? (
+                          <img src={selectedContact.profile_pic_url} alt="" className="w-full h-full object-cover" />
+                        ) : selectedContact.is_group ? (
                           <Users className="w-5 h-5 text-white/60" />
                         ) : (
                           <User className="w-5 h-5 text-white/60" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 cursor-pointer" onClick={fetchContactInfo}>
                         <p className="text-white text-sm font-medium truncate">{selectedContact.name || formatPhone(selectedContact.phone)}</p>
                         <p className="text-white/40 text-xs">{formatPhone(selectedContact.phone)}</p>
                       </div>
+                      <Button variant="ghost" size="icon" className={`text-white/60 hover:text-white h-8 w-8 ${showContactInfo ? 'text-[#00a884]' : ''}`}
+                        onClick={() => showContactInfo ? setShowContactInfo(false) : fetchContactInfo()}>
+                        <Info className="w-4 h-4" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="text-white/60 hover:text-white h-8 w-8" onClick={() => loadMessages(selectedContact.phone)}>
                         <RefreshCw className={`w-4 h-4 ${messageLoading ? 'animate-spin' : ''}`} />
                       </Button>
