@@ -6,6 +6,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const isGroupId = (value: string): boolean => {
+  return value.includes("@g.us") || value.includes("-");
+};
+
+const normalizePhone = (value: string): string => {
+  const trimmed = value.trim();
+  if (isGroupId(trimmed)) {
+    return trimmed.split("@")[0] ?? "";
+  }
+  const base = trimmed.split("@")[0] ?? "";
+  return base.replace(/\D/g, "") || base;
+};
+
+const normalizeBrazilianPhone = (phone: string): string => {
+  if (phone.includes("-")) return phone;
+  const d = phone.replace(/\D/g, "");
+  // 13 digits starting with 55 + DDD + 9xxxx -> remove the extra 9
+  if (d.length === 13 && d.startsWith("55")) {
+    const ddd = d.slice(2, 4);
+    const rest = d.slice(4);
+    if (rest.startsWith("9") && rest.length === 9) {
+      return `55${ddd}${rest.slice(1)}`;
+    }
+  }
+  return d;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -26,12 +53,12 @@ serve(async (req) => {
     const isConnection = payload.connected !== undefined;
 
     if (isMessage) {
-      // Incoming message - handle both individual and group chats
       const rawPhone = payload.phone || '';
-      const chatIsGroup = rawPhone.includes('@g.us') || rawPhone.includes('-');
+      const chatIsGroup = isGroupId(rawPhone);
+      // Normalize phone consistently with zapi-proxy
       const phone = chatIsGroup
-        ? rawPhone.split('@')[0]
-        : rawPhone.replace(/\D/g, '');
+        ? normalizePhone(rawPhone)
+        : normalizeBrazilianPhone(normalizePhone(rawPhone));
       const senderName = payload.senderName || payload.chatName || phone;
       
       let messageType = 'text';
@@ -81,11 +108,15 @@ serve(async (req) => {
         };
       }
 
-      // Determine direction
+      // If content is an object (e.g. {message: "text"}), extract the string
+      if (typeof content === 'object' && content !== null) {
+        content = (content as any).message || JSON.stringify(content);
+      }
+
       const direction = payload.fromMe ? 'outgoing' : 'incoming';
 
       // Save message
-      await supabase.from('zapi_messages').insert({
+      const { error: msgError } = await supabase.from('zapi_messages').insert({
         message_id: payload.messageId || payload.zaapId || null,
         phone,
         contact_name: senderName,
@@ -99,6 +130,10 @@ serve(async (req) => {
         timestamp: payload.momment || payload.timestamp || Date.now(),
       });
 
+      if (msgError) {
+        console.error('Error saving message:', msgError);
+      }
+
       // Upsert contact
       const contactData: Record<string, unknown> = {
         phone,
@@ -109,7 +144,6 @@ serve(async (req) => {
       };
 
       if (direction === 'incoming') {
-        // Get current unread count
         const { data: existingContact } = await supabase
           .from('zapi_contacts')
           .select('unread_count')
@@ -123,7 +157,6 @@ serve(async (req) => {
     }
 
     if (isStatus && payload.messageId) {
-      // Update message status
       let status = 'sent';
       if (payload.status === 'RECEIVED' || payload.status === 'DELIVERED') status = 'delivered';
       if (payload.status === 'READ') status = 'read';
@@ -141,7 +174,7 @@ serve(async (req) => {
           is_connected: payload.connected,
           updated_at: new Date().toISOString()
         })
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // update all rows
+        .neq('id', '00000000-0000-0000-0000-000000000000');
     }
 
     return new Response(JSON.stringify({ success: true }), {
