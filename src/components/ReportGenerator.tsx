@@ -787,6 +787,9 @@ export const ReportGenerator = ({ onBack, mroUsername }: ReportGeneratorProps) =
             <p className="text-white/40 text-sm">Gere relatórios profissionais para seus clientes</p>
           </div>
         </div>
+        <div className="mb-4">
+          <VideoTutorialButton youtubeUrl="https://youtu.be/MFixSgbNXWI" title="🎬 Tutorial - Como gerar relatórios" variant="pulse" size="default" className="w-full bg-red-600 hover:bg-red-700 text-xs sm:text-sm whitespace-normal leading-tight" />
+        </div>
 
         {/* Logo upload section */}
         <div className="bg-[#12121f] border border-white/10 rounded-xl p-4 mb-6">

@@ -140,6 +140,9 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
           </Button>
         </div>
       </div>
+      <div className="max-w-4xl mx-auto px-4 pt-3">
+        <VideoTutorialButton youtubeUrl="https://youtu.be/TlE_VLHfR_M" title="🎬 Tutorial - Como gerar teste grátis" variant="pulse" size="default" className="w-full bg-red-600 hover:bg-red-700 text-xs sm:text-sm whitespace-normal leading-tight" />
+      </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {loading ? (
