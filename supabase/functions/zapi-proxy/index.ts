@@ -1223,10 +1223,12 @@ serve(async (req) => {
           let matchedActionIndex = -1;
           for (let bi = 0; bi < buttonOptions.length; bi++) {
             const optLower = buttonOptions[bi].toLowerCase().trim();
+            const numericId = String(bi + 1); // buttons sent with id "1","2","3"
             if (
               responseText === optLower ||
               selectedButtonId === buttonOptions[bi] ||
               selectedButtonId.toLowerCase().trim() === optLower ||
+              selectedButtonId === numericId ||
               selectedDisplayText.toLowerCase().trim() === optLower
             ) {
               matchedActionIndex = bi;
