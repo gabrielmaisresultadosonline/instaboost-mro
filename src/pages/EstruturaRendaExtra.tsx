@@ -298,6 +298,13 @@ const EstruturaRendaExtra = () => {
   const [mroPassword, setMroPassword] = useState('');
   const [showLogoPopup, setShowLogoPopup] = useState(false);
   const [showGerenciadorPopup, setShowGerenciadorPopup] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+
+  useEffect(() => {
+    supabase.from('whatsapp_page_settings').select('whatsapp_number').limit(1).single().then(({ data }) => {
+      if (data) setWhatsappNumber(data.whatsapp_number);
+    });
+  }, []);
   
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
