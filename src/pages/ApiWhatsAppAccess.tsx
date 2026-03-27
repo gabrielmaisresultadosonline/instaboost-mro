@@ -39,6 +39,7 @@ interface Message {
   is_read: boolean;
   timestamp?: number;
   created_at: string;
+  metadata?: { buttons?: { id: string; label: string }[]; title?: string; footer?: string; selectedButtonId?: string; selectedButtonText?: string } | null;
 }
 
 interface ZApiSettings {
