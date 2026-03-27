@@ -1043,6 +1043,59 @@ serve(async (req) => {
         });
       }
 
+      case "get-profile-pic": {
+        const rawPicPhone = normalizePhone(data.phone);
+        let picApiPhone = rawPicPhone;
+        const picDigits = rawPicPhone.replace(/\D/g, "");
+        if (picDigits.length === 12 && picDigits.startsWith("55")) {
+          const ddd = picDigits.slice(2, 4);
+          const subscriber = picDigits.slice(4);
+          picApiPhone = `55${ddd}9${subscriber}`;
+        }
+        const { payload: picData } = await callZapi(`/profile-picture/${picApiPhone}`);
+        const picUrl = picData?.link || picData?.profilePictureUrl || picData?.url || null;
+        
+        // Save to DB if found
+        if (picUrl) {
+          const normalizedPicPhone = normalizeBrazilianPhone(rawPicPhone);
+          await supabase
+            .from("zapi_contacts")
+            .update({ profile_pic_url: picUrl, updated_at: new Date().toISOString() })
+            .eq("phone", normalizedPicPhone);
+        }
+        
+        return new Response(JSON.stringify({ url: picUrl }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "get-contact-info": {
+        const rawInfoPhone = normalizePhone(data.phone);
+        let infoApiPhone = rawInfoPhone;
+        const infoDigits = rawInfoPhone.replace(/\D/g, "");
+        if (infoDigits.length === 12 && infoDigits.startsWith("55")) {
+          const ddd = infoDigits.slice(2, 4);
+          const subscriber = infoDigits.slice(4);
+          infoApiPhone = `55${ddd}9${subscriber}`;
+        }
+        
+        // Get contact business profile / about info from Z-API
+        const [profilePicRes, businessRes] = await Promise.all([
+          callZapi(`/profile-picture/${infoApiPhone}`),
+          callZapi(`/contact-business-profile/${infoApiPhone}`).catch(() => ({ payload: null })),
+        ]);
+        
+        const profilePic = profilePicRes.payload?.link || profilePicRes.payload?.profilePictureUrl || null;
+        const business = businessRes.payload;
+        
+        return new Response(JSON.stringify({
+          profile_pic: profilePic,
+          business_profile: business,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       default:
         return new Response(JSON.stringify({ error: `Ação desconhecida: ${action}` }), {
           status: 400,
