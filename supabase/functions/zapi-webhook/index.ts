@@ -231,70 +231,95 @@ serve(async (req) => {
 
       await supabase.from('zapi_contacts').upsert(contactData, { onConflict: 'phone' });
 
-      // --- Keyword trigger: auto-execute matching flows on incoming messages ---
+      // --- Flow handling on incoming messages ---
       if (direction === 'incoming' && typeof content === 'string' && content.trim().length > 0) {
         const contentLower = content.toLowerCase().trim();
 
-        // Check if there's already a running execution for this phone (don't stack flows)
-        const { data: runningExec } = await supabase
+        // First priority: if there is a paused execution (wait for reply), resume it
+        const { data: pausedExec } = await supabase
           .from('zapi_flow_executions')
           .select('id')
           .eq('phone', phone)
-          .eq('status', 'running')
+          .eq('status', 'paused')
+          .order('started_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        if (!runningExec) {
-          // Find active flows with keyword trigger
-          const { data: keywordFlows } = await supabase
-            .from('zapi_flows')
-            .select('id, trigger_keywords, trigger_specific_text')
-            .eq('is_active', true)
-            .eq('trigger_type', 'keyword');
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-          if (keywordFlows && keywordFlows.length > 0) {
-            let matchedFlowId: string | null = null;
+        if (pausedExec?.id) {
+          console.log(`[Webhook] Resuming paused flow execution ${pausedExec.id} for ${phone}`);
 
-            for (const flow of keywordFlows) {
-              // Check specific text first
-              if (flow.trigger_specific_text && flow.trigger_specific_text.trim().length > 0) {
-                if (contentLower !== flow.trigger_specific_text.toLowerCase().trim()) continue;
-              }
-
-              const keywords: string[] = Array.isArray(flow.trigger_keywords) ? flow.trigger_keywords : [];
-              if (keywords.length === 0) continue;
-
-              const matched = keywords.some((kw: string) => contentLower.includes(kw.toLowerCase().trim()));
-              if (matched) {
-                matchedFlowId = flow.id;
-                break;
-              }
-            }
-
-            if (matchedFlowId) {
-              console.log(`[Webhook] Keyword match! Triggering flow ${matchedFlowId} for ${phone}`);
-
-              // Call the proxy execute-flow endpoint
-              const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-              const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-              
-              // Fire and forget - don't block webhook response
-              fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${serviceKey}`,
-                  'apikey': serviceKey,
-                },
-                body: JSON.stringify({
-                  action: 'execute-flow',
-                  data: { flowId: matchedFlowId, phone },
-                }),
-              }).catch(err => console.error('[Webhook] Flow trigger error:', err));
-            }
-          }
+          fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${serviceKey}`,
+              'apikey': serviceKey,
+            },
+            body: JSON.stringify({
+              action: 'resume-execution',
+              data: { executionId: pausedExec.id, phone },
+            }),
+          }).catch(err => console.error('[Webhook] Flow resume error:', err));
         } else {
-          console.log(`[Webhook] Skipping keyword trigger - already running flow for ${phone}`);
+          // If no paused execution, check running (don't stack flows)
+          const { data: runningExec } = await supabase
+            .from('zapi_flow_executions')
+            .select('id')
+            .eq('phone', phone)
+            .eq('status', 'running')
+            .limit(1)
+            .maybeSingle();
+
+          if (!runningExec) {
+            // Find active keyword flows
+            const { data: keywordFlows } = await supabase
+              .from('zapi_flows')
+              .select('id, trigger_keywords, trigger_specific_text')
+              .eq('is_active', true)
+              .eq('trigger_type', 'keyword');
+
+            if (keywordFlows && keywordFlows.length > 0) {
+              let matchedFlowId: string | null = null;
+
+              for (const flow of keywordFlows) {
+                // Check specific text first
+                if (flow.trigger_specific_text && flow.trigger_specific_text.trim().length > 0) {
+                  if (contentLower !== flow.trigger_specific_text.toLowerCase().trim()) continue;
+                }
+
+                const keywords: string[] = Array.isArray(flow.trigger_keywords) ? flow.trigger_keywords : [];
+                if (keywords.length === 0) continue;
+
+                const matched = keywords.some((kw: string) => contentLower.includes(kw.toLowerCase().trim()));
+                if (matched) {
+                  matchedFlowId = flow.id;
+                  break;
+                }
+              }
+
+              if (matchedFlowId) {
+                console.log(`[Webhook] Keyword match! Triggering flow ${matchedFlowId} for ${phone}`);
+
+                fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${serviceKey}`,
+                    'apikey': serviceKey,
+                  },
+                  body: JSON.stringify({
+                    action: 'execute-flow',
+                    data: { flowId: matchedFlowId, phone },
+                  }),
+                }).catch(err => console.error('[Webhook] Flow trigger error:', err));
+              }
+            }
+          } else {
+            console.log(`[Webhook] Skipping keyword trigger - already running flow for ${phone}`);
+          }
         }
       }
     }
