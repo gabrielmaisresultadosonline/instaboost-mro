@@ -268,7 +268,9 @@ serve(async (req) => {
         const seenPhones = new Set<string>();
 
         for (const chat of chatList) {
-          const rawPhone = normalizePhone(chat?.phone || chat?.chatId || chat?.waId || chat?.id);
+          const rawId = chat?.phone || chat?.chatId || chat?.waId || chat?.id || "";
+          const chatIsGroup = isGroupId(String(rawId));
+          const rawPhone = normalizePhone(rawId);
           if (!rawPhone || !isRealPhone(rawPhone)) continue;
           const phone = normalizeBrazilianPhone(rawPhone);
           if (seenPhones.has(phone)) continue;
