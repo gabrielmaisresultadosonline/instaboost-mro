@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Plus, Trash2, GripVertical, MessageSquare, Image, Mic, Video,
   Clock, Type, MousePointer, Loader2, ChevronDown, ChevronUp,
-  Zap, PauseCircle, Play, Save, ArrowRight, Settings2, ToggleLeft, ToggleRight
+  Zap, PauseCircle, Play, Save, ArrowRight, Settings2, ToggleLeft, ToggleRight,
+  Upload, X, Square, MicOff
 } from 'lucide-react';
 import { Bell } from 'lucide-react';
 
