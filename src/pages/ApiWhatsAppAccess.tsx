@@ -125,7 +125,19 @@ export default function ApiWhatsAppAccess() {
         setConnected(result.settings.is_connected || false);
         if (result.settings.instance_id && result.settings.token) {
           setView('chats');
-          loadContacts();
+          const { data: existingContacts } = await supabase
+            .from('zapi_contacts')
+            .select('phone')
+            .limit(1);
+          if (!existingContacts || existingContacts.length === 0) {
+            // Auto-sync chats from Z-API on first load
+            if (!hasSyncedRef.current) {
+              hasSyncedRef.current = true;
+              setTimeout(() => syncChats(), 500);
+            }
+          } else {
+            loadContacts();
+          }
           checkStatus();
         }
       }
@@ -133,6 +145,15 @@ export default function ApiWhatsAppAccess() {
       console.error('Error loading settings:', e);
     }
   };
+
+  // Periodic polling for contacts refresh
+  useEffect(() => {
+    if (!connected || view !== 'chats') return;
+    const interval = setInterval(() => {
+      loadContacts();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [connected, view, loadContacts]);
 
   const saveSettings = async () => {
     setLoading(true);
