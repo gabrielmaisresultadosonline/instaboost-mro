@@ -9,7 +9,7 @@ import {
   MessageSquare, Send, Settings, FileText,
   Mic, MicOff, Search, ArrowLeft, Check, CheckCheck, Wifi, WifiOff,
   QrCode, Loader2, User, RefreshCw, Plus, Zap, BarChart3,
-  Image, Paperclip, X, Play, Users, Square, Upload, Video
+  Image, Paperclip, X, Play, Users, Square, Upload, Video, Smile
 } from 'lucide-react';
 import FlowBuilder from '@/components/whatsapp/FlowBuilder';
 import CRMPanel from '@/components/whatsapp/CRMPanel';
@@ -87,7 +87,25 @@ const normalizeBrazilianPhone = (phone: string) => {
   return digits;
 };
 
+// Filter out Z-API LID identifiers (15+ digit numbers that aren't real phones)
+const isLID = (phone: string) => {
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 15;
+};
+
 const getContactKey = (phone: string) => normalizeBrazilianPhone(phone);
+
+const EMOJI_LIST = [
+  '😀','😂','🤣','😊','😍','🥰','😘','😎','🤩','😇',
+  '🙂','😉','😋','🤗','🤔','🤭','😏','😌','😴','🥱',
+  '😒','😤','😡','🤬','😈','👿','💀','☠️','😱','😰',
+  '😥','😢','😭','😓','🤥','😬','🙄','😷','🤒','🤕',
+  '👍','👎','👊','✊','🤛','🤜','🤝','👏','🙌','👐',
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','❣️',
+  '💯','💢','💥','💫','💦','🔥','⭐','🌟','✨','💰',
+  '🎉','🎊','🎁','🏆','🥇','🏅','🎯','📌','📍','🚀',
+  '✅','❌','⚠️','🔔','📢','💬','💭','🗯️','👀','🙏',
+];
 
 const getTimestamp = (value?: string) => {
   if (!value) return 0;
@@ -106,7 +124,7 @@ const dedupeContacts = (list: Contact[]) => {
 
   for (const contact of list) {
     const key = getContactKey(contact.phone);
-    if (!key) continue;
+    if (!key || isLID(key)) continue;
 
     const existing = map.get(key);
     if (!existing) {
@@ -176,8 +194,10 @@ export default function ApiWhatsAppAccess() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
   const [recordedAudioPreview, setRecordedAudioPreview] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -1002,11 +1022,31 @@ export default function ApiWhatsAppAccess() {
                     </div>
                   )}
 
+                  {/* Emoji Picker */}
+                  {showEmojiPicker && (
+                    <div className="bg-[#202c33] border-t border-white/5 px-4 py-2 shrink-0">
+                      <div className="grid grid-cols-10 gap-1 max-h-[180px] overflow-y-auto">
+                        {EMOJI_LIST.map((emoji) => (
+                          <button key={emoji} onClick={() => { setMessageText(prev => prev + emoji); setShowEmojiPicker(false); }}
+                            className="text-xl hover:bg-white/10 rounded p-1 transition-colors cursor-pointer">
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Message Input */}
                   {!isRecording && !pastedPreview && !recordedAudioPreview && (
                     <div className="bg-[#202c33] px-4 py-3 flex items-end gap-2 border-t border-white/5 shrink-0">
                       {/* Hidden file input */}
                       <input ref={fileInputRef} type="file" accept="image/*,audio/*,video/*" onChange={handleFileSelect} className="hidden" />
+
+                      {/* Emoji button */}
+                      <Button variant="ghost" size="icon" onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className={`text-white/40 hover:text-white h-10 w-10 shrink-0 ${showEmojiPicker ? 'text-[#00a884]' : ''}`}>
+                        <Smile className="w-5 h-5" />
+                      </Button>
                       
                       {/* Attachment button */}
                       <Button variant="ghost" size="icon" onClick={() => setShowMediaInput(!showMediaInput)}
