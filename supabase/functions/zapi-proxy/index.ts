@@ -252,6 +252,15 @@ serve(async (req) => {
     };
 
     switch (action) {
+      case "enable-sent-by-me": {
+        const { payload: sentByMeResult } = await callZapi("/update-notify-sent-by-me", {
+          method: "PUT",
+          body: JSON.stringify({ notifySentByMe: true }),
+        });
+        return new Response(JSON.stringify({ success: true, result: sentByMeResult }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       case "sync-chats": {
         const { payload } = await callZapi("/chats");
         const chatList = Array.isArray(payload)
@@ -367,14 +376,22 @@ serve(async (req) => {
       }
 
       case "get-messages": {
-        const phone = normalizePhone(data.phone);
-        if (!phone) {
+        const rawMsgPhone = normalizePhone(data.phone);
+        // Denormalize for Z-API: add 9 back for 12-digit Brazilian numbers
+        let apiPhone = rawMsgPhone;
+        const digits = rawMsgPhone.replace(/\D/g, "");
+        if (digits.length === 12 && digits.startsWith("55")) {
+          const ddd = digits.slice(2, 4);
+          const subscriber = digits.slice(4);
+          apiPhone = `55${ddd}9${subscriber}`;
+        }
+        if (!rawMsgPhone) {
           return new Response(JSON.stringify([]), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
-        const { payload: messagesData } = await callZapi(`/get-messages/${phone}`);
+        const { payload: messagesData } = await callZapi(`/chat-messages/${apiPhone}`);
         return new Response(JSON.stringify(messagesData), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -389,10 +406,19 @@ serve(async (req) => {
           });
         }
 
-        const { payload } = await callZapi(`/get-messages/${rawSyncPhone || phone}`);
-        const messages = Array.isArray(payload)
-          ? payload
-          : (payload?.messages || payload?.data || []);
+        // Denormalize phone for Z-API call (add 9 back for Brazilian numbers)
+        let syncApiPhone = phone;
+        if (phone.length === 12 && phone.startsWith("55")) {
+          const ddd = phone.slice(2, 4);
+          const subscriber = phone.slice(4);
+          syncApiPhone = `55${ddd}9${subscriber}`;
+        }
+
+        console.log(`[sync-messages] phone=${phone} apiPhone=${syncApiPhone}`);
+        const { payload } = await callZapi(`/chat-messages/${syncApiPhone}`);
+        let msgList = Array.isArray(payload) ? payload : (payload?.messages || payload?.data || []);
+        console.log(`[sync-messages] got ${Array.isArray(msgList) ? msgList.length : 0} messages from Z-API`);
+        const messages = msgList;
 
         if (!Array.isArray(messages) || messages.length === 0) {
           return new Response(JSON.stringify({ inserted: 0 }), {
