@@ -396,6 +396,23 @@ serve(async (req) => {
                 timestamp: Date.now(),
                 metadata: buttons.length > 0 ? { buttons } : null,
               });
+
+              // If any button has actions configured, auto-pause to wait for button response
+              const buttonActions = step.button_actions || [];
+              const hasActions = buttonActions.some((a: any) => a && (a.content || a.media_url || a.flow_id));
+              if (hasActions && buttons.length > 0) {
+                await supabase
+                  .from("zapi_flow_executions")
+                  .update({
+                    status: "paused",
+                    current_step: currentStep,
+                    paused_at: new Date().toISOString(),
+                    last_step_at: new Date().toISOString(),
+                  })
+                  .eq("id", executionId);
+
+                return { stepsExecuted: stepsExecuted + 1, status: "paused" as const, current_step: currentStep };
+              }
             }
             break;
         }
