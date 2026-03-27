@@ -994,7 +994,9 @@ serve(async (req) => {
         let synced = 0;
         if (Array.isArray(contactsList)) {
           for (const c of contactsList) {
-            const rawPhone = normalizePhone(c?.phone || c?.id || c?.jid);
+            const rawId = String(c?.phone || c?.id || c?.jid || "");
+            const cIsGroup = isGroupId(rawId);
+            const rawPhone = normalizePhone(rawId);
             if (!rawPhone || !isRealPhone(rawPhone)) continue;
             const phone = normalizeBrazilianPhone(rawPhone);
             const name = c?.name || c?.pushName || c?.notify || null;
@@ -1002,6 +1004,7 @@ serve(async (req) => {
               await supabase.from("zapi_contacts").upsert({
                 phone,
                 name,
+                is_group: cIsGroup,
                 updated_at: new Date().toISOString(),
               }, { onConflict: "phone" });
               synced++;
