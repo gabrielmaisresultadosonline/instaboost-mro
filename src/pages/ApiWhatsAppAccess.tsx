@@ -530,10 +530,35 @@ export default function ApiWhatsAppAccess() {
       const result = await callProxy('execute-flow', { flowId, phone: normalizePhone(selectedContact.phone) });
       toast({ title: `Fluxo executado! ${result.stepsExecuted || 0} passos enviados` });
       await loadMessages(selectedContact.phone, true);
+      await loadActiveExecutions(selectedContact.phone);
     } catch (e) {
       toast({ title: 'Erro ao executar fluxo', description: String(e), variant: 'destructive' });
     } finally {
       setExecutingFlow(false);
+    }
+  };
+
+  const loadActiveExecutions = useCallback(async (phone?: string) => {
+    try {
+      const data: Record<string, unknown> = {};
+      if (phone) data.phone = normalizePhone(phone);
+      const result = await callProxy('get-active-executions', data);
+      setActiveExecutions(Array.isArray(result.executions) ? result.executions : []);
+    } catch (e) {
+      console.error('Error loading active executions:', e);
+    }
+  }, []);
+
+  const cancelExecution = async (executionId: string) => {
+    setCancellingExec(executionId);
+    try {
+      await callProxy('cancel-execution', { executionId });
+      toast({ title: 'Fluxo cancelado! Você assumiu o atendimento.' });
+      setActiveExecutions(prev => prev.filter(e => e.id !== executionId));
+    } catch {
+      toast({ title: 'Erro ao cancelar fluxo', variant: 'destructive' });
+    } finally {
+      setCancellingExec(null);
     }
   };
 
