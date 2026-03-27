@@ -4,11 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   MessageSquare, Send, Settings, FileText,
-  Mic, Search, ArrowLeft, Check, CheckCheck, Wifi, WifiOff,
+  Mic, MicOff, Search, ArrowLeft, Check, CheckCheck, Wifi, WifiOff,
   QrCode, Loader2, User, RefreshCw, Plus, Zap, BarChart3,
-  Image, Paperclip, X, Play, Users
+  Image, Paperclip, X, Play, Users, Square, Upload, Video
 } from 'lucide-react';
 import FlowBuilder from '@/components/whatsapp/FlowBuilder';
 import CRMPanel from '@/components/whatsapp/CRMPanel';
