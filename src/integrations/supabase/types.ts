@@ -2794,6 +2794,7 @@ export type Database = {
       }
       zapi_flow_steps: {
         Row: {
+          button_actions: Json | null
           button_options: Json | null
           button_text: string | null
           content: string | null
@@ -2818,6 +2819,7 @@ export type Database = {
           wait_timeout_seconds: number | null
         }
         Insert: {
+          button_actions?: Json | null
           button_options?: Json | null
           button_text?: string | null
           content?: string | null
@@ -2842,6 +2844,7 @@ export type Database = {
           wait_timeout_seconds?: number | null
         }
         Update: {
+          button_actions?: Json | null
           button_options?: Json | null
           button_text?: string | null
           content?: string | null

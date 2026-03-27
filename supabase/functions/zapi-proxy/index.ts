@@ -396,6 +396,23 @@ serve(async (req) => {
                 timestamp: Date.now(),
                 metadata: buttons.length > 0 ? { buttons } : null,
               });
+
+              // If any button has actions configured, auto-pause to wait for button response
+              const buttonActions = step.button_actions || [];
+              const hasActions = buttonActions.some((a: any) => a && (a.content || a.media_url || a.flow_id));
+              if (hasActions && buttons.length > 0) {
+                await supabase
+                  .from("zapi_flow_executions")
+                  .update({
+                    status: "paused",
+                    current_step: currentStep,
+                    paused_at: new Date().toISOString(),
+                    last_step_at: new Date().toISOString(),
+                  })
+                  .eq("id", executionId);
+
+                return { stepsExecuted: stepsExecuted + 1, status: "paused" as const, current_step: currentStep };
+              }
             }
             break;
         }
@@ -964,7 +981,7 @@ serve(async (req) => {
             .select("*")
             .eq("flow_id", flow.id)
             .order("step_order", { ascending: true });
-          flowsWithSteps.push({ ...flow, steps: (steps ?? []).map((s: Record<string, unknown>) => ({ ...s, button_options: s.button_options || [] })) });
+          flowsWithSteps.push({ ...flow, steps: (steps ?? []).map((s: Record<string, unknown>) => ({ ...s, button_options: s.button_options || [], button_actions: s.button_actions || [] })) });
         }
 
         return new Response(JSON.stringify({ flows: flowsWithSteps }), {
@@ -1024,6 +1041,7 @@ serve(async (req) => {
               wait_timeout_seconds: step.wait_timeout_seconds || 300,
               button_text: step.button_text || null,
               button_options: step.button_options || [],
+              button_actions: step.button_actions || [],
               wait_indefinitely: step.wait_indefinitely || false,
               followup_enabled: step.followup_enabled || false,
               followup_delay_seconds: step.followup_delay_seconds || 600,
@@ -1188,6 +1206,94 @@ serve(async (req) => {
           .from("zapi_flow_executions")
           .update({ status: "running", paused_at: null })
           .eq("id", pausedExecution.id);
+
+        // Check if paused step was a buttons step with actions configured
+        const pausedStepData = flowSteps.find((s) => Number(s.step_order ?? 0) === currentStep);
+        if (pausedStepData?.step_type === "buttons" && pausedStepData.button_actions) {
+          const buttonActions: any[] = Array.isArray(pausedStepData.button_actions) ? pausedStepData.button_actions : [];
+          const buttonOptions: string[] = Array.isArray(pausedStepData.button_options) ? pausedStepData.button_options : [];
+
+          // Find the last incoming message from this phone to match button response
+          const { data: lastMsg } = await supabase
+            .from("zapi_messages")
+            .select("content, metadata")
+            .eq("phone", pausedExecution.phone)
+            .eq("direction", "incoming")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          const responseText = (lastMsg?.content || "").toLowerCase().trim();
+          const selectedButtonId = (lastMsg?.metadata as any)?.selectedButtonId || "";
+
+          let matchedActionIndex = -1;
+          for (let bi = 0; bi < buttonOptions.length; bi++) {
+            const optLower = buttonOptions[bi].toLowerCase().trim();
+            if (responseText === optLower || selectedButtonId === buttonOptions[bi]) {
+              matchedActionIndex = bi;
+              break;
+            }
+          }
+
+          if (matchedActionIndex >= 0 && buttonActions[matchedActionIndex]) {
+            const btnAction = buttonActions[matchedActionIndex];
+            const execPhoneNorm = pausedExecution.phone;
+
+            if (btnAction.action_type === "text" && btnAction.content) {
+              await callZapi("/send-text", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhoneNorm, message: btnAction.content }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhoneNorm, direction: "outgoing", message_type: "text",
+                content: btnAction.content, status: "sent", timestamp: Date.now(),
+              });
+            } else if (btnAction.action_type === "audio" && btnAction.media_url) {
+              await callZapi("/send-audio", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhoneNorm, audio: btnAction.media_url }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhoneNorm, direction: "outgoing", message_type: "audio",
+                media_url: btnAction.media_url, status: "sent", timestamp: Date.now(),
+              });
+            } else if (btnAction.action_type === "image" && btnAction.media_url) {
+              await callZapi("/send-image", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhoneNorm, image: btnAction.media_url, caption: btnAction.content || "" }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhoneNorm, direction: "outgoing", message_type: "image",
+                content: btnAction.content || "", media_url: btnAction.media_url, status: "sent", timestamp: Date.now(),
+              });
+            } else if (btnAction.action_type === "video" && btnAction.media_url) {
+              await callZapi("/send-video", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhoneNorm, video: btnAction.media_url, caption: btnAction.content || "" }),
+              });
+              await supabase.from("zapi_messages").insert({
+                phone: execPhoneNorm, direction: "outgoing", message_type: "video",
+                content: btnAction.content || "", media_url: btnAction.media_url, status: "sent", timestamp: Date.now(),
+              });
+            } else if (btnAction.action_type === "flow" && btnAction.flow_id) {
+              // Trigger another flow
+              const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+              const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+              fetch(`${supabaseUrl}/functions/v1/zapi-proxy`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${serviceKey}`,
+                  "apikey": serviceKey,
+                },
+                body: JSON.stringify({
+                  action: "execute-flow",
+                  data: { flowId: btnAction.flow_id, phone: execPhoneNorm },
+                }),
+              }).catch(err => console.error("[Resume] Button flow trigger error:", err));
+            }
+          }
+        }
 
         try {
           const result = await executeFlowSteps(pausedExecution.id, pausedExecution.phone, flowSteps, startIndex);
