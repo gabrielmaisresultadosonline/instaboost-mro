@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Plus, Trash2, GripVertical, MessageSquare, Image, Mic, Video,
   Clock, Type, MousePointer, Loader2, ChevronDown, ChevronUp,
-  Zap, PauseCircle, Play, Save, ArrowRight, Settings2, ToggleLeft, ToggleRight
+  Zap, PauseCircle, Play, Save, ArrowRight, Settings2, ToggleLeft, ToggleRight,
+  Upload, X, Square, MicOff
 } from 'lucide-react';
 import { Bell } from 'lucide-react';
 
@@ -78,6 +80,94 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
   const [saving, setSaving] = useState(false);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const [newKeyword, setNewKeyword] = useState('');
+  const [uploadingStep, setUploadingStep] = useState<number | null>(null);
+  const [recordingStep, setRecordingStep] = useState<number | null>(null);
+  const [recordedPreview, setRecordedPreview] = useState<{ stepIndex: number; url: string; blob: Blob } | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeFileStep, setActiveFileStep] = useState<number | null>(null);
+
+  const uploadMediaFile = async (file: File, stepIndex: number, field: 'media_url' | 'followup_media_url' = 'media_url') => {
+    setUploadingStep(stepIndex);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `whatsapp/flow_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { data, error } = await supabase.storage.from('assets').upload(path, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('assets').getPublicUrl(data.path);
+      if (field === 'followup_media_url') {
+        updateStep(stepIndex, { followup_media_url: urlData.publicUrl });
+      } else {
+        updateStep(stepIndex, { media_url: urlData.publicUrl });
+      }
+      toast({ title: 'Arquivo enviado com sucesso!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao enviar arquivo', description: e.message, variant: 'destructive' });
+    } finally {
+      setUploadingStep(null);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && activeFileStep !== null) {
+      uploadMediaFile(file, activeFileStep);
+    }
+    e.target.value = '';
+    setActiveFileStep(null);
+  };
+
+  const startRecording = async (stepIndex: number) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      recorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
+        const url = URL.createObjectURL(blob);
+        setRecordedPreview({ stepIndex, url, blob });
+        setRecordingStep(null);
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setRecordingStep(stepIndex);
+    } catch {
+      toast({ title: 'Erro ao acessar microfone', variant: 'destructive' });
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+  };
+
+  const saveRecordedAudio = async () => {
+    if (!recordedPreview) return;
+    setUploadingStep(recordedPreview.stepIndex);
+    try {
+      const path = `whatsapp/flow_audio_${Date.now()}.ogg`;
+      const { data, error } = await supabase.storage.from('assets').upload(path, recordedPreview.blob);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('assets').getPublicUrl(data.path);
+      updateStep(recordedPreview.stepIndex, { media_url: urlData.publicUrl });
+      toast({ title: 'Áudio salvo com sucesso!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar áudio', description: e.message, variant: 'destructive' });
+    } finally {
+      setUploadingStep(null);
+      URL.revokeObjectURL(recordedPreview.url);
+      setRecordedPreview(null);
+    }
+  };
+
+  const cancelRecording = () => {
+    if (recordedPreview) {
+      URL.revokeObjectURL(recordedPreview.url);
+      setRecordedPreview(null);
+    }
+  };
 
   const loadFlows = async () => {
     setLoading(true);
@@ -224,6 +314,14 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
   if (selectedFlow) {
     return (
       <div className="h-full flex flex-col bg-[#111b21]">
+        {/* Hidden file input for media uploads */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/jpeg,image/png,image/webp,audio/mpeg,audio/ogg,audio/mp3,audio/wav,video/mp4,video/webm"
+          onChange={handleFileSelect}
+        />
         {/* Header */}
         <div className="bg-[#202c33] px-4 py-3 flex items-center justify-between border-b border-white/5 shrink-0">
           <div className="flex items-center gap-3">
@@ -398,6 +496,65 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                                 className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
                               />
                             </div>
+
+                            {/* Upload / Record buttons */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={uploadingStep === index}
+                                onClick={() => {
+                                  setActiveFileStep(index);
+                                  fileInputRef.current?.click();
+                                }}
+                                className="text-white/60 hover:text-white bg-[#2a3942] text-xs h-8"
+                              >
+                                {uploadingStep === index ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
+                                {step.step_type === 'audio' ? 'Subir áudio (.mp3, .ogg)' : step.step_type === 'video' ? 'Subir vídeo (.mp4)' : 'Subir imagem (.jpg, .png)'}
+                              </Button>
+
+                              {step.step_type === 'audio' && (
+                                <>
+                                  {recordingStep === index ? (
+                                    <Button variant="ghost" size="sm" onClick={stopRecording} className="text-red-400 hover:text-red-300 bg-red-400/10 text-xs h-8 animate-pulse">
+                                      <Square className="w-3 h-3 mr-1" /> Parar gravação
+                                    </Button>
+                                  ) : (
+                                    <Button variant="ghost" size="sm" onClick={() => startRecording(index)} className="text-orange-400 hover:text-orange-300 bg-orange-400/10 text-xs h-8"
+                                      disabled={recordingStep !== null}>
+                                      <Mic className="w-3 h-3 mr-1" /> Gravar áudio
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            {/* Recorded audio preview */}
+                            {recordedPreview && recordedPreview.stepIndex === index && (
+                              <div className="bg-[#1a2730] rounded-lg p-3 space-y-2">
+                                <p className="text-white/50 text-xs">Pré-visualização do áudio gravado:</p>
+                                <audio controls src={recordedPreview.url} className="w-full h-8" />
+                                <div className="flex gap-2">
+                                  <Button size="sm" onClick={saveRecordedAudio} disabled={uploadingStep === index} className="bg-[#00a884] hover:bg-[#00a884]/80 text-white text-xs h-7">
+                                    {uploadingStep === index ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
+                                    Salvar
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={cancelRecording} className="text-white/40 hover:text-white/60 text-xs h-7">
+                                    <X className="w-3 h-3 mr-1" /> Cancelar
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Media preview */}
+                            {step.media_url && (
+                              <div className="bg-[#1a2730] rounded-lg p-2">
+                                {step.step_type === 'image' && <img src={step.media_url} alt="Preview" className="max-h-32 rounded object-contain" />}
+                                {step.step_type === 'audio' && <audio controls src={step.media_url} className="w-full h-8" />}
+                                {step.step_type === 'video' && <video controls src={step.media_url} className="max-h-32 rounded" />}
+                              </div>
+                            )}
+
                             <div>
                               <label className="text-white/50 text-xs mb-1 block">Legenda (opcional)</label>
                               <Input
@@ -592,7 +749,7 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                                 />
                               </div>
                               <div>
-                                <label className="text-white/50 text-xs mb-1 block">Digitando (ms)</label>
+                                <label className="text-white/50 text-xs mb-1 block">{step.step_type === 'audio' ? 'Gravando áudio (ms)' : 'Digitando (ms)'}</label>
                                 <Input
                                   type="number"
                                   value={step.typing_duration_ms}
@@ -603,7 +760,7 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                               </div>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-white/50 text-xs">Simular digitando</span>
+                              <span className="text-white/50 text-xs">{step.step_type === 'audio' ? 'Simular gravando áudio' : 'Simular digitando'}</span>
                               <button onClick={() => updateStep(index, { simulate_typing: !step.simulate_typing })}>
                                 {step.simulate_typing
                                   ? <ToggleRight className="w-7 h-7 text-[#00a884]" />
