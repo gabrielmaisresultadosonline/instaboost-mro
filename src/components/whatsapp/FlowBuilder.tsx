@@ -9,6 +9,7 @@ import {
   Clock, Type, MousePointer, Loader2, ChevronDown, ChevronUp,
   Zap, PauseCircle, Play, Save, ArrowRight, Settings2, ToggleLeft, ToggleRight
 } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 interface FlowStep {
   id?: string;
@@ -23,6 +24,13 @@ interface FlowStep {
   wait_timeout_seconds: number;
   button_text?: string;
   button_options: string[];
+  wait_indefinitely?: boolean;
+  followup_enabled?: boolean;
+  followup_delay_seconds?: number;
+  followup_type?: 'text' | 'audio' | 'image' | 'video' | 'flow';
+  followup_content?: string;
+  followup_media_url?: string;
+  followup_flow_id?: string;
 }
 
 interface Flow {
@@ -427,15 +435,147 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                         )}
 
                         {step.step_type === 'wait_reply' && (
-                          <div>
-                            <label className="text-white/50 text-xs mb-1 block">Tempo limite (segundos)</label>
-                            <Input
-                              type="number"
-                              value={step.wait_timeout_seconds}
-                              onChange={(e) => updateStep(index, { wait_timeout_seconds: parseInt(e.target.value) || 300 })}
-                              className="bg-[#2a3942] border-white/10 text-white text-sm w-32"
-                            />
-                            <p className="text-white/30 text-xs mt-1">Após esse tempo, continua o fluxo automaticamente</p>
+                          <div className="space-y-4">
+                            {/* Wait mode */}
+                            <div>
+                              <label className="text-white/50 text-xs mb-2 block font-medium">Modo de espera</label>
+                              <div className="flex items-center justify-between bg-[#2a3942] rounded-lg px-3 py-2">
+                                <span className="text-white/70 text-xs">Aguardar por tempo indeterminado</span>
+                                <button onClick={() => updateStep(index, { wait_indefinitely: !step.wait_indefinitely })}>
+                                  {step.wait_indefinitely
+                                    ? <ToggleRight className="w-7 h-7 text-[#00a884]" />
+                                    : <ToggleLeft className="w-7 h-7 text-white/30" />
+                                  }
+                                </button>
+                              </div>
+                              {!step.wait_indefinitely && (
+                                <div className="mt-2">
+                                  <label className="text-white/50 text-xs mb-1 block">Tempo limite (segundos)</label>
+                                  <Input
+                                    type="number"
+                                    value={step.wait_timeout_seconds}
+                                    onChange={(e) => updateStep(index, { wait_timeout_seconds: parseInt(e.target.value) || 300 })}
+                                    className="bg-[#2a3942] border-white/10 text-white text-sm w-32"
+                                  />
+                                  <p className="text-white/30 text-xs mt-1">Após esse tempo, continua o fluxo automaticamente</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Follow-up */}
+                            <div className="border-t border-white/5 pt-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Bell className="w-3.5 h-3.5 text-yellow-400" />
+                                  <span className="text-white/70 text-xs font-medium">Follow-up se não responder</span>
+                                </div>
+                                <button onClick={() => updateStep(index, { followup_enabled: !step.followup_enabled })}>
+                                  {step.followup_enabled
+                                    ? <ToggleRight className="w-7 h-7 text-yellow-400" />
+                                    : <ToggleLeft className="w-7 h-7 text-white/30" />
+                                  }
+                                </button>
+                              </div>
+
+                              {step.followup_enabled && (
+                                <div className="space-y-3 bg-[#1a2730] rounded-lg p-3">
+                                  <div>
+                                    <label className="text-white/50 text-xs mb-1 block">Enviar follow-up após (segundos)</label>
+                                    <Input
+                                      type="number"
+                                      value={step.followup_delay_seconds || 600}
+                                      onChange={(e) => updateStep(index, { followup_delay_seconds: parseInt(e.target.value) || 600 })}
+                                      className="bg-[#2a3942] border-white/10 text-white text-sm w-40"
+                                    />
+                                    <p className="text-white/30 text-xs mt-1">
+                                      = {Math.floor((step.followup_delay_seconds || 600) / 60)} min {((step.followup_delay_seconds || 600) % 60) > 0 ? `e ${(step.followup_delay_seconds || 600) % 60}s` : ''}
+                                    </p>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-white/50 text-xs mb-1.5 block">Tipo do follow-up</label>
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                      {([
+                                        { value: 'text' as const, label: 'Texto', icon: Type, color: '#00a884' },
+                                        { value: 'audio' as const, label: 'Áudio', icon: Mic, color: '#e67e22' },
+                                        { value: 'image' as const, label: 'Imagem', icon: Image, color: '#7c5cfc' },
+                                        { value: 'video' as const, label: 'Vídeo', icon: Video, color: '#e74c3c' },
+                                        { value: 'flow' as const, label: 'Outro Fluxo', icon: Zap, color: '#f39c12' },
+                                      ]).map(ft => (
+                                        <button
+                                          key={ft.value}
+                                          onClick={() => updateStep(index, { followup_type: ft.value })}
+                                          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all border ${
+                                            (step.followup_type || 'text') === ft.value
+                                              ? 'border-white/20 bg-white/5'
+                                              : 'border-transparent bg-[#2a3942] text-white/40'
+                                          }`}
+                                        >
+                                          <ft.icon className="w-3 h-3" style={{ color: ft.color }} />
+                                          <span className="text-white/70">{ft.label}</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {(step.followup_type || 'text') === 'text' && (
+                                    <div>
+                                      <label className="text-white/50 text-xs mb-1 block">Mensagem de follow-up</label>
+                                      <Textarea
+                                        value={step.followup_content || ''}
+                                        onChange={(e) => updateStep(index, { followup_content: e.target.value })}
+                                        placeholder="Oi! Vi que você não respondeu ainda. Posso te ajudar?"
+                                        className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm resize-none"
+                                        rows={3}
+                                      />
+                                    </div>
+                                  )}
+
+                                  {((step.followup_type || 'text') === 'audio' || (step.followup_type || 'text') === 'image' || (step.followup_type || 'text') === 'video') && (
+                                    <div className="space-y-2">
+                                      <div>
+                                        <label className="text-white/50 text-xs mb-1 block">URL da mídia</label>
+                                        <Input
+                                          value={step.followup_media_url || ''}
+                                          onChange={(e) => updateStep(index, { followup_media_url: e.target.value })}
+                                          placeholder="https://..."
+                                          className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-white/50 text-xs mb-1 block">Legenda (opcional)</label>
+                                        <Input
+                                          value={step.followup_content || ''}
+                                          onChange={(e) => updateStep(index, { followup_content: e.target.value })}
+                                          placeholder="Texto do follow-up"
+                                          className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {(step.followup_type || 'text') === 'flow' && (
+                                    <div>
+                                      <label className="text-white/50 text-xs mb-1 block">ID do fluxo a disparar</label>
+                                      <Input
+                                        value={step.followup_flow_id || ''}
+                                        onChange={(e) => updateStep(index, { followup_flow_id: e.target.value })}
+                                        placeholder="Cole o ID do fluxo"
+                                        className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
+                                      />
+                                      <p className="text-white/30 text-xs mt-1">Copie o ID na lista de fluxos</p>
+                                    </div>
+                                  )}
+
+                                  <div className="bg-[#2a3942]/50 rounded-lg p-2">
+                                    <p className="text-yellow-400/70 text-[10px] flex items-center gap-1">
+                                      <Bell className="w-3 h-3" />
+                                      Se não responder em {Math.floor((step.followup_delay_seconds || 600) / 60)} min, o follow-up dispara automaticamente
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
 
@@ -542,6 +682,7 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                     <div>
                       <h3 className="text-white text-sm font-medium">{flow.name}</h3>
                       {flow.description && <p className="text-white/40 text-xs mt-0.5">{flow.description}</p>}
+                      {flow.id && <p className="text-white/20 text-[9px] mt-0.5 font-mono">ID: {flow.id}</p>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
