@@ -753,6 +753,7 @@ const Index = () => {
         />
         {ageRestrictionDialogElement}
         {privateProfileDialogElement}
+        <CadastrarContaButton />
       </>
     );
   }
