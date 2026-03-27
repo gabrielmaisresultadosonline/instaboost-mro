@@ -373,20 +373,52 @@ serve(async (req) => {
               const buttonOptions: string[] = step.button_options || [];
               const buttons = buttonOptions.map((b: string, idx: number) => ({ id: String(idx + 1), label: b }));
               if (buttons.length > 0) {
-                // Use send-button-actions with REPLY type for mobile + desktop compatibility
-                const buttonActions = buttons.map((b) => ({
-                  id: b.id,
-                  type: "REPLY",
-                  label: b.label,
-                }));
-                await callZapi("/send-button-actions", {
+                // Prefer send-option-list because it is more stable on WhatsApp mobile
+                const optionListPayload = {
+                  phone: execPhone,
+                  message: step.content,
+                  optionList: {
+                    title: "Escolha uma opção",
+                    buttonLabel: "Ver opções",
+                    options: buttons.map((b) => ({
+                      id: b.id,
+                      title: (b.label || "").slice(0, 72),
+                      description: "",
+                    })),
+                  },
+                };
+
+                const optionListSend = await callZapi("/send-option-list", {
                   method: "POST",
-                  body: JSON.stringify({
-                    phone: execPhone,
-                    message: step.content,
-                    buttonActions,
-                  }),
+                  body: JSON.stringify(optionListPayload),
                 });
+
+                // Fallback to action buttons for accounts where option list is unavailable
+                if (!optionListSend.response.ok) {
+                  console.warn("[Flow] send-option-list failed, falling back to send-button-actions", {
+                    status: optionListSend.response.status,
+                    payload: optionListSend.payload,
+                  });
+
+                  const buttonActions = buttons.map((b) => ({
+                    id: b.id,
+                    type: "REPLY",
+                    label: b.label,
+                  }));
+
+                  const actionButtonsSend = await callZapi("/send-button-actions", {
+                    method: "POST",
+                    body: JSON.stringify({
+                      phone: execPhone,
+                      message: step.content,
+                      buttonActions,
+                    }),
+                  });
+
+                  if (!actionButtonsSend.response.ok) {
+                    throw new Error(`Falha ao enviar botões (${actionButtonsSend.response.status})`);
+                  }
+                }
               } else {
                 await callZapi("/send-text", {
                   method: "POST",
@@ -667,20 +699,35 @@ serve(async (req) => {
             msg?.buttonsResponseMessage?.selectedDisplayText ||
             msg?.buttonsResponseMessage?.selectedButtonId ||
             msg?.listResponseMessage?.title ||
+            msg?.listResponseMessage?.singleSelectReply?.title ||
             msg?.buttonMessage?.message ||
             msg?.buttonMessage?.contentText ||
             "";
 
           let metadata = null;
           if (msg?.buttonsResponseMessage) {
+            const selectedText = msg.buttonsResponseMessage.selectedDisplayText || msg.buttonsResponseMessage.selectedButtonId || "";
             metadata = {
               selectedButtonId: msg.buttonsResponseMessage.selectedButtonId,
-              selectedButtonText: msg.buttonsResponseMessage.selectedDisplayText || msg.buttonsResponseMessage.selectedButtonId,
+              selectedButtonText: selectedText,
+              selectedDisplayText: selectedText,
             };
           } else if (msg?.listResponseMessage) {
+            const selectedRowId =
+              msg.listResponseMessage.singleSelectReply?.selectedRowId ||
+              msg.listResponseMessage.selectedRowId ||
+              msg.listResponseMessage.listType?.toString() ||
+              "";
+            const selectedListText =
+              msg.listResponseMessage.title ||
+              msg.listResponseMessage.singleSelectReply?.title ||
+              msg.listResponseMessage.singleSelectReply?.description ||
+              selectedRowId;
+
             metadata = {
-              selectedButtonId: msg.listResponseMessage.listType?.toString(),
-              selectedButtonText: msg.listResponseMessage.title,
+              selectedButtonId: selectedRowId,
+              selectedButtonText: selectedListText,
+              selectedDisplayText: selectedListText,
             };
           } else if (msg?.buttonMessage) {
             metadata = {
@@ -1214,7 +1261,10 @@ serve(async (req) => {
 
           const responseText = (lastMsg?.content || "").toLowerCase().trim();
           const selectedButtonId = (lastMsg?.metadata as any)?.selectedButtonId || "";
-          const selectedDisplayText = (lastMsg?.metadata as any)?.selectedDisplayText || "";
+          const selectedDisplayText =
+            (lastMsg?.metadata as any)?.selectedDisplayText ||
+            (lastMsg?.metadata as any)?.selectedButtonText ||
+            "";
 
           console.log("[Resume] Matching button response:", JSON.stringify({
             responseText, selectedButtonId, selectedDisplayText, buttonOptions
