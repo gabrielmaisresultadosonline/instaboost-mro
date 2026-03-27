@@ -252,11 +252,12 @@ serve(async (req) => {
     };
 
     switch (action) {
-      case "debug-zapi": {
-        const testPhone = typeof data.phone === "string" ? data.phone : "551396177335";
-        const endpoint = typeof data.endpoint === "string" ? data.endpoint : "/chat-messages";
-        const { payload: dbg } = await callZapi(`${endpoint}/${testPhone}`);
-        return new Response(JSON.stringify({ endpoint: `${endpoint}/${testPhone}`, result: dbg }), {
+      case "enable-sent-by-me": {
+        const { payload: sentByMeResult } = await callZapi("/update-notify-sent-by-me", {
+          method: "PUT",
+          body: JSON.stringify({ notifySentByMe: true }),
+        });
+        return new Response(JSON.stringify({ success: true, result: sentByMeResult }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
