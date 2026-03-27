@@ -1243,7 +1243,7 @@ const EstruturaRendaExtra = () => {
     );
   }
 
-
+  if (currentView === 'materiais') {
     return <MateriaisRendaExtra onBack={() => setCurrentView('menu')} />;
   }
 
