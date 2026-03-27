@@ -981,7 +981,7 @@ serve(async (req) => {
             .select("*")
             .eq("flow_id", flow.id)
             .order("step_order", { ascending: true });
-          flowsWithSteps.push({ ...flow, steps: (steps ?? []).map((s: Record<string, unknown>) => ({ ...s, button_options: s.button_options || [] })) });
+          flowsWithSteps.push({ ...flow, steps: (steps ?? []).map((s: Record<string, unknown>) => ({ ...s, button_options: s.button_options || [], button_actions: s.button_actions || [] })) });
         }
 
         return new Response(JSON.stringify({ flows: flowsWithSteps }), {
