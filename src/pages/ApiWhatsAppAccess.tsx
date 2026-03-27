@@ -73,6 +73,72 @@ const normalizePhone = (value: string) => {
   return base.replace(/\D/g, '') || base;
 };
 
+const normalizeBrazilianPhone = (phone: string) => {
+  const digits = normalizePhone(phone);
+  if (digits.length === 13 && digits.startsWith('55')) {
+    const ddd = digits.slice(2, 4);
+    const rest = digits.slice(4);
+    if (rest.startsWith('9') && rest.length === 9) {
+      return `55${ddd}${rest.slice(1)}`;
+    }
+  }
+  return digits;
+};
+
+const getContactKey = (phone: string) => normalizeBrazilianPhone(phone);
+
+const getTimestamp = (value?: string) => {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const looksLikeName = (value?: string) => {
+  if (!value) return false;
+  const clean = value.trim();
+  return clean.length > 2 && /\D/.test(clean);
+};
+
+const dedupeContacts = (list: Contact[]) => {
+  const map = new Map<string, Contact>();
+
+  for (const contact of list) {
+    const key = getContactKey(contact.phone);
+    if (!key) continue;
+
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, { ...contact, phone: key });
+      continue;
+    }
+
+    const existingName = existing.name || '';
+    const incomingName = contact.name || '';
+    const name =
+      looksLikeName(incomingName) && !looksLikeName(existingName)
+        ? incomingName
+        : existingName || incomingName || key;
+
+    const existingTime = getTimestamp(existing.last_message_at);
+    const incomingTime = getTimestamp(contact.last_message_at);
+
+    map.set(key, {
+      ...existing,
+      ...contact,
+      phone: key,
+      name,
+      unread_count: Math.max(existing.unread_count || 0, contact.unread_count || 0),
+      last_message_at: incomingTime > existingTime ? contact.last_message_at : existing.last_message_at,
+      profile_pic_url: contact.profile_pic_url || existing.profile_pic_url,
+      tags: contact.tags || existing.tags,
+      crm_status: contact.crm_status || existing.crm_status,
+      is_hot_lead: Boolean(contact.is_hot_lead || existing.is_hot_lead),
+    });
+  }
+
+  return Array.from(map.values()).sort((a, b) => getTimestamp(b.last_message_at) - getTimestamp(a.last_message_at));
+};
+
 type TabType = 'chats' | 'flows' | 'crm';
 
 export default function ApiWhatsAppAccess() {
@@ -106,6 +172,8 @@ export default function ApiWhatsAppAccess() {
   const [pastedPreview, setPastedPreview] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
+  const [recordedAudioPreview, setRecordedAudioPreview] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -127,7 +195,8 @@ export default function ApiWhatsAppAccess() {
   const loadContacts = useCallback(async () => {
     try {
       const result = await callProxy('get-db-contacts');
-      setContacts(Array.isArray(result.contacts) ? result.contacts : []);
+      const rawContacts = Array.isArray(result.contacts) ? result.contacts : [];
+      setContacts(dedupeContacts(rawContacts));
     } catch (e) {
       console.error('Error loading contacts:', e);
     }
@@ -146,7 +215,7 @@ export default function ApiWhatsAppAccess() {
     if (!silent) setLoading(true);
     try {
       const result = await callProxy('sync-chats');
-      if (Array.isArray(result.contacts)) setContacts(result.contacts);
+      if (Array.isArray(result.contacts)) setContacts(dedupeContacts(result.contacts));
       else await loadContacts();
       if (!silent) toast({ title: `${result.synced || 0} conversas sincronizadas!` });
     } catch {
@@ -271,6 +340,11 @@ export default function ApiWhatsAppAccess() {
   // Audio recording
   const startRecording = async () => {
     try {
+      if (recordedAudioPreview) {
+        URL.revokeObjectURL(recordedAudioPreview);
+        setRecordedAudioPreview(null);
+        setRecordedAudioBlob(null);
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       audioChunksRef.current = [];
@@ -287,24 +361,28 @@ export default function ApiWhatsAppAccess() {
   };
 
   const stopRecording = async () => {
-    if (!mediaRecorderRef.current || !selectedContact) return;
+    if (!mediaRecorderRef.current) return;
     setIsRecording(false);
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    setRecordingTime(0);
     
     return new Promise<void>((resolve) => {
-      mediaRecorderRef.current!.onstop = async () => {
-        mediaRecorderRef.current!.stream.getTracks().forEach(t => t.stop());
+      mediaRecorderRef.current!.onstop = () => {
+        mediaRecorderRef.current?.stream.getTracks().forEach(t => t.stop());
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
-        if (audioBlob.size < 1000) { resolve(); return; }
-        
-        setUploadingMedia(true);
-        try {
-          const url = await uploadToStorage(audioBlob, 'audio.ogg');
-          await callProxy('send-audio', { phone: normalizePhone(selectedContact!.phone), audio: url });
-          await loadMessages(selectedContact!.phone, true);
-          toast({ title: 'Áudio enviado!' });
-        } catch { toast({ title: 'Erro ao enviar áudio', variant: 'destructive' }); }
-        finally { setUploadingMedia(false); }
+        audioChunksRef.current = [];
+
+        if (audioBlob.size < 1000) {
+          toast({ title: 'Áudio muito curto', description: 'Grave por mais tempo para enviar.', variant: 'destructive' });
+          resolve();
+          return;
+        }
+
+        if (recordedAudioPreview) URL.revokeObjectURL(recordedAudioPreview);
+        const previewUrl = URL.createObjectURL(audioBlob);
+        setRecordedAudioBlob(audioBlob);
+        setRecordedAudioPreview(previewUrl);
+        toast({ title: 'Áudio pronto', description: 'Ouça antes de enviar ou cancele.' });
         resolve();
       };
       mediaRecorderRef.current!.stop();
@@ -317,8 +395,31 @@ export default function ApiWhatsAppAccess() {
       mediaRecorderRef.current.stop();
     }
     setIsRecording(false);
+    setRecordingTime(0);
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     audioChunksRef.current = [];
+  };
+
+  const cancelRecordedAudio = () => {
+    if (recordedAudioPreview) URL.revokeObjectURL(recordedAudioPreview);
+    setRecordedAudioPreview(null);
+    setRecordedAudioBlob(null);
+  };
+
+  const sendRecordedAudio = async () => {
+    if (!recordedAudioBlob || !selectedContact) return;
+    setUploadingMedia(true);
+    try {
+      const url = await uploadToStorage(recordedAudioBlob, 'audio.ogg');
+      await callProxy('send-audio', { phone: normalizePhone(selectedContact.phone), audio: url });
+      await loadMessages(selectedContact.phone, true);
+      toast({ title: 'Áudio enviado!' });
+      cancelRecordedAudio();
+    } catch {
+      toast({ title: 'Erro ao enviar áudio', variant: 'destructive' });
+    } finally {
+      setUploadingMedia(false);
+    }
   };
 
   // Ctrl+V paste handler
@@ -422,18 +523,23 @@ export default function ApiWhatsAppAccess() {
   };
 
   const selectContact = async (contact: Contact) => {
-    setSelectedContact(contact);
+    const normalizedContact = {
+      ...contact,
+      phone: getContactKey(contact.phone) || contact.phone,
+    };
+    setSelectedContact(normalizedContact);
     setShowMobileChat(true);
     setActiveTab('chats');
-    await loadMessages(contact.phone);
+    await loadMessages(normalizedContact.phone);
   };
 
   const selectContactByPhone = async (phone: string) => {
-    const existing = contacts.find(c => c.phone === phone);
+    const normalizedPhone = getContactKey(phone);
+    const existing = contacts.find(c => getContactKey(c.phone) === normalizedPhone);
     if (existing) {
       await selectContact(existing);
     } else {
-      const contact: Contact = { phone, name: formatPhone(phone), unread_count: 0 };
+      const contact: Contact = { phone: normalizedPhone, name: formatPhone(normalizedPhone), unread_count: 0 };
       await selectContact(contact);
     }
   };
@@ -451,6 +557,10 @@ export default function ApiWhatsAppAccess() {
 
   useEffect(() => { loadSettings(); }, [loadSettings]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => () => {
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    if (recordedAudioPreview) URL.revokeObjectURL(recordedAudioPreview);
+  }, [recordedAudioPreview]);
   useEffect(() => {
     if (view !== 'main') return;
     const interval = setInterval(() => { loadContacts(); checkStatus(); }, 10000);
@@ -462,7 +572,7 @@ export default function ApiWhatsAppAccess() {
     return () => clearInterval(interval);
   }, [selectedContact, view, activeTab, loadMessages]);
 
-  const filteredContacts = contacts.filter(c =>
+  const filteredContacts = dedupeContacts(contacts).filter(c =>
     (c.name || c.phone).toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
@@ -846,8 +956,28 @@ export default function ApiWhatsAppAccess() {
                     </div>
                   )}
 
+                  {/* Recorded Audio Preview */}
+                  {!isRecording && recordedAudioPreview && (
+                    <div className="bg-[#1a2730] px-4 py-3 border-t border-white/5 shrink-0">
+                      <div className="flex items-start gap-3">
+                        <button onClick={cancelRecordedAudio} className="text-red-400 hover:text-red-300 transition-colors mt-1">
+                          <X className="w-5 h-5" />
+                        </button>
+                        <div className="flex-1">
+                          <p className="text-white/60 text-xs mb-1">Prévia do áudio gravado</p>
+                          <audio controls src={recordedAudioPreview} className="w-full h-8" />
+                        </div>
+                        <Button onClick={sendRecordedAudio} disabled={uploadingMedia}
+                          className="bg-[#00a884] hover:bg-[#00a884]/80 text-white h-9 px-3">
+                          {uploadingMedia ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+                          Enviar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Message Input */}
-                  {!isRecording && !pastedPreview && (
+                  {!isRecording && !pastedPreview && !recordedAudioPreview && (
                     <div className="bg-[#202c33] px-4 py-3 flex items-end gap-2 border-t border-white/5 shrink-0">
                       {/* Hidden file input */}
                       <input ref={fileInputRef} type="file" accept="image/*,audio/*,video/*" onChange={handleFileSelect} className="hidden" />
