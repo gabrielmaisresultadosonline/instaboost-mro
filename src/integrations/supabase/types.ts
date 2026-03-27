@@ -2797,6 +2797,12 @@ export type Database = {
           created_at: string
           delay_seconds: number | null
           flow_id: string
+          followup_content: string | null
+          followup_delay_seconds: number | null
+          followup_enabled: boolean | null
+          followup_flow_id: string | null
+          followup_media_url: string | null
+          followup_type: string | null
           id: string
           media_url: string | null
           simulate_typing: boolean | null
@@ -2805,6 +2811,7 @@ export type Database = {
           typing_duration_ms: number | null
           updated_at: string
           wait_for_reply: boolean | null
+          wait_indefinitely: boolean | null
           wait_timeout_seconds: number | null
         }
         Insert: {
@@ -2814,6 +2821,12 @@ export type Database = {
           created_at?: string
           delay_seconds?: number | null
           flow_id: string
+          followup_content?: string | null
+          followup_delay_seconds?: number | null
+          followup_enabled?: boolean | null
+          followup_flow_id?: string | null
+          followup_media_url?: string | null
+          followup_type?: string | null
           id?: string
           media_url?: string | null
           simulate_typing?: boolean | null
@@ -2822,6 +2835,7 @@ export type Database = {
           typing_duration_ms?: number | null
           updated_at?: string
           wait_for_reply?: boolean | null
+          wait_indefinitely?: boolean | null
           wait_timeout_seconds?: number | null
         }
         Update: {
@@ -2831,6 +2845,12 @@ export type Database = {
           created_at?: string
           delay_seconds?: number | null
           flow_id?: string
+          followup_content?: string | null
+          followup_delay_seconds?: number | null
+          followup_enabled?: boolean | null
+          followup_flow_id?: string | null
+          followup_media_url?: string | null
+          followup_type?: string | null
           id?: string
           media_url?: string | null
           simulate_typing?: boolean | null
@@ -2839,6 +2859,7 @@ export type Database = {
           typing_duration_ms?: number | null
           updated_at?: string
           wait_for_reply?: boolean | null
+          wait_indefinitely?: boolean | null
           wait_timeout_seconds?: number | null
         }
         Relationships: [
