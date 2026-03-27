@@ -86,6 +86,18 @@ export default function ApiWhatsAppAccess() {
     loadSettings();
   }, []);
 
+  const loadContacts = useCallback(async () => {
+    try {
+      const { data } = await supabase
+        .from('zapi_contacts')
+        .select('*')
+        .order('last_message_at', { ascending: false });
+      if (data) setContacts(data as Contact[]);
+    } catch (e) {
+      console.error('Error loading contacts:', e);
+    }
+  }, []);
+
   // Realtime subscription for new messages
   useEffect(() => {
     const channel = supabase
@@ -107,12 +119,65 @@ export default function ApiWhatsAppAccess() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [selectedContact]);
+  }, [selectedContact, loadContacts]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const syncChats = async () => {
+    setLoading(true);
+    try {
+      const chats = await callProxy('get-chats');
+      console.log('Z-API get-chats response:', chats);
+      if (Array.isArray(chats)) {
+        for (const chat of chats) {
+          const phone = chat.phone?.replace(/\D/g, '') || chat.id?.replace(/\D/g, '');
+          if (!phone) continue;
+          await supabase.from('zapi_contacts').upsert({
+            phone,
+            name: chat.name || chat.chatName || phone,
+            profile_pic_url: chat.profileThumbnail || chat.imgUrl || null,
+            last_message_at: chat.lastMessageTimestamp 
+              ? new Date(chat.lastMessageTimestamp * 1000).toISOString() 
+              : new Date().toISOString(),
+            unread_count: chat.unreadMessages || 0,
+          }, { onConflict: 'phone' });
+        }
+        await loadContacts();
+        toast({ title: `${chats.length} conversas sincronizadas!` });
+      } else if (chats && typeof chats === 'object' && !chats.error) {
+        // Some Z-API versions wrap in an object
+        const chatList = chats.chats || chats.data || [];
+        if (Array.isArray(chatList) && chatList.length > 0) {
+          for (const chat of chatList) {
+            const phone = chat.phone?.replace(/\D/g, '') || chat.id?.replace(/\D/g, '');
+            if (!phone) continue;
+            await supabase.from('zapi_contacts').upsert({
+              phone,
+              name: chat.name || chat.chatName || phone,
+              profile_pic_url: chat.profileThumbnail || chat.imgUrl || null,
+              last_message_at: new Date().toISOString(),
+              unread_count: chat.unreadMessages || 0,
+            }, { onConflict: 'phone' });
+          }
+          await loadContacts();
+          toast({ title: `${chatList.length} conversas sincronizadas!` });
+        } else {
+          console.log('Z-API chats response structure:', JSON.stringify(chats).slice(0, 500));
+          toast({ title: 'Nenhuma conversa encontrada na API', description: 'Tente enviar uma mensagem primeiro', variant: 'destructive' });
+        }
+      } else {
+        console.log('Z-API chats error:', chats);
+        toast({ title: 'Erro ao buscar conversas', description: chats?.error || 'Resposta inesperada', variant: 'destructive' });
+      }
+    } catch (e) {
+      toast({ title: 'Erro ao sincronizar', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -130,7 +195,6 @@ export default function ApiWhatsAppAccess() {
             .select('phone')
             .limit(1);
           if (!existingContacts || existingContacts.length === 0) {
-            // Auto-sync chats from Z-API on first load
             if (!hasSyncedRef.current) {
               hasSyncedRef.current = true;
               setTimeout(() => syncChats(), 500);
@@ -154,65 +218,6 @@ export default function ApiWhatsAppAccess() {
     }, 10000);
     return () => clearInterval(interval);
   }, [connected, view, loadContacts]);
-
-  const saveSettings = async () => {
-    setLoading(true);
-    try {
-      await callProxy('save-settings', {
-        instance_id: instanceId,
-        token,
-        client_token: clientToken,
-      });
-      toast({ title: 'Configurações salvas!' });
-
-      // Set webhook URL
-      const webhookUrl = `${SUPABASE_URL}/functions/v1/zapi-webhook`;
-      await callProxy('set-webhook', { webhookUrl });
-      toast({ title: 'Webhook configurado!' });
-
-      await loadSettings();
-      setView('chats');
-    } catch (e) {
-      toast({ title: 'Erro ao salvar', description: String(e), variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkStatus = async () => {
-    try {
-      const result = await callProxy('get-status');
-      setConnected(result?.connected === true);
-      if (!result?.connected) {
-        getQrCode();
-      }
-    } catch (e) {
-      console.error('Status error:', e);
-    }
-  };
-
-  const getQrCode = async () => {
-    try {
-      const result = await callProxy('get-qrcode');
-      if (result?.value) {
-        setQrCode(result.value);
-      }
-    } catch (e) {
-      console.error('QR error:', e);
-    }
-  };
-
-  const loadContacts = useCallback(async () => {
-    try {
-      const { data } = await supabase
-        .from('zapi_contacts')
-        .select('*')
-        .order('last_message_at', { ascending: false });
-      if (data) setContacts(data as Contact[]);
-    } catch (e) {
-      console.error('Error loading contacts:', e);
-    }
-  }, []);
 
   const loadMessages = async (phone: string) => {
     try {
