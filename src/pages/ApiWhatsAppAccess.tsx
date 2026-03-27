@@ -24,6 +24,7 @@ interface Contact {
   tags?: string[];
   crm_status?: string;
   is_hot_lead?: boolean;
+  is_group?: boolean;
 }
 
 interface Message {
