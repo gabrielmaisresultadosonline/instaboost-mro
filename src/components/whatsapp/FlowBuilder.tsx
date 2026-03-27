@@ -27,7 +27,7 @@ interface FlowStep {
   button_text?: string;
   button_options: string[];
   button_actions?: Array<{
-    action_type: 'text' | 'audio' | 'image' | 'video' | 'flow';
+    action_type: 'text' | 'audio' | 'image' | 'video' | 'flow' | 'continue';
     content?: string;
     media_url?: string;
     flow_id?: string;
@@ -604,6 +604,7 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                                         { value: 'image' as const, label: 'Imagem', icon: Image, color: '#7c5cfc' },
                                         { value: 'video' as const, label: 'Vídeo', icon: Video, color: '#e74c3c' },
                                         { value: 'flow' as const, label: 'Fluxo', icon: Zap, color: '#f39c12' },
+                                        { value: 'continue' as const, label: 'Sequência', icon: ArrowRight, color: '#3498db' },
                                       ]).map(at => (
                                         <button
                                           key={at.value}
@@ -685,6 +686,11 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                                         </select>
                                         <p className="text-white/30 text-[10px] mt-1">Dispara outro fluxo completo</p>
                                       </div>
+                                    )}
+                                    {action.action_type === 'continue' && (
+                                      <p className="text-blue-400/70 text-[10px]">
+                                        ▶ Qualquer resposta neste botão continua a sequência dos próximos passos do fluxo
+                                      </p>
                                     )}
                                   </div>
                                 </div>

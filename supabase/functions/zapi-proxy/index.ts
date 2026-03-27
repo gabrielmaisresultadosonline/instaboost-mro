@@ -399,7 +399,7 @@ serve(async (req) => {
 
               // If any button has actions configured, auto-pause to wait for button response
               const buttonActions = step.button_actions || [];
-              const hasActions = buttonActions.some((a: any) => a && (a.content || a.media_url || a.flow_id));
+              const hasActions = buttonActions.some((a: any) => a && (a.content || a.media_url || a.flow_id || a.action_type === 'continue'));
               if (hasActions && buttons.length > 0) {
                 await supabase
                   .from("zapi_flow_executions")
@@ -1291,6 +1291,9 @@ serve(async (req) => {
                   data: { flowId: btnAction.flow_id, phone: execPhoneNorm },
                 }),
               }).catch(err => console.error("[Resume] Button flow trigger error:", err));
+            } else if (btnAction.action_type === "continue") {
+              // "Continue" means just proceed with remaining steps — no special action needed
+              console.log("[Resume] Button action is 'continue', proceeding with remaining steps");
             }
           }
         }
