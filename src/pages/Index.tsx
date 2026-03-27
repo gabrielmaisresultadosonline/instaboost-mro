@@ -6,6 +6,7 @@ import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { AgeRestrictionDialog } from '@/components/AgeRestrictionDialog';
 import { PrivateProfileDialog } from '@/components/PrivateProfileDialog';
 import AnnouncementPopup from '@/components/AnnouncementPopup';
+import { CadastrarContaButton } from '@/components/CadastrarContaButton';
 import { MROSession, ProfileSession, InstagramProfile, ProfileAnalysis } from '@/types/instagram';
 import {
   getSession, 
@@ -752,6 +753,7 @@ const Index = () => {
         />
         {ageRestrictionDialogElement}
         {privateProfileDialogElement}
+        <CadastrarContaButton />
       </>
     );
   }
