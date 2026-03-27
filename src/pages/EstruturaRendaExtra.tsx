@@ -1045,6 +1045,29 @@ const EstruturaRendaExtra = () => {
                 </div>
               </button>
 
+              {/* Cadastrar Conta FIXA button */}
+              <button
+                onClick={() => setShowContaFixaPopup(true)}
+                className="group w-full relative overflow-hidden rounded-2xl bg-orange-600 hover:bg-orange-500 border-2 border-orange-500 hover:border-orange-400 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-orange-600/20 hover:shadow-orange-500/30"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-orange-700/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
+                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/20 flex items-center justify-center">
+                    <User className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg" />
+                  </div>
+                </div>
+                <div className="relative z-10 text-left lg:text-center">
+                  <p className="text-white font-black italic text-2xl lg:text-3xl leading-tight">
+                    Cadastrar Conta<br className="hidden lg:block" /> FIXA
+                  </p>
+                  <p className="text-white/60 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5 font-bold italic">
+                    <span className="w-4 h-[1px] bg-white/40"></span>
+                    Clique para saber mais
+                    <span className="w-4 h-[1px] bg-white/40"></span>
+                  </p>
+                </div>
+              </button>
+
             </div>
 
             {/* Right Panel - Dashboard */}
