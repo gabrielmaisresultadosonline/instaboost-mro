@@ -4,11 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   MessageSquare, Send, Settings, FileText,
-  Mic, Search, ArrowLeft, Check, CheckCheck, Wifi, WifiOff,
+  Mic, MicOff, Search, ArrowLeft, Check, CheckCheck, Wifi, WifiOff,
   QrCode, Loader2, User, RefreshCw, Plus, Zap, BarChart3,
-  Image, Paperclip, X, Play, Users
+  Image, Paperclip, X, Play, Users, Square, Upload, Video
 } from 'lucide-react';
 import FlowBuilder from '@/components/whatsapp/FlowBuilder';
 import CRMPanel from '@/components/whatsapp/CRMPanel';
@@ -97,8 +98,18 @@ export default function ApiWhatsAppAccess() {
   const [executingFlow, setExecutingFlow] = useState(false);
   const [showMediaInput, setShowMediaInput] = useState(false);
   const [mediaUrl, setMediaUrl] = useState('');
-  const [mediaType, setMediaType] = useState<'image' | 'audio'>('image');
+  const [mediaType, setMediaType] = useState<'image' | 'audio' | 'video'>('image');
   const [syncingContacts, setSyncingContacts] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [pastedFile, setPastedFile] = useState<File | null>(null);
+  const [pastedPreview, setPastedPreview] = useState<string | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const formatPhone = (phone: string) => {
@@ -246,6 +257,141 @@ export default function ApiWhatsAppAccess() {
     } finally {
       setSendingMessage(false);
     }
+  };
+
+  // Upload file to Supabase storage and return public URL
+  const uploadToStorage = async (file: Blob, fileName: string): Promise<string> => {
+    const path = `whatsapp/${Date.now()}_${fileName}`;
+    const { data, error } = await supabase.storage.from('assets').upload(path, file, { cacheControl: '3600', upsert: false });
+    if (error) throw new Error('Erro ao fazer upload: ' + error.message);
+    const { data: urlData } = supabase.storage.from('assets').getPublicUrl(data.path);
+    return urlData.publicUrl;
+  };
+
+  // Audio recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      mediaRecorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); };
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+    } catch {
+      toast({ title: 'Sem acesso ao microfone', description: 'Permita o acesso ao microfone no navegador', variant: 'destructive' });
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!mediaRecorderRef.current || !selectedContact) return;
+    setIsRecording(false);
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    
+    return new Promise<void>((resolve) => {
+      mediaRecorderRef.current!.onstop = async () => {
+        mediaRecorderRef.current!.stream.getTracks().forEach(t => t.stop());
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
+        if (audioBlob.size < 1000) { resolve(); return; }
+        
+        setUploadingMedia(true);
+        try {
+          const url = await uploadToStorage(audioBlob, 'audio.ogg');
+          await callProxy('send-audio', { phone: normalizePhone(selectedContact!.phone), audio: url });
+          await loadMessages(selectedContact!.phone, true);
+          toast({ title: 'Áudio enviado!' });
+        } catch { toast({ title: 'Erro ao enviar áudio', variant: 'destructive' }); }
+        finally { setUploadingMedia(false); }
+        resolve();
+      };
+      mediaRecorderRef.current!.stop();
+    });
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    audioChunksRef.current = [];
+  };
+
+  // Ctrl+V paste handler
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          setPastedFile(file);
+          setPastedPreview(URL.createObjectURL(file));
+        }
+        return;
+      }
+    }
+  };
+
+  const sendPastedImage = async () => {
+    if (!pastedFile || !selectedContact) return;
+    setUploadingMedia(true);
+    try {
+      const ext = pastedFile.type.split('/')[1] || 'png';
+      const url = await uploadToStorage(pastedFile, `pasted.${ext}`);
+      await callProxy('send-image', { phone: normalizePhone(selectedContact.phone), image: url, caption: messageText || '' });
+      setPastedFile(null);
+      setPastedPreview(null);
+      setMessageText('');
+      await loadMessages(selectedContact.phone, true);
+      toast({ title: 'Imagem enviada!' });
+    } catch { toast({ title: 'Erro ao enviar imagem', variant: 'destructive' }); }
+    finally { setUploadingMedia(false); }
+  };
+
+  const cancelPaste = () => {
+    if (pastedPreview) URL.revokeObjectURL(pastedPreview);
+    setPastedFile(null);
+    setPastedPreview(null);
+  };
+
+  // File input handler (for audio/image/video files)
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedContact) return;
+    setUploadingMedia(true);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const url = await uploadToStorage(file, `upload.${ext}`);
+      const phone = normalizePhone(selectedContact.phone);
+      
+      if (file.type.startsWith('image/')) {
+        await callProxy('send-image', { phone, image: url, caption: '' });
+        toast({ title: 'Imagem enviada!' });
+      } else if (file.type.startsWith('audio/')) {
+        await callProxy('send-audio', { phone, audio: url });
+        toast({ title: 'Áudio enviado!' });
+      } else if (file.type.startsWith('video/')) {
+        await callProxy('send-video', { phone, video: url });
+        toast({ title: 'Vídeo enviado!' });
+      } else {
+        await callProxy('send-document', { phone, document: url, fileName: file.name });
+        toast({ title: 'Documento enviado!' });
+      }
+      await loadMessages(selectedContact.phone, true);
+    } catch { toast({ title: 'Erro ao enviar arquivo', variant: 'destructive' }); }
+    finally { setUploadingMedia(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+  };
+
+  const formatRecordingTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   const executeFlow = async (flowId: string) => {
@@ -624,19 +770,42 @@ export default function ApiWhatsAppAccess() {
                     </div>
                   </ScrollArea>
 
-                  {/* Media Input */}
-                  {showMediaInput && (
+                  {/* Pasted Image Preview */}
+                  {pastedPreview && (
+                    <div className="bg-[#1a2730] px-4 py-3 border-t border-white/5">
+                      <div className="flex items-start gap-3">
+                        <img src={pastedPreview} alt="Preview" className="max-h-40 rounded-lg object-contain border border-white/10" />
+                        <div className="flex-1 space-y-2">
+                          <p className="text-white/60 text-xs">Imagem colada (Ctrl+V)</p>
+                          <Input value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Legenda (opcional)"
+                            className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
+                          />
+                          <div className="flex gap-2">
+                            <Button onClick={sendPastedImage} disabled={uploadingMedia} className="bg-[#00a884] hover:bg-[#00a884]/80 text-white text-sm h-8">
+                              {uploadingMedia ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Send className="w-3 h-3 mr-1" />}
+                              Enviar
+                            </Button>
+                            <Button onClick={cancelPaste} variant="ghost" className="text-white/40 hover:text-white/60 text-sm h-8">
+                              <X className="w-3 h-3 mr-1" /> Cancelar
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Media Input (URL mode) */}
+                  {showMediaInput && !pastedPreview && (
                     <div className="bg-[#1a2730] px-4 py-3 border-t border-white/5 space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex gap-2">
-                          <button onClick={() => setMediaType('image')}
-                            className={`px-3 py-1 rounded-full text-xs ${mediaType === 'image' ? 'bg-[#00a884] text-white' : 'bg-[#2a3942] text-white/40'}`}>
-                            <Image className="w-3 h-3 inline mr-1" />Imagem
-                          </button>
-                          <button onClick={() => setMediaType('audio')}
-                            className={`px-3 py-1 rounded-full text-xs ${mediaType === 'audio' ? 'bg-[#00a884] text-white' : 'bg-[#2a3942] text-white/40'}`}>
-                            <Mic className="w-3 h-3 inline mr-1" />Áudio
-                          </button>
+                          {(['image', 'audio', 'video'] as const).map(t => (
+                            <button key={t} onClick={() => setMediaType(t)}
+                              className={`px-3 py-1 rounded-full text-xs flex items-center gap-1 ${mediaType === t ? 'bg-[#00a884] text-white' : 'bg-[#2a3942] text-white/40'}`}>
+                              {t === 'image' ? <Image className="w-3 h-3" /> : t === 'audio' ? <Mic className="w-3 h-3" /> : <Video className="w-3 h-3" />}
+                              {t === 'image' ? 'Imagem' : t === 'audio' ? 'Áudio' : 'Vídeo'}
+                            </button>
+                          ))}
                         </div>
                         <button onClick={() => setShowMediaInput(false)} className="text-white/30 hover:text-white/60">
                           <X className="w-4 h-4" />
@@ -652,30 +821,74 @@ export default function ApiWhatsAppAccess() {
                       )}
                       <Button onClick={sendMedia} disabled={!mediaUrl.trim() || sendingMessage} className="w-full bg-[#00a884] hover:bg-[#00a884]/80 text-white text-sm h-9">
                         {sendingMessage ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
-                        Enviar {mediaType === 'image' ? 'Imagem' : 'Áudio'}
+                        Enviar {mediaType === 'image' ? 'Imagem' : mediaType === 'audio' ? 'Áudio' : 'Vídeo'}
                       </Button>
                     </div>
                   )}
 
-                  {/* Message Input */}
-                  <div className="bg-[#202c33] px-4 py-3 flex items-end gap-2 border-t border-white/5 shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => setShowMediaInput(!showMediaInput)}
-                      className={`text-white/40 hover:text-white h-10 w-10 shrink-0 ${showMediaInput ? 'text-[#00a884]' : ''}`}>
-                      <Paperclip className="w-5 h-5" />
-                    </Button>
-                    <div className="flex-1">
-                      <Textarea value={messageText} onChange={(e) => setMessageText(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                        placeholder="Digite uma mensagem"
-                        className="bg-[#2a3942] border-0 text-white placeholder:text-white/30 rounded-lg resize-none min-h-[40px] max-h-[120px] py-2.5 text-sm"
-                        rows={1}
-                      />
+                  {/* Recording UI */}
+                  {isRecording && (
+                    <div className="bg-[#1a2730] px-4 py-3 flex items-center gap-3 border-t border-white/5 shrink-0">
+                      <button onClick={cancelRecording} className="text-red-400 hover:text-red-300 transition-colors">
+                        <X className="w-5 h-5" />
+                      </button>
+                      <div className="flex-1 flex items-center gap-3">
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-white/70 text-sm font-mono">{formatRecordingTime(recordingTime)}</span>
+                        <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full bg-red-500 rounded-full animate-pulse" style={{ width: `${Math.min(recordingTime * 2, 100)}%` }} />
+                        </div>
+                      </div>
+                      <button onClick={stopRecording}
+                        className="bg-[#00a884] hover:bg-[#00a884]/80 text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors">
+                        <Send className="w-5 h-5" />
+                      </button>
                     </div>
-                    <Button onClick={sendMessage} disabled={!messageText.trim() || sendingMessage}
-                      className="bg-[#00a884] hover:bg-[#00a884]/80 text-white rounded-full w-10 h-10 p-0 shrink-0">
-                      {sendingMessage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                    </Button>
-                  </div>
+                  )}
+
+                  {/* Message Input */}
+                  {!isRecording && !pastedPreview && (
+                    <div className="bg-[#202c33] px-4 py-3 flex items-end gap-2 border-t border-white/5 shrink-0">
+                      {/* Hidden file input */}
+                      <input ref={fileInputRef} type="file" accept="image/*,audio/*,video/*" onChange={handleFileSelect} className="hidden" />
+                      
+                      {/* Attachment button */}
+                      <Button variant="ghost" size="icon" onClick={() => setShowMediaInput(!showMediaInput)}
+                        className={`text-white/40 hover:text-white h-10 w-10 shrink-0 ${showMediaInput ? 'text-[#00a884]' : ''}`}>
+                        <Paperclip className="w-5 h-5" />
+                      </Button>
+
+                      {/* Upload file button */}
+                      <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} disabled={uploadingMedia}
+                        className="text-white/40 hover:text-white h-10 w-10 shrink-0">
+                        {uploadingMedia ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                      </Button>
+
+                      {/* Text area with paste handler */}
+                      <div className="flex-1">
+                        <Textarea value={messageText} onChange={(e) => setMessageText(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                          onPaste={handlePaste}
+                          placeholder="Digite uma mensagem ou cole uma imagem (Ctrl+V)"
+                          className="bg-[#2a3942] border-0 text-white placeholder:text-white/30 rounded-lg resize-none min-h-[40px] max-h-[120px] py-2.5 text-sm"
+                          rows={1}
+                        />
+                      </div>
+
+                      {/* Send or Record button */}
+                      {messageText.trim() ? (
+                        <Button onClick={sendMessage} disabled={sendingMessage}
+                          className="bg-[#00a884] hover:bg-[#00a884]/80 text-white rounded-full w-10 h-10 p-0 shrink-0">
+                          {sendingMessage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                        </Button>
+                      ) : (
+                        <Button onClick={startRecording} disabled={uploadingMedia}
+                          className="bg-[#00a884] hover:bg-[#00a884]/80 text-white rounded-full w-10 h-10 p-0 shrink-0">
+                          <Mic className="w-5 h-5" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>

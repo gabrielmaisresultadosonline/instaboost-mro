@@ -555,6 +555,32 @@ serve(async (req) => {
         });
       }
 
+      case "send-video": {
+        const phone = normalizeBrazilianPhone(normalizePhone(data.phone));
+        const video = typeof data.video === "string" ? data.video : "";
+        const caption = typeof data.caption === "string" ? data.caption : "";
+
+        const { payload: vidResult } = await callZapi("/send-video", {
+          method: "POST",
+          body: JSON.stringify({ phone, video, caption }),
+        });
+
+        await supabase.from("zapi_messages").insert({
+          message_id: vidResult?.messageId || null,
+          phone,
+          direction: "outgoing",
+          message_type: "video",
+          content: caption || "",
+          media_url: video,
+          status: "sent",
+          timestamp: Date.now(),
+        });
+
+        return new Response(JSON.stringify(vidResult), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       case "send-document": {
         const phone = normalizeBrazilianPhone(normalizePhone(data.phone));
         const docUrl = typeof data.document === "string" ? data.document : "";
