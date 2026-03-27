@@ -6,16 +6,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Sparkles, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { trackPageView, trackPurchase, trackLead } from "@/lib/facebookTracking";
+import { supabase } from "@/integrations/supabase/client";
 
 const Obrigado = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("555195781011");
   const { toast } = useToast();
 
-  // Track Purchase on page load (this is the thank you page after payment)
   useEffect(() => {
     trackPageView('Thank You Page - Purchase Complete');
     trackPurchase(397, 'MRO I.A + Automação');
+    
+    supabase.from('whatsapp_page_settings').select('whatsapp_number').limit(1).single()
+      .then(({ data }) => {
+        if (data?.whatsapp_number) setWhatsappNumber(data.whatsapp_number);
+      });
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,7 +43,7 @@ const Obrigado = () => {
       `Olá! Acabei de comprar o MRO I.A + Automação!\n\nNome: ${nome.trim()}\nEmail: ${email.trim()}`
     );
     
-    window.open(`https://wa.me/555195781011?text=${message}`, "_blank");
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
   };
 
   return (
