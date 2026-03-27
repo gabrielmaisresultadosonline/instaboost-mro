@@ -2700,32 +2700,195 @@ export type Database = {
       zapi_contacts: {
         Row: {
           created_at: string
+          crm_status: string | null
           id: string
+          is_hot_lead: boolean | null
           last_message_at: string | null
           name: string | null
+          notes: string | null
           phone: string
           profile_pic_url: string | null
+          source: string | null
+          tags: string[] | null
           unread_count: number | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          crm_status?: string | null
           id?: string
+          is_hot_lead?: boolean | null
           last_message_at?: string | null
           name?: string | null
+          notes?: string | null
           phone: string
           profile_pic_url?: string | null
+          source?: string | null
+          tags?: string[] | null
           unread_count?: number | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          crm_status?: string | null
           id?: string
+          is_hot_lead?: boolean | null
           last_message_at?: string | null
           name?: string | null
+          notes?: string | null
           phone?: string
           profile_pic_url?: string | null
+          source?: string | null
+          tags?: string[] | null
           unread_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      zapi_flow_executions: {
+        Row: {
+          completed_at: string | null
+          current_step: number | null
+          flow_id: string
+          id: string
+          last_step_at: string | null
+          paused_at: string | null
+          phone: string
+          started_at: string
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          current_step?: number | null
+          flow_id: string
+          id?: string
+          last_step_at?: string | null
+          paused_at?: string | null
+          phone: string
+          started_at?: string
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          current_step?: number | null
+          flow_id?: string
+          id?: string
+          last_step_at?: string | null
+          paused_at?: string | null
+          phone?: string
+          started_at?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zapi_flow_executions_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "zapi_flows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zapi_flow_steps: {
+        Row: {
+          button_options: Json | null
+          button_text: string | null
+          content: string | null
+          created_at: string
+          delay_seconds: number | null
+          flow_id: string
+          id: string
+          media_url: string | null
+          simulate_typing: boolean | null
+          step_order: number
+          step_type: string
+          typing_duration_ms: number | null
+          updated_at: string
+          wait_for_reply: boolean | null
+          wait_timeout_seconds: number | null
+        }
+        Insert: {
+          button_options?: Json | null
+          button_text?: string | null
+          content?: string | null
+          created_at?: string
+          delay_seconds?: number | null
+          flow_id: string
+          id?: string
+          media_url?: string | null
+          simulate_typing?: boolean | null
+          step_order?: number
+          step_type?: string
+          typing_duration_ms?: number | null
+          updated_at?: string
+          wait_for_reply?: boolean | null
+          wait_timeout_seconds?: number | null
+        }
+        Update: {
+          button_options?: Json | null
+          button_text?: string | null
+          content?: string | null
+          created_at?: string
+          delay_seconds?: number | null
+          flow_id?: string
+          id?: string
+          media_url?: string | null
+          simulate_typing?: boolean | null
+          step_order?: number
+          step_type?: string
+          typing_duration_ms?: number | null
+          updated_at?: string
+          wait_for_reply?: boolean | null
+          wait_timeout_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zapi_flow_steps_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "zapi_flows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zapi_flows: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          trigger_keywords: string[] | null
+          trigger_on_first_message: boolean | null
+          trigger_on_specific_message: boolean | null
+          trigger_specific_text: string | null
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          trigger_keywords?: string[] | null
+          trigger_on_first_message?: boolean | null
+          trigger_on_specific_message?: boolean | null
+          trigger_specific_text?: string | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          trigger_keywords?: string[] | null
+          trigger_on_first_message?: boolean | null
+          trigger_on_specific_message?: boolean | null
+          trigger_specific_text?: string | null
+          trigger_type?: string
           updated_at?: string
         }
         Relationships: []

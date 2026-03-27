@@ -645,6 +645,293 @@ serve(async (req) => {
         });
       }
 
+      case "get-crm-contacts": {
+        const { data: crmContacts, error } = await supabase
+          .from("zapi_contacts")
+          .select("*")
+          .order("last_message_at", { ascending: false });
+        if (error) throw error;
+        return new Response(JSON.stringify({ contacts: crmContacts ?? [] }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "update-crm-contact": {
+        const contactId = data.contactId;
+        if (!contactId) {
+          return new Response(JSON.stringify({ error: "contactId obrigatório" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+        if (data.tags !== undefined) updates.tags = data.tags;
+        if (data.crm_status !== undefined) updates.crm_status = data.crm_status;
+        if (data.source !== undefined) updates.source = data.source;
+        if (data.notes !== undefined) updates.notes = data.notes;
+        if (data.is_hot_lead !== undefined) updates.is_hot_lead = data.is_hot_lead;
+
+        const { error } = await supabase.from("zapi_contacts").update(updates).eq("id", contactId);
+        if (error) throw error;
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "get-flows": {
+        const { data: flows, error } = await supabase
+          .from("zapi_flows")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+
+        const flowsWithSteps = [];
+        for (const flow of (flows ?? [])) {
+          const { data: steps } = await supabase
+            .from("zapi_flow_steps")
+            .select("*")
+            .eq("flow_id", flow.id)
+            .order("step_order", { ascending: true });
+          flowsWithSteps.push({ ...flow, steps: (steps ?? []).map((s: Record<string, unknown>) => ({ ...s, button_options: s.button_options || [] })) });
+        }
+
+        return new Response(JSON.stringify({ flows: flowsWithSteps }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "save-flow": {
+        const flowData = data.flow;
+        const stepsData = data.steps;
+        if (!flowData?.name) {
+          return new Response(JSON.stringify({ error: "Nome do fluxo obrigatório" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        let flowId = flowData.id;
+        if (flowId) {
+          await supabase.from("zapi_flows").update({
+            name: flowData.name,
+            description: flowData.description || null,
+            trigger_type: flowData.trigger_type || "manual",
+            trigger_keywords: flowData.trigger_keywords || [],
+            trigger_on_first_message: flowData.trigger_on_first_message || false,
+            trigger_specific_text: flowData.trigger_specific_text || null,
+            is_active: flowData.is_active !== false,
+            updated_at: new Date().toISOString(),
+          }).eq("id", flowId);
+
+          await supabase.from("zapi_flow_steps").delete().eq("flow_id", flowId);
+        } else {
+          const { data: newFlow, error } = await supabase.from("zapi_flows").insert({
+            name: flowData.name,
+            description: flowData.description || null,
+            trigger_type: flowData.trigger_type || "manual",
+            trigger_keywords: flowData.trigger_keywords || [],
+            trigger_on_first_message: flowData.trigger_on_first_message || false,
+            trigger_specific_text: flowData.trigger_specific_text || null,
+            is_active: flowData.is_active !== false,
+          }).select("id").single();
+          if (error) throw error;
+          flowId = newFlow.id;
+        }
+
+        if (Array.isArray(stepsData)) {
+          for (const step of stepsData) {
+            await supabase.from("zapi_flow_steps").insert({
+              flow_id: flowId,
+              step_order: step.step_order || 0,
+              step_type: step.step_type || "text",
+              content: step.content || null,
+              media_url: step.media_url || null,
+              delay_seconds: step.delay_seconds || 2,
+              simulate_typing: step.simulate_typing !== false,
+              typing_duration_ms: step.typing_duration_ms || 3000,
+              wait_for_reply: step.wait_for_reply || false,
+              wait_timeout_seconds: step.wait_timeout_seconds || 300,
+              button_text: step.button_text || null,
+              button_options: step.button_options || [],
+            });
+          }
+        }
+
+        return new Response(JSON.stringify({ success: true, flowId }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "delete-flow": {
+        const delFlowId = data.flowId;
+        if (!delFlowId) {
+          return new Response(JSON.stringify({ error: "flowId obrigatório" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        await supabase.from("zapi_flow_steps").delete().eq("flow_id", delFlowId);
+        await supabase.from("zapi_flows").delete().eq("id", delFlowId);
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "execute-flow": {
+        const execFlowId = data.flowId;
+        const execPhone = normalizeBrazilianPhone(normalizePhone(data.phone));
+        if (!execFlowId || !execPhone) {
+          return new Response(JSON.stringify({ error: "flowId e phone obrigatórios" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { data: flowSteps } = await supabase
+          .from("zapi_flow_steps")
+          .select("*")
+          .eq("flow_id", execFlowId)
+          .order("step_order", { ascending: true });
+
+        if (!flowSteps || flowSteps.length === 0) {
+          return new Response(JSON.stringify({ error: "Fluxo sem passos" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        await supabase.from("zapi_flow_executions").insert({
+          flow_id: execFlowId,
+          phone: execPhone,
+          status: "running",
+        });
+
+        let stepsExecuted = 0;
+        for (const step of flowSteps) {
+          if (step.wait_for_reply) break;
+
+          if (step.delay_seconds > 0) {
+            await new Promise(r => setTimeout(r, step.delay_seconds * 1000));
+          }
+
+          if (step.simulate_typing && step.typing_duration_ms > 0) {
+            try {
+              await callZapi("/send-typing", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhone }),
+              });
+              await new Promise(r => setTimeout(r, Math.min(step.typing_duration_ms, 5000)));
+              await callZapi("/send-typing-stop", {
+                method: "POST",
+                body: JSON.stringify({ phone: execPhone }),
+              });
+            } catch { /* ignore typing errors */ }
+          }
+
+          switch (step.step_type) {
+            case "text":
+              if (step.content) {
+                await callZapi("/send-text", {
+                  method: "POST",
+                  body: JSON.stringify({ phone: execPhone, message: step.content }),
+                });
+                await supabase.from("zapi_messages").insert({
+                  phone: execPhone, direction: "outgoing", message_type: "text",
+                  content: step.content, status: "sent", timestamp: Date.now(),
+                });
+              }
+              break;
+            case "image":
+              if (step.media_url) {
+                await callZapi("/send-image", {
+                  method: "POST",
+                  body: JSON.stringify({ phone: execPhone, image: step.media_url, caption: step.content || "" }),
+                });
+                await supabase.from("zapi_messages").insert({
+                  phone: execPhone, direction: "outgoing", message_type: "image",
+                  content: step.content || "", media_url: step.media_url, status: "sent", timestamp: Date.now(),
+                });
+              }
+              break;
+            case "audio":
+              if (step.media_url) {
+                await callZapi("/send-audio", {
+                  method: "POST",
+                  body: JSON.stringify({ phone: execPhone, audio: step.media_url }),
+                });
+                await supabase.from("zapi_messages").insert({
+                  phone: execPhone, direction: "outgoing", message_type: "audio",
+                  media_url: step.media_url, status: "sent", timestamp: Date.now(),
+                });
+              }
+              break;
+            case "video":
+              if (step.media_url) {
+                await callZapi("/send-video", {
+                  method: "POST",
+                  body: JSON.stringify({ phone: execPhone, video: step.media_url, caption: step.content || "" }),
+                });
+                await supabase.from("zapi_messages").insert({
+                  phone: execPhone, direction: "outgoing", message_type: "video",
+                  content: step.content || "", media_url: step.media_url, status: "sent", timestamp: Date.now(),
+                });
+              }
+              break;
+            case "buttons":
+              if (step.content) {
+                const buttons = (step.button_options || []).map((b: string) => ({ id: b, label: b }));
+                if (buttons.length > 0) {
+                  await callZapi("/send-button-list", {
+                    method: "POST",
+                    body: JSON.stringify({
+                      phone: execPhone,
+                      message: step.content,
+                      buttonList: { buttons },
+                    }),
+                  });
+                } else {
+                  await callZapi("/send-text", {
+                    method: "POST",
+                    body: JSON.stringify({ phone: execPhone, message: step.content }),
+                  });
+                }
+                await supabase.from("zapi_messages").insert({
+                  phone: execPhone, direction: "outgoing", message_type: "text",
+                  content: step.content, status: "sent", timestamp: Date.now(),
+                });
+              }
+              break;
+          }
+          stepsExecuted++;
+        }
+
+        return new Response(JSON.stringify({ success: true, stepsExecuted }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "sync-whatsapp-contacts": {
+        const { payload: waContacts } = await callZapi("/contacts");
+        const contactsList = Array.isArray(waContacts) ? waContacts : (waContacts?.contacts || waContacts?.data || []);
+
+        let synced = 0;
+        if (Array.isArray(contactsList)) {
+          for (const c of contactsList) {
+            const rawPhone = normalizePhone(c?.phone || c?.id || c?.jid);
+            if (!rawPhone || !isRealPhone(rawPhone)) continue;
+            const phone = normalizeBrazilianPhone(rawPhone);
+            const name = c?.name || c?.pushName || c?.notify || null;
+            if (name) {
+              await supabase.from("zapi_contacts").upsert({
+                phone,
+                name,
+                updated_at: new Date().toISOString(),
+              }, { onConflict: "phone" });
+              synced++;
+            }
+          }
+        }
+
+        return new Response(JSON.stringify({ synced }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       default:
         return new Response(JSON.stringify({ error: `Ação desconhecida: ${action}` }), {
           status: 400,
