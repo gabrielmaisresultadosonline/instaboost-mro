@@ -687,6 +687,11 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                                         <p className="text-white/30 text-[10px] mt-1">Dispara outro fluxo completo</p>
                                       </div>
                                     )}
+                                    {action.action_type === 'continue' && (
+                                      <p className="text-blue-400/70 text-[10px]">
+                                        ▶ Qualquer resposta neste botão continua a sequência dos próximos passos do fluxo
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               );

@@ -1291,6 +1291,9 @@ serve(async (req) => {
                   data: { flowId: btnAction.flow_id, phone: execPhoneNorm },
                 }),
               }).catch(err => console.error("[Resume] Button flow trigger error:", err));
+            } else if (btnAction.action_type === "continue") {
+              // "Continue" means just proceed with remaining steps — no special action needed
+              console.log("[Resume] Button action is 'continue', proceeding with remaining steps");
             }
           }
         }
