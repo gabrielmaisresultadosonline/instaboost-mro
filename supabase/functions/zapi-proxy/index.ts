@@ -475,6 +475,7 @@ serve(async (req) => {
             message_type: messageType,
             content,
             media_url: mediaUrl,
+            metadata,
             status: direction === "incoming" ? "received" : "sent",
             is_read: direction === "outgoing",
             timestamp: Number(msg?.momment || msg?.timestamp || Date.now()),
