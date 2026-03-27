@@ -103,6 +103,7 @@ serve(async (req) => {
       const contactData: Record<string, unknown> = {
         phone,
         name: senderName,
+        is_group: chatIsGroup,
         last_message_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
