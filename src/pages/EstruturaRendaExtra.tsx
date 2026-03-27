@@ -1140,6 +1140,33 @@ const EstruturaRendaExtra = () => {
           </div>
         )}
 
+        {/* Gerenciador Windows Popup */}
+        {showGerenciadorPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowGerenciadorPopup(false)}>
+            <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  ⚠️ Atenção
+                </h3>
+                <button onClick={() => setShowGerenciadorPopup(false)} className="text-white/60 hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <p className="text-white/80 text-sm leading-relaxed">
+                  Lembre-se que você só vai usar esse gerenciador se já tem <strong className="text-orange-400">mais de 8 contas</strong> para utilizar na sua máquina. Assim você pode usar o Gerenciador de Contas para Windows para organizar o seu ambiente de trabalho.
+                </p>
+                <button
+                  onClick={() => { setShowGerenciadorPopup(false); setCurrentView('gerenciador-windows'); }}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Prosseguir →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     );
   }
