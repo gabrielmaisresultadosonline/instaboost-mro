@@ -27,7 +27,7 @@ interface FlowStep {
   button_text?: string;
   button_options: string[];
   button_actions?: Array<{
-    action_type: 'text' | 'audio' | 'image' | 'video' | 'flow';
+    action_type: 'text' | 'audio' | 'image' | 'video' | 'flow' | 'continue';
     content?: string;
     media_url?: string;
     flow_id?: string;
