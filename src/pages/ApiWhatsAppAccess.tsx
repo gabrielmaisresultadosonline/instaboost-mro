@@ -196,6 +196,9 @@ export default function ApiWhatsAppAccess() {
   const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
   const [recordedAudioPreview, setRecordedAudioPreview] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showContactInfo, setShowContactInfo] = useState(false);
+  const [contactInfo, setContactInfo] = useState<any>(null);
+  const [loadingContactInfo, setLoadingContactInfo] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
