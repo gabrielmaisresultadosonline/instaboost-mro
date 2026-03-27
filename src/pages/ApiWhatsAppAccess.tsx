@@ -1022,11 +1022,31 @@ export default function ApiWhatsAppAccess() {
                     </div>
                   )}
 
+                  {/* Emoji Picker */}
+                  {showEmojiPicker && (
+                    <div className="bg-[#202c33] border-t border-white/5 px-4 py-2 shrink-0">
+                      <div className="grid grid-cols-10 gap-1 max-h-[180px] overflow-y-auto">
+                        {EMOJI_LIST.map((emoji) => (
+                          <button key={emoji} onClick={() => { setMessageText(prev => prev + emoji); setShowEmojiPicker(false); }}
+                            className="text-xl hover:bg-white/10 rounded p-1 transition-colors cursor-pointer">
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Message Input */}
                   {!isRecording && !pastedPreview && !recordedAudioPreview && (
                     <div className="bg-[#202c33] px-4 py-3 flex items-end gap-2 border-t border-white/5 shrink-0">
                       {/* Hidden file input */}
                       <input ref={fileInputRef} type="file" accept="image/*,audio/*,video/*" onChange={handleFileSelect} className="hidden" />
+
+                      {/* Emoji button */}
+                      <Button variant="ghost" size="icon" onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className={`text-white/40 hover:text-white h-10 w-10 shrink-0 ${showEmojiPicker ? 'text-[#00a884]' : ''}`}>
+                        <Smile className="w-5 h-5" />
+                      </Button>
                       
                       {/* Attachment button */}
                       <Button variant="ghost" size="icon" onClick={() => setShowMediaInput(!showMediaInput)}
