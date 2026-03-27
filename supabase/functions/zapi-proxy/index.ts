@@ -337,7 +337,7 @@ serve(async (req) => {
             if (step.media_url) {
               await callZapi("/send-audio", {
                 method: "POST",
-                body: JSON.stringify({ phone: execPhone, audio: step.media_url }),
+                body: JSON.stringify({ phone: execPhone, audio: step.media_url, waveform: true }),
               });
               await supabase.from("zapi_messages").insert({
                 phone: execPhone,
@@ -855,7 +855,7 @@ serve(async (req) => {
 
         const { payload: audioResult } = await callZapi("/send-audio", {
           method: "POST",
-          body: JSON.stringify({ phone, audio }),
+          body: JSON.stringify({ phone, audio, waveform: true }),
         });
 
         await supabase.from("zapi_messages").insert({
@@ -1306,7 +1306,7 @@ serve(async (req) => {
             } else if (btnAction.action_type === "audio" && btnAction.media_url) {
               await callZapi("/send-audio", {
                 method: "POST",
-                body: JSON.stringify({ phone: execPhoneNorm, audio: btnAction.media_url }),
+                body: JSON.stringify({ phone: execPhoneNorm, audio: btnAction.media_url, waveform: true }),
               });
               await supabase.from("zapi_messages").insert({
                 phone: execPhoneNorm, direction: "outgoing", message_type: "audio",
