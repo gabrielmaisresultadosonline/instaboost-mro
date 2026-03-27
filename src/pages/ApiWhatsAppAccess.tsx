@@ -1139,6 +1139,150 @@ export default function ApiWhatsAppAccess() {
                 </>
               )}
             </div>
+
+            {/* Contact Info Panel */}
+            {showContactInfo && selectedContact && (
+              <div className="w-80 bg-[#111b21] border-l border-white/5 flex flex-col shrink-0 overflow-hidden">
+                <div className="bg-[#202c33] px-4 py-3 flex items-center gap-3 border-b border-white/5">
+                  <Button variant="ghost" size="icon" onClick={() => setShowContactInfo(false)} className="text-white/60 hover:text-white h-8 w-8">
+                    <X className="w-5 h-5" />
+                  </Button>
+                  <span className="text-white font-medium text-sm">Informações do contato</span>
+                </div>
+                
+                <ScrollArea className="flex-1">
+                  <div className="flex flex-col items-center py-6 px-4">
+                    {/* Profile Picture */}
+                    <div className="w-28 h-28 rounded-full bg-[#6b7b8d] flex items-center justify-center overflow-hidden mb-4">
+                      {(selectedContact.profile_pic_url || contactInfo?.profile_pic) ? (
+                        <img src={selectedContact.profile_pic_url || contactInfo?.profile_pic} alt="" className="w-full h-full object-cover" />
+                      ) : loadingContactInfo ? (
+                        <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
+                      ) : (
+                        <User className="w-12 h-12 text-white/40" />
+                      )}
+                    </div>
+                    
+                    {/* Name */}
+                    <h3 className="text-white text-lg font-semibold text-center">
+                      {selectedContact.name || formatPhone(selectedContact.phone)}
+                    </h3>
+                    <p className="text-white/40 text-sm mt-1">{formatPhone(selectedContact.phone)}</p>
+                    
+                    {/* Tags */}
+                    {selectedContact.tags && selectedContact.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-3 justify-center">
+                        {selectedContact.tags.map((tag, i) => (
+                          <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-[#00a884]/20 text-[#00a884]">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* CRM Status */}
+                    {selectedContact.crm_status && selectedContact.crm_status !== 'novo' && (
+                      <div className="mt-3">
+                        <span className="text-xs px-3 py-1 rounded-full bg-[#00a884]/20 text-[#00a884] font-medium">{selectedContact.crm_status}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Contact Details */}
+                  <div className="border-t border-white/5 px-4 py-4 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4 h-4 text-[#00a884] shrink-0" />
+                      <div>
+                        <p className="text-white/40 text-[10px] uppercase tracking-wider">Telefone</p>
+                        <p className="text-white text-sm">{formatPhone(selectedContact.phone)}</p>
+                      </div>
+                    </div>
+                    
+                    {selectedContact.is_hot_lead && (
+                      <div className="flex items-center gap-3">
+                        <Zap className="w-4 h-4 text-orange-400 shrink-0" />
+                        <div>
+                          <p className="text-white/40 text-[10px] uppercase tracking-wider">Status</p>
+                          <p className="text-orange-400 text-sm font-medium">🔥 Lead Quente</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Business Profile Info */}
+                  {loadingContactInfo && (
+                    <div className="px-4 py-6 text-center">
+                      <Loader2 className="w-5 h-5 text-white/30 animate-spin mx-auto mb-2" />
+                      <p className="text-white/30 text-xs">Carregando informações...</p>
+                    </div>
+                  )}
+                  
+                  {contactInfo?.business_profile && !loadingContactInfo && (
+                    <div className="border-t border-white/5 px-4 py-4 space-y-4">
+                      <p className="text-white/50 text-xs font-semibold uppercase tracking-wider">Perfil Comercial</p>
+                      
+                      {contactInfo.business_profile.description && (
+                        <div className="flex items-start gap-3">
+                          <Building2 className="w-4 h-4 text-[#00a884] shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-white/40 text-[10px] uppercase tracking-wider">Descrição</p>
+                            <p className="text-white text-sm">{contactInfo.business_profile.description}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {contactInfo.business_profile.email && (
+                        <div className="flex items-center gap-3">
+                          <Mail className="w-4 h-4 text-[#00a884] shrink-0" />
+                          <div>
+                            <p className="text-white/40 text-[10px] uppercase tracking-wider">Email</p>
+                            <a href={`mailto:${contactInfo.business_profile.email}`} className="text-[#00a884] text-sm hover:underline">{contactInfo.business_profile.email}</a>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {(contactInfo.business_profile.websites || contactInfo.business_profile.website) && (
+                        <div className="flex items-start gap-3">
+                          <Globe className="w-4 h-4 text-[#00a884] shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-white/40 text-[10px] uppercase tracking-wider">Website / Links</p>
+                            {(Array.isArray(contactInfo.business_profile.websites) ? contactInfo.business_profile.websites : [contactInfo.business_profile.website]).filter(Boolean).map((url: string, i: number) => (
+                              <a key={i} href={url.startsWith('http') ? url : `https://${url}`} target="_blank" rel="noopener noreferrer" 
+                                className="text-[#00a884] text-sm hover:underline block truncate">{url}</a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {contactInfo.business_profile.address && (
+                        <div className="flex items-start gap-3">
+                          <MapPin className="w-4 h-4 text-[#00a884] shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-white/40 text-[10px] uppercase tracking-wider">Endereço</p>
+                            <p className="text-white text-sm">{contactInfo.business_profile.address}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {contactInfo.business_profile.category && (
+                        <div className="flex items-center gap-3">
+                          <Building2 className="w-4 h-4 text-[#00a884] shrink-0" />
+                          <div>
+                            <p className="text-white/40 text-[10px] uppercase tracking-wider">Categoria</p>
+                            <p className="text-white text-sm">{contactInfo.business_profile.category}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {!loadingContactInfo && !contactInfo?.business_profile && (
+                    <div className="border-t border-white/5 px-4 py-6 text-center">
+                      <p className="text-white/30 text-xs">Nenhuma informação comercial disponível</p>
+                      <p className="text-white/20 text-[10px] mt-1">Apenas contas comerciais possuem informações extras</p>
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+            )}
           </>
         )}
       </div>
