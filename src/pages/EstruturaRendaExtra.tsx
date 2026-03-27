@@ -1177,7 +1177,7 @@ const EstruturaRendaExtra = () => {
             title="🎬 TUTORIAL - Aprenda como gerar seus posts"
             variant="pulse"
             size="lg"
-            className="w-full text-base md:text-lg bg-red-600 hover:bg-red-700"
+            className="w-full text-xs sm:text-base md:text-lg bg-red-600 hover:bg-red-700 whitespace-normal text-center leading-tight py-3"
           />
         </div>
 
