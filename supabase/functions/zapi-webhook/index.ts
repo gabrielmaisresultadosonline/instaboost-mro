@@ -59,6 +59,15 @@ serve(async (req) => {
       const phone = chatIsGroup
         ? normalizePhone(rawPhone)
         : normalizeBrazilianPhone(normalizePhone(rawPhone));
+      
+      // Skip Z-API LID identifiers (15+ digit numbers that aren't real phones)
+      const phoneDigits = phone.replace(/\D/g, '');
+      if (!chatIsGroup && phoneDigits.length >= 15) {
+        console.log('Skipping LID contact:', phone);
+        return new Response(JSON.stringify({ success: true, skipped: 'lid' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       const senderName = payload.senderName || payload.chatName || phone;
       
       let messageType = 'text';
