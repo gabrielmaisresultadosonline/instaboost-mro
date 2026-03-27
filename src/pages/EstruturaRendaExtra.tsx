@@ -296,7 +296,7 @@ const EstruturaRendaExtra = () => {
   const [mroUsername, setMroUsername] = useState('');
   const [mroPassword, setMroPassword] = useState('');
   const [showLogoPopup, setShowLogoPopup] = useState(false);
-  const [showContaFixaPopup, setShowContaFixaPopup] = useState(false);
+  
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
