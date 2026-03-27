@@ -2702,6 +2702,7 @@ export type Database = {
           created_at: string
           crm_status: string | null
           id: string
+          is_group: boolean | null
           is_hot_lead: boolean | null
           last_message_at: string | null
           name: string | null
@@ -2717,6 +2718,7 @@ export type Database = {
           created_at?: string
           crm_status?: string | null
           id?: string
+          is_group?: boolean | null
           is_hot_lead?: boolean | null
           last_message_at?: string | null
           name?: string | null
@@ -2732,6 +2734,7 @@ export type Database = {
           created_at?: string
           crm_status?: string | null
           id?: string
+          is_group?: boolean | null
           is_hot_lead?: boolean | null
           last_message_at?: string | null
           name?: string | null
