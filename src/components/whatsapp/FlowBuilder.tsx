@@ -604,6 +604,7 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                                         { value: 'image' as const, label: 'Imagem', icon: Image, color: '#7c5cfc' },
                                         { value: 'video' as const, label: 'Vídeo', icon: Video, color: '#e74c3c' },
                                         { value: 'flow' as const, label: 'Fluxo', icon: Zap, color: '#f39c12' },
+                                        { value: 'continue' as const, label: 'Sequência', icon: ArrowRight, color: '#3498db' },
                                       ]).map(at => (
                                         <button
                                           key={at.value}
