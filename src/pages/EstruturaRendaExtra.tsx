@@ -1170,8 +1170,80 @@ const EstruturaRendaExtra = () => {
       </div>
     );
   }
+  if (currentView === 'gerenciador-windows') {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col">
+        <div className="max-w-3xl mx-auto w-full px-4 py-6 space-y-6">
+          <button
+            onClick={() => setCurrentView('menu')}
+            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para área
+          </button>
 
-  if (currentView === 'materiais') {
+          <h1 className="text-2xl md:text-3xl font-bold text-center">
+            🖥️ Gerenciador de Contas Windows
+          </h1>
+
+          <p className="text-white/60 text-sm text-center">
+            Use o gerenciador para organizar mais de 10 contas no seu ambiente de trabalho.
+          </p>
+
+          {/* Tutorial 1 */}
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="p-4 border-b border-white/10">
+              <h3 className="text-white font-bold flex items-center gap-2">
+                <Play className="h-5 w-5 text-red-500" />
+                Instalador Windows App MRO
+              </h3>
+            </div>
+            <div className="aspect-video w-full">
+              <iframe
+                src="https://www.youtube.com/embed/uqqlR_UXCoQ"
+                title="Instalador Windows App MRO"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+
+          {/* Tutorial 2 */}
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="p-4 border-b border-white/10">
+              <h3 className="text-white font-bold flex items-center gap-2">
+                <Play className="h-5 w-5 text-red-500" />
+                Utilizando o App Windows MRO
+              </h3>
+            </div>
+            <div className="aspect-video w-full">
+              <iframe
+                src="https://www.youtube.com/embed/9R4I4_iEiSI"
+                title="Utilizando o App Windows MRO"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+
+          {/* Download Button */}
+          <a
+            href="https://drive.usercontent.google.com/download?id=1bWsHc53FTNY8qBixveEH-fq5ctSx4MmK&export=download&authuser=0&confirm=t&uuid=67dc7292-b18c-4eed-aba6-81c40ccfe21b&at=AN8xHopWjY-AYiFw6h3p53NX-6jf%3A1758635877417"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-green-500/20"
+          >
+            <Download className="h-5 w-5" />
+            Baixar Gerenciador de Contas para Windows
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+
     return <MateriaisRendaExtra onBack={() => setCurrentView('menu')} />;
   }
 
