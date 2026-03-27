@@ -574,21 +574,121 @@ export default function FlowBuilder({ callProxy, onFlowsChange }: FlowBuilderPro
                         )}
 
                         {step.step_type === 'buttons' && (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <label className="text-white/50 text-xs block">Opções de Botão (máx 3)</label>
-                            {step.button_options.map((opt, oi) => (
-                              <div key={oi} className="flex gap-2">
-                                <Input
-                                  value={opt}
-                                  onChange={(e) => updateButtonOption(index, oi, e.target.value)}
-                                  placeholder={`Botão ${oi + 1}`}
-                                  className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
-                                />
-                                <Button variant="ghost" size="sm" onClick={() => removeButtonOption(index, oi)} className="text-red-400 hover:text-red-300">
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            ))}
+                            {step.button_options.map((opt, oi) => {
+                              const actions = step.button_actions || [];
+                              const action = actions[oi] || { action_type: 'text', content: '', media_url: '', flow_id: '' };
+                              return (
+                                <div key={oi} className="bg-[#1a2730] rounded-lg p-3 space-y-2 border border-white/5">
+                                  <div className="flex gap-2 items-center">
+                                    <span className="text-[#3498db] text-xs font-bold min-w-[20px]">{oi + 1}.</span>
+                                    <Input
+                                      value={opt}
+                                      onChange={(e) => updateButtonOption(index, oi, e.target.value)}
+                                      placeholder={`Texto do Botão ${oi + 1}`}
+                                      className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-sm"
+                                    />
+                                    <Button variant="ghost" size="sm" onClick={() => removeButtonOption(index, oi)} className="text-red-400 hover:text-red-300 shrink-0">
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  {/* Action config per button */}
+                                  <div className="pl-6 space-y-2">
+                                    <label className="text-white/40 text-[10px] block">Ação ao clicar neste botão:</label>
+                                    <div className="grid grid-cols-5 gap-1">
+                                      {([
+                                        { value: 'text' as const, label: 'Texto', icon: Type, color: '#00a884' },
+                                        { value: 'audio' as const, label: 'Áudio', icon: Mic, color: '#e67e22' },
+                                        { value: 'image' as const, label: 'Imagem', icon: Image, color: '#7c5cfc' },
+                                        { value: 'video' as const, label: 'Vídeo', icon: Video, color: '#e74c3c' },
+                                        { value: 'flow' as const, label: 'Fluxo', icon: Zap, color: '#f39c12' },
+                                      ]).map(at => (
+                                        <button
+                                          key={at.value}
+                                          onClick={() => {
+                                            const newActions = [...(step.button_actions || [])];
+                                            while (newActions.length <= oi) newActions.push({ action_type: 'text' });
+                                            newActions[oi] = { ...newActions[oi], action_type: at.value };
+                                            updateStep(index, { button_actions: newActions });
+                                          }}
+                                          className={`flex items-center gap-1 px-1.5 py-1 rounded text-[10px] font-medium transition-all border ${
+                                            action.action_type === at.value
+                                              ? 'border-white/20 bg-white/5'
+                                              : 'border-transparent bg-[#2a3942] text-white/40'
+                                          }`}
+                                        >
+                                          <at.icon className="w-3 h-3" style={{ color: at.color }} />
+                                          <span className="text-white/70 hidden sm:inline">{at.label}</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                    {action.action_type === 'text' && (
+                                      <Textarea
+                                        value={action.content || ''}
+                                        onChange={(e) => {
+                                          const newActions = [...(step.button_actions || [])];
+                                          while (newActions.length <= oi) newActions.push({ action_type: 'text' });
+                                          newActions[oi] = { ...newActions[oi], content: e.target.value };
+                                          updateStep(index, { button_actions: newActions });
+                                        }}
+                                        placeholder="Mensagem a enviar..."
+                                        className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-xs resize-none"
+                                        rows={2}
+                                      />
+                                    )}
+                                    {(action.action_type === 'audio' || action.action_type === 'image' || action.action_type === 'video') && (
+                                      <div className="space-y-1.5">
+                                        <Input
+                                          value={action.media_url || ''}
+                                          onChange={(e) => {
+                                            const newActions = [...(step.button_actions || [])];
+                                            while (newActions.length <= oi) newActions.push({ action_type: action.action_type });
+                                            newActions[oi] = { ...newActions[oi], media_url: e.target.value };
+                                            updateStep(index, { button_actions: newActions });
+                                          }}
+                                          placeholder="URL da mídia..."
+                                          className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-xs"
+                                        />
+                                        {action.action_type !== 'audio' && (
+                                          <Input
+                                            value={action.content || ''}
+                                            onChange={(e) => {
+                                              const newActions = [...(step.button_actions || [])];
+                                              while (newActions.length <= oi) newActions.push({ action_type: action.action_type });
+                                              newActions[oi] = { ...newActions[oi], content: e.target.value };
+                                              updateStep(index, { button_actions: newActions });
+                                            }}
+                                            placeholder="Legenda (opcional)"
+                                            className="bg-[#2a3942] border-white/10 text-white placeholder:text-white/30 text-xs"
+                                          />
+                                        )}
+                                      </div>
+                                    )}
+                                    {action.action_type === 'flow' && (
+                                      <div>
+                                        <select
+                                          value={action.flow_id || ''}
+                                          onChange={(e) => {
+                                            const newActions = [...(step.button_actions || [])];
+                                            while (newActions.length <= oi) newActions.push({ action_type: 'flow' });
+                                            newActions[oi] = { ...newActions[oi], flow_id: e.target.value };
+                                            updateStep(index, { button_actions: newActions });
+                                          }}
+                                          className="w-full bg-[#2a3942] border border-white/10 text-white text-xs rounded-md px-2 py-1.5"
+                                        >
+                                          <option value="">Selecionar fluxo...</option>
+                                          {flows.filter(f => f.id && f.id !== selectedFlow?.id).map(f => (
+                                            <option key={f.id} value={f.id}>{f.name}</option>
+                                          ))}
+                                        </select>
+                                        <p className="text-white/30 text-[10px] mt-1">Dispara outro fluxo completo</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
                             {step.button_options.length < 3 && (
                               <Button variant="ghost" size="sm" onClick={() => addButtonOption(index)} className="text-[#00a884] text-xs">
                                 <Plus className="w-3 h-3 mr-1" /> Adicionar botão
