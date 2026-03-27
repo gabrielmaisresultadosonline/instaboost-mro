@@ -298,6 +298,7 @@ const EstruturaRendaExtra = () => {
   const [mroPassword, setMroPassword] = useState('');
   const [showLogoPopup, setShowLogoPopup] = useState(false);
   const [showGerenciadorPopup, setShowGerenciadorPopup] = useState(false);
+  const [showRendaExtraVideo, setShowRendaExtraVideo] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('');
 
   useEffect(() => {
@@ -1054,6 +1055,25 @@ const EstruturaRendaExtra = () => {
                 </div>
               </button>
 
+              {/* Entenda sobre a Renda Extra */}
+              <button
+                onClick={() => setShowRendaExtraVideo(true)}
+                className="group w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 border-2 border-yellow-400/50 hover:border-yellow-300 transition-all duration-500 cursor-pointer p-5 flex flex-row lg:flex-col items-center gap-4 lg:gap-4 lg:justify-center shadow-xl shadow-yellow-600/20 hover:shadow-yellow-500/30"
+              >
+                <div className="relative z-10 w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center group-hover:scale-110 transition-all duration-500 flex-shrink-0">
+                  <Play className="w-7 h-7 text-white drop-shadow-lg" fill="currentColor" />
+                </div>
+                <div className="relative z-10 text-left lg:text-center">
+                  <p className="text-white font-black text-lg lg:text-xl leading-tight">
+                    Entenda sobre a Renda Extra
+                  </p>
+                  <p className="text-white/70 text-xs mt-1 font-medium">Clique para assistir</p>
+                </div>
+              </button>
+
+              <p className="text-center text-white/50 text-xs font-bold italic mt-1">
+                ⬇️ Aprenda como fazer tudo isso! ⬇️
+              </p>
             </div>
 
             {/* Right Panel - Dashboard */}
@@ -1110,6 +1130,34 @@ const EstruturaRendaExtra = () => {
             </div>
           </div>
         </div>
+
+        {/* Renda Extra Video Popup */}
+        {showRendaExtraVideo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowRendaExtraVideo(false)}>
+            <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <Play className="h-5 w-5 text-yellow-400" />
+                  Entenda sobre a Renda Extra
+                </h3>
+                <button onClick={() => setShowRendaExtraVideo(false)} className="text-white/60 hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-4">
+                <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
+                  <iframe
+                    src="https://www.youtube.com/embed/WQwnAHNvSMU?autoplay=1"
+                    title="Entenda sobre a Renda Extra"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Logo Popup */}
         {showLogoPopup && (
