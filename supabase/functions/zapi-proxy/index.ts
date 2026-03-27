@@ -896,8 +896,9 @@ serve(async (req) => {
                   body: JSON.stringify({ phone: execPhone, message: step.content }),
                 });
                 await supabase.from("zapi_messages").insert({
-                  phone: execPhone, direction: "outgoing", message_type: "text",
+                  phone: execPhone, direction: "outgoing", message_type: "buttons",
                   content: step.content, status: "sent", timestamp: Date.now(),
+                  metadata: buttons.length > 0 ? { buttons } : null,
                 });
               }
               break;
