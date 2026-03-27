@@ -124,7 +124,7 @@ const dedupeContacts = (list: Contact[]) => {
 
   for (const contact of list) {
     const key = getContactKey(contact.phone);
-    if (!key) continue;
+    if (!key || isLID(key)) continue;
 
     const existing = map.get(key);
     if (!existing) {
