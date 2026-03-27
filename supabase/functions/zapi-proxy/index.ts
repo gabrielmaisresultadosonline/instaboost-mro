@@ -6,14 +6,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const isGroupId = (value: string): boolean => {
+  return value.includes("@g.us") || value.includes("-");
+};
+
 const normalizePhone = (value: unknown): string => {
   if (typeof value !== "string") return "";
-  const base = value.trim().split("@")[0] ?? "";
+  const trimmed = value.trim();
+  // Preserve group IDs (contain @g.us or dashes like 120363xxxxx@g.us)
+  if (isGroupId(trimmed)) {
+    return trimmed.split("@")[0] ?? "";
+  }
+  const base = trimmed.split("@")[0] ?? "";
   const digits = base.replace(/\D/g, "");
   return digits || base;
 };
 
 const normalizeBrazilianPhone = (phone: string): string => {
+  // Don't normalize group IDs
+  if (phone.includes("-")) return phone;
   const d = phone.replace(/\D/g, "");
   if (d.length === 13 && d.startsWith("55")) {
     const ddd = d.slice(2, 4);
@@ -26,6 +37,8 @@ const normalizeBrazilianPhone = (phone: string): string => {
 };
 
 const isRealPhone = (phone: string): boolean => {
+  // Group IDs are valid (contain dashes like 120363044828-xxx)
+  if (phone.includes("-")) return true;
   const d = phone.replace(/\D/g, "");
   // Real phone numbers: 10-13 digits. Z-API lids are typically 15+ digits
   return d.length >= 10 && d.length <= 13;
