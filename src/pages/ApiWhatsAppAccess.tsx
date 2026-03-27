@@ -199,6 +199,8 @@ export default function ApiWhatsAppAccess() {
   const [showContactInfo, setShowContactInfo] = useState(false);
   const [contactInfo, setContactInfo] = useState<any>(null);
   const [loadingContactInfo, setLoadingContactInfo] = useState(false);
+  const [activeExecutions, setActiveExecutions] = useState<any[]>([]);
+  const [cancellingExec, setCancellingExec] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -528,10 +530,35 @@ export default function ApiWhatsAppAccess() {
       const result = await callProxy('execute-flow', { flowId, phone: normalizePhone(selectedContact.phone) });
       toast({ title: `Fluxo executado! ${result.stepsExecuted || 0} passos enviados` });
       await loadMessages(selectedContact.phone, true);
+      await loadActiveExecutions(selectedContact.phone);
     } catch (e) {
       toast({ title: 'Erro ao executar fluxo', description: String(e), variant: 'destructive' });
     } finally {
       setExecutingFlow(false);
+    }
+  };
+
+  const loadActiveExecutions = useCallback(async (phone?: string) => {
+    try {
+      const data: Record<string, unknown> = {};
+      if (phone) data.phone = normalizePhone(phone);
+      const result = await callProxy('get-active-executions', data);
+      setActiveExecutions(Array.isArray(result.executions) ? result.executions : []);
+    } catch (e) {
+      console.error('Error loading active executions:', e);
+    }
+  }, []);
+
+  const cancelExecution = async (executionId: string) => {
+    setCancellingExec(executionId);
+    try {
+      await callProxy('cancel-execution', { executionId });
+      toast({ title: 'Fluxo cancelado! Você assumiu o atendimento.' });
+      setActiveExecutions(prev => prev.filter(e => e.id !== executionId));
+    } catch {
+      toast({ title: 'Erro ao cancelar fluxo', variant: 'destructive' });
+    } finally {
+      setCancellingExec(null);
     }
   };
 
@@ -559,6 +586,7 @@ export default function ApiWhatsAppAccess() {
     setShowContactInfo(false);
     setContactInfo(null);
     await loadMessages(normalizedContact.phone);
+    await loadActiveExecutions(normalizedContact.phone);
   };
 
   const selectContactByPhone = async (phone: string) => {
@@ -634,9 +662,12 @@ export default function ApiWhatsAppAccess() {
   }, [view, loadContacts, checkStatus]);
   useEffect(() => {
     if (!selectedContact || view !== 'main' || activeTab !== 'chats') return;
-    const interval = setInterval(() => { loadMessages(selectedContact.phone, true); }, 5000);
+    const interval = setInterval(() => {
+      loadMessages(selectedContact.phone, true);
+      loadActiveExecutions(selectedContact.phone);
+    }, 5000);
     return () => clearInterval(interval);
-  }, [selectedContact, view, activeTab, loadMessages]);
+  }, [selectedContact, view, activeTab, loadMessages, loadActiveExecutions]);
 
   const filteredContacts = dedupeContacts(contacts).filter(c =>
     (c.name || c.phone).toLowerCase().includes(searchTerm.toLowerCase()),
@@ -908,6 +939,33 @@ export default function ApiWhatsAppAccess() {
                           </button>
                         ))}
                         {executingFlow && <Loader2 className="w-3 h-3 text-[#00a884] animate-spin shrink-0" />}
+                      </div>
+                    )}
+
+                    {/* Active Flow Executions */}
+                    {activeExecutions.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {activeExecutions.map(exec => (
+                          <div key={exec.id} className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-1.5">
+                            <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shrink-0" />
+                            <Zap className="w-3 h-3 text-yellow-400 shrink-0" />
+                            <span className="text-yellow-300 text-[11px] font-medium truncate flex-1">
+                              🤖 {exec.flow_name} — {exec.status === 'running' ? 'Executando' : 'Pausado (aguardando resposta)'}
+                            </span>
+                            <button
+                              onClick={() => cancelExecution(exec.id)}
+                              disabled={cancellingExec === exec.id}
+                              className="flex items-center gap-1 bg-red-500/20 hover:bg-red-500/40 text-red-400 px-2 py-0.5 rounded text-[10px] font-medium transition-all shrink-0"
+                            >
+                              {cancellingExec === exec.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <><Square className="w-2.5 h-2.5" /> Cancelar</>
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                        <p className="text-white/30 text-[9px] px-1">Cancele para assumir o atendimento manualmente</p>
                       </div>
                     )}
                   </div>
