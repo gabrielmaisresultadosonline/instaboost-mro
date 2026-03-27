@@ -296,6 +296,7 @@ const EstruturaRendaExtra = () => {
   const [mroUsername, setMroUsername] = useState('');
   const [mroPassword, setMroPassword] = useState('');
   const [showLogoPopup, setShowLogoPopup] = useState(false);
+  const [showContaFixaPopup, setShowContaFixaPopup] = useState(false);
   const [bgColor1, setBgColor1] = useState('#0f0f1a');
   const [bgColor2, setBgColor2] = useState('#1a1a3e');
   const [useGradient, setUseGradient] = useState(true);
@@ -1044,6 +1045,29 @@ const EstruturaRendaExtra = () => {
                 </div>
               </button>
 
+              {/* Cadastrar Conta FIXA button */}
+              <button
+                onClick={() => setShowContaFixaPopup(true)}
+                className="group w-full relative overflow-hidden rounded-2xl bg-orange-600 hover:bg-orange-500 border-2 border-orange-500 hover:border-orange-400 transition-all duration-500 cursor-pointer p-6 lg:p-8 flex flex-row lg:flex-col items-center gap-5 lg:gap-6 lg:justify-center shadow-xl shadow-orange-600/20 hover:shadow-orange-500/30"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-orange-700/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                <div className="relative z-10 w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
+                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/20 flex items-center justify-center">
+                    <User className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg" />
+                  </div>
+                </div>
+                <div className="relative z-10 text-left lg:text-center">
+                  <p className="text-white font-black italic text-2xl lg:text-3xl leading-tight">
+                    Cadastrar Conta<br className="hidden lg:block" /> FIXA
+                  </p>
+                  <p className="text-white/60 text-xs mt-3 hidden lg:flex items-center justify-center gap-1.5 font-bold italic">
+                    <span className="w-4 h-[1px] bg-white/40"></span>
+                    Clique para saber mais
+                    <span className="w-4 h-[1px] bg-white/40"></span>
+                  </p>
+                </div>
+              </button>
+
             </div>
 
             {/* Right Panel - Dashboard */}
@@ -1118,6 +1142,57 @@ const EstruturaRendaExtra = () => {
                 >
                   <ExternalLink className="h-4 w-4" />
                   Acessar ChatGPT
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Conta FIXA Popup */}
+        {showContaFixaPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowContaFixaPopup(false)}>
+            <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <User className="h-5 w-5 text-orange-400" />
+                  Cadastrar Conta FIXA
+                </h3>
+                <button onClick={() => setShowContaFixaPopup(false)} className="text-white/60 hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                  <p className="text-orange-300 font-bold text-sm mb-2">⚠️ Atenção antes de cadastrar:</p>
+                  <p className="text-white/80 text-sm leading-relaxed">
+                    Só cadastre a <strong className="text-orange-400">conta fixa</strong> caso você tenha certeza de que deseja mantê-la permanentemente. 
+                    Essa conta <strong className="text-white">não poderá ser removida</strong> depois de cadastrada.
+                  </p>
+                  <p className="text-white/70 text-sm leading-relaxed mt-3">
+                    Se ainda não tem certeza, utilize os <strong className="text-yellow-400">testes grátis</strong> disponíveis no menu para testar antes de adicionar de forma fixa usando dos seus adicionais.
+                  </p>
+                </div>
+
+                <p className="text-white/60 text-xs text-center font-medium">Assista o vídeo abaixo para entender o processo completo:</p>
+
+                <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
+                  <iframe
+                    src="https://www.youtube.com/embed/N3yHdsqGLwA"
+                    title="Tutorial Conta FIXA"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+
+                <a
+                  href="https://maisresultadosonline.com.br/instagram"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Cadastrar na Área do Instagram
                 </a>
               </div>
             </div>
