@@ -184,7 +184,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
                 <p className="text-white/50 text-xs mt-1">Expirados</p>
               </div>
               <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className="text-2xl font-black text-cyan-400">{data?.trials_remaining || 0}/{data?.max_trials || 5}</p>
+                <p className={`text-2xl font-black ${(data?.trials_remaining ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'}`}>{data?.trials_remaining ?? 0}/{data?.max_trials || 5}</p>
                 <p className="text-white/50 text-xs mt-1">Restantes (30d)</p>
               </div>
             </div>
