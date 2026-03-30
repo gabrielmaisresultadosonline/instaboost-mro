@@ -184,8 +184,12 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
                 <p className="text-white/50 text-xs mt-1">Expirados</p>
               </div>
               <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className={`text-2xl font-black ${(data?.trials_remaining ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'}`}>{data?.trials_remaining ?? 0}/{data?.max_trials || 5}</p>
-                <p className="text-white/50 text-xs mt-1">Restantes (30d)</p>
+                <p className={`text-2xl font-black ${(data?.trials_remaining ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {(data?.trials_remaining ?? 0) > 0 
+                    ? `${data?.trials_remaining} disponíveis` 
+                    : '0 disponíveis'}
+                </p>
+                <p className="text-white/50 text-xs mt-1">Limite: {data?.max_trials || 5}/mês</p>
               </div>
             </div>
 
@@ -193,7 +197,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             {!showForm ? (
               <button
                 onClick={() => setShowForm(true)}
-                disabled={(data?.trials_remaining || 0) <= 0}
+                disabled={(data?.trials_remaining ?? 0) <= 0}
                 className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:from-gray-600 disabled:to-gray-700 text-black disabled:text-gray-400 font-black text-lg py-5 rounded-2xl shadow-xl shadow-yellow-500/20 hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
               >
                 <Plus size={24} />
