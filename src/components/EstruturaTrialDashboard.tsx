@@ -197,7 +197,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             {!showForm ? (
               <button
                 onClick={() => setShowForm(true)}
-                disabled={(data?.trials_remaining || 0) <= 0}
+                disabled={(data?.trials_remaining ?? 0) <= 0}
                 className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:from-gray-600 disabled:to-gray-700 text-black disabled:text-gray-400 font-black text-lg py-5 rounded-2xl shadow-xl shadow-yellow-500/20 hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
               >
                 <Plus size={24} />
