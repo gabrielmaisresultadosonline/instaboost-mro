@@ -23,6 +23,70 @@ const toFiniteNumber = (value: unknown): number | null => {
   return null;
 };
 
+const normalizeInstagramUsername = (value: string) => value.trim().toLowerCase().replace(/^@/, '');
+
+const normalizeTimestampMs = (value: unknown): number | null => {
+  const parsed = toFiniteNumber(value);
+  if (parsed === null || parsed <= 0) return null;
+
+  return parsed < 1_000_000_000_000 ? Math.round(parsed * 1000) : Math.round(parsed);
+};
+
+type SquareTrialEntry = {
+  instagram_username: string;
+  created_at: string;
+  expires_at: string;
+  remaining_hours: number;
+  remaining_minutes: number;
+  duration_hours: number;
+  active: boolean;
+};
+
+const getSquareTrialEntries = (payload: any, now = new Date()): SquareTrialEntry[] => {
+  const rawTrials = payload?.userData?.igTesteUserMro ?? payload?.igTesteUserMro;
+
+  if (!rawTrials || typeof rawTrials !== 'object' || Array.isArray(rawTrials)) {
+    return [];
+  }
+
+  return Object.entries(rawTrials)
+    .flatMap(([instagram, metadata]) => {
+      const normalizedInstagram = normalizeInstagramUsername(String(instagram || ''));
+      const createdAtMs = normalizeTimestampMs((metadata as any)?.timestamp);
+      const durationHours = Math.max(0, toFiniteNumber((metadata as any)?.value) ?? 6);
+
+      if (!normalizedInstagram || !createdAtMs || durationHours <= 0) {
+        return [];
+      }
+
+      const createdAt = new Date(createdAtMs);
+      const expiresAt = new Date(createdAtMs + durationHours * 60 * 60 * 1000);
+      const remainingMs = Math.max(0, expiresAt.getTime() - now.getTime());
+
+      return [{
+        instagram_username: normalizedInstagram,
+        created_at: createdAt.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        remaining_hours: Math.floor(remainingMs / (1000 * 60 * 60)),
+        remaining_minutes: Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60)),
+        duration_hours: durationHours,
+        active: remainingMs > 0,
+      }];
+    })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+};
+
+const getEffectiveSquareTrialsRemaining = (payload: any, squareTrials: SquareTrialEntry[]): number | null => {
+  const rawRemaining = getSquareTrialsRemaining(payload);
+  const remainingByActiveTrials = Math.max(0, MONTHLY_MAX_TRIALS - squareTrials.filter(trial => trial.active).length);
+
+  if (rawRemaining === null) {
+    return remainingByActiveTrials;
+  }
+
+  return Math.max(0, Math.min(rawRemaining, remainingByActiveTrials));
+};
+
 const getSquareTrialsRemaining = (payload: any): number | null => {
   const candidates = [
     payload?.userData?.testsRemainingMonth,
@@ -105,6 +169,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
     return {
       synced: false,
       remaining: null,
+      square_trials: [],
       resolved_password: null,
       reason: 'missing_password',
       message: getSquareSyncMessage('missing_password'),
@@ -123,6 +188,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
       return {
         synced: false,
         remaining: null,
+        square_trials: [],
         resolved_password: credentials.password,
         reason: 'http_error',
         message: getSquareSyncMessage('http_error'),
@@ -134,6 +200,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
       return {
         synced: false,
         remaining: null,
+        square_trials: [],
         resolved_password: credentials.password,
         reason: 'html_response',
         message: getSquareSyncMessage('html_response'),
@@ -142,23 +209,26 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
 
     const checkData = JSON.parse(text);
     const authenticated = checkData?.senhaCorrespondente;
+    const squareTrials = getSquareTrialEntries(checkData);
 
     if (authenticated === false) {
       return {
         synced: false,
         remaining: null,
+        square_trials: squareTrials,
         resolved_password: credentials.password,
         reason: 'invalid_credentials',
         message: getSquareSyncMessage('invalid_credentials'),
       };
     }
 
-    const remaining = getSquareTrialsRemaining(checkData);
+    const remaining = getEffectiveSquareTrialsRemaining(checkData, squareTrials);
 
     if (remaining === null) {
       return {
         synced: false,
         remaining: null,
+        square_trials: squareTrials,
         resolved_password: credentials.password,
         reason: 'missing_remaining_field',
         message: getSquareSyncMessage('missing_remaining_field'),
@@ -168,7 +238,8 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
     return {
       synced: true,
       remaining,
-        resolved_password: credentials.password,
+      square_trials: squareTrials,
+      resolved_password: credentials.password,
       reason: null,
       message: null,
     };
@@ -176,6 +247,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
     return {
       synced: false,
       remaining: null,
+      square_trials: [],
       resolved_password: credentials.password,
       reason: 'request_failed',
       message: getSquareSyncMessage('request_failed'),
@@ -235,19 +307,34 @@ serve(async (req) => {
       const squareStatus = await fetchSquareTrialStatus(mro_username, mro_password);
       log('SquareCloud trial sync status', squareStatus);
 
-      // Map trials with status
-      const mappedTrials = (trials || []).map(t => {
-        const expiresAt = new Date(t.expires_at);
-        const isExpired = now > expiresAt;
-        const isRemoved = t.instagram_removed === true;
-        
-        let status = 'active';
-        if (isExpired || isRemoved) status = 'expired';
+      const activeSquareTrials = (squareStatus.square_trials || []).filter((trial: SquareTrialEntry) => trial.active);
+      const squareTrialsByInstagram = new Map<string, SquareTrialEntry[]>();
 
+      for (const trial of activeSquareTrials) {
+        const key = normalizeInstagramUsername(trial.instagram_username);
+        const existing = squareTrialsByInstagram.get(key) || [];
+        existing.push(trial);
+        squareTrialsByInstagram.set(key, existing);
+      }
+
+      const sortedTrials = [...(trials || [])].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      const mappedTrials = sortedTrials.map(t => {
+        const instagramKey = normalizeInstagramUsername(t.instagram_username || '');
+        const matchingSquareTrials = squareTrialsByInstagram.get(instagramKey) || [];
+        const squareTrial = matchingSquareTrials.shift() || null;
+
+        if (matchingSquareTrials.length === 0) {
+          squareTrialsByInstagram.delete(instagramKey);
+        } else {
+          squareTrialsByInstagram.set(instagramKey, matchingSquareTrials);
+        }
+
+        const expiresAt = squareTrial ? new Date(squareTrial.expires_at) : new Date(t.expires_at);
+        const isExpired = squareTrial ? false : now > expiresAt;
+        const isRemoved = squareTrial ? false : t.instagram_removed === true;
         let remainingMs = expiresAt.getTime() - now.getTime();
         if (remainingMs < 0) remainingMs = 0;
-        const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
-        const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
 
         return {
           id: t.id,
@@ -255,26 +342,46 @@ serve(async (req) => {
           full_name: t.full_name,
           email: t.email,
           whatsapp: t.whatsapp,
-          created_at: t.created_at,
-          expires_at: t.expires_at,
-          status,
-          remaining_hours: remainingHours,
-          remaining_minutes: remainingMinutes,
-          instagram_removed: t.instagram_removed,
+          created_at: squareTrial?.created_at || t.created_at,
+          expires_at: squareTrial?.expires_at || t.expires_at,
+          status: isExpired || isRemoved ? 'expired' : 'active',
+          remaining_hours: squareTrial ? squareTrial.remaining_hours : Math.floor(remainingMs / (1000 * 60 * 60)),
+          remaining_minutes: squareTrial ? squareTrial.remaining_minutes : Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60)),
+          instagram_removed: squareTrial ? false : t.instagram_removed,
         };
       });
 
+      const squareOnlyTrials = Array.from(squareTrialsByInstagram.values())
+        .flat()
+        .map((trial) => ({
+          id: `square-${trial.instagram_username}-${trial.created_at}`,
+          instagram_username: trial.instagram_username,
+          full_name: 'Cliente Teste',
+          email: '',
+          whatsapp: '',
+          created_at: trial.created_at,
+          expires_at: trial.expires_at,
+          status: 'active',
+          remaining_hours: trial.remaining_hours,
+          remaining_minutes: trial.remaining_minutes,
+          instagram_removed: false,
+        }));
+
+      const mergedTrials = [...mappedTrials, ...squareOnlyTrials].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
       // Count from Supabase as fallback
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
+      const trialsLast30Days = mergedTrials.filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
       const effectiveRemaining = squareStatus.synced ? (squareStatus.remaining ?? 0) : 0;
       const effectiveMax = MONTHLY_MAX_TRIALS;
 
       return new Response(
         JSON.stringify({
           success: true,
-          trials: mappedTrials,
-          total_generated: (trials || []).length,
+          trials: mergedTrials,
+          total_generated: mergedTrials.length,
           trials_last_30_days: trialsLast30Days,
           trials_remaining: effectiveRemaining,
           max_trials: effectiveMax,
