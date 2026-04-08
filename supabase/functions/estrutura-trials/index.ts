@@ -23,6 +23,70 @@ const toFiniteNumber = (value: unknown): number | null => {
   return null;
 };
 
+const normalizeInstagramUsername = (value: string) => value.trim().toLowerCase().replace(/^@/, '');
+
+const normalizeTimestampMs = (value: unknown): number | null => {
+  const parsed = toFiniteNumber(value);
+  if (parsed === null || parsed <= 0) return null;
+
+  return parsed < 1_000_000_000_000 ? Math.round(parsed * 1000) : Math.round(parsed);
+};
+
+type SquareTrialEntry = {
+  instagram_username: string;
+  created_at: string;
+  expires_at: string;
+  remaining_hours: number;
+  remaining_minutes: number;
+  duration_hours: number;
+  active: boolean;
+};
+
+const getSquareTrialEntries = (payload: any, now = new Date()): SquareTrialEntry[] => {
+  const rawTrials = payload?.userData?.igTesteUserMro ?? payload?.igTesteUserMro;
+
+  if (!rawTrials || typeof rawTrials !== 'object' || Array.isArray(rawTrials)) {
+    return [];
+  }
+
+  return Object.entries(rawTrials)
+    .flatMap(([instagram, metadata]) => {
+      const normalizedInstagram = normalizeInstagramUsername(String(instagram || ''));
+      const createdAtMs = normalizeTimestampMs((metadata as any)?.timestamp);
+      const durationHours = Math.max(0, toFiniteNumber((metadata as any)?.value) ?? 6);
+
+      if (!normalizedInstagram || !createdAtMs || durationHours <= 0) {
+        return [];
+      }
+
+      const createdAt = new Date(createdAtMs);
+      const expiresAt = new Date(createdAtMs + durationHours * 60 * 60 * 1000);
+      const remainingMs = Math.max(0, expiresAt.getTime() - now.getTime());
+
+      return [{
+        instagram_username: normalizedInstagram,
+        created_at: createdAt.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        remaining_hours: Math.floor(remainingMs / (1000 * 60 * 60)),
+        remaining_minutes: Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60)),
+        duration_hours: durationHours,
+        active: remainingMs > 0,
+      }];
+    })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+};
+
+const getEffectiveSquareTrialsRemaining = (payload: any, squareTrials: SquareTrialEntry[]): number | null => {
+  const rawRemaining = getSquareTrialsRemaining(payload);
+  const remainingByActiveTrials = Math.max(0, MONTHLY_MAX_TRIALS - squareTrials.filter(trial => trial.active).length);
+
+  if (rawRemaining === null) {
+    return remainingByActiveTrials;
+  }
+
+  return Math.max(0, Math.min(rawRemaining, remainingByActiveTrials));
+};
+
 const getSquareTrialsRemaining = (payload: any): number | null => {
   const candidates = [
     payload?.userData?.testsRemainingMonth,
