@@ -46,7 +46,7 @@ const getSquareTrialsRemaining = (payload: any): number | null => {
 const getSquareSyncMessage = (reason: string) => {
   switch (reason) {
     case 'missing_password':
-      return 'Faça login novamente para sincronizar seus testes com a SquareCloud.';
+      return 'Não foi possível confirmar o saldo de testes na SquareCloud agora.';
     case 'invalid_credentials':
       return 'Não foi possível validar suas credenciais na SquareCloud. Entre novamente.';
     default:
@@ -54,18 +54,65 @@ const getSquareSyncMessage = (reason: string) => {
   }
 };
 
+const fetchSquareUserRecord = async (mro_username: string) => {
+  try {
+    const response = await fetch(`${SQUARE_API_URL}/obter-usuarios`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!response.ok) return null;
+
+    const text = await response.text();
+    if (text.trim().startsWith('<!')) return null;
+
+    const payload = JSON.parse(text);
+    const users = Array.isArray(payload?.usuarios) ? payload.usuarios : [];
+
+    return users.find((user: any) => String(user?.ID || '').trim().toLowerCase() === mro_username.trim().toLowerCase()) || null;
+  } catch (error) {
+    log('Failed to fetch SquareCloud user record', {
+      mro_username,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+};
+
+const resolveSquareCredentials = async (mro_username: string, mro_password?: string) => {
+  if (mro_password?.trim()) {
+    return {
+      username: mro_username,
+      password: mro_password.trim(),
+      source: 'request',
+    };
+  }
+
+  const squareUser = await fetchSquareUserRecord(mro_username);
+  const fallbackPassword = typeof squareUser?.data?.numero === 'string' ? squareUser.data.numero.trim() : '';
+
+  return {
+    username: String(squareUser?.ID || mro_username),
+    password: fallbackPassword || null,
+    source: fallbackPassword ? 'square_lookup' : 'missing',
+  };
+};
+
 const fetchSquareTrialStatus = async (mro_username: string, mro_password?: string) => {
-  if (!mro_password) {
+  const credentials = await resolveSquareCredentials(mro_username, mro_password);
+
+  if (!credentials.password) {
     return {
       synced: false,
       remaining: null,
+      resolved_password: null,
       reason: 'missing_password',
       message: getSquareSyncMessage('missing_password'),
     };
   }
 
   try {
-    const body = new URLSearchParams({ nome: mro_username, numero: mro_password });
+    const body = new URLSearchParams({ nome: credentials.username, numero: credentials.password });
     const checkResponse = await fetch(`${SQUARE_API_URL}/verificar-numero`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -76,6 +123,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
       return {
         synced: false,
         remaining: null,
+        resolved_password: credentials.password,
         reason: 'http_error',
         message: getSquareSyncMessage('http_error'),
       };
@@ -86,6 +134,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
       return {
         synced: false,
         remaining: null,
+        resolved_password: credentials.password,
         reason: 'html_response',
         message: getSquareSyncMessage('html_response'),
       };
@@ -98,6 +147,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
       return {
         synced: false,
         remaining: null,
+        resolved_password: credentials.password,
         reason: 'invalid_credentials',
         message: getSquareSyncMessage('invalid_credentials'),
       };
@@ -109,6 +159,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
       return {
         synced: false,
         remaining: null,
+        resolved_password: credentials.password,
         reason: 'missing_remaining_field',
         message: getSquareSyncMessage('missing_remaining_field'),
       };
@@ -117,6 +168,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
     return {
       synced: true,
       remaining,
+        resolved_password: credentials.password,
       reason: null,
       message: null,
     };
@@ -124,6 +176,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
     return {
       synced: false,
       remaining: null,
+      resolved_password: credentials.password,
       reason: 'request_failed',
       message: getSquareSyncMessage('request_failed'),
     };
@@ -281,6 +334,7 @@ serve(async (req) => {
 
       const squareStatus = await fetchSquareTrialStatus(mro_username, mro_password);
       log('SquareCloud availability check', squareStatus);
+      const resolvedPassword = squareStatus.resolved_password || mro_password || '';
 
       const maxTrials = MONTHLY_MAX_TRIALS;
       const localUsed = count || 0;
@@ -374,7 +428,7 @@ serve(async (req) => {
           whatsapp: client_whatsapp || '00000000000',
           instagram_username: normalizedIG,
           generated_username: mro_username,
-          generated_password: mro_password || '',
+          generated_password: resolvedPassword,
           mro_master_user: mro_username,
           expires_at: apiExpiresAt.toISOString(),
           email_sent: false,
