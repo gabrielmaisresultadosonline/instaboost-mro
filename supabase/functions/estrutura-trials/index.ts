@@ -169,6 +169,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
     return {
       synced: false,
       remaining: null,
+      square_trials: [],
       resolved_password: null,
       reason: 'missing_password',
       message: getSquareSyncMessage('missing_password'),
@@ -187,6 +188,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
       return {
         synced: false,
         remaining: null,
+        square_trials: [],
         resolved_password: credentials.password,
         reason: 'http_error',
         message: getSquareSyncMessage('http_error'),
@@ -198,6 +200,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
       return {
         synced: false,
         remaining: null,
+        square_trials: [],
         resolved_password: credentials.password,
         reason: 'html_response',
         message: getSquareSyncMessage('html_response'),
@@ -206,23 +209,26 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
 
     const checkData = JSON.parse(text);
     const authenticated = checkData?.senhaCorrespondente;
+    const squareTrials = getSquareTrialEntries(checkData);
 
     if (authenticated === false) {
       return {
         synced: false,
         remaining: null,
+        square_trials: squareTrials,
         resolved_password: credentials.password,
         reason: 'invalid_credentials',
         message: getSquareSyncMessage('invalid_credentials'),
       };
     }
 
-    const remaining = getSquareTrialsRemaining(checkData);
+    const remaining = getEffectiveSquareTrialsRemaining(checkData, squareTrials);
 
     if (remaining === null) {
       return {
         synced: false,
         remaining: null,
+        square_trials: squareTrials,
         resolved_password: credentials.password,
         reason: 'missing_remaining_field',
         message: getSquareSyncMessage('missing_remaining_field'),
@@ -232,7 +238,8 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
     return {
       synced: true,
       remaining,
-        resolved_password: credentials.password,
+      square_trials: squareTrials,
+      resolved_password: credentials.password,
       reason: null,
       message: null,
     };
@@ -240,6 +247,7 @@ const fetchSquareTrialStatus = async (mro_username: string, mro_password?: strin
     return {
       synced: false,
       remaining: null,
+      square_trials: [],
       resolved_password: credentials.password,
       reason: 'request_failed',
       message: getSquareSyncMessage('request_failed'),
