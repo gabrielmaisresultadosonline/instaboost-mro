@@ -26,6 +26,8 @@ interface TrialData {
   trials_remaining: number;
   max_trials: number;
   trial_duration_hours: number;
+  synced_with_square?: boolean;
+  sync_message?: string | null;
 }
 
 interface Props {
@@ -170,6 +172,12 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             )}
 
             {/* Stats cards */}
+            {data?.synced_with_square === false && data?.sync_message && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+                <p className="text-sm text-red-300">{data.sync_message}</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
                 <p className="text-2xl font-black text-yellow-400">{data?.total_generated || 0}</p>
@@ -190,6 +198,9 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
                     : '0 disponíveis'}
                 </p>
                 <p className="text-white/50 text-xs mt-1">Limite: {data?.max_trials || 5}/mês</p>
+                <p className="text-white/30 text-[10px] mt-1">
+                  {data?.synced_with_square ? 'Sincronizado com SquareCloud' : 'Aguardando sincronização'}
+                </p>
               </div>
             </div>
 

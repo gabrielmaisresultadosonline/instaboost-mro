@@ -7,10 +7,127 @@ const corsHeaders = {
 };
 
 const SQUARE_API_URL = "https://dashboardmroinstagramvini-online.squareweb.app";
+const MONTHLY_MAX_TRIALS = 5;
 
 const log = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[ESTRUTURA-TRIALS] ${step}${detailsStr}`);
+};
+
+const toFiniteNumber = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const getSquareTrialsRemaining = (payload: any): number | null => {
+  const candidates = [
+    payload?.userData?.testsRemainingMonth,
+    payload?.testsRemainingMonth,
+    payload?.userData?.testesRestantesMes,
+    payload?.testesRestantesMes,
+    payload?.userData?.remainingTrials,
+    payload?.remainingTrials,
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = toFiniteNumber(candidate);
+    if (parsed !== null) {
+      return Math.max(0, Math.min(MONTHLY_MAX_TRIALS, parsed));
+    }
+  }
+
+  return null;
+};
+
+const getSquareSyncMessage = (reason: string) => {
+  switch (reason) {
+    case 'missing_password':
+      return 'Faça login novamente para sincronizar seus testes com a SquareCloud.';
+    case 'invalid_credentials':
+      return 'Não foi possível validar suas credenciais na SquareCloud. Entre novamente.';
+    default:
+      return 'Não foi possível confirmar o saldo de testes na SquareCloud agora.';
+  }
+};
+
+const fetchSquareTrialStatus = async (mro_username: string, mro_password?: string) => {
+  if (!mro_password) {
+    return {
+      synced: false,
+      remaining: null,
+      reason: 'missing_password',
+      message: getSquareSyncMessage('missing_password'),
+    };
+  }
+
+  try {
+    const body = new URLSearchParams({ nome: mro_username, numero: mro_password });
+    const checkResponse = await fetch(`${SQUARE_API_URL}/verificar-numero`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+
+    if (!checkResponse.ok) {
+      return {
+        synced: false,
+        remaining: null,
+        reason: 'http_error',
+        message: getSquareSyncMessage('http_error'),
+      };
+    }
+
+    const text = await checkResponse.text();
+    if (text.trim().startsWith('<!')) {
+      return {
+        synced: false,
+        remaining: null,
+        reason: 'html_response',
+        message: getSquareSyncMessage('html_response'),
+      };
+    }
+
+    const checkData = JSON.parse(text);
+    const authenticated = checkData?.senhaCorrespondente;
+
+    if (authenticated === false) {
+      return {
+        synced: false,
+        remaining: null,
+        reason: 'invalid_credentials',
+        message: getSquareSyncMessage('invalid_credentials'),
+      };
+    }
+
+    const remaining = getSquareTrialsRemaining(checkData);
+
+    if (remaining === null) {
+      return {
+        synced: false,
+        remaining: null,
+        reason: 'missing_remaining_field',
+        message: getSquareSyncMessage('missing_remaining_field'),
+      };
+    }
+
+    return {
+      synced: true,
+      remaining,
+      reason: null,
+      message: null,
+    };
+  } catch (e) {
+    return {
+      synced: false,
+      remaining: null,
+      reason: 'request_failed',
+      message: getSquareSyncMessage('request_failed'),
+    };
+  }
 };
 
 serve(async (req) => {
@@ -62,29 +179,8 @@ serve(async (req) => {
 
       const now = new Date();
 
-      // Fetch real data from SquareCloud API via /verificar-numero
-      let apiRemaining: number | null = null;
-      try {
-        const body = new URLSearchParams({ nome: mro_username, numero: mro_username });
-        if (mro_password) body.set('numero', mro_password);
-        const checkResponse = await fetch(`${SQUARE_API_URL}/verificar-numero`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body,
-        });
-        if (checkResponse.ok) {
-          const text = await checkResponse.text();
-          if (!text.trim().startsWith('<!')) {
-            const checkData = JSON.parse(text);
-            log("SquareCloud API data", { testsRemainingMonth: checkData.userData?.testsRemainingMonth, igTesteUserMro: checkData.userData?.igTesteUserMro });
-            if (typeof checkData.userData?.testsRemainingMonth === 'number') {
-              apiRemaining = Math.max(0, Math.min(5, checkData.userData.testsRemainingMonth));
-            }
-          }
-        }
-      } catch (e) {
-        log("Could not check SquareCloud API", { error: e instanceof Error ? e.message : 'Unknown' });
-      }
+      const squareStatus = await fetchSquareTrialStatus(mro_username, mro_password);
+      log('SquareCloud trial sync status', squareStatus);
 
       // Map trials with status
       const mappedTrials = (trials || []).map(t => {
@@ -118,15 +214,8 @@ serve(async (req) => {
       // Count from Supabase as fallback
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const monthlyMaxTrials = 5;
-
-      // Use real API data when available, but never exceed the monthly ceiling
-      const effectiveRemaining = apiRemaining !== null
-        ? Math.max(0, Math.min(monthlyMaxTrials, apiRemaining))
-        : Math.max(0, monthlyMaxTrials - trialsLast30Days);
-
-      // Fixed monthly limit (do not accumulate across renewals)
-      const effectiveMax = monthlyMaxTrials;
+      const effectiveRemaining = squareStatus.synced ? (squareStatus.remaining ?? 0) : 0;
+      const effectiveMax = MONTHLY_MAX_TRIALS;
 
       return new Response(
         JSON.stringify({
@@ -137,6 +226,9 @@ serve(async (req) => {
           trials_remaining: effectiveRemaining,
           max_trials: effectiveMax,
           trial_duration_hours: trialHours,
+          synced_with_square: squareStatus.synced,
+          sync_reason: squareStatus.reason,
+          sync_message: squareStatus.message,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -187,40 +279,25 @@ serve(async (req) => {
         .eq('mro_master_user', mro_username)
         .gte('created_at', thirtyDaysAgo.toISOString());
 
-      // Check how many tests are available from SquareCloud via /verificar-numero
-      let apiAvailable: number | null = null;
-      try {
-        const body = new URLSearchParams({ nome: mro_username, numero: mro_username });
-        if (mro_password) body.set('numero', mro_password);
-        const checkResponse = await fetch(`${SQUARE_API_URL}/verificar-numero`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body,
-        });
-        if (checkResponse.ok) {
-          const text = await checkResponse.text();
-          if (!text.trim().startsWith('<!')) {
-            const checkData = JSON.parse(text);
-            log("API availability check", { testsRemainingMonth: checkData.userData?.testsRemainingMonth });
-            if (typeof checkData.userData?.testsRemainingMonth === 'number') {
-              apiAvailable = Math.max(0, Math.min(5, checkData.userData.testsRemainingMonth));
-            }
-          }
-        }
-      } catch (e) {
-        log("Could not check API availability", { error: e instanceof Error ? e.message : 'Unknown' });
+      const squareStatus = await fetchSquareTrialStatus(mro_username, mro_password);
+      log('SquareCloud availability check', squareStatus);
+
+      const maxTrials = MONTHLY_MAX_TRIALS;
+      const localUsed = count || 0;
+      if (!squareStatus.synced) {
+        return new Response(
+          JSON.stringify({ success: false, message: squareStatus.message, requires_reauth: squareStatus.reason === 'missing_password' || squareStatus.reason === 'invalid_credentials' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
       }
 
-      // Use API limit if available, otherwise fallback to local count
-      const maxTrials = 5;
-      const localUsed = count || 0;
-      if (apiAvailable !== null && apiAvailable <= 0) {
+      if ((squareStatus.remaining ?? 0) <= 0) {
         return new Response(
           JSON.stringify({ success: false, message: `Limite de testes atingido. Sem testes disponíveis na plataforma.` }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (apiAvailable === null && localUsed >= maxTrials) {
+      if (localUsed >= maxTrials && (squareStatus.remaining ?? 0) <= 0) {
         return new Response(
           JSON.stringify({ success: false, message: `Limite de ${maxTrials} testes por 30 dias atingido` }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
