@@ -374,10 +374,14 @@ serve(async (req) => {
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
-      // Count from Supabase as fallback
+      // Use Supabase DB total as authoritative count (SquareCloud may purge expired entries)
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const trialsLast30Days = mergedTrials.filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const effectiveRemaining = squareStatus.synced ? (squareStatus.remaining ?? 0) : 0;
+      const dbTrialCount = (trials || []).length;
+      const squareRemaining = squareStatus.synced ? (squareStatus.remaining ?? 0) : 0;
+      // The real remaining is the minimum of SquareCloud's value and (max - DB count)
+      const dbBasedRemaining = Math.max(0, MONTHLY_MAX_TRIALS - dbTrialCount);
+      const effectiveRemaining = squareStatus.synced ? Math.min(squareRemaining, dbBasedRemaining) : dbBasedRemaining;
       const effectiveMax = MONTHLY_MAX_TRIALS;
 
       return new Response(
