@@ -307,19 +307,34 @@ serve(async (req) => {
       const squareStatus = await fetchSquareTrialStatus(mro_username, mro_password);
       log('SquareCloud trial sync status', squareStatus);
 
-      // Map trials with status
-      const mappedTrials = (trials || []).map(t => {
-        const expiresAt = new Date(t.expires_at);
-        const isExpired = now > expiresAt;
-        const isRemoved = t.instagram_removed === true;
-        
-        let status = 'active';
-        if (isExpired || isRemoved) status = 'expired';
+      const activeSquareTrials = (squareStatus.square_trials || []).filter((trial: SquareTrialEntry) => trial.active);
+      const squareTrialsByInstagram = new Map<string, SquareTrialEntry[]>();
 
+      for (const trial of activeSquareTrials) {
+        const key = normalizeInstagramUsername(trial.instagram_username);
+        const existing = squareTrialsByInstagram.get(key) || [];
+        existing.push(trial);
+        squareTrialsByInstagram.set(key, existing);
+      }
+
+      const sortedTrials = [...(trials || [])].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      const mappedTrials = sortedTrials.map(t => {
+        const instagramKey = normalizeInstagramUsername(t.instagram_username || '');
+        const matchingSquareTrials = squareTrialsByInstagram.get(instagramKey) || [];
+        const squareTrial = matchingSquareTrials.shift() || null;
+
+        if (matchingSquareTrials.length === 0) {
+          squareTrialsByInstagram.delete(instagramKey);
+        } else {
+          squareTrialsByInstagram.set(instagramKey, matchingSquareTrials);
+        }
+
+        const expiresAt = squareTrial ? new Date(squareTrial.expires_at) : new Date(t.expires_at);
+        const isExpired = squareTrial ? false : now > expiresAt;
+        const isRemoved = squareTrial ? false : t.instagram_removed === true;
         let remainingMs = expiresAt.getTime() - now.getTime();
         if (remainingMs < 0) remainingMs = 0;
-        const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
-        const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
 
         return {
           id: t.id,
@@ -327,26 +342,46 @@ serve(async (req) => {
           full_name: t.full_name,
           email: t.email,
           whatsapp: t.whatsapp,
-          created_at: t.created_at,
-          expires_at: t.expires_at,
-          status,
-          remaining_hours: remainingHours,
-          remaining_minutes: remainingMinutes,
-          instagram_removed: t.instagram_removed,
+          created_at: squareTrial?.created_at || t.created_at,
+          expires_at: squareTrial?.expires_at || t.expires_at,
+          status: isExpired || isRemoved ? 'expired' : 'active',
+          remaining_hours: squareTrial ? squareTrial.remaining_hours : Math.floor(remainingMs / (1000 * 60 * 60)),
+          remaining_minutes: squareTrial ? squareTrial.remaining_minutes : Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60)),
+          instagram_removed: squareTrial ? false : t.instagram_removed,
         };
       });
 
+      const squareOnlyTrials = Array.from(squareTrialsByInstagram.values())
+        .flat()
+        .map((trial) => ({
+          id: `square-${trial.instagram_username}-${trial.created_at}`,
+          instagram_username: trial.instagram_username,
+          full_name: 'Cliente Teste',
+          email: '',
+          whatsapp: '',
+          created_at: trial.created_at,
+          expires_at: trial.expires_at,
+          status: 'active',
+          remaining_hours: trial.remaining_hours,
+          remaining_minutes: trial.remaining_minutes,
+          instagram_removed: false,
+        }));
+
+      const mergedTrials = [...mappedTrials, ...squareOnlyTrials].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
       // Count from Supabase as fallback
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const trialsLast30Days = (trials || []).filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
+      const trialsLast30Days = mergedTrials.filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
       const effectiveRemaining = squareStatus.synced ? (squareStatus.remaining ?? 0) : 0;
       const effectiveMax = MONTHLY_MAX_TRIALS;
 
       return new Response(
         JSON.stringify({
           success: true,
-          trials: mappedTrials,
-          total_generated: (trials || []).length,
+          trials: mergedTrials,
+          total_generated: mergedTrials.length,
           trials_last_30_days: trialsLast30Days,
           trials_remaining: effectiveRemaining,
           max_trials: effectiveMax,
