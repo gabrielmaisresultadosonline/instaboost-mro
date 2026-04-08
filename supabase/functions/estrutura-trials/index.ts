@@ -78,13 +78,16 @@ const getSquareTrialEntries = (payload: any, now = new Date()): SquareTrialEntry
 
 const getEffectiveSquareTrialsRemaining = (payload: any, squareTrials: SquareTrialEntry[]): number | null => {
   const rawRemaining = getSquareTrialsRemaining(payload);
-  const remainingByActiveTrials = Math.max(0, MONTHLY_MAX_TRIALS - squareTrials.filter(trial => trial.active).length);
+  // Count ALL trials (active + expired) against the monthly limit, not just active ones
+  const totalTrialsCount = squareTrials.length;
+  const remainingByTotalTrials = Math.max(0, MONTHLY_MAX_TRIALS - totalTrialsCount);
 
   if (rawRemaining === null) {
-    return remainingByActiveTrials;
+    return remainingByTotalTrials;
   }
 
-  return Math.max(0, Math.min(rawRemaining, remainingByActiveTrials));
+  // Use the lower value between SquareCloud's reported remaining and our calculated remaining
+  return Math.max(0, Math.min(rawRemaining, remainingByTotalTrials));
 };
 
 const getSquareTrialsRemaining = (payload: any): number | null => {
