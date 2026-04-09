@@ -120,11 +120,41 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
       if (error) throw error;
 
       if (result?.success) {
+        setData((prev) => {
+          if (!prev || !result?.trial) return prev;
+
+          const createdTrial: Trial = {
+            id: `local-${result.trial.instagram_username}-${result.trial.created_at || new Date().toISOString()}`,
+            instagram_username: result.trial.instagram_username,
+            full_name: 'Cliente Teste',
+            email: '',
+            created_at: result.trial.created_at || new Date().toISOString(),
+            expires_at: result.trial.expires_at,
+            status: 'active',
+            remaining_hours: Math.floor((result.trial.trial_duration_hours || 6)),
+            remaining_minutes: 0,
+            instagram_removed: false,
+          };
+
+          return {
+            ...prev,
+            trials: [createdTrial, ...prev.trials],
+            total_generated: prev.total_generated + 1,
+            trials_last_30_days: prev.trials_last_30_days + 1,
+            trials_remaining: typeof result.trials_remaining === 'number'
+              ? result.trials_remaining
+              : Math.max(0, prev.trials_remaining - 1),
+          };
+        });
+
         toast.success('Teste de 6 horas criado com sucesso! 🎉');
         setJustCreated(ig);
         setInstagramInput('');
         setShowForm(false);
-        await loadTrials();
+
+        window.setTimeout(() => {
+          void loadTrials(true);
+        }, 1200);
       } else {
         toast.error(result?.message || 'Erro ao criar teste');
       }
