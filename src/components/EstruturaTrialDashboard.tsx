@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Loader2, Sparkles, Clock, CheckCircle2, XCircle, Instagram, Plus, RefreshCw, Zap, Wifi } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+const SQUARE_API_URL = 'https://dashboardmroinstagramvini-online.squareweb.app';
 
 interface Trial {
   id: string;
@@ -43,61 +45,22 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
   const [instagramInput, setInstagramInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [justCreated, setJustCreated] = useState<string | null>(null);
+  const [realtimeRemaining, setRealtimeRemaining] = useState<number | null>(null);
+  const [realtimeActiveTests, setRealtimeActiveTests] = useState<number | null>(null);
 
-  const loadTrials = useCallback(async (silent = false) => {
-    if (!silent) {
-      setLoading(true);
-    }
-
+  // Poll the new /testes-restantes/:username endpoint for real-time remaining count
+  const fetchRealtimeRemaining = useCallback(async () => {
     try {
-      const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
-        body: { action: 'list', mro_username: mroUsername, mro_password: mroPassword }
-      });
-
-      if (error) throw error;
-      if (result?.success) {
-        setData(result);
-      } else {
-        toast.error(result?.message || 'Erro ao carregar testes');
+      const res = await fetch(`${SQUARE_API_URL}/testes-restantes/${encodeURIComponent(mroUsername)}`);
+      const json = await res.json();
+      if (json.success) {
+        setRealtimeRemaining(json.testsRemaining ?? null);
+        setRealtimeActiveTests(json.activeTests ?? null);
       }
     } catch (err) {
-      console.error('Error loading trials:', err);
-      if (!silent) {
-        toast.error('Erro ao carregar testes');
-      }
-    } finally {
-      if (!silent) {
-        setLoading(false);
-      }
+      console.error('[RealtimeRemaining] fetch error:', err);
     }
-  }, [mroPassword, mroUsername]);
-
-  useEffect(() => {
-    loadTrials();
-  }, [loadTrials]);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      loadTrials(true);
-    }, 15000);
-
-    return () => window.clearInterval(intervalId);
-  }, [loadTrials]);
-
-  // Auto-dismiss justCreated after 10s
-  useEffect(() => {
-    if (justCreated) {
-      const t = setTimeout(() => setJustCreated(null), 10000);
-      return () => clearTimeout(t);
-    }
-  }, [justCreated]);
-
-  const normalizeIG = (input: string): string => {
-    let val = input.trim().toLowerCase();
-    const urlMatch = val.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/);
-    if (urlMatch) return urlMatch[1];
-    return val.replace(/^@/, '');
-  };
+  }, [mroUsername]);
 
   const handleCreateTrial = async () => {
     const ig = normalizeIG(instagramInput);
