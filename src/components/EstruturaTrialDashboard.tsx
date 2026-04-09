@@ -62,6 +62,33 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
     }
   }, [mroUsername]);
 
+  const normalizeIG = (input: string): string => {
+    let val = input.trim().toLowerCase();
+    const urlMatch = val.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/);
+    if (urlMatch) return urlMatch[1];
+    return val.replace(/^@/, '');
+  };
+
+  const loadTrials = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
+        body: { action: 'list', mro_username: mroUsername, mro_password: mroPassword }
+      });
+      if (error) throw error;
+      if (result?.success) {
+        setData(result);
+      } else {
+        toast.error(result?.message || 'Erro ao carregar testes');
+      }
+    } catch (err) {
+      console.error('Error loading trials:', err);
+      if (!silent) toast.error('Erro ao carregar testes');
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [mroPassword, mroUsername]);
+
   const handleCreateTrial = async () => {
     const ig = normalizeIG(instagramInput);
     if (!ig) {
