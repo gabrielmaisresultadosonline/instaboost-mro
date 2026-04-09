@@ -2528,7 +2528,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                           className="bg-zinc-800/50 border-zinc-600 text-white"
                         />
                         <p className="text-xs text-zinc-500 mt-1">
-                          Número que aparecerá nos emails de comissão para afiliados vitalícios
+                          Número de referência. O link nos emails direcionará para /whatsapp automaticamente
                         </p>
                       </div>
                       <div className="flex items-end">
