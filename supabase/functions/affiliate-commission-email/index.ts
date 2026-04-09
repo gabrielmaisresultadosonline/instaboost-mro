@@ -296,7 +296,7 @@ Utilize sempre o seu link de compra e <strong style="color:#FFD700;">vamos pra c
 Esta venda foi <strong>APROVADA</strong>!<br>
 Entre em contato pelo nosso <strong>WhatsApp</strong> e envie seu <strong>PIX</strong> para receber sua comissão imediatamente!
 </p>
-<a href="https://wa.me/${finalWhatsApp}" style="display:inline-block;background:#000;color:#FFD700;padding:15px 30px;border-radius:10px;text-decoration:none;font-weight:bold;font-size:16px;margin-top:10px;">📱 Chamar no WhatsApp</a>
+<a href="https://maisresultadosonline.com.br/whatsapp" style="display:inline-block;background:#000;color:#FFD700;padding:15px 30px;border-radius:10px;text-decoration:none;font-weight:bold;font-size:16px;margin-top:10px;">📱 Chamar no WhatsApp</a>
 </div>`
         : `<div style="background:#2d2d2d;border-left:4px solid #FFD700;padding:15px;margin:20px 0;border-radius:0 8px 8px 0;">
 <p style="margin:0;color:#fff;font-size:14px;">
