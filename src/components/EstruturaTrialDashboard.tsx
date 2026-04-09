@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,8 +44,11 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
   const [showForm, setShowForm] = useState(false);
   const [justCreated, setJustCreated] = useState<string | null>(null);
 
-  const loadTrials = async () => {
-    setLoading(true);
+  const loadTrials = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
+
     try {
       const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
         body: { action: 'list', mro_username: mroUsername, mro_password: mroPassword }
@@ -59,15 +62,27 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
       }
     } catch (err) {
       console.error('Error loading trials:', err);
-      toast.error('Erro ao carregar testes');
+      if (!silent) {
+        toast.error('Erro ao carregar testes');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
-  };
+  }, [mroPassword, mroUsername]);
 
   useEffect(() => {
     loadTrials();
-  }, [mroUsername]);
+  }, [loadTrials]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      loadTrials(true);
+    }, 15000);
+
+    return () => window.clearInterval(intervalId);
+  }, [loadTrials]);
 
   // Auto-dismiss justCreated after 10s
   useEffect(() => {
@@ -137,7 +152,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             <span className="text-white/50 text-xs">Logado como</span>
             <span className="text-yellow-400 font-bold text-sm">{mroUsername}</span>
           </div>
-          <Button size="sm" variant="outline" onClick={loadTrials} className="border-white/20 text-white hover:bg-white/10">
+          <Button size="sm" variant="outline" onClick={() => loadTrials()} className="border-white/20 text-white hover:bg-white/10">
             <RefreshCw size={14} />
           </Button>
         </div>
