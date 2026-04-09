@@ -152,7 +152,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             <span className="text-white/50 text-xs">Logado como</span>
             <span className="text-yellow-400 font-bold text-sm">{mroUsername}</span>
           </div>
-          <Button size="sm" variant="outline" onClick={loadTrials} className="border-white/20 text-white hover:bg-white/10">
+          <Button size="sm" variant="outline" onClick={() => loadTrials()} className="border-white/20 text-white hover:bg-white/10">
             <RefreshCw size={14} />
           </Button>
         </div>
