@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const SQUARE_API_URL = "https://dashboardmroinstagramvini-online.squareweb.app";
 const MONTHLY_MAX_TRIALS = 5;
+const RECENT_TRIAL_SYNC_WINDOW_MS = 2 * 60 * 1000;
 
 const log = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -24,6 +25,35 @@ const toFiniteNumber = (value: unknown): number | null => {
 };
 
 const normalizeInstagramUsername = (value: string) => value.trim().toLowerCase().replace(/^@/, '');
+
+const isRecentTrialRecord = (createdAt: string, now = new Date()) => {
+  const createdAtMs = new Date(createdAt).getTime();
+
+  if (!Number.isFinite(createdAtMs)) {
+    return false;
+  }
+
+  return createdAtMs >= now.getTime() - RECENT_TRIAL_SYNC_WINDOW_MS;
+};
+
+const getAdjustedRemainingCount = ({
+  synced,
+  squareRemaining,
+  recentLocalCreations,
+  fallbackRemaining,
+}: {
+  synced: boolean;
+  squareRemaining: number | null;
+  recentLocalCreations: number;
+  fallbackRemaining: number;
+}) => {
+  if (!synced || squareRemaining === null) {
+    return fallbackRemaining;
+  }
+
+  const recentCappedRemaining = Math.max(0, MONTHLY_MAX_TRIALS - recentLocalCreations);
+  return Math.max(0, Math.min(squareRemaining, recentCappedRemaining));
+};
 
 const normalizeTimestampMs = (value: unknown): number | null => {
   const parsed = toFiniteNumber(value);
@@ -372,10 +402,16 @@ serve(async (req) => {
       );
 
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const dbTrialsLast30Days = (trials || []).filter((trial) => new Date(trial.created_at) > thirtyDaysAgo);
       const trialsLast30Days = mergedTrials.filter(t => new Date(t.created_at) > thirtyDaysAgo).length;
-      const dbTrialCount = (trials || []).length;
-      const dbBasedRemaining = Math.max(0, MONTHLY_MAX_TRIALS - dbTrialCount);
-      const effectiveRemaining = squareStatus.synced ? (squareStatus.remaining ?? 0) : dbBasedRemaining;
+      const dbBasedRemaining = Math.max(0, MONTHLY_MAX_TRIALS - dbTrialsLast30Days.length);
+      const recentLocalCreations = (trials || []).filter((trial) => isRecentTrialRecord(trial.created_at, now)).length;
+      const effectiveRemaining = getAdjustedRemainingCount({
+        synced: squareStatus.synced,
+        squareRemaining: squareStatus.remaining,
+        recentLocalCreations,
+        fallbackRemaining: dbBasedRemaining,
+      });
       const effectiveMax = MONTHLY_MAX_TRIALS;
 
       return new Response(
@@ -553,12 +589,18 @@ serve(async (req) => {
 
       log("Trial created", { instagram: normalizedIG, expires: apiExpiresAt.toISOString(), timeLeft: trialHoursFromApi });
 
+      const remainingAfterCreate = squareStatus.synced
+        ? Math.max(0, (squareStatus.remaining ?? maxTrials) - 1)
+        : Math.max(0, maxTrials - (localUsed + 1));
+
       return new Response(
         JSON.stringify({
           success: true,
           message: 'Teste de 6 horas criado com sucesso!',
+          trials_remaining: remainingAfterCreate,
           trial: {
             instagram_username: normalizedIG,
+            created_at: now.toISOString(),
             expires_at: apiExpiresAt.toISOString(),
             trial_duration_hours: trialHoursFromApi,
             totalUserMes: apiTrialResult.totalUserMes,
