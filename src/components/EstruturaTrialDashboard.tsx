@@ -210,39 +210,44 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             )}
 
             {/* Stats cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className="text-2xl font-black text-yellow-400">{data?.total_generated || 0}</p>
-                <p className="text-white/50 text-xs mt-1">Total Gerados</p>
-              </div>
-              <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className="text-2xl font-black text-green-400">{activeTrials.length}</p>
-                <p className="text-white/50 text-xs mt-1">Ativos Agora</p>
-              </div>
-              <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className="text-2xl font-black text-red-400">{expiredTrials.length}</p>
-                <p className="text-white/50 text-xs mt-1">Expirados</p>
-              </div>
-              <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className={`text-2xl font-black ${(data?.trials_remaining ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {(data?.trials_remaining ?? 0) > 0 
-                    ? `${data?.trials_remaining} disponíveis` 
-                    : '0 disponíveis'}
-                </p>
-                <p className="text-white/50 text-xs mt-1">Limite: {data?.max_trials || 5}/mês</p>
-                <p className="text-white/30 text-[10px] mt-1">
-                  {data?.synced_with_square ? 'Sincronizado com SquareCloud' : 'Aguardando sincronização'}
-                </p>
-              </div>
-            </div>
+            {(() => {
+              const effectiveRemaining = realtimeRemaining !== null ? realtimeRemaining : (data?.trials_remaining ?? 0);
+              const effectiveActive = realtimeActiveTests !== null ? realtimeActiveTests : activeTrials.length;
+              return (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
+                      <p className="text-2xl font-black text-yellow-400">{data?.total_generated || 0}</p>
+                      <p className="text-white/50 text-xs mt-1">Total Gerados</p>
+                    </div>
+                    <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
+                      <p className="text-2xl font-black text-green-400">{effectiveActive}</p>
+                      <p className="text-white/50 text-xs mt-1">Ativos Agora</p>
+                    </div>
+                    <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
+                      <p className="text-2xl font-black text-red-400">{expiredTrials.length}</p>
+                      <p className="text-white/50 text-xs mt-1">Expirados</p>
+                    </div>
+                    <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
+                      <p className={`text-2xl font-black ${effectiveRemaining > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {effectiveRemaining > 0 
+                          ? `${effectiveRemaining} disponíveis` 
+                          : '0 disponíveis'}
+                      </p>
+                      <p className="text-white/50 text-xs mt-1">Limite: {data?.max_trials || 5}/mês</p>
+                      <p className="text-white/30 text-[10px] mt-1">
+                        {realtimeRemaining !== null ? '🟢 Tempo real' : (data?.synced_with_square ? 'Sincronizado' : 'Aguardando sincronização')}
+                      </p>
+                    </div>
+                  </div>
 
-            {/* Create trial section */}
-            {!showForm ? (
-              <button
-                onClick={() => setShowForm(true)}
-                disabled={(data?.trials_remaining ?? 0) <= 0}
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:from-gray-600 disabled:to-gray-700 text-black disabled:text-gray-400 font-black text-lg py-5 rounded-2xl shadow-xl shadow-yellow-500/20 hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
-              >
+                  {/* Create trial section */}
+                  {!showForm ? (
+                    <button
+                      onClick={() => setShowForm(true)}
+                      disabled={effectiveRemaining <= 0}
+                      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:from-gray-600 disabled:to-gray-700 text-black disabled:text-gray-400 font-black text-lg py-5 rounded-2xl shadow-xl shadow-yellow-500/20 hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                    >
                 <Plus size={24} />
                 Gerar Novo Teste Grátis
               </button>
