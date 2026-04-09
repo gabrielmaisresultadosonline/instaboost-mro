@@ -364,6 +364,9 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
                 <p className="text-white/25 text-sm mt-1">Clique no botão acima para gerar seu primeiro teste grátis</p>
               </div>
             )}
+                </>
+              );
+            })()}
           </>
         )}
       </div>
