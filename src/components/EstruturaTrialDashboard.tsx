@@ -142,6 +142,9 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
         setInstagramInput('');
         setShowForm(false);
 
+        // Immediately refresh real-time remaining
+        fetchRealtimeRemaining();
+
         window.setTimeout(() => {
           void loadTrials(true);
         }, 1200);
