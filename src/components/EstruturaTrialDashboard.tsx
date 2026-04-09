@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Loader2, Sparkles, Clock, CheckCircle2, XCircle, Instagram, Plus, RefreshCw, Zap, Wifi } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+const SQUARE_API_URL = 'https://dashboardmroinstagramvini-online.squareweb.app';
 
 interface Trial {
   id: string;
@@ -43,17 +45,36 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
   const [instagramInput, setInstagramInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [justCreated, setJustCreated] = useState<string | null>(null);
+  const [realtimeRemaining, setRealtimeRemaining] = useState<number | null>(null);
+  const [realtimeActiveTests, setRealtimeActiveTests] = useState<number | null>(null);
+
+  // Poll the new /testes-restantes/:username endpoint for real-time remaining count
+  const fetchRealtimeRemaining = useCallback(async () => {
+    try {
+      const res = await fetch(`${SQUARE_API_URL}/testes-restantes/${encodeURIComponent(mroUsername)}`);
+      const json = await res.json();
+      if (json.success) {
+        setRealtimeRemaining(json.testsRemaining ?? null);
+        setRealtimeActiveTests(json.activeTests ?? null);
+      }
+    } catch (err) {
+      console.error('[RealtimeRemaining] fetch error:', err);
+    }
+  }, [mroUsername]);
+
+  const normalizeIG = (input: string): string => {
+    let val = input.trim().toLowerCase();
+    const urlMatch = val.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/);
+    if (urlMatch) return urlMatch[1];
+    return val.replace(/^@/, '');
+  };
 
   const loadTrials = useCallback(async (silent = false) => {
-    if (!silent) {
-      setLoading(true);
-    }
-
+    if (!silent) setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
         body: { action: 'list', mro_username: mroUsername, mro_password: mroPassword }
       });
-
       if (error) throw error;
       if (result?.success) {
         setData(result);
@@ -62,42 +83,11 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
       }
     } catch (err) {
       console.error('Error loading trials:', err);
-      if (!silent) {
-        toast.error('Erro ao carregar testes');
-      }
+      if (!silent) toast.error('Erro ao carregar testes');
     } finally {
-      if (!silent) {
-        setLoading(false);
-      }
+      if (!silent) setLoading(false);
     }
   }, [mroPassword, mroUsername]);
-
-  useEffect(() => {
-    loadTrials();
-  }, [loadTrials]);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      loadTrials(true);
-    }, 15000);
-
-    return () => window.clearInterval(intervalId);
-  }, [loadTrials]);
-
-  // Auto-dismiss justCreated after 10s
-  useEffect(() => {
-    if (justCreated) {
-      const t = setTimeout(() => setJustCreated(null), 10000);
-      return () => clearTimeout(t);
-    }
-  }, [justCreated]);
-
-  const normalizeIG = (input: string): string => {
-    let val = input.trim().toLowerCase();
-    const urlMatch = val.match(/(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9._]+)/);
-    if (urlMatch) return urlMatch[1];
-    return val.replace(/^@/, '');
-  };
 
   const handleCreateTrial = async () => {
     const ig = normalizeIG(instagramInput);
@@ -151,6 +141,9 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
         setJustCreated(ig);
         setInstagramInput('');
         setShowForm(false);
+
+        // Immediately refresh real-time remaining
+        fetchRealtimeRemaining();
 
         window.setTimeout(() => {
           void loadTrials(true);
@@ -217,39 +210,44 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             )}
 
             {/* Stats cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className="text-2xl font-black text-yellow-400">{data?.total_generated || 0}</p>
-                <p className="text-white/50 text-xs mt-1">Total Gerados</p>
-              </div>
-              <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className="text-2xl font-black text-green-400">{activeTrials.length}</p>
-                <p className="text-white/50 text-xs mt-1">Ativos Agora</p>
-              </div>
-              <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className="text-2xl font-black text-red-400">{expiredTrials.length}</p>
-                <p className="text-white/50 text-xs mt-1">Expirados</p>
-              </div>
-              <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
-                <p className={`text-2xl font-black ${(data?.trials_remaining ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {(data?.trials_remaining ?? 0) > 0 
-                    ? `${data?.trials_remaining} disponíveis` 
-                    : '0 disponíveis'}
-                </p>
-                <p className="text-white/50 text-xs mt-1">Limite: {data?.max_trials || 5}/mês</p>
-                <p className="text-white/30 text-[10px] mt-1">
-                  {data?.synced_with_square ? 'Sincronizado com SquareCloud' : 'Aguardando sincronização'}
-                </p>
-              </div>
-            </div>
+            {(() => {
+              const effectiveRemaining = realtimeRemaining !== null ? realtimeRemaining : (data?.trials_remaining ?? 0);
+              const effectiveActive = realtimeActiveTests !== null ? realtimeActiveTests : activeTrials.length;
+              return (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
+                      <p className="text-2xl font-black text-yellow-400">{data?.total_generated || 0}</p>
+                      <p className="text-white/50 text-xs mt-1">Total Gerados</p>
+                    </div>
+                    <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
+                      <p className="text-2xl font-black text-green-400">{effectiveActive}</p>
+                      <p className="text-white/50 text-xs mt-1">Ativos Agora</p>
+                    </div>
+                    <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
+                      <p className="text-2xl font-black text-red-400">{expiredTrials.length}</p>
+                      <p className="text-white/50 text-xs mt-1">Expirados</p>
+                    </div>
+                    <div className="bg-[#12121f] rounded-xl border border-white/10 p-4 text-center">
+                      <p className={`text-2xl font-black ${effectiveRemaining > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {effectiveRemaining > 0 
+                          ? `${effectiveRemaining} disponíveis` 
+                          : '0 disponíveis'}
+                      </p>
+                      <p className="text-white/50 text-xs mt-1">Limite: {data?.max_trials || 5}/mês</p>
+                      <p className="text-white/30 text-[10px] mt-1">
+                        {realtimeRemaining !== null ? '🟢 Tempo real' : (data?.synced_with_square ? 'Sincronizado' : 'Aguardando sincronização')}
+                      </p>
+                    </div>
+                  </div>
 
-            {/* Create trial section */}
-            {!showForm ? (
-              <button
-                onClick={() => setShowForm(true)}
-                disabled={(data?.trials_remaining ?? 0) <= 0}
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:from-gray-600 disabled:to-gray-700 text-black disabled:text-gray-400 font-black text-lg py-5 rounded-2xl shadow-xl shadow-yellow-500/20 hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
-              >
+                  {/* Create trial section */}
+                  {!showForm ? (
+                    <button
+                      onClick={() => setShowForm(true)}
+                      disabled={effectiveRemaining <= 0}
+                      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:from-gray-600 disabled:to-gray-700 text-black disabled:text-gray-400 font-black text-lg py-5 rounded-2xl shadow-xl shadow-yellow-500/20 hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                    >
                 <Plus size={24} />
                 Gerar Novo Teste Grátis
               </button>
@@ -366,6 +364,9 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
                 <p className="text-white/25 text-sm mt-1">Clique no botão acima para gerar seu primeiro teste grátis</p>
               </div>
             )}
+                </>
+              );
+            })()}
           </>
         )}
       </div>
