@@ -40,25 +40,48 @@ interface Props {
 
 export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Props) => {
   const [data, setData] = useState<TrialData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [instagramInput, setInstagramInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [justCreated, setJustCreated] = useState<string | null>(null);
   const [realtimeRemaining, setRealtimeRemaining] = useState<number | null>(null);
   const [realtimeActiveTests, setRealtimeActiveTests] = useState<number | null>(null);
+  const initialLoadStartedRef = useRef(false);
 
   // Poll the new /testes-restantes/:username endpoint for real-time remaining count
   const fetchRealtimeRemaining = useCallback(async () => {
+    setSummaryLoading(true);
+
     try {
-      const res = await fetch(`${SQUARE_API_URL}/testes-restantes/${encodeURIComponent(mroUsername)}`);
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
+      const res = await fetch(`${SQUARE_API_URL}/testes-restantes/${encodeURIComponent(mroUsername)}`, {
+        signal: controller.signal,
+      });
+
+      window.clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        throw new Error(`Falha ao buscar testes em tempo real (${res.status})`);
+      }
+
       const json = await res.json();
+
       if (json.success) {
         setRealtimeRemaining(json.testsRemaining ?? null);
         setRealtimeActiveTests(json.activeTests ?? null);
+        setData((prev) => prev ? {
+          ...prev,
+          trials_remaining: typeof json.testsRemaining === 'number' ? json.testsRemaining : prev.trials_remaining,
+        } : prev);
       }
     } catch (err) {
       console.error('[RealtimeRemaining] fetch error:', err);
+    } finally {
+      setSummaryLoading(false);
     }
   }, [mroUsername]);
 
@@ -70,7 +93,8 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
   };
 
   const loadTrials = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+    setListLoading(true);
+
     try {
       const { data: result, error } = await supabase.functions.invoke('estrutura-trials', {
         body: { action: 'list', mro_username: mroUsername, mro_password: mroPassword }
@@ -85,9 +109,32 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
       console.error('Error loading trials:', err);
       if (!silent) toast.error('Erro ao carregar testes');
     } finally {
-      if (!silent) setLoading(false);
+      setListLoading(false);
     }
   }, [mroPassword, mroUsername]);
+
+  useEffect(() => {
+    if (!mroUsername) return;
+
+    initialLoadStartedRef.current = true;
+    setSummaryLoading(true);
+
+    void fetchRealtimeRemaining();
+    void loadTrials(true);
+
+    const realtimeInterval = window.setInterval(() => {
+      void fetchRealtimeRemaining();
+    }, 3000);
+
+    const backgroundListRefresh = window.setInterval(() => {
+      void loadTrials(true);
+    }, 30000);
+
+    return () => {
+      window.clearInterval(realtimeInterval);
+      window.clearInterval(backgroundListRefresh);
+    };
+  }, [fetchRealtimeRemaining, loadTrials, mroUsername]);
 
   const handleCreateTrial = async () => {
     const ig = normalizeIG(instagramInput);
@@ -143,11 +190,15 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
         setShowForm(false);
 
         // Immediately refresh real-time remaining
-        fetchRealtimeRemaining();
+        void fetchRealtimeRemaining();
 
         window.setTimeout(() => {
           void loadTrials(true);
         }, 1200);
+
+        window.setTimeout(() => {
+          void fetchRealtimeRemaining();
+        }, 2200);
       } else {
         toast.error(result?.message || 'Erro ao criar teste');
       }
@@ -161,6 +212,9 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
 
   const activeTrials = data?.trials.filter(t => t.status === 'active') || [];
   const expiredTrials = data?.trials.filter(t => t.status === 'expired') || [];
+  const effectiveRemaining = realtimeRemaining !== null ? realtimeRemaining : (data?.trials_remaining ?? 0);
+  const effectiveActive = realtimeActiveTests !== null ? realtimeActiveTests : activeTrials.length;
+  const hasLoadedAnything = initialLoadStartedRef.current;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white">
@@ -175,8 +229,16 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             <span className="text-white/50 text-xs">Logado como</span>
             <span className="text-yellow-400 font-bold text-sm">{mroUsername}</span>
           </div>
-          <Button size="sm" variant="outline" onClick={() => loadTrials()} className="border-white/20 text-white hover:bg-white/10">
-            <RefreshCw size={14} />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              void fetchRealtimeRemaining();
+              void loadTrials();
+            }}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            <RefreshCw size={14} className={summaryLoading || listLoading ? 'animate-spin' : ''} />
           </Button>
         </div>
       </div>
@@ -185,12 +247,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
-          </div>
-        ) : (
-          <>
+        <>
             {/* Success banner after creating */}
             {justCreated && (
               <div className="bg-green-500/15 border border-green-500/40 rounded-2xl p-5 animate-in fade-in slide-in-from-top-2 duration-500">
@@ -211,8 +268,6 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
 
             {/* Stats cards */}
             {(() => {
-              const effectiveRemaining = realtimeRemaining !== null ? realtimeRemaining : (data?.trials_remaining ?? 0);
-              const effectiveActive = realtimeActiveTests !== null ? realtimeActiveTests : activeTrials.length;
               return (
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -236,10 +291,21 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
                       </p>
                       <p className="text-white/50 text-xs mt-1">Limite: {data?.max_trials || 5}/mês</p>
                       <p className="text-white/30 text-[10px] mt-1">
-                        {realtimeRemaining !== null ? '🟢 Tempo real' : (data?.synced_with_square ? 'Sincronizado' : 'Aguardando sincronização')}
+                        {summaryLoading && realtimeRemaining === null
+                          ? 'Atualizando saldo...'
+                          : realtimeRemaining !== null
+                            ? '🟢 Tempo real'
+                            : (data?.synced_with_square ? 'Sincronizado' : 'Aguardando sincronização')}
                       </p>
                     </div>
                   </div>
+
+                  {(summaryLoading || listLoading) && (
+                    <div className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#12121f]/80 px-4 py-3 text-sm text-white/60">
+                      <Loader2 className="h-4 w-4 animate-spin text-yellow-400" />
+                      <span>{summaryLoading ? 'Atualizando testes em tempo real...' : 'Atualizando lista de testes...'}</span>
+                    </div>
+                  )}
 
                   {/* Create trial section */}
                   {!showForm ? (
@@ -357,7 +423,7 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
             )}
 
             {/* Empty state */}
-            {(data?.trials.length || 0) === 0 && (
+            {!listLoading && hasLoadedAnything && (data?.trials.length || 0) === 0 && (
               <div className="text-center py-12">
                 <Sparkles className="w-12 h-12 text-yellow-400/30 mx-auto mb-4" />
                 <p className="text-white/40 text-lg font-medium">Nenhum teste gerado ainda</p>
@@ -368,7 +434,6 @@ export const EstruturaTrialDashboard = ({ onBack, mroUsername, mroPassword }: Pr
               );
             })()}
           </>
-        )}
       </div>
     </div>
   );
