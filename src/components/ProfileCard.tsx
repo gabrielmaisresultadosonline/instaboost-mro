@@ -49,6 +49,15 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
         return;
       }
 
+      // Check username mismatch
+      if (analysisData?.extracted_data) {
+        const extracted = analysisData.extracted_data;
+        if (extracted.username && extracted.username.toLowerCase() !== profile.username.toLowerCase()) {
+          toast.error(`O print enviado é do perfil @${extracted.username}, mas a conta cadastrada é @${profile.username}. Envie um print real do perfil @${profile.username}.`);
+          return;
+        }
+      }
+
       if (analysisData?.analysis && onAnalysisComplete) {
         onAnalysisComplete(analysisData.analysis);
       }
