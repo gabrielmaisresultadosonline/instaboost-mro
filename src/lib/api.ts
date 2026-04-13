@@ -9,7 +9,8 @@ import {
 export const fetchInstagramProfile = async (
   username: string,
   existingPosts?: any[],
-  forceRefresh: boolean = false
+  forceRefresh: boolean = false,
+  requireLiveData: boolean = false
 ): Promise<{
   success: boolean;
   profile?: InstagramProfile;
@@ -20,22 +21,20 @@ export const fetchInstagramProfile = async (
   canRetry?: boolean;
   isPrivate?: boolean;
   isRestricted?: boolean;
+  dataSource?: string;
+  liveData?: boolean;
 }> => {
   try {
-    const normalizedUsername = username.toLowerCase().replace('@', '');
+    const normalizedUsername = username.toLowerCase().replace('@', '').trim();
     
-    // STEP 1: Check cached data from server (admin synced profiles)
-    if (!forceRefresh) {
+    if (!forceRefresh && !requireLiveData) {
       const cacheResult = getCachedProfileData(normalizedUsername);
       
       if (cacheResult.isCached && cacheResult.isRecent && cacheResult.cachedProfile) {
         console.log(`🚀 Usando dados em cache para @${normalizedUsername} (${cacheResult.daysSinceLastUpdate} dias atrás)`);
         
-        // Profile data is recent (< 7 days), use cached version
-        // But we still need to fetch recent posts since cached profiles don't store them
         const cachedProfile = convertCachedToInstagramProfile(cacheResult.cachedProfile);
         
-        // Fetch ONLY recent posts from API (saves bandwidth)
         console.log(`📸 Buscando apenas posts recentes para @${normalizedUsername}...`);
         const { data: postsData, error: postsError } = await supabase.functions.invoke('fetch-instagram', {
           body: { username: normalizedUsername, onlyPosts: true }
@@ -54,29 +53,41 @@ export const fetchInstagramProfile = async (
           profile: cachedProfile,
           simulated: false,
           fromCache: true,
+          dataSource: 'local_cache',
+          liveData: false,
           message: `Dados em cache (${cacheResult.daysSinceLastUpdate} dias atrás) + posts atualizados`
         };
       }
       
-      // If cached but stale (> 7 days), log and proceed to fetch fresh data
       if (cacheResult.isCached && !cacheResult.isRecent) {
         console.log(`⏰ Cache expirado para @${normalizedUsername} (${cacheResult.daysSinceLastUpdate} dias) - buscando dados novos`);
       }
     }
     
-    // STEP 2: Fetch fresh data from API (with retry flag support)
     console.log(`🌐 Buscando dados completos da API para @${normalizedUsername}...`);
     const { data, error } = await supabase.functions.invoke('fetch-instagram', {
-      body: { username: normalizedUsername, existingPosts }
+      body: { username: normalizedUsername, existingPosts, requireLiveData }
     });
 
     if (error) {
       console.error('Error fetching profile:', error);
-      return { success: false, error: error.message, canRetry: true };
+      return { success: false, error: error.message, canRetry: true, liveData: false };
     }
 
-    // Check for API error response
     if (!data.success) {
+      if (requireLiveData) {
+        return {
+          success: false,
+          error: data.error || 'Não foi possível buscar dados reais do perfil agora',
+          canRetry: data.canRetry || false,
+          isPrivate: data.isPrivate || false,
+          isRestricted: data.isRestricted || false,
+          fromCache: false,
+          dataSource: data.dataSource,
+          liveData: false,
+        };
+      }
+
       const loadCachedAdminProfile = async (): Promise<InstagramProfile | null> => {
         try {
           const { data: adminData, error: adminError } = await supabase.functions.invoke('admin-data-storage', {
@@ -172,6 +183,8 @@ export const fetchInstagramProfile = async (
           profile: cachedAdminProfile,
           simulated: false,
           fromCache: true,
+          dataSource: 'admin_cache',
+          liveData: false,
           message: data.isRestricted
             ? 'Dados carregados do cache interno (fallback para restrição)'
             : 'Dados carregados do cache interno (fallback da API)'
@@ -183,12 +196,28 @@ export const fetchInstagramProfile = async (
         error: data.error || 'Não foi possível buscar o perfil',
         canRetry: data.canRetry || false,
         isPrivate: data.isPrivate || false,
-        isRestricted: data.isRestricted || false
+        isRestricted: data.isRestricted || false,
+        liveData: false,
       };
     }
 
     if (data.profile) {
-      // Use ONLY real data from the API - no fallbacks to mock data
+      const responseFromCache = Boolean(data.fromCache);
+      const dataSource = data.dataSource || (responseFromCache ? 'admin_cache' : 'bright');
+
+      if (requireLiveData && responseFromCache) {
+        return {
+          success: false,
+          error: 'Não foi possível obter dados reais da Bright agora. Tente sincronizar novamente.',
+          canRetry: true,
+          isPrivate: data.isPrivate || false,
+          isRestricted: data.isRestricted || false,
+          fromCache: true,
+          dataSource,
+          liveData: false,
+        };
+      }
+
       const profile: InstagramProfile = {
         ...data.profile,
         engagement: data.profile.engagement || (data.profile.followers > 0 
@@ -196,33 +225,37 @@ export const fetchInstagramProfile = async (
           : 0),
         avgLikes: data.profile.avgLikes || 0,
         avgComments: data.profile.avgComments || 0,
-        recentPosts: data.profile.recentPosts || [], // Empty array if no real posts, NOT mock
+        recentPosts: data.profile.recentPosts || [],
       };
       
-      // Update cache with fresh data
-      updateCachedProfile(normalizedUsername, {
-        followers: profile.followers,
-        following: profile.following,
-        posts: profile.posts,
-        profilePicUrl: profile.profilePicUrl,
-        fullName: profile.fullName,
-        bio: profile.bio
-      });
+      if (!responseFromCache) {
+        updateCachedProfile(normalizedUsername, {
+          followers: profile.followers,
+          following: profile.following,
+          posts: profile.posts,
+          profilePicUrl: profile.profilePicUrl,
+          fullName: profile.fullName,
+          bio: profile.bio
+        });
+      }
 
       return { 
         success: true, 
         profile,
         simulated: false,
-        fromCache: false,
+        fromCache: responseFromCache,
+        dataSource,
+        liveData: !responseFromCache,
         message: data.message,
-        isPrivate: data.isPrivate || false
+        isPrivate: data.isPrivate || false,
+        isRestricted: data.isRestricted || false,
       };
     }
 
-    return { success: false, error: 'Não foi possível buscar o perfil' };
+    return { success: false, error: 'Não foi possível buscar o perfil', liveData: false };
   } catch (error) {
     console.error('Error:', error);
-    return { success: false, error: 'Erro de conexão' };
+    return { success: false, error: 'Erro de conexão', liveData: false };
   }
 };
 
