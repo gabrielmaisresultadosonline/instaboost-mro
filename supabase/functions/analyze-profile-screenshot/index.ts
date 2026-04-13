@@ -20,26 +20,24 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'} using vision model`);
+    console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'}`);
 
-    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     const normalizedUsername = String(username || 'username').replace('@', '').trim().toLowerCase();
-    
-    if (!DEEPSEEK_API_KEY) {
-      console.error('DEEPSEEK_API_KEY not configured');
-      return Response.json(
-        { success: false, error: 'Chave de API DeepSeek não configurada' },
-        { status: 500, headers: corsHeaders }
-      );
-    }
 
     const systemPrompt = `Você é um especialista em marketing digital e leitura visual de prints de perfis do Instagram.
-Leia o print do perfil @${normalizedUsername} e extraia APENAS dados realmente visíveis na imagem.
+
+PRIMEIRO: Verifique se a imagem é realmente um print/screenshot de um perfil do Instagram. 
+Se NÃO for um print do Instagram (por exemplo: foto aleatória, meme, outro app, etc), responda APENAS:
+{"not_instagram": true}
+
+Se FOR um print válido do Instagram, leia o print do perfil e extraia APENAS dados realmente visíveis na imagem.
 Não invente números. Se algum campo não estiver legível, use 0 ou string vazia.
 
 RETORNE APENAS JSON VÁLIDO no seguinte formato:
 {
+  "not_instagram": false,
   "extracted_data": {
     "username": "${normalizedUsername}",
     "full_name": "",
@@ -78,8 +76,10 @@ Regras extras:
 - Preserve o username informado se ele bater com o print.`;
 
     const userPrompt = `Leia este print do Instagram e extraia os dados visíveis do perfil @${normalizedUsername}.
-Depois gere uma análise profissional curta baseada no que aparece no print.`;
+Depois gere uma análise profissional curta baseada no que aparece no print.
+Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram": true}.`;
 
+    // Try Lovable AI (Gemini vision) first
     if (LOVABLE_API_KEY) {
       const visionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -112,6 +112,17 @@ Depois gere uma análise profissional curta baseada no que aparece no print.`;
           const jsonMatch = content.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const analysisResult = JSON.parse(jsonMatch[0]);
+            
+            // Check if NOT an Instagram profile
+            if (analysisResult.not_instagram === true) {
+              console.log('❌ Image is not an Instagram profile screenshot');
+              return Response.json({
+                success: false,
+                error: 'not_instagram_profile',
+                message: 'Não conseguimos ler o print do perfil. Você precisa enviar um print real do perfil do Instagram que está utilizando.'
+              }, { headers: corsHeaders });
+            }
+            
             const extracted = analysisResult.extracted_data || {};
             extracted.username = extracted.username || normalizedUsername;
 
@@ -129,89 +140,58 @@ Depois gere uma análise profissional curta baseada no que aparece no print.`;
       }
     }
 
-    // Fallback textual analysis when the vision model is unavailable
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 3000,
-      }),
-    });
+    // Fallback textual analysis (DeepSeek - no vision, limited)
+    if (DEEPSEEK_API_KEY) {
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 3000,
+        }),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ DeepSeek API error:', response.status, errorText);
-      
-      if (response.status === 402) {
-        console.error('❌ DeepSeek payment required');
-        return Response.json({
-          success: false,
-          error: 'credits_exhausted',
-          message: 'Créditos DeepSeek esgotados.',
-          analysis: generateFallbackAnalysis(username)
-        }, { status: 200, headers: corsHeaders });
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const analysisResult = JSON.parse(jsonMatch[0]);
+            return Response.json({
+              success: true,
+              analysis: analysisResult.analysis,
+              extracted_data: {
+                username: normalizedUsername,
+                ...(analysisResult.extracted_data || {})
+              },
+              visual_observations: analysisResult.visual_observations
+            }, { headers: corsHeaders });
+          }
+        }
       }
-      
-      if (response.status === 429) {
-        console.error('❌ DeepSeek rate limit exceeded');
-        return Response.json({
-          success: false,
-          error: 'rate_limited',
-          message: 'Muitas requisições. Aguarde alguns segundos e tente novamente.',
-          analysis: generateFallbackAnalysis(username)
-        }, { status: 200, headers: corsHeaders });
-      }
-      
-      throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error('No content in DeepSeek response');
-    }
-
-    console.log('📝 DeepSeek response received, parsing...');
-
-    // Extract JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('❌ Could not find JSON in response:', content.substring(0, 500));
-      throw new Error('Could not parse DeepSeek response');
-    }
-
-    const analysisResult = JSON.parse(jsonMatch[0]);
-    console.log('✅ Screenshot analysis complete via DeepSeek');
-
+    // All APIs failed
     return Response.json({
       success: true,
-      analysis: analysisResult.analysis,
-      extracted_data: {
-        username: normalizedUsername,
-        ...(analysisResult.extracted_data || {})
-      },
-      visual_observations: analysisResult.visual_observations
+      analysis: generateFallbackAnalysis(username),
+      extracted_data: { username: normalizedUsername, followers: 0, following: 0, posts_count: 0 },
     }, { headers: corsHeaders });
 
   } catch (error) {
     console.error('❌ Error analyzing screenshot:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro ao analisar screenshot';
     return Response.json(
-      { 
-        success: false, 
-        error: errorMessage,
-        analysis: generateFallbackAnalysis()
-      },
+      { success: false, error: errorMessage, analysis: generateFallbackAnalysis() },
       { status: 500, headers: corsHeaders }
     );
   }
