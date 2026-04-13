@@ -87,50 +87,25 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
   if (needsScreenshot) {
     return (
       <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 py-4">
-          {/* Instagram logo placeholder */}
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full ring-4 ring-primary/30 bg-gradient-to-br from-[hsl(var(--primary)/0.3)] to-[hsl(var(--primary)/0.1)] flex items-center justify-center flex-shrink-0">
-            <Instagram className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+        <div className="flex items-center gap-4 py-4">
+          {/* Instagram logo */}
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#E1306C] via-[#F77737] to-[#FCAF45] flex items-center justify-center flex-shrink-0">
+            <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
           </div>
           
-          <div className="text-center sm:text-left space-y-2 flex-1">
-            <h2 className="text-lg sm:text-2xl font-display font-bold">@{profile.username}</h2>
-            <p className="text-sm text-muted-foreground">Perfil cadastrado</p>
-            <div className="flex items-center justify-center sm:justify-start gap-2 text-primary">
-              <Camera className="w-4 h-4" />
-              <p className="text-sm font-medium">Envie um print do perfil abaixo para carregar dados e análise</p>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-xl font-display font-bold truncate">@{profile.username}</h2>
+            <div className="flex items-center gap-2 text-primary mt-1">
+              <Camera className="w-3.5 h-3.5 flex-shrink-0" />
+              <p className="text-xs sm:text-sm text-muted-foreground">Envie o print do perfil abaixo para carregar dados</p>
             </div>
-          </div>
-        </div>
-
-        {/* Empty stats placeholder */}
-        <div className="grid grid-cols-3 gap-4 w-full pt-4 border-t border-border/50">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-0.5">
-              <Grid3X3 className="w-4 h-4 text-muted-foreground/40" />
-              <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
-            </div>
-            <p className="text-xs text-muted-foreground/40">Posts</p>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-0.5">
-              <Users className="w-4 h-4 text-muted-foreground/40" />
-              <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
-            </div>
-            <p className="text-xs text-muted-foreground/40">Seguidores</p>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-0.5">
-              <UserPlus className="w-4 h-4 text-muted-foreground/40" />
-              <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
-            </div>
-            <p className="text-xs text-muted-foreground/40">Seguindo</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // After screenshot analysis - show full data with Instagram logo instead of profile photo
   return (
     <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
@@ -138,53 +113,9 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
       </div>
 
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-        <div className="relative flex-shrink-0">
-          <div 
-            className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-4 ring-primary/30 bg-primary/20 flex items-center justify-center ${showingFallbackAvatar ? 'cursor-pointer' : ''}`}
-            onClick={showingFallbackAvatar ? handleResyncPhoto : undefined}
-          >
-            {localProfilePicUrl && !photoError ? (
-              <img 
-                src={localProfilePicUrl} 
-                alt={profile.fullName}
-                className="w-full h-full object-cover"
-                onError={() => {
-                  if (!triedCacheFallback && cachedImageUrl && localProfilePicUrl !== cachedImageUrl) {
-                    setTriedCacheFallback(true);
-                    setLocalProfilePicUrl(cachedImageUrl);
-                  } else {
-                    setPhotoError(true);
-                  }
-                }}
-              />
-            ) : (
-              <>
-                <span className="text-xl sm:text-2xl font-bold text-primary">
-                  {profile.username?.substring(0, 2).toUpperCase()}
-                </span>
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 hover:opacity-100 transition-opacity">
-                  <RefreshCw className={`w-5 h-5 sm:w-6 sm:h-6 text-white ${isResyncingPhoto ? 'animate-spin' : ''}`} />
-                </div>
-              </>
-            )}
-          </div>
-          
-          {showingFallbackAvatar && (
-            <button
-              onClick={handleResyncPhoto}
-              disabled={isResyncingPhoto}
-              className="absolute -bottom-1 -right-1 w-7 h-7 sm:w-8 sm:h-8 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
-              title="Clique para buscar foto real"
-            >
-              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 text-white ${isResyncingPhoto ? 'animate-spin' : ''}`} />
-            </button>
-          )}
-          
-          {profile.isBusinessAccount && !showingFallbackAvatar && (
-            <div className="absolute -bottom-2 -right-2 w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
-              <Briefcase className="w-3 h-3 sm:w-4 sm:h-4 text-primary-foreground" />
-            </div>
-          )}
+        {/* Instagram logo instead of profile photo */}
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#E1306C] via-[#F77737] to-[#FCAF45] flex items-center justify-center flex-shrink-0">
+          <Instagram className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
         </div>
 
         <div className="flex-1 text-center sm:text-left min-w-0">
@@ -196,8 +127,12 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
               </span>
             )}
           </div>
-          <p className="text-base sm:text-lg text-foreground/90 mb-1 sm:mb-2">{profile.fullName}</p>
-          <p className="text-muted-foreground text-xs sm:text-sm whitespace-pre-line line-clamp-3 sm:line-clamp-none">{profile.bio}</p>
+          {profile.fullName && profile.fullName !== profile.username && (
+            <p className="text-base sm:text-lg text-foreground/90 mb-1 sm:mb-2">{profile.fullName}</p>
+          )}
+          {profile.bio && (
+            <p className="text-muted-foreground text-xs sm:text-sm whitespace-pre-line line-clamp-3 sm:line-clamp-none">{profile.bio}</p>
+          )}
           
           {profile.externalUrl && (
             <a 
