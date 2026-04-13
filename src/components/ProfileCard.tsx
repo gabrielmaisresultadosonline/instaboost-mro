@@ -1,11 +1,6 @@
-import { useState, useEffect } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw, Camera, Instagram } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { Users, UserPlus, Grid3X3, ExternalLink, Camera, Instagram } from 'lucide-react';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
-import { fetchInstagramProfile, recoverProfileFromScreenshot } from '@/lib/api';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileCardProps {
   profile: InstagramProfile;
@@ -13,25 +8,10 @@ interface ProfileCardProps {
   onProfileUpdate?: (updatedProfile: InstagramProfile) => void;
 }
 
-export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: ProfileCardProps) => {
-  const [isResyncingPhoto, setIsResyncingPhoto] = useState(false);
-  const [photoError, setPhotoError] = useState(false);
-  const [localProfilePicUrl, setLocalProfilePicUrl] = useState(profile.profilePicUrl);
-  const { toast } = useToast();
-  const [triedCacheFallback, setTriedCacheFallback] = useState(false);
-
-  const needsScreenshot = profile.needsScreenshotAnalysis && !screenshotUrl;
-
-  useEffect(() => {
-    setLocalProfilePicUrl(profile.profilePicUrl);
-    setPhotoError(false);
-    setTriedCacheFallback(false);
-  }, [profile.username, profile.profilePicUrl]);
-
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const cachedImageUrl = supabaseUrl
-    ? `${supabaseUrl}/storage/v1/object/public/profile-cache/profiles/${profile.username?.toLowerCase()}.jpg`
-    : null;
+export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
+  // Profile has real data only if screenshot was analyzed AND we got actual numbers
+  const hasRealData = !profile.needsScreenshotAnalysis || 
+    (profile.followers > 0 || profile.posts > 0 || (profile.bio && profile.bio.length > 0));
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -39,64 +19,18 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
     return num.toString();
   };
 
-  const handleResyncPhoto = async () => {
-    setIsResyncingPhoto(true);
-    try {
-      const result = await fetchInstagramProfile(profile.username, profile.recentPosts, true);
-
-      if (!result.success || !result.profile) {
-        if (screenshotUrl) {
-          const screenshotRecovery = await recoverProfileFromScreenshot(profile.username, screenshotUrl, profile);
-          if (screenshotRecovery.success && screenshotRecovery.profile) {
-            const recoveredProfile = { ...profile, ...screenshotRecovery.profile };
-            setLocalProfilePicUrl(recoveredProfile.profilePicUrl || '');
-            setPhotoError(!recoveredProfile.profilePicUrl);
-            if (onProfileUpdate) onProfileUpdate(recoveredProfile);
-            toast({ title: 'Dados recuperados do print!', description: 'Usamos o print salvo para restaurar os dados do perfil.' });
-            return;
-          }
-        }
-        toast({ title: 'Erro ao sincronizar', description: result.error || 'Não foi possível buscar os dados do perfil.', variant: 'destructive' });
-        return;
-      }
-
-      const updatedProfile = { ...profile, ...result.profile };
-      setLocalProfilePicUrl(updatedProfile.profilePicUrl || '');
-      setPhotoError(!updatedProfile.profilePicUrl);
-      setTriedCacheFallback(false);
-
-      if (updatedProfile.profilePicUrl) {
-        supabase.functions.invoke('cache-profile-images', {
-          body: { action: 'process-batch', batchSize: 1, offset: 0, forceRefresh: true, singleUsername: profile.username }
-        }).catch(() => {});
-      }
-
-      if (onProfileUpdate) onProfileUpdate(updatedProfile);
-      toast({ title: result.fromCache ? 'Dados recuperados do cache!' : 'Perfil atualizado!', description: result.message || 'Os dados do perfil foram sincronizados com sucesso.' });
-    } catch (err) {
-      console.error('Error resyncing photo:', err);
-      toast({ title: 'Erro', description: 'Erro ao sincronizar perfil. Tente novamente.', variant: 'destructive' });
-    } finally {
-      setIsResyncingPhoto(false);
-    }
-  };
-
-  const showingFallbackAvatar = photoError || !localProfilePicUrl;
-
-  // If profile needs screenshot analysis and hasn't uploaded one yet, show minimal card
-  if (needsScreenshot) {
+  // Before print analysis: show only Instagram icon + @username
+  if (!hasRealData) {
     return (
       <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
         <div className="flex items-center gap-4 py-4">
-          {/* Instagram logo */}
           <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#E1306C] via-[#F77737] to-[#FCAF45] flex items-center justify-center flex-shrink-0">
             <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
           </div>
-          
           <div className="flex-1 min-w-0">
             <h2 className="text-lg sm:text-xl font-display font-bold truncate">@{profile.username}</h2>
-            <div className="flex items-center gap-2 text-primary mt-1">
-              <Camera className="w-3.5 h-3.5 flex-shrink-0" />
+            <div className="flex items-center gap-2 mt-1">
+              <Camera className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
               <p className="text-xs sm:text-sm text-muted-foreground">Envie o print do perfil abaixo para carregar dados</p>
             </div>
           </div>
@@ -105,7 +39,7 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
     );
   }
 
-  // After screenshot analysis - show full data with Instagram logo instead of profile photo
+  // After print analysis: show all extracted data
   return (
     <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
@@ -113,7 +47,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
       </div>
 
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-        {/* Instagram logo instead of profile photo */}
         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#E1306C] via-[#F77737] to-[#FCAF45] flex items-center justify-center flex-shrink-0">
           <Instagram className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
         </div>
