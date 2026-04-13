@@ -128,7 +128,8 @@ export default function InstagramNovaAdmin() {
 
   // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
-  const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview" | "remarketing">("config");
+  const [showRemarketingDashboard, setShowRemarketingDashboard] = useState(false);
+  const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview">("config");
   
   // Afiliado atual sendo editado
   const [affiliateId, setAffiliateId] = useState("");
@@ -2444,13 +2445,22 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           </div>
           <div className="flex gap-2">
             <Button
-              onClick={() => setShowAffiliateConfig(!showAffiliateConfig)}
+              onClick={() => { setShowAffiliateConfig(!showAffiliateConfig); if (!showAffiliateConfig) setShowRemarketingDashboard(false); }}
               variant="outline"
               size="sm"
               className={`border-zinc-600 ${showAffiliateConfig ? "text-purple-400 border-purple-500/50" : "text-zinc-400"}`}
             >
               <Settings className="w-4 h-4 mr-1" />
               Afiliados
+            </Button>
+            <Button
+              onClick={() => { setShowRemarketingDashboard(!showRemarketingDashboard); if (!showRemarketingDashboard) setShowAffiliateConfig(false); }}
+              variant="outline"
+              size="sm"
+              className={`border-zinc-600 ${showRemarketingDashboard ? "text-red-400 border-red-500/50" : "text-zinc-400"}`}
+            >
+              <Send className="w-4 h-4 mr-1" />
+              Remarketing
             </Button>
             <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
@@ -2517,8 +2527,6 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   <TabsTrigger value="email-preview" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
                     📧 Preview Email
                   </TabsTrigger>
-                  <TabsTrigger value="remarketing" className="data-[state=active]:bg-red-500 data-[state=active]:text-white">
-                    🔄 Remarketing
                   </TabsTrigger>
                 </TabsList>
 
