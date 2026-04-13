@@ -149,33 +149,41 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
         </div>
 
         <div className="flex-1 text-center sm:text-left min-w-0 w-full">
-          {/* Row 1: username + niche + actions — all inline, wrap on small screens */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-2.5 mb-1 sm:mb-2">
+          <div className="flex flex-col items-center sm:items-start gap-2 mb-1 sm:mb-2">
             <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
+
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 w-full">
               {profile.category && (
                 <span className="px-2.5 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium whitespace-nowrap max-w-[180px] truncate">
                   {profile.category}
                 </span>
               )}
+
               {hasScreenshot && (
                 <Button
                   onClick={() => setShowAdminDialog(true)}
                   disabled={isReanalyzing}
-                  size="sm"
+                  size="icon"
                   variant="outline"
-                  className="gap-1 text-xs px-2 sm:px-3 shrink-0"
+                  className="h-8 w-8 shrink-0"
                   title="Reanalisar (Admin)"
+                  aria-label="Reanalisar perfil"
                 >
                   {isReanalyzing ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
                     <Lock className="w-3.5 h-3.5" />
                   )}
-                  <span className="hidden sm:inline">{isReanalyzing ? 'Analisando...' : 'Reanalisar'}</span>
                 </Button>
               )}
-            <div className="ml-auto sm:ml-0">
-              <VideoTutorialButton youtubeUrl="https://youtu.be/mIQ78Skz1BU" title="Tutorial" variant="pulse" size="sm" />
+
+              <VideoTutorialButton
+                youtubeUrl="https://youtu.be/mIQ78Skz1BU"
+                title="Tutorial"
+                variant="pulse"
+                size="sm"
+                className="h-8 px-2.5 text-xs"
+              />
             </div>
           </div>
 
