@@ -55,8 +55,7 @@ import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const ADMIN_EMAIL = "mro@gmail.com";
-const ADMIN_PASSWORD = "Ga145523@";
+const ADMIN_SESSION_STORAGE_KEY = "mro_instagram_admin_session";
 
 // Configurações do template de mensagem
 const MEMBER_LINK = "https://maisresultadosonline.com.br/instagram";
@@ -101,6 +100,7 @@ export default function InstagramNovaAdmin() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [adminSessionToken, setAdminSessionToken] = useState("");
   
   const [orders, setOrders] = useState<MROOrder[]>([]);
   const ordersRef = useRef<MROOrder[]>([]);
