@@ -41,7 +41,9 @@ import {
 import { 
   getArchivedByUsername, 
   restoreProfileFromArchive,
-  addProfile 
+  addProfile,
+  getSession as getStorageSession,
+  setActiveProfile as setActiveProfileInStorage
 } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
@@ -550,19 +552,43 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
           </Card>
         </div>
 
-        {/* Registered IGs List */}
+        {/* Registered IGs List - Clickable cards */}
         {registeredIGs.length > 0 && (
           <Card className="glass-card" data-tutorial="perfis-list">
             <CardHeader>
-              <CardTitle className="text-lg">Perfis Cadastrados</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Instagram className="w-5 h-5" />
+                Suas Contas ({registeredIGs.length})
+              </CardTitle>
+              <CardDescription>Clique em uma conta para acessar a área de membros</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {registeredIGs.map((ig) => (
-                  <div key={ig} className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm">
-                    <Check className="w-3 h-3 text-primary" />
-                    @{ig}
-                  </div>
+                  <button
+                    key={ig}
+                    type="button"
+                    onClick={() => {
+                      const storageSession = getStorageSession();
+                      const profileSession = storageSession.profiles.find(
+                        (p: any) => p.profile.username.toLowerCase() === ig.toLowerCase()
+                      );
+                      if (profileSession) {
+                        setActiveProfileInStorage(profileSession.id);
+                      }
+                      if (onEnterMemberArea) onEnterMemberArea();
+                    }}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-primary/20 border border-border/50 hover:border-primary/50 transition-all cursor-pointer group text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] flex items-center justify-center flex-shrink-0">
+                      <Instagram className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">@{ig}</p>
+                      <p className="text-xs text-muted-foreground">Clique para acessar</p>
+                    </div>
+                    <LayoutDashboard className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                  </button>
                 ))}
               </div>
             </CardContent>
