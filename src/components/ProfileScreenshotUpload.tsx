@@ -124,13 +124,13 @@ export const ProfileScreenshotUpload = ({
                   following: Number(extracted.following) || 0,
                   posts: Number(extracted.posts_count) || 0,
                   bio: extracted.bio || '',
-                  fullName: extracted.full_name || username,
+                  fullName: extracted.full_name || '',
                   isBusinessAccount: extracted.is_business || false,
                   category: extracted.category || '',
                   externalUrl: extracted.external_link || '',
                   needsScreenshotAnalysis: false,
+                  dataSource: 'screenshot',
                 };
-                // Use extracted username if it matches
                 if (extracted.username && extracted.username.toLowerCase() !== username.toLowerCase()) {
                   console.log(`⚠️ Screenshot username @${extracted.username} differs from registered @${username}`);
                 }

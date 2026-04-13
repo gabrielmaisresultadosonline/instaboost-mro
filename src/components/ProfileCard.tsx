@@ -8,10 +8,8 @@ interface ProfileCardProps {
   onProfileUpdate?: (updatedProfile: InstagramProfile) => void;
 }
 
-export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
-  // Profile has real data only if screenshot was analyzed AND we got actual numbers
-  const hasRealData = !profile.needsScreenshotAnalysis || 
-    (profile.followers > 0 || profile.posts > 0 || (profile.bio && profile.bio.length > 0));
+export const ProfileCard = ({ profile }: ProfileCardProps) => {
+  const hasRealPrintData = profile.dataSource === 'screenshot' && !profile.needsScreenshotAnalysis;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -19,19 +17,18 @@ export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
     return num.toString();
   };
 
-  // Before print analysis: show only Instagram icon + @username
-  if (!hasRealData) {
+  if (!hasRealPrintData) {
     return (
       <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
         <div className="flex items-center gap-4 py-4">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#E1306C] via-[#F77737] to-[#FCAF45] flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
             <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-lg sm:text-xl font-display font-bold truncate">@{profile.username}</h2>
             <div className="flex items-center gap-2 mt-1">
               <Camera className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
-              <p className="text-xs sm:text-sm text-muted-foreground">Envie o print do perfil abaixo para carregar dados</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Envie o print do perfil para carregar dados reais</p>
             </div>
           </div>
         </div>
@@ -39,7 +36,6 @@ export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
     );
   }
 
-  // After print analysis: show all extracted data
   return (
     <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
@@ -47,7 +43,7 @@ export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
       </div>
 
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#E1306C] via-[#F77737] to-[#FCAF45] flex items-center justify-center flex-shrink-0">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
           <Instagram className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
         </div>
 
@@ -60,7 +56,7 @@ export const ProfileCard = ({ profile, screenshotUrl }: ProfileCardProps) => {
               </span>
             )}
           </div>
-          {profile.fullName && profile.fullName !== profile.username && (
+          {profile.fullName && (
             <p className="text-base sm:text-lg text-foreground/90 mb-1 sm:mb-2">{profile.fullName}</p>
           )}
           {profile.bio && (
