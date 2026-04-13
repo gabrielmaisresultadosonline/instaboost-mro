@@ -40,7 +40,7 @@ interface UserHeaderProps {
 
 const ADMIN_PASSWORD = 'Ga145523@';
 
-export const UserHeader = ({ onLogout, onReanalysisComplete }: UserHeaderProps) => {
+export const UserHeader = ({ onLogout, onReanalysisComplete, tutorial, activeTab }: UserHeaderProps) => {
   const user = getCurrentUser();
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
@@ -208,6 +208,56 @@ export const UserHeader = ({ onLogout, onReanalysisComplete }: UserHeaderProps) 
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      {/* Help icon - red, next to logout */}
+      {tutorial && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="p-1.5 sm:p-2 h-auto">
+              <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-red-500" />
+              Como usar o sistema?
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => {
+                if (activeTab === 'strategies') {
+                  tutorial.startTutorial(strategyTutorial);
+                } else {
+                  tutorial.startTutorial(dashboardTutorial);
+                }
+              }}
+              className="cursor-pointer"
+            >
+              <Play className="w-4 h-4 mr-2 text-primary" />
+              <div>
+                <div className="font-medium">Tutorial Interativo</div>
+                <div className="text-xs text-muted-foreground">Guia passo a passo na tela</div>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => {
+                if (activeTab === 'strategies') {
+                  tutorial.startListView(strategyTutorial);
+                } else {
+                  tutorial.startListView(dashboardTutorial);
+                }
+              }}
+              className="cursor-pointer"
+            >
+              <List className="w-4 h-4 mr-2 text-primary" />
+              <div>
+                <div className="font-medium">Ver Tutorial</div>
+                <div className="text-xs text-muted-foreground">Lista completa de instruções</div>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       <Button variant="ghost" size="sm" onClick={handleLogout} className="p-1.5 sm:p-2 h-auto">
         <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
