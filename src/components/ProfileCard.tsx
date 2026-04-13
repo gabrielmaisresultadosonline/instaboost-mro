@@ -4,7 +4,7 @@ import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw } from 'lu
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
-import { fetchInstagramProfile } from '@/lib/api';
+import { fetchInstagramProfile, recoverProfileFromScreenshot } from '@/lib/api';
 
 interface ProfileCardProps {
   profile: InstagramProfile;
@@ -36,6 +36,30 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
       const result = await fetchInstagramProfile(profile.username, profile.recentPosts, true);
 
       if (!result.success || !result.profile) {
+        if (screenshotUrl) {
+          const screenshotRecovery = await recoverProfileFromScreenshot(profile.username, screenshotUrl, profile);
+
+          if (screenshotRecovery.success && screenshotRecovery.profile) {
+            const recoveredProfile = {
+              ...profile,
+              ...screenshotRecovery.profile,
+            };
+
+            setLocalProfilePicUrl(recoveredProfile.profilePicUrl || '');
+            setPhotoError(!recoveredProfile.profilePicUrl);
+
+            if (onProfileUpdate) {
+              onProfileUpdate(recoveredProfile);
+            }
+
+            toast({
+              title: 'Dados recuperados do print!',
+              description: 'Usamos o print salvo para restaurar os dados do perfil enquanto a sincronização ao vivo está indisponível.'
+            });
+            return;
+          }
+        }
+
         toast({
           title: 'Erro ao sincronizar',
           description: result.error || 'Não foi possível buscar os dados do perfil.',

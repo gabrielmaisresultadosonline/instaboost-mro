@@ -226,6 +226,88 @@ export const fetchInstagramProfile = async (
   }
 };
 
+export const recoverProfileFromScreenshot = async (
+  username: string,
+  screenshotUrl: string,
+  currentProfile?: Partial<InstagramProfile>
+): Promise<{
+  success: boolean;
+  profile?: InstagramProfile;
+  analysis?: ProfileAnalysis;
+  error?: string;
+}> => {
+  try {
+    const normalizedUsername = username.toLowerCase().replace('@', '').trim();
+
+    const { data, error } = await supabase.functions.invoke('analyze-profile-screenshot', {
+      body: {
+        screenshot_url: screenshotUrl,
+        username: normalizedUsername,
+      }
+    });
+
+    if (error) {
+      console.error('Error recovering profile from screenshot:', error);
+      return { success: false, error: error.message };
+    }
+
+    const extracted = data?.extracted_data || {};
+    const toNumber = (value: unknown): number => {
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+      if (typeof value === 'string') {
+        const digits = value.replace(/[^\d]/g, '');
+        return digits ? Number(digits) : 0;
+      }
+      return 0;
+    };
+
+    const followers = toNumber(extracted.followers ?? extracted.follower_count ?? currentProfile?.followers);
+    const following = toNumber(extracted.following ?? extracted.following_count ?? currentProfile?.following);
+    const posts = toNumber(extracted.posts_count ?? extracted.posts ?? currentProfile?.posts);
+    const fullName = extracted.full_name || extracted.fullName || currentProfile?.fullName || normalizedUsername;
+    const bio = extracted.bio || currentProfile?.bio || '';
+    const category = extracted.category || currentProfile?.category || '';
+    const externalUrl = extracted.external_link || extracted.externalUrl || currentProfile?.externalUrl || '';
+    const isBusinessAccount = typeof extracted.is_business === 'boolean'
+      ? extracted.is_business
+      : currentProfile?.isBusinessAccount || false;
+
+    const hasUsefulData = followers > 0 || following > 0 || posts > 0 || bio.trim().length > 0;
+
+    if (!hasUsefulData) {
+      return {
+        success: false,
+        error: 'O print salvo não possui dados suficientes para recuperar o perfil.'
+      };
+    }
+
+    return {
+      success: true,
+      analysis: data?.analysis,
+      profile: {
+        username: normalizedUsername,
+        fullName,
+        bio,
+        followers,
+        following,
+        posts,
+        profilePicUrl: currentProfile?.profilePicUrl || '',
+        isBusinessAccount,
+        category,
+        externalUrl,
+        recentPosts: currentProfile?.recentPosts || [],
+        engagement: currentProfile?.engagement || 0,
+        avgLikes: currentProfile?.avgLikes || 0,
+        avgComments: currentProfile?.avgComments || 0,
+        needsScreenshotAnalysis: false,
+      }
+    };
+  } catch (error) {
+    console.error('Error recovering profile from screenshot:', error);
+    return { success: false, error: 'Erro ao recuperar dados do print salvo' };
+  }
+};
+
 export const analyzeProfile = async (profile: InstagramProfile): Promise<{
   success: boolean;
   analysis?: ProfileAnalysis;
