@@ -248,7 +248,7 @@ export default function InstagramNovaAdmin() {
     };
   }, [showWebhookLogs]);
 
-  // Carregar afiliados da nuvem (Supabase Storage) - funciona de qualquer dispositivo
+  // Carregar afiliados da nuvem via edge function - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async (forceRefresh = false) => {
     if (loadingAffiliates) return;
     setLoadingAffiliates(true);
@@ -256,14 +256,12 @@ export default function InstagramNovaAdmin() {
     try {
       console.log("[AFFILIATES] Loading from cloud...", { forceRefresh });
       
-      // Adicionar timestamp para evitar cache
-      const { data, error } = await supabase.storage
-        .from('user-data')
-        .download('admin/affiliates.json');
+      const { data: response, error } = await supabase.functions.invoke('affiliate-storage', {
+        body: { action: 'load', key: 'affiliates' }
+      });
       
-      if (error) {
-        console.log("[AFFILIATES] No cloud data yet or error:", error.message);
-        // Se não tem dados na nuvem, usar localStorage apenas se ainda não carregou
+      if (error || !response?.success) {
+        console.log("[AFFILIATES] No cloud data yet or error:", error?.message || response?.error);
         if (!affiliatesLoaded) {
           const savedAffiliates = localStorage.getItem("mro_affiliates_history");
           if (savedAffiliates) {
@@ -281,28 +279,27 @@ export default function InstagramNovaAdmin() {
         return;
       }
       
-      const text = await data.text();
-      const cloudAffiliates: Affiliate[] = JSON.parse(text);
+      const cloudAffiliates: Affiliate[] = response.data || [];
       console.log("[AFFILIATES] Loaded from cloud:", cloudAffiliates.length, cloudAffiliates.map(a => a.id));
       
       setAffiliates(cloudAffiliates);
       setAffiliatesLoaded(true);
-      // Sincronizar com localStorage
       localStorage.setItem("mro_affiliates_history", JSON.stringify(cloudAffiliates));
       
-      // Se há afiliado ativo, carregar seus dados
       const activeAffiliate = cloudAffiliates.find(a => a.active);
       if (activeAffiliate) {
         setAffiliateId(activeAffiliate.id);
         setAffiliateName(activeAffiliate.name);
-        setAffiliateEmail(activeAffiliate.email);
-        setAffiliatePhotoUrl(activeAffiliate.photoUrl);
-        setAffiliateActive(true);
-        setPromoStartDate(activeAffiliate.promoStartDate || "");
-        setPromoEndDate(activeAffiliate.promoEndDate || "");
-        setPromoStartTime(activeAffiliate.promoStartTime || "");
-        setPromoEndTime(activeAffiliate.promoEndTime || "");
-        setIsLifetimeAffiliate(activeAffiliate.isLifetime || false);
+        setAffiliatePercentage(activeAffiliate.percentage);
+        if (activeAffiliate.whatsappLink) {
+          setAffiliateWhatsappLink(activeAffiliate.whatsappLink);
+        }
+        if (activeAffiliate.pixKey) {
+          setAffiliatePixKey(activeAffiliate.pixKey);
+        }
+        if (activeAffiliate.customPrice !== undefined) {
+          setAffiliateCustomPrice(activeAffiliate.customPrice);
+        }
       }
       
       if (forceRefresh) {
@@ -310,7 +307,6 @@ export default function InstagramNovaAdmin() {
       }
     } catch (e) {
       console.error("[AFFILIATES] Error loading from cloud:", e);
-      // Fallback para localStorage apenas se ainda não carregou
       if (!affiliatesLoaded) {
         const savedAffiliates = localStorage.getItem("mro_affiliates_history");
         if (savedAffiliates) {
@@ -330,21 +326,17 @@ export default function InstagramNovaAdmin() {
   // Carregar configurações globais de afiliados
   const loadAffiliateSettings = async () => {
     try {
-      const { data, error } = await supabase.storage
-        .from('user-data')
-        .download('admin/affiliate-settings.json');
+      const { data: response, error } = await supabase.functions.invoke('affiliate-storage', {
+        body: { action: 'load', key: 'settings' }
+      });
       
-      if (!error && data) {
-        const text = await data.text();
-        const settings = JSON.parse(text);
-        setAffiliateWhatsApp(settings.whatsapp || "");
-        console.log("[AFFILIATES] Loaded settings:", settings);
+      if (!error && response?.success && response.data) {
+        setAffiliateWhatsApp(response.data.whatsapp || "");
+        console.log("[AFFILIATES] Loaded settings:", response.data);
       } else {
         // Fallback localStorage
-        const savedWhatsApp = localStorage.getItem("mro_affiliate_whatsapp");
-        if (savedWhatsApp) {
-          setAffiliateWhatsApp(savedWhatsApp);
-        }
+        const saved = localStorage.getItem("mro_affiliate_whatsapp");
+        if (saved) setAffiliateWhatsApp(saved);
       }
     } catch (e) {
       console.error("[AFFILIATES] Error loading settings:", e);
@@ -355,10 +347,9 @@ export default function InstagramNovaAdmin() {
   const saveAffiliateSettings = async (whatsapp: string) => {
     try {
       const settings = { whatsapp };
-      const blob = new Blob([JSON.stringify(settings)], { type: 'application/json' });
-      await supabase.storage
-        .from('user-data')
-        .upload('admin/affiliate-settings.json', blob, { upsert: true });
+      await supabase.functions.invoke('affiliate-storage', {
+        body: { action: 'save', key: 'settings', data: settings }
+      });
       localStorage.setItem("mro_affiliate_whatsapp", whatsapp);
       console.log("[AFFILIATES] Settings saved");
     } catch (e) {
@@ -527,17 +518,15 @@ export default function InstagramNovaAdmin() {
 
   const saveAffiliatesToStorage = async () => {
     try {
-      const blob = new Blob([JSON.stringify(affiliates)], { type: 'application/json' });
-      const { error } = await supabase.storage
-        .from('user-data')
-        .upload('admin/affiliates.json', blob, { upsert: true });
+      const { data: response, error } = await supabase.functions.invoke('affiliate-storage', {
+        body: { action: 'save', key: 'affiliates', data: affiliates }
+      });
       
-      if (error) {
-        console.error("[AFFILIATES] Error saving to storage:", error);
+      if (error || !response?.success) {
+        console.error("[AFFILIATES] Error saving to storage:", error || response?.error);
         toast.error("Erro ao salvar afiliados na nuvem");
       } else {
         console.log("[AFFILIATES] Saved to storage:", affiliates.length, "affiliates");
-        // Atualizar localStorage também
         localStorage.setItem("mro_affiliates_history", JSON.stringify(affiliates));
       }
     } catch (e) {
