@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
@@ -113,18 +112,16 @@ export const ProfileSelector = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button className="p-1 sm:p-1.5 rounded-full hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-foreground flex-shrink-0">
-              <Info className="w-3 h-3 sm:w-4 sm:h-4" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{profiles.length} perfil(is) • 6 criativos por perfil</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button className="p-1 sm:p-1.5 rounded-full hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-foreground flex-shrink-0">
+            <Info className="w-3 h-3 sm:w-4 sm:h-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{profiles.length} perfil(is) • 6 criativos por perfil</p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };
