@@ -6,19 +6,34 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type VerifyAdminPasswordResponse = {
+  success: boolean;
+  error?: string;
+};
+
+const respond = (payload: VerifyAdminPasswordResponse) =>
+  new Response(JSON.stringify(payload), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { password } = await req.json();
+    let password: unknown;
+
+    try {
+      const body = await req.json();
+      password = body?.password;
+    } catch {
+      return respond({ success: false, error: "Invalid input" });
+    }
 
     if (!password || typeof password !== "string" || password.length > 100) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid input" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
+      return respond({ success: false, error: "Invalid input" });
     }
 
     const supabase = createClient(
@@ -33,23 +48,14 @@ serve(async (req) => {
       .single();
 
     if (error || !data) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Config not found" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
+      return respond({ success: false, error: "Config not found" });
     }
 
     const isValid = password === data.admin_password;
 
-    return new Response(
-      JSON.stringify({ success: isValid }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+    return respond({ success: isValid });
   } catch (error) {
     console.error("Error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: "Internal error" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+    return respond({ success: false, error: "Internal error" });
   }
 });

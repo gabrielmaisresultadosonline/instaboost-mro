@@ -106,9 +106,16 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
   };
 
   const handleAdminReanalyze = async () => {
+    const normalizedPassword = adminPassword.trim();
+
+    if (!normalizedPassword) {
+      toast.error('Digite a senha do administrador.');
+      return;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('verify-admin-password', {
-        body: { password: adminPassword }
+        body: { password: normalizedPassword }
       });
       if (error || !data?.success) {
         toast.error('Senha incorreta.');
@@ -281,6 +288,7 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
             value={adminPassword}
             onChange={(e) => setAdminPassword(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAdminReanalyze()}
+            autoFocus
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => { setShowAdminDialog(false); setAdminPassword(''); }}>
