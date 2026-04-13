@@ -296,41 +296,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
     }
   };
 
-  const handleSyncConfirm = () => {
-    setShowSyncConfirmDialog(false);
-    handleSyncAccountsExecute();
-  };
 
-  const handleSyncAccountsExecute = async () => {
-    if (!user) return;
-
-    setIsSyncing(true);
-
-    try {
-      const result = await verifyRegisteredIGs(user.username);
-      
-      if (result.success && result.instagrams && result.instagrams.length > 0) {
-        if (!email.trim()) {
-          toast({ title: 'Digite seu e-mail', description: 'Necessário para sincronizar', variant: 'destructive' });
-          setIsSyncing(false);
-          return;
-        }
-
-        updateUserEmail(email);
-        await syncIGsFromSquare(result.instagrams, email);
-        setRegisteredIGs(result.instagrams);
-        
-        toast({ title: 'Contas sincronizadas!', description: `${result.instagrams.length} Instagram(s) encontrado(s)` });
-        onSyncComplete(result.instagrams);
-      } else {
-        toast({ title: 'Nenhuma conta encontrada', description: 'Cadastre um novo perfil para começar' });
-      }
-    } catch (error) {
-      toast({ title: 'Erro na sincronização', variant: 'destructive' });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const generateSimplePrint = async (username: string): Promise<Blob | null> => {
     try {
