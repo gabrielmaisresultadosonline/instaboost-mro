@@ -38,7 +38,7 @@ RETORNE APENAS JSON VÁLIDO no seguinte formato:
 {
   "not_instagram": false,
   "extracted_data": {
-    "username": "${normalizedUsername}",
+    "username": "username exato visível no print, sem @",
     "full_name": "",
     "bio": "",
     "followers": 0,
@@ -72,7 +72,8 @@ RETORNE APENAS JSON VÁLIDO no seguinte formato:
 Regras extras:
 - followers, following e posts_count devem ser números inteiros.
 - Se o print mostrar pontuação brasileira como 4.254 ou 1,2 mil, converta para número inteiro.
-- Preserve o username informado se ele bater com o print.`;
+- Extraia o username real visível no print. Nunca copie automaticamente o username informado pelo sistema se ele não estiver visível na imagem.
+- Se o @ visível no print for diferente de @${normalizedUsername}, ainda retorne o username extraído corretamente no JSON.`;
 
     const userPrompt = `Leia este print do Instagram e extraia os dados visíveis do perfil @${normalizedUsername}.
 Depois gere uma análise profissional curta baseada no que aparece no print.
