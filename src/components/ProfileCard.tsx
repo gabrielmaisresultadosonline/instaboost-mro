@@ -120,13 +120,13 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
             <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 w-full sm:w-auto sm:max-w-xs">
               {hasScreenshot && (
                 <Button
-                  onClick={() => setShowAdminDialog(true)}
+                  onClick={handleReanalyze}
                   disabled={isReanalyzing}
                   size="icon"
                   variant="outline"
                   className="h-8 w-8 shrink-0"
-                  title="Reanalisar (Admin)"
-                  aria-label="Reanalisar perfil"
+                  title="Analisar perfil"
+                  aria-label="Analisar perfil"
                 >
                   {isReanalyzing ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
