@@ -100,8 +100,10 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
   // Profile not yet analyzed — allow first analysis if a screenshot already exists
   if (!hasRealPrintData) {
     return (
-      <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up">
-        <div className="flex flex-col gap-4 py-2 sm:py-4">
+      <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up relative">
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+          <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
+        </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 min-w-0 flex-1">
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
@@ -147,6 +149,9 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
   // Has real data — show full profile, no reanalyze for normal users, only admin lock
   return (
     <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up">
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+        <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
+      </div>
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6">
         <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
           <Instagram className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
