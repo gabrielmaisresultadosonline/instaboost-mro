@@ -369,9 +369,14 @@ export const Dashboard = ({
               profile={activeProfile.profile} 
               screenshotUrl={activeProfile.screenshotUrl}
               onProfileUpdate={(updatedProfile) => {
-                // Update profile in session
                 updateProfile(updatedProfile);
                 refreshSession();
+              }}
+              onAnalysisComplete={(analysis) => {
+                if (analysis) {
+                  updateAnalysis(analysis);
+                  refreshSession();
+                }
               }}
             />
             
