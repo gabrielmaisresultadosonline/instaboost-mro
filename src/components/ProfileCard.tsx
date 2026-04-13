@@ -143,68 +143,63 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
   // Has real data — show full profile, no reanalyze for normal users, only admin lock
   return (
     <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up">
-      <div className="flex flex-col gap-4 sm:gap-5">
-        <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6 min-w-0 flex-1">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
-              <Instagram className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
-            </div>
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
+          <Instagram className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
+        </div>
 
-            <div className="flex-1 text-center sm:text-left min-w-0">
-              <div className="flex flex-col gap-2 mb-1 sm:mb-2">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-3 min-w-0">
-                  <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
-                  {profile.category && (
-                    <span className="inline-flex self-center sm:self-start lg:self-center max-w-full px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium break-words text-center">
-                      {profile.category}
-                    </span>
-                  )}
-                </div>
-                {profile.fullName && (
-                  <p className="text-sm sm:text-base md:text-lg text-foreground/90 break-words">{profile.fullName}</p>
-                )}
-              </div>
-
-              {profile.bio && (
-                <p className="text-muted-foreground text-xs sm:text-sm whitespace-pre-line break-words line-clamp-4 sm:line-clamp-none">
-                  {profile.bio}
-                </p>
+        <div className="flex-1 text-center sm:text-left min-w-0 w-full">
+          {/* Row 1: username + action buttons */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-1 sm:mb-2">
+            <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold truncate min-w-0">@{profile.username}</h2>
+            <div className="flex items-center justify-center sm:justify-end gap-2 shrink-0">
+              {profile.category && (
+                <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium whitespace-nowrap max-w-[160px] truncate">
+                  {profile.category}
+                </span>
               )}
-
-              {profile.externalUrl && (
-                <a 
-                  href={profile.externalUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 sm:gap-2 mt-2 text-primary hover:underline text-xs sm:text-sm break-all max-w-full"
+              {hasScreenshot && (
+                <Button
+                  onClick={() => setShowAdminDialog(true)}
+                  disabled={isReanalyzing}
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 text-xs px-2 sm:px-3 shrink-0"
+                  title="Reanalisar (Admin)"
                 >
-                  <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="break-all">{profile.externalUrl}</span>
-                </a>
+                  {isReanalyzing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Lock className="w-3.5 h-3.5" />
+                  )}
+                  <span className="hidden sm:inline">{isReanalyzing ? 'Analisando...' : 'Reanalisar'}</span>
+                </Button>
               )}
+              <VideoTutorialButton youtubeUrl="https://youtu.be/mIQ78Skz1BU" title="Tutorial" variant="pulse" size="sm" />
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 w-full xl:w-auto xl:max-w-xs shrink-0">
-            {hasScreenshot && (
-              <Button
-                onClick={() => setShowAdminDialog(true)}
-                disabled={isReanalyzing}
-                size="sm"
-                variant="outline"
-                className="gap-1 text-xs px-2 sm:px-3 w-full sm:w-auto"
-                title="Reanalisar (Admin)"
-              >
-                {isReanalyzing ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Lock className="w-3.5 h-3.5" />
-                )}
-                <span>{isReanalyzing ? 'Analisando...' : 'Reanalisar'}</span>
-              </Button>
-            )}
-            <VideoTutorialButton youtubeUrl="https://youtu.be/mIQ78Skz1BU" title="Tutorial" variant="pulse" size="sm" />
-          </div>
+          {profile.fullName && (
+            <p className="text-sm sm:text-base md:text-lg text-foreground/90 mb-1">{profile.fullName}</p>
+          )}
+
+          {profile.bio && (
+            <p className="text-muted-foreground text-xs sm:text-sm whitespace-pre-line break-words line-clamp-4 sm:line-clamp-none">
+              {profile.bio}
+            </p>
+          )}
+
+          {profile.externalUrl && (
+            <a 
+              href={profile.externalUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 sm:gap-2 mt-2 text-primary hover:underline text-xs sm:text-sm break-all"
+            >
+              <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="break-all">{profile.externalUrl}</span>
+            </a>
+          )}
         </div>
       </div>
 
