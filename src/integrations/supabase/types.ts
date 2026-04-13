@@ -3096,7 +3096,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      mro_orders_public: {
+        Row: {
+          amount: number | null
+          api_created: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          email_sent: boolean | null
+          id: string | null
+          nsu_order: string | null
+          paid_at: string | null
+          plan_type: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number | null
+          api_created?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string | null
+          nsu_order?: string | null
+          paid_at?: string | null
+          plan_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number | null
+          api_created?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string | null
+          nsu_order?: string | null
+          paid_at?: string | null
+          plan_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

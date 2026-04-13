@@ -175,10 +175,10 @@ export default function MROPagamento() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("mro_orders")
+        .from("mro_orders_public" as any)
         .select("status, paid_at, completed_at")
         .eq("nsu_order", nsuOrder)
-        .single();
+        .single() as { data: { status: string; paid_at: string | null; completed_at: string | null } | null; error: any };
 
       if (error) {
         toast.error("Erro ao verificar pagamento");
