@@ -35,7 +35,7 @@ serve(async (req) => {
     if (error || !data) {
       return new Response(
         JSON.stringify({ success: false, error: "Config not found" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
@@ -49,7 +49,7 @@ serve(async (req) => {
     console.error("Error:", error);
     return new Response(
       JSON.stringify({ success: false, error: "Internal error" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   }
 });
