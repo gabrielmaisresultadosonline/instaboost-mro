@@ -25,6 +25,7 @@ export const ProfileScreenshotUpload = ({
   uploadCount = 0,
   analysisCompleted = false,
   onScreenshotUploaded,
+  onScreenshotRemoved,
   onAnalysisComplete,
   onProfileDataExtracted
 }: ProfileScreenshotUploadProps) => {
