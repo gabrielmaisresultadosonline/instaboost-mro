@@ -5,6 +5,7 @@ import { Camera, Upload, X, Check, Loader2, Clipboard, Lock } from 'lucide-react
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { InstagramProfile } from '@/types/instagram';
+import { readInstagramScreenshot, restoreStoredScreenshot } from '@/lib/instagramScreenshot';
 
 interface ProfileScreenshotUploadProps {
   username: string;
@@ -83,6 +84,18 @@ export const ProfileScreenshotUpload = ({
     setIsUploading(true);
 
     try {
+      const previousScreenshotUrl = existingScreenshotUrl || null;
+      const ocrResult = await readInstagramScreenshot(selectedFile);
+
+      if (ocrResult.detectedUsername && ocrResult.detectedUsername !== username.toLowerCase()) {
+        toast.error(`O print enviado é do perfil @${ocrResult.detectedUsername}, mas a conta cadastrada é @${username}. Envie o print real do perfil correto.`);
+        setSelectedFile(null);
+        setPreviewUrl(previousScreenshotUrl);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        setIsUploading(false);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = async (event) => {
         const base64 = event.target?.result as string;
@@ -107,13 +120,18 @@ export const ProfileScreenshotUpload = ({
           setIsAnalyzing(true);
           try {
             const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-profile-screenshot', {
-              body: { screenshot_url: data.url, username }
+              body: { screenshot_url: data.url, username, ocr_text: ocrResult.text }
             });
 
             if (analysisError) throw analysisError;
 
             if (analysisData?.success === false) {
               if (analysisData?.error === 'not_instagram_profile' || analysisData?.error === 'username_mismatch') {
+                await restoreStoredScreenshot({
+                  username,
+                  squarecloudUsername,
+                  screenshotUrl: previousScreenshotUrl,
+                });
                 toast.error(
                   analysisData?.message ||
                     (analysisData?.error === 'username_mismatch'
@@ -153,6 +171,14 @@ export const ProfileScreenshotUpload = ({
             toast.success('Análise concluída! Dados do perfil atualizados.');
           } catch (analysisErr) {
             console.error('Analysis error:', analysisErr);
+            await restoreStoredScreenshot({
+              username,
+              squarecloudUsername,
+              screenshotUrl: previousScreenshotUrl,
+            });
+            setPreviewUrl(previousScreenshotUrl);
+            setSelectedFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
             toast.error('Erro na análise. Tente novamente.');
           } finally {
             setIsAnalyzing(false);

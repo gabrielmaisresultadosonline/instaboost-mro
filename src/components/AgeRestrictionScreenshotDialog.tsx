@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, Camera, Check, Clipboard, Loader2, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { readInstagramScreenshot, restoreStoredScreenshot } from '@/lib/instagramScreenshot';
 
 interface AgeRestrictionScreenshotDialogProps {
   isOpen: boolean;
@@ -101,6 +102,17 @@ export const AgeRestrictionScreenshotDialog = ({
     setIsUploading(true);
 
     try {
+      const ocrResult = await readInstagramScreenshot(selectedFile);
+
+      if (ocrResult.detectedUsername && ocrResult.detectedUsername !== username.toLowerCase()) {
+        toast.error(`O print enviado é do perfil @${ocrResult.detectedUsername}, mas a conta cadastrada é @${username}. Envie um print real do perfil correto.`);
+        setIsUploading(false);
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = async (event) => {
         const base64 = event.target?.result as string;
@@ -129,13 +141,15 @@ export const AgeRestrictionScreenshotDialog = ({
         const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-profile-screenshot', {
           body: {
             screenshot_url: uploadData.url,
-            username
+            username,
+            ocr_text: ocrResult.text,
           }
         });
 
         if (analysisError) throw analysisError;
 
         if (analysisData?.success === false) {
+          await restoreStoredScreenshot({ username, squarecloudUsername, screenshotUrl: null });
           throw new Error(
             analysisData?.message ||
               (analysisData?.error === 'username_mismatch'
