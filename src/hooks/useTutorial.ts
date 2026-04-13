@@ -27,7 +27,7 @@ export const profileRegistrationTutorial: TutorialSection[] = [
         id: 'email-input',
         targetSelector: '[data-tutorial="email-input"]',
         title: 'Campo de E-mail',
-        description: 'Digite seu e-mail aqui. Ele será vinculado permanentemente à sua conta e usado para receber notificações importantes.',
+        description: 'Digite seu e-mail aqui. Ele será vinculado permanentemente à sua conta.',
         position: 'bottom'
       }
     ]
@@ -41,43 +41,14 @@ export const profileRegistrationTutorial: TutorialSection[] = [
         id: 'instagram-input',
         targetSelector: '[data-tutorial="instagram-input"]',
         title: 'Campo Instagram',
-        description: 'Digite o @ do Instagram que deseja cadastrar. Pode ser seu perfil pessoal ou comercial.',
+        description: 'Digite o @ do Instagram que deseja cadastrar.',
         position: 'bottom'
       },
       {
         id: 'buscar-button',
         targetSelector: '[data-tutorial="buscar-button"]',
-        title: 'Buscar e Analisar',
-        description: 'Clique aqui para buscar o perfil no Instagram. A I.A MRO vai analisar automaticamente seus dados.',
-        position: 'bottom'
-      }
-    ]
-  },
-  {
-    id: 'sincronizar',
-    title: 'Sincronizar Contas',
-    icon: '🔄',
-    warning: '⚠️ Use apenas se seus perfis não carregaram corretamente ou se você já tinha contas cadastradas anteriormente. A sincronização pode demorar alguns minutos.',
-    steps: [
-      {
-        id: 'sync-warning',
-        targetSelector: '[data-tutorial="sync-section"]',
-        title: '⚠️ Quando Usar Sincronização',
-        description: 'A sincronização só é necessária se: (1) Seus perfis não carregaram com dados corretos, ou (2) Você já tinha contas cadastradas antes e quer importá-las. Caso contrário, cadastre um perfil por vez.',
-        position: 'bottom'
-      },
-      {
-        id: 'sync-email',
-        targetSelector: '[data-tutorial="sync-email"]',
-        title: 'E-mail para Sincronização',
-        description: 'Use o mesmo e-mail da sua conta MRO para importar perfis já cadastrados anteriormente.',
-        position: 'bottom'
-      },
-      {
-        id: 'sync-button',
-        targetSelector: '[data-tutorial="sync-button"]',
-        title: 'Sincronizar Contas',
-        description: 'Clique para importar TODOS os perfis da sua conta MRO. Este processo pode demorar vários minutos dependendo da quantidade de perfis.',
+        title: 'Cadastrar Perfil',
+        description: 'Clique para cadastrar o perfil. Ele aparecerá como placeholder até que você envie o print.',
         position: 'bottom'
       }
     ]
@@ -91,7 +62,7 @@ export const profileRegistrationTutorial: TutorialSection[] = [
         id: 'perfis-list',
         targetSelector: '[data-tutorial="perfis-list"]',
         title: 'Lista de Perfis',
-        description: 'Aqui aparecem todos os perfis cadastrados. Clique em um perfil para acessar o dashboard e gerar estratégias.',
+        description: 'Clique em um perfil para acessar o dashboard. Na primeira vez, envie o print do perfil para a I.A analisar.',
         position: 'top'
       }
     ]
@@ -101,6 +72,20 @@ export const profileRegistrationTutorial: TutorialSection[] = [
 // Tutorial para Dashboard
 export const dashboardTutorial: TutorialSection[] = [
   {
+    id: 'print',
+    title: 'Enviar Print do Perfil',
+    icon: '📸',
+    steps: [
+      {
+        id: 'print-upload',
+        targetSelector: '[data-tutorial="tab-perfil"]',
+        title: 'Aba Perfil - Envie seu Print',
+        description: 'Na aba Perfil, envie um print/screenshot do seu Instagram. A I.A vai extrair seguidores, bio, nicho e gerar a análise automaticamente.',
+        position: 'bottom'
+      }
+    ]
+  },
+  {
     id: 'ferramenta',
     title: 'Ferramenta MRO',
     icon: '🔧',
@@ -109,21 +94,7 @@ export const dashboardTutorial: TutorialSection[] = [
         id: 'mro-button',
         targetSelector: '[data-tutorial="mro-button"]',
         title: 'Ferramenta MRO',
-        description: 'Acesse a ferramenta de automação MRO. Aqui você encontra tutoriais em vídeo sobre como usar o sistema de engajamento orgânico.',
-        position: 'bottom'
-      }
-    ]
-  },
-  {
-    id: 'perfil-selector',
-    title: 'Seletor de Perfil',
-    icon: '👤',
-    steps: [
-      {
-        id: 'profile-selector',
-        targetSelector: '[data-tutorial="profile-selector"]',
-        title: 'Trocar Perfil',
-        description: 'Use este menu para alternar entre seus perfis cadastrados ou adicionar um novo perfil.',
+        description: 'Acesse a ferramenta de automação MRO para interagir com 200 pessoas por dia, seguir + curtir automaticamente e enviar mensagens em massa.',
         position: 'bottom'
       }
     ]
@@ -137,35 +108,35 @@ export const dashboardTutorial: TutorialSection[] = [
         id: 'tab-perfil',
         targetSelector: '[data-tutorial="tab-perfil"]',
         title: 'Aba Perfil',
-        description: 'Visualize os dados do seu Instagram: foto, bio, seguidores, posts recentes e métricas.',
+        description: 'Visualize os dados extraídos do seu print: seguidores, bio, nicho. Envie o print aqui na primeira vez.',
         position: 'bottom'
       },
       {
         id: 'tab-analise',
         targetSelector: '[data-tutorial="tab-analise"]',
         title: 'Aba Análise',
-        description: 'Veja a análise completa feita pela I.A MRO: pontuações de conteúdo, engajamento e pontos de melhoria.',
+        description: 'Veja a análise da I.A: pontuações de conteúdo, engajamento, pontos fortes e fracos do perfil.',
         position: 'bottom'
       },
       {
         id: 'tab-estrategias',
         targetSelector: '[data-tutorial="tab-estrategias"]',
         title: 'Aba Estratégias',
-        description: 'Gere estratégias personalizadas de 30 dias com calendário de posts, stories e scripts de vendas.',
+        description: 'Gere estratégias MRO personalizadas com calendário de posts, stories, scripts de vendas e mensagens em massa.',
         position: 'bottom'
       },
       {
-        id: 'tab-criativos',
-        targetSelector: '[data-tutorial="tab-criativos"]',
-        title: 'Aba Criativos',
-        description: 'Gere imagens profissionais com I.A para seus posts. Você tem 6 créditos por estratégia.',
+        id: 'tab-legendas',
+        targetSelector: '[data-tutorial="tab-legendas"]',
+        title: 'Gerar Legendas',
+        description: 'Gere legendas profissionais com I.A para seus posts do Instagram.',
         position: 'bottom'
       },
       {
         id: 'tab-crescimento',
         targetSelector: '[data-tutorial="tab-crescimento"]',
         title: 'Aba Crescimento',
-        description: 'Acompanhe a evolução do seu perfil com gráficos de seguidores e engajamento ao longo do tempo.',
+        description: 'Acompanhe a evolução do seu perfil: seguidores ganhos e engajamento ao longo do tempo.',
         position: 'bottom'
       }
     ]
@@ -179,7 +150,7 @@ export const dashboardTutorial: TutorialSection[] = [
         id: 'user-menu',
         targetSelector: '[data-tutorial="user-menu"]',
         title: 'Informações do Usuário',
-        description: 'Aqui você vê seu nome, dias restantes de acesso e pode fazer logout.',
+        description: 'Veja seu nome, dias restantes de acesso. Use o ícone de ajuda (vermelho) para ver este tutorial novamente.',
         position: 'bottom'
       }
     ]
@@ -197,7 +168,7 @@ export const strategyTutorial: TutorialSection[] = [
         id: 'strategy-types',
         targetSelector: '[data-tutorial="strategy-types"]',
         title: 'Escolha o Tipo',
-        description: 'Selecione o tipo de estratégia: Conteúdo (posts), Engajamento (interações), Vendas (conversões) ou Crescimento (seguidores).',
+        description: 'Selecione: MRO (interações + mensagens em massa), Conteúdo (calendário), Engajamento, Vendas (scripts) ou Bio (otimização).',
         position: 'bottom'
       }
     ]
@@ -211,7 +182,7 @@ export const strategyTutorial: TutorialSection[] = [
         id: 'generate-button',
         targetSelector: '[data-tutorial="generate-button"]',
         title: 'Botão Gerar',
-        description: 'Clique para gerar uma estratégia completa de 30 dias com I.A. Inclui calendário de posts, stories e scripts.',
+        description: 'Gere uma estratégia personalizada de 30 dias baseada nos dados do seu print. Inclui calendário, stories e scripts de vendas.',
         position: 'top'
       }
     ]
@@ -225,46 +196,7 @@ export const strategyTutorial: TutorialSection[] = [
         id: 'strategy-display',
         targetSelector: '[data-tutorial="strategy-display"]',
         title: 'Sua Estratégia',
-        description: 'Veja sua estratégia completa aqui: passos detalhados, calendário de stories com 30 dias e scripts de vendas prontos.',
-        position: 'top'
-      },
-      {
-        id: 'creative-from-strategy',
-        targetSelector: '[data-tutorial="creative-from-strategy"]',
-        title: 'Gerar Criativo',
-        description: 'Clique para gerar um criativo visual baseado nesta estratégia. Usa 1 crédito.',
-        position: 'top'
-      }
-    ]
-  }
-];
-
-// Tutorial para Criativos
-export const creativeTutorial: TutorialSection[] = [
-  {
-    id: 'manual',
-    title: 'Criativo Manual',
-    icon: '🖌️',
-    steps: [
-      {
-        id: 'manual-creative',
-        targetSelector: '[data-tutorial="manual-creative"]',
-        title: 'Criar com Prompt',
-        description: 'Crie um criativo personalizado escrevendo seu próprio prompt. Pode incluir sua foto pessoal. Usa 2 créditos.',
-        position: 'bottom'
-      }
-    ]
-  },
-  {
-    id: 'galeria',
-    title: 'Galeria de Criativos',
-    icon: '🖼️',
-    steps: [
-      {
-        id: 'creatives-gallery',
-        targetSelector: '[data-tutorial="creatives-gallery"]',
-        title: 'Seus Criativos',
-        description: 'Todos os criativos gerados aparecem aqui. Você pode baixar, compartilhar ou excluir cada um.',
+        description: 'Veja passos detalhados, calendário de 30 dias, scripts de vendas e tutorial da ferramenta MRO para interagir e enviar mensagens.',
         position: 'top'
       }
     ]
