@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw } from 'lucide-react';
+import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
@@ -18,17 +18,16 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
   const [photoError, setPhotoError] = useState(false);
   const [localProfilePicUrl, setLocalProfilePicUrl] = useState(profile.profilePicUrl);
   const { toast } = useToast();
-
   const [triedCacheFallback, setTriedCacheFallback] = useState(false);
 
-  // Reset photo state when profile changes
+  const needsScreenshot = profile.needsScreenshotAnalysis && !screenshotUrl;
+
   useEffect(() => {
     setLocalProfilePicUrl(profile.profilePicUrl);
     setPhotoError(false);
     setTriedCacheFallback(false);
   }, [profile.username, profile.profilePicUrl]);
 
-  // Build the cached profile image URL from Supabase storage
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const cachedImageUrl = supabaseUrl
     ? `${supabaseUrl}/storage/v1/object/public/profile-cache/profiles/${profile.username?.toLowerCase()}.jpg`
@@ -48,90 +47,98 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
       if (!result.success || !result.profile) {
         if (screenshotUrl) {
           const screenshotRecovery = await recoverProfileFromScreenshot(profile.username, screenshotUrl, profile);
-
           if (screenshotRecovery.success && screenshotRecovery.profile) {
-            const recoveredProfile = {
-              ...profile,
-              ...screenshotRecovery.profile,
-            };
-
+            const recoveredProfile = { ...profile, ...screenshotRecovery.profile };
             setLocalProfilePicUrl(recoveredProfile.profilePicUrl || '');
             setPhotoError(!recoveredProfile.profilePicUrl);
-
-            if (onProfileUpdate) {
-              onProfileUpdate(recoveredProfile);
-            }
-
-            toast({
-              title: 'Dados recuperados do print!',
-              description: 'Usamos o print salvo para restaurar os dados do perfil enquanto a sincronização ao vivo está indisponível.'
-            });
+            if (onProfileUpdate) onProfileUpdate(recoveredProfile);
+            toast({ title: 'Dados recuperados do print!', description: 'Usamos o print salvo para restaurar os dados do perfil.' });
             return;
           }
         }
-
-        toast({
-          title: 'Erro ao sincronizar',
-          description: result.error || 'Não foi possível buscar os dados do perfil.',
-          variant: 'destructive'
-        });
+        toast({ title: 'Erro ao sincronizar', description: result.error || 'Não foi possível buscar os dados do perfil.', variant: 'destructive' });
         return;
       }
 
-      const updatedProfile = {
-        ...profile,
-        ...result.profile,
-      };
-
+      const updatedProfile = { ...profile, ...result.profile };
       setLocalProfilePicUrl(updatedProfile.profilePicUrl || '');
       setPhotoError(!updatedProfile.profilePicUrl);
       setTriedCacheFallback(false);
 
-      // Cache the profile image for future use
       if (updatedProfile.profilePicUrl) {
         supabase.functions.invoke('cache-profile-images', {
           body: { action: 'process-batch', batchSize: 1, offset: 0, forceRefresh: true, singleUsername: profile.username }
         }).catch(() => {});
       }
 
-      if (onProfileUpdate) {
-        onProfileUpdate(updatedProfile);
-      }
-
-      toast({
-        title: result.fromCache ? 'Dados recuperados do cache!' : 'Perfil atualizado!',
-        description: result.message || 'Os dados do perfil foram sincronizados com sucesso.'
-      });
+      if (onProfileUpdate) onProfileUpdate(updatedProfile);
+      toast({ title: result.fromCache ? 'Dados recuperados do cache!' : 'Perfil atualizado!', description: result.message || 'Os dados do perfil foram sincronizados com sucesso.' });
     } catch (err) {
       console.error('Error resyncing photo:', err);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao sincronizar perfil. Tente novamente.',
-        variant: 'destructive'
-      });
+      toast({ title: 'Erro', description: 'Erro ao sincronizar perfil. Tente novamente.', variant: 'destructive' });
     } finally {
       setIsResyncingPhoto(false);
     }
   };
 
-  // Show sync overlay when showing fallback avatar (no real photo)
   const showingFallbackAvatar = photoError || !localProfilePicUrl;
+
+  // If profile needs screenshot analysis and hasn't uploaded one yet, show minimal card
+  if (needsScreenshot) {
+    return (
+      <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
+        <div className="flex flex-col items-center gap-4 py-4">
+          {/* Avatar placeholder */}
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full ring-4 ring-primary/30 bg-primary/20 flex items-center justify-center">
+            <span className="text-xl sm:text-2xl font-bold text-primary">
+              {profile.username?.substring(0, 2).toUpperCase()}
+            </span>
+          </div>
+          
+          <div className="text-center space-y-2">
+            <h2 className="text-lg sm:text-2xl font-display font-bold">@{profile.username}</h2>
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Camera className="w-4 h-4" />
+              <p className="text-sm">Envie um print do perfil abaixo para carregar todos os dados</p>
+            </div>
+          </div>
+
+          {/* Empty stats placeholder */}
+          <div className="grid grid-cols-3 gap-4 w-full mt-2 pt-4 border-t border-border/50">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-0.5">
+                <Grid3X3 className="w-4 h-4 text-muted-foreground/40" />
+                <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
+              </div>
+              <p className="text-xs text-muted-foreground/40">Posts</p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-0.5">
+                <Users className="w-4 h-4 text-muted-foreground/40" />
+                <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
+              </div>
+              <p className="text-xs text-muted-foreground/40">Seguidores</p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1 mb-0.5">
+                <UserPlus className="w-4 h-4 text-muted-foreground/40" />
+                <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
+              </div>
+              <p className="text-xs text-muted-foreground/40">Seguindo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
-      {/* Video Tutorial Button - Pulsing */}
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
-        <VideoTutorialButton
-          youtubeUrl="https://youtu.be/mIQ78Skz1BU"
-          title="Tutorial"
-          variant="pulse"
-          size="sm"
-        />
+        <VideoTutorialButton youtubeUrl="https://youtu.be/mIQ78Skz1BU" title="Tutorial" variant="pulse" size="sm" />
       </div>
 
-      {/* Profile Header - Responsivo */}
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-        {/* Profile Picture */}
         <div className="relative flex-shrink-0">
           <div 
             className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-4 ring-primary/30 bg-primary/20 flex items-center justify-center ${showingFallbackAvatar ? 'cursor-pointer' : ''}`}
@@ -143,9 +150,7 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
                 alt={profile.fullName}
                 className="w-full h-full object-cover"
                 onError={() => {
-                  // Try cached image from Supabase storage before giving up
                   if (!triedCacheFallback && cachedImageUrl && localProfilePicUrl !== cachedImageUrl) {
-                    console.log(`📸 Photo failed, trying cached image for @${profile.username}`);
                     setTriedCacheFallback(true);
                     setLocalProfilePicUrl(cachedImageUrl);
                   } else {
@@ -155,12 +160,9 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
               />
             ) : (
               <>
-                {/* Fallback avatar with initials */}
                 <span className="text-xl sm:text-2xl font-bold text-primary">
                   {profile.username?.substring(0, 2).toUpperCase()}
                 </span>
-                
-                {/* Sync overlay on fallback avatar */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 hover:opacity-100 transition-opacity">
                   <RefreshCw className={`w-5 h-5 sm:w-6 sm:h-6 text-white ${isResyncingPhoto ? 'animate-spin' : ''}`} />
                 </div>
@@ -168,7 +170,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
             )}
           </div>
           
-          {/* Sync indicator badge when showing fallback */}
           {showingFallbackAvatar && (
             <button
               onClick={handleResyncPhoto}
@@ -187,7 +188,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
           )}
         </div>
 
-        {/* Profile Info */}
         <div className="flex-1 text-center sm:text-left min-w-0">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 mb-2">
             <h2 className="text-lg sm:text-2xl font-display font-bold break-all">@{profile.username}</h2>
@@ -214,14 +214,12 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border">
         <StatItem icon={<Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5" />} value={formatNumber(profile.posts)} label="Posts" />
         <StatItem icon={<Users className="w-4 h-4 sm:w-5 sm:h-5" />} value={formatNumber(profile.followers)} label="Seguidores" />
         <StatItem icon={<UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />} value={formatNumber(profile.following)} label="Seguindo" />
       </div>
 
-      {/* Engagement - only show if we have engagement data */}
       {profile.engagement > 0 && (
         <div className="mt-4 sm:mt-6 p-3 sm:p-4 rounded-lg bg-secondary/50">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
