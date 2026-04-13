@@ -3548,7 +3548,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           <div className="flex items-center gap-2 mb-4">
             <Button
               size="sm"
-              onClick={loadWebhookLogs}
+              onClick={() => loadWebhookLogs()}
               disabled={loadingLogs}
               className="bg-cyan-600 hover:bg-cyan-700"
             >
