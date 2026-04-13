@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
@@ -155,59 +154,56 @@ export const UserHeader = ({ onLogout, onReanalysisComplete, tutorial, activeTab
 
   return (
     <div className="flex items-center gap-1 sm:gap-3 min-w-0 max-w-full">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-secondary/50 text-xs sm:text-sm max-w-[180px] lg:max-w-[220px] xl:max-w-none min-w-0">
-              <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="font-medium truncate">{user.username}</span>
-              
-              {/* Admin Lock Icon */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAdminModal(true);
-                }}
-                className="p-0.5 sm:p-1 hover:bg-secondary rounded-full transition-colors flex-shrink-0"
-                title="Acesso Admin"
-              >
-                <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground hover:text-amber-500 transition-colors" />
-              </button>
-              
-              {isLifetime ? (
-                <div className="hidden xs:flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                  <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
-                  <span className="hidden sm:inline text-amber-500 font-semibold text-xs">Vitalício</span>
-                  {user.creativesUnlocked ? (
-                    <Unlock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500" />
-                  ) : (
-                    <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
-                  )}
-                </div>
-              ) : (
-                <span className="hidden xs:flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">
-                  <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                  {user.daysRemaining}d
-                </span>
-              )}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="text-center space-y-1">
-              <p className="font-semibold">{user.username}</p>
-              <p className="text-xs text-muted-foreground">{daysText}</p>
-              {isLifetime && (
-                <p className={`text-xs ${creativesAccess.allowed ? 'text-green-400' : 'text-amber-400'}`}>
-                  Criativos: {creativesAccess.allowed ? 'Liberado' : 'Bloqueado'}
-                </p>
-              )}
-              {user.email && (
-                <p className="text-xs text-muted-foreground mt-1">{user.email}</p>
-              )}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-secondary/50 text-xs sm:text-sm max-w-[180px] lg:max-w-[220px] xl:max-w-none min-w-0">
+            <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span className="font-medium truncate">{user.username}</span>
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAdminModal(true);
+              }}
+              className="p-0.5 sm:p-1 hover:bg-secondary rounded-full transition-colors flex-shrink-0"
+              title="Acesso Admin"
+            >
+              <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground hover:text-amber-500 transition-colors" />
+            </button>
+            
+            {isLifetime ? (
+              <div className="hidden xs:flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+                <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
+                <span className="hidden sm:inline text-amber-500 font-semibold text-xs">Vitalício</span>
+                {user.creativesUnlocked ? (
+                  <Unlock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500" />
+                ) : (
+                  <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
+                )}
+              </div>
+            ) : (
+              <span className="hidden xs:flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">
+                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                {user.daysRemaining}d
+              </span>
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <div className="text-center space-y-1">
+            <p className="font-semibold">{user.username}</p>
+            <p className="text-xs text-muted-foreground">{daysText}</p>
+            {isLifetime && (
+              <p className={`text-xs ${creativesAccess.allowed ? 'text-green-400' : 'text-amber-400'}`}>
+                Criativos: {creativesAccess.allowed ? 'Liberado' : 'Bloqueado'}
+              </p>
+            )}
+            {user.email && (
+              <p className="text-xs text-muted-foreground mt-1">{user.email}</p>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
 
       {/* Help icon - red, next to logout */}
       {tutorial && (
