@@ -139,6 +139,14 @@ export const ProfileScreenshotUpload = ({
                 };
                 if (extracted.username && extracted.username.toLowerCase() !== username.toLowerCase()) {
                   console.log(`⚠️ Screenshot username @${extracted.username} differs from registered @${username}`);
+                  toast.error(`O print enviado é do perfil @${extracted.username}, mas a conta cadastrada é @${username}. Envie um print real do perfil @${username}.`);
+                  // Auto-remove the wrong screenshot and allow re-upload
+                  setPreviewUrl(null);
+                  setSelectedFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                  if (onScreenshotRemoved) onScreenshotRemoved();
+                  setIsAnalyzing(false);
+                  return;
                 }
                 onProfileDataExtracted(profileUpdate);
               }
