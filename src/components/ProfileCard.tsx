@@ -20,9 +20,10 @@ interface ProfileCardProps {
   screenshotUrl?: string | null;
   onProfileUpdate?: (updatedProfile: InstagramProfile) => void;
   onAnalysisComplete?: (analysis: any) => void;
+  onScreenshotRemoved?: () => void;
 }
 
-export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysisComplete }: ProfileCardProps) => {
+export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysisComplete, onScreenshotRemoved }: ProfileCardProps) => {
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
@@ -57,9 +58,10 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
           toast.error(
             analysisData?.message ||
               (analysisData?.error === 'username_mismatch'
-                ? `O print enviado não corresponde ao perfil @${profile.username}. Troque o print para continuar.`
+                ? `O print enviado não corresponde ao perfil @${profile.username}. Envie um print real do perfil @${profile.username}.`
                 : 'Este print não parece ser de um perfil do Instagram.')
           );
+          onScreenshotRemoved?.();
           return;
         }
       }
