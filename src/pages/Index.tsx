@@ -30,7 +30,7 @@ import {
   logoutUser,
   saveUserToCloud
 } from '@/lib/userStorage';
-import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
+import { fetchInstagramProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { 
   loadPersistedDataOnLogin, 
@@ -324,82 +324,12 @@ const Index = () => {
     });
   };
 
-  const handleSearch = async (username: string) => {
-    // Check if IG is registered
-    if (!isIGRegistered(username)) {
-      toast({
-        title: 'Perfil não cadastrado',
-        description: 'Cadastre este perfil primeiro antes de analisar',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setLoadingMessage(`Buscando @${username.replace('@', '')}...`);
-    setLoadingSubMessage('Analisando perfil com I.A. Isso pode levar até 5 minutos.');
-
-    try {
-      toast({
-        title: "Buscando perfil...",
-        description: `Analisando @${username.replace('@', '')}`,
-      });
-
-      const profileResult = await fetchInstagramProfile(username);
-
-      if (!profileResult.success || !profileResult.profile) {
-        toast({
-          title: "Erro ao buscar perfil",
-          description: profileResult.error || "Tente novamente",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const profile = profileResult.profile;
-
-      toast({
-        title: "Analisando com IA...",
-        description: "Gerando insights personalizados",
-      });
-
-      const analysisResult = await analyzeProfile(profile);
-
-      if (!analysisResult.success || !analysisResult.analysis) {
-        toast({
-          title: "Erro na análise",
-          description: analysisResult.error || "Usando análise básica",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      addProfile(profile, analysisResult.analysis);
-      
-      const updatedSession = getSession();
-      setSession(updatedSession);
-      setShowDashboard(true);
-
-      toast({
-        title: "Análise concluída! ✨",
-        description: `Perfil @${profile.username} analisado com sucesso.`,
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Erro na análise",
-        description: "Não foi possível analisar o perfil. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleAddNewProfile = async (username: string) => {
-    await handleSearch(username);
+    // Just navigate to registration - profiles are analyzed via screenshot now
+    toast({
+      title: 'Cadastre o perfil',
+      description: 'Use a tela de cadastro para adicionar novos perfis',
+    });
   };
 
   const handleSelectProfile = (profileId: string) => {
