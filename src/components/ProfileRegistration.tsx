@@ -71,7 +71,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   const [pendingRegisterIG, setPendingRegisterIG] = useState<string>('');
   const [showPreRegisterDialog, setShowPreRegisterDialog] = useState(false);
   const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
-  const [showSyncConfirmDialog] = useState(false);
+  const [showSyncConfirmDialog, setShowSyncConfirmDialog] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -419,10 +419,10 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
           </CardContent>
         </Card>
 
-        {/* Register New Profile */}
-        <Card className="glass-card border-primary/20">
+        {/* Register New Profile - Highlighted */}
+        <Card className="glass-card border-2 border-amber-500/60 bg-amber-500/5 shadow-lg shadow-amber-500/10">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2 text-amber-400">
               <UserPlus className="w-5 h-5" />
               {registeredIGs.length > 0 ? 'Cadastrar Nova Conta' : 'Cadastrar Perfil'}
             </CardTitle>
@@ -448,7 +448,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
               />
             </div>
             <Button 
-              className="w-full" 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold" 
               onClick={handleSearchProfile}
               disabled={isLoading}
               data-tutorial="buscar-button"
@@ -470,6 +470,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
             </p>
           </CardContent>
         </Card>
+
 
         {/* Registered IGs List - Clickable cards */}
         {registeredIGs.length > 0 && (
