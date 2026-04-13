@@ -1984,7 +1984,197 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     }
   };
 
-  // Stats corrigidos - incluindo "paid" e "completed" como pagos
+  // ===== REMARKETING =====
+  // Get all expired/pending orders that never paid (remarketing targets)
+  const getRemarketingTargets = () => {
+    return orders.filter(o => 
+      (o.status === "pending" || o.status === "expired")
+    );
+  };
+
+  const getBaseEmail = (email: string) => {
+    const parts = email.toLowerCase().split(":");
+    const last = parts[parts.length - 1];
+    if (parts.length > 1 && last.includes("@")) return last;
+    return email.toLowerCase();
+  };
+
+  // Load remarketing sent history from broadcast_email_logs
+  useEffect(() => {
+    if (!isAuthenticated || remarketingHistoryLoaded) return;
+    const loadHistory = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("broadcast_email_logs")
+          .select("recipient_email, subject")
+          .like("subject", "%Instagram Turbinado%");
+        if (!error && data) {
+          const sentEmails = new Set(data.map(d => d.recipient_email.toLowerCase()));
+          setRemarketingSentHistory(sentEmails);
+        }
+      } catch (e) {
+        console.error("Error loading remarketing history:", e);
+      }
+      setRemarketingHistoryLoaded(true);
+    };
+    loadHistory();
+  }, [isAuthenticated, remarketingHistoryLoaded]);
+
+  const buildRemarketingEmailHtml = (order: MROOrder) => {
+    const baseEmail = getBaseEmail(order.email);
+    const dateStr = format(new Date(order.created_at), "dd/MM/yyyy", { locale: ptBR });
+    const whatsappLink = `https://maisresultadosonline.com.br/whatsapp`;
+    
+    return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+<div style="text-align:center;padding:20px;background:#000;border-bottom:3px solid #FFD700;">
+<div style="background:#000;color:#FFD700;display:inline-block;padding:8px 20px;border-radius:8px;font-size:28px;font-weight:bold;letter-spacing:2px;">MRO</div>
+</div>
+<div style="padding:30px;background:#fff;">
+<h2 style="color:#1a1a1a;font-size:22px;margin-bottom:15px;">🚀 Instagram Turbinado sem gastar com anúncios!</h2>
+<p style="color:#333;font-size:15px;line-height:1.6;">Olá!</p>
+<p style="color:#333;font-size:15px;line-height:1.6;">Vimos que tivemos uma tentativa de compra na data <strong>${dateStr}</strong> do cadastro em questão, e notamos que tens interesse em testar nosso sistema.</p>
+<p style="color:#333;font-size:15px;line-height:1.6;">Se tiver interesse, estamos liberando um <strong style="color:#e74c3c;">desconto interno até dia 20/04</strong> onde estamos conseguindo liberar um valor melhor para conseguir testar e ter resultados sem precisar gastar com anúncios!</p>
+<div style="background:#f8f9fa;border-left:4px solid #FFD700;padding:15px;margin:20px 0;border-radius:0 8px 8px 0;">
+<p style="margin:0;color:#333;font-size:14px;">📧 Email do cadastro: <strong>${baseEmail}</strong></p>
+<p style="margin:5px 0 0;color:#333;font-size:14px;">📅 Data da tentativa: <strong>${dateStr}</strong></p>
+</div>
+<div style="text-align:center;margin:25px 0;">
+<a href="${whatsappLink}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">📱 Falar no WhatsApp e garantir desconto</a>
+</div>
+<p style="color:#666;font-size:13px;line-height:1.5;">Envie seu email (<strong>${baseEmail}</strong>) junto com a mensagem no WhatsApp para que possamos identificar seu cadastro e liberar o desconto especial.</p>
+</div>
+<div style="background:#1a1a1a;padding:15px;text-align:center;">
+<p style="color:#888;margin:0;font-size:11px;">© ${new Date().getFullYear()} MRO - Mais Resultados Online</p>
+</div>
+</div>`;
+  };
+
+  const sendRemarketingEmail = async (to: string, htmlBody: string) => {
+    const { error } = await supabase.functions.invoke("broadcast-email", {
+      body: {
+        to,
+        subject: "🚀 Instagram Turbinado sem gastar com anúncios! - Desconto Interno",
+        body: htmlBody,
+        userName: ""
+      }
+    });
+    if (error) throw error;
+  };
+
+  const handleRemarketingSend = async (targetOrders: MROOrder[]) => {
+    if (targetOrders.length === 0) return;
+    
+    remarketingSendingRef.current = true;
+    setRemarketingSending(true);
+    setRemarketingSentCount(0);
+    setRemarketingTotalToSend(targetOrders.length);
+
+    let sent = 0;
+    for (const order of targetOrders) {
+      if (!remarketingSendingRef.current) break;
+      
+      const baseEmail = getBaseEmail(order.email);
+      try {
+        const html = buildRemarketingEmailHtml(order);
+        await sendRemarketingEmail(baseEmail, html);
+        
+        // Log to broadcast_email_logs
+        await supabase.from("broadcast_email_logs").insert({
+          recipient_email: baseEmail,
+          recipient_name: order.username,
+          subject: "🚀 Instagram Turbinado sem gastar com anúncios! - Desconto Interno",
+          body: html,
+          status: "sent"
+        });
+
+        sent++;
+        setRemarketingSentCount(sent);
+        setRemarketingSentHistory(prev => new Set([...prev, baseEmail.toLowerCase()]));
+
+        // Random delay 5-15 seconds between sends
+        if (sent < targetOrders.length && remarketingSendingRef.current) {
+          const delay = Math.floor(Math.random() * 10000) + 5000;
+          await new Promise(r => setTimeout(r, delay));
+        }
+      } catch (e) {
+        console.error(`Error sending to ${baseEmail}:`, e);
+        await supabase.from("broadcast_email_logs").insert({
+          recipient_email: baseEmail,
+          recipient_name: order.username,
+          subject: "🚀 Instagram Turbinado sem gastar com anúncios! - Desconto Interno",
+          body: "",
+          status: "failed",
+          error_message: String(e)
+        });
+      }
+    }
+
+    remarketingSendingRef.current = false;
+    setRemarketingSending(false);
+    toast.success(`Remarketing enviado para ${sent} de ${targetOrders.length} contatos!`);
+  };
+
+  const handleRemarketingTestSend = async () => {
+    if (!remarketingTestEmail.trim()) {
+      toast.error("Digite um email de teste");
+      return;
+    }
+    
+    // Use first expired order as sample data
+    const sampleOrder = getRemarketingTargets()[0] || {
+      email: remarketingTestEmail,
+      username: "teste_usuario",
+      created_at: new Date().toISOString(),
+      id: "test",
+      phone: null,
+      plan_type: "annual",
+      amount: 197,
+      status: "expired",
+      nsu_order: "test",
+      infinitepay_link: null,
+      api_created: false,
+      email_sent: false,
+      paid_at: null,
+      completed_at: null,
+      expired_at: null,
+      updated_at: new Date().toISOString()
+    };
+
+    setRemarketingSending(true);
+    try {
+      const html = buildRemarketingEmailHtml(sampleOrder);
+      await sendRemarketingEmail(remarketingTestEmail.trim(), html);
+      toast.success(`Email de teste enviado para ${remarketingTestEmail}`);
+    } catch (e) {
+      console.error("Test email error:", e);
+      toast.error("Erro ao enviar email de teste");
+    } finally {
+      setRemarketingSending(false);
+    }
+  };
+
+  const toggleRemarketingSelect = (orderId: string) => {
+    setRemarketingSelected(prev => {
+      const n = new Set(prev);
+      if (n.has(orderId)) n.delete(orderId); else n.add(orderId);
+      return n;
+    });
+  };
+
+  const toggleRemarketingSelectAll = () => {
+    const targets = getRemarketingTargets().filter(o => !remarketingSentHistory.has(getBaseEmail(o.email)));
+    if (remarketingSelected.size === targets.length) {
+      setRemarketingSelected(new Set());
+    } else {
+      setRemarketingSelected(new Set(targets.map(o => o.id)));
+    }
+  };
+
+  const stopRemarketingSending = () => {
+    remarketingSendingRef.current = false;
+  };
+
+
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.status === "pending").length,
