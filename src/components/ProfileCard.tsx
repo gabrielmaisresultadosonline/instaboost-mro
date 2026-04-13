@@ -149,25 +149,47 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
 
   // Has real data — show full profile, no reanalyze for normal users, only admin lock
   return (
-    <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up relative">
-      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
-        <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
-      </div>
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6 pr-20 sm:pr-24">
+    <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up">
+      <div className="flex items-start gap-3 sm:gap-4 md:gap-6">
         <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
           <Instagram className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
         </div>
 
-        <div className="flex-1 text-center sm:text-left min-w-0 w-full">
-          <div className="flex flex-col items-center sm:items-start gap-2 mb-1 sm:mb-2">
-            <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
-
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 w-full">
-              {profile.category && (
-                <span className="px-2.5 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium whitespace-nowrap max-w-[180px] truncate">
-                  {profile.category}
-                </span>
-              )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col items-start gap-2 mb-1 sm:mb-2">
+                <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
+                <div className="flex flex-wrap items-center gap-2">
+                  {profile.category && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium whitespace-nowrap max-w-[180px] truncate">
+                      {profile.category}
+                    </span>
+                  )}
+                  {hasScreenshot && (
+                    <Button
+                      onClick={() => setShowAdminDialog(true)}
+                      disabled={isReanalyzing}
+                      size="icon"
+                      variant="outline"
+                      className="h-7 w-7 shrink-0"
+                      title="Reanalisar (Admin)"
+                      aria-label="Reanalisar perfil"
+                    >
+                      {isReanalyzing ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Lock className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
+            </div>
+          </div>
 
               {hasScreenshot && (
                 <Button
