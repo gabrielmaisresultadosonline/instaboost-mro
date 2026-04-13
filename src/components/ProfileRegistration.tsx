@@ -41,7 +41,9 @@ import {
 import { 
   getArchivedByUsername, 
   restoreProfileFromArchive,
-  addProfile 
+  addProfile,
+  getSession as getStorageSession,
+  setActiveProfile as setActiveProfileInStorage
 } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
