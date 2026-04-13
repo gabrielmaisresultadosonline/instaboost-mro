@@ -13,6 +13,7 @@ interface ProfileScreenshotUploadProps {
   uploadCount?: number;
   analysisCompleted?: boolean;
   onScreenshotUploaded: (url: string) => void;
+  onScreenshotRemoved?: () => void;
   onAnalysisComplete?: (analysis: any) => void;
   onProfileDataExtracted?: (profileData: Partial<InstagramProfile>) => void;
 }
