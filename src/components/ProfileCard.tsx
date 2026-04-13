@@ -149,12 +149,11 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
         </div>
 
         <div className="flex-1 text-center sm:text-left min-w-0 w-full">
-          {/* Row 1: username + action buttons */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-1 sm:mb-2">
-            <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold truncate min-w-0">@{profile.username}</h2>
-            <div className="flex items-center justify-center sm:justify-end gap-2 shrink-0">
+          {/* Row 1: username + niche + actions — all inline, wrap on small screens */}
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-2.5 mb-1 sm:mb-2">
+            <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
               {profile.category && (
-                <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium whitespace-nowrap max-w-[160px] truncate">
+                <span className="px-2.5 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium whitespace-nowrap max-w-[180px] truncate">
                   {profile.category}
                 </span>
               )}
@@ -175,6 +174,7 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
                   <span className="hidden sm:inline">{isReanalyzing ? 'Analisando...' : 'Reanalisar'}</span>
                 </Button>
               )}
+            <div className="ml-auto sm:ml-0">
               <VideoTutorialButton youtubeUrl="https://youtu.be/mIQ78Skz1BU" title="Tutorial" variant="pulse" size="sm" />
             </div>
           </div>
