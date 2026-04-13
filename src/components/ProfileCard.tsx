@@ -58,9 +58,10 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
           toast.error(
             analysisData?.message ||
               (analysisData?.error === 'username_mismatch'
-                ? `O print enviado não corresponde ao perfil @${profile.username}. Troque o print para continuar.`
+                ? `O print enviado não corresponde ao perfil @${profile.username}. Envie um print real do perfil @${profile.username}.`
                 : 'Este print não parece ser de um perfil do Instagram.')
           );
+          onScreenshotRemoved?.();
           return;
         }
       }
