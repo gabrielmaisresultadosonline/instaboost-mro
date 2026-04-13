@@ -1,15 +1,22 @@
+import { useState } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Camera, Instagram } from 'lucide-react';
+import { Users, UserPlus, Grid3X3, ExternalLink, Instagram, RefreshCw, Loader2 } from 'lucide-react';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ProfileCardProps {
   profile: InstagramProfile;
   screenshotUrl?: string | null;
   onProfileUpdate?: (updatedProfile: InstagramProfile) => void;
+  onAnalysisComplete?: (analysis: any) => void;
 }
 
-export const ProfileCard = ({ profile }: ProfileCardProps) => {
+export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysisComplete }: ProfileCardProps) => {
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
   const hasRealPrintData = profile.dataSource === 'screenshot' && !profile.needsScreenshotAnalysis;
+  const hasScreenshot = !!screenshotUrl;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -17,6 +24,53 @@ export const ProfileCard = ({ profile }: ProfileCardProps) => {
     return num.toString();
   };
 
+  const handleReanalyze = async () => {
+    if (!screenshotUrl) return;
+    setIsReanalyzing(true);
+    try {
+      const { data: analysisData, error } = await supabase.functions.invoke('analyze-profile-screenshot', {
+        body: { screenshot_url: screenshotUrl, username: profile.username }
+      });
+
+      if (error) throw error;
+
+      if (analysisData?.success === false && analysisData?.error === 'not_instagram_profile') {
+        toast.error('Este print não parece ser de um perfil do Instagram.');
+        return;
+      }
+
+      if (analysisData?.analysis && onAnalysisComplete) {
+        onAnalysisComplete(analysisData.analysis);
+      }
+
+      if (analysisData?.extracted_data && onProfileUpdate) {
+        const extracted = analysisData.extracted_data;
+        const updatedProfile: InstagramProfile = {
+          ...profile,
+          followers: Number(extracted.followers) || 0,
+          following: Number(extracted.following) || 0,
+          posts: Number(extracted.posts_count) || 0,
+          bio: extracted.bio || '',
+          fullName: extracted.full_name || '',
+          isBusinessAccount: extracted.is_business || false,
+          category: extracted.category || '',
+          externalUrl: extracted.external_link || '',
+          needsScreenshotAnalysis: false,
+          dataSource: 'screenshot',
+        };
+        onProfileUpdate(updatedProfile);
+      }
+
+      toast.success('Reanálise concluída! Dados atualizados.');
+    } catch (err) {
+      console.error('Reanalysis error:', err);
+      toast.error('Erro ao reanalisar. Tente novamente.');
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
+
+  // Profile not yet analyzed but has a screenshot — show reanalyze button
   if (!hasRealPrintData) {
     return (
       <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
@@ -26,11 +80,26 @@ export const ProfileCard = ({ profile }: ProfileCardProps) => {
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-lg sm:text-xl font-display font-bold truncate">@{profile.username}</h2>
-            <div className="flex items-center gap-2 mt-1">
-              <Camera className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
-              <p className="text-xs sm:text-sm text-muted-foreground">Envie o print do perfil para carregar dados reais</p>
-            </div>
+            {hasScreenshot ? (
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Print salvo. Clique em reanalisar para carregar dados reais.</p>
+            ) : (
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Envie o print do perfil para carregar dados reais</p>
+            )}
           </div>
+          {hasScreenshot && (
+            <Button
+              onClick={handleReanalyze}
+              disabled={isReanalyzing}
+              size="sm"
+              className="shrink-0 gap-2"
+            >
+              {isReanalyzing ? (
+                <><Loader2 className="w-4 h-4 animate-spin" />Analisando...</>
+              ) : (
+                <><RefreshCw className="w-4 h-4" />Reanalisar</>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -38,7 +107,20 @@ export const ProfileCard = ({ profile }: ProfileCardProps) => {
 
   return (
     <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
-      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 flex items-center gap-2">
+        <Button
+          onClick={handleReanalyze}
+          disabled={isReanalyzing}
+          size="sm"
+          variant="outline"
+          className="gap-1.5 text-xs"
+        >
+          {isReanalyzing ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" />Analisando...</>
+          ) : (
+            <><RefreshCw className="w-3.5 h-3.5" />Reanalisar</>
+          )}
+        </Button>
         <VideoTutorialButton youtubeUrl="https://youtu.be/mIQ78Skz1BU" title="Tutorial" variant="pulse" size="sm" />
       </div>
 
