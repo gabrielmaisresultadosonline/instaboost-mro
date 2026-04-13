@@ -38,7 +38,6 @@ import {
   hasPersistedProfileData,
   getPersistedProfile,
   persistProfileData,
-  shouldFetchProfile,
   syncPersistentToSession
 } from '@/lib/persistentStorage';
 import { supabase } from '@/integrations/supabase/client';
