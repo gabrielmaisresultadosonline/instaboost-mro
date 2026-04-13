@@ -20,9 +20,10 @@ interface ProfileCardProps {
   screenshotUrl?: string | null;
   onProfileUpdate?: (updatedProfile: InstagramProfile) => void;
   onAnalysisComplete?: (analysis: any) => void;
+  onScreenshotRemoved?: () => void;
 }
 
-export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysisComplete }: ProfileCardProps) => {
+export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysisComplete, onScreenshotRemoved }: ProfileCardProps) => {
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
