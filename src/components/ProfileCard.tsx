@@ -96,7 +96,7 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
     }
   };
 
-  // Profile not yet analyzed — show placeholder with reanalyze or upload prompt
+  // Profile not yet analyzed — allow first analysis if a screenshot already exists
   if (!hasRealPrintData) {
     return (
       <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up">
@@ -109,9 +109,11 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               <div className="flex-1 min-w-0 text-center sm:text-left">
                 <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
                 {hasScreenshot ? (
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">Print salvo. Clique em reanalisar para carregar dados reais.</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                    Print salvo. Clique em <strong>analisar perfil</strong> para carregar os dados reais pela primeira vez.
+                  </p>
                 ) : (
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">Envie o print do perfil para carregar dados reais</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">Envie o print do perfil para carregar os dados reais</p>
                 )}
               </div>
             </div>
@@ -121,17 +123,17 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
                 <Button
                   onClick={handleReanalyze}
                   disabled={isReanalyzing}
-                  size="icon"
-                  variant="outline"
-                  className="h-8 w-8 shrink-0"
-                  title="Analisar perfil"
-                  aria-label="Analisar perfil"
+                  variant="default"
+                  className="gap-2"
+                  title="Analisar perfil pela primeira vez"
+                  aria-label="Analisar perfil pela primeira vez"
                 >
                   {isReanalyzing ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Lock className="w-3.5 h-3.5" />
+                    <RefreshCw className="w-4 h-4" />
                   )}
+                  {isReanalyzing ? 'Analisando...' : 'Analisar perfil'}
                 </Button>
               )}
             </div>
