@@ -747,7 +747,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
 function createPlaceholderProfile(username: string): InstagramProfile {
   return {
     username,
-    fullName: username,
+    fullName: '',
     bio: '',
     followers: 0,
     following: 0,
@@ -761,6 +761,7 @@ function createPlaceholderProfile(username: string): InstagramProfile {
     avgLikes: 0,
     avgComments: 0,
     needsScreenshotAnalysis: true,
+    dataSource: 'placeholder',
   };
 }
 

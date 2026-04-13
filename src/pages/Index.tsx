@@ -172,7 +172,7 @@ const Index = () => {
 
     toast({
       title: "Perfil cadastrado! ✨",
-      description: `@${profile.username} está pronto para usar.`,
+      description: `@${profile.username} cadastrado. Agora envie o print para gerar a análise real.`,
     });
   };
 
@@ -205,25 +205,21 @@ const Index = () => {
         continue;
       }
       
-      // Check if we have persisted data with real content (from previous screenshot analysis)
+      // Reuse only profiles that were already extracted from a real screenshot
       const persistedData = getPersistedProfile(normalizedIg);
-      const hasRealCachedData = persistedData && (
-        persistedData.profile.followers > 0 || 
-        persistedData.profile.posts > 0 || 
-        (persistedData.profile.bio && persistedData.profile.bio.trim().length > 0)
-      );
+      const hasScreenshotDerivedData = persistedData && persistedData.profile.dataSource === 'screenshot';
       
-      if (hasRealCachedData) {
-        console.log(`📦 Usando dados salvos para @${ig}`);
+      if (hasScreenshotDerivedData) {
+        console.log(`📦 Usando dados reais do print salvos para @${ig}`);
         addProfile(persistedData.profile, persistedData.analysis);
         cachedCount++;
         continue;
       }
       
-      // Create placeholder profile - user will upload screenshot for data
+      // Create placeholder profile - user will upload screenshot for real data
       const placeholderProfile: InstagramProfile = {
         username: normalizedIg,
-        fullName: normalizedIg,
+        fullName: '',
         bio: '',
         profilePicUrl: '',
         followers: 0,
@@ -237,6 +233,7 @@ const Index = () => {
         avgComments: 0,
         recentPosts: [],
         needsScreenshotAnalysis: true,
+        dataSource: 'placeholder',
       };
       
       const placeholderAnalysis: ProfileAnalysis = {
@@ -358,9 +355,9 @@ const Index = () => {
     // Criar perfil placeholder para upload de screenshot
     const placeholderProfile: InstagramProfile = {
       username: username,
-      fullName: username,
+      fullName: '',
       bio: '',
-      profilePicUrl: `https://ui-avatars.com/api/?name=${username}&background=E1306C&color=fff&size=200`,
+      profilePicUrl: '',
       followers: 0,
       following: 0,
       posts: 0,
@@ -371,7 +368,8 @@ const Index = () => {
       avgLikes: 0,
       avgComments: 0,
       recentPosts: [],
-      needsScreenshotAnalysis: true // Marcador especial para indicar que precisa de análise via screenshot
+      needsScreenshotAnalysis: true,
+      dataSource: 'placeholder'
     };
     
     const placeholderAnalysis: ProfileAnalysis = {
