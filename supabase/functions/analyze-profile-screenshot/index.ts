@@ -20,14 +20,14 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'} with DeepSeek`);
+    console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'} with Gemini Vision`);
 
-    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const normalizedUsername = String(username || 'username').replace('@', '').trim().toLowerCase();
 
     const systemPrompt = `Você é um especialista em marketing digital e análise de perfis do Instagram.
 
-Você vai receber a URL de uma imagem de screenshot de perfil do Instagram. Analise a imagem e extraia os dados visíveis.
+Você vai receber uma IMAGEM de screenshot de perfil do Instagram. Analise a imagem visualmente e extraia os dados visíveis.
 
 PRIMEIRO: Verifique se a imagem é realmente um print/screenshot de um perfil do Instagram.
 Se NÃO for um print do Instagram (por exemplo: foto aleatória, meme, outro app, etc), responda APENAS:
@@ -75,29 +75,33 @@ Regras extras:
 - followers, following e posts_count devem ser números inteiros.
 - Se o print mostrar pontuação brasileira como 4.254 ou 1,2 mil, converta para número inteiro.
 - Extraia o username real visível no print. Nunca copie automaticamente o username informado pelo sistema se ele não estiver visível na imagem.
-- Se o @ visível no print for diferente de @${normalizedUsername}, ainda retorne o username extraído corretamente no JSON.`;
+- Se o @ visível no print for diferente de @${normalizedUsername}, ainda retorne o username extraído corretamente no JSON.
+- IMPORTANTE: O campo "username" no JSON DEVE ser o username que você VÊ na imagem, não o que foi informado no texto.`;
 
-    const userPrompt = `Analise este print do Instagram e extraia os dados visíveis do perfil @${normalizedUsername}.
+    const userPrompt = `Analise este print do Instagram e extraia os dados visíveis do perfil.
+O perfil cadastrado no sistema é @${normalizedUsername}.
+Extraia o username REAL visível na imagem — se for diferente de @${normalizedUsername}, retorne o que está na imagem.
 Depois gere uma análise profissional curta baseada no que aparece no print.
-Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram": true}.
+Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram": true}.`;
 
-URL da imagem: ${screenshot_url}`;
-
-    if (DEEPSEEK_API_KEY) {
+    if (LOVABLE_API_KEY) {
       try {
-        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'deepseek-chat',
+            model: 'google/gemini-2.5-flash',
             messages: [
               { role: 'system', content: systemPrompt },
               {
                 role: 'user',
-                content: userPrompt
+                content: [
+                  { type: 'text', text: userPrompt },
+                  { type: 'image_url', image_url: { url: screenshot_url } }
+                ]
               }
             ],
             temperature: 0.2,
@@ -126,15 +130,15 @@ URL da imagem: ${screenshot_url}`;
               const extracted = analysisResult.extracted_data || {};
               const extractedUsername = String(extracted.username || '').replace('@', '').trim().toLowerCase();
 
-               if (!extractedUsername) {
-                 return Response.json({
-                   success: false,
-                   error: 'username_not_detected',
-                   message: `Não conseguimos confirmar o @ do print de @${normalizedUsername}. Envie um print real e nítido do perfil @${normalizedUsername}.`
-                 }, { headers: corsHeaders });
-               }
+              if (!extractedUsername) {
+                return Response.json({
+                  success: false,
+                  error: 'username_not_detected',
+                  message: `Não conseguimos confirmar o @ do print de @${normalizedUsername}. Envie um print real e nítido do perfil @${normalizedUsername}.`
+                }, { headers: corsHeaders });
+              }
 
-              if (extractedUsername && extractedUsername !== normalizedUsername) {
+              if (extractedUsername !== normalizedUsername) {
                 console.log(`❌ Username mismatch: expected @${normalizedUsername}, got @${extractedUsername}`);
                 return Response.json({
                   success: false,
@@ -143,7 +147,7 @@ URL da imagem: ${screenshot_url}`;
                 }, { headers: corsHeaders });
               }
 
-              extracted.username = extractedUsername || normalizedUsername;
+              extracted.username = extractedUsername;
 
               return Response.json({
                 success: true,
@@ -155,27 +159,18 @@ URL da imagem: ${screenshot_url}`;
           }
         } else {
           const errorText = await response.text();
-          console.error('❌ DeepSeek screenshot analysis error:', response.status, errorText);
+          console.error('❌ Gemini Vision analysis error:', response.status, errorText);
         }
-      } catch (deepseekError) {
-        console.error('❌ DeepSeek screenshot analysis failed:', deepseekError);
+      } catch (visionError) {
+        console.error('❌ Gemini Vision analysis failed:', visionError);
       }
     }
 
+    // Fallback — no API key or vision failed
     return Response.json({
-      success: true,
-      analysis: {
-        strengths: ['✅ Perfil visualmente apresentável', '✅ Presença no Instagram estabelecida'],
-        weaknesses: ['⚠️ Análise completa não disponível no momento'],
-        opportunities: ['🎯 Implementar estratégia MRO para crescimento'],
-        niche: 'A ser identificado',
-        audienceType: 'Público local',
-        contentScore: 65,
-        engagementScore: 60,
-        profileScore: 62,
-        recommendations: ['Tente enviar novamente para análise completa']
-      },
-      extracted_data: { username: normalizedUsername, followers: 0, following: 0, posts_count: 0 },
+      success: false,
+      error: 'analysis_unavailable',
+      message: 'Análise de screenshot não disponível no momento. Tente novamente.',
     }, { headers: corsHeaders });
 
   } catch (error) {
