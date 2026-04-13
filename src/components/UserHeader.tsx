@@ -143,11 +143,11 @@ export const UserHeader = ({ onLogout, onReanalysisComplete }: UserHeaderProps) 
   };
 
   return (
-    <div className="flex items-center gap-1 sm:gap-3">
+    <div className="flex items-center gap-1 sm:gap-3 min-w-0 max-w-full">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-secondary/50 text-xs sm:text-sm max-w-[180px] sm:max-w-none">
+            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-secondary/50 text-xs sm:text-sm max-w-[180px] lg:max-w-[220px] xl:max-w-none min-w-0">
               <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="font-medium truncate">{user.username}</span>
               

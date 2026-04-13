@@ -33,7 +33,7 @@ export const TutorialButton = ({
         <Button 
           variant={variant}
           size={size}
-          className={`gap-2 ${className}`}
+          className={`gap-2 shrink-0 whitespace-nowrap ${className}`}
         >
           <GraduationCap className="w-4 h-4" />
           <span className="hidden sm:inline">Tutorial</span>
