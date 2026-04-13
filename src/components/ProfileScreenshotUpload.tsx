@@ -13,6 +13,7 @@ interface ProfileScreenshotUploadProps {
   uploadCount?: number;
   analysisCompleted?: boolean;
   onScreenshotUploaded: (url: string) => void;
+  onScreenshotRemoved?: () => void;
   onAnalysisComplete?: (analysis: any) => void;
   onProfileDataExtracted?: (profileData: Partial<InstagramProfile>) => void;
 }
@@ -24,6 +25,7 @@ export const ProfileScreenshotUpload = ({
   uploadCount = 0,
   analysisCompleted = false,
   onScreenshotUploaded,
+  onScreenshotRemoved,
   onAnalysisComplete,
   onProfileDataExtracted
 }: ProfileScreenshotUploadProps) => {
@@ -137,6 +139,14 @@ export const ProfileScreenshotUpload = ({
                 };
                 if (extracted.username && extracted.username.toLowerCase() !== username.toLowerCase()) {
                   console.log(`⚠️ Screenshot username @${extracted.username} differs from registered @${username}`);
+                  toast.error(`O print enviado é do perfil @${extracted.username}, mas a conta cadastrada é @${username}. Envie um print real do perfil @${username}.`);
+                  // Auto-remove the wrong screenshot and allow re-upload
+                  setPreviewUrl(null);
+                  setSelectedFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                  if (onScreenshotRemoved) onScreenshotRemoved();
+                  setIsAnalyzing(false);
+                  return;
                 }
                 onProfileDataExtracted(profileUpdate);
               }
@@ -223,7 +233,7 @@ export const ProfileScreenshotUpload = ({
         {previewUrl ? (
           <div className="relative rounded-lg overflow-hidden border border-border">
             <img src={previewUrl} alt="Print do perfil" className="w-full max-h-[300px] sm:max-h-[400px] object-contain bg-muted" />
-            {!isUploading && !isAnalyzing && (
+            {!isUploading && !isAnalyzing && !analysisCompleted && (
               <Button variant="destructive" size="icon" className="absolute top-2 right-2 w-8 h-8" onClick={handleRemove}>
                 <X className="w-4 h-4" />
               </Button>
