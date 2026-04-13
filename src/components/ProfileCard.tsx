@@ -80,13 +80,20 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
     }
   };
 
-  const handleAdminReanalyze = () => {
-    if (adminPassword === 'Ga145523@') {
+  const handleAdminReanalyze = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-admin-password', {
+        body: { password: adminPassword }
+      });
+      if (error || !data?.success) {
+        toast.error('Senha incorreta.');
+        return;
+      }
       setShowAdminDialog(false);
       setAdminPassword('');
       handleReanalyze();
-    } else {
-      toast.error('Senha incorreta.');
+    } catch {
+      toast.error('Erro ao verificar senha.');
     }
   };
 
