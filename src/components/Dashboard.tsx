@@ -373,6 +373,22 @@ export const Dashboard = ({
                   syncSessionToPersistent(getLoggedInUsername());
                 }
               }}
+              onScreenshotRemoved={() => {
+                console.log(`🗑️ Removing invalid screenshot for @${activeProfile.profile.username}`);
+                const session = getSession();
+                const profileIndex = session.profiles.findIndex(p => p.id === activeProfile.id);
+                if (profileIndex !== -1) {
+                  session.profiles[profileIndex].screenshotUrl = null;
+                  // Decrement upload count so user can try again
+                  const currentCount = session.profiles[profileIndex].screenshotUploadCount || 0;
+                  if (currentCount > 0) {
+                    session.profiles[profileIndex].screenshotUploadCount = currentCount - 1;
+                  }
+                  onSessionUpdate(session);
+                  syncSessionToPersistent(getLoggedInUsername());
+                  refreshSession();
+                }
+              }}
               onAnalysisComplete={(analysis) => {
                 if (analysis) {
                   updateAnalysis(analysis);
