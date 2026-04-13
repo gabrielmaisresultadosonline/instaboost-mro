@@ -503,64 +503,44 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
           </CardContent>
         </Card>
 
-          {/* Sync Accounts */}
-          <Card className="glass-card border-secondary/30" data-tutorial="sync-section">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <RefreshCw className="w-5 h-5" />
-                Sincronizar Contas
-              </CardTitle>
-              <CardDescription>
-                Importe perfis já cadastrados na sua conta MRO
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 rounded-lg bg-yellow-500/20 border border-yellow-500/40 text-yellow-200">
-                <p className="text-xs font-medium flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Use apenas se:</strong> seus perfis não carregaram corretamente ou se você já tinha contas cadastradas antes.
-                  </span>
-                </p>
-              </div>
-              
-              {user?.email ? (
-                <p className="text-sm text-muted-foreground" data-tutorial="sync-email">E-mail: {user.email}</p>
-              ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="sync-email">E-mail para sincronizar</Label>
-                  <Input id="sync-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-background/50" data-tutorial="sync-email" />
-                </div>
-              )}
-              <Button 
-                variant="secondary" className="w-full" 
-                onClick={() => setShowSyncConfirmDialog(true)}
-                disabled={isSyncing}
-                data-tutorial="sync-button"
-              >
-                {isSyncing ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sincronizando...</>
-                ) : (
-                  <><Download className="w-4 h-4 mr-2" />Sincronizar Contas</>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Registered IGs List */}
+        {/* Registered IGs List - Clickable cards */}
         {registeredIGs.length > 0 && (
           <Card className="glass-card" data-tutorial="perfis-list">
             <CardHeader>
-              <CardTitle className="text-lg">Perfis Cadastrados</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Instagram className="w-5 h-5" />
+                Suas Contas ({registeredIGs.length})
+              </CardTitle>
+              <CardDescription>Clique em uma conta para acessar a área de membros</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {registeredIGs.map((ig) => (
-                  <div key={ig} className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm">
-                    <Check className="w-3 h-3 text-primary" />
-                    @{ig}
-                  </div>
+                  <button
+                    key={ig}
+                    type="button"
+                    onClick={() => {
+                      const storageSession = getStorageSession();
+                      const profileSession = storageSession.profiles.find(
+                        (p: any) => p.profile.username.toLowerCase() === ig.toLowerCase()
+                      );
+                      if (profileSession) {
+                        setActiveProfileInStorage(profileSession.id);
+                      }
+                      if (onEnterMemberArea) onEnterMemberArea();
+                    }}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-primary/20 border border-border/50 hover:border-primary/50 transition-all cursor-pointer group text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] flex items-center justify-center flex-shrink-0">
+                      <Instagram className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">@{ig}</p>
+                      <p className="text-xs text-muted-foreground">Clique para acessar</p>
+                    </div>
+                    <LayoutDashboard className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                  </button>
                 ))}
               </div>
             </CardContent>
