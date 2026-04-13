@@ -290,16 +290,6 @@ export default function InstagramNovaAdmin() {
       if (activeAffiliate) {
         setAffiliateId(activeAffiliate.id);
         setAffiliateName(activeAffiliate.name);
-        setAffiliatePercentage(activeAffiliate.percentage);
-        if (activeAffiliate.whatsappLink) {
-          setAffiliateWhatsappLink(activeAffiliate.whatsappLink);
-        }
-        if (activeAffiliate.pixKey) {
-          setAffiliatePixKey(activeAffiliate.pixKey);
-        }
-        if (activeAffiliate.customPrice !== undefined) {
-          setAffiliateCustomPrice(activeAffiliate.customPrice);
-        }
       }
       
       if (forceRefresh) {
