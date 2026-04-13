@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Loader2, LogIn, User, Lock, Clock } from 'lucide-react';
-import { loginToSquare } from '@/lib/squareApi';
+import { loginToSquare, verifyRegisteredIGs } from '@/lib/squareApi';
 import { loginUser, getUserSession, saveUserToCloud } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
