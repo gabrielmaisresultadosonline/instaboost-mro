@@ -206,6 +206,16 @@ export default function InstagramNovaAdmin() {
   const [newEmail, setNewEmail] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
 
+  // Remarketing state
+  const [remarketingSelected, setRemarketingSelected] = useState<Set<string>>(new Set());
+  const [remarketingSending, setRemarketingSending] = useState(false);
+  const [remarketingSentCount, setRemarketingSentCount] = useState(0);
+  const [remarketingTotalToSend, setRemarketingTotalToSend] = useState(0);
+  const [remarketingTestEmail, setRemarketingTestEmail] = useState("");
+  const [remarketingSentHistory, setRemarketingSentHistory] = useState<Set<string>>(new Set());
+  const [remarketingHistoryLoaded, setRemarketingHistoryLoaded] = useState(false);
+  const remarketingSendingRef = useRef(false);
+
   const getAdminSessionToken = (tokenOverride?: string) => {
     return tokenOverride || adminSessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
   };
