@@ -18,11 +18,20 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
   const [localProfilePicUrl, setLocalProfilePicUrl] = useState(profile.profilePicUrl);
   const { toast } = useToast();
 
+  const [triedCacheFallback, setTriedCacheFallback] = useState(false);
+
   // Reset photo state when profile changes
   useEffect(() => {
     setLocalProfilePicUrl(profile.profilePicUrl);
     setPhotoError(false);
+    setTriedCacheFallback(false);
   }, [profile.username, profile.profilePicUrl]);
+
+  // Build the cached profile image URL from Supabase storage
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const cachedImageUrl = supabaseUrl
+    ? `${supabaseUrl}/storage/v1/object/public/profile-cache/profiles/${profile.username?.toLowerCase()}.jpg`
+    : null;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -125,7 +134,14 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
                 alt={profile.fullName}
                 className="w-full h-full object-cover"
                 onError={() => {
-                  setPhotoError(true);
+                  // Try cached image from Supabase storage before giving up
+                  if (!triedCacheFallback && cachedImageUrl && localProfilePicUrl !== cachedImageUrl) {
+                    console.log(`📸 Photo failed, trying cached image for @${profile.username}`);
+                    setTriedCacheFallback(true);
+                    setLocalProfilePicUrl(cachedImageUrl);
+                  } else {
+                    setPhotoError(true);
+                  }
                 }}
               />
             ) : (
