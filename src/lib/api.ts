@@ -284,6 +284,13 @@ export const recoverProfileFromScreenshot = async (
       return { success: false, error: error.message };
     }
 
+    if (data?.success === false) {
+      return {
+        success: false,
+        error: data?.message || 'O print salvo não pode ser usado para este perfil.'
+      };
+    }
+
     const extracted = data?.extracted_data || {};
     const toNumber = (value: unknown): number => {
       if (typeof value === 'number' && Number.isFinite(value)) return value;

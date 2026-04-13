@@ -378,12 +378,24 @@ export const Dashboard = ({
                 const session = getSession();
                 const profileIndex = session.profiles.findIndex(p => p.id === activeProfile.id);
                 if (profileIndex !== -1) {
-                  session.profiles[profileIndex].screenshotUrl = null;
-                  // Decrement upload count so user can try again
-                  const currentCount = session.profiles[profileIndex].screenshotUploadCount || 0;
-                  if (currentCount > 0) {
-                    session.profiles[profileIndex].screenshotUploadCount = currentCount - 1;
+                  const profileSession = session.profiles[profileIndex];
+                  const history = [...(profileSession.screenshotHistory || [])];
+                  if (history.length > 0) {
+                    history.pop();
                   }
+                  profileSession.screenshotHistory = history;
+                  profileSession.screenshotUrl = history.length > 0 ? history[history.length - 1].url : null;
+
+                  const currentCount = profileSession.screenshotUploadCount || 0;
+                  if (currentCount > 0) {
+                    profileSession.screenshotUploadCount = currentCount - 1;
+                  }
+
+                  if (!profileSession.screenshotUrl) {
+                    profileSession.profile.needsScreenshotAnalysis = true;
+                    profileSession.profile.dataSource = 'placeholder';
+                  }
+
                   onSessionUpdate(session);
                   syncSessionToPersistent(getLoggedInUsername());
                   refreshSession();

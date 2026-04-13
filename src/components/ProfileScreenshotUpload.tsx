@@ -103,8 +103,7 @@ export const ProfileScreenshotUpload = ({
           onScreenshotUploaded(data.url);
           setSelectedFile(null);
           toast.success('Print enviado com sucesso!');
-          
-          // Auto-start analysis after upload
+
           setIsAnalyzing(true);
           try {
             const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-profile-screenshot', {
@@ -112,47 +111,46 @@ export const ProfileScreenshotUpload = ({
             });
 
             if (analysisError) throw analysisError;
-            
-            if (analysisData?.success === false && analysisData?.error === 'not_instagram_profile') {
-              toast.error('Este print não parece ser de um perfil do Instagram. Envie um print real do perfil que está utilizando.');
-              setIsAnalyzing(false);
-              return;
-            }
-            
-            if (analysisData?.analysis) {
-              if (onAnalysisComplete) onAnalysisComplete(analysisData.analysis);
-              
-              // Extract profile data from screenshot and update profile
-              if (onProfileDataExtracted && analysisData?.extracted_data) {
-                const extracted = analysisData.extracted_data;
-                const profileUpdate: Partial<InstagramProfile> = {
-                  followers: Number(extracted.followers) || 0,
-                  following: Number(extracted.following) || 0,
-                  posts: Number(extracted.posts_count) || 0,
-                  bio: extracted.bio || '',
-                  fullName: extracted.full_name || '',
-                  isBusinessAccount: extracted.is_business || false,
-                  category: extracted.category || '',
-                  externalUrl: extracted.external_link || '',
-                  needsScreenshotAnalysis: false,
-                  dataSource: 'screenshot',
-                };
-                if (extracted.username && extracted.username.toLowerCase() !== username.toLowerCase()) {
-                  console.log(`⚠️ Screenshot username @${extracted.username} differs from registered @${username}`);
-                  toast.error(`O print enviado é do perfil @${extracted.username}, mas a conta cadastrada é @${username}. Envie um print real do perfil @${username}.`);
-                  // Auto-remove the wrong screenshot and allow re-upload
-                  setPreviewUrl(null);
-                  setSelectedFile(null);
-                  if (fileInputRef.current) fileInputRef.current.value = '';
-                  if (onScreenshotRemoved) onScreenshotRemoved();
-                  setIsAnalyzing(false);
-                  return;
-                }
-                onProfileDataExtracted(profileUpdate);
+
+            if (analysisData?.success === false) {
+              if (analysisData?.error === 'not_instagram_profile' || analysisData?.error === 'username_mismatch') {
+                toast.error(
+                  analysisData?.message ||
+                    (analysisData?.error === 'username_mismatch'
+                      ? `O print enviado não corresponde ao perfil @${username}. Troque o print e tente novamente.`
+                      : 'Este print não parece ser de um perfil do Instagram. Envie um print real do perfil que está utilizando.')
+                );
+                setPreviewUrl(null);
+                setSelectedFile(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                onScreenshotRemoved?.();
+                return;
               }
-              
-              toast.success('Análise concluída! Dados do perfil atualizados.');
             }
+
+            const extracted = analysisData?.extracted_data;
+
+            if (analysisData?.analysis && onAnalysisComplete) {
+              onAnalysisComplete(analysisData.analysis);
+            }
+
+            if (onProfileDataExtracted && extracted) {
+              const profileUpdate: Partial<InstagramProfile> = {
+                followers: Number(extracted.followers) || 0,
+                following: Number(extracted.following) || 0,
+                posts: Number(extracted.posts_count) || 0,
+                bio: extracted.bio || '',
+                fullName: extracted.full_name || '',
+                isBusinessAccount: extracted.is_business || false,
+                category: extracted.category || '',
+                externalUrl: extracted.external_link || '',
+                needsScreenshotAnalysis: false,
+                dataSource: 'screenshot',
+              };
+              onProfileDataExtracted(profileUpdate);
+            }
+
+            toast.success('Análise concluída! Dados do perfil atualizados.');
           } catch (analysisErr) {
             console.error('Analysis error:', analysisErr);
             toast.error('Erro na análise. Tente novamente.');

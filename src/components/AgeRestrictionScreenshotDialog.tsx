@@ -134,6 +134,15 @@ export const AgeRestrictionScreenshotDialog = ({
         });
 
         if (analysisError) throw analysisError;
+
+        if (analysisData?.success === false) {
+          throw new Error(
+            analysisData?.message ||
+              (analysisData?.error === 'username_mismatch'
+                ? `O print enviado não corresponde ao perfil @${username}.`
+                : 'Não foi possível extrair dados do print')
+          );
+        }
         
         if (analysisData?.extracted_data || analysisData?.analysis) {
           const extracted = analysisData.extracted_data || {};

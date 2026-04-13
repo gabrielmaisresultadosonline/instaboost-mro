@@ -38,7 +38,7 @@ RETORNE APENAS JSON VÁLIDO no seguinte formato:
 {
   "not_instagram": false,
   "extracted_data": {
-    "username": "${normalizedUsername}",
+    "username": "username exato visível no print, sem @",
     "full_name": "",
     "bio": "",
     "followers": 0,
@@ -72,7 +72,8 @@ RETORNE APENAS JSON VÁLIDO no seguinte formato:
 Regras extras:
 - followers, following e posts_count devem ser números inteiros.
 - Se o print mostrar pontuação brasileira como 4.254 ou 1,2 mil, converta para número inteiro.
-- Preserve o username informado se ele bater com o print.`;
+- Extraia o username real visível no print. Nunca copie automaticamente o username informado pelo sistema se ele não estiver visível na imagem.
+- Se o @ visível no print for diferente de @${normalizedUsername}, ainda retorne o username extraído corretamente no JSON.`;
 
     const userPrompt = `Leia este print do Instagram e extraia os dados visíveis do perfil @${normalizedUsername}.
 Depois gere uma análise profissional curta baseada no que aparece no print.
@@ -122,7 +123,18 @@ Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram
               }
 
               const extracted = analysisResult.extracted_data || {};
-              extracted.username = extracted.username || normalizedUsername;
+              const extractedUsername = String(extracted.username || '').replace('@', '').trim().toLowerCase();
+
+              if (extractedUsername && extractedUsername !== normalizedUsername) {
+                console.log(`❌ Username mismatch: expected @${normalizedUsername}, got @${extractedUsername}`);
+                return Response.json({
+                  success: false,
+                  error: 'username_mismatch',
+                  message: `O print enviado é do perfil @${extractedUsername}, mas a conta cadastrada é @${normalizedUsername}. Envie um print real do perfil @${normalizedUsername}.`
+                }, { headers: corsHeaders });
+              }
+
+              extracted.username = extractedUsername || normalizedUsername;
 
               return Response.json({
                 success: true,
