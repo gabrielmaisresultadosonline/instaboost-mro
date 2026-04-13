@@ -44,12 +44,18 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
 
       if (error) throw error;
 
-      if (analysisData?.success === false && analysisData?.error === 'not_instagram_profile') {
-        toast.error('Este print não parece ser de um perfil do Instagram.');
-        return;
+      if (analysisData?.success === false) {
+        if (analysisData?.error === 'not_instagram_profile' || analysisData?.error === 'username_mismatch') {
+          toast.error(
+            analysisData?.message ||
+              (analysisData?.error === 'username_mismatch'
+                ? `O print enviado não corresponde ao perfil @${profile.username}. Troque o print para continuar.`
+                : 'Este print não parece ser de um perfil do Instagram.')
+          );
+          return;
+        }
       }
 
-      // Check username mismatch
       if (analysisData?.extracted_data) {
         const extracted = analysisData.extracted_data;
         if (extracted.username && extracted.username.toLowerCase() !== profile.username.toLowerCase()) {
