@@ -384,37 +384,32 @@ export const Dashboard = ({
               existingScreenshotUrl={activeProfile.screenshotUrl}
               uploadCount={activeProfile.screenshotUploadCount || 0}
               onScreenshotUploaded={(url) => {
-                // CRITICAL: Update ONLY the active profile's screenshot
                 console.log(`📸 Saving screenshot for @${activeProfile.profile.username} (ID: ${activeProfile.id})`);
                 const session = getSession();
                 const profileIndex = session.profiles.findIndex(p => p.id === activeProfile.id);
                 if (profileIndex !== -1) {
                   const profile = session.profiles[profileIndex];
-                  
-                  // Add to history for admin
                   const history = profile.screenshotHistory || [];
-                  history.push({
-                    url,
-                    uploadedAt: new Date().toISOString()
-                  });
-                  
-                  // Update screenshot data ONLY for this specific profile
+                  history.push({ url, uploadedAt: new Date().toISOString() });
                   session.profiles[profileIndex].screenshotUrl = url;
                   session.profiles[profileIndex].screenshotUploadCount = (profile.screenshotUploadCount || 0) + 1;
                   session.profiles[profileIndex].screenshotHistory = history;
-                  
-                  console.log(`📸 Screenshot saved for @${profile.profile.username}:`, url);
-                  
                   onSessionUpdate(session);
                   syncSessionToPersistent(getLoggedInUsername());
                 }
               }}
               onAnalysisComplete={(analysis) => {
-                // Update analysis with new data from screenshot
                 if (analysis) {
                   updateAnalysis(analysis);
                   refreshSession();
                 }
+              }}
+              onProfileDataExtracted={(profileData) => {
+                // Update profile with real data extracted from screenshot
+                console.log(`📊 Updating profile @${activeProfile.profile.username} with extracted data:`, profileData);
+                const updatedProfile = { ...activeProfile.profile, ...profileData };
+                updateProfile(updatedProfile);
+                refreshSession();
               }}
             />
           </div>
