@@ -5,6 +5,7 @@ import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { readInstagramScreenshot } from '@/lib/instagramScreenshot';
 import {
   Dialog,
   DialogContent,
@@ -38,8 +39,15 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
     if (!screenshotUrl) return;
     setIsReanalyzing(true);
     try {
+      const ocrResult = await readInstagramScreenshot(screenshotUrl);
+
+      if (ocrResult.detectedUsername && ocrResult.detectedUsername !== profile.username.toLowerCase()) {
+        toast.error(`O print salvo é do perfil @${ocrResult.detectedUsername}, mas a conta cadastrada é @${profile.username}. Troque o print para continuar.`);
+        return;
+      }
+
       const { data: analysisData, error } = await supabase.functions.invoke('analyze-profile-screenshot', {
-        body: { screenshot_url: screenshotUrl, username: profile.username }
+        body: { screenshot_url: screenshotUrl, username: profile.username, ocr_text: ocrResult.text }
       });
 
       if (error) throw error;

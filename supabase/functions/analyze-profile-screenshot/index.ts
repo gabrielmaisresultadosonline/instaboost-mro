@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { screenshot_url, username } = await req.json();
+    const { screenshot_url, username, ocr_text } = await req.json();
 
     if (!screenshot_url) {
       return Response.json(
@@ -24,15 +24,23 @@ serve(async (req) => {
 
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     const normalizedUsername = String(username || 'username').replace('@', '').trim().toLowerCase();
+    const normalizedOcrText = typeof ocr_text === 'string' ? ocr_text.trim() : '';
 
-    const systemPrompt = `Você é um especialista em marketing digital e leitura visual de prints de perfis do Instagram.
+    if (!normalizedOcrText) {
+      return Response.json({
+        success: false,
+        error: 'ocr_required',
+        message: `Não conseguimos validar o @ do print de @${normalizedUsername}. Envie um print real do perfil para continuar.`
+      }, { status: 400, headers: corsHeaders });
+    }
 
-PRIMEIRO: Verifique se a imagem é realmente um print/screenshot de um perfil do Instagram. 
-Se NÃO for um print do Instagram (por exemplo: foto aleatória, meme, outro app, etc), responda APENAS:
+    const systemPrompt = `Você é um especialista em marketing digital e leitura de OCR de prints de perfis do Instagram.
+
+PRIMEIRO: Verifique se o texto OCR pertence realmente a um print/screenshot de perfil do Instagram.
+Se NÃO for um print do Instagram (por exemplo: foto aleatória, meme, outro app, ou OCR sem sinais de perfil), responda APENAS:
 {"not_instagram": true}
 
-Se FOR um print válido do Instagram, leia o print do perfil e extraia APENAS dados realmente visíveis na imagem.
-Não invente números. Se algum campo não estiver legível, use 0 ou string vazia.
+Se FOR um print válido do Instagram, use APENAS as informações visíveis no OCR abaixo. Não invente números. Se algum campo não estiver legível, use 0 ou string vazia.
 
 RETORNE APENAS JSON VÁLIDO no seguinte formato:
 {
@@ -71,13 +79,20 @@ RETORNE APENAS JSON VÁLIDO no seguinte formato:
 
 Regras extras:
 - followers, following e posts_count devem ser números inteiros.
-- Se o print mostrar pontuação brasileira como 4.254 ou 1,2 mil, converta para número inteiro.
-- Extraia o username real visível no print. Nunca copie automaticamente o username informado pelo sistema se ele não estiver visível na imagem.
+- Se o OCR mostrar pontuação brasileira como 4.254 ou 1,2 mil, converta para número inteiro.
+- Extraia o username real visível no print. Nunca copie automaticamente o username informado pelo sistema se ele não estiver visível no OCR.
 - Se o @ visível no print for diferente de @${normalizedUsername}, ainda retorne o username extraído corretamente no JSON.`;
 
-    const userPrompt = `Leia este print do Instagram e extraia os dados visíveis do perfil @${normalizedUsername}.
-Depois gere uma análise profissional curta baseada no que aparece no print.
-Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram": true}.`;
+    const userPrompt = `Leia o OCR deste print do Instagram e extraia os dados visíveis do perfil.
+Depois gere uma análise profissional curta baseada no que aparece no texto.
+Se este OCR NÃO corresponder a um print de perfil do Instagram, retorne {"not_instagram": true}.
+
+@ esperado no cadastro: @${normalizedUsername}
+
+OCR do print:
+"""
+${normalizedOcrText.slice(0, 12000)}
+"""`;
 
     if (DEEPSEEK_API_KEY) {
       try {
@@ -91,13 +106,7 @@ Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram
             model: 'deepseek-chat',
             messages: [
               { role: 'system', content: systemPrompt },
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: userPrompt },
-                  { type: 'image_url', image_url: { url: screenshot_url } }
-                ]
-              }
+              { role: 'user', content: userPrompt }
             ],
             temperature: 0.2,
             max_tokens: 2500,
@@ -124,6 +133,14 @@ Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram
 
               const extracted = analysisResult.extracted_data || {};
               const extractedUsername = String(extracted.username || '').replace('@', '').trim().toLowerCase();
+
+               if (!extractedUsername) {
+                 return Response.json({
+                   success: false,
+                   error: 'username_not_detected',
+                   message: `Não conseguimos confirmar o @ do print de @${normalizedUsername}. Envie um print real e nítido do perfil @${normalizedUsername}.`
+                 }, { headers: corsHeaders });
+               }
 
               if (extractedUsername && extractedUsername !== normalizedUsername) {
                 console.log(`❌ Username mismatch: expected @${normalizedUsername}, got @${extractedUsername}`);
@@ -154,46 +171,16 @@ Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram
     }
 
     return Response.json({
-      success: true,
-      analysis: generateFallbackAnalysis(username),
-      extracted_data: { username: normalizedUsername, followers: 0, following: 0, posts_count: 0 },
-    }, { headers: corsHeaders });
+      success: false,
+      error: 'analysis_unavailable',
+      message: `Não foi possível validar o print de @${normalizedUsername} agora. Envie novamente um print real do perfil.`,
+    }, { status: 503, headers: corsHeaders });
 
   } catch (error) {
     console.error('❌ Error analyzing screenshot:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro ao analisar screenshot';
     return Response.json(
-      { success: false, error: errorMessage, analysis: generateFallbackAnalysis() },
+      { success: false, error: 'Erro ao analisar screenshot' },
       { status: 500, headers: corsHeaders }
     );
   }
 });
-
-function generateFallbackAnalysis(username?: string) {
-  return {
-    strengths: [
-      '✅ Perfil visualmente apresentável',
-      '✅ Presença no Instagram estabelecida',
-      '✅ Potencial para crescimento orgânico'
-    ],
-    weaknesses: [
-      '⚠️ Análise completa não disponível no momento',
-      '⚠️ Recomendamos tentar novamente em alguns minutos'
-    ],
-    opportunities: [
-      '🎯 Implementar estratégia MRO para crescimento',
-      '🎯 Otimizar bio e chamadas para ação',
-      '🎯 Aumentar consistência de posts'
-    ],
-    niche: username ? `Nicho de @${username}` : 'A ser identificado',
-    audienceType: 'Público local',
-    contentScore: 65,
-    engagementScore: 60,
-    profileScore: 62,
-    recommendations: [
-      'Tente enviar novamente para análise completa',
-      'Certifique-se que o print mostra todo o perfil',
-      'Imagens mais nítidas geram melhores análises'
-    ]
-  };
-}

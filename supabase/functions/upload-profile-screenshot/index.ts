@@ -12,20 +12,56 @@ serve(async (req) => {
   }
 
   try {
-    const { username, squarecloud_username, image_base64, content_type } = await req.json();
+    const { action, username, squarecloud_username, image_base64, content_type, screenshot_url } = await req.json();
 
-    if (!username || !squarecloud_username || !image_base64) {
+    if (!username || !squarecloud_username) {
       return Response.json(
         { success: false, error: 'Dados obrigatórios faltando' },
         { status: 400, headers: corsHeaders }
       );
     }
 
-    console.log(`📸 Uploading profile screenshot for @${username} (user: ${squarecloud_username})`);
+    const normalizedUsername = String(username).toLowerCase().replace('@', '').trim();
+    const normalizedSquarecloudUsername = String(squarecloud_username).toLowerCase().trim();
+
+    console.log(`📸 Uploading profile screenshot for @${normalizedUsername} (user: ${normalizedSquarecloudUsername})`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    if (action === 'set' || action === 'clear') {
+      const nextUrl = action === 'set' ? String(screenshot_url || '') || null : null;
+
+      const { error: updateError } = await supabase
+        .from('squarecloud_user_profiles')
+        .update({ 
+          profile_screenshot_url: nextUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('squarecloud_username', normalizedSquarecloudUsername)
+        .eq('instagram_username', normalizedUsername);
+
+      if (updateError) {
+        console.error('❌ Screenshot restore/clear error:', updateError);
+        return Response.json(
+          { success: false, error: updateError.message },
+          { status: 500, headers: corsHeaders }
+        );
+      }
+
+      return Response.json(
+        { success: true, url: nextUrl, message: action === 'set' ? 'Screenshot restaurado' : 'Screenshot removido' },
+        { headers: corsHeaders }
+      );
+    }
+
+    if (!image_base64) {
+      return Response.json(
+        { success: false, error: 'Imagem obrigatória para upload' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
 
     // Convert base64 to Uint8Array
     const binaryString = atob(image_base64);
@@ -40,7 +76,7 @@ serve(async (req) => {
 
     // Create unique filename
     const timestamp = Date.now();
-    const filePath = `screenshots/${squarecloud_username}/${username}_${timestamp}.${extension}`;
+    const filePath = `screenshots/${normalizedSquarecloudUsername}/${normalizedUsername}_${timestamp}.${extension}`;
 
     // Upload to storage bucket (profile-cache)
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -70,8 +106,8 @@ serve(async (req) => {
         profile_screenshot_url: screenshotUrl,
         updated_at: new Date().toISOString()
       })
-      .eq('squarecloud_username', squarecloud_username)
-      .eq('instagram_username', username.toLowerCase());
+      .eq('squarecloud_username', normalizedSquarecloudUsername)
+      .eq('instagram_username', normalizedUsername);
 
     if (updateError) {
       console.warn('⚠️ Could not update profile record:', updateError);

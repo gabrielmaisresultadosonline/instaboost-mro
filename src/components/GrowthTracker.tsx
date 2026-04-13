@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { GrowthPDFExport } from './GrowthPDFExport';
 import { supabase } from '@/integrations/supabase/client';
+import { readInstagramScreenshot, restoreStoredScreenshot } from '@/lib/instagramScreenshot';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
@@ -101,6 +102,21 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
     setIsUploading(true);
 
     try {
+      const ocrResult = await readInstagramScreenshot(selectedFile);
+
+      if (ocrResult.detectedUsername && ocrResult.detectedUsername !== profileSession.profile.username.toLowerCase()) {
+        toast({
+          title: `O print enviado é do perfil @${ocrResult.detectedUsername}`,
+          description: `Envie o print real do perfil @${profileSession.profile.username}.`,
+          variant: 'destructive'
+        });
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        setIsUploading(false);
+        return;
+      }
+
       // Upload image first
       const reader = new FileReader();
       reader.onload = async (event) => {
@@ -124,7 +140,7 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
 
         // Analyze via DeepSeek
         const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-profile-screenshot', {
-          body: { screenshot_url: uploadData.url, username: profileSession.profile.username }
+          body: { screenshot_url: uploadData.url, username: profileSession.profile.username, ocr_text: ocrResult.text }
         });
 
         if (analysisError) {
@@ -133,8 +149,13 @@ export const GrowthTracker = ({ profileSession, onUpdate }: GrowthTrackerProps) 
           return;
         }
 
-        if (analysisData?.success === false && analysisData?.error === 'not_instagram_profile') {
-          toast({ title: 'Este print não parece ser de um perfil do Instagram', variant: 'destructive' });
+        if (analysisData?.success === false) {
+          await restoreStoredScreenshot({
+            username: profileSession.profile.username,
+            squarecloudUsername: getCurrentUser()?.username || 'growth',
+            screenshotUrl: profileSession.screenshotUrl || null,
+          });
+          toast({ title: analysisData?.message || 'Este print não pode ser usado', variant: 'destructive' });
           setIsUploading(false);
           return;
         }
