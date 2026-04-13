@@ -55,8 +55,7 @@ import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const ADMIN_EMAIL = "mro@gmail.com";
-const ADMIN_PASSWORD = "Ga145523@";
+const ADMIN_SESSION_STORAGE_KEY = "mro_instagram_admin_session";
 
 // Configurações do template de mensagem
 const MEMBER_LINK = "https://maisresultadosonline.com.br/instagram";
@@ -101,6 +100,7 @@ export default function InstagramNovaAdmin() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [adminSessionToken, setAdminSessionToken] = useState("");
   
   const [orders, setOrders] = useState<MROOrder[]>([]);
   const ordersRef = useRef<MROOrder[]>([]);
@@ -206,17 +206,35 @@ export default function InstagramNovaAdmin() {
   const [newEmail, setNewEmail] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
 
-  const loadWebhookLogs = async () => {
+  const getAdminSessionToken = (tokenOverride?: string) => {
+    return tokenOverride || adminSessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
+  };
+
+  const clearAdminSession = () => {
+    localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+    localStorage.removeItem("mro_admin_auth");
+    setAdminSessionToken("");
+    setIsAuthenticated(false);
+  };
+
+  const loadWebhookLogs = async (tokenOverride?: string) => {
+    const token = getAdminSessionToken(tokenOverride);
+    if (!token) return;
+
     setLoadingLogs(true);
     try {
-      const { data, error } = await supabase
-        .from('infinitepay_webhook_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "listLogs", token }
+      });
 
-      if (error) throw error;
-      setWebhookLogs(data || []);
+      if (error || !response?.success) {
+        if (response?.error?.includes("Sessão expirada")) {
+          clearAdminSession();
+        }
+        throw new Error(response?.error || error?.message || "Erro ao carregar logs");
+      }
+
+      setWebhookLogs(response.logs || []);
     } catch (error) {
       console.error("Error loading webhook logs:", error);
       toast.error("Erro ao carregar logs");
@@ -472,10 +490,13 @@ export default function InstagramNovaAdmin() {
 
   // Check if already authenticated
   useEffect(() => {
-    const auth = localStorage.getItem("mro_admin_auth");
-    if (auth === "true") {
+    const storedToken = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+    if (storedToken) {
+      setAdminSessionToken(storedToken);
       setIsAuthenticated(true);
-      loadOrders();
+      loadOrders(storedToken);
+    } else {
+      localStorage.removeItem("mro_admin_auth");
     }
   }, []);
 
@@ -560,26 +581,36 @@ export default function InstagramNovaAdmin() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
 
-    setTimeout(() => {
-      if (loginEmail === ADMIN_EMAIL && loginPassword === ADMIN_PASSWORD) {
-        localStorage.setItem("mro_admin_auth", "true");
-        setIsAuthenticated(true);
-        loadOrders();
-        toast.success("Login realizado com sucesso!");
-      } else {
-        toast.error("Email ou senha incorretos");
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "login", email: loginEmail, password: loginPassword }
+      });
+
+      if (error || !response?.success || !response?.token) {
+        toast.error(response?.error || error?.message || "Email ou senha incorretos");
+        return;
       }
+
+      localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, response.token);
+      localStorage.removeItem("mro_admin_auth");
+      setAdminSessionToken(response.token);
+      setIsAuthenticated(true);
+      await loadOrders(response.token);
+      toast.success("Login realizado com sucesso!");
+    } catch (error) {
+      console.error("Admin login error:", error);
+      toast.error("Erro ao fazer login");
+    } finally {
       setLoginLoading(false);
-    }, 500);
+    }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("mro_admin_auth");
-    setIsAuthenticated(false);
+    clearAdminSession();
     setOrders([]);
     if (autoCheckIntervalRef.current) {
       clearInterval(autoCheckIntervalRef.current);
@@ -587,19 +618,29 @@ export default function InstagramNovaAdmin() {
     toast.info("Logout realizado");
   };
 
-  const loadOrders = async () => {
+  const loadOrders = async (tokenOverride?: string) => {
+    const token = getAdminSessionToken(tokenOverride);
+    if (!token) {
+      setOrders([]);
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("mro_orders")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "listOrders", token }
+      });
 
-      if (error) {
-        console.error("Error loading orders:", error);
-        toast.error("Erro ao carregar pedidos");
+      if (error || !response?.success) {
+        if (response?.error?.includes("Sessão expirada")) {
+          clearAdminSession();
+        }
+        console.error("Error loading orders:", error || response?.error);
+        toast.error(response?.error || "Erro ao carregar pedidos");
         return;
       }
+
+      const data: MROOrder[] = response.orders || [];
 
       // Verificar na API os pedidos paid/completed que não têm api_created = true
       const ordersToVerify = (data || []).filter(
@@ -938,16 +979,15 @@ ${GROUP_LINK}`;
     if (!confirm(`Tem certeza que deseja excluir o pedido de ${order.username}?`)) {
       return;
     }
-    
-    try {
-      const { error } = await supabase
-        .from("mro_orders")
-        .delete()
-        .eq("id", order.id);
 
-      if (error) {
-        console.error("Error deleting order:", error);
-        toast.error("Erro ao excluir pedido");
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "deleteOrder", token: getAdminSessionToken(), orderId: order.id }
+      });
+
+      if (error || !response?.success) {
+        console.error("Error deleting order:", error || response?.error);
+        toast.error(response?.error || "Erro ao excluir pedido");
         return;
       }
 
@@ -1846,15 +1886,13 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     setSavingEmail(true);
     
     try {
-      const { error } = await supabase
-        .from("mro_orders")
-        .update({ 
-          email: newEmail.trim(),
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", editingOrder.id);
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "updateOrderEmail", token: getAdminSessionToken(), orderId: editingOrder.id, email: newEmail.trim() }
+      });
 
-      if (error) throw error;
+      if (error || !response?.success) {
+        throw new Error(response?.error || error?.message || "Erro ao atualizar email");
+      }
       
       toast.success("Email atualizado com sucesso!");
       setShowEditEmailModal(false);
@@ -3507,7 +3545,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           <div className="flex items-center gap-2 mb-4">
             <Button
               size="sm"
-              onClick={loadWebhookLogs}
+              onClick={() => loadWebhookLogs()}
               disabled={loadingLogs}
               className="bg-cyan-600 hover:bg-cyan-700"
             >
