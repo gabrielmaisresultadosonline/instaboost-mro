@@ -30,6 +30,7 @@ import {
   logoutUser,
   saveUserToCloud
 } from '@/lib/userStorage';
+import { verifyRegisteredIGs } from '@/lib/squareApi';
 // API imports removed - profile data now comes from screenshot analysis
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -110,30 +111,32 @@ const Index = () => {
     setIsLoggedIn(true);
     
     try {
+      // CRITICAL: Get authoritative list of IGs from SquareCloud
+      const user = getCurrentUser();
+      const squareResult = await verifyRegisteredIGs(user?.username || '');
+      const squareIGs = squareResult.success && squareResult.instagrams ? squareResult.instagrams : [];
+      const squareIGsSet = new Set(squareIGs.map(ig => ig.toLowerCase()));
+
       const registeredIGs = getRegisteredIGs();
-      setHasRegisteredProfiles(registeredIGs.length > 0);
+      setHasRegisteredProfiles(squareIGs.length > 0 || registeredIGs.length > 0);
       
-      // IMPORTANT: LoginPage already called initializeFromCloud if data exists
-      // Just check the current session state (already initialized from cloud)
+      // IMPORTANT: LoginPage already called initializeFromCloud + reconciliation
       const existingSession = getSession();
       
-      console.log(`🔐 Login completo: ${existingSession.profiles.length} perfis na sessão, ${registeredIGs.length} IGs registrados`);
+      console.log(`🔐 Login completo: ${existingSession.profiles.length} perfis na sessão, ${squareIGs.length} IGs no SquareCloud`);
       
       if (existingSession.profiles.length > 0) {
-        // Data already loaded from cloud by LoginPage - just show dashboard
         setSession(existingSession);
         setShowDashboard(true);
         console.log(`☁️ Perfis já carregados da nuvem - mostrando dashboard direto`);
-      } else if (registeredIGs.length > 0) {
-        // No cloud data but has registered profiles - AUTO SYNC needed
-        const igUsernames = registeredIGs.map(ig => ig.username);
-        console.log(`🔄 Nenhum dado na nuvem, sincronizando ${igUsernames.length} perfis...`);
+      } else if (squareIGs.length > 0) {
+        // No cloud data but has registered profiles in SquareCloud - AUTO SYNC
+        console.log(`🔄 Nenhum dado na nuvem, sincronizando ${squareIGs.length} perfis do SquareCloud...`);
         setIsLoading(true);
         setLoadingMessage('Sincronizando perfis...');
-        setLoadingSubMessage(`Carregando ${igUsernames.length} perfis. Isso pode levar alguns minutos.`);
+        setLoadingSubMessage(`Carregando ${squareIGs.length} perfis. Isso pode levar alguns minutos.`);
         
-        // Trigger auto-sync
-        await handleSyncComplete(igUsernames);
+        await handleSyncComplete(squareIGs);
       } else {
         // No profiles at all - show registration screen
         setSession(existingSession);

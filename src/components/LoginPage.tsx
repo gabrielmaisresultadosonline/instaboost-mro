@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Loader2, LogIn, User, Lock, Clock } from 'lucide-react';
-import { loginToSquare } from '@/lib/squareApi';
+import { loginToSquare, verifyRegisteredIGs } from '@/lib/squareApi';
 import { loginUser, getUserSession, saveUserToCloud } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
@@ -67,6 +67,35 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
           }
         } catch (initError) {
           console.error('[LoginPage] Error initializing from cloud:', initError);
+        }
+
+        // CRITICAL: Reconcile profiles with SquareCloud — remove any that no longer exist there
+        try {
+          const squareResult = await verifyRegisteredIGs(username.trim());
+          if (squareResult.success && squareResult.instagrams) {
+            const squareIGs = new Set(squareResult.instagrams.map(ig => ig.toLowerCase()));
+            const { getSession: getStorageSession, saveSession: saveStorageSession } = await import('@/lib/storage');
+            const currentSession = getStorageSession();
+            const before = currentSession.profiles.length;
+
+            currentSession.profiles = currentSession.profiles.filter(p =>
+              squareIGs.has(p.profile.username.toLowerCase())
+            );
+
+            if (currentSession.profiles.length !== before) {
+              console.log(`🔄 [LoginPage] Removed ${before - currentSession.profiles.length} profiles not found in SquareCloud`);
+              if (currentSession.activeProfileId && !currentSession.profiles.find(p => p.id === currentSession.activeProfileId)) {
+                currentSession.activeProfileId = currentSession.profiles[0]?.id || null;
+              }
+              saveStorageSession(currentSession);
+
+              // Also update cloud to reflect the removal
+              const { syncSessionToPersistent } = await import('@/lib/persistentStorage');
+              await syncSessionToPersistent(username.trim());
+            }
+          }
+        } catch (reconcileError) {
+          console.error('[LoginPage] Error reconciling with SquareCloud:', reconcileError);
         }
         
         // Clean expired creatives and strategies (30 days)
