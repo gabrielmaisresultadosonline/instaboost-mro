@@ -122,17 +122,26 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
                 <Button
                   onClick={handleReanalyze}
                   disabled={isReanalyzing}
-                  size="sm"
-                  className="gap-2 w-full sm:w-auto"
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 shrink-0"
+                  title="Analisar perfil"
+                  aria-label="Analisar perfil"
                 >
                   {isReanalyzing ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /><span className="hidden sm:inline">Analisando...</span><span className="sm:hidden">...</span></>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <><RefreshCw className="w-4 h-4" /><span className="hidden sm:inline">Reanalisar</span><span className="sm:hidden">Analisar</span></>
+                    <Lock className="w-3.5 h-3.5" />
                   )}
                 </Button>
               )}
-              <VideoTutorialButton youtubeUrl="https://youtu.be/mIQ78Skz1BU" title="Tutorial" variant="pulse" size="sm" />
+              <VideoTutorialButton
+                youtubeUrl="https://youtu.be/mIQ78Skz1BU"
+                title="Tutorial"
+                variant="pulse"
+                size="sm"
+                className="h-8 px-2.5 text-xs"
+              />
             </div>
           </div>
         </div>
