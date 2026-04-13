@@ -24,6 +24,7 @@ export const VideoTutorialButton = ({
   className = '',
 }: VideoTutorialButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const iconClassName = size === 'sm' ? 'w-3.5 h-3.5' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4';
 
   const getYoutubeEmbedUrl = (url: string): string => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
@@ -45,7 +46,7 @@ export const VideoTutorialButton = ({
           ${className}
         `}
       >
-        <Play className="w-4 h-4" />
+        <Play className={iconClassName} />
         {title}
       </Button>
 
