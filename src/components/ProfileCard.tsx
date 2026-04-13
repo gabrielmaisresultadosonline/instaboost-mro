@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { InstagramProfile } from '@/types/instagram';
-import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw, Camera } from 'lucide-react';
+import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw, Camera, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
