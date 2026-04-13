@@ -87,45 +87,44 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
   if (needsScreenshot) {
     return (
       <div className="glass-card glow-border p-4 sm:p-6 animate-slide-up relative">
-        <div className="flex flex-col items-center gap-4 py-4">
-          {/* Avatar placeholder */}
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full ring-4 ring-primary/30 bg-primary/20 flex items-center justify-center">
-            <span className="text-xl sm:text-2xl font-bold text-primary">
-              {profile.username?.substring(0, 2).toUpperCase()}
-            </span>
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 py-4">
+          {/* Instagram logo placeholder */}
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full ring-4 ring-primary/30 bg-gradient-to-br from-[hsl(var(--primary)/0.3)] to-[hsl(var(--primary)/0.1)] flex items-center justify-center flex-shrink-0">
+            <Instagram className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
           </div>
           
-          <div className="text-center space-y-2">
+          <div className="text-center sm:text-left space-y-2 flex-1">
             <h2 className="text-lg sm:text-2xl font-display font-bold">@{profile.username}</h2>
-            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <p className="text-sm text-muted-foreground">Perfil cadastrado</p>
+            <div className="flex items-center justify-center sm:justify-start gap-2 text-primary">
               <Camera className="w-4 h-4" />
-              <p className="text-sm">Envie um print do perfil abaixo para carregar todos os dados</p>
+              <p className="text-sm font-medium">Envie um print do perfil abaixo para carregar dados e análise</p>
             </div>
           </div>
+        </div>
 
-          {/* Empty stats placeholder */}
-          <div className="grid grid-cols-3 gap-4 w-full mt-2 pt-4 border-t border-border/50">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-0.5">
-                <Grid3X3 className="w-4 h-4 text-muted-foreground/40" />
-                <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
-              </div>
-              <p className="text-xs text-muted-foreground/40">Posts</p>
+        {/* Empty stats placeholder */}
+        <div className="grid grid-cols-3 gap-4 w-full pt-4 border-t border-border/50">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-0.5">
+              <Grid3X3 className="w-4 h-4 text-muted-foreground/40" />
+              <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-0.5">
-                <Users className="w-4 h-4 text-muted-foreground/40" />
-                <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
-              </div>
-              <p className="text-xs text-muted-foreground/40">Seguidores</p>
+            <p className="text-xs text-muted-foreground/40">Posts</p>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-0.5">
+              <Users className="w-4 h-4 text-muted-foreground/40" />
+              <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-0.5">
-                <UserPlus className="w-4 h-4 text-muted-foreground/40" />
-                <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
-              </div>
-              <p className="text-xs text-muted-foreground/40">Seguindo</p>
+            <p className="text-xs text-muted-foreground/40">Seguidores</p>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-0.5">
+              <UserPlus className="w-4 h-4 text-muted-foreground/40" />
+              <span className="text-lg font-display font-bold text-muted-foreground/40">—</span>
             </div>
+            <p className="text-xs text-muted-foreground/40">Seguindo</p>
           </div>
         </div>
       </div>
