@@ -316,19 +316,7 @@ export const Dashboard = ({
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            {/* MRO Tool Ready Message - shows for newly registered profiles */}
-            {activeProfile.profile.needsScreenshotAnalysis && !hasRealPrintData && (
-              <div className="p-4 sm:p-5 rounded-lg border-2 border-destructive/50 bg-destructive/10">
-                <p className="text-sm sm:text-base text-destructive font-semibold leading-relaxed">
-                  ✅ Este perfil já está habilitado para utilizar com a MRO! Utilize ele agora na ferramenta instalada no seu computador, notebook ou Mac.
-                </p>
-                <p className="text-sm text-destructive/80 mt-2 leading-relaxed">
-                  Também você pode gerar estratégias e análises reais que ajudam na alta conversão e no crescimento do seu perfil sem investir com anúncios. <strong>Envie o print do perfil abaixo para analisar.</strong>
-                </p>
-              </div>
-            )}
-
-            {/* Aviso para perfis com restrição de idade que precisam de screenshot */}
+            {/* Aviso para enviar print - primeira análise */}
             {activeProfile.profile.needsScreenshotAnalysis && !hasRealPrintData && (
               <div className="glass-card glow-border p-4 sm:p-6 border-2 border-primary/50 bg-primary/5">
                 <div className="flex items-start gap-3">
@@ -337,11 +325,9 @@ export const Dashboard = ({
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-lg font-display font-bold text-foreground">
-                      📸 Envie um Print do Perfil para Análise
+                      📸 Envie o print para analisar o seu perfil com nossa Inteligência Artificial
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Para completar o cadastro, envie um print do seu perfil do Instagram abaixo.
-                      <br />
                       Nossa <strong>I.A.</strong> vai ler automaticamente todos os dados do perfil (seguidores, seguindo, posts, bio, nicho) e gerar uma análise completa com estratégias personalizadas!
                     </p>
                   </div>
