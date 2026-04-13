@@ -71,7 +71,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   const [pendingRegisterIG, setPendingRegisterIG] = useState<string>('');
   const [showPreRegisterDialog, setShowPreRegisterDialog] = useState(false);
   const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
-  const [showSyncConfirmDialog, setShowSyncConfirmDialog] = useState(false);
+  const [showSyncConfirmDialog] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -298,41 +298,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
     }
   };
 
-  const handleSyncConfirm = () => {
-    setShowSyncConfirmDialog(false);
-    handleSyncAccountsExecute();
-  };
 
-  const handleSyncAccountsExecute = async () => {
-    if (!user) return;
-
-    setIsSyncing(true);
-
-    try {
-      const result = await verifyRegisteredIGs(user.username);
-      
-      if (result.success && result.instagrams && result.instagrams.length > 0) {
-        if (!email.trim()) {
-          toast({ title: 'Digite seu e-mail', description: 'Necessário para sincronizar', variant: 'destructive' });
-          setIsSyncing(false);
-          return;
-        }
-
-        updateUserEmail(email);
-        await syncIGsFromSquare(result.instagrams, email);
-        setRegisteredIGs(result.instagrams);
-        
-        toast({ title: 'Contas sincronizadas!', description: `${result.instagrams.length} Instagram(s) encontrado(s)` });
-        onSyncComplete(result.instagrams);
-      } else {
-        toast({ title: 'Nenhuma conta encontrada', description: 'Cadastre um novo perfil para começar' });
-      }
-    } catch (error) {
-      toast({ title: 'Erro na sincronização', variant: 'destructive' });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const generateSimplePrint = async (username: string): Promise<Blob | null> => {
     try {
@@ -453,104 +419,57 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
           </CardContent>
         </Card>
 
-        {/* Main Actions */}
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Register New Profile */}
-          <Card className="glass-card border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <UserPlus className="w-5 h-5" />
-                Cadastrar Perfil
-              </CardTitle>
-              <CardDescription>
-                Adicione um novo Instagram à sua conta
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="instagram" className="flex items-center gap-2">
-                  <Instagram className="w-4 h-4" />
-                  Instagram
-                </Label>
-                <Input
-                  id="instagram"
-                  type="text"
-                  placeholder="@usuario ou link do perfil"
-                  value={instagramInput}
-                  onChange={(e) => setInstagramInput(e.target.value)}
-                  disabled={isLoading}
-                  className="bg-background/50"
-                  data-tutorial="instagram-input"
-                />
-              </div>
-              <Button 
-                className="w-full" 
-                onClick={handleSearchProfile}
+        {/* Register New Profile */}
+        <Card className="glass-card border-primary/20">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              {registeredIGs.length > 0 ? 'Cadastrar Nova Conta' : 'Cadastrar Perfil'}
+            </CardTitle>
+            <CardDescription>
+              Adicione um novo Instagram à sua conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="instagram" className="flex items-center gap-2">
+                <Instagram className="w-4 h-4" />
+                Instagram
+              </Label>
+              <Input
+                id="instagram"
+                type="text"
+                placeholder="@usuario ou link do perfil"
+                value={instagramInput}
+                onChange={(e) => setInstagramInput(e.target.value)}
                 disabled={isLoading}
-                data-tutorial="buscar-button"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  <>
-                    <Camera className="w-4 h-4 mr-2" />
-                    Cadastrar Perfil
-                  </>
-                )}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                📸 Após cadastrar, envie um print do perfil para análise completa com I.A.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Sync Accounts */}
-          <Card className="glass-card border-secondary/30" data-tutorial="sync-section">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <RefreshCw className="w-5 h-5" />
-                Sincronizar Contas
-              </CardTitle>
-              <CardDescription>
-                Importe perfis já cadastrados na sua conta MRO
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 rounded-lg bg-yellow-500/20 border border-yellow-500/40 text-yellow-200">
-                <p className="text-xs font-medium flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Use apenas se:</strong> seus perfis não carregaram corretamente ou se você já tinha contas cadastradas antes.
-                  </span>
-                </p>
-              </div>
-              
-              {user?.email ? (
-                <p className="text-sm text-muted-foreground" data-tutorial="sync-email">E-mail: {user.email}</p>
+                className="bg-background/50"
+                data-tutorial="instagram-input"
+              />
+            </div>
+            <Button 
+              className="w-full" 
+              onClick={handleSearchProfile}
+              disabled={isLoading}
+              data-tutorial="buscar-button"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Verificando...
+                </>
               ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="sync-email">E-mail para sincronizar</Label>
-                  <Input id="sync-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-background/50" data-tutorial="sync-email" />
-                </div>
+                <>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Cadastrar Perfil
+                </>
               )}
-              <Button 
-                variant="secondary" className="w-full" 
-                onClick={() => setShowSyncConfirmDialog(true)}
-                disabled={isSyncing}
-                data-tutorial="sync-button"
-              >
-                {isSyncing ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sincronizando...</>
-                ) : (
-                  <><Download className="w-4 h-4 mr-2" />Sincronizar Contas</>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              📸 Após cadastrar, envie um print do perfil para análise completa com I.A.
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Registered IGs List - Clickable cards */}
         {registeredIGs.length > 0 && (
@@ -678,38 +597,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
         </DialogContent>
       </Dialog>
 
-      {/* Sync Confirmation Dialog */}
-      <Dialog open={showSyncConfirmDialog} onOpenChange={setShowSyncConfirmDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-yellow-500">
-              <AlertTriangle className="w-5 h-5" />
-              Confirmar Sincronização
-            </DialogTitle>
-            <DialogDescription className="text-base">
-              Tem certeza que deseja sincronizar todas as contas?
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-3">
-            <div className="p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
-              <p className="text-sm text-yellow-200 font-medium mb-2">⚠️ Atenção:</p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Este processo pode demorar <strong>vários minutos</strong></li>
-                <li>• Depende da quantidade de perfis cadastrados</li>
-                <li>• Não feche a página durante o processo</li>
-              </ul>
-            </div>
-          </div>
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowSyncConfirmDialog(false)}>Cancelar</Button>
-            <Button onClick={handleSyncConfirm} className="bg-yellow-600 hover:bg-yellow-700 text-black">
-              Sim, sincronizar tudo
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Pre-Register Confirmation Dialog */}
       <Dialog open={showPreRegisterDialog} onOpenChange={setShowPreRegisterDialog}>
