@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 type VerifyAdminPasswordResponse = {
@@ -13,9 +13,43 @@ type VerifyAdminPasswordResponse = {
 
 const respond = (payload: VerifyAdminPasswordResponse) =>
   new Response(JSON.stringify(payload), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
     status: 200,
   });
+
+const normalizePassword = (value: unknown) => {
+  if (typeof value !== "string") return null;
+
+  const normalized = value.trim();
+  if (!normalized || normalized.length > 100) return null;
+
+  return normalized;
+};
+
+const extractPassword = (req: Request, rawBody: string) => {
+  const urlPassword = normalizePassword(new URL(req.url).searchParams.get("password"));
+  if (urlPassword) return urlPassword;
+
+  if (!rawBody.trim()) return null;
+
+  const contentType = req.headers.get("content-type")?.toLowerCase() ?? "";
+
+  if (contentType.includes("application/x-www-form-urlencoded")) {
+    return normalizePassword(new URLSearchParams(rawBody).get("password"));
+  }
+
+  try {
+    const parsed = JSON.parse(rawBody);
+
+    if (typeof parsed === "string") {
+      return normalizePassword(parsed);
+    }
+
+    return normalizePassword(parsed?.password);
+  } catch {
+    return null;
+  }
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -23,16 +57,10 @@ serve(async (req) => {
   }
 
   try {
-    let password: unknown;
+    const rawBody = await req.text();
+    const password = extractPassword(req, rawBody);
 
-    try {
-      const body = await req.json();
-      password = body?.password;
-    } catch {
-      return respond({ success: false, error: "Invalid input" });
-    }
-
-    if (!password || typeof password !== "string" || password.length > 100) {
+    if (!password) {
       return respond({ success: false, error: "Invalid input" });
     }
 
@@ -51,7 +79,7 @@ serve(async (req) => {
       return respond({ success: false, error: "Config not found" });
     }
 
-    const isValid = password === data.admin_password;
+    const isValid = password === String(data.admin_password).trim();
 
     return respond({ success: isValid });
   } catch (error) {
