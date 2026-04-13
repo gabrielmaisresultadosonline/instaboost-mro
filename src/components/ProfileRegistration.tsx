@@ -569,15 +569,12 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                     key={ig}
                     type="button"
                     onClick={() => {
-                      // Set this profile as active and enter member area
-                      const { getSession } = require('@/lib/storage');
-                      const session = getSession();
-                      const profileSession = session.profiles.find(
+                      const storageSession = getStorageSession();
+                      const profileSession = storageSession.profiles.find(
                         (p: any) => p.profile.username.toLowerCase() === ig.toLowerCase()
                       );
                       if (profileSession) {
-                        const { setActiveProfile } = require('@/lib/storage');
-                        setActiveProfile(profileSession.id);
+                        setActiveProfileInStorage(profileSession.id);
                       }
                       if (onEnterMemberArea) onEnterMemberArea();
                     }}
