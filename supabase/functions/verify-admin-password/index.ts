@@ -17,7 +17,7 @@ serve(async (req) => {
     if (!password || typeof password !== "string" || password.length > 100) {
       return new Response(
         JSON.stringify({ success: false, error: "Invalid input" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
