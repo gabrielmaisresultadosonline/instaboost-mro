@@ -233,7 +233,7 @@ export const ProfileScreenshotUpload = ({
         {previewUrl ? (
           <div className="relative rounded-lg overflow-hidden border border-border">
             <img src={previewUrl} alt="Print do perfil" className="w-full max-h-[300px] sm:max-h-[400px] object-contain bg-muted" />
-            {!isUploading && !isAnalyzing && (
+            {!isUploading && !isAnalyzing && !analysisCompleted && (
               <Button variant="destructive" size="icon" className="absolute top-2 right-2 w-8 h-8" onClick={handleRemove}>
                 <X className="w-4 h-4" />
               </Button>
