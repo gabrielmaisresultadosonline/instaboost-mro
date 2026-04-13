@@ -43,50 +43,6 @@ import {
 } from '@/lib/persistentStorage';
 import { supabase } from '@/integrations/supabase/client';
 
-// Helper function to check for cached profiles in admin storage
-const checkManuallyScrapedProfile = async (username: string): Promise<any | null> => {
-  try {
-    const normalizedUsername = username.toLowerCase().replace('@', '').trim();
-
-    const { data, error } = await supabase.functions.invoke('admin-data-storage', {
-      body: { action: 'load' }
-    });
-
-    if (error || !data?.exists || !data?.data?.profiles) {
-      return null;
-    }
-
-    const normalize = (value: string | undefined | null) =>
-      (value || '').toLowerCase().replace('@', '').trim();
-
-    const cachedProfile = data.data.profiles.find(
-      (p: any) => normalize(p.username) === normalizedUsername
-    );
-
-    if (!cachedProfile) {
-      return null;
-    }
-
-    const hasUsefulCachedData =
-      (Number(cachedProfile.followers) || 0) > 0 ||
-      (Number(cachedProfile.postsCount) || (typeof cachedProfile.posts === 'number' ? cachedProfile.posts : 0)) > 0 ||
-      (cachedProfile.bio && String(cachedProfile.bio).trim().length > 0) ||
-      (cachedProfile.profilePicture && String(cachedProfile.profilePicture).length > 10) ||
-      (cachedProfile.profilePicUrl && String(cachedProfile.profilePicUrl).length > 10) ||
-      (Array.isArray(cachedProfile.recentPosts) && cachedProfile.recentPosts.length > 0) ||
-      (Array.isArray(cachedProfile.posts) && cachedProfile.posts.length > 0);
-
-    if (hasUsefulCachedData) {
-      console.log(`🔧 Encontrado perfil em cache admin para @${normalizedUsername}`);
-      return cachedProfile;
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Erro ao verificar cache de perfil no admin:', error);
-    return null;
-  }
-};
 
 const Index = () => {
   const [session, setSession] = useState<MROSession>(createEmptySession());
