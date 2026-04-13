@@ -12,7 +12,6 @@ import { ProfileSelector } from './ProfileSelector';
 import { UserHeader } from './UserHeader';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
-import { TutorialButton } from './TutorialButton';
 import { TutorialOverlay } from './TutorialOverlay';
 import { TutorialList } from './TutorialList';
 import { useTutorial, dashboardTutorial, strategyTutorial } from '@/hooks/useTutorial';
@@ -181,25 +180,7 @@ export const Dashboard = ({
 
             {/* Right: Tutorial + User */}
             <div className="flex items-center gap-2" data-tutorial="user-menu">
-              <TutorialButton
-                onStartInteractive={() => {
-                  if (activeTab === 'strategies') {
-                    tutorial.startTutorial(strategyTutorial);
-                  } else {
-                    tutorial.startTutorial(dashboardTutorial);
-                  }
-                }}
-                onShowList={() => {
-                  if (activeTab === 'strategies') {
-                    tutorial.startListView(strategyTutorial);
-                  } else {
-                    tutorial.startListView(dashboardTutorial);
-                  }
-                }}
-                variant="outline"
-                size="sm"
-              />
-              {onLogout && <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} />}
+              {onLogout && <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} tutorial={tutorial} activeTab={activeTab} />}
             </div>
           </div>
 
@@ -224,12 +205,6 @@ export const Dashboard = ({
 
             {/* Linha 3: Tutorial + Conta + User */}
             <div className="flex items-center justify-center gap-2" data-tutorial="user-menu">
-              <TutorialButton
-                onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
-                onShowList={() => tutorial.startListView(dashboardTutorial)}
-                variant="outline"
-                size="sm"
-              />
               <div data-tutorial="profile-selector">
                 <ProfileSelector
                   profiles={session.profiles}
@@ -240,7 +215,7 @@ export const Dashboard = ({
                   isLoading={isLoading}
                 />
               </div>
-              {onLogout && <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} />}
+              {onLogout && <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} tutorial={tutorial} activeTab={activeTab} />}
             </div>
 
             {/* Linha 4: Tabs com scroll horizontal */}
@@ -288,13 +263,6 @@ export const Dashboard = ({
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-2 min-w-0" data-tutorial="user-menu">
-                <TutorialButton
-                  onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
-                  onShowList={() => tutorial.startListView(dashboardTutorial)}
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0"
-                />
                 <div data-tutorial="profile-selector" className="min-w-0 max-w-full">
                   <ProfileSelector
                     profiles={session.profiles}
@@ -307,7 +275,7 @@ export const Dashboard = ({
                 </div>
                 {onLogout && (
                   <div className="shrink-0 max-w-full">
-                    <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} />
+                    <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} tutorial={tutorial} activeTab={activeTab} />
                   </div>
                 )}
               </div>

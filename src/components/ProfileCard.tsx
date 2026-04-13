@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { InstagramProfile } from '@/types/instagram';
 import { Users, UserPlus, Grid3X3, ExternalLink, Instagram, RefreshCw, Loader2, Lock } from 'lucide-react';
-import { VideoTutorialButton } from '@/components/VideoTutorialButton';
+import { Button } from '@/components/ui/button';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -135,13 +135,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
                   )}
                 </Button>
               )}
-              <VideoTutorialButton
-                youtubeUrl="https://youtu.be/mIQ78Skz1BU"
-                title="Tutorial"
-                variant="pulse"
-                size="sm"
-                className="h-8 px-2.5 text-xs"
-              />
             </div>
           </div>
         </div>
@@ -186,13 +179,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
                 </Button>
               )}
 
-              <VideoTutorialButton
-                youtubeUrl="https://youtu.be/mIQ78Skz1BU"
-                title="Tutorial"
-                variant="pulse"
-                size="sm"
-                className="h-8 px-2.5 text-xs"
-              />
             </div>
           </div>
 
