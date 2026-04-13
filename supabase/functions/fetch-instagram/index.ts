@@ -145,7 +145,7 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const { username, existingPosts, onlyPosts } = await req.json();
+    const { username, existingPosts, onlyPosts, requireLiveData } = await req.json();
     
     if (!username) {
       return new Response(
@@ -154,7 +154,6 @@ serve(async (req) => {
       );
     }
 
-    // Clean username
     const cleanUsername = username
       .replace('@', '')
       .replace('https://instagram.com/', '')
@@ -163,7 +162,7 @@ serve(async (req) => {
       .trim()
       .toLowerCase();
 
-    console.log(`Fetching Instagram profile via Bright Data: ${cleanUsername} (onlyPosts: ${onlyPosts || false})`);
+    console.log(`Fetching Instagram profile via Bright Data: ${cleanUsername} (onlyPosts: ${onlyPosts || false}, requireLiveData: ${requireLiveData || false})`);
 
     const BRIGHTDATA_TOKEN_RAW = Deno.env.get('BRIGHTDATA_API_TOKEN') || '';
     const BRIGHTDATA_TOKEN = BRIGHTDATA_TOKEN_RAW
@@ -344,16 +343,16 @@ serve(async (req) => {
       let profileData = null;
       let detectedIsPrivate = false;
       let detectedIsRestricted = false;
+      let dataSource: 'direct' | 'bright' | 'admin_cache' = 'bright';
 
-      // ATTEMPT 0: Try direct scraping first (fastest)
       const directResult = await scrapeInstagramDirect();
       if (directResult.data) {
         profileData = directResult.data;
         detectedIsPrivate = directResult.isPrivate || false;
         detectedIsRestricted = directResult.isRestricted || false;
+        dataSource = 'direct';
       }
 
-      // ATTEMPT 1: Bright Data without auth
       if (!profileData) {
         try {
           const response1 = await callBrightDataAPI(1, false);
@@ -365,6 +364,7 @@ serve(async (req) => {
             profileData = await processBrightDataResponse(response1);
             if (profileData) {
               detectedIsPrivate = profileData.is_private === true;
+              dataSource = 'bright';
             }
           }
         } catch (e) {
@@ -372,7 +372,6 @@ serve(async (req) => {
         }
       }
 
-      // ATTEMPT 2: Second try Bright Data without auth if first failed
       if (!profileData) {
         console.log('⚠️ Primeira tentativa falhou, tentando novamente...');
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -386,6 +385,7 @@ serve(async (req) => {
             profileData = await processBrightDataResponse(response2);
             if (profileData) {
               detectedIsPrivate = profileData.is_private === true;
+              dataSource = 'bright';
             }
           }
         } catch (e) {
@@ -393,7 +393,6 @@ serve(async (req) => {
         }
       }
 
-      // ATTEMPT 3: Try with authenticated session if available and previous attempts failed
       if (!profileData && hasAuthSession) {
         console.log('🔐 Tentando com sessão autenticada para perfis restritos...');
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -414,6 +413,7 @@ serve(async (req) => {
             if (profileData) {
               console.log('✅ Perfil restrito acessado via sessão autenticada!');
               detectedIsPrivate = profileData.is_private === true;
+              dataSource = 'bright';
             }
           }
         } catch (e) {
@@ -421,8 +421,23 @@ serve(async (req) => {
         }
       }
 
-      // If still no data after all attempts, try admin cache fallback
       if (!profileData) {
+        if (requireLiveData) {
+          const isRestrictionConfirmed = detectedIsRestricted === true;
+          console.log(`❌ @${cleanUsername} sem dado real disponível e fallback bloqueado (requireLiveData)`);
+          return Response.json({
+            success: false,
+            error: isRestrictionConfirmed
+              ? 'Este perfil possui restrição de idade e não pode ser acessado automaticamente.'
+              : 'Não foi possível acessar dados reais deste perfil agora. Tente novamente em alguns instantes.',
+            canRetry: true,
+            retryAfter: isRestrictionConfirmed ? 60 : 30,
+            isRestricted: isRestrictionConfirmed,
+            isPrivate: false,
+            dataSource: 'bright'
+          }, { headers: corsHeaders });
+        }
+
         console.log(`⚠️ All scraping attempts failed for @${cleanUsername}, trying admin cache fallback...`);
         
         try {
@@ -451,10 +466,8 @@ serve(async (req) => {
               if (cFollowers > 0 || cPosts > 0 || cBio) {
                 console.log(`✅ Found cached data for @${cleanUsername} in admin sync (followers: ${cFollowers})`);
                 
-                // Use cached profile pic or existing storage cache
                 let finalPicUrl = '';
                 const storagePicUrl = `${supabaseUrl}/storage/v1/object/public/profile-cache/profiles/${cleanUsername}.jpg`;
-                // Check if we have a cached image in storage
                 const { data: cachedImg } = await supabase.storage
                   .from('profile-cache')
                   .list('profiles', { search: `${cleanUsername}.jpg` });
@@ -489,6 +502,7 @@ serve(async (req) => {
                   },
                   simulated: false,
                   fromCache: true,
+                  dataSource: 'admin_cache',
                   message: 'Dados carregados do cache administrativo. Tente sincronizar novamente mais tarde para dados atualizados.'
                 }, { headers: corsHeaders });
               }
@@ -511,7 +525,8 @@ serve(async (req) => {
           canRetry: true,
           retryAfter: isRestrictionConfirmed ? 60 : 30,
           isRestricted: isRestrictionConfirmed,
-          isPrivate: false
+          isPrivate: false,
+          dataSource: 'bright'
         }, { headers: corsHeaders });
       }
 
@@ -678,6 +693,8 @@ serve(async (req) => {
           recentPosts,
         },
         simulated: false,
+        fromCache: false,
+        dataSource,
         message: 'Dados reais do Instagram via Bright Data API'
       }, { headers: corsHeaders });
 
