@@ -979,16 +979,15 @@ ${GROUP_LINK}`;
     if (!confirm(`Tem certeza que deseja excluir o pedido de ${order.username}?`)) {
       return;
     }
-    
-    try {
-      const { error } = await supabase
-        .from("mro_orders")
-        .delete()
-        .eq("id", order.id);
 
-      if (error) {
-        console.error("Error deleting order:", error);
-        toast.error("Erro ao excluir pedido");
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "deleteOrder", token: getAdminSessionToken(), orderId: order.id }
+      });
+
+      if (error || !response?.success) {
+        console.error("Error deleting order:", error || response?.error);
+        toast.error(response?.error || "Erro ao excluir pedido");
         return;
       }
 
@@ -1887,15 +1886,13 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
     setSavingEmail(true);
     
     try {
-      const { error } = await supabase
-        .from("mro_orders")
-        .update({ 
-          email: newEmail.trim(),
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", editingOrder.id);
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "updateOrderEmail", token: getAdminSessionToken(), orderId: editingOrder.id, email: newEmail.trim() }
+      });
 
-      if (error) throw error;
+      if (error || !response?.success) {
+        throw new Error(response?.error || error?.message || "Erro ao atualizar email");
+      }
       
       toast.success("Email atualizado com sucesso!");
       setShowEditEmailModal(false);
