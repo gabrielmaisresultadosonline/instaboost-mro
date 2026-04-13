@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { InstagramProfile } from '@/types/instagram';
 import { Users, UserPlus, Grid3X3, ExternalLink, Briefcase, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
+import { fetchInstagramProfile } from '@/lib/api';
 
 interface ProfileCardProps {
   profile: InstagramProfile;
@@ -33,46 +33,38 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
   const handleResyncPhoto = async () => {
     setIsResyncingPhoto(true);
     try {
-      // Use fetch-instagram instead of sync - it has more fallbacks
-      const { data, error } = await supabase.functions.invoke('fetch-instagram', {
-        body: { username: profile.username }
-      });
+      const result = await fetchInstagramProfile(profile.username, profile.recentPosts, true);
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.success && data?.profile?.profilePicUrl) {
-        setLocalProfilePicUrl(data.profile.profilePicUrl);
-        setPhotoError(false);
-        toast({
-          title: 'Foto atualizada!',
-          description: 'A foto do perfil foi sincronizada com sucesso.'
-        });
-        
-        // Update parent if callback provided
-        if (onProfileUpdate) {
-          onProfileUpdate({
-            ...profile,
-            profilePicUrl: data.profile.profilePicUrl,
-            followers: data.profile.followers || profile.followers,
-            following: data.profile.following || profile.following,
-            posts: data.profile.posts || profile.posts,
-            bio: data.profile.bio || profile.bio,
-          });
-        }
-      } else {
+      if (!result.success || !result.profile) {
         toast({
           title: 'Erro ao sincronizar',
-          description: data?.error || 'Não foi possível buscar a foto do perfil.',
+          description: result.error || 'Não foi possível buscar os dados do perfil.',
           variant: 'destructive'
         });
+        return;
       }
+
+      const updatedProfile = {
+        ...profile,
+        ...result.profile,
+      };
+
+      setLocalProfilePicUrl(updatedProfile.profilePicUrl || '');
+      setPhotoError(!updatedProfile.profilePicUrl);
+
+      if (onProfileUpdate) {
+        onProfileUpdate(updatedProfile);
+      }
+
+      toast({
+        title: result.fromCache ? 'Dados recuperados do cache!' : 'Perfil atualizado!',
+        description: result.message || 'Os dados do perfil foram sincronizados com sucesso.'
+      });
     } catch (err) {
       console.error('Error resyncing photo:', err);
       toast({
         title: 'Erro',
-        description: 'Erro ao sincronizar foto. Tente novamente.',
+        description: 'Erro ao sincronizar perfil. Tente novamente.',
         variant: 'destructive'
       });
     } finally {
