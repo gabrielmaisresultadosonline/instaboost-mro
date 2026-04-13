@@ -421,11 +421,86 @@ serve(async (req) => {
         }
       }
 
-      // If still no data after all attempts, return a precise error type
+      // If still no data after all attempts, try admin cache fallback
       if (!profileData) {
+        console.log(`⚠️ All scraping attempts failed for @${cleanUsername}, trying admin cache fallback...`);
+        
+        try {
+          const { data: fileData } = await supabase.storage
+            .from('user-data')
+            .download('admin/sync-data.json');
+          
+          if (fileData) {
+            const syncText = await fileData.text();
+            const syncData = JSON.parse(syncText);
+            const cachedProfiles = Array.isArray(syncData?.profiles) ? syncData.profiles : [];
+            
+            const cached = cachedProfiles.find((p: any) => {
+              const pUsername = String(p?.username ?? p?.profile?.username ?? '').trim().toLowerCase();
+              return pUsername === cleanUsername;
+            });
+            
+            if (cached) {
+              const cFollowers = cached.followers ?? cached.profile?.followers ?? 0;
+              const cPosts = cached.posts ?? cached.postsCount ?? cached.profile?.posts ?? 0;
+              const cBio = cached.bio ?? cached.profile?.bio ?? '';
+              const cFullName = cached.fullName ?? cached.profile?.fullName ?? cached.profile_name ?? '';
+              const cPicUrl = cached.profilePicUrl ?? cached.profilePicture ?? cached.profile_pic_url ??
+                cached.profile_image_link ?? cached.profile?.profilePicUrl ?? cached.profile?.profilePicture ?? '';
+              
+              if (cFollowers > 0 || cPosts > 0 || cBio) {
+                console.log(`✅ Found cached data for @${cleanUsername} in admin sync (followers: ${cFollowers})`);
+                
+                // Use cached profile pic or existing storage cache
+                let finalPicUrl = '';
+                const storagePicUrl = `${supabaseUrl}/storage/v1/object/public/profile-cache/profiles/${cleanUsername}.jpg`;
+                // Check if we have a cached image in storage
+                const { data: cachedImg } = await supabase.storage
+                  .from('profile-cache')
+                  .list('profiles', { search: `${cleanUsername}.jpg` });
+                
+                if (cachedImg && cachedImg.length > 0) {
+                  finalPicUrl = storagePicUrl;
+                } else if (cPicUrl) {
+                  finalPicUrl = proxyImage(cPicUrl);
+                }
+                
+                const profile: InstagramProfile = {
+                  username: cleanUsername,
+                  fullName: cFullName,
+                  bio: cBio,
+                  followers: cFollowers,
+                  following: cached.following ?? cached.profile?.following ?? 0,
+                  posts: cPosts,
+                  profilePicUrl: finalPicUrl,
+                  isBusinessAccount: cached.isBusinessAccount ?? cached.profile?.isBusinessAccount ?? false,
+                  category: cached.category ?? cached.profile?.category ?? '',
+                  externalUrl: cached.externalUrl ?? cached.profile?.externalUrl ?? '',
+                };
+                
+                return Response.json({
+                  success: true,
+                  profile: {
+                    ...profile,
+                    engagement: cached.engagement ?? 0,
+                    avgLikes: cached.avgLikes ?? 0,
+                    avgComments: cached.avgComments ?? 0,
+                    recentPosts: cached.recentPosts ?? [],
+                  },
+                  simulated: false,
+                  fromCache: true,
+                  message: 'Dados carregados do cache administrativo. Tente sincronizar novamente mais tarde para dados atualizados.'
+                }, { headers: corsHeaders });
+              }
+            }
+          }
+        } catch (cacheErr) {
+          console.error('❌ Admin cache fallback failed:', cacheErr);
+        }
+        
         const isRestrictionConfirmed = detectedIsRestricted === true;
         console.log(
-          `❌ Perfil @${cleanUsername} sem dados após tentativas (restrição confirmada: ${isRestrictionConfirmed})`
+          `❌ Perfil @${cleanUsername} sem dados após tentativas e cache (restrição confirmada: ${isRestrictionConfirmed})`
         );
 
         return Response.json({
