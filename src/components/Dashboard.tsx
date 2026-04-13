@@ -357,9 +357,9 @@ export const Dashboard = ({
                       📸 Envie um Print do Perfil para Análise
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Devido à <strong>restrição de idade</strong> do Instagram, não conseguimos acessar os dados do seu perfil automaticamente. 
+                      Para completar o cadastro, envie um print do seu perfil do Instagram abaixo.
                       <br />
-                      <strong>Solução:</strong> Envie um print do seu perfil abaixo e nossa IA vai analisar e gerar estratégias personalizadas!
+                      Nossa <strong>I.A.</strong> vai ler automaticamente todos os dados do perfil (seguidores, seguindo, posts, bio, nicho) e gerar uma análise completa com estratégias personalizadas!
                     </p>
                   </div>
                 </div>
