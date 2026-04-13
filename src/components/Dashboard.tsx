@@ -426,8 +426,10 @@ export const Dashboard = ({
                 />
                 
                 {activeProfile.strategies.length > 0 && (
-                  <StrategiesAccordion strategies={activeProfile.strategies} />
-                
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-display font-bold">Estratégias Geradas</h3>
+                    <StrategiesAccordionList strategies={activeProfile.strategies} />
+                  </div>
                 )}
               </>
             ) : (
