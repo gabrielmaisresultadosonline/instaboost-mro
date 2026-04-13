@@ -35,10 +35,10 @@ export const ProfileSelector = ({
   const activeProfile = profiles.find(p => p.id === activeProfileId);
 
   return (
-    <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
+    <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto min-w-0">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0 px-2 sm:px-4" disabled={isLoading}>
+          <Button variant="outline" className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0 max-w-full px-2 sm:px-4" disabled={isLoading}>
             {activeProfile ? (
               <>
                 <img

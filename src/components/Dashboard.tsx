@@ -115,8 +115,8 @@ export const Dashboard = ({
       <header className="sticky top-0 z-40 glass-card border-b border-border">
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           {/* Desktop/Tablet Header */}
-          {/* Desktop Header (lg+) */}
-          <div className="hidden lg:flex items-center justify-between gap-2 min-w-0">
+          {/* Desktop Header (xl+) */}
+          <div className="hidden xl:flex items-center justify-between gap-2 min-w-0">
             {/* Left: Logo + MRO Button */}
             <div className="flex items-center gap-2 shrink-0">
               <Logo size="sm" />
@@ -272,30 +272,30 @@ export const Dashboard = ({
             </nav>
           </div>
 
-          {/* Tablet Header (md-lg) - Layout em linhas centralizadas */}
-          <div className="hidden md:flex lg:hidden flex-col gap-2">
-            {/* Linha 1: Logo + MRO | Tutorial + ProfileSelector + User */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          {/* Tablet/Small Desktop Header (md-xl) */}
+          <div className="hidden md:flex xl:hidden flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <Logo size="sm" />
                 <Button
                   onClick={() => navigate('/mro-ferramenta')}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-sm px-5 py-2 h-10 rounded-full"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-xs lg:text-sm px-4 lg:px-5 py-2 h-10 rounded-full whitespace-nowrap shrink-0"
                   data-tutorial="mro-button"
                 >
                   <Wrench className="w-4 h-4 mr-2" />
                   FERRAMENTA MRO
                 </Button>
               </div>
-              
-              <div className="flex items-center gap-2" data-tutorial="user-menu">
+
+              <div className="flex flex-wrap items-center justify-center gap-2 min-w-0" data-tutorial="user-menu">
                 <TutorialButton
                   onStartInteractive={() => tutorial.startTutorial(dashboardTutorial)}
                   onShowList={() => tutorial.startListView(dashboardTutorial)}
                   variant="outline"
                   size="sm"
+                  className="shrink-0"
                 />
-                <div data-tutorial="profile-selector">
+                <div data-tutorial="profile-selector" className="min-w-0 max-w-full">
                   <ProfileSelector
                     profiles={session.profiles}
                     activeProfileId={session.activeProfileId}
@@ -305,11 +305,14 @@ export const Dashboard = ({
                     isLoading={isLoading}
                   />
                 </div>
-                {onLogout && <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} />}
+                {onLogout && (
+                  <div className="shrink-0 max-w-full">
+                    <UserHeader onLogout={onLogout} onReanalysisComplete={() => onSessionUpdate(getSession())} />
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Linha 2: Tabs centralizadas */}
             <nav className="flex items-center justify-center gap-1 overflow-x-auto pb-1">
               {tabs.map((tab) => (
                 <button
