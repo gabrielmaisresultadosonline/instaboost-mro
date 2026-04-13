@@ -73,7 +73,6 @@ serve(async (req) => {
 
   try {
     const { profile, analysis, type }: StrategyRequest = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
 
     console.log('Gerando estratégia:', type, 'para:', profile.username);
@@ -258,48 +257,8 @@ RETORNE APENAS JSON VÁLIDO (sem markdown, sem \`\`\`) no formato:
 
     let strategyResult = null;
 
-    // Try Lovable AI (Gemini) first - no API key needed from user
-    if (LOVABLE_API_KEY) {
-      try {
-        console.log('Gerando estratégia com Lovable AI (Gemini)...');
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: strategyPrompts[type] }
-            ],
-            temperature: 0.7,
-            max_tokens: 8000,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const content = data.choices?.[0]?.message?.content;
-          if (content) {
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              strategyResult = JSON.parse(jsonMatch[0]);
-              console.log('✅ Lovable AI strategy generated successfully');
-            }
-          }
-        } else {
-          const errorText = await response.text();
-          console.error('❌ Lovable AI error:', response.status, errorText);
-        }
-      } catch (e) {
-        console.error('❌ Lovable AI error:', e);
-      }
-    }
-
-    // Fallback to DeepSeek
-    if (!strategyResult && DEEPSEEK_API_KEY) {
+    // DeepSeek only
+    if (DEEPSEEK_API_KEY) {
       try {
         console.log('Fallback: Gerando com DeepSeek...');
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {

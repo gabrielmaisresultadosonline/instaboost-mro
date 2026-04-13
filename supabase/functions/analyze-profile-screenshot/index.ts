@@ -22,7 +22,6 @@ serve(async (req) => {
 
     console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'}`);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     const normalizedUsername = String(username || 'username').replace('@', '').trim().toLowerCase();
 
