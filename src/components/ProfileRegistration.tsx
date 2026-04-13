@@ -451,59 +451,57 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
           </CardContent>
         </Card>
 
-        {/* Main Actions */}
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Register New Profile */}
-          <Card className="glass-card border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <UserPlus className="w-5 h-5" />
-                Cadastrar Perfil
-              </CardTitle>
-              <CardDescription>
-                Adicione um novo Instagram à sua conta
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="instagram" className="flex items-center gap-2">
-                  <Instagram className="w-4 h-4" />
-                  Instagram
-                </Label>
-                <Input
-                  id="instagram"
-                  type="text"
-                  placeholder="@usuario ou link do perfil"
-                  value={instagramInput}
-                  onChange={(e) => setInstagramInput(e.target.value)}
-                  disabled={isLoading}
-                  className="bg-background/50"
-                  data-tutorial="instagram-input"
-                />
-              </div>
-              <Button 
-                className="w-full" 
-                onClick={handleSearchProfile}
+        {/* Register New Profile - Highlighted */}
+        <Card className="glass-card border-2 border-amber-500/60 bg-amber-500/5 shadow-lg shadow-amber-500/10">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2 text-amber-400">
+              <UserPlus className="w-5 h-5" />
+              {registeredIGs.length > 0 ? 'Cadastrar Nova Conta' : 'Cadastrar Perfil'}
+            </CardTitle>
+            <CardDescription>
+              Adicione um novo Instagram à sua conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="instagram" className="flex items-center gap-2">
+                <Instagram className="w-4 h-4" />
+                Instagram
+              </Label>
+              <Input
+                id="instagram"
+                type="text"
+                placeholder="@usuario ou link do perfil"
+                value={instagramInput}
+                onChange={(e) => setInstagramInput(e.target.value)}
                 disabled={isLoading}
-                data-tutorial="buscar-button"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  <>
-                    <Camera className="w-4 h-4 mr-2" />
-                    Cadastrar Perfil
-                  </>
-                )}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                📸 Após cadastrar, envie um print do perfil para análise completa com I.A.
-              </p>
-            </CardContent>
-          </Card>
+                className="bg-background/50"
+                data-tutorial="instagram-input"
+              />
+            </div>
+            <Button 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold" 
+              onClick={handleSearchProfile}
+              disabled={isLoading}
+              data-tutorial="buscar-button"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Verificando...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Cadastrar Perfil
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              📸 Após cadastrar, envie um print do perfil para análise completa com I.A.
+            </p>
+          </CardContent>
+        </Card>
 
           {/* Sync Accounts */}
           <Card className="glass-card border-secondary/30" data-tutorial="sync-section">
