@@ -122,7 +122,18 @@ Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram
               }
 
               const extracted = analysisResult.extracted_data || {};
-              extracted.username = extracted.username || normalizedUsername;
+              const extractedUsername = String(extracted.username || '').replace('@', '').trim().toLowerCase();
+
+              if (extractedUsername && extractedUsername !== normalizedUsername) {
+                console.log(`❌ Username mismatch: expected @${normalizedUsername}, got @${extractedUsername}`);
+                return Response.json({
+                  success: false,
+                  error: 'username_mismatch',
+                  message: `O print enviado é do perfil @${extractedUsername}, mas a conta cadastrada é @${normalizedUsername}. Envie um print real do perfil @${normalizedUsername}.`
+                }, { headers: corsHeaders });
+              }
+
+              extracted.username = extractedUsername || normalizedUsername;
 
               return Response.json({
                 success: true,
