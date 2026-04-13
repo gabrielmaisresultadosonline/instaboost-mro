@@ -43,14 +43,12 @@ import {
   restoreProfileFromArchive,
   addProfile 
 } from '@/lib/storage';
-import { fetchInstagramProfile, analyzeProfile } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 import { TutorialButton } from '@/components/TutorialButton';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { TutorialList } from '@/components/TutorialList';
 import { useTutorial, profileRegistrationTutorial } from '@/hooks/useTutorial';
-import { AgeRestrictionScreenshotDialog } from '@/components/AgeRestrictionScreenshotDialog';
 import { VideoTutorialButton } from '@/components/VideoTutorialButton';
 
 interface ProfileRegistrationProps {
@@ -66,20 +64,13 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showWarningDialog, setShowWarningDialog] = useState(false);
   const [showSyncOfferDialog, setShowSyncOfferDialog] = useState(false);
-  const [pendingProfile, setPendingProfile] = useState<InstagramProfile | null>(null);
-  const [pendingAnalysis, setPendingAnalysis] = useState<ProfileAnalysis | null>(null);
   const [pendingSyncIG, setPendingSyncIG] = useState<string>('');
   const [pendingRegisterIG, setPendingRegisterIG] = useState<string>('');
   const [showPreRegisterDialog, setShowPreRegisterDialog] = useState(false);
   const [registeredIGs, setRegisteredIGs] = useState<string[]>([]);
   const [showSyncConfirmDialog, setShowSyncConfirmDialog] = useState(false);
-  const [showAgeRestrictionScreenshot, setShowAgeRestrictionScreenshot] = useState(false);
-  const [ageRestrictionIG, setAgeRestrictionIG] = useState<string>('');
-  const [retryCount, setRetryCount] = useState(0);
-  const [isAutoRetrying, setIsAutoRetrying] = useState(false);
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -89,25 +80,18 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
   const user = getCurrentUser();
 
   useEffect(() => {
-    // Load saved email
     if (user?.email) {
       setEmail(user.email);
     }
-    // Load registered IGs
     const igs = getRegisteredIGs();
     setRegisteredIGs(igs.map(ig => ig.username));
     
-    // CRITICAL FIX: If we have registered IGs but no email, try to reload from cloud
-    // This fixes the "partial data loaded" bug on some browsers
     const checkAndFixPartialData = async () => {
       if (user?.username && igs.length > 0 && !user?.email) {
-        console.log('[ProfileRegistration] Detected partial data (profiles but no email), reloading from cloud...');
         try {
           const cloudData = await loadUserFromCloud(user.username);
           if (cloudData?.email) {
-            console.log('[ProfileRegistration] Found email in cloud, updating session...');
             setEmail(cloudData.email);
-            // Update the session with the cloud email
             const session = getUserSession();
             if (session.user) {
               session.user.email = cloudData.email;
@@ -134,13 +118,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
     setLoadingMessage(`Sincronizando @${pendingSyncIG}...`);
     
     try {
-      // Check email before syncing
       if (!email.trim()) {
-        toast({ 
-          title: 'Digite seu e-mail', 
-          description: 'Necessário para sincronizar',
-          variant: 'destructive' 
-        });
+        toast({ title: 'Digite seu e-mail', description: 'Necessário para sincronizar', variant: 'destructive' });
         setIsLoading(false);
         setLoadingMessage('');
         return;
@@ -148,23 +127,17 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
 
       updateUserEmail(email);
       
-      // Check if profile was previously archived (has saved data)
+      // Check if profile was previously archived
       const archivedProfile = getArchivedByUsername(pendingSyncIG);
       
       if (archivedProfile) {
-        // Restore from archive - keeps strategies, creatives, credits, etc.
         setLoadingMessage('Restaurando dados salvos...');
         const restored = restoreProfileFromArchive(pendingSyncIG);
         
         if (restored) {
           await syncIGsFromSquare([pendingSyncIG], email);
           setRegisteredIGs(prev => [...prev, pendingSyncIG]);
-          
-          toast({
-            title: 'Perfil restaurado!',
-            description: `@${pendingSyncIG} foi restaurado com todos os dados anteriores`
-          });
-          
+          toast({ title: 'Perfil restaurado!', description: `@${pendingSyncIG} foi restaurado com todos os dados anteriores` });
           onSyncComplete([pendingSyncIG]);
           setPendingSyncIG('');
           setInstagramInput('');
@@ -174,48 +147,18 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
         }
       }
       
-      // CRITICAL: Must fetch REAL Instagram data from Bright Data API before adding to dashboard
-      setLoadingMessage(`Buscando dados de @${pendingSyncIG}...`);
+      // Create placeholder profile - data will come from screenshot
+      const placeholderProfile = createPlaceholderProfile(pendingSyncIG);
+      const placeholderAnalysis = createPlaceholderAnalysis();
       
-      const profileResult = await fetchInstagramProfile(pendingSyncIG);
-      
-      if (!profileResult.success || !profileResult.profile) {
-        toast({
-          title: 'Erro ao buscar perfil',
-          description: profileResult.error || 'Não foi possível obter dados do Instagram',
-          variant: 'destructive'
-        });
-        setIsLoading(false);
-        setLoadingMessage('');
-        return;
-      }
-      
-      // Analyze profile with AI
-      setLoadingMessage('Analisando perfil com I.A...');
-      
-      const analysisResult = await analyzeProfile(profileResult.profile);
-      
-      if (!analysisResult.success || !analysisResult.analysis) {
-        toast({
-          title: 'Erro na análise',
-          description: 'Não foi possível analisar o perfil',
-          variant: 'destructive'
-        });
-        setIsLoading(false);
-        setLoadingMessage('');
-        return;
-      }
-      
-      // Register the synced profile with REAL data
       await syncIGsFromSquare([pendingSyncIG], email);
       setRegisteredIGs(prev => [...prev, pendingSyncIG]);
       
-      // Add profile to dashboard with complete data (profile + analysis)
-      addProfile(profileResult.profile, analysisResult.analysis);
+      addProfile(placeholderProfile, placeholderAnalysis);
       
       toast({
         title: 'Perfil sincronizado!',
-        description: `@${pendingSyncIG} foi vinculado com dados completos`
+        description: `@${pendingSyncIG} foi vinculado. Envie um print do perfil para análise completa.`
       });
 
       onSyncComplete([pendingSyncIG]);
@@ -223,11 +166,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
       setInstagramInput('');
     } catch (error) {
       console.error('[ProfileRegistration] Sync error:', error);
-      toast({
-        title: 'Erro na sincronização',
-        description: 'Tente novamente',
-        variant: 'destructive'
-      });
+      toast({ title: 'Erro na sincronização', description: 'Tente novamente', variant: 'destructive' });
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -245,13 +184,11 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
       return;
     }
 
-    // Check email FIRST before any API calls
     if (!email.trim()) {
       toast({ title: 'Digite seu e-mail primeiro', variant: 'destructive' });
       return;
     }
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({ title: 'E-mail inválido', variant: 'destructive' });
@@ -264,10 +201,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
     setLoadingMessage('Verificando disponibilidade...');
 
     try {
-      // STEP 1: Check if can register in SquareCloud
       const checkResult = await canRegisterIG(user.username, normalizedIG);
       
-      // Case 1: Profile already exists in SquareCloud - offer sync
       if (checkResult.alreadyExists) {
         setPendingSyncIG(normalizedIG);
         setShowSyncOfferDialog(true);
@@ -276,30 +211,21 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
         return;
       }
       
-      // Case 2: Cannot register (limit reached)
       if (!checkResult.canRegister) {
-        toast({
-          title: 'Limite atingido',
-          description: checkResult.error || 'Você não pode cadastrar mais perfis',
-          variant: 'destructive'
-        });
+        toast({ title: 'Limite atingido', description: checkResult.error || 'Você não pode cadastrar mais perfis', variant: 'destructive' });
         setIsLoading(false);
         setLoadingMessage('');
         return;
       }
 
-      // Case 3: Can register - show confirmation dialog BEFORE registering
+      // Show confirmation dialog BEFORE registering
       setIsLoading(false);
       setLoadingMessage('');
       setPendingRegisterIG(normalizedIG);
       setShowPreRegisterDialog(true);
 
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível verificar disponibilidade',
-        variant: 'destructive'
-      });
+      toast({ title: 'Erro', description: 'Não foi possível verificar disponibilidade', variant: 'destructive' });
       setIsLoading(false);
       setLoadingMessage('');
     }
@@ -310,259 +236,63 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
     if (!pendingRegisterIG || !user) return;
 
     setShowPreRegisterDialog(false);
-    setIsLoading(true);
-    setRetryCount(0);
-    setIsAutoRetrying(false);
-
-    try {
-      // STEP 2: REGISTER IN SQUARECLOUD FIRST
-      setLoadingMessage('Cadastrando perfil na MRO...');
-      
-      const addResult = await addIGToSquare(user.username, pendingRegisterIG);
-      
-      if (!addResult.success) {
-        toast({
-          title: 'Erro ao cadastrar',
-          description: addResult.error || 'Não foi possível cadastrar o perfil',
-          variant: 'destructive'
-        });
-        setIsLoading(false);
-        setLoadingMessage('');
-        setPendingRegisterIG('');
-        return;
-      }
-
-      // STEP 3: Now fetch Instagram data with AUTO-RETRY
-      await fetchProfileWithAutoRetry(pendingRegisterIG);
-
-    } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível processar o perfil',
-        variant: 'destructive'
-      });
-      setPendingRegisterIG('');
-      setIsLoading(false);
-      setLoadingMessage('');
-    }
-  };
-
-  // Auto-retry fetch until success or age restriction detected
-  const fetchProfileWithAutoRetry = async (igUsername: string, currentRetry = 0) => {
-    const MAX_RETRIES = 10;
-    const RETRY_DELAY = 5000; // 5 seconds between retries
-    
-    setRetryCount(currentRetry);
-    setLoadingMessage(`Buscando dados de @${igUsername}...${currentRetry > 0 ? ` (tentativa ${currentRetry + 1})` : ''}`);
-    
-    try {
-      const profileResult = await fetchInstagramProfile(igUsername);
-      
-      // SUCCESS - got profile data
-      if (profileResult.success && profileResult.profile) {
-        setIsAutoRetrying(false);
-        
-        // STEP 4: Analyze profile with AI
-        setLoadingMessage('Analisando perfil com I.A...');
-        
-        const analysisResult = await analyzeProfile(profileResult.profile);
-        
-        if (!analysisResult.success || !analysisResult.analysis) {
-          toast({
-            title: 'Erro na análise',
-            description: 'Não foi possível analisar o perfil',
-            variant: 'destructive'
-          });
-          setIsLoading(false);
-          setLoadingMessage('');
-          setPendingRegisterIG('');
-          return;
-        }
-
-        // Store pending data and show final confirmation
-        setPendingProfile(profileResult.profile);
-        setPendingAnalysis(analysisResult.analysis);
-        setShowConfirmDialog(true);
-        setPendingRegisterIG('');
-        setIsLoading(false);
-        setLoadingMessage('');
-        return;
-      }
-      
-      // AGE RESTRICTION - open screenshot upload dialog
-      if (profileResult.isRestricted) {
-        console.log(`🔞 Perfil @${igUsername} tem restrição de idade - abrindo upload de print`);
-        setIsLoading(false);
-        setLoadingMessage('');
-        setIsAutoRetrying(false);
-        setAgeRestrictionIG(igUsername);
-        setShowAgeRestrictionScreenshot(true);
-        return;
-      }
-      
-      // TEMPORARY ERROR - auto-retry
-      if (profileResult.canRetry && currentRetry < MAX_RETRIES) {
-        console.log(`🔄 Tentativa ${currentRetry + 1} falhou para @${igUsername}, tentando novamente em ${RETRY_DELAY/1000}s...`);
-        setIsAutoRetrying(true);
-        setLoadingMessage(`Buscando dados de @${igUsername}... (tentativa ${currentRetry + 1}/${MAX_RETRIES})`);
-        
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        return fetchProfileWithAutoRetry(igUsername, currentRetry + 1);
-      }
-      
-      // MAX RETRIES REACHED - offer screenshot option
-      if (currentRetry >= MAX_RETRIES) {
-        console.log(`❌ Máximo de tentativas atingido para @${igUsername} - oferecendo upload de print`);
-        setIsLoading(false);
-        setLoadingMessage('');
-        setIsAutoRetrying(false);
-        setAgeRestrictionIG(igUsername);
-        setShowAgeRestrictionScreenshot(true);
-        return;
-      }
-      
-      // OTHER ERROR - show toast
-      toast({
-        title: 'Erro ao buscar perfil',
-        description: profileResult.error || 'Perfil não encontrado',
-        variant: 'destructive'
-      });
-      setIsLoading(false);
-      setLoadingMessage('');
-      setPendingRegisterIG('');
-      
-    } catch (error) {
-      console.error('Error in fetchProfileWithAutoRetry:', error);
-      
-      // Network error - retry
-      if (currentRetry < MAX_RETRIES) {
-        setIsAutoRetrying(true);
-        setLoadingMessage(`Reconectando... (tentativa ${currentRetry + 1}/${MAX_RETRIES})`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        return fetchProfileWithAutoRetry(igUsername, currentRetry + 1);
-      }
-      
-      // Max retries - offer screenshot
-      setIsLoading(false);
-      setLoadingMessage('');
-      setIsAutoRetrying(false);
-      setAgeRestrictionIG(igUsername);
-      setShowAgeRestrictionScreenshot(true);
-    }
-  };
-
-  // Handle data extracted from screenshot (for age-restricted profiles)
-  const handleScreenshotDataExtracted = async (data: {
-    followers: number;
-    following: number;
-    posts: number;
-    bio?: string;
-    fullName?: string;
-    screenshotUrl: string;
-    analysis: any;
-  }) => {
-    if (!ageRestrictionIG || !user) return;
-    
-    setShowAgeRestrictionScreenshot(false);
-    setIsLoading(true);
-    setLoadingMessage('Finalizando cadastro...');
-
-    try {
-      // Create profile from screenshot data
-      const screenshotProfile: InstagramProfile = {
-        username: ageRestrictionIG,
-        fullName: data.fullName || ageRestrictionIG,
-        bio: data.bio || '',
-        followers: data.followers,
-        following: data.following,
-        posts: data.posts,
-        profilePicUrl: '', // Will show fallback avatar with sync button
-        isBusinessAccount: false,
-        category: '',
-        externalUrl: '',
-        recentPosts: [],
-        engagement: 0,
-        avgLikes: 0,
-        avgComments: 0,
-      };
-      
-      // Use analysis from screenshot
-      const screenshotAnalysis: ProfileAnalysis = data.analysis || {
-        strengths: ['✅ Perfil cadastrado via print'],
-        weaknesses: ['⚠️ Dados parciais - sincronize quando possível'],
-        opportunities: ['🎯 Aplicar estratégia MRO para crescimento'],
-        niche: 'A identificar',
-        audienceType: 'Público local',
-        contentScore: 50,
-        engagementScore: 50,
-        profileScore: 50,
-        recommendations: ['Sincronize o perfil novamente quando a restrição for removida']
-      };
-
-      // Store pending data and show final confirmation
-      setPendingProfile(screenshotProfile);
-      setPendingAnalysis(screenshotAnalysis);
-      setShowConfirmDialog(true);
-      setAgeRestrictionIG('');
-      
-    } catch (error) {
-      console.error('Error processing screenshot data:', error);
-      toast({
-        title: 'Erro ao processar dados',
-        description: 'Tente novamente',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
-    }
-  };
-
-  const handleConfirmRegistration = () => {
-    setShowConfirmDialog(false);
     setShowWarningDialog(true);
   };
 
   const handleFinalConfirmation = async () => {
-    if (!pendingProfile || !pendingAnalysis || !user) return;
+    if (!pendingRegisterIG || !user) return;
 
-    setIsLoading(true);
     setShowWarningDialog(false);
+    setIsLoading(true);
+    setLoadingMessage('Cadastrando perfil...');
 
     try {
-      // Save email to user session
+      // Save email
       updateUserEmail(email);
 
-      // Generate print image
-      const printBlob = await generateProfilePrint(pendingProfile, pendingAnalysis);
-
-      // Send print and email (SquareCloud registration already done in handleSearchProfile)
-      if (printBlob) {
-        await saveEmailAndPrint(email, user.username, pendingProfile.username, printBlob);
+      // Register in SquareCloud
+      const addResult = await addIGToSquare(user.username, pendingRegisterIG);
+      
+      if (!addResult.success) {
+        toast({ title: 'Erro ao cadastrar', description: addResult.error || 'Não foi possível cadastrar o perfil', variant: 'destructive' });
+        setIsLoading(false);
+        setLoadingMessage('');
+        setPendingRegisterIG('');
+        return;
       }
 
-      // Register locally and save to database
-      await addRegisteredIG(pendingProfile.username, email, false);
-      setRegisteredIGs(prev => [...prev, normalizeInstagramUsername(pendingProfile.username)]);
+      // Create placeholder profile - analysis will come from screenshot
+      const placeholderProfile = createPlaceholderProfile(pendingRegisterIG);
+      const placeholderAnalysis = createPlaceholderAnalysis();
+
+      // Register locally
+      await addRegisteredIG(pendingRegisterIG, email, false);
+      setRegisteredIGs(prev => [...prev, normalizeInstagramUsername(pendingRegisterIG)]);
+
+      // Save email and print to SquareCloud
+      try {
+        const printBlob = await generateSimplePrint(pendingRegisterIG);
+        if (printBlob) {
+          await saveEmailAndPrint(email, user.username, pendingRegisterIG, printBlob);
+        }
+      } catch (e) {
+        console.error('Error saving print:', e);
+      }
 
       toast({
-        title: 'Perfil cadastrado com sucesso!',
-        description: `@${pendingProfile.username} foi vinculado à sua conta`
+        title: 'Perfil cadastrado! 📸',
+        description: `@${pendingRegisterIG} foi vinculado. Agora envie um print do perfil para análise completa.`
       });
 
       // Proceed with the registered profile
-      onProfileRegistered(pendingProfile, pendingAnalysis);
-
+      onProfileRegistered(placeholderProfile, placeholderAnalysis);
+      setPendingRegisterIG('');
+      
     } catch (error) {
-      toast({
-        title: 'Erro ao cadastrar',
-        description: 'Tente novamente',
-        variant: 'destructive'
-      });
+      toast({ title: 'Erro ao cadastrar', description: 'Tente novamente', variant: 'destructive' });
     } finally {
       setIsLoading(false);
-      setPendingProfile(null);
-      setPendingAnalysis(null);
+      setLoadingMessage('');
     }
   };
 
@@ -580,13 +310,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
       const result = await verifyRegisteredIGs(user.username);
       
       if (result.success && result.instagrams && result.instagrams.length > 0) {
-        // Check email before syncing
         if (!email.trim()) {
-          toast({ 
-            title: 'Digite seu e-mail', 
-            description: 'Necessário para sincronizar',
-            variant: 'destructive' 
-          });
+          toast({ title: 'Digite seu e-mail', description: 'Necessário para sincronizar', variant: 'destructive' });
           setIsSyncing(false);
           return;
         }
@@ -595,112 +320,37 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
         await syncIGsFromSquare(result.instagrams, email);
         setRegisteredIGs(result.instagrams);
         
-        toast({
-          title: 'Contas sincronizadas!',
-          description: `${result.instagrams.length} Instagram(s) encontrado(s)`
-        });
-
+        toast({ title: 'Contas sincronizadas!', description: `${result.instagrams.length} Instagram(s) encontrado(s)` });
         onSyncComplete(result.instagrams);
       } else {
-        toast({
-          title: 'Nenhuma conta encontrada',
-          description: 'Cadastre um novo perfil para começar'
-        });
+        toast({ title: 'Nenhuma conta encontrada', description: 'Cadastre um novo perfil para começar' });
       }
     } catch (error) {
-      toast({
-        title: 'Erro na sincronização',
-        variant: 'destructive'
-      });
+      toast({ title: 'Erro na sincronização', variant: 'destructive' });
     } finally {
       setIsSyncing(false);
     }
   };
 
-  const generateProfilePrint = async (
-    profile: InstagramProfile, 
-    analysis: ProfileAnalysis
-  ): Promise<Blob | null> => {
+  const generateSimplePrint = async (username: string): Promise<Blob | null> => {
     try {
-      // Create a hidden div for the print
       const printDiv = document.createElement('div');
-      printDiv.style.cssText = `
-        position: fixed;
-        left: -9999px;
-        width: 600px;
-        padding: 24px;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        color: white;
-        font-family: Inter, Arial, sans-serif;
-        border-radius: 12px;
-      `;
-      
+      printDiv.style.cssText = `position:fixed;left:-9999px;width:600px;padding:24px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);color:white;font-family:Inter,Arial,sans-serif;border-radius:12px;`;
       printDiv.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${profile.profilePicUrl}" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #00ff88; object-fit: cover;" crossorigin="anonymous" />
-          <h2 style="margin: 12px 0 4px; font-size: 20px;">@${profile.username}</h2>
-          <p style="color: #888; font-size: 14px; margin: 0;">${profile.fullName}</p>
+        <div style="text-align:center;margin-bottom:20px;">
+          <h2 style="margin:12px 0 4px;font-size:20px;">@${username}</h2>
+          <p style="color:#888;font-size:14px;">Cadastrado em ${new Date().toLocaleDateString('pt-BR')}</p>
+          <p style="color:#666;font-size:12px;margin-top:8px;">Aguardando print do perfil para análise completa</p>
         </div>
-        
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-          <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-            <div style="font-size: 20px; font-weight: bold; color: #00ff88;">${profile.followers.toLocaleString()}</div>
-            <div style="font-size: 12px; color: #888;">Seguidores</div>
-          </div>
-          <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-            <div style="font-size: 20px; font-weight: bold; color: #00ff88;">${profile.following.toLocaleString()}</div>
-            <div style="font-size: 12px; color: #888;">Seguindo</div>
-          </div>
-          <div style="text-align: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-            <div style="font-size: 20px; font-weight: bold; color: #00ff88;">${profile.posts}</div>
-            <div style="font-size: 12px; color: #888;">Posts</div>
-          </div>
-        </div>
-        
-        <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 16px;">
-          <div style="font-size: 12px; color: #888; margin-bottom: 4px;">Bio</div>
-          <div style="font-size: 13px; line-height: 1.4;">${profile.bio || 'Sem bio'}</div>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
-          <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: bold; color: #ff6b6b;">${analysis.contentScore}</div>
-            <div style="font-size: 11px; color: #888;">Conteúdo</div>
-          </div>
-          <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: bold; color: #4ecdc4;">${analysis.engagementScore}</div>
-            <div style="font-size: 11px; color: #888;">Engajamento</div>
-          </div>
-          <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: bold; color: #45b7d1;">${analysis.profileScore}</div>
-            <div style="font-size: 11px; color: #888;">Perfil</div>
-          </div>
-        </div>
-        
-        <div style="text-align: center; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-          <div style="font-size: 11px; color: #666;">MRO Inteligente • ${new Date().toLocaleDateString('pt-BR')}</div>
+        <div style="text-align:center;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);">
+          <div style="font-size:11px;color:#666;">MRO Inteligente • ${new Date().toLocaleDateString('pt-BR')}</div>
         </div>
       `;
-      
       document.body.appendChild(printDiv);
-      
-      // Wait for image to load
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const canvas = await html2canvas(printDiv, {
-        backgroundColor: '#1a1a2e',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true
-      });
-      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const canvas = await html2canvas(printDiv, { backgroundColor: '#1a1a2e', scale: 2 });
       document.body.removeChild(printDiv);
-      
-      return new Promise((resolve) => {
-        canvas.toBlob((blob) => {
-          resolve(blob);
-        }, 'image/jpeg', 0.9);
-      });
+      return new Promise((resolve) => { canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.9); });
     } catch (error) {
       console.error('Error generating print:', error);
       return null;
@@ -734,22 +384,14 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                {/* Área de Membros Button - vai para o dashboard SEM sincronizar */}
                 <Button
                   variant={registeredIGs.length > 0 ? "default" : "outline"}
                   size="sm"
                   onClick={() => {
                     if (registeredIGs.length > 0) {
-                      // Navega para área de membros SEM sincronizar automaticamente
-                      if (onEnterMemberArea) {
-                        onEnterMemberArea();
-                      }
+                      if (onEnterMemberArea) onEnterMemberArea();
                     } else {
-                      toast({
-                        title: 'Nenhum perfil cadastrado',
-                        description: 'Cadastre um perfil para acessar a análise completa',
-                        variant: 'default'
-                      });
+                      toast({ title: 'Nenhum perfil cadastrado', description: 'Cadastre um perfil para acessar a análise completa', variant: 'default' });
                     }
                   }}
                   className={registeredIGs.length > 0 ? "bg-primary hover:bg-primary/90" : ""}
@@ -757,14 +399,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                   <LayoutDashboard className="w-4 h-4 mr-1" />
                   Área de Membros
                 </Button>
-                {/* Video Tutorial Button */}
-                <VideoTutorialButton
-                  youtubeUrl="https://youtu.be/zsLE_Kc11fM"
-                  title="Tutorial"
-                  variant="default"
-                  size="sm"
-                />
-                {/* Tutorial Button */}
+                <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
                 <TutorialButton
                   onStartInteractive={() => tutorial.startTutorial(profileRegistrationTutorial)}
                   onShowList={() => tutorial.startListView(profileRegistrationTutorial)}
@@ -772,17 +407,10 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                   size="sm"
                 />
                 {registeredIGs.length > 0 && (
-                  <span className="text-sm text-muted-foreground">
-                    {registeredIGs.length} perfil(is)
-                  </span>
+                  <span className="text-sm text-muted-foreground">{registeredIGs.length} perfil(is)</span>
                 )}
                 {onLogout && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onLogout}
-                    className="text-muted-foreground hover:text-destructive"
-                  >
+                  <Button variant="ghost" size="sm" onClick={onLogout} className="text-muted-foreground hover:text-destructive">
                     <LogOut className="w-4 h-4 mr-1" />
                     Sair
                   </Button>
@@ -792,7 +420,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
           </CardHeader>
         </Card>
 
-        {/* Email input - shows locked state if already set in cloud */}
+        {/* Email input */}
         <Card className={`glass-card ${user?.isEmailLocked ? 'border-primary/20' : 'border-amber-500/20'}`}>
           <CardContent className="pt-6">
             <div className="space-y-2">
@@ -800,9 +428,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 <Mail className="w-4 h-4" />
                 Seu e-mail {user?.isEmailLocked ? '(salvo)' : '(obrigatório)'}
                 {user?.isEmailLocked && (
-                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                    Vinculado
-                  </span>
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">Vinculado</span>
                 )}
               </Label>
               <Input
@@ -864,15 +490,18 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Buscando...
+                    Verificando...
                   </>
                 ) : (
                   <>
                     <Camera className="w-4 h-4 mr-2" />
-                    Buscar e Analisar
+                    Cadastrar Perfil
                   </>
                 )}
               </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                📸 Após cadastrar, envie um print do perfil para análise completa com I.A.
+              </p>
             </CardContent>
           </Card>
 
@@ -888,52 +517,33 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Warning banner */}
               <div className="p-3 rounded-lg bg-yellow-500/20 border border-yellow-500/40 text-yellow-200">
                 <p className="text-xs font-medium flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>
-                    <strong>Use apenas se:</strong> seus perfis não carregaram corretamente ou se você já tinha contas cadastradas antes. 
-                    Caso contrário, cadastre um perfil por vez.
+                    <strong>Use apenas se:</strong> seus perfis não carregaram corretamente ou se você já tinha contas cadastradas antes.
                   </span>
                 </p>
               </div>
               
               {user?.email ? (
-                <p className="text-sm text-muted-foreground" data-tutorial="sync-email">
-                  E-mail: {user.email}
-                </p>
+                <p className="text-sm text-muted-foreground" data-tutorial="sync-email">E-mail: {user.email}</p>
               ) : (
                 <div className="space-y-2">
                   <Label htmlFor="sync-email">E-mail para sincronizar</Label>
-                  <Input
-                    id="sync-email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-background/50"
-                    data-tutorial="sync-email"
-                  />
+                  <Input id="sync-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-background/50" data-tutorial="sync-email" />
                 </div>
               )}
               <Button 
-                variant="secondary"
-                className="w-full" 
+                variant="secondary" className="w-full" 
                 onClick={() => setShowSyncConfirmDialog(true)}
                 disabled={isSyncing}
                 data-tutorial="sync-button"
               >
                 {isSyncing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sincronizando...
-                  </>
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sincronizando...</>
                 ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Sincronizar Contas
-                  </>
+                  <><Download className="w-4 h-4 mr-2" />Sincronizar Contas</>
                 )}
               </Button>
             </CardContent>
@@ -949,10 +559,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {registeredIGs.map((ig) => (
-                  <div 
-                    key={ig}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm"
-                  >
+                  <div key={ig} className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm">
                     <Check className="w-3 h-3 text-primary" />
                     @{ig}
                   </div>
@@ -963,48 +570,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
         )}
       </div>
 
-      {/* Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Instagram className="w-5 h-5" />
-              Cadastrar este perfil?
-            </DialogTitle>
-            <DialogDescription>
-              Deseja vincular @{pendingProfile?.username} à sua conta MRO?
-            </DialogDescription>
-          </DialogHeader>
-          
-          {pendingProfile && (
-            <div className="flex items-center gap-4 p-4 bg-secondary/20 rounded-lg">
-              <img 
-                src={pendingProfile.profilePicUrl} 
-                alt={pendingProfile.username}
-                className="w-16 h-16 rounded-full object-cover border-2 border-primary"
-              />
-              <div>
-                <p className="font-semibold">@{pendingProfile.username}</p>
-                <p className="text-sm text-muted-foreground">{pendingProfile.fullName}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {pendingProfile.followers.toLocaleString()} seguidores
-                </p>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
-              Ainda não
-            </Button>
-            <Button onClick={handleConfirmRegistration}>
-              Sim, cadastrar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Warning Dialog */}
+      {/* Warning / Confirmation Dialog */}
       <Dialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1018,46 +584,38 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
             </DialogDescription>
           </DialogHeader>
           
+          <div className="flex items-center gap-4 p-4 bg-secondary/20 rounded-lg">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center border-2 border-primary">
+              <Instagram className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-semibold">@{pendingRegisterIG}</p>
+              <p className="text-sm text-muted-foreground">Será vinculado permanentemente</p>
+            </div>
+          </div>
+
           <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="confirm-email">Confirme seu e-mail</Label>
-              <Input
-                id="confirm-email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-background/50"
-              />
+              <Input id="confirm-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-background/50" />
             </div>
             <p className="text-xs text-muted-foreground">
-              Um print dos dados será gerado e enviado junto ao cadastro.
+              📸 Após o cadastro, envie um print do perfil na aba "Perfil" para que a I.A. faça a análise completa.
             </p>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowWarningDialog(false)}>
+            <Button variant="outline" onClick={() => { setShowWarningDialog(false); setPendingRegisterIG(''); }}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleFinalConfirmation}
-              disabled={isLoading}
-              className="bg-primary"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Cadastrando...
-                </>
-              ) : (
-                'Confirmar Cadastro'
-              )}
+            <Button onClick={handleFinalConfirmation} disabled={isLoading} className="bg-primary">
+              {isLoading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Cadastrando...</>) : 'Confirmar Cadastro'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Sync Offer Dialog - when profile already exists in SquareCloud */}
+      {/* Sync Offer Dialog */}
       <Dialog open={showSyncOfferDialog} onOpenChange={setShowSyncOfferDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1074,48 +632,21 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
             <Instagram className="w-8 h-8 text-primary" />
             <div>
               <p className="font-medium">@{pendingSyncIG}</p>
-              <p className="text-sm text-muted-foreground">
-                Será adicionado ao seu painel
-              </p>
+              <p className="text-sm text-muted-foreground">Será adicionado ao seu painel</p>
             </div>
           </div>
 
           {!user?.email && (
             <div className="space-y-2">
               <Label htmlFor="sync-email-dialog">Seu e-mail</Label>
-              <Input
-                id="sync-email-dialog"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-background/50"
-              />
+              <Input id="sync-email-dialog" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-background/50" />
             </div>
           )}
 
           <DialogFooter className="gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowSyncOfferDialog(false);
-                setPendingSyncIG('');
-              }}
-            >
-              Não
-            </Button>
-            <Button 
-              onClick={handleSyncSingleProfile}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sincronizando...
-                </>
-              ) : (
-                'Sim'
-              )}
+            <Button variant="outline" onClick={() => { setShowSyncOfferDialog(false); setPendingSyncIG(''); }}>Não</Button>
+            <Button onClick={handleSyncSingleProfile} disabled={isLoading}>
+              {isLoading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sincronizando...</>) : 'Sim'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1143,30 +674,18 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 <li>• Não feche a página durante o processo</li>
               </ul>
             </div>
-            
-            <div className="p-3 rounded-lg bg-secondary/30 border border-border">
-              <p className="text-xs text-muted-foreground">
-                💡 <strong>Dica:</strong> Se você só precisa adicionar um perfil novo, 
-                use a opção "Cadastrar Perfil" ao lado - é mais rápido!
-              </p>
-            </div>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowSyncConfirmDialog(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleSyncConfirm}
-              className="bg-yellow-600 hover:bg-yellow-700 text-black"
-            >
+            <Button variant="outline" onClick={() => setShowSyncConfirmDialog(false)}>Cancelar</Button>
+            <Button onClick={handleSyncConfirm} className="bg-yellow-600 hover:bg-yellow-700 text-black">
               Sim, sincronizar tudo
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Pre-Register Confirmation Dialog - Ask before registering in SquareCloud */}
+      {/* Pre-Register Confirmation Dialog */}
       <Dialog open={showPreRegisterDialog} onOpenChange={setShowPreRegisterDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1185,9 +704,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
             </div>
             <div>
               <p className="font-semibold">@{pendingRegisterIG}</p>
-              <p className="text-sm text-muted-foreground">
-                Perfil disponível para cadastro
-              </p>
+              <p className="text-sm text-muted-foreground">Perfil disponível para cadastro</p>
             </div>
           </div>
 
@@ -1198,18 +715,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
           </div>
 
           <DialogFooter className="gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowPreRegisterDialog(false);
-                setPendingRegisterIG('');
-              }}
-            >
-              Ainda não
-            </Button>
-            <Button onClick={handleConfirmPreRegister}>
-              Sim, cadastrar
-            </Button>
+            <Button variant="outline" onClick={() => { setShowPreRegisterDialog(false); setPendingRegisterIG(''); }}>Ainda não</Button>
+            <Button onClick={handleConfirmPreRegister}>Sim, cadastrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1225,7 +732,6 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
         onStop={tutorial.stopTutorial}
       />
 
-      {/* Tutorial List Modal */}
       <TutorialList
         isOpen={tutorial.showList}
         sections={tutorial.tutorialData}
@@ -1233,18 +739,41 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
         onStartInteractive={() => tutorial.startTutorial(profileRegistrationTutorial)}
         title="Como Cadastrar Perfis"
       />
-
-      {/* Age Restriction Screenshot Dialog */}
-      <AgeRestrictionScreenshotDialog
-        isOpen={showAgeRestrictionScreenshot}
-        onClose={() => {
-          setShowAgeRestrictionScreenshot(false);
-          setAgeRestrictionIG('');
-        }}
-        username={ageRestrictionIG}
-        squarecloudUsername={user?.username || ''}
-        onDataExtracted={handleScreenshotDataExtracted}
-      />
     </div>
   );
 };
+
+// Helper functions to create placeholder data
+function createPlaceholderProfile(username: string): InstagramProfile {
+  return {
+    username,
+    fullName: username,
+    bio: '',
+    followers: 0,
+    following: 0,
+    posts: 0,
+    profilePicUrl: '',
+    isBusinessAccount: false,
+    category: '',
+    externalUrl: '',
+    recentPosts: [],
+    engagement: 0,
+    avgLikes: 0,
+    avgComments: 0,
+    needsScreenshotAnalysis: true,
+  };
+}
+
+function createPlaceholderAnalysis(): ProfileAnalysis {
+  return {
+    strengths: ['📸 Perfil cadastrado - envie um print para análise completa'],
+    weaknesses: ['⏳ Aguardando print do perfil para análise'],
+    opportunities: ['🎯 Envie um print do perfil para desbloquear análise, estratégias e crescimento'],
+    niche: 'Aguardando análise',
+    audienceType: 'Aguardando análise',
+    contentScore: 0,
+    engagementScore: 0,
+    profileScore: 0,
+    recommendations: ['Envie um print do perfil na aba "Perfil" para análise completa com I.A.']
+  };
+}

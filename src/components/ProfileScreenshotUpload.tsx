@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera, Upload, X, Check, Loader2, Image as ImageIcon, Clipboard, Lock } from 'lucide-react';
+import { Camera, Upload, X, Check, Loader2, Clipboard, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { InstagramProfile } from '@/types/instagram';
 
 interface ProfileScreenshotUploadProps {
   username: string;
@@ -12,6 +13,7 @@ interface ProfileScreenshotUploadProps {
   uploadCount?: number;
   onScreenshotUploaded: (url: string) => void;
   onAnalysisComplete?: (analysis: any) => void;
+  onProfileDataExtracted?: (profileData: Partial<InstagramProfile>) => void;
 }
 
 export const ProfileScreenshotUpload = ({
@@ -20,7 +22,8 @@ export const ProfileScreenshotUpload = ({
   existingScreenshotUrl,
   uploadCount = 0,
   onScreenshotUploaded,
-  onAnalysisComplete
+  onAnalysisComplete,
+  onProfileDataExtracted
 }: ProfileScreenshotUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -31,92 +34,58 @@ export const ProfileScreenshotUpload = ({
 
   const isLocked = uploadCount >= 2;
 
-  // CRITICAL: Reset preview quando o perfil muda (username muda)
-  // Cada perfil tem seu próprio screenshot isolado
   useEffect(() => {
-    console.log(`📸 ProfileScreenshotUpload: Perfil mudou para @${username}`);
-    console.log(`📸 existingScreenshotUrl para @${username}:`, existingScreenshotUrl);
     setPreviewUrl(existingScreenshotUrl || null);
     setSelectedFile(null);
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }, [username, existingScreenshotUrl]);
 
-  // Handle paste event for Ctrl+V
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
-
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.startsWith('image/')) {
           e.preventDefault();
           const file = items[i].getAsFile();
-          if (file) {
-            processFile(file);
-          }
+          if (file) processFile(file);
           break;
         }
       }
     };
-
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
   }, []);
 
   const processFile = (file: File) => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Por favor, selecione uma imagem');
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Imagem muito grande. Máximo 10MB');
-      return;
-    }
-
+    if (!file.type.startsWith('image/')) { toast.error('Por favor, selecione uma imagem'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Imagem muito grande. Máximo 10MB'); return; }
     setSelectedFile(file);
-    
-    // Create preview
     const reader = new FileReader();
-    reader.onload = (event) => {
-      setPreviewUrl(event.target?.result as string);
-    };
+    reader.onload = (event) => setPreviewUrl(event.target?.result as string);
     reader.readAsDataURL(file);
-    
-    toast.success('Imagem colada! Clique em "Enviar e Analisar"');
+    toast.success('Imagem selecionada! Clique em "Enviar e Analisar"');
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    processFile(file);
+    if (file) processFile(file);
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      toast.error('Selecione uma imagem primeiro');
-      return;
-    }
-
+    if (!selectedFile) { toast.error('Selecione uma imagem primeiro'); return; }
     setIsUploading(true);
 
     try {
-      // Convert file to base64
       const reader = new FileReader();
       reader.onload = async (event) => {
         const base64 = event.target?.result as string;
         
-        // Upload to storage via edge function
         const { data, error } = await supabase.functions.invoke('upload-profile-screenshot', {
           body: {
             username,
             squarecloud_username: squarecloudUsername,
-            image_base64: base64.split(',')[1], // Remove data:image/xxx;base64, prefix
+            image_base64: base64.split(',')[1],
             content_type: selectedFile.type
           }
         });
@@ -130,33 +99,55 @@ export const ProfileScreenshotUpload = ({
           toast.success('Print enviado com sucesso!');
           
           // Auto-start analysis after upload
-          if (onAnalysisComplete) {
-            setIsAnalyzing(true);
-            try {
-              const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-profile-screenshot', {
-                body: {
-                  screenshot_url: data.url,
-                  username
-                }
-              });
+          setIsAnalyzing(true);
+          try {
+            const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-profile-screenshot', {
+              body: { screenshot_url: data.url, username }
+            });
 
-              if (analysisError) throw analysisError;
-              
-              if (analysisData?.analysis) {
-                onAnalysisComplete(analysisData.analysis);
-                toast.success('Análise concluída!');
-              }
-            } catch (analysisErr) {
-              console.error('Analysis error:', analysisErr);
-              toast.error('Erro na análise. Tente novamente.');
-            } finally {
+            if (analysisError) throw analysisError;
+            
+            if (analysisData?.success === false && analysisData?.error === 'not_instagram_profile') {
+              toast.error('Este print não parece ser de um perfil do Instagram. Envie um print real do perfil que está utilizando.');
               setIsAnalyzing(false);
+              return;
             }
+            
+            if (analysisData?.analysis) {
+              if (onAnalysisComplete) onAnalysisComplete(analysisData.analysis);
+              
+              // Extract profile data from screenshot and update profile
+              if (onProfileDataExtracted && analysisData?.extracted_data) {
+                const extracted = analysisData.extracted_data;
+                const profileUpdate: Partial<InstagramProfile> = {
+                  followers: Number(extracted.followers) || 0,
+                  following: Number(extracted.following) || 0,
+                  posts: Number(extracted.posts_count) || 0,
+                  bio: extracted.bio || '',
+                  fullName: extracted.full_name || username,
+                  isBusinessAccount: extracted.is_business || false,
+                  category: extracted.category || '',
+                  externalUrl: extracted.external_link || '',
+                  needsScreenshotAnalysis: false,
+                };
+                // Use extracted username if it matches
+                if (extracted.username && extracted.username.toLowerCase() !== username.toLowerCase()) {
+                  console.log(`⚠️ Screenshot username @${extracted.username} differs from registered @${username}`);
+                }
+                onProfileDataExtracted(profileUpdate);
+              }
+              
+              toast.success('Análise concluída! Dados do perfil atualizados.');
+            }
+          } catch (analysisErr) {
+            console.error('Analysis error:', analysisErr);
+            toast.error('Erro na análise. Tente novamente.');
+          } finally {
+            setIsAnalyzing(false);
           }
         }
       };
       reader.readAsDataURL(selectedFile);
-
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Erro ao enviar print. Tente novamente.');
@@ -168,16 +159,13 @@ export const ProfileScreenshotUpload = ({
   const handleRemove = () => {
     setSelectedFile(null);
     setPreviewUrl(existingScreenshotUrl || null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const hasExistingScreenshot = !!existingScreenshotUrl;
   const hasNewSelection = !!selectedFile;
   const showUploadButton = hasNewSelection && previewUrl !== existingScreenshotUrl;
 
-  // Locked state - show only if has 2+ uploads
   if (isLocked && previewUrl) {
     return (
       <Card className="glass-card glow-border">
@@ -192,11 +180,7 @@ export const ProfileScreenshotUpload = ({
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4 px-4 py-3 sm:px-6 sm:py-4">
           <div className="relative rounded-lg overflow-hidden border border-border">
-            <img 
-              src={previewUrl} 
-              alt="Print do perfil" 
-              className="w-full max-h-[300px] sm:max-h-[400px] object-contain bg-muted"
-            />
+            <img src={previewUrl} alt="Print do perfil" className="w-full max-h-[300px] sm:max-h-[400px] object-contain bg-muted" />
             <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-green-500/90 text-white px-2 py-1 rounded text-xs">
               <Check className="w-3 h-3" />
               Salvo definitivamente
@@ -219,36 +203,24 @@ export const ProfileScreenshotUpload = ({
           <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Print do Perfil
           {uploadCount > 0 && (
-            <span className="text-xs font-normal text-muted-foreground">
-              ({uploadCount}/2 envios)
-            </span>
+            <span className="text-xs font-normal text-muted-foreground">({uploadCount}/2 envios)</span>
           )}
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm">
           {hasExistingScreenshot 
             ? uploadCount === 1
               ? 'Print atual do seu perfil. Você pode trocar mais 1 vez.'
-              : 'Print atual do seu perfil. Você pode atualizar a qualquer momento.'
-            : 'Suba um print do seu perfil do Instagram para análise completa.'
+              : 'Print atual do seu perfil.'
+            : '📸 Envie um print do seu perfil do Instagram para análise completa com I.A. Todos os dados (seguidores, seguindo, posts, bio, nicho) serão extraídos automaticamente.'
           }
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4 px-4 py-3 sm:px-6 sm:py-4">
-        {/* Preview Area */}
         {previewUrl ? (
           <div className="relative rounded-lg overflow-hidden border border-border">
-            <img 
-              src={previewUrl} 
-              alt="Print do perfil" 
-              className="w-full max-h-[300px] sm:max-h-[400px] object-contain bg-muted"
-            />
+            <img src={previewUrl} alt="Print do perfil" className="w-full max-h-[300px] sm:max-h-[400px] object-contain bg-muted" />
             {!isUploading && !isAnalyzing && (
-              <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 w-8 h-8"
-                onClick={handleRemove}
-              >
+              <Button variant="destructive" size="icon" className="absolute top-2 right-2 w-8 h-8" onClick={handleRemove}>
                 <X className="w-4 h-4" />
               </Button>
             )}
@@ -261,35 +233,22 @@ export const ProfileScreenshotUpload = ({
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
-            {/* Mobile: Botão direto de upload */}
             <div className="sm:hidden">
-              <Button
-                variant="outline"
-                className="w-full h-24 flex flex-col items-center justify-center gap-2 border-2 border-dashed"
-                onClick={() => fileInputRef.current?.click()}
-              >
+              <Button variant="outline" className="w-full h-24 flex flex-col items-center justify-center gap-2 border-2 border-dashed" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="w-8 h-8 text-muted-foreground" />
                 <span className="text-sm">Toque para selecionar imagem</span>
               </Button>
             </div>
             
-            {/* Desktop: Área de paste */}
-            <div 
-              ref={dropZoneRef}
-              tabIndex={0}
+            <div ref={dropZoneRef} tabIndex={0}
               className="hidden sm:block border-2 border-dashed border-border rounded-lg p-6 sm:p-8 text-center cursor-pointer hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
-              onClick={(e) => {
-                e.currentTarget.focus();
-                toast.info('Área selecionada! Use Ctrl+V para colar a imagem');
-              }}
+              onClick={(e) => { e.currentTarget.focus(); toast.info('Área selecionada! Use Ctrl+V para colar a imagem'); }}
             >
               <Clipboard className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-muted-foreground mb-3 sm:mb-4" />
               <p className="text-muted-foreground mb-2 text-sm sm:text-base">
                 Clique aqui e use <span className="text-primary font-medium">Ctrl+V</span> para colar
               </p>
-              <p className="text-xs text-muted-foreground">
-                Cole uma imagem da área de transferência
-              </p>
+              <p className="text-xs text-muted-foreground">Cole uma imagem da área de transferência</p>
             </div>
             
             <div className="hidden sm:flex items-center gap-2">
@@ -298,79 +257,41 @@ export const ProfileScreenshotUpload = ({
               <div className="flex-1 h-px bg-border"></div>
             </div>
             
-            <Button
-              variant="outline"
-              className="hidden sm:flex w-full"
-              onClick={() => fileInputRef.current?.click()}
-            >
+            <Button variant="outline" className="hidden sm:flex w-full" onClick={() => fileInputRef.current?.click()}>
               <Upload className="w-4 h-4 mr-2" />
               Selecionar Imagem do Computador
             </Button>
             
-            <p className="text-xs text-muted-foreground text-center">
-              PNG, JPG ou WEBP até 10MB
-            </p>
+            <p className="text-xs text-muted-foreground text-center">PNG, JPG ou WEBP até 10MB</p>
           </div>
         )}
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-2">
-
           {previewUrl && !hasNewSelection && (
-            <Button 
-              onClick={() => fileInputRef.current?.click()}
-              className="flex-1"
-              variant="outline"
-              size="default"
-            >
+            <Button onClick={() => fileInputRef.current?.click()} className="flex-1" variant="outline" size="default">
               <Upload className="w-4 h-4 mr-2" />
               Trocar Imagem
             </Button>
           )}
 
           {showUploadButton && (
-            <Button 
-              onClick={handleUpload}
-              disabled={isUploading || isAnalyzing}
-              className="flex-1 bg-primary"
-              size="default"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
-              ) : isAnalyzing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analisando...
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4 mr-2" />
-                  Enviar e Analisar
-                </>
-              )}
+            <Button onClick={handleUpload} disabled={isUploading || isAnalyzing} className="flex-1 bg-primary" size="default">
+              {isUploading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>)
+               : isAnalyzing ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analisando com I.A...</>)
+               : (<><Check className="w-4 h-4 mr-2" />Enviar e Analisar</>)}
             </Button>
           )}
         </div>
 
-        {/* Instructions */}
         <div className="bg-secondary/50 rounded-lg p-2 sm:p-3 text-xs sm:text-sm text-muted-foreground">
           <p className="font-medium text-foreground mb-1">📸 Como tirar um bom print:</p>
           <ul className="list-disc list-inside space-y-0.5 sm:space-y-1">
             <li>Abra seu perfil no Instagram</li>
             <li>Certifique-se que mostra seguidores, seguindo e posts</li>
             <li>Tire um print da tela inteira do perfil</li>
-            <li>Nossa IA vai analisar todos os detalhes!</li>
+            <li>Nossa IA vai extrair todos os dados e analisar automaticamente!</li>
           </ul>
         </div>
       </CardContent>
