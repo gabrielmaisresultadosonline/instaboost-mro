@@ -191,27 +191,6 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
             </div>
           </div>
 
-              {hasScreenshot && (
-                <Button
-                  onClick={() => setShowAdminDialog(true)}
-                  disabled={isReanalyzing}
-                  size="icon"
-                  variant="outline"
-                  className="h-8 w-8 shrink-0"
-                  title="Reanalisar (Admin)"
-                  aria-label="Reanalisar perfil"
-                >
-                  {isReanalyzing ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Lock className="w-3.5 h-3.5" />
-                  )}
-                </Button>
-              )}
-
-            </div>
-          </div>
-
           {profile.fullName && (
             <p className="text-sm sm:text-base md:text-lg text-foreground/90 mb-1">{profile.fullName}</p>
           )}
