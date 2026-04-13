@@ -46,12 +46,16 @@
     --mro-green-dark: 160 90% 30%;
     --mro-cyan: 180 100% 45%;
     --mro-purple: 280 70% 50%;
+    --instagram-pink: 338 82% 54%;
+    --instagram-orange: 24 95% 58%;
+    --instagram-yellow: 38 96% 64%;
     
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(160 84% 45%) 0%, hsl(180 100% 45%) 100%);
     --gradient-glow: linear-gradient(135deg, hsl(160 84% 45% / 0.3) 0%, hsl(180 100% 45% / 0.1) 100%);
     --gradient-card: linear-gradient(180deg, hsl(220 18% 12%) 0%, hsl(220 18% 8%) 100%);
     --gradient-hero: linear-gradient(180deg, hsl(220 20% 6%) 0%, hsl(220 20% 4%) 100%);
+    --gradient-instagram: linear-gradient(135deg, hsl(var(--instagram-pink)) 0%, hsl(var(--instagram-orange)) 60%, hsl(var(--instagram-yellow)) 100%);
 
     /* Shadows */
     --shadow-glow: 0 0 40px hsl(160 84% 45% / 0.25);
@@ -129,6 +133,10 @@
   .btn-glow:hover {
     box-shadow: 0 6px 30px hsl(160 84% 45% / 0.5);
     transform: translateY(-2px);
+  }
+
+  .bg-instagram-gradient {
+    background: var(--gradient-instagram);
   }
 
   .animate-float {
