@@ -2527,7 +2527,6 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   <TabsTrigger value="email-preview" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
                     📧 Preview Email
                   </TabsTrigger>
-                  </TabsTrigger>
                 </TabsList>
 
                 {/* Tab: Configuração */}
