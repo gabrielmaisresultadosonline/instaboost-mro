@@ -20,10 +20,11 @@ interface ProfileCardProps {
   screenshotUrl?: string | null;
   onProfileUpdate?: (updatedProfile: InstagramProfile) => void;
   onAnalysisComplete?: (analysis: any) => void;
+  onAnalysisApplied?: (payload: { analysis: any; updatedProfile?: InstagramProfile }) => void;
   onScreenshotRemoved?: () => void;
 }
 
-export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysisComplete, onScreenshotRemoved }: ProfileCardProps) => {
+export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysisComplete, onAnalysisApplied, onScreenshotRemoved }: ProfileCardProps) => {
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
@@ -74,13 +75,10 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
         }
       }
 
-      if (analysisData?.analysis && onAnalysisComplete) {
-        onAnalysisComplete(analysisData.analysis);
-      }
-
+      let updatedProfile: InstagramProfile | undefined;
       if (analysisData?.extracted_data && onProfileUpdate) {
         const extracted = analysisData.extracted_data;
-        const updatedProfile: InstagramProfile = {
+        updatedProfile = {
           ...profile,
           followers: Number(extracted.followers) || 0,
           following: Number(extracted.following) || 0,
@@ -93,6 +91,20 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
           needsScreenshotAnalysis: false,
           dataSource: 'screenshot',
         };
+      }
+
+      if (analysisData?.analysis && onAnalysisApplied) {
+        onAnalysisApplied({ analysis: analysisData.analysis, updatedProfile });
+      } else {
+        if (analysisData?.analysis && onAnalysisComplete) {
+          onAnalysisComplete(analysisData.analysis);
+        }
+        if (updatedProfile && onProfileUpdate) {
+          onProfileUpdate(updatedProfile);
+        }
+      }
+
+      if (updatedProfile && onProfileUpdate && !onAnalysisApplied) {
         onProfileUpdate(updatedProfile);
       }
 

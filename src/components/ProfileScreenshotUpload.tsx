@@ -17,6 +17,7 @@ interface ProfileScreenshotUploadProps {
   onScreenshotRemoved?: () => void;
   onAnalysisComplete?: (analysis: any) => void;
   onProfileDataExtracted?: (profileData: Partial<InstagramProfile>) => void;
+  onAnalysisApplied?: (payload: { analysis: any; profileData?: Partial<InstagramProfile> }) => void;
 }
 
 export const ProfileScreenshotUpload = ({
@@ -28,7 +29,8 @@ export const ProfileScreenshotUpload = ({
   onScreenshotUploaded,
   onScreenshotRemoved,
   onAnalysisComplete,
-  onProfileDataExtracted
+  onProfileDataExtracted,
+  onAnalysisApplied
 }: ProfileScreenshotUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -147,13 +149,9 @@ export const ProfileScreenshotUpload = ({
             }
 
             const extracted = analysisData?.extracted_data;
-
-            if (analysisData?.analysis && onAnalysisComplete) {
-              onAnalysisComplete(analysisData.analysis);
-            }
-
+            let profileUpdate: Partial<InstagramProfile> | undefined;
             if (onProfileDataExtracted && extracted) {
-              const profileUpdate: Partial<InstagramProfile> = {
+              profileUpdate = {
                 followers: Number(extracted.followers) || 0,
                 following: Number(extracted.following) || 0,
                 posts: Number(extracted.posts_count) || 0,
@@ -165,6 +163,23 @@ export const ProfileScreenshotUpload = ({
                 needsScreenshotAnalysis: false,
                 dataSource: 'screenshot',
               };
+            }
+
+            if (analysisData?.analysis && onAnalysisApplied) {
+              onAnalysisApplied({
+                analysis: analysisData.analysis,
+                profileData: profileUpdate,
+              });
+            } else {
+              if (analysisData?.analysis && onAnalysisComplete) {
+                onAnalysisComplete(analysisData.analysis);
+              }
+              if (onProfileDataExtracted && profileUpdate) {
+                onProfileDataExtracted(profileUpdate);
+              }
+            }
+
+            if (profileUpdate && onProfileDataExtracted && !onAnalysisApplied) {
               onProfileDataExtracted(profileUpdate);
             }
 
