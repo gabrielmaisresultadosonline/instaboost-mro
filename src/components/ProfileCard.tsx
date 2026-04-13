@@ -143,26 +143,131 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
   // Has real data — show full profile, no reanalyze for normal users, only admin lock
   return (
     <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up">
-      <div className="flex flex-col gap-4 sm:gap-5">
-        <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6 min-w-0 flex-1">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
-              <Instagram className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
-            </div>
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
+          <Instagram className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
+        </div>
 
-            <div className="flex-1 text-center sm:text-left min-w-0">
-              <div className="flex flex-col gap-2 mb-1 sm:mb-2">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-3 min-w-0">
-                  <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold break-all">@{profile.username}</h2>
-                  {profile.category && (
-                    <span className="inline-flex self-center sm:self-start lg:self-center max-w-full px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium break-words text-center">
-                      {profile.category}
-                    </span>
+        <div className="flex-1 text-center sm:text-left min-w-0 w-full">
+          {/* Row 1: username + action buttons */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-1 sm:mb-2">
+            <h2 className="text-base sm:text-lg md:text-2xl font-display font-bold truncate min-w-0">@{profile.username}</h2>
+            <div className="flex items-center justify-center sm:justify-end gap-2 shrink-0">
+              {profile.category && (
+                <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[10px] sm:text-xs font-medium whitespace-nowrap max-w-[160px] truncate">
+                  {profile.category}
+                </span>
+              )}
+              {hasScreenshot && (
+                <Button
+                  onClick={() => setShowAdminDialog(true)}
+                  disabled={isReanalyzing}
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 text-xs px-2 sm:px-3 shrink-0"
+                  title="Reanalisar (Admin)"
+                >
+                  {isReanalyzing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Lock className="w-3.5 h-3.5" />
                   )}
-                </div>
-                {profile.fullName && (
-                  <p className="text-sm sm:text-base md:text-lg text-foreground/90 break-words">{profile.fullName}</p>
-                )}
+                  <span className="hidden sm:inline">{isReanalyzing ? 'Analisando...' : 'Reanalisar'}</span>
+                </Button>
+              )}
+              <VideoTutorialButton youtubeUrl="https://youtu.be/mIQ78Skz1BU" title="Tutorial" variant="pulse" size="sm" />
+            </div>
+          </div>
+
+          {profile.fullName && (
+            <p className="text-sm sm:text-base md:text-lg text-foreground/90 mb-1">{profile.fullName}</p>
+          )}
+
+          {profile.bio && (
+            <p className="text-muted-foreground text-xs sm:text-sm whitespace-pre-line break-words line-clamp-4 sm:line-clamp-none">
+              {profile.bio}
+            </p>
+          )}
+
+          {profile.externalUrl && (
+            <a 
+              href={profile.externalUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 sm:gap-2 mt-2 text-primary hover:underline text-xs sm:text-sm break-all"
+            >
+              <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="break-all">{profile.externalUrl}</span>
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border">
+        <StatItem icon={<Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5" />} value={formatNumber(profile.posts)} label="Posts" />
+        <StatItem icon={<Users className="w-4 h-4 sm:w-5 sm:h-5" />} value={formatNumber(profile.followers)} label="Seguidores" />
+        <StatItem icon={<UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />} value={formatNumber(profile.following)} label="Seguindo" />
+      </div>
+
+      {profile.engagement > 0 && (
+        <div className="mt-4 sm:mt-6 p-3 sm:p-4 rounded-lg bg-secondary/50">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
+            <div className="text-center sm:text-left">
+              <p className="text-xs sm:text-sm text-muted-foreground">Taxa de Engajamento</p>
+              <p className="text-xl sm:text-2xl font-display font-bold text-gradient">{profile.engagement.toFixed(2)}%</p>
+            </div>
+            <div className="text-center sm:text-right">
+              <p className="text-xs sm:text-sm text-muted-foreground">Média por Post</p>
+              <p className="text-foreground text-sm sm:text-base">
+                <span className="font-semibold">{formatNumber(profile.avgLikes)}</span> likes • 
+                <span className="font-semibold ml-1">{formatNumber(profile.avgComments)}</span> comentários
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin password dialog */}
+      <Dialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5" /> Reanálise Administrativa
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            A reanálise só pode ser feita por um administrador. Insira a senha para continuar.
+          </p>
+          <Input
+            type="password"
+            placeholder="Senha do administrador"
+            value={adminPassword}
+            onChange={(e) => setAdminPassword(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAdminReanalyze()}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowAdminDialog(false); setAdminPassword(''); }}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAdminReanalyze}>
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+const StatItem = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
+  <div className="text-center">
+    <div className="flex items-center justify-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
+      <span className="text-primary">{icon}</span>
+      <span className="text-lg sm:text-2xl font-display font-bold">{value}</span>
+    </div>
+    <p className="text-xs sm:text-sm text-muted-foreground">{label}</p>
+  </div>
+);
               </div>
 
               {profile.bio && (
