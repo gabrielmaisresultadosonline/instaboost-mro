@@ -74,6 +74,40 @@ export const Dashboard = ({
 
   const getLoggedInUsername = () => getCurrentUser()?.username || 'anonymous';
 
+  const applyAnalyzedProfileData = ({
+    analysis,
+    updatedProfile,
+    profileData,
+  }: {
+    analysis: any;
+    updatedProfile?: ProfileSession['profile'];
+    profileData?: Partial<ProfileSession['profile']>;
+  }) => {
+    const currentSession = getSession();
+    const profileIndex = currentSession.profiles.findIndex(p => p.id === activeProfile.id);
+
+    if (profileIndex === -1) return;
+
+    const mergedProfile = updatedProfile || {
+      ...currentSession.profiles[profileIndex].profile,
+      ...(profileData || {}),
+    };
+
+    currentSession.profiles[profileIndex] = {
+      ...currentSession.profiles[profileIndex],
+      profile: mergedProfile,
+      analysis,
+      lastUpdated: new Date().toISOString(),
+    };
+    currentSession.lastUpdated = new Date().toISOString();
+
+    onSessionUpdate({
+      ...currentSession,
+      profiles: [...currentSession.profiles],
+    });
+    syncSessionToPersistent(getLoggedInUsername());
+  };
+
   const refreshSession = () => {
     const updatedSession = getSession();
     onSessionUpdate(updatedSession);
@@ -348,6 +382,9 @@ export const Dashboard = ({
                   refreshSession();
                 }
               }}
+              onAnalysisApplied={({ analysis, updatedProfile }) => {
+                applyAnalyzedProfileData({ analysis, updatedProfile });
+              }}
               onScreenshotRemoved={() => {
                 console.log(`🗑️ Auto-removing mismatched screenshot for @${activeProfile.profile.username}`);
                 const session = getSession();
@@ -427,6 +464,9 @@ export const Dashboard = ({
                   updateAnalysis(analysis);
                   refreshSession();
                 }
+              }}
+              onAnalysisApplied={({ analysis, profileData }) => {
+                applyAnalyzedProfileData({ analysis, profileData });
               }}
               onProfileDataExtracted={(profileData) => {
                 // Update profile with real data extracted from screenshot
