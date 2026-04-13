@@ -175,7 +175,7 @@ export default function MROPagamento() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("mro_orders")
+        .from("mro_orders_public" as any)
         .select("status, paid_at, completed_at")
         .eq("nsu_order", nsuOrder)
         .single();
