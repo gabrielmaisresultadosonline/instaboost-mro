@@ -30,6 +30,7 @@ import {
   logoutUser,
   saveUserToCloud
 } from '@/lib/userStorage';
+import { verifyRegisteredIGs } from '@/lib/squareApi';
 // API imports removed - profile data now comes from screenshot analysis
 import { useToast } from '@/hooks/use-toast';
 import { 
