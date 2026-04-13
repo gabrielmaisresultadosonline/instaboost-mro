@@ -426,15 +426,8 @@ export const Dashboard = ({
                 />
                 
                 {activeProfile.strategies.length > 0 && (
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-display font-bold">Estratégias Geradas</h3>
-                    {activeProfile.strategies.map((strategy) => (
-                      <StrategyDisplay 
-                        key={strategy.id}
-                        strategy={strategy}
-                      />
-                    ))}
-                  </div>
+                  <StrategiesAccordion strategies={activeProfile.strategies} />
+                
                 )}
               </>
             ) : (
