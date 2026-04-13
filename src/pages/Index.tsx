@@ -185,7 +185,7 @@ const Index = () => {
     const user = getCurrentUser();
     const loggedInUsername = getLoggedInUsername();
     let processedCount = 0;
-    let cachedCount = 0;
+    let restoredPrintCount = 0;
     
     for (const ig of instagrams) {
       processedCount++;
@@ -212,7 +212,7 @@ const Index = () => {
       if (hasScreenshotDerivedData) {
         console.log(`📦 Usando dados reais do print salvos para @${ig}`);
         addProfile(persistedData.profile, persistedData.analysis);
-        cachedCount++;
+        restoredPrintCount++;
         continue;
       }
       

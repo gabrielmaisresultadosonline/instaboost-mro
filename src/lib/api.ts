@@ -324,15 +324,16 @@ export const recoverProfileFromScreenshot = async (
         followers,
         following,
         posts,
-        profilePicUrl: currentProfile?.profilePicUrl || '',
+        profilePicUrl: '',
         isBusinessAccount,
         category,
         externalUrl,
-        recentPosts: currentProfile?.recentPosts || [],
-        engagement: currentProfile?.engagement || 0,
-        avgLikes: currentProfile?.avgLikes || 0,
-        avgComments: currentProfile?.avgComments || 0,
+        recentPosts: [],
+        engagement: 0,
+        avgLikes: 0,
+        avgComments: 0,
         needsScreenshotAnalysis: false,
+        dataSource: 'screenshot',
       }
     };
   } catch (error) {
