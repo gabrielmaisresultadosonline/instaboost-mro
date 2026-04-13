@@ -126,7 +126,7 @@ export const Dashboard = ({
                 data-tutorial="mro-button"
               >
                 <Wrench className="w-4 h-4 mr-1 xl:mr-2 shrink-0" />
-                Instalar e Utilizar Ferramenta
+                INSTALAR E UTILIZAR FERRAMENTA
               </Button>
             </div>
 
@@ -192,7 +192,7 @@ export const Dashboard = ({
               <Logo size="sm" />
             </div>
 
-            {/* Linha 2: Instalar e Utilizar Ferramenta centralizado */}
+            {/* Linha 2: INSTALAR E UTILIZAR FERRAMENTA centralizado */}
             <div className="flex justify-center">
               <Button
                 onClick={() => navigate('/mro-ferramenta')}
@@ -200,7 +200,7 @@ export const Dashboard = ({
                 data-tutorial="mro-button"
               >
                 <Wrench className="w-4 h-4 mr-2" />
-                Instalar e Utilizar Ferramenta
+                INSTALAR E UTILIZAR FERRAMENTA
               </Button>
             </div>
 
@@ -259,7 +259,7 @@ export const Dashboard = ({
                   data-tutorial="mro-button"
                 >
                   <Wrench className="w-4 h-4 mr-2" />
-                  Instalar e Utilizar Ferramenta
+                  INSTALAR E UTILIZAR FERRAMENTA
                 </Button>
               </div>
 
