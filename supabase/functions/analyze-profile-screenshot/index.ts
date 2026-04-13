@@ -20,9 +20,11 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'} using DeepSeek`);
+    console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'} using vision model`);
 
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const normalizedUsername = String(username || 'username').replace('@', '').trim().toLowerCase();
     
     if (!DEEPSEEK_API_KEY) {
       console.error('DEEPSEEK_API_KEY not configured');
@@ -32,15 +34,14 @@ serve(async (req) => {
       );
     }
 
-    // DeepSeek doesn't support image analysis directly, so we'll extract info from the screenshot URL
-    // and use the username to generate a contextual analysis
-    const systemPrompt = `Você é um especialista em marketing digital e análise de perfis do Instagram.
-Analise o perfil @${username || 'desconhecido'} e gere uma análise completa baseada em boas práticas de Instagram.
+    const systemPrompt = `Você é um especialista em marketing digital e leitura visual de prints de perfis do Instagram.
+Leia o print do perfil @${normalizedUsername} e extraia APENAS dados realmente visíveis na imagem.
+Não invente números. Se algum campo não estiver legível, use 0 ou string vazia.
 
 RETORNE APENAS JSON VÁLIDO no seguinte formato:
 {
   "extracted_data": {
-    "username": "${username || 'username'}",
+    "username": "${normalizedUsername}",
     "full_name": "",
     "bio": "",
     "followers": 0,
@@ -69,14 +70,66 @@ RETORNE APENAS JSON VÁLIDO no seguinte formato:
     "content_variety": "variedade do conteúdo visível",
     "grid_aesthetic": "estética do grid de posts"
   }
-}`;
+}
 
-    const userPrompt = `Gere uma análise completa para o perfil do Instagram @${username || 'desconhecido'}. 
-O screenshot foi enviado e o perfil precisa de uma análise profissional.
-Baseie a análise em boas práticas de Instagram e marketing digital.
-Use scores realistas entre 50-85 para um perfil típico.`;
+Regras extras:
+- followers, following e posts_count devem ser números inteiros.
+- Se o print mostrar pontuação brasileira como 4.254 ou 1,2 mil, converta para número inteiro.
+- Preserve o username informado se ele bater com o print.`;
 
-    // Call DeepSeek API
+    const userPrompt = `Leia este print do Instagram e extraia os dados visíveis do perfil @${normalizedUsername}.
+Depois gere uma análise profissional curta baseada no que aparece no print.`;
+
+    if (LOVABLE_API_KEY) {
+      const visionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: userPrompt },
+                { type: 'image_url', image_url: { url: screenshot_url } }
+              ]
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 2500,
+        }),
+      });
+
+      if (visionResponse.ok) {
+        const visionData = await visionResponse.json();
+        const content = visionData.choices?.[0]?.message?.content;
+
+        if (content) {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const analysisResult = JSON.parse(jsonMatch[0]);
+            const extracted = analysisResult.extracted_data || {};
+            extracted.username = extracted.username || normalizedUsername;
+
+            return Response.json({
+              success: true,
+              analysis: analysisResult.analysis,
+              extracted_data: extracted,
+              visual_observations: analysisResult.visual_observations || null,
+            }, { headers: corsHeaders });
+          }
+        }
+      } else {
+        const errorText = await visionResponse.text();
+        console.error('❌ Vision API error:', visionResponse.status, errorText);
+      }
+    }
+
+    // Fallback textual analysis when the vision model is unavailable
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -143,7 +196,10 @@ Use scores realistas entre 50-85 para um perfil típico.`;
     return Response.json({
       success: true,
       analysis: analysisResult.analysis,
-      extracted_data: analysisResult.extracted_data,
+      extracted_data: {
+        username: normalizedUsername,
+        ...(analysisResult.extracted_data || {})
+      },
       visual_observations: analysisResult.visual_observations
     }, { headers: corsHeaders });
 

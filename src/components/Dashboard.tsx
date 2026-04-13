@@ -368,6 +368,7 @@ export const Dashboard = ({
             
             <ProfileCard 
               profile={activeProfile.profile} 
+              screenshotUrl={activeProfile.screenshotUrl}
               onProfileUpdate={(updatedProfile) => {
                 // Update profile in session
                 updateProfile(updatedProfile);
