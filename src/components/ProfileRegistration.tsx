@@ -632,38 +632,8 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
         </DialogContent>
       </Dialog>
 
-      {/* Sync Confirmation Dialog */}
-      <Dialog open={showSyncConfirmDialog} onOpenChange={setShowSyncConfirmDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-yellow-500">
-              <AlertTriangle className="w-5 h-5" />
-              Confirmar Sincronização
-            </DialogTitle>
-            <DialogDescription className="text-base">
-              Tem certeza que deseja sincronizar todas as contas?
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-3">
-            <div className="p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
-              <p className="text-sm text-yellow-200 font-medium mb-2">⚠️ Atenção:</p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Este processo pode demorar <strong>vários minutos</strong></li>
-                <li>• Depende da quantidade de perfis cadastrados</li>
-                <li>• Não feche a página durante o processo</li>
-              </ul>
-            </div>
-          </div>
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowSyncConfirmDialog(false)}>Cancelar</Button>
-            <Button onClick={handleSyncConfirm} className="bg-yellow-600 hover:bg-yellow-700 text-black">
-              Sim, sincronizar tudo
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Pre-Register Confirmation Dialog */}
       <Dialog open={showPreRegisterDialog} onOpenChange={setShowPreRegisterDialog}>
