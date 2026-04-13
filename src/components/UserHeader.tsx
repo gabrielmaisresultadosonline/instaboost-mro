@@ -13,18 +13,29 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert } from 'lucide-react';
+import { LogOut, Clock, Crown, User, Lock, Unlock, KeyRound, RefreshCw, ShieldAlert, HelpCircle, Play, List } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '@/lib/userStorage';
 import { formatDaysRemaining, isLifetimeAccess, canUseCreatives } from '@/types/user';
 import { getSession, updateAnalysis, clearStrategies } from '@/lib/storage';
 import { syncSessionToPersistent, persistProfileData, clearPersistedStrategyDates } from '@/lib/persistentStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { dashboardTutorial, strategyTutorial } from '@/hooks/useTutorial';
 
 interface UserHeaderProps {
   onLogout: () => void;
   onReanalysisComplete?: () => void;
+  tutorial?: any;
+  activeTab?: string;
 }
 
 const ADMIN_PASSWORD = 'Ga145523@';

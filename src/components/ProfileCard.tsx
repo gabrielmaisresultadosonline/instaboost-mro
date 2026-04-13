@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { InstagramProfile } from '@/types/instagram';
 import { Users, UserPlus, Grid3X3, ExternalLink, Instagram, RefreshCw, Loader2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
