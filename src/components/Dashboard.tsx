@@ -371,6 +371,7 @@ export const Dashboard = ({
               squarecloudUsername={getLoggedInUsername()}
               existingScreenshotUrl={activeProfile.screenshotUrl}
               uploadCount={activeProfile.screenshotUploadCount || 0}
+              analysisCompleted={hasRealPrintData}
               onScreenshotUploaded={(url) => {
                 console.log(`📸 Saving screenshot for @${activeProfile.profile.username} (ID: ${activeProfile.id})`);
                 const session = getSession();
