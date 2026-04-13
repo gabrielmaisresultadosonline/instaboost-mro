@@ -1,5 +1,5 @@
 import { Strategy } from '@/types/instagram';
-import { Zap, Calendar, MessageSquare, ChevronDown, ChevronUp, Clock, Info, User, Copy, Check } from 'lucide-react';
+import { Zap, Calendar, MessageSquare, ChevronDown, ChevronUp, Clock, Info, User, Copy, Check, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -170,6 +170,23 @@ export const StrategyDisplay = ({ strategy }: StrategyDisplayProps) => {
             ))}
           </ul>
         </CollapsibleSection>
+      )}
+
+      {/* MRO Warning */}
+      {(strategy.type === 'mro' || strategy.mroTutorial) && (
+        <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-amber-500 mb-1">⚠️ Aviso Importante — Interações com a MRO</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Quando iniciar a ferramenta MRO, <strong className="text-foreground">evite fazer interações manualmente pelo celular</strong>. 
+                Você pode publicar stories, feed posts normalmente, mas <strong className="text-foreground">não siga ninguém, não curta ninguém e não curta nenhum story</strong> enquanto a ferramenta estiver ativa. 
+                A MRO funciona em dias alternados (1 dia sim, 1 dia não) com uma tarefa por dia: seguir + curtir em um dia, curtir stories em outro, enviar mensagens em outro.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MRO Tutorial */}
