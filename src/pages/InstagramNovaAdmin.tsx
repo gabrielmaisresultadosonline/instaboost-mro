@@ -128,7 +128,7 @@ export default function InstagramNovaAdmin() {
 
   // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
-  const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview">("config");
+  const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview" | "remarketing">("config");
   
   // Afiliado atual sendo editado
   const [affiliateId, setAffiliateId] = useState("");
