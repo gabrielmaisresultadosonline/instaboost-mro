@@ -11,6 +11,7 @@ interface ProfileScreenshotUploadProps {
   squarecloudUsername: string;
   existingScreenshotUrl?: string | null;
   uploadCount?: number;
+  analysisCompleted?: boolean;
   onScreenshotUploaded: (url: string) => void;
   onAnalysisComplete?: (analysis: any) => void;
   onProfileDataExtracted?: (profileData: Partial<InstagramProfile>) => void;
@@ -21,6 +22,7 @@ export const ProfileScreenshotUpload = ({
   squarecloudUsername,
   existingScreenshotUrl,
   uploadCount = 0,
+  analysisCompleted = false,
   onScreenshotUploaded,
   onAnalysisComplete,
   onProfileDataExtracted
@@ -32,7 +34,9 @@ export const ProfileScreenshotUpload = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const isLocked = uploadCount >= 2;
+  // Lock uploads only if analysis was already completed successfully
+  // If analysis never completed, allow retry regardless of upload count
+  const isLocked = analysisCompleted && uploadCount >= 2;
 
   useEffect(() => {
     setPreviewUrl(existingScreenshotUrl || null);
