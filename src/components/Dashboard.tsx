@@ -81,15 +81,14 @@ export const Dashboard = ({
     syncSessionToPersistent(getLoggedInUsername());
   };
 
-  // Check if screenshot exists for analysis tab
-  const hasScreenshot = !!activeProfile?.screenshotUrl;
+  const hasRealPrintData = activeProfile?.profile.dataSource === 'screenshot' && !activeProfile?.profile.needsScreenshotAnalysis;
 
   const tabs = [
     { id: 'profile', label: 'Perfil', icon: <User className="w-4 h-4" />, locked: false },
-    { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" />, locked: !hasScreenshot },
-    { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" />, locked: !hasScreenshot },
-    { id: 'legendas', label: 'Gerar Legendas', icon: <Type className="w-4 h-4" />, locked: !hasScreenshot },
-    { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-4 h-4" />, locked: !hasScreenshot },
+    { id: 'analysis', label: 'Análise', icon: <BarChart3 className="w-4 h-4" />, locked: !hasRealPrintData },
+    { id: 'strategies', label: 'Estratégias', icon: <Lightbulb className="w-4 h-4" />, locked: !hasRealPrintData },
+    { id: 'legendas', label: 'Gerar Legendas', icon: <Type className="w-4 h-4" />, locked: !hasRealPrintData },
+    { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-4 h-4" />, locked: !hasRealPrintData },
   ];
 
   const handleStrategyGenerated = (strategy: Strategy) => {
@@ -346,7 +345,7 @@ export const Dashboard = ({
         {activeTab === 'profile' && (
           <div className="max-w-3xl mx-auto space-y-6">
             {/* Aviso para perfis com restrição de idade que precisam de screenshot */}
-            {activeProfile.profile.needsScreenshotAnalysis && !hasScreenshot && (
+            {activeProfile.profile.needsScreenshotAnalysis && !hasRealPrintData && (
               <div className="glass-card glow-border p-4 sm:p-6 border-2 border-primary/50 bg-primary/5">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-full bg-primary/20 flex-shrink-0">
@@ -417,14 +416,14 @@ export const Dashboard = ({
 
         {activeTab === 'analysis' && (
           <div className="max-w-3xl mx-auto">
-            {hasScreenshot ? (
+            {hasRealPrintData ? (
               <AnalysisCard analysis={activeProfile.analysis} />
             ) : (
               <div className="glass-card glow-border p-8 text-center">
                 <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-xl font-display font-bold mb-2">Análise Bloqueada</h3>
                 <p className="text-muted-foreground mb-4">
-                  Para acessar a análise completa do perfil, você precisa enviar um print do perfil primeiro.
+                  Para acessar a análise completa do perfil, você precisa enviar um print real do perfil primeiro.
                 </p>
                 <Button 
                   onClick={() => setActiveTab('profile')}
@@ -440,7 +439,7 @@ export const Dashboard = ({
 
         {activeTab === 'strategies' && (
           <div className="max-w-3xl mx-auto space-y-6">
-            {hasScreenshot ? (
+            {hasRealPrintData ? (
               <>
                 <StrategyGenerator 
                   profile={activeProfile.profile}
@@ -483,7 +482,7 @@ export const Dashboard = ({
 
         {activeTab === 'legendas' && (
           <div className="max-w-3xl mx-auto">
-            {hasScreenshot ? (
+            {hasRealPrintData ? (
               <CaptionGenerator 
                 profileUsername={activeProfile.profile.username}
                 niche={activeProfile.analysis?.niche}
@@ -509,7 +508,7 @@ export const Dashboard = ({
 
         {activeTab === 'growth' && (
           <div className="max-w-3xl mx-auto">
-            {hasScreenshot ? (
+            {hasRealPrintData ? (
               <GrowthTracker 
                 key={`growth-${activeProfile.id}-${activeProfile.profile.username}`}
                 profileSession={activeProfile}
