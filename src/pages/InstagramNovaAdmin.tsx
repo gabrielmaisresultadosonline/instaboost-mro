@@ -3462,6 +3462,142 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                     </div>
                   </div>
                 </TabsContent>
+
+                {/* Tab: Remarketing */}
+                <TabsContent value="remarketing">
+                  <div className="space-y-4">
+                    {/* Test Email */}
+                    <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-4">
+                      <h4 className="text-blue-400 font-medium mb-3 flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        Testar Email de Remarketing
+                      </h4>
+                      <div className="flex gap-2">
+                        <Input
+                          type="email"
+                          placeholder="email@teste.com"
+                          value={remarketingTestEmail}
+                          onChange={(e) => setRemarketingTestEmail(e.target.value)}
+                          className="bg-zinc-900 border-zinc-600 text-white flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleRemarketingTestSend}
+                          disabled={remarketingSending || !remarketingTestEmail.trim()}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          {remarketingSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
+                          Testar
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Actions bar */}
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={toggleRemarketingSelectAll}
+                          className="border-zinc-600 text-zinc-300"
+                        >
+                          {remarketingSelected.size === getRemarketingTargets().filter(o => !remarketingSentHistory.has(getBaseEmail(o.email))).length 
+                            ? "Desmarcar Todos" : "Selecionar Todos (não enviados)"}
+                        </Button>
+                        <span className="text-sm text-zinc-400">
+                          {remarketingSelected.size} selecionado(s) de {getRemarketingTargets().length} contatos
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {remarketingSending && (
+                          <>
+                            <span className="text-sm text-yellow-400">
+                              Enviando {remarketingSentCount}/{remarketingTotalToSend}...
+                            </span>
+                            <Button size="sm" variant="destructive" onClick={stopRemarketingSending}>
+                              <X className="w-4 h-4 mr-1" /> Parar
+                            </Button>
+                          </>
+                        )}
+                        {!remarketingSending && remarketingSelected.size > 0 && (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              const selectedOrders = getRemarketingTargets().filter(o => remarketingSelected.has(o.id));
+                              handleRemarketingSend(selectedOrders);
+                            }}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            <Send className="w-4 h-4 mr-1" />
+                            Disparar Remarketing ({remarketingSelected.size})
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Contacts list */}
+                    {getRemarketingTargets().length === 0 ? (
+                      <div className="text-center py-8 text-zinc-400">
+                        <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>Nenhum cadastro expirado/pendente encontrado</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                        {getRemarketingTargets().map(order => {
+                          const baseEmail = getBaseEmail(order.email);
+                          const alreadySent = remarketingSentHistory.has(baseEmail);
+                          
+                          return (
+                            <div 
+                              key={order.id}
+                              className={`bg-zinc-800/30 border rounded-lg p-3 flex items-center gap-3 ${
+                                alreadySent ? 'border-green-500/30 opacity-60' : 'border-zinc-700/50'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={remarketingSelected.has(order.id)}
+                                onChange={() => toggleRemarketingSelect(order.id)}
+                                className="w-4 h-4 rounded accent-red-500"
+                              />
+                              <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-2">
+                                <div>
+                                  <p className="text-xs text-zinc-500">Email</p>
+                                  <p className="text-sm text-white truncate">{baseEmail}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-zinc-500">Usuário</p>
+                                  <p className="text-sm text-white">{order.username}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-zinc-500">Telefone</p>
+                                  <p className="text-sm text-white">{order.phone || "-"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-zinc-500">Data</p>
+                                  <p className="text-sm text-white">
+                                    {format(new Date(order.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge className={order.status === "expired" ? "bg-red-500/20 text-red-400" : "bg-yellow-500/20 text-yellow-400"}>
+                                  {order.status === "expired" ? "Expirado" : "Pendente"}
+                                </Badge>
+                                {alreadySent && (
+                                  <Badge className="bg-green-500/20 text-green-400 flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    Enviado
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
