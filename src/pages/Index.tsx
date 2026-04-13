@@ -322,64 +322,6 @@ const Index = () => {
       title: 'Perfis vinculados!',
       description: `${processedCount} perfil(is) vinculado(s). Envie prints para análise.`
     });
-                  niche: 'Não identificado',
-                  audienceType: 'Não identificado',
-                  contentScore: 0,
-                  engagementScore: 0,
-                  profileScore: 0,
-                  recommendations: ['Gere estratégias para análise completa']
-                };
-                addProfile(manualInstagramProfile, defaultAnalysis);
-                await persistProfileData(loggedInUsername, ig, manualInstagramProfile, defaultAnalysis);
-                loadedCount++;
-              }
-            } else {
-              // Don't add profiles with zero data when API fails
-              console.warn(`❌ @${ig} não existe ou não tem dados reais - não adicionando`);
-              
-              // Check if it's a restriction issue
-              if (profileResult.isRestricted) {
-                setAgeRestrictionProfile(ig);
-              } else if (profileResult.isPrivate) {
-                setPrivateProfile(ig);
-              } else {
-                // Generic restriction error
-                setAgeRestrictionProfile(ig);
-              }
-              setPendingSyncInstagrams(instagrams);
-            }
-          }
-        }
-      } catch (error) {
-        console.error(`Error loading ${ig}:`, error);
-        
-        // Try to use cached data as fallback
-        if (persistedData) {
-          console.log(`⚠️ Erro na API, usando cache para @${ig}`);
-          addProfile(persistedData.profile, persistedData.analysis);
-          cachedCount++;
-        }
-      }
-    }
-
-    const updatedSession = getSession();
-    setSession(updatedSession);
-    
-    // Sync all to server
-    await syncSessionToPersistent(loggedInUsername);
-    
-    if (updatedSession.profiles.length > 0) {
-      setShowDashboard(true);
-      setHasRegisteredProfiles(true);
-    }
-    
-    setIsLoading(false);
-    setSyncProgress(undefined);
-    
-    toast({
-      title: 'Sincronização concluída!',
-      description: `${loadedCount} da API, ${cachedCount} do cache (30 dias)`
-    });
   };
 
   const handleSearch = async (username: string) => {
