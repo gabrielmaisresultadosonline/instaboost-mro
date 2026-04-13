@@ -20,7 +20,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'}`);
+    console.log(`🔍 Analyzing profile screenshot for @${username || 'unknown'} with DeepSeek`);
 
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     const normalizedUsername = String(username || 'username').replace('@', '').trim().toLowerCase();
@@ -78,108 +78,69 @@ Regras extras:
 Depois gere uma análise profissional curta baseada no que aparece no print.
 Se esta imagem NÃO for um print de perfil do Instagram, retorne {"not_instagram": true}.`;
 
-    // Try Lovable AI (Gemini vision) first
-    if (LOVABLE_API_KEY) {
-      const visionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: userPrompt },
-                { type: 'image_url', image_url: { url: screenshot_url } }
-              ]
-            }
-          ],
-          temperature: 0.2,
-          max_tokens: 2500,
-        }),
-      });
+    if (DEEPSEEK_API_KEY) {
+      try {
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: userPrompt },
+                  { type: 'image_url', image_url: { url: screenshot_url } }
+                ]
+              }
+            ],
+            temperature: 0.2,
+            max_tokens: 2500,
+          }),
+        });
 
-      if (visionResponse.ok) {
-        const visionData = await visionResponse.json();
-        const content = visionData.choices?.[0]?.message?.content;
+        if (response.ok) {
+          const data = await response.json();
+          const content = data.choices?.[0]?.message?.content;
 
-        if (content) {
-          const jsonMatch = content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const analysisResult = JSON.parse(jsonMatch[0]);
-            
-            // Check if NOT an Instagram profile
-            if (analysisResult.not_instagram === true) {
-              console.log('❌ Image is not an Instagram profile screenshot');
+          if (content) {
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const analysisResult = JSON.parse(jsonMatch[0]);
+
+              if (analysisResult.not_instagram === true) {
+                console.log('❌ Image is not an Instagram profile screenshot');
+                return Response.json({
+                  success: false,
+                  error: 'not_instagram_profile',
+                  message: 'Não conseguimos ler o print do perfil. Você precisa enviar um print real do perfil do Instagram que está utilizando.'
+                }, { headers: corsHeaders });
+              }
+
+              const extracted = analysisResult.extracted_data || {};
+              extracted.username = extracted.username || normalizedUsername;
+
               return Response.json({
-                success: false,
-                error: 'not_instagram_profile',
-                message: 'Não conseguimos ler o print do perfil. Você precisa enviar um print real do perfil do Instagram que está utilizando.'
+                success: true,
+                analysis: analysisResult.analysis,
+                extracted_data: extracted,
+                visual_observations: analysisResult.visual_observations || null,
               }, { headers: corsHeaders });
             }
-            
-            const extracted = analysisResult.extracted_data || {};
-            extracted.username = extracted.username || normalizedUsername;
-
-            return Response.json({
-              success: true,
-              analysis: analysisResult.analysis,
-              extracted_data: extracted,
-              visual_observations: analysisResult.visual_observations || null,
-            }, { headers: corsHeaders });
           }
+        } else {
+          const errorText = await response.text();
+          console.error('❌ DeepSeek screenshot analysis error:', response.status, errorText);
         }
-      } else {
-        const errorText = await visionResponse.text();
-        console.error('❌ Vision API error:', visionResponse.status, errorText);
+      } catch (deepseekError) {
+        console.error('❌ DeepSeek screenshot analysis failed:', deepseekError);
       }
     }
 
-    // Fallback textual analysis (DeepSeek - no vision, limited)
-    if (DEEPSEEK_API_KEY) {
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 3000,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
-        if (content) {
-          const jsonMatch = content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const analysisResult = JSON.parse(jsonMatch[0]);
-            return Response.json({
-              success: true,
-              analysis: analysisResult.analysis,
-              extracted_data: {
-                username: normalizedUsername,
-                ...(analysisResult.extracted_data || {})
-              },
-              visual_observations: analysisResult.visual_observations
-            }, { headers: corsHeaders });
-          }
-        }
-      }
-    }
-
-    // All APIs failed
     return Response.json({
       success: true,
       analysis: generateFallbackAnalysis(username),
