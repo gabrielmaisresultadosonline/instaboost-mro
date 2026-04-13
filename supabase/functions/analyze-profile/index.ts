@@ -28,7 +28,6 @@ serve(async (req) => {
   try {
     const { profile, nicheHint }: AnalysisRequest = await req.json();
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     console.log('Analisando perfil:', profile.username, nicheHint ? `(Nicho informado: ${nicheHint})` : '');
 
@@ -117,74 +116,7 @@ Forneça uma análise completa${nicheHint ? ` focada no nicho de ${nicheHint}` :
       }
     }
 
-    // Fallback para Lovable AI (Google Gemini)
-    if (!analysisResult && LOVABLE_API_KEY) {
-      try {
-        const lovableResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              {
-                role: 'system',
-                content: `Você é um especialista em marketing digital e Instagram. Analise perfis e forneça insights em português brasileiro.
-                
-RETORNE APENAS JSON VÁLIDO:
-{
-  "strengths": ["pontos fortes com emoji"],
-  "weaknesses": ["pontos fracos com emoji"],
-  "opportunities": ["oportunidades com emoji"],
-  "niche": "nicho",
-  "audienceType": "público-alvo",
-  "contentScore": 0-100,
-  "engagementScore": 0-100,
-  "profileScore": 0-100,
-  "recommendations": ["recomendações"]
-}${nicheContext}`
-              },
-              {
-                role: 'user',
-                content: `Analise: @${profile.username}
-Nome: ${profile.fullName}
-Bio: ${profile.bio}
-Seguidores: ${profile.followers}
-Seguindo: ${profile.following}
-Posts: ${profile.posts}
-Comercial: ${profile.isBusinessAccount ? 'Sim' : 'Não'}
-Categoria: ${profile.category || 'N/A'}
-Link: ${profile.externalUrl || 'N/A'}
-${nicheHint ? `NICHO CORRETO: ${nicheHint}` : ''}`
-              }
-            ],
-          }),
-        });
-
-        if (lovableResponse.ok) {
-          const data = await lovableResponse.json();
-          const content = data.choices?.[0]?.message?.content;
-          
-          if (content) {
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              analysisResult = JSON.parse(jsonMatch[0]);
-              // If admin provided niche, ensure it's used
-              if (nicheHint && analysisResult) {
-                analysisResult.niche = nicheHint;
-              }
-              console.log('Lovable AI analysis successful');
-            }
-          }
-        } else {
-          console.log('Lovable AI request failed:', await lovableResponse.text());
-        }
-      } catch (e) {
-        console.error('Lovable AI error:', e);
-      }
-    }
+    // DeepSeek-only mode requested for profile analysis
 
     // Se nenhuma IA funcionou, gera análise básica
     if (!analysisResult) {
