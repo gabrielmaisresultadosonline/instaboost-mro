@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MROSession, Strategy, ProfileSession } from '@/types/instagram';
 import { ProfileCard } from './ProfileCard';
@@ -426,14 +427,9 @@ export const Dashboard = ({
                 />
                 
                 {activeProfile.strategies.length > 0 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <h3 className="text-xl font-display font-bold">Estratégias Geradas</h3>
-                    {activeProfile.strategies.map((strategy) => (
-                      <StrategyDisplay 
-                        key={strategy.id}
-                        strategy={strategy}
-                      />
-                    ))}
+                    <StrategiesAccordionList strategies={activeProfile.strategies} />
                   </div>
                 )}
               </>
@@ -529,6 +525,47 @@ export const Dashboard = ({
         onStartInteractive={() => tutorial.startTutorial(tutorial.tutorialData)}
         title={activeTab === 'strategies' ? 'Como Gerar Estratégias' : 'Tutorial do Dashboard'}
       />
+    </div>
+  );
+};
+
+const StrategiesAccordionList = ({ strategies }: { strategies: Strategy[] }) => {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  
+  const typeIcons: Record<string, string> = {
+    mro: '⚡', content: '📅', engagement: '💬', sales: '💰', bio: '👤',
+  };
+
+  return (
+    <div className="space-y-2">
+      {strategies.map((strategy) => {
+        const isExpanded = expandedId === strategy.id;
+        return (
+          <div key={strategy.id} className="glass-card overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setExpandedId(isExpanded ? null : strategy.id)}
+              className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-lg flex-shrink-0">{typeIcons[strategy.type] || '⚡'}</span>
+                <div className="text-left min-w-0">
+                  <p className="font-semibold text-sm truncate">{strategy.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(strategy.createdAt).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+            </button>
+            {isExpanded && (
+              <div className="border-t border-border">
+                <StrategyDisplay strategy={strategy} />
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
