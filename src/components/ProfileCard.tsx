@@ -100,48 +100,48 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
   // Profile not yet analyzed — allow first analysis if a screenshot already exists
   if (!hasRealPrintData) {
     return (
-      <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up relative">
-        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
-          <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
-        </div>
-        <div className="flex flex-col gap-4 py-2 sm:py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pr-20 sm:pr-24">
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 min-w-0 flex-1">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
-                <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              </div>
-              <div className="flex-1 min-w-0 text-center sm:text-left">
-                <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
-                {hasScreenshot ? (
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                    Print salvo. Clique em <strong>analisar perfil</strong> para carregar os dados reais pela primeira vez.
-                  </p>
-                ) : (
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">Envie o print do perfil para carregar os dados reais</p>
-                )}
-              </div>
+      <div className="glass-card glow-border p-3 sm:p-4 md:p-6 animate-slide-up">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Row 1: Instagram icon + username + Tutorial button */}
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-instagram-gradient flex items-center justify-center flex-shrink-0">
+              <Instagram className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-
-            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 w-full sm:w-auto sm:max-w-xs">
-              {hasScreenshot && (
-                <Button
-                  onClick={handleReanalyze}
-                  disabled={isReanalyzing}
-                  variant="default"
-                  className="gap-2"
-                  title="Analisar perfil pela primeira vez"
-                  aria-label="Analisar perfil pela primeira vez"
-                >
-                  {isReanalyzing ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
-                  )}
-                  {isReanalyzing ? 'Analisando...' : 'Analisar perfil'}
-                </Button>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg sm:text-xl font-display font-bold break-all">@{profile.username}</h2>
+              {hasScreenshot ? (
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  Print salvo. Clique em <strong>analisar perfil</strong> para carregar os dados reais pela primeira vez.
+                </p>
+              ) : (
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">Envie o print do perfil para carregar os dados reais</p>
               )}
             </div>
+            <div className="shrink-0">
+              <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
+            </div>
           </div>
+
+          {/* Row 2: Analisar perfil button */}
+          {hasScreenshot && (
+            <div className="flex justify-center sm:justify-end">
+              <Button
+                onClick={handleReanalyze}
+                disabled={isReanalyzing}
+                variant="default"
+                className="gap-2 w-full sm:w-auto"
+                title="Analisar perfil pela primeira vez"
+                aria-label="Analisar perfil pela primeira vez"
+              >
+                {isReanalyzing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4" />
+                )}
+                {isReanalyzing ? 'Analisando...' : 'Analisar perfil'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
