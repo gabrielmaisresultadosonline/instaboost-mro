@@ -84,6 +84,14 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate }: Profile
 
       setLocalProfilePicUrl(updatedProfile.profilePicUrl || '');
       setPhotoError(!updatedProfile.profilePicUrl);
+      setTriedCacheFallback(false);
+
+      // Cache the profile image for future use
+      if (updatedProfile.profilePicUrl) {
+        supabase.functions.invoke('cache-profile-images', {
+          body: { action: 'process-batch', batchSize: 1, offset: 0, forceRefresh: true, singleUsername: profile.username }
+        }).catch(() => {});
+      }
 
       if (onProfileUpdate) {
         onProfileUpdate(updatedProfile);
