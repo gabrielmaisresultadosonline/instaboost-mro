@@ -15,12 +15,32 @@ const RendaExtraAula = () => {
   const [countdown, setCountdown] = useState(20 * 60); // 20 minutes in seconds
 
   useEffect(() => {
+    // Fetch WhatsApp number from settings
+    supabase.from("whatsapp_page_settings").select("whatsapp_number").limit(1).single().then(({ data }) => {
+      if (data) setWhatsappNumber(data.whatsapp_number);
+    });
     // Track page view
     supabase.functions.invoke("renda-extra-aula-register", {
       body: { action: "trackPageView", source_url: window.location.href, user_agent: navigator.userAgent }
     });
     trackFacebookEvent("PageView", { content_name: "Renda Extra Aula" });
   }, []);
+
+  // Countdown timer for WhatsApp button (starts when video is shown)
+  useEffect(() => {
+    if (!showVideo) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setShowWhatsApp(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [showVideo]);
 
   const validateWhatsApp = (phone: string) => {
     const cleaned = phone.replace(/\D/g, "");
