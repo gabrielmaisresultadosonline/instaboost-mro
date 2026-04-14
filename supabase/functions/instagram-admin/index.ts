@@ -220,6 +220,70 @@ serve(async (req) => {
       return respond({ success: true });
     }
 
+    if (action === "listAccesses") {
+      const { data, error } = await supabase
+        .from("created_accesses")
+        .select("id, customer_email, customer_name, username, password, access_type, service_type, expiration_date, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("[instagram-admin] listAccesses error", error);
+        return respond({ success: false, error: "Erro ao carregar acessos" });
+      }
+
+      return respond({ success: true, accesses: data ?? [] });
+    }
+
+    if (action === "logReminder") {
+      const email = normalizeEmail(body.email);
+      const username = typeof body.username === "string" ? body.username.trim().slice(0, 255) : null;
+
+      if (!email || !username) {
+        return respond({ success: false, error: "Dados inválidos" });
+      }
+
+      // Load existing history from storage
+      const historyPath = "admin/reminder-history.json";
+      const { data: existing } = await supabase.storage
+        .from("user-data")
+        .download(historyPath);
+
+      let history: Array<{ email: string; username: string; sent_at: string }> = [];
+      if (existing) {
+        try {
+          history = JSON.parse(await existing.text());
+        } catch { /* start fresh */ }
+      }
+
+      history.unshift({ email, username, sent_at: new Date().toISOString() });
+      if (history.length > 500) history.length = 500;
+
+      await supabase.storage
+        .from("user-data")
+        .upload(historyPath, new Blob([JSON.stringify(history)], { type: "application/json" }), {
+          upsert: true,
+          contentType: "application/json",
+        });
+
+      return respond({ success: true });
+    }
+
+    if (action === "listReminderHistory") {
+      const historyPath = "admin/reminder-history.json";
+      const { data } = await supabase.storage
+        .from("user-data")
+        .download(historyPath);
+
+      let history: unknown[] = [];
+      if (data) {
+        try {
+          history = JSON.parse(await data.text());
+        } catch { /* empty */ }
+      }
+
+      return respond({ success: true, history });
+    }
+
     return respond({ success: false, error: "Ação inválida" });
   } catch (error) {
     console.error("[instagram-admin] unexpected error", error);

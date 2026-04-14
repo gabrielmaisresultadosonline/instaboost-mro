@@ -42,7 +42,8 @@ import {
   Link,
   Eye,
   EyeOff,
-  FileText
+  FileText,
+  Key
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, differenceInDays, addDays } from "date-fns";
@@ -53,6 +54,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
+import AccessReminderPanel from "@/components/admin/AccessReminderPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ADMIN_SESSION_STORAGE_KEY = "mro_instagram_admin_session";
@@ -129,6 +131,7 @@ export default function InstagramNovaAdmin() {
   // Configuração de afiliado - sistema expandido
   const [showAffiliateConfig, setShowAffiliateConfig] = useState(false);
   const [showRemarketingDashboard, setShowRemarketingDashboard] = useState(false);
+  const [showAccessReminder, setShowAccessReminder] = useState(false);
   const [activeTab, setActiveTab] = useState<"config" | "affiliates" | "sales" | "attempts" | "email-preview">("config");
   
   // Afiliado atual sendo editado
@@ -2463,6 +2466,15 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               Remarketing
             </Button>
             <Button
+              onClick={() => { setShowAccessReminder(!showAccessReminder); if (!showAccessReminder) { setShowAffiliateConfig(false); setShowRemarketingDashboard(false); } }}
+              variant="outline"
+              size="sm"
+              className={`border-zinc-600 ${showAccessReminder ? "text-blue-400 border-blue-500/50" : "text-zinc-400"}`}
+            >
+              <Key className="w-4 h-4 mr-1" />
+              Lembrete
+            </Button>
+            <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
               size="sm"
@@ -3472,6 +3484,14 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               </Tabs>
             </CardContent>
           </Card>
+        )}
+
+        {/* Lembrete de Acesso */}
+        {showAccessReminder && (
+          <AccessReminderPanel
+            adminSessionToken={adminSessionToken}
+            onClose={() => setShowAccessReminder(false)}
+          />
         )}
 
         {/* Dashboard de Remarketing - Separado */}
