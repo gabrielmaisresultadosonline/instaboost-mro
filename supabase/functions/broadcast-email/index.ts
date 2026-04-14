@@ -7,20 +7,60 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const normalizeEmail = (value: unknown) => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized || normalized.length > 320) return null;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) ? normalized : null;
+};
+
+const normalizeText = (value: unknown, maxLength: number) => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  if (!normalized || normalized.length > maxLength) return null;
+  return normalized;
+};
+
+const stripHtml = (value: string) => value
+  .replace(/<style[\s\S]*?<\/style>/gi, " ")
+  .replace(/<script[\s\S]*?<\/script>/gi, " ")
+  .replace(/<br\s*\/?>/gi, "\n")
+  .replace(/<\/p>/gi, "\n")
+  .replace(/<[^>]+>/g, " ")
+  .replace(/&nbsp;/gi, " ")
+  .replace(/&amp;/gi, "&")
+  .replace(/&lt;/gi, "<")
+  .replace(/&gt;/gi, ">")
+  .replace(/\n{3,}/g, "\n\n")
+  .replace(/[ \t]{2,}/g, " ")
+  .trim();
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { to, subject, body, userName } = await req.json();
+  let recipientEmail = "unknown";
+  let emailSubject = "unknown";
+  let originalBody = "";
 
-    if (!to || !subject || !body) {
+  try {
+    const payload = await req.json().catch(() => ({}));
+    const recipient = normalizeEmail(payload?.to);
+    const subject = normalizeText(payload?.subject, 255);
+    const body = normalizeText(payload?.body, 50000);
+    const userName = typeof payload?.userName === "string" ? payload.userName.trim().slice(0, 255) : "";
+
+    if (!recipient || !subject || !body) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: to, subject, body" }),
+        JSON.stringify({ success: false, error: "Missing or invalid required fields: to, subject, body" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
+
+    recipientEmail = recipient;
+    emailSubject = subject;
+    originalBody = body;
 
     const SMTP_USER = "suporte@maisresultadosonline.com.br";
     const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD");
@@ -37,6 +77,9 @@ serve(async (req) => {
     const whatsappButtonHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td style="text-align:center;padding:14px;background:#25D366;border-radius:8px;"><a href="https://maisresultadosonline.com.br/whatsapp" style="color:#ffffff;text-decoration:none;font-weight:bold;font-size:16px;">📱 Falar no WhatsApp</a></td></tr></table>';
 
     const processedBody = body.replace(/\[BOTAO_WHATSAPP\]/g, whatsappButtonHtml);
+    const plainTextBody = stripHtml(
+      body.replace(/\[BOTAO_WHATSAPP\]/g, "📱 Falar no WhatsApp: https://maisresultadosonline.com.br/whatsapp")
+    );
 
     // Convert plain text newlines to HTML paragraphs (skip if body already has HTML tags)
     const hasHtml = /<[a-z][\s\S]*>/i.test(processedBody);
@@ -79,16 +122,19 @@ serve(async (req) => {
       },
     });
 
-    await client.send({
-      from: `MRO - Mais Resultados Online <${SMTP_USER}>`,
-      to: to,
-      subject: subject,
-      html: htmlBody,
-    });
+    try {
+      await client.send({
+        from: `MRO - Mais Resultados Online <${SMTP_USER}>`,
+        to: recipientEmail,
+        subject: emailSubject,
+        content: plainTextBody,
+        html: htmlBody,
+      });
+    } finally {
+      await client.close();
+    }
 
-    await client.close();
-
-    console.log(`Email sent successfully to ${to}`);
+    console.log(`Email sent successfully to ${recipientEmail}`);
 
     // Log to database
     try {
@@ -97,10 +143,10 @@ serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseKey);
 
       await supabase.from("broadcast_email_logs").insert({
-        recipient_email: to,
+        recipient_email: recipientEmail,
         recipient_name: userName || null,
-        subject: subject,
-        body: body,
+        subject: emailSubject,
+        body: originalBody,
         status: "sent",
       });
     } catch (logError) {
@@ -113,25 +159,24 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error sending email:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to send email";
 
     // Try to log failure
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const { to, subject, body } = await req.clone().json().catch(() => ({ to: '', subject: '', body: '' }));
-      
       await supabase.from("broadcast_email_logs").insert({
-        recipient_email: to || 'unknown',
-        subject: subject || 'unknown',
-        body: body || '',
+        recipient_email: recipientEmail,
+        subject: emailSubject,
+        body: originalBody,
         status: "failed",
-        error_message: error.message || "Unknown error",
+        error_message: errorMessage,
       });
     } catch (_) {}
 
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to send email" }),
+      JSON.stringify({ success: false, error: errorMessage }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
