@@ -2326,6 +2326,93 @@ export type Database = {
         }
         Relationships: []
       }
+      renda_extra_aula_analytics: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          event_type: string
+          id: string
+          referrer: string | null
+          source_url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          event_type: string
+          id?: string
+          referrer?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          event_type?: string
+          id?: string
+          referrer?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      renda_extra_aula_leads: {
+        Row: {
+          aula_liberada: boolean | null
+          created_at: string
+          email: string
+          email_enviado: boolean | null
+          id: string
+          nome_completo: string
+          whatsapp: string
+        }
+        Insert: {
+          aula_liberada?: boolean | null
+          created_at?: string
+          email: string
+          email_enviado?: boolean | null
+          id?: string
+          nome_completo: string
+          whatsapp: string
+        }
+        Update: {
+          aula_liberada?: boolean | null
+          created_at?: string
+          email?: string
+          email_enviado?: boolean | null
+          id?: string
+          nome_completo?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      renda_extra_aula_settings: {
+        Row: {
+          admin_email: string
+          admin_password: string
+          created_at: string
+          id: string
+          updated_at: string
+          youtube_url: string | null
+        }
+        Insert: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Update: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       renda_extra_email_logs: {
         Row: {
           created_at: string

@@ -1,0 +1,129 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const sendEmailViaSMTP = async (to: string, subject: string, html: string) => {
+  const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+  if (!smtpPassword) return false;
+  try {
+    const client = new SMTPClient({
+      connection: { hostname: "smtp.hostinger.com", port: 465, tls: true, auth: { username: "suporte@maisresultadosonline.com.br", password: smtpPassword } },
+    });
+    await client.send({ from: "MRO <suporte@maisresultadosonline.com.br>", to, subject, content: "auto", html });
+    await client.close();
+    return true;
+  } catch (e) {
+    console.error("SMTP error:", e);
+    return false;
+  }
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const body = await req.json();
+    const { action } = body;
+
+    // Track page view
+    if (action === "trackPageView") {
+      await supabase.from("renda_extra_aula_analytics").insert({
+        event_type: "page_view",
+        source_url: String(body.source_url || "").slice(0, 500),
+        user_agent: String(body.user_agent || "").slice(0, 500),
+      });
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Register lead
+    if (action === "register") {
+      const nome = String(body.nome_completo || "").trim().slice(0, 100);
+      const email = String(body.email || "").trim().toLowerCase().slice(0, 255);
+      const whatsapp = String(body.whatsapp || "").replace(/[^\d\s\(\)\-\+]/g, "").slice(0, 20);
+
+      if (nome.length < 3) return new Response(JSON.stringify({ success: false, error: "Nome inválido" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return new Response(JSON.stringify({ success: false, error: "Email inválido" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const cleanedPhone = whatsapp.replace(/\D/g, "");
+      if (cleanedPhone.length < 10 || cleanedPhone.length > 13) return new Response(JSON.stringify({ success: false, error: "WhatsApp inválido" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+      // Insert lead
+      const { error: insertError } = await supabase.from("renda_extra_aula_leads").insert({ nome_completo: nome, email, whatsapp });
+      if (insertError) throw insertError;
+
+      // Track lead event
+      await supabase.from("renda_extra_aula_analytics").insert({ event_type: "lead_registered" });
+
+      // Send email with lesson link
+      const emailHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;">
+<tr><td style="background:linear-gradient(135deg,#FFD700,#FFA500);padding:30px;text-align:center;">
+<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:28px;font-weight:bold;">MRO</div>
+<h1 style="color:#000;margin:15px 0 0;font-size:22px;">🎬 Sua Aula Grátis!</h1>
+</td></tr>
+<tr><td style="padding:30px;">
+<p style="font-size:16px;">Olá <strong>${nome}</strong>!</p>
+<p style="font-size:16px;">Sua aula grátis já está disponível. Assista agora e descubra como faturar no mínimo R$5.000/mês com a ferramenta MRO!</p>
+<div style="text-align:center;margin:30px 0;">
+<a href="https://www.youtube.com/watch?v=-0CHlqHVe0g" style="display:inline-block;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">🎬 ASSISTIR AULA AGORA</a>
+</div>
+</td></tr>
+<tr><td style="background:#1a1a1a;padding:20px;text-align:center;">
+<p style="margin:0;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</p>
+</td></tr></table></body></html>`;
+
+      const emailSent = await sendEmailViaSMTP(email, "🎬 Sua Aula Grátis - MRO", emailHtml);
+
+      if (emailSent) {
+        await supabase.from("renda_extra_aula_leads").update({ email_enviado: true, aula_liberada: true }).eq("email", email);
+      } else {
+        await supabase.from("renda_extra_aula_leads").update({ aula_liberada: true }).eq("email", email);
+      }
+
+      return new Response(JSON.stringify({ success: true, emailSent }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Admin login
+    if (action === "adminLogin") {
+      const { data: settings } = await supabase.from("renda_extra_aula_settings").select("admin_email, admin_password").limit(1).single();
+      if (!settings) return new Response(JSON.stringify({ success: false, error: "Configurações não encontradas" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (body.email === settings.admin_email && body.password === settings.admin_password) {
+        return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ success: false, error: "Credenciais inválidas" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Admin get data
+    if (action === "adminGetData") {
+      const { data: leads } = await supabase.from("renda_extra_aula_leads").select("*").order("created_at", { ascending: false });
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayIso = today.toISOString();
+
+      const { count: totalVisits } = await supabase.from("renda_extra_aula_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view");
+      const { count: todayVisits } = await supabase.from("renda_extra_aula_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", todayIso);
+      const { count: totalLeads } = await supabase.from("renda_extra_aula_leads").select("*", { count: "exact", head: true });
+      const { count: todayLeads } = await supabase.from("renda_extra_aula_leads").select("*", { count: "exact", head: true }).gte("created_at", todayIso);
+
+      return new Response(JSON.stringify({
+        leads: leads || [],
+        analytics: { total_visits: totalVisits || 0, today_visits: todayVisits || 0, total_leads: totalLeads || 0, today_leads: todayLeads || 0 }
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    return new Response(JSON.stringify({ error: "Invalid action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (error: any) {
+    console.error("Error:", error);
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+});
