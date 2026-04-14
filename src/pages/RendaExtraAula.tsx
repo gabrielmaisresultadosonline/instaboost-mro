@@ -10,14 +10,37 @@ const RendaExtraAula = () => {
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [form, setForm] = useState({ nome_completo: "", email: "", whatsapp: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [countdown, setCountdown] = useState(20 * 60); // 20 minutes in seconds
 
   useEffect(() => {
+    // Fetch WhatsApp number from settings
+    supabase.from("whatsapp_page_settings").select("whatsapp_number").limit(1).single().then(({ data }) => {
+      if (data) setWhatsappNumber(data.whatsapp_number);
+    });
     // Track page view
     supabase.functions.invoke("renda-extra-aula-register", {
       body: { action: "trackPageView", source_url: window.location.href, user_agent: navigator.userAgent }
     });
     trackFacebookEvent("PageView", { content_name: "Renda Extra Aula" });
   }, []);
+
+  // Countdown timer for WhatsApp button (starts when video is shown)
+  useEffect(() => {
+    if (!showVideo) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setShowWhatsApp(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [showVideo]);
 
   const validateWhatsApp = (phone: string) => {
     const cleaned = phone.replace(/\D/g, "");
@@ -179,6 +202,32 @@ const RendaExtraAula = () => {
               className="w-full h-full"
             />
           </div>
+
+          {/* WhatsApp CTA - appears after 20 min */}
+          {showWhatsApp && whatsappNumber && (
+            <div className="mt-8 text-center animate-fade-in">
+              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-2xl p-6">
+                <p className="text-white font-bold text-lg mb-4">🔥 Gostou da aula? Garanta seu desconto exclusivo!</p>
+                <a
+                  href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent("Acabei de assistir a aula grátis fiquei interessado no desconto da ferramenta MRO para começar a trabalhar.")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackFacebookEvent("Lead", { content_name: "WhatsApp CTA Aula" })}
+                  className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-extrabold text-xl px-10 py-5 rounded-2xl shadow-2xl shadow-green-500/30 transform hover:scale-105 transition-all"
+                >
+                  📲 FALAR NO WHATSAPP
+                </a>
+              </div>
+            </div>
+          )}
+
+          {!showWhatsApp && (
+            <div className="mt-6 text-center">
+              <p className="text-gray-400 text-sm">
+                ⏳ Oferta especial disponível em {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")} minutos
+              </p>
+            </div>
+          )}
         </div>
       )}
 
