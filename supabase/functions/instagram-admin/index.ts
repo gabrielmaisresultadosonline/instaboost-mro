@@ -242,34 +242,46 @@ serve(async (req) => {
         return respond({ success: false, error: "Dados inválidos" });
       }
 
-      const { data: existing } = await supabase
-        .from("admin_data_store")
-        .select("data")
-        .eq("key", "reminder_history")
-        .maybeSingle();
+      // Load existing history from storage
+      const historyPath = "admin/reminder-history.json";
+      const { data: existing } = await supabase.storage
+        .from("user-data")
+        .download(historyPath);
 
-      const history: Array<{ email: string; username: string; sent_at: string }> = existing?.data ?? [];
+      let history: Array<{ email: string; username: string; sent_at: string }> = [];
+      if (existing) {
+        try {
+          history = JSON.parse(await existing.text());
+        } catch { /* start fresh */ }
+      }
+
       history.unshift({ email, username, sent_at: new Date().toISOString() });
-
-      // Keep only latest 500 entries
       if (history.length > 500) history.length = 500;
 
-      await supabase.from("admin_data_store").upsert(
-        { key: "reminder_history", data: history, updated_at: new Date().toISOString() },
-        { onConflict: "key" }
-      );
+      await supabase.storage
+        .from("user-data")
+        .upload(historyPath, new Blob([JSON.stringify(history)], { type: "application/json" }), {
+          upsert: true,
+          contentType: "application/json",
+        });
 
       return respond({ success: true });
     }
 
     if (action === "listReminderHistory") {
-      const { data } = await supabase
-        .from("admin_data_store")
-        .select("data")
-        .eq("key", "reminder_history")
-        .maybeSingle();
+      const historyPath = "admin/reminder-history.json";
+      const { data } = await supabase.storage
+        .from("user-data")
+        .download(historyPath);
 
-      return respond({ success: true, history: data?.data ?? [] });
+      let history: unknown[] = [];
+      if (data) {
+        try {
+          history = JSON.parse(await data.text());
+        } catch { /* empty */ }
+      }
+
+      return respond({ success: true, history });
     }
 
     return respond({ success: false, error: "Ação inválida" });
