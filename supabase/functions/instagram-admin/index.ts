@@ -220,6 +220,58 @@ serve(async (req) => {
       return respond({ success: true });
     }
 
+    if (action === "listAccesses") {
+      const { data, error } = await supabase
+        .from("created_accesses")
+        .select("id, customer_email, customer_name, username, password, access_type, service_type, expiration_date, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("[instagram-admin] listAccesses error", error);
+        return respond({ success: false, error: "Erro ao carregar acessos" });
+      }
+
+      return respond({ success: true, accesses: data ?? [] });
+    }
+
+    if (action === "logReminder") {
+      const email = normalizeEmail(body.email);
+      const username = typeof body.username === "string" ? body.username.trim().slice(0, 255) : null;
+
+      if (!email || !username) {
+        return respond({ success: false, error: "Dados inválidos" });
+      }
+
+      const { data: existing } = await supabase
+        .from("admin_data_store")
+        .select("data")
+        .eq("key", "reminder_history")
+        .maybeSingle();
+
+      const history: Array<{ email: string; username: string; sent_at: string }> = existing?.data ?? [];
+      history.unshift({ email, username, sent_at: new Date().toISOString() });
+
+      // Keep only latest 500 entries
+      if (history.length > 500) history.length = 500;
+
+      await supabase.from("admin_data_store").upsert(
+        { key: "reminder_history", data: history, updated_at: new Date().toISOString() },
+        { onConflict: "key" }
+      );
+
+      return respond({ success: true });
+    }
+
+    if (action === "listReminderHistory") {
+      const { data } = await supabase
+        .from("admin_data_store")
+        .select("data")
+        .eq("key", "reminder_history")
+        .maybeSingle();
+
+      return respond({ success: true, history: data?.data ?? [] });
+    }
+
     return respond({ success: false, error: "Ação inválida" });
   } catch (error) {
     console.error("[instagram-admin] unexpected error", error);
