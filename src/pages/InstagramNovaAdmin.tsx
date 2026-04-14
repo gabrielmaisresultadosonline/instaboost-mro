@@ -2465,6 +2465,15 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               Remarketing
             </Button>
             <Button
+              onClick={() => { setShowAccessReminder(!showAccessReminder); if (!showAccessReminder) { setShowAffiliateConfig(false); setShowRemarketingDashboard(false); } }}
+              variant="outline"
+              size="sm"
+              className={`border-zinc-600 ${showAccessReminder ? "text-blue-400 border-blue-500/50" : "text-zinc-400"}`}
+            >
+              <Key className="w-4 h-4 mr-1" />
+              Lembrete
+            </Button>
+            <Button
               onClick={() => setAutoCheckEnabled(!autoCheckEnabled)}
               variant="outline"
               size="sm"
