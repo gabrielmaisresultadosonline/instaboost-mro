@@ -189,6 +189,9 @@ const App = () => (
           <Route path="/whatsappdireto" element={<WhatsAppDireto />} />
           <Route path="/apiwhatsappacess" element={<ApiWhatsAppAccess />} />
           
+          <Route path="/rendaextraaula" element={<RendaExtraAula />} />
+          <Route path="/rendaextraaula/admin" element={<RendaExtraAulaAdmin />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
