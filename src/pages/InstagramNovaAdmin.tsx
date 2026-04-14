@@ -3486,6 +3486,14 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           </Card>
         )}
 
+        {/* Lembrete de Acesso */}
+        {showAccessReminder && (
+          <AccessReminderPanel
+            adminSessionToken={adminSessionToken}
+            onClose={() => setShowAccessReminder(false)}
+          />
+        )}
+
         {/* Dashboard de Remarketing - Separado */}
         {showRemarketingDashboard && (
           <Card className="bg-red-500/10 border-red-500/30 mb-6">
