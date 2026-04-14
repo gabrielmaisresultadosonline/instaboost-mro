@@ -2059,7 +2059,8 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
         to,
         subject: "🚀 Instagram Turbinado sem gastar com anúncios! - Desconto Interno",
         body: htmlBody,
-        userName: ""
+        userName: "",
+        rawHtml: true
       }
     });
     if (error) throw error;

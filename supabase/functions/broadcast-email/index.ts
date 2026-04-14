@@ -50,6 +50,7 @@ serve(async (req) => {
     const subject = normalizeText(payload?.subject, 255);
     const body = normalizeText(payload?.body, 50000);
     const userName = typeof payload?.userName === "string" ? payload.userName.trim().slice(0, 255) : "";
+    const rawHtml = payload?.rawHtml === true;
 
     if (!recipient || !subject || !body) {
       return new Response(
@@ -81,34 +82,44 @@ serve(async (req) => {
       body.replace(/\[BOTAO_WHATSAPP\]/g, "📱 Falar no WhatsApp: https://maisresultadosonline.com.br/whatsapp")
     );
 
-    // Convert plain text newlines to HTML paragraphs (skip if body already has HTML tags)
-    const hasHtml = /<[a-z][\s\S]*>/i.test(processedBody);
-    const formattedBody = hasHtml
-      ? processedBody
-      : processedBody.split('\n').filter(l => l.trim() !== '').map(l => '<p style="margin:0 0 12px 0;color:#333;font-size:15px;line-height:1.6;">' + l + '</p>').join('');
+    let htmlBody: string;
 
-    // Build table-based HTML email (same pattern as send-welcome-email that works)
-    const greetingHtml = userName ? '<p style="margin:0 0 15px 0;color:#333;font-size:16px;">Ol\u00e1, <strong>' + userName + '</strong>!</p>' : '';
+    if (rawHtml) {
+      // Pre-formatted HTML: wrap in doctype but don't add MRO header/footer
+      htmlBody = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
+        '<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">' +
+        processedBody +
+        '</body></html>';
+    } else {
+      // Convert plain text newlines to HTML paragraphs (skip if body already has HTML tags)
+      const hasHtml = /<[a-z][\s\S]*>/i.test(processedBody);
+      const formattedBody = hasHtml
+        ? processedBody
+        : processedBody.split('\n').filter(l => l.trim() !== '').map(l => '<p style="margin:0 0 12px 0;color:#333;font-size:15px;line-height:1.6;">' + l + '</p>').join('');
 
-    const htmlBody = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
-      '<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">' +
-      '<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">' +
-      '<tr><td style="padding:25px;text-align:center;border-bottom:3px solid #FFD700;">' +
-      '<div style="background:#000;color:#fff;display:inline-block;padding:8px 20px;border-radius:8px;font-size:28px;font-weight:bold;letter-spacing:2px;">MRO</div>' +
-      '</td></tr>' +
-      '<tr><td style="padding:30px;">' +
-      greetingHtml +
-      formattedBody +
-      '</td></tr>' +
-      '<tr><td style="padding:0 30px 20px 30px;"><hr style="border:none;border-top:1px solid #eee;margin:0;"></td></tr>' +
-      '<tr><td style="padding:0 30px 10px 30px;text-align:center;">' +
-      '<p style="color:#999;font-size:11px;margin:0;">Estamos \u00e0 disposi\u00e7\u00e3o para ajud\u00e1-lo.</p>' +
-      '<p style="color:#666;font-size:13px;margin:10px 0 0 0;">Abra\u00e7os,<br><strong>Equipe MRO</strong></p>' +
-      '</td></tr>' +
-      '<tr><td style="background:#1a1a1a;padding:15px;text-align:center;">' +
-      '<p style="color:#888;margin:0;font-size:11px;">\u00a9 ' + new Date().getFullYear() + ' MRO - Mais Resultados Online</p>' +
-      '</td></tr>' +
-      '</table></body></html>';
+      // Build table-based HTML email (same pattern as send-welcome-email that works)
+      const greetingHtml = userName ? '<p style="margin:0 0 15px 0;color:#333;font-size:16px;">Ol\u00e1, <strong>' + userName + '</strong>!</p>' : '';
+
+      htmlBody = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
+        '<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">' +
+        '<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">' +
+        '<tr><td style="padding:25px;text-align:center;border-bottom:3px solid #FFD700;">' +
+        '<div style="background:#000;color:#fff;display:inline-block;padding:8px 20px;border-radius:8px;font-size:28px;font-weight:bold;letter-spacing:2px;">MRO</div>' +
+        '</td></tr>' +
+        '<tr><td style="padding:30px;">' +
+        greetingHtml +
+        formattedBody +
+        '</td></tr>' +
+        '<tr><td style="padding:0 30px 20px 30px;"><hr style="border:none;border-top:1px solid #eee;margin:0;"></td></tr>' +
+        '<tr><td style="padding:0 30px 10px 30px;text-align:center;">' +
+        '<p style="color:#999;font-size:11px;margin:0;">Estamos \u00e0 disposi\u00e7\u00e3o para ajud\u00e1-lo.</p>' +
+        '<p style="color:#666;font-size:13px;margin:10px 0 0 0;">Abra\u00e7os,<br><strong>Equipe MRO</strong></p>' +
+        '</td></tr>' +
+        '<tr><td style="background:#1a1a1a;padding:15px;text-align:center;">' +
+        '<p style="color:#888;margin:0;font-size:11px;">\u00a9 ' + new Date().getFullYear() + ' MRO - Mais Resultados Online</p>' +
+        '</td></tr>' +
+        '</table></body></html>';
+    }
 
     const client = new SMTPClient({
       connection: {
