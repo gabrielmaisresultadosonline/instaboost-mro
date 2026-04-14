@@ -68,7 +68,7 @@ export const CadastrarContaButton = () => {
                 ) : (
                   <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
                     <iframe
-                      src="https://www.youtube.com/embed/YQ-zdQokdWU?autoplay=1"
+                      src="https://www.youtube.com/embed/CPI6xSH4TjU?autoplay=1"
                       title="Tutorial Cadastrar Nova Conta"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen

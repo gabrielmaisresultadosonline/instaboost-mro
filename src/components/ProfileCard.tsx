@@ -162,7 +162,7 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               )}
             </div>
             <div className="shrink-0">
-              <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
+              <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
             </div>
           </div>
 
@@ -231,7 +231,7 @@ export const ProfileCard = ({ profile, screenshotUrl, onProfileUpdate, onAnalysi
               </div>
             </div>
             <div className="shrink-0">
-              <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
+              <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
             </div>
           </div>
 
