@@ -202,6 +202,32 @@ const RendaExtraAula = () => {
               className="w-full h-full"
             />
           </div>
+
+          {/* WhatsApp CTA - appears after 20 min */}
+          {showWhatsApp && whatsappNumber && (
+            <div className="mt-8 text-center animate-fade-in">
+              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-2xl p-6">
+                <p className="text-white font-bold text-lg mb-4">🔥 Gostou da aula? Garanta seu desconto exclusivo!</p>
+                <a
+                  href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent("Acabei de assistir a aula grátis fiquei interessado no desconto da ferramenta MRO para começar a trabalhar.")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackFacebookEvent("Lead", { content_name: "WhatsApp CTA Aula" })}
+                  className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-extrabold text-xl px-10 py-5 rounded-2xl shadow-2xl shadow-green-500/30 transform hover:scale-105 transition-all"
+                >
+                  📲 FALAR NO WHATSAPP
+                </a>
+              </div>
+            </div>
+          )}
+
+          {!showWhatsApp && (
+            <div className="mt-6 text-center">
+              <p className="text-gray-400 text-sm">
+                ⏳ Oferta especial disponível em {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")} minutos
+              </p>
+            </div>
+          )}
         </div>
       )}
 
