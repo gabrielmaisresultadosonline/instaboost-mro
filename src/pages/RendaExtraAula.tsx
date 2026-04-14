@@ -10,6 +10,9 @@ const RendaExtraAula = () => {
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [form, setForm] = useState({ nome_completo: "", email: "", whatsapp: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [countdown, setCountdown] = useState(20 * 60); // 20 minutes in seconds
 
   useEffect(() => {
     // Track page view
