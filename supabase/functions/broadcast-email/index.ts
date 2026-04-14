@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,6 +33,123 @@ const stripHtml = (value: string) => value
   .replace(/\n{3,}/g, "\n\n")
   .replace(/[ \t]{2,}/g, " ")
   .trim();
+
+const encoder = new TextEncoder();
+
+// Base64 encode a string
+const toBase64 = (str: string): string => {
+  const bytes = encoder.encode(str);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+};
+
+// Encode a header value with UTF-8 if it contains non-ASCII
+const encodeHeader = (value: string): string => {
+  if (/^[\x20-\x7E]*$/.test(value)) return value;
+  return `=?UTF-8?B?${toBase64(value)}?=`;
+};
+
+// Send email via raw SMTP with proper MIME encoding
+async function sendSmtpEmail(options: {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  from: string;
+  fromName: string;
+  to: string;
+  subject: string;
+  textBody: string;
+  htmlBody: string;
+}) {
+  const conn = await Deno.connectTls({
+    hostname: options.host,
+    port: options.port,
+  });
+
+  const read = async (): Promise<string> => {
+    const buf = new Uint8Array(4096);
+    const n = await conn.read(buf);
+    return n ? new TextDecoder().decode(buf.subarray(0, n)) : "";
+  };
+
+  const write = async (data: string) => {
+    await conn.write(encoder.encode(data));
+  };
+
+  const command = async (cmd: string, expectedCode?: string): Promise<string> => {
+    await write(cmd + "\r\n");
+    const response = await read();
+    if (expectedCode && !response.startsWith(expectedCode)) {
+      throw new Error(`SMTP error: expected ${expectedCode}, got: ${response.trim()}`);
+    }
+    return response;
+  };
+
+  try {
+    // Read greeting
+    await read();
+
+    // EHLO
+    await command("EHLO localhost", "250");
+
+    // AUTH LOGIN
+    await command("AUTH LOGIN", "334");
+    await command(btoa(options.username), "334");
+    await command(btoa(options.password), "235");
+
+    // MAIL FROM
+    await command(`MAIL FROM:<${options.username}>`, "250");
+
+    // RCPT TO
+    await command(`RCPT TO:<${options.to}>`, "250");
+
+    // DATA
+    await command("DATA", "354");
+
+    // Build MIME message
+    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+    const headers = [
+      `From: ${encodeHeader(options.fromName)} <${options.username}>`,
+      `To: ${options.to}`,
+      `Subject: ${encodeHeader(options.subject)}`,
+      `MIME-Version: 1.0`,
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      `Date: ${new Date().toUTCString()}`,
+      ``,
+    ].join("\r\n");
+
+    const textPart = [
+      `--${boundary}`,
+      `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Transfer-Encoding: base64`,
+      ``,
+      toBase64(options.textBody),
+    ].join("\r\n");
+
+    const htmlPart = [
+      `--${boundary}`,
+      `Content-Type: text/html; charset=UTF-8`,
+      `Content-Transfer-Encoding: base64`,
+      ``,
+      toBase64(options.htmlBody),
+    ].join("\r\n");
+
+    const message = `${headers}\r\n${textPart}\r\n${htmlPart}\r\n--${boundary}--\r\n.\r\n`;
+
+    await write(message);
+    const dataResp = await read();
+    if (!dataResp.startsWith("250")) {
+      throw new Error(`SMTP DATA error: ${dataResp.trim()}`);
+    }
+
+    await command("QUIT");
+  } finally {
+    try { conn.close(); } catch { /* ignore */ }
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -85,20 +201,17 @@ serve(async (req) => {
     let htmlBody: string;
 
     if (rawHtml) {
-      // Pre-formatted HTML: wrap in doctype but don't add MRO header/footer
       htmlBody = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
         '<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">' +
         processedBody +
         '</body></html>';
     } else {
-      // Convert plain text newlines to HTML paragraphs (skip if body already has HTML tags)
       const hasHtml = /<[a-z][\s\S]*>/i.test(processedBody);
       const formattedBody = hasHtml
         ? processedBody
         : processedBody.split('\n').filter(l => l.trim() !== '').map(l => '<p style="margin:0 0 12px 0;color:#333;font-size:15px;line-height:1.6;">' + l + '</p>').join('');
 
-      // Build table-based HTML email (same pattern as send-welcome-email that works)
-      const greetingHtml = userName ? '<p style="margin:0 0 15px 0;color:#333;font-size:16px;">Ol\u00e1, <strong>' + userName + '</strong>!</p>' : '';
+      const greetingHtml = userName ? '<p style="margin:0 0 15px 0;color:#333;font-size:16px;">Olá, <strong>' + userName + '</strong>!</p>' : '';
 
       htmlBody = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
         '<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">' +
@@ -112,38 +225,27 @@ serve(async (req) => {
         '</td></tr>' +
         '<tr><td style="padding:0 30px 20px 30px;"><hr style="border:none;border-top:1px solid #eee;margin:0;"></td></tr>' +
         '<tr><td style="padding:0 30px 10px 30px;text-align:center;">' +
-        '<p style="color:#999;font-size:11px;margin:0;">Estamos \u00e0 disposi\u00e7\u00e3o para ajud\u00e1-lo.</p>' +
-        '<p style="color:#666;font-size:13px;margin:10px 0 0 0;">Abra\u00e7os,<br><strong>Equipe MRO</strong></p>' +
+        '<p style="color:#999;font-size:11px;margin:0;">Estamos à disposição para ajudá-lo.</p>' +
+        '<p style="color:#666;font-size:13px;margin:10px 0 0 0;">Abraços,<br><strong>Equipe MRO</strong></p>' +
         '</td></tr>' +
         '<tr><td style="background:#1a1a1a;padding:15px;text-align:center;">' +
-        '<p style="color:#888;margin:0;font-size:11px;">\u00a9 ' + new Date().getFullYear() + ' MRO - Mais Resultados Online</p>' +
+        '<p style="color:#888;margin:0;font-size:11px;">© ' + new Date().getFullYear() + ' MRO - Mais Resultados Online</p>' +
         '</td></tr>' +
         '</table></body></html>';
     }
 
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.hostinger.com",
-        port: 465,
-        tls: true,
-        auth: {
-          username: SMTP_USER,
-          password: SMTP_PASSWORD,
-        },
-      },
+    await sendSmtpEmail({
+      host: "smtp.hostinger.com",
+      port: 465,
+      username: SMTP_USER,
+      password: SMTP_PASSWORD,
+      from: SMTP_USER,
+      fromName: "MRO - Mais Resultados Online",
+      to: recipientEmail,
+      subject: emailSubject,
+      textBody: plainTextBody,
+      htmlBody: htmlBody,
     });
-
-    try {
-      await client.send({
-        from: `MRO - Mais Resultados Online <${SMTP_USER}>`,
-        to: recipientEmail,
-        subject: emailSubject,
-        content: plainTextBody,
-        html: htmlBody,
-      });
-    } finally {
-      await client.close();
-    }
 
     console.log(`Email sent successfully to ${recipientEmail}`);
 
