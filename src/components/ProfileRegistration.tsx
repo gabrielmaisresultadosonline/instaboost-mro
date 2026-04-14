@@ -367,7 +367,7 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                   <LayoutDashboard className="w-4 h-4 mr-1" />
                   Área de Membros
                 </Button>
-                <VideoTutorialButton youtubeUrl="https://youtu.be/zsLE_Kc11fM" title="Tutorial" variant="default" size="sm" />
+                <VideoTutorialButton youtubeUrl="https://youtu.be/CPI6xSH4TjU" title="Tutorial" variant="default" size="sm" />
                 <TutorialButton
                   onStartInteractive={() => tutorial.startTutorial(profileRegistrationTutorial)}
                   onShowList={() => tutorial.startListView(profileRegistrationTutorial)}
