@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ptBR } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
+import AccessReminderPanel from "@/components/admin/AccessReminderPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ADMIN_SESSION_STORAGE_KEY = "mro_instagram_admin_session";
