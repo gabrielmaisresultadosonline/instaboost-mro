@@ -63,7 +63,7 @@ serve(async (req) => {
       await supabase.from("renda_extra_aula_analytics").insert({ event_type: "lead_registered" });
 
       // Build site URL for email link (back to our site, not YouTube)
-      const siteOrigin = Deno.env.get("SITE_URL") || "https://ig-mro-boost.lovable.app";
+      const siteOrigin = Deno.env.get("SITE_URL") || "https://maisresultadosonline.com.br";
       const aulaLink = `${siteOrigin}/rendaextraaula?email=${encodeURIComponent(email)}`;
 
       // Send email with lesson link
