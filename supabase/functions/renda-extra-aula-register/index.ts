@@ -62,24 +62,37 @@ serve(async (req) => {
       // Track lead event
       await supabase.from("renda_extra_aula_analytics").insert({ event_type: "lead_registered" });
 
+      // Build site URL for email link (back to our site, not YouTube)
+      const siteOrigin = Deno.env.get("SITE_URL") || "https://ig-mro-boost.lovable.app";
+      const aulaLink = `${siteOrigin}/rendaextraaula?email=${encodeURIComponent(email)}`;
+
       // Send email with lesson link
-      const emailHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#fff;">
-<tr><td style="background:linear-gradient(135deg,#FFD700,#FFA500);padding:30px;text-align:center;">
-<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:28px;font-weight:bold;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0;font-size:22px;">🎬 Sua Aula Grátis!</h1>
+      const emailHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4;">
+<tr><td align="center" style="padding:20px 0;">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:12px;overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#FFD700,#FFA500);padding:30px 20px;text-align:center;">
+<div style="background-color:#000000;color:#ffffff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:28px;font-weight:bold;">MRO</div>
+<h1 style="color:#000000;margin:15px 0 0;font-size:22px;font-weight:bold;">&#127916; Sua Aula Gr&aacute;tis!</h1>
 </td></tr>
-<tr><td style="padding:30px;">
-<p style="font-size:16px;">Olá <strong>${nome}</strong>!</p>
-<p style="font-size:16px;">Sua aula grátis já está disponível. Assista agora e descubra como faturar no mínimo R$5.000/mês com a ferramenta MRO!</p>
+<tr><td style="padding:30px 25px;">
+<p style="font-size:16px;color:#333333;margin:0 0 15px;">Ol&aacute; <strong>${nome}</strong>!</p>
+<p style="font-size:16px;color:#333333;margin:0 0 25px;line-height:1.5;">Sua aula gr&aacute;tis j&aacute; est&aacute; dispon&iacute;vel. Assista agora e descubra como faturar no m&iacute;nimo R$5.000/m&ecirc;s com a ferramenta MRO!</p>
 <div style="text-align:center;margin:30px 0;">
-<a href="https://www.youtube.com/watch?v=-0CHlqHVe0g" style="display:inline-block;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">🎬 ASSISTIR AULA AGORA</a>
+<a href="${aulaLink}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000000;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:18px;font-weight:bold;">&#127916; ASSISTIR AULA AGORA</a>
 </div>
 </td></tr>
-<tr><td style="background:#1a1a1a;padding:20px;text-align:center;">
-<p style="margin:0;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</p>
-</td></tr></table></body></html>`;
+<tr><td style="background-color:#1a1a1a;padding:20px;text-align:center;">
+<p style="margin:0;color:#999999;font-size:12px;">&copy; 2026 MRO - Mais Resultados Online</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
 
       const emailSent = await sendEmailViaSMTP(email, "🎬 Sua Aula Grátis - MRO", emailHtml);
 

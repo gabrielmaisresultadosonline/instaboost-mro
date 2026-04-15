@@ -13,9 +13,17 @@ const RendaExtraAula = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState("");
-  const [countdown, setCountdown] = useState(20 * 60); // 20 minutes in seconds
+  const [countdown, setCountdown] = useState(20 * 60);
 
   useEffect(() => {
+    // Check if coming from email link with email param
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get("email");
+    if (emailParam) {
+      setRegisteredEmail(emailParam);
+      setShowVideo(true);
+    }
+
     // Fetch WhatsApp number from settings
     supabase.from("whatsapp_page_settings").select("whatsapp_number").limit(1).single().then(({ data }) => {
       if (data) setWhatsappNumber(data.whatsapp_number);
