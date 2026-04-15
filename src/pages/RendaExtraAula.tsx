@@ -130,10 +130,10 @@ const RendaExtraAula = () => {
         </div>
       </div>
 
-      {/* Device Check */}
+      {/* Device Check Popup */}
       {showDeviceCheck && !showForm && !showVideo && (
-        <div className="max-w-md mx-auto px-4 pb-12 animate-fade-in">
-          <div className="bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-2xl p-6 shadow-2xl text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 animate-fade-in">
+          <div className="bg-gray-800/95 backdrop-blur-md border border-gray-700 rounded-2xl p-6 shadow-2xl text-center max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="text-5xl mb-4">💻</div>
             <h2 className="text-xl font-bold mb-3">Este método para faturar R$5k mensal precisa de pelo menos:</h2>
             <div className="space-y-3 text-left mb-6">
@@ -168,10 +168,10 @@ const RendaExtraAula = () => {
         </div>
       )}
 
-      {/* Form */}
+      {/* Form Popup */}
       {showForm && !showVideo && (
-        <div className="max-w-md mx-auto px-4 pb-12 animate-fade-in">
-          <div className="bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-2xl p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 animate-fade-in">
+          <div className="bg-gray-800/95 backdrop-blur-md border border-gray-700 rounded-2xl p-6 shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-center mb-1">📋 Preencha para liberar a aula</h2>
             <p className="text-gray-400 text-center text-sm mb-6">Dados reais são obrigatórios</p>
             <form onSubmit={handleSubmit} className="space-y-4">
