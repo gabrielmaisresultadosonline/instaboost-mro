@@ -1086,8 +1086,8 @@ ${GROUP_LINK}`;
       const fileName = `affiliates/${affiliateId || 'temp'}_${Date.now()}.${file.name.split('.').pop()}`;
       
       const { data, error } = await supabase.storage
-        .from('user-data')
-        .upload(fileName, file, { upsert: true });
+        .from('assets')
+        .upload(fileName, file, { upsert: true, contentType: file.type });
       
       if (error) {
         console.error("Upload error:", error);
@@ -1097,7 +1097,7 @@ ${GROUP_LINK}`;
       
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('user-data')
+        .from('assets')
         .getPublicUrl(fileName);
       
       setAffiliatePhotoUrl(urlData.publicUrl);
