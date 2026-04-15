@@ -4,6 +4,7 @@ import { toast } from "@/hooks/use-toast";
 import { trackFacebookEvent } from "@/lib/facebookTracking";
 
 const RendaExtraAula = () => {
+  const [showDeviceCheck, setShowDeviceCheck] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -118,9 +119,9 @@ const RendaExtraAula = () => {
             Descubra como pessoas comuns estão faturando alto prestando serviços de Instagram para empresas usando nossa ferramenta exclusiva.
           </p>
 
-          {!showForm && !showVideo && (
+          {!showDeviceCheck && !showForm && !showVideo && (
             <button
-              onClick={() => { setShowForm(true); trackFacebookEvent("ViewContent", { content_name: "Clicou Acessar Aula" }); }}
+              onClick={() => { setShowDeviceCheck(true); trackFacebookEvent("ViewContent", { content_name: "Clicou Acessar Aula" }); }}
               className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black font-extrabold text-xl px-10 py-5 rounded-2xl shadow-2xl shadow-yellow-500/30 transform hover:scale-105 transition-all duration-300"
             >
               🎬 ACESSAR AULA GRÁTIS
@@ -128,6 +129,44 @@ const RendaExtraAula = () => {
           )}
         </div>
       </div>
+
+      {/* Device Check */}
+      {showDeviceCheck && !showForm && !showVideo && (
+        <div className="max-w-md mx-auto px-4 pb-12 animate-fade-in">
+          <div className="bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-2xl p-6 shadow-2xl text-center">
+            <div className="text-5xl mb-4">💻</div>
+            <h2 className="text-xl font-bold mb-3">Este método para faturar R$5k mensal precisa de pelo menos:</h2>
+            <div className="space-y-3 text-left mb-6">
+              {[
+                { icon: "💻", text: "Um notebook básico" },
+                { icon: "🖥️", text: "Um computador de mesa" },
+                { icon: "🍎", text: "Ou um MacBook" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 bg-gray-900/60 border border-gray-600 rounded-xl px-4 py-3">
+                  <span className="text-2xl">{item.icon}</span>
+                  <span className="text-gray-200">{item.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-6">
+              <p className="text-red-400 text-sm font-semibold">⚠️ Não funciona em celular</p>
+            </div>
+            <p className="text-white font-bold text-lg mb-4">Você tem um desses dispositivos?</p>
+            <button
+              onClick={() => { setShowDeviceCheck(false); setShowForm(true); }}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-extrabold text-lg py-4 rounded-xl shadow-lg transition-all"
+            >
+              ✅ SIM, PROSSEGUIR
+            </button>
+            <button
+              onClick={() => setShowDeviceCheck(false)}
+              className="w-full mt-3 text-gray-500 hover:text-gray-300 text-sm transition-colors"
+            >
+              Não tenho no momento
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Form */}
       {showForm && !showVideo && (
