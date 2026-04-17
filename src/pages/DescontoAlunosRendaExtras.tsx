@@ -305,22 +305,6 @@ const DescontoAlunosRendaExtra = () => {
         </div>
       )}
 
-      {/* Urgency Banner */}
-      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 via-orange-500 to-red-600 py-2 px-2">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-1 sm:gap-3 text-center flex-wrap">
-          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
-          <span className="text-xs sm:text-sm md:text-base font-bold text-white leading-tight">
-            🎓 DESCONTO ESPECIAL PARA ALUNOS DO RENDA EXTRA! Aproveite em{" "}
-            <span className="bg-black/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-yellow-300 font-mono text-xs sm:text-sm">
-              {promoTimeLeft.expired ? "EXPIRADO" : 
-                `${String(promoTimeLeft.hours).padStart(2, '0')}:${String(promoTimeLeft.minutes).padStart(2, '0')}:${String(promoTimeLeft.seconds).padStart(2, '0')}`
-              }
-            </span>
-          </span>
-          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 animate-pulse hidden sm:block" />
-        </div>
-      </div>
-
       {/* Header removido conforme solicitação */}
 
       {/* Hero Section */}
