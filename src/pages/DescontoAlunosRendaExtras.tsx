@@ -355,11 +355,16 @@ const DescontoAlunosRendaExtra = () => {
 
           {/* Main Video */}
           <div className="mt-8 sm:mt-10 max-w-4xl mx-auto">
+            <div className="text-center mb-4 sm:mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
+                Assista a <span className="text-green-400">AULA GRÁTIS</span> para entender tudo
+              </h2>
+            </div>
             <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-green-500/30">
               <div className="aspect-video">
                 <iframe 
-                  src="https://www.youtube.com/embed/WQwnAHNvSMU?rel=0&modestbranding=1" 
-                  title="Video MRO"
+                  src="https://www.youtube.com/embed/-0CHlqHVe0g?rel=0&modestbranding=1" 
+                  title="Aula Grátis"
                   className="w-full h-full" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen 
