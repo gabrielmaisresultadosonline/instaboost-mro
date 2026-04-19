@@ -91,6 +91,7 @@ import WhatsAppDireto from "./pages/WhatsAppDireto";
 import ApiWhatsAppAccess from "./pages/ApiWhatsAppAccess";
 import RendaExtraAula from "./pages/RendaExtraAula";
 import RendaExtraAulaAdmin from "./pages/RendaExtraAulaAdmin";
+import Addmin from "./pages/Addmin";
 
 
 const queryClient = new QueryClient();
@@ -193,6 +194,7 @@ const App = () => (
           
           <Route path="/rendaextraaula" element={<RendaExtraAula />} />
           <Route path="/rendaextraaula/admin" element={<RendaExtraAulaAdmin />} />
+          <Route path="/addmin" element={<Addmin />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
