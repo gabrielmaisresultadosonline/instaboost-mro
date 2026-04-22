@@ -52,6 +52,7 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import bonus5mil from "@/assets/bonus-5mil.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
+import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
 
 const DescontoAlunosRendaExtra = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -870,6 +871,8 @@ const DescontoAlunosRendaExtra = () => {
           <p>© 2025 MRO - Mais Resultados Online. Todos os direitos reservados.</p>
         </div>
       </footer>
+
+      <FloatingWhatsAppHelp message="Olá estou dentro do renda extra gostaria de tirar umas dúvidas." />
     </div>
   );
 };
