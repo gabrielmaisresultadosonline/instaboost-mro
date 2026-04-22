@@ -934,7 +934,10 @@ const VendasCompleta = () => {
           </div>
         </div>
       )}
+
+      <FloatingWhatsAppHelp scrollTargetId="hero-video" />
     </div>
+
   );
 };
 
