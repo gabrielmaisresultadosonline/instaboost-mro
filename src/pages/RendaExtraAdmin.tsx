@@ -63,7 +63,7 @@ const RendaExtraAdmin = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const savedLogin = localStorage.getItem("renda_extra_admin");
+    const savedLogin = localStorage.getItem("renda_extra_v2_admin");
     if (savedLogin === "true") {
       setIsLoggedIn(true);
       loadData();
@@ -75,14 +75,14 @@ const RendaExtraAdmin = () => {
     setLoginLoading(true);
 
     try {
-      const response = await supabase.functions.invoke("renda-extra-admin", {
+      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { action: "login", email: loginData.email, password: loginData.password }
       });
 
       if (response.error) throw response.error;
       if (!response.data.success) throw new Error("Credenciais inválidas");
 
-      localStorage.setItem("renda_extra_admin", "true");
+      localStorage.setItem("renda_extra_v2_admin", "true");
       setIsLoggedIn(true);
       loadData();
       toast({ title: "Login realizado com sucesso!" });
@@ -94,14 +94,14 @@ const RendaExtraAdmin = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("renda_extra_admin");
+    localStorage.removeItem("renda_extra_v2_admin");
     setIsLoggedIn(false);
   };
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const response = await supabase.functions.invoke("renda-extra-admin", {
+      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { action: "getData" }
       });
 
@@ -125,7 +125,7 @@ const RendaExtraAdmin = () => {
   const saveSettings = async () => {
     setLoading(true);
     try {
-      const response = await supabase.functions.invoke("renda-extra-admin", {
+      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { 
           action: "updateSettings", 
           settings: {
@@ -152,7 +152,7 @@ const RendaExtraAdmin = () => {
     
     setLoading(true);
     try {
-      const response = await supabase.functions.invoke("renda-extra-admin", {
+      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { action: "resetAnalytics" }
       });
 
