@@ -48,12 +48,10 @@ const RendaExtra2 = () => {
 
   const trackVisit = async () => {
     try {
-      await supabase.from("renda_extra_analytics").insert({
+      await supabase.from("renda_extra_v2_analytics").insert({
         event_type: "page_view",
         source_url: window.location.href,
         user_agent: navigator.userAgent,
-        device_type: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? "mobile" : "desktop",
-        referrer: document.referrer || null
       });
     } catch (error) {
       console.error("Error tracking visit:", error);
@@ -158,11 +156,10 @@ const RendaExtra2 = () => {
         description: "Você receberá um email com o acesso à aula grátis."
       });
 
-      await supabase.from("renda_extra_analytics").insert({
+      await supabase.from("renda_extra_v2_analytics").insert({
         event_type: "lead_conversion",
         source_url: window.location.href,
         user_agent: navigator.userAgent,
-        device_type: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? "mobile" : "desktop"
       });
 
       if (typeof window !== "undefined" && (window as any).fbq) {
