@@ -215,10 +215,12 @@ const VendasCompleta = () => {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <img src={logoMro} alt="MRO" className="h-10 object-contain" />
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full px-4 py-1.5">
-              <Crown className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-400 text-xs font-bold">V7+ PLUS</span>
-            </div>
+            <a
+              href="/instagram"
+              className="rounded-full border border-amber-500/60 bg-amber-500/10 px-4 py-1.5 text-xs sm:text-sm font-bold text-amber-400 transition-colors hover:bg-amber-500/20"
+            >
+              Fazer Login
+            </a>
             <Button onClick={scrollToPricing} className="bg-amber-500 hover:bg-amber-600 text-black font-bold">
               Garantir Acesso
             </Button>
@@ -934,14 +936,6 @@ const VendasCompleta = () => {
           </div>
         </div>
       )}
-
-      {/* Floating Login Button - above WhatsApp */}
-      <a
-        href="/instagram"
-        className="fixed bottom-24 right-5 z-[60] flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2.5 text-sm font-bold text-black shadow-lg shadow-amber-500/40 transition-transform hover:scale-105 md:bottom-28"
-      >
-        Fazer Login
-      </a>
 
       <FloatingWhatsAppHelp scrollTargetId="hero-video" />
     </div>
