@@ -54,8 +54,9 @@ const WhatsAppLanding = () => {
   const handleOptionClick = (option: OptionItem) => {
     trackLead(`WhatsApp Landing - ${option.label}`);
     const phone = settings.whatsapp_number.replace(/\D/g, "");
+    if (!phone) return;
     const msg = encodeURIComponent(option.message);
-    window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+    window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${msg}`, "_blank");
     setShowOptions(false);
   };
 
