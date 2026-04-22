@@ -937,14 +937,6 @@ const VendasCompleta = () => {
         </div>
       )}
 
-      {/* Floating Login Button - above WhatsApp */}
-      <a
-        href="/instagram"
-        className="fixed bottom-24 right-5 z-[60] flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2.5 text-sm font-bold text-black shadow-lg shadow-amber-500/40 transition-transform hover:scale-105 md:bottom-28"
-      >
-        Fazer Login
-      </a>
-
       <FloatingWhatsAppHelp scrollTargetId="hero-video" />
     </div>
 
