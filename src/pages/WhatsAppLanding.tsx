@@ -141,7 +141,7 @@ const WhatsAppLanding = () => {
       {showOptions && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowOptions(false)}>
           <div
-            className="bg-[#1a1a2e] w-full sm:max-w-md sm:rounded-2xl rounded-t-3xl border-t sm:border border-gray-700 p-6 space-y-5 animate-in slide-in-from-bottom duration-300"
+            className="bg-[#1a1a2e] w-full sm:max-w-md sm:rounded-2xl rounded-t-3xl border-t sm:border border-gray-700 p-6 space-y-5 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto pb-[max(1.5rem,env(safe-area-inset-bottom))]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
@@ -152,6 +152,22 @@ const WhatsAppLanding = () => {
             </div>
 
             <div className="space-y-3">
+              {options.length === 0 && (
+                <button
+                  onClick={() => {
+                    trackLead("WhatsApp Landing - Contato Direto");
+                    openWhatsApp(settings.whatsapp_message);
+                  }}
+                  className="w-full py-4 px-5 rounded-2xl font-semibold text-sm sm:text-base text-white flex items-center gap-4 transition-all duration-200 hover:scale-[1.02] active:scale-95 text-left border border-white/10 hover:border-white/20"
+                  style={{ background: "linear-gradient(135deg, rgba(37,211,102,0.25) 0%, rgba(18,140,126,0.18) 100%)" }}
+                >
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 bg-green-500">
+                    <MessageCircle className="w-5 h-5 text-black" />
+                  </div>
+                  <span className="flex-1">Abrir atendimento direto</span>
+                  <MessageCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                </button>
+              )}
               {options.map((option) => {
                 const Icon = ICON_MAP[option.icon_type] || MessageCircle;
                 return (
