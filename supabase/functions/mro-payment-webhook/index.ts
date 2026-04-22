@@ -16,6 +16,41 @@ const log = (step: string, details?: unknown) => {
   console.log(`[${timestamp}] [MRO-PAYMENT-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Send Purchase event to Meta Conversions API (server-side pixel for /instagram-nova)
+async function sendMetaPurchaseEvent(email: string, value: number, contentName: string) {
+  try {
+    const accessToken = Deno.env.get("META_CONVERSIONS_API_TOKEN");
+    if (!accessToken) {
+      log("META: No access token configured, skipping Purchase event");
+      return;
+    }
+    const PIXEL_ID = "569414052132145";
+    const hashedEmail = await crypto.subtle
+      .digest("SHA-256", new TextEncoder().encode(email.toLowerCase().trim()))
+      .then((buf) => Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join(""));
+
+    const payload = {
+      data: [{
+        event_name: "Purchase",
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: "website",
+        event_source_url: "https://maisresultadosonline.com.br/instagram-nova",
+        user_data: { em: [hashedEmail] },
+        custom_data: { currency: "BRL", value, content_name: contentName },
+      }],
+    };
+
+    const resp = await fetch(
+      `https://graph.facebook.com/v18.0/${PIXEL_ID}/events?access_token=${accessToken}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
+    );
+    const result = await resp.json().catch(() => ({}));
+    log("META Purchase event sent", { email, value, contentName, success: resp.ok, result });
+  } catch (err) {
+    log("META Purchase event error (non-blocking)", { error: String(err) });
+  }
+}
+
 // Verificar se usuário já existe
 async function checkUserExists(username: string): Promise<boolean> {
   try {
@@ -484,6 +519,16 @@ serve(async (req) => {
       apiAlreadyExists: apiResult.alreadyExists,
       emailSent 
     });
+
+    // Fire Meta Conversions API Purchase event (only if transitioning to completed for the first time)
+    if (order.status !== "completed") {
+      const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
+      await sendMetaPurchaseEvent(
+        customerEmail,
+        Number(order.amount) || (order.plan_type === "lifetime" ? 797 : 397),
+        `MRO Instagram ${planLabel}`
+      );
+    }
 
     // Verificar se é venda de afiliado e enviar email de comissão
     if (emailParts.length >= 2) {
