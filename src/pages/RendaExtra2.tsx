@@ -544,14 +544,14 @@ const RendaExtra2 = () => {
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
           <div className="mb-4">
             <span className="bg-blue-600 text-white font-bold text-sm sm:text-base px-6 py-2 rounded-full shadow-lg shadow-blue-600/30">
-              ACESSO GRATUITO
+              GRÁTIS
             </span>
           </div>
 
           <div className="w-full max-w-md mx-auto">
             <img 
               src={heroImage} 
-              alt="Ferramenta MRO" 
+              alt="Resultados MRO" 
               className="w-full drop-shadow-2xl"
             />
           </div>
@@ -559,21 +559,21 @@ const RendaExtra2 = () => {
           <div className="text-center -mt-12 sm:-mt-16 md:-mt-20 relative z-10">
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-black leading-none">
               <span className="text-white" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9))' }}>
-                Ferramenta
+                Faça 5 a 10
               </span>
               <br />
-              <span className="text-blue-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>PROFISSIONAL</span>
+              <span className="text-blue-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
             </h1>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-300 mt-2">
-              Conheça o sistema <span className="text-blue-400 font-bold">MRO</span>
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-200 mt-2">
+              utilizando a ferramenta <span className="text-blue-400 font-bold">MRO</span>!
             </h2>
           </div>
 
           <div className="text-center mt-6 max-w-xs sm:max-w-lg mx-auto px-2">
             <p className="text-xs sm:text-base md:text-lg text-slate-400 leading-relaxed">
-              Isto <span className="text-blue-300 font-medium">não é um curso</span>.
+              Utilize no seu horário, em <span className="text-blue-300 font-medium">qualquer lugar do mundo</span>!
               <br />
-              É uma <span className="text-white font-semibold">ferramenta automatizada</span> para uso profissional.
+              Uma verdadeira <span className="text-blue-300 font-medium">liberdade financeira</span>.
             </p>
           </div>
 
@@ -588,7 +588,7 @@ const RendaExtra2 = () => {
             </div>
             <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-blue-400/30 transition-colors">
               <Briefcase className="w-4 h-4 text-blue-300" />
-              <span className="text-slate-300 text-xs sm:text-sm font-medium">Uso Profissional</span>
+              <span className="text-slate-300 text-xs sm:text-sm font-medium">Renda Extra</span>
             </div>
           </div>
 
