@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, LogOut, Plus, Trash2, GripVertical } from "lucide-react";
 
+const ADMIN_SESSION_STORAGE_KEY = "whatsapp_admin_session_token";
+
 interface OptionItem {
   id: string;
   label: string;
@@ -24,6 +26,7 @@ const ICON_OPTIONS = [
 
 const WhatsAppAdmin = () => {
   const [authenticated, setAuthenticated] = useState(false);
+  const [sessionToken, setSessionToken] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
