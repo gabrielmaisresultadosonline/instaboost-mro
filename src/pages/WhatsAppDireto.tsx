@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackLead } from "@/lib/facebookTracking";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 import logoMroWhite from "@/assets/logo-mro-white.png";
 import bannerImg from "@/assets/whatsapp-direto-banner.png";
 
@@ -28,10 +29,9 @@ const WhatsAppDireto = () => {
   const handleClick = () => {
     if (!whatsappNumber) return;
     trackLead("WhatsApp Direto - Contato");
-    const message = encodeURIComponent(
+    const message =
       "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!"
-    );
-    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
+    openWhatsAppChat(whatsappNumber, message);
   };
 
   if (loading) {
