@@ -608,10 +608,10 @@ const RendaExtra2 = () => {
       <section className="py-12 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-            Aprenda grátis <span className="text-green-400">como</span>!
+            Aprenda gratuitamente <span className="text-blue-400">como utilizar</span>
           </h3>
-          <p className="text-gray-400 text-base">
-            Faça o cadastro e tenha acesso imediato à aula grátis para entender melhor!
+          <p className="text-slate-400 text-base">
+            Faça o cadastro e tenha acesso imediato à aula explicativa da ferramenta.
           </p>
         </div>
       </section>
@@ -620,39 +620,39 @@ const RendaExtra2 = () => {
         <div className="max-w-3xl mx-auto text-center">
           <Button 
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group mb-8"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-blue-600/20 hover:scale-105 transition-all duration-300 group mb-8"
           >
             Aprender grátis agora!
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
           
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
-            Aprenda Grátis!
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-200 via-blue-300 to-slate-200 mb-4">
+            Acesso Gratuito
           </h2>
         </div>
       </section>
 
       <section className="py-12 px-4">
         <div className="max-w-xl mx-auto">
-          <div className="bg-gradient-to-br from-[#1a1f35] to-[#0f1525] rounded-2xl p-6 md:p-8 border border-blue-500/10 text-center">
-            <Sparkles className="w-8 h-8 text-blue-400 mx-auto mb-4" />
+          <div className="bg-gradient-to-br from-[#101627] to-[#0a0e1a] rounded-2xl p-6 md:p-8 border border-blue-500/20 text-center">
+            <Shield className="w-8 h-8 text-blue-400 mx-auto mb-4" />
             <p className="text-lg md:text-xl font-semibold text-white">
-              Isso <span className="text-yellow-400">NÃO É</span> um curso!
+              Isso <span className="text-blue-300">NÃO É</span> um curso.
             </p>
-            <p className="text-gray-400 mt-2">
-              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5k mensal!
+            <p className="text-slate-400 mt-2">
+              É uma <span className="text-blue-300 font-semibold">ferramenta profissional</span> automatizada de uso contínuo.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
-            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2.5 rounded-xl">
-              <Laptop className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-200 text-sm font-medium">Precisa de Notebook</span>
+            <div className="flex items-center gap-2 bg-slate-700/30 border border-slate-600/40 px-4 py-2.5 rounded-xl">
+              <Laptop className="w-5 h-5 text-slate-300" />
+              <span className="text-slate-200 text-sm font-medium">Requer Notebook</span>
             </div>
-            <span className="text-gray-600 text-sm">ou</span>
-            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2.5 rounded-xl">
-              <Monitor className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-200 text-sm font-medium">Computador de Mesa</span>
+            <span className="text-slate-500 text-sm">ou</span>
+            <div className="flex items-center gap-2 bg-slate-700/30 border border-slate-600/40 px-4 py-2.5 rounded-xl">
+              <Monitor className="w-5 h-5 text-slate-300" />
+              <span className="text-slate-200 text-sm font-medium">Computador de Mesa</span>
             </div>
           </div>
         </div>
@@ -662,7 +662,7 @@ const RendaExtra2 = () => {
         <div className="max-w-xl mx-auto text-center">
           <Button 
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-blue-600/20 hover:scale-105 transition-all duration-300 group"
           >
             Aprender grátis agora!
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
