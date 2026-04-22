@@ -152,7 +152,7 @@ Não perca essa oportunidade! O desconto é por tempo limitado.
     );
 
     await supabase
-      .from("renda_extra_email_logs")
+      .from("renda_extra_v2_email_logs")
       .insert({
         lead_id: lead.id,
         email_to: data.email,
@@ -164,7 +164,7 @@ Não perca essa oportunidade! O desconto é por tempo limitado.
 
     if (emailSent) {
       await supabase
-        .from("renda_extra_leads")
+        .from("renda_extra_v2_leads")
         .update({
           email_confirmacao_enviado: true,
           email_confirmacao_enviado_at: new Date().toISOString(),
