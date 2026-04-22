@@ -543,8 +543,8 @@ const RendaExtra2 = () => {
 
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
           <div className="mb-4">
-            <span className="bg-yellow-400 text-black font-bold text-sm sm:text-base px-6 py-2 rounded-full shadow-lg shadow-yellow-400/30">
-              GRÁTIS
+            <span className="bg-yellow-400 text-black font-medium text-xs sm:text-sm px-5 py-1.5 rounded-full shadow-lg shadow-yellow-400/30 tracking-wide">
+              Aprenda Grátis
             </span>
           </div>
 
