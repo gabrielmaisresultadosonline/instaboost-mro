@@ -23,12 +23,10 @@ const FloatingWhatsAppHelp = ({
     let cancelled = false;
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("whatsapp-page", {
-          body: { action: "get_public_config" },
-        });
-        if (!cancelled && !error && data?.config?.whatsapp_number) {
-          setPhone(data.config.whatsapp_number);
-        }
+        const { data, error } = await supabase.rpc("get_whatsapp_public_config");
+        if (cancelled || error || !data) return;
+        const cfg = data as { whatsapp_number?: string };
+        if (cfg.whatsapp_number) setPhone(cfg.whatsapp_number);
       } catch {
         /* silently ignore */
       }
