@@ -24,6 +24,8 @@ const WhatsAppLanding = () => {
     whatsapp_number: "",
     page_title: "Gabriel está disponível agora para te ajudar",
     page_subtitle: "Sobre o que gostaria de falar clique no botão abaixo.",
+    button_text: "FALAR NO WHATSAPP",
+    whatsapp_message: "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
   });
   const [options, setOptions] = useState<OptionItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,33 +34,39 @@ const WhatsAppLanding = () => {
   useEffect(() => {
     trackPageView("WhatsApp Landing");
     const load = async () => {
-      const [settingsRes, optionsRes] = await Promise.all([
-        supabase.from("whatsapp_page_settings").select("*").limit(1).single(),
-        supabase.from("whatsapp_page_options").select("*").eq("is_active", true).order("order_index"),
-      ]);
-      if (settingsRes.data) {
+      const { data, error } = await supabase.functions.invoke("whatsapp-page", {
+        body: { action: "publicConfig" },
+      });
+
+      if (!error && data?.success && data?.config) {
         setSettings({
-          whatsapp_number: settingsRes.data.whatsapp_number,
-          page_title: settingsRes.data.page_title,
-          page_subtitle: settingsRes.data.page_subtitle,
+          whatsapp_number: data.config.whatsapp_number ?? "",
+          page_title: data.config.page_title ?? "Gabriel está disponível agora para te ajudar",
+          page_subtitle: data.config.page_subtitle ?? "Sobre o que gostaria de falar clique no botão abaixo.",
+          button_text: data.config.button_text ?? "FALAR NO WHATSAPP",
+          whatsapp_message: data.config.whatsapp_message ?? "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
         });
+        setOptions((data.config.options ?? []) as OptionItem[]);
       }
-      if (optionsRes.data) {
-        setOptions(optionsRes.data as OptionItem[]);
-      }
+
       setLoading(false);
     };
     load();
   }, []);
 
-  const handleOptionClick = (option: OptionItem) => {
-    trackLead(`WhatsApp Landing - ${option.label}`);
+  const openWhatsApp = (message: string) => {
     const phone = settings.whatsapp_number.replace(/\D/g, "");
     if (!phone) return;
-    const msg = encodeURIComponent(option.message);
-    const url = `https://wa.me/${phone}?text=${msg}`;
+
+    const msg = encodeURIComponent(message.trim());
+    const url = `https://wa.me/${phone}${msg ? `?text=${msg}` : ""}`;
     setShowOptions(false);
-    window.location.href = url;
+    window.location.assign(url);
+  };
+
+  const handleOptionClick = (option: OptionItem) => {
+    trackLead(`WhatsApp Landing - ${option.label}`);
+    openWhatsApp(option.message);
   };
 
   if (loading) {
@@ -103,12 +111,20 @@ const WhatsAppLanding = () => {
 
         {/* Single CTA Button */}
         <button
-          onClick={() => setShowOptions(true)}
+          onClick={() => {
+            if (options.length > 0) {
+              setShowOptions(true);
+              return;
+            }
+
+            trackLead("WhatsApp Landing - Contato Direto");
+            openWhatsApp(settings.whatsapp_message);
+          }}
           className="w-full py-5 px-6 rounded-2xl font-bold text-lg sm:text-xl text-white flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(37,211,102,0.4)]"
           style={{ background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)" }}
         >
           <MessageCircle className="w-7 h-7 flex-shrink-0" />
-          FALAR NO WHATSAPP
+          {settings.button_text || "FALAR NO WHATSAPP"}
         </button>
 
         <p className="text-gray-500 text-xs">Você será redirecionado para o WhatsApp</p>
