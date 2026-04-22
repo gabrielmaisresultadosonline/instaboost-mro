@@ -41,45 +41,80 @@ const WhatsAppAdmin = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const clearSession = () => {
+    localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+    setSessionToken("");
+    setAuthenticated(false);
+  };
+
+  const fetchAdminData = async (tokenOverride?: string) => {
+    const token = tokenOverride || sessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
+      body: { action: "adminData", token },
+    });
+
+    if (error || !response?.success) {
+      if (response?.error?.includes("Sessão expirada")) {
+        clearSession();
+      }
+      toast.error(response?.error || error?.message || "Erro ao carregar dados");
+      setLoading(false);
+      return;
+    }
+
+    const nextSettings = response.settings || {};
+    setSettings({
+      id: nextSettings.id || "",
+      whatsapp_number: nextSettings.whatsapp_number || "",
+      page_title: nextSettings.page_title || "",
+      page_subtitle: nextSettings.page_subtitle || "",
+    });
+    setOptions(Array.isArray(response.options) ? (response.options as OptionItem[]) : []);
+    setAuthenticated(true);
+    setLoading(false);
+  };
+
   const handleLogin = async () => {
     setLoginLoading(true);
-    const { data } = await supabase
-      .from("whatsapp_page_settings")
-      .select("admin_email, admin_password")
-      .limit(1)
-      .single();
 
-    if (data && email === data.admin_email && password === data.admin_password) {
-      setAuthenticated(true);
-      toast.success("Login realizado com sucesso!");
-    } else {
-      toast.error("Email ou senha incorretos");
+    const { data: response, error } = await supabase.rpc("whatsapp_admin_login", {
+      login_email: email,
+      login_password: password,
+    });
+
+    const result = response as { success?: boolean; token?: string; error?: string } | null;
+
+    if (error || !result?.success || !result.token) {
+      toast.error(result?.error || error?.message || "Email ou senha incorretos");
+      setLoginLoading(false);
+      return;
     }
+
+    localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, result.token);
+    setSessionToken(result.token);
+    setAuthenticated(true);
+    toast.success("Login realizado com sucesso!");
+    await fetchAdminData(result.token);
     setLoginLoading(false);
   };
 
   useEffect(() => {
-    if (!authenticated) return;
-    const load = async () => {
-      const [settingsRes, optionsRes] = await Promise.all([
-        supabase.from("whatsapp_page_settings").select("*").limit(1).single(),
-        supabase.from("whatsapp_page_options").select("*").order("order_index"),
-      ]);
-      if (settingsRes.data) {
-        setSettings({
-          id: settingsRes.data.id,
-          whatsapp_number: settingsRes.data.whatsapp_number,
-          page_title: settingsRes.data.page_title,
-          page_subtitle: settingsRes.data.page_subtitle,
-        });
-      }
-      if (optionsRes.data) {
-        setOptions(optionsRes.data as OptionItem[]);
-      }
+    const storedToken = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+    if (!storedToken) {
       setLoading(false);
-    };
-    load();
-  }, [authenticated]);
+      return;
+    }
+
+    setSessionToken(storedToken);
+    setAuthenticated(true);
+    fetchAdminData(storedToken);
+  }, []);
 
   const handleSaveSettings = async () => {
     setSaving(true);
