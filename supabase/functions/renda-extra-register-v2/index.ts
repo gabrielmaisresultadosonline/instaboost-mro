@@ -65,7 +65,7 @@ serve(async (req) => {
     log("Registration request received", { email: data.email, nome: data.nome_completo });
 
     const { data: lead, error: insertError } = await supabase
-      .from("renda_extra_leads")
+      .from("renda_extra_v2_leads")
       .insert({
         nome_completo: data.nome_completo,
         email: data.email,
