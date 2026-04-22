@@ -2754,6 +2754,7 @@ export type Database = {
           id: string
           page_subtitle: string
           page_title: string
+          session_secret: string | null
           updated_at: string
           whatsapp_message: string
           whatsapp_number: string
@@ -2766,6 +2767,7 @@ export type Database = {
           id?: string
           page_subtitle?: string
           page_title?: string
+          session_secret?: string | null
           updated_at?: string
           whatsapp_message?: string
           whatsapp_number?: string
@@ -2778,6 +2780,7 @@ export type Database = {
           id?: string
           page_subtitle?: string
           page_title?: string
+          session_secret?: string | null
           updated_at?: string
           whatsapp_message?: string
           whatsapp_number?: string
@@ -3227,6 +3230,7 @@ export type Database = {
       }
     }
     Functions: {
+      get_whatsapp_public_config: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3237,6 +3241,10 @@ export type Database = {
       increment_corretor_corrections: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      whatsapp_admin_login: {
+        Args: { login_email: string; login_password: string }
+        Returns: Json
       }
     }
     Enums: {
