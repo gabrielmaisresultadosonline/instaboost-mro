@@ -46,6 +46,7 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
+import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
 
 interface SalesSettings {
   whatsappNumber: string;
@@ -257,7 +258,7 @@ const VendasCompleta = () => {
             </p>
           </div>
 
-          <div className="mt-10 max-w-4xl mx-auto">
+          <div className="mt-10 max-w-4xl mx-auto" id="hero-video">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
               <iframe
                 src="https://www.youtube.com/embed/lecSwt54sa0?rel=0&modestbranding=1"
@@ -268,6 +269,7 @@ const VendasCompleta = () => {
               />
             </div>
           </div>
+
 
           <div className="mt-8 max-w-4xl mx-auto">
             <img 
@@ -932,7 +934,10 @@ const VendasCompleta = () => {
           </div>
         </div>
       )}
+
+      <FloatingWhatsAppHelp scrollTargetId="hero-video" />
     </div>
+
   );
 };
 
