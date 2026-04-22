@@ -5,8 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/renda-extra-hero.png";
 import logoMro from "@/assets/logo-mro-white.png";
-import MoneyParticles from "@/components/MoneyParticles";
-import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2, X } from "lucide-react";
+import { Laptop, Monitor, Clock, MapPin, Briefcase, CheckCircle2, Shield, ArrowRight, Loader2, X } from "lucide-react";
 
 const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrendaextrasss";
 
