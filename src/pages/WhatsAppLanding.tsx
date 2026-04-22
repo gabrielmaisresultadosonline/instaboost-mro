@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MessageCircle, Sparkles, Headset, HelpCircle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackLead } from "@/lib/facebookTracking";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 import logoMroWhite from "@/assets/logo-mro-white.png";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -30,6 +31,7 @@ const WhatsAppLanding = () => {
   const [options, setOptions] = useState<OptionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOptions, setShowOptions] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     trackPageView("WhatsApp Landing");
@@ -47,6 +49,10 @@ const WhatsAppLanding = () => {
           whatsapp_message: data.config.whatsapp_message ?? "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
         });
         setOptions((data.config.options ?? []) as OptionItem[]);
+        setLoadError(false);
+      } else {
+        console.error("[WhatsAppLanding] failed to load config", error, data);
+        setLoadError(true);
       }
 
       setLoading(false);
@@ -55,13 +61,8 @@ const WhatsAppLanding = () => {
   }, []);
 
   const openWhatsApp = (message: string) => {
-    const phone = settings.whatsapp_number.replace(/\D/g, "");
-    if (!phone) return;
-
-    const msg = encodeURIComponent(message.trim());
-    const url = `https://wa.me/${phone}${msg ? `?text=${msg}` : ""}`;
     setShowOptions(false);
-    window.location.assign(url);
+    openWhatsAppChat(settings.whatsapp_number, message);
   };
 
   const handleOptionClick = (option: OptionItem) => {
@@ -110,7 +111,7 @@ const WhatsAppLanding = () => {
         </div>
 
         {/* Single CTA Button */}
-        <button
+          <button
           onClick={() => {
             if (options.length > 0) {
               setShowOptions(true);
@@ -128,6 +129,12 @@ const WhatsAppLanding = () => {
         </button>
 
         <p className="text-gray-500 text-xs">Você será redirecionado para o WhatsApp</p>
+
+        {loadError && (
+          <p className="text-xs text-destructive">
+            Não foi possível carregar as opções agora. O botão principal ainda abre o WhatsApp direto.
+          </p>
+        )}
       </div>
 
       {/* Options Popup */}
