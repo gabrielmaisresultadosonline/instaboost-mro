@@ -13,11 +13,9 @@ export const buildWhatsAppUrl = (phone: string, message: string) => {
   if (!normalizedPhone) return "";
 
   const text = message.trim();
-  const query = text
-    ? `?phone=${normalizedPhone}&text=${encodeURIComponent(text)}&type=phone_number&app_absent=0`
-    : `?phone=${normalizedPhone}&type=phone_number&app_absent=0`;
+  const query = text ? `?text=${encodeURIComponent(text)}` : "";
 
-  return `https://api.whatsapp.com/send/${query}`;
+  return `https://wa.me/${normalizedPhone}${query}`;
 };
 
 export const openWhatsAppChat = (phone: string, message: string) => {
