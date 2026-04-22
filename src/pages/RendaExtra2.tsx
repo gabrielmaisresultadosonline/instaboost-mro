@@ -521,13 +521,12 @@ const RendaExtra2 = () => {
         </div>
       )}
 
-    <div className="min-h-screen bg-[#0a0f1a] overflow-x-hidden relative">
-      <MoneyParticles />
+    <div className="min-h-screen bg-[#0a0e1a] overflow-x-hidden relative">
       <section className="relative min-h-[90vh] flex flex-col">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-yellow-500/5 via-transparent to-transparent blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-green-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-yellow-500/5 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-blue-600/10 via-transparent to-transparent blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-700/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-900/20 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 pt-6 px-4 flex justify-center">
@@ -535,9 +534,9 @@ const RendaExtra2 = () => {
         </div>
 
         <div className="relative z-10 flex justify-center mt-4">
-          <div className="bg-yellow-500/10 border border-yellow-500/30 px-5 py-1.5 rounded-full">
-            <span className="text-yellow-400 font-medium text-xs tracking-[0.2em] uppercase">
-              Renda Extra
+          <div className="bg-blue-500/10 border border-blue-400/30 px-5 py-1.5 rounded-full">
+            <span className="text-blue-300 font-medium text-xs tracking-[0.2em] uppercase">
+              Ferramenta Profissional
             </span>
           </div>
         </div>
