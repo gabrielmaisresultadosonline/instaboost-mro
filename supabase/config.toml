@@ -244,3 +244,6 @@ verify_jwt = false
 
 [functions.mro-direct-brightdata-followers]
 verify_jwt = false
+
+[functions.renda-extra-register-v2]
+verify_jwt = false
