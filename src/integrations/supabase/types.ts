@@ -2787,6 +2787,111 @@ export type Database = {
         }
         Relationships: []
       }
+      wpp_bot_messages: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          lead_name: string | null
+          message: string
+          phone: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          message: string
+          phone: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          message?: string
+          phone?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wpp_bot_session: {
+        Row: {
+          created_at: string
+          id: string
+          last_heartbeat: string | null
+          phone_number: string | null
+          qr_code: string | null
+          request_logout: boolean
+          request_qr: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_heartbeat?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          request_logout?: boolean
+          request_qr?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_heartbeat?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          request_logout?: boolean
+          request_qr?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wpp_bot_settings: {
+        Row: {
+          created_at: string
+          delay_minutes: number
+          enabled: boolean
+          id: string
+          message_template: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delay_minutes?: number
+          enabled?: boolean
+          id?: string
+          message_template?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delay_minutes?: number
+          enabled?: boolean
+          id?: string
+          message_template?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       zapi_contacts: {
         Row: {
           created_at: string
