@@ -234,7 +234,7 @@ const WhatsAppAdmin = () => {
       <div className="max-w-lg mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-white">Admin WhatsApp</h1>
-          <Button variant="ghost" size="sm" onClick={() => setAuthenticated(false)} className="text-gray-400 hover:text-white">
+          <Button variant="ghost" size="sm" onClick={clearSession} className="text-gray-400 hover:text-white">
             <LogOut className="w-4 h-4 mr-1" /> Sair
           </Button>
         </div>
