@@ -46,6 +46,7 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import zeroAnunciosBanner from "@/assets/zero-anuncios-banner.png";
 import ActiveClientsSection from "@/components/ActiveClientsSection";
+import FloatingWhatsAppHelp from "@/components/FloatingWhatsAppHelp";
 
 interface SalesSettings {
   whatsappNumber: string;
