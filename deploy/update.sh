@@ -2,7 +2,8 @@
 
 # =============================================================
 # Script de Atualização - I.A MRO
-# Para Ubuntu LTS (VPS Hostinger)
+# Para Ubuntu LTS 22.04 (VPS Hostinger)
+# Inclui: Frontend + Bot WhatsApp (whatsapp-web.js)
 # =============================================================
 
 set -e
@@ -13,6 +14,7 @@ APP_NAME="ia-mro"
 APP_DIR="/var/www/$APP_NAME"
 NGINX_SITE="/etc/nginx/sites-available/$APP_NAME"
 DOMAIN="maisresultadosonline.com.br"
+WPP_BOT_DIR="$APP_DIR/whatsapp-bot"
 
 # Sudo helper (permite rodar como root ou usuário normal)
 SUDO=""
@@ -39,6 +41,54 @@ npm install
 
 echo "🔨 Fazendo build do frontend..."
 npm run build
+
+# ============= Bot WhatsApp (whatsapp-web.js) =============
+echo ""
+echo "🤖 Configurando Bot WhatsApp..."
+
+# Instalar Chromium e libs necessárias para o Puppeteer/whatsapp-web.js
+if ! command -v chromium-browser >/dev/null 2>&1 && ! command -v chromium >/dev/null 2>&1; then
+  echo "🌐 Instalando Chromium e dependências do Puppeteer..."
+  $SUDO apt-get update
+  $SUDO apt-get install -y \
+    chromium-browser \
+    ca-certificates fonts-liberation libappindicator3-1 libasound2 \
+    libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
+    libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 \
+    libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 \
+    libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 \
+    libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
+    lsb-release wget xdg-utils 2>/dev/null || true
+fi
+
+# Instalar PM2 globalmente se não existir
+if ! command -v pm2 >/dev/null 2>&1; then
+  echo "📦 Instalando PM2..."
+  $SUDO npm install -g pm2
+fi
+
+# Se a pasta do bot existir no repo, instalar dependências e iniciar
+if [ -d "$WPP_BOT_DIR" ]; then
+  echo "📦 Instalando dependências do bot WhatsApp..."
+  cd "$WPP_BOT_DIR"
+  npm install --omit=dev
+
+  # Reiniciar (ou iniciar) o processo PM2
+  if pm2 list | grep -q "wpp-bot-mro"; then
+    echo "♻️  Reiniciando bot WhatsApp..."
+    pm2 restart wpp-bot-mro --update-env
+  else
+    echo "🚀 Iniciando bot WhatsApp pela primeira vez..."
+    pm2 start index.js --name wpp-bot-mro --time
+  fi
+
+  pm2 save
+  $SUDO pm2 startup systemd -u "$USER" --hp "$HOME" >/dev/null 2>&1 || true
+
+  cd "$APP_DIR"
+else
+  echo "⚠️  Pasta whatsapp-bot/ não encontrada — pulando instalação do bot."
+fi
 
 # ============= Nginx =============
 echo ""
@@ -133,4 +183,9 @@ echo ""
 echo "✅ Atualização concluída!"
 echo "🌐 Frontend: https://$DOMAIN"
 echo "📝 Prompts MRO: https://$PROMPTS_DOMAIN"
+echo ""
+echo "🤖 Bot WhatsApp:"
+echo "   Status:  pm2 status wpp-bot-mro"
+echo "   Logs:    pm2 logs wpp-bot-mro"
+echo "   QR Code: pm2 logs wpp-bot-mro --lines 50"
 echo ""
