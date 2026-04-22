@@ -5,8 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/renda-extra-hero.png";
 import logoMro from "@/assets/logo-mro-white.png";
-import MoneyParticles from "@/components/MoneyParticles";
-import { Laptop, Monitor, Clock, MapPin, DollarSign, CheckCircle2, Sparkles, ArrowRight, Loader2, X } from "lucide-react";
+import { Laptop, Monitor, Clock, MapPin, Briefcase, CheckCircle2, Shield, ArrowRight, Loader2, X } from "lucide-react";
 
 const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrendaextrasss";
 
@@ -522,13 +521,12 @@ const RendaExtra2 = () => {
         </div>
       )}
 
-    <div className="min-h-screen bg-[#0a0f1a] overflow-x-hidden relative">
-      <MoneyParticles />
+    <div className="min-h-screen bg-[#0a0e1a] overflow-x-hidden relative">
       <section className="relative min-h-[90vh] flex flex-col">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-yellow-500/5 via-transparent to-transparent blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-green-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-yellow-500/5 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-blue-600/10 via-transparent to-transparent blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-700/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-900/20 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 pt-6 px-4 flex justify-center">
@@ -536,68 +534,68 @@ const RendaExtra2 = () => {
         </div>
 
         <div className="relative z-10 flex justify-center mt-4">
-          <div className="bg-yellow-500/10 border border-yellow-500/30 px-5 py-1.5 rounded-full">
-            <span className="text-yellow-400 font-medium text-xs tracking-[0.2em] uppercase">
-              Renda Extra
+          <div className="bg-blue-500/10 border border-blue-400/30 px-5 py-1.5 rounded-full">
+            <span className="text-blue-300 font-medium text-xs tracking-[0.2em] uppercase">
+              Ferramenta Profissional
             </span>
           </div>
         </div>
 
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
           <div className="mb-4">
-            <span className="bg-red-500 text-white font-bold text-sm sm:text-base px-6 py-2 rounded-full shadow-lg shadow-red-500/30">
-              GRÁTIS
+            <span className="bg-blue-600 text-white font-bold text-sm sm:text-base px-6 py-2 rounded-full shadow-lg shadow-blue-600/30">
+              ACESSO GRATUITO
             </span>
           </div>
 
           <div className="w-full max-w-md mx-auto">
             <img 
               src={heroImage} 
-              alt="Resultados MRO" 
+              alt="Ferramenta MRO" 
               className="w-full drop-shadow-2xl"
             />
           </div>
           
           <div className="text-center -mt-12 sm:-mt-16 md:-mt-20 relative z-10">
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-black leading-none">
-              <span className="text-gold-shimmer" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9)) drop-shadow(0 8px 40px rgba(0, 0, 0, 0.7))' }}>
-                5 a 10
+              <span className="text-white" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9))' }}>
+                Ferramenta
               </span>
               <br />
-              <span className="text-green-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
+              <span className="text-blue-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>PROFISSIONAL</span>
             </h1>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mt-2">
-              utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-300 mt-2">
+              Conheça o sistema <span className="text-blue-400 font-bold">MRO</span>
             </h2>
           </div>
 
           <div className="text-center mt-6 max-w-xs sm:max-w-lg mx-auto px-2">
-            <p className="text-xs sm:text-base md:text-lg text-gray-400 leading-relaxed">
-              Utilize no seu horário, em <span className="text-green-400 font-medium">qualquer lugar do mundo</span>!
+            <p className="text-xs sm:text-base md:text-lg text-slate-400 leading-relaxed">
+              Isto <span className="text-blue-300 font-medium">não é um curso</span>.
               <br />
-              Extremamente uma <span className="text-yellow-400 font-medium">liberdade financeira</span>!
+              É uma <span className="text-white font-semibold">ferramenta automatizada</span> para uso profissional.
             </p>
           </div>
 
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-6">
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-green-500/30 transition-colors">
-              <Clock className="w-4 h-4 text-green-400" />
-              <span className="text-gray-300 text-xs sm:text-sm font-medium">Seu Horário</span>
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-blue-400/30 transition-colors">
+              <Clock className="w-4 h-4 text-blue-300" />
+              <span className="text-slate-300 text-xs sm:text-sm font-medium">Seu Horário</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-yellow-500/30 transition-colors">
-              <MapPin className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-300 text-xs sm:text-sm font-medium">Qualquer Lugar</span>
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-blue-400/30 transition-colors">
+              <MapPin className="w-4 h-4 text-blue-300" />
+              <span className="text-slate-300 text-xs sm:text-sm font-medium">Qualquer Lugar</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-emerald-500/30 transition-colors">
-              <DollarSign className="w-4 h-4 text-emerald-400" />
-              <span className="text-gray-300 text-xs sm:text-sm font-medium">Renda Extra</span>
+            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-white/10 hover:border-blue-400/30 transition-colors">
+              <Briefcase className="w-4 h-4 text-blue-300" />
+              <span className="text-slate-300 text-xs sm:text-sm font-medium">Uso Profissional</span>
             </div>
           </div>
 
           <div className="mt-6 sm:mt-8">
             <Button 
               onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-base sm:text-lg md:text-xl px-8 sm:px-10 py-5 sm:py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-base sm:text-lg md:text-xl px-8 sm:px-10 py-5 sm:py-6 rounded-2xl shadow-2xl shadow-blue-600/20 hover:scale-105 transition-all duration-300 group"
             >
               Aprender grátis agora!
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -610,10 +608,10 @@ const RendaExtra2 = () => {
       <section className="py-12 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-            Aprenda grátis <span className="text-green-400">como</span>!
+            Aprenda gratuitamente <span className="text-blue-400">como utilizar</span>
           </h3>
-          <p className="text-gray-400 text-base">
-            Faça o cadastro e tenha acesso imediato à aula grátis para entender melhor!
+          <p className="text-slate-400 text-base">
+            Faça o cadastro e tenha acesso imediato à aula explicativa da ferramenta.
           </p>
         </div>
       </section>
@@ -622,39 +620,39 @@ const RendaExtra2 = () => {
         <div className="max-w-3xl mx-auto text-center">
           <Button 
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group mb-8"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-blue-600/20 hover:scale-105 transition-all duration-300 group mb-8"
           >
             Aprender grátis agora!
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
           
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 mb-4">
-            Aprenda Grátis!
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-200 via-blue-300 to-slate-200 mb-4">
+            Acesso Gratuito
           </h2>
         </div>
       </section>
 
       <section className="py-12 px-4">
         <div className="max-w-xl mx-auto">
-          <div className="bg-gradient-to-br from-[#1a1f35] to-[#0f1525] rounded-2xl p-6 md:p-8 border border-blue-500/10 text-center">
-            <Sparkles className="w-8 h-8 text-blue-400 mx-auto mb-4" />
+          <div className="bg-gradient-to-br from-[#101627] to-[#0a0e1a] rounded-2xl p-6 md:p-8 border border-blue-500/20 text-center">
+            <Shield className="w-8 h-8 text-blue-400 mx-auto mb-4" />
             <p className="text-lg md:text-xl font-semibold text-white">
-              Isso <span className="text-yellow-400">NÃO É</span> um curso!
+              Isso <span className="text-blue-300">NÃO É</span> um curso.
             </p>
-            <p className="text-gray-400 mt-2">
-              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5k mensal!
+            <p className="text-slate-400 mt-2">
+              É uma <span className="text-blue-300 font-semibold">ferramenta profissional</span> automatizada de uso contínuo.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
-            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2.5 rounded-xl">
-              <Laptop className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-200 text-sm font-medium">Precisa de Notebook</span>
+            <div className="flex items-center gap-2 bg-slate-700/30 border border-slate-600/40 px-4 py-2.5 rounded-xl">
+              <Laptop className="w-5 h-5 text-slate-300" />
+              <span className="text-slate-200 text-sm font-medium">Requer Notebook</span>
             </div>
-            <span className="text-gray-600 text-sm">ou</span>
-            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-4 py-2.5 rounded-xl">
-              <Monitor className="w-5 h-5 text-orange-400" />
-              <span className="text-orange-200 text-sm font-medium">Computador de Mesa</span>
+            <span className="text-slate-500 text-sm">ou</span>
+            <div className="flex items-center gap-2 bg-slate-700/30 border border-slate-600/40 px-4 py-2.5 rounded-xl">
+              <Monitor className="w-5 h-5 text-slate-300" />
+              <span className="text-slate-200 text-sm font-medium">Computador de Mesa</span>
             </div>
           </div>
         </div>
@@ -664,7 +662,7 @@ const RendaExtra2 = () => {
         <div className="max-w-xl mx-auto text-center">
           <Button 
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-red-500/20 hover:scale-105 transition-all duration-300 group"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-blue-600/20 hover:scale-105 transition-all duration-300 group"
           >
             Aprender grátis agora!
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
