@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, LogOut, Plus, Trash2, GripVertical } from "lucide-react";
 
+const ADMIN_SESSION_STORAGE_KEY = "whatsapp_admin_session_token";
+
 interface OptionItem {
   id: string;
   label: string;
@@ -24,6 +26,7 @@ const ICON_OPTIONS = [
 
 const WhatsAppAdmin = () => {
   const [authenticated, setAuthenticated] = useState(false);
+  const [sessionToken, setSessionToken] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -38,109 +41,156 @@ const WhatsAppAdmin = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const clearSession = () => {
+    localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+    setSessionToken("");
+    setAuthenticated(false);
+  };
+
+  const fetchAdminData = async (tokenOverride?: string) => {
+    const token = tokenOverride || sessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
+      body: { action: "adminData", token },
+    });
+
+    if (error || !response?.success) {
+      if (response?.error?.includes("Sessão expirada")) {
+        clearSession();
+      }
+      toast.error(response?.error || error?.message || "Erro ao carregar dados");
+      setLoading(false);
+      return;
+    }
+
+    const nextSettings = response.settings || {};
+    setSettings({
+      id: nextSettings.id || "",
+      whatsapp_number: nextSettings.whatsapp_number || "",
+      page_title: nextSettings.page_title || "",
+      page_subtitle: nextSettings.page_subtitle || "",
+    });
+    setOptions(Array.isArray(response.options) ? (response.options as OptionItem[]) : []);
+    setAuthenticated(true);
+    setLoading(false);
+  };
+
   const handleLogin = async () => {
     setLoginLoading(true);
-    const { data } = await supabase
-      .from("whatsapp_page_settings")
-      .select("admin_email, admin_password")
-      .limit(1)
-      .single();
 
-    if (data && email === data.admin_email && password === data.admin_password) {
-      setAuthenticated(true);
-      toast.success("Login realizado com sucesso!");
-    } else {
-      toast.error("Email ou senha incorretos");
+    const { data: response, error } = await supabase.rpc("whatsapp_admin_login", {
+      login_email: email,
+      login_password: password,
+    });
+
+    const result = response as { success?: boolean; token?: string; error?: string } | null;
+
+    if (error || !result?.success || !result.token) {
+      toast.error(result?.error || error?.message || "Email ou senha incorretos");
+      setLoginLoading(false);
+      return;
     }
+
+    localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, result.token);
+    setSessionToken(result.token);
+    setAuthenticated(true);
+    toast.success("Login realizado com sucesso!");
+    await fetchAdminData(result.token);
     setLoginLoading(false);
   };
 
   useEffect(() => {
-    if (!authenticated) return;
-    const load = async () => {
-      const [settingsRes, optionsRes] = await Promise.all([
-        supabase.from("whatsapp_page_settings").select("*").limit(1).single(),
-        supabase.from("whatsapp_page_options").select("*").order("order_index"),
-      ]);
-      if (settingsRes.data) {
-        setSettings({
-          id: settingsRes.data.id,
-          whatsapp_number: settingsRes.data.whatsapp_number,
-          page_title: settingsRes.data.page_title,
-          page_subtitle: settingsRes.data.page_subtitle,
-        });
-      }
-      if (optionsRes.data) {
-        setOptions(optionsRes.data as OptionItem[]);
-      }
+    const storedToken = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+    if (!storedToken) {
       setLoading(false);
-    };
-    load();
-  }, [authenticated]);
+      return;
+    }
+
+    setSessionToken(storedToken);
+    setAuthenticated(true);
+    fetchAdminData(storedToken);
+  }, []);
 
   const handleSaveSettings = async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from("whatsapp_page_settings")
-      .update({
+    const token = sessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
+    const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
+      body: {
+        action: "saveSettings",
+        token,
         whatsapp_number: settings.whatsapp_number,
         page_title: settings.page_title,
         page_subtitle: settings.page_subtitle,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", settings.id);
+      },
+    });
 
-    if (error) toast.error("Erro ao salvar");
-    else toast.success("Configurações salvas!");
+    if (error || !response?.success) {
+      if (response?.error?.includes("Sessão expirada")) clearSession();
+      toast.error(response?.error || error?.message || "Erro ao salvar");
+    } else {
+      toast.success("Configurações salvas!");
+      await fetchAdminData(token);
+    }
     setSaving(false);
   };
 
   const handleSaveOption = async (option: OptionItem) => {
-    const { error } = await supabase
-      .from("whatsapp_page_options")
-      .update({
+    const token = sessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
+    const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
+      body: {
+        action: "saveOption",
+        token,
+        id: option.id,
         label: option.label,
         message: option.message,
         icon_type: option.icon_type,
         color: option.color,
         order_index: option.order_index,
         is_active: option.is_active,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", option.id);
+      },
+    });
 
-    if (error) toast.error("Erro ao salvar opção");
-    else toast.success("Opção salva!");
+    if (error || !response?.success) {
+      if (response?.error?.includes("Sessão expirada")) clearSession();
+      toast.error(response?.error || error?.message || "Erro ao salvar opção");
+    } else {
+      toast.success("Opção salva!");
+      await fetchAdminData(token);
+    }
   };
 
   const handleAddOption = async () => {
-    const newIndex = options.length;
-    const { data, error } = await supabase
-      .from("whatsapp_page_options")
-      .insert({
-        label: "Nova opção",
-        message: "Ola, vim pelo site!",
-        icon_type: "help",
-        color: "#25D366",
-        order_index: newIndex,
-      })
-      .select()
-      .single();
+    const token = sessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
+    const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
+      body: { action: "addOption", token, order_index: options.length },
+    });
 
-    if (error) {
-      toast.error("Erro ao criar opção");
-    } else if (data) {
-      setOptions([...options, data as OptionItem]);
+    if (error || !response?.success) {
+      if (response?.error?.includes("Sessão expirada")) clearSession();
+      toast.error(response?.error || error?.message || "Erro ao criar opção");
+    } else {
       toast.success("Opção criada!");
+      await fetchAdminData(token);
     }
   };
 
   const handleDeleteOption = async (id: string) => {
-    const { error } = await supabase.from("whatsapp_page_options").delete().eq("id", id);
-    if (error) toast.error("Erro ao excluir");
-    else {
-      setOptions(options.filter((o) => o.id !== id));
+    const token = sessionToken || localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || "";
+    const { data: response, error } = await supabase.functions.invoke("whatsapp-page", {
+      body: { action: "deleteOption", token, id },
+    });
+
+    if (error || !response?.success) {
+      if (response?.error?.includes("Sessão expirada")) clearSession();
+      toast.error(response?.error || error?.message || "Erro ao excluir");
+    } else {
       toast.success("Opção excluída!");
+      await fetchAdminData(token);
     }
   };
 
@@ -184,7 +234,7 @@ const WhatsAppAdmin = () => {
       <div className="max-w-lg mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-white">Admin WhatsApp</h1>
-          <Button variant="ghost" size="sm" onClick={() => setAuthenticated(false)} className="text-gray-400 hover:text-white">
+          <Button variant="ghost" size="sm" onClick={clearSession} className="text-gray-400 hover:text-white">
             <LogOut className="w-4 h-4 mr-1" /> Sair
           </Button>
         </div>
