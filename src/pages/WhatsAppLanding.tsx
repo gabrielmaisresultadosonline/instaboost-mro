@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MessageCircle, Sparkles, Headset, HelpCircle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPageView, trackLead } from "@/lib/facebookTracking";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 import logoMroWhite from "@/assets/logo-mro-white.png";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -30,6 +31,7 @@ const WhatsAppLanding = () => {
   const [options, setOptions] = useState<OptionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOptions, setShowOptions] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     trackPageView("WhatsApp Landing");
@@ -47,6 +49,10 @@ const WhatsAppLanding = () => {
           whatsapp_message: data.config.whatsapp_message ?? "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
         });
         setOptions((data.config.options ?? []) as OptionItem[]);
+        setLoadError(false);
+      } else {
+        console.error("[WhatsAppLanding] failed to load config", error, data);
+        setLoadError(true);
       }
 
       setLoading(false);
@@ -55,13 +61,8 @@ const WhatsAppLanding = () => {
   }, []);
 
   const openWhatsApp = (message: string) => {
-    const phone = settings.whatsapp_number.replace(/\D/g, "");
-    if (!phone) return;
-
-    const msg = encodeURIComponent(message.trim());
-    const url = `https://wa.me/${phone}${msg ? `?text=${msg}` : ""}`;
     setShowOptions(false);
-    window.location.assign(url);
+    openWhatsAppChat(settings.whatsapp_number, message);
   };
 
   const handleOptionClick = (option: OptionItem) => {
@@ -110,7 +111,7 @@ const WhatsAppLanding = () => {
         </div>
 
         {/* Single CTA Button */}
-        <button
+          <button
           onClick={() => {
             if (options.length > 0) {
               setShowOptions(true);
@@ -128,13 +129,19 @@ const WhatsAppLanding = () => {
         </button>
 
         <p className="text-gray-500 text-xs">Você será redirecionado para o WhatsApp</p>
+
+        {loadError && (
+          <p className="text-xs text-destructive">
+            Não foi possível carregar as opções agora. O botão principal ainda abre o WhatsApp direto.
+          </p>
+        )}
       </div>
 
       {/* Options Popup */}
       {showOptions && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowOptions(false)}>
           <div
-            className="bg-[#1a1a2e] w-full sm:max-w-md sm:rounded-2xl rounded-t-3xl border-t sm:border border-gray-700 p-6 space-y-5 animate-in slide-in-from-bottom duration-300"
+            className="bg-[#1a1a2e] w-full sm:max-w-md sm:rounded-2xl rounded-t-3xl border-t sm:border border-gray-700 p-6 space-y-5 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto pb-[max(1.5rem,env(safe-area-inset-bottom))]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
@@ -145,6 +152,22 @@ const WhatsAppLanding = () => {
             </div>
 
             <div className="space-y-3">
+              {options.length === 0 && (
+                <button
+                  onClick={() => {
+                    trackLead("WhatsApp Landing - Contato Direto");
+                    openWhatsApp(settings.whatsapp_message);
+                  }}
+                  className="w-full py-4 px-5 rounded-2xl font-semibold text-sm sm:text-base text-white flex items-center gap-4 transition-all duration-200 hover:scale-[1.02] active:scale-95 text-left border border-white/10 hover:border-white/20"
+                  style={{ background: "linear-gradient(135deg, rgba(37,211,102,0.25) 0%, rgba(18,140,126,0.18) 100%)" }}
+                >
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 bg-green-500">
+                    <MessageCircle className="w-5 h-5 text-black" />
+                  </div>
+                  <span className="flex-1">Abrir atendimento direto</span>
+                  <MessageCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                </button>
+              )}
               {options.map((option) => {
                 const Icon = ICON_MAP[option.icon_type] || MessageCircle;
                 return (
