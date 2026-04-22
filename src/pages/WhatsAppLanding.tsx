@@ -36,19 +36,26 @@ const WhatsAppLanding = () => {
   useEffect(() => {
     trackPageView("WhatsApp Landing");
     const load = async () => {
-      const { data, error } = await supabase.functions.invoke("whatsapp-page", {
-        body: { action: "publicConfig" },
-      });
+      const { data, error } = await supabase.rpc("get_whatsapp_public_config");
 
-      if (!error && data?.success && data?.config) {
+      if (!error && data) {
+        const config = data as {
+          whatsapp_number?: string;
+          page_title?: string;
+          page_subtitle?: string;
+          button_text?: string;
+          whatsapp_message?: string;
+          options?: OptionItem[];
+        };
+
         setSettings({
-          whatsapp_number: data.config.whatsapp_number ?? "",
-          page_title: data.config.page_title ?? "Gabriel está disponível agora para te ajudar",
-          page_subtitle: data.config.page_subtitle ?? "Sobre o que gostaria de falar clique no botão abaixo.",
-          button_text: data.config.button_text ?? "FALAR NO WHATSAPP",
-          whatsapp_message: data.config.whatsapp_message ?? "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
+          whatsapp_number: config.whatsapp_number ?? "",
+          page_title: config.page_title ?? "Gabriel está disponível agora para te ajudar",
+          page_subtitle: config.page_subtitle ?? "Sobre o que gostaria de falar clique no botão abaixo.",
+          button_text: config.button_text ?? "FALAR NO WHATSAPP",
+          whatsapp_message: config.whatsapp_message ?? "Olá, vim pelo site, gostaria de saber sobre o sistema inovador!",
         });
-        setOptions((data.config.options ?? []) as OptionItem[]);
+        setOptions(Array.isArray(config.options) ? config.options : []);
         setLoadError(false);
       } else {
         console.error("[WhatsAppLanding] failed to load config", error, data);
