@@ -2568,6 +2568,146 @@ export type Database = {
         }
         Relationships: []
       }
+      renda_extra_v2_analytics: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          source_url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          source_url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      renda_extra_v2_email_logs: {
+        Row: {
+          created_at: string
+          email_to: string
+          email_type: string
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_to: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_to?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renda_extra_v2_email_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "renda_extra_v2_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      renda_extra_v2_leads: {
+        Row: {
+          created_at: string
+          email: string
+          email_confirmacao_enviado: boolean | null
+          email_confirmacao_enviado_at: string | null
+          id: string
+          instagram_username: string | null
+          media_salarial: string | null
+          nome_completo: string
+          tipo_computador: string | null
+          trabalha_atualmente: string | null
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          id?: string
+          instagram_username?: string | null
+          media_salarial?: string | null
+          nome_completo: string
+          tipo_computador?: string | null
+          trabalha_atualmente?: string | null
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          id?: string
+          instagram_username?: string | null
+          media_salarial?: string | null
+          nome_completo?: string
+          tipo_computador?: string | null
+          trabalha_atualmente?: string | null
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      renda_extra_v2_settings: {
+        Row: {
+          admin_email: string
+          admin_password: string
+          created_at: string
+          id: string
+          launch_date: string | null
+          updated_at: string
+          whatsapp_group_link: string | null
+        }
+        Insert: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          launch_date?: string | null
+          updated_at?: string
+          whatsapp_group_link?: string | null
+        }
+        Update: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          launch_date?: string | null
+          updated_at?: string
+          whatsapp_group_link?: string | null
+        }
+        Relationships: []
+      }
       squarecloud_user_profiles: {
         Row: {
           created_at: string | null
