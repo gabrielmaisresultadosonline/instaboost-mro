@@ -520,6 +520,16 @@ serve(async (req) => {
       emailSent 
     });
 
+    // Fire Meta Conversions API Purchase event (only if transitioning to completed for the first time)
+    if (order.status !== "completed") {
+      const planLabel = order.plan_type === "lifetime" ? "Vitalício" : order.plan_type === "trial" ? "Teste 30 Dias" : "Anual";
+      await sendMetaPurchaseEvent(
+        customerEmail,
+        Number(order.amount) || (order.plan_type === "lifetime" ? 797 : 397),
+        `MRO Instagram ${planLabel}`
+      );
+    }
+
     // Verificar se é venda de afiliado e enviar email de comissão
     if (emailParts.length >= 2) {
       const affiliateId = emailParts[0].toLowerCase();
