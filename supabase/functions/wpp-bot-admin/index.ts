@@ -26,7 +26,7 @@ const DEFAULT_SESSION = {
 };
 
 const AdminActionSchema = z.object({
-  action: z.enum(["getStatus", "requestQr", "logout", "saveSettings", "retryMessage", "deleteMessage", "enqueueLead"]),
+  action: z.enum(["getStatus", "requestQr", "logout", "saveSettings", "retryMessage", "deleteMessage", "enqueueLead", "sendNow", "sendTest"]),
   adminToken: z.string().optional(),
   message_template: z.string().max(4000).optional(),
   delay_minutes: z.coerce.number().int().min(1).max(10080).optional(),
