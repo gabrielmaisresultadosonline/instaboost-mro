@@ -46,10 +46,21 @@ async function readBody(req: Request) {
 }
 
 function normalizePhone(raw: string | undefined) {
-  const digits = (raw || "").replace(/\D/g, "");
+  let digits = (raw || "").replace(/\D/g, "");
   if (!digits) return null;
+  // Strip Brazilian "9" insertion on 13-digit numbers (55 + DDD + 9 + 8 dígitos antigos)
   if (digits.length === 13 && digits.startsWith("55") && digits[4] === "9") {
-    return `${digits.slice(0, 4)}${digits.slice(5)}`;
+    digits = `${digits.slice(0, 4)}${digits.slice(5)}`;
+  }
+  // Always prepend 55 for BR-style numbers without country code
+  // 11 digits = DDD(2) + 9 + 8 dígitos  -> add 55
+  // 10 digits = DDD(2) + 8 dígitos      -> add 55
+  if ((digits.length === 10 || digits.length === 11) && !digits.startsWith("55")) {
+    digits = `55${digits}`;
+  }
+  // Now if it became 13 with the "9" insertion, strip it
+  if (digits.length === 13 && digits.startsWith("55") && digits[4] === "9") {
+    digits = `${digits.slice(0, 4)}${digits.slice(5)}`;
   }
   return digits;
 }
