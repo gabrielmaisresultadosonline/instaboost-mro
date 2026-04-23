@@ -281,6 +281,36 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
         </CardContent>
       </Card>
 
+      {/* Envio de Teste */}
+      <Card className="bg-gray-800/50 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white">Enviar mensagem de teste</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-gray-400">
+            Aceita formatos: <code>51980437695</code>, <code>5180437695</code>, <code>(51) 98043-7695</code>. O sistema sempre adiciona <strong>55</strong> automaticamente.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              placeholder="Número (ex: 51980437695)"
+              value={testPhone}
+              onChange={(e) => setTestPhone(e.target.value)}
+              className="bg-gray-700 border-gray-600 text-white"
+            />
+            <Button onClick={sendTest} className="shrink-0">
+              <Send className="w-4 h-4 mr-2" /> Enviar Teste
+            </Button>
+          </div>
+          <Textarea
+            rows={3}
+            placeholder="(opcional) mensagem custom — em branco usa o template salvo"
+            value={testMessage}
+            onChange={(e) => setTestMessage(e.target.value)}
+            className="bg-gray-700 border-gray-600 text-white"
+          />
+        </CardContent>
+      </Card>
+
       {/* Histórico */}
       <Card className="bg-gray-800/50 border-gray-700">
         <CardHeader>
