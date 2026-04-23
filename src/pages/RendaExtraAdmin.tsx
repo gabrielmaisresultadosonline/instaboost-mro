@@ -239,7 +239,7 @@ const RendaExtraAdmin = () => {
             <p className="text-gray-400">Gerencie cadastros, emails e configurações</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={loadData} disabled={loading}>
+            <Button variant="outline" onClick={() => void loadData()} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
               Atualizar
             </Button>
