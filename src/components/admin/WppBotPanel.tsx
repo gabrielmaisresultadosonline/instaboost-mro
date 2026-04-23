@@ -136,9 +136,36 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
     load();
   };
 
+  const sendNow = async (id: string) => {
+    await invokeAdmin({ action: "sendNow", message_id: id });
+    toast({ title: "Enviando agora..." });
+    load();
+  };
+
   const remove = async (id: string) => {
     await invokeAdmin({ action: "deleteMessage", message_id: id });
     load();
+  };
+
+  const sendTest = async () => {
+    if (!testPhone.trim()) {
+      toast({ title: "Informe um número", variant: "destructive" });
+      return;
+    }
+    try {
+      const res = await invokeAdmin({
+        action: "sendTest",
+        phone: testPhone.trim(),
+        message_template: testMessage.trim() || settings.message_template,
+        lead_name: "TESTE",
+      });
+      toast({ title: "Teste enfileirado!", description: `Enviando para ${res.phone}` });
+      setTestPhone("");
+      setTestMessage("");
+      load();
+    } catch (e: any) {
+      toast({ title: "Erro no teste", description: e.message, variant: "destructive" });
+    }
   };
 
   const status = session?.status || "disconnected";
