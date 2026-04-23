@@ -88,6 +88,40 @@ serve(async (req) => {
 
     log("Lead inserted successfully", { leadId: lead.id });
 
+    // Enqueue WhatsApp remarketing message (appears immediately in history as "Aguardando")
+    try {
+      const { data: botSettings } = await supabase
+        .from("wpp_bot_settings")
+        .select("enabled, delay_minutes, message_template")
+        .eq("id", "renda_extra")
+        .maybeSingle();
+
+      if (botSettings?.enabled) {
+        const rawPhone = String(data.whatsapp || "").replace(/\D/g, "");
+        let phone: string | null = null;
+        if (rawPhone.length === 13 && rawPhone.startsWith("55") && rawPhone[4] === "9") {
+          phone = `${rawPhone.slice(0, 4)}${rawPhone.slice(5)}`;
+        } else if (rawPhone.length >= 10) {
+          phone = rawPhone;
+        }
+
+        if (phone) {
+          const delayMin = Number(botSettings.delay_minutes) || 30;
+          await supabase.from("wpp_bot_messages").insert({
+            lead_id: lead.id,
+            lead_name: data.nome_completo,
+            phone,
+            message: botSettings.message_template,
+            scheduled_for: new Date(Date.now() + delayMin * 60_000).toISOString(),
+            status: "pending",
+          });
+          log("Lead enqueued for WhatsApp remarketing", { phone, delayMin });
+        }
+      }
+    } catch (enqueueErr) {
+      log("Failed to enqueue WhatsApp remarketing", { error: String(enqueueErr) });
+    }
+
     const emailHtml = `<!DOCTYPE html>
 <html>
 <head>
