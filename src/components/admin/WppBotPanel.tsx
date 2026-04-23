@@ -357,12 +357,17 @@ export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelP
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
+                          {m.status === "pending" && (
+                            <Button size="sm" variant="ghost" onClick={() => sendNow(m.id)} title="Enviar agora">
+                              <Send className="w-3 h-3 text-green-400" />
+                            </Button>
+                          )}
                           {(m.status === "failed" || m.status === "no_whatsapp") && (
-                            <Button size="sm" variant="ghost" onClick={() => retry(m.id)}>
+                            <Button size="sm" variant="ghost" onClick={() => retry(m.id)} title="Reenviar">
                               <RefreshCw className="w-3 h-3" />
                             </Button>
                           )}
-                          <Button size="sm" variant="ghost" onClick={() => remove(m.id)}>
+                          <Button size="sm" variant="ghost" onClick={() => remove(m.id)} title="Excluir">
                             <Trash2 className="w-3 h-3 text-red-400" />
                           </Button>
                         </div>
