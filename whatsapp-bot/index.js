@@ -125,13 +125,9 @@ client.on('disconnected', async (reason) => {
   currentQr = null;
   currentPhone = null;
   await sendHeartbeat();
-  // Tenta reinicializar
-  try {
-    await client.initialize();
-  } catch (err) {
-    console.error('Erro ao reinicializar:', err.message);
-    process.exit(1);
-  }
+  // Sai do processo — PM2 reinicia automaticamente com o browser limpo
+  console.log('🔁 Saindo para que o PM2 reinicie o processo limpo...');
+  setTimeout(() => process.exit(0), 1500);
 });
 
 function formatPhone(raw) {
