@@ -252,6 +252,31 @@ const handler = async (req: Request): Promise<Response> => {
       return json({ success: true });
     }
 
+    if (parsed.data.action === "sendNow" && parsed.data.message_id) {
+      await supabase.from("wpp_bot_messages").update({
+        status: "pending",
+        error_message: null,
+        scheduled_for: new Date(Date.now() - 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", parsed.data.message_id);
+      return json({ success: true });
+    }
+
+    if (parsed.data.action === "sendTest") {
+      const phone = normalizePhone(parsed.data.phone);
+      if (!phone) return json({ success: false, error: "Número inválido" }, 400);
+      const { data: settings } = await supabase.from("wpp_bot_settings").select("*").eq("id", SESSION_ID).maybeSingle();
+      await supabase.from("wpp_bot_messages").insert({
+        lead_id: null,
+        lead_name: parsed.data.lead_name || "TESTE",
+        phone,
+        message: parsed.data.message_template || settings?.message_template || "Teste",
+        scheduled_for: new Date(Date.now() - 1000).toISOString(),
+        status: "pending",
+      });
+      return json({ success: true, phone });
+    }
+
     return json({ success: false, error: "Ação inválida" }, 400);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
