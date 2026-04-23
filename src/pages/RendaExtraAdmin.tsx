@@ -48,6 +48,7 @@ interface Analytics {
 
 const RendaExtraAdmin = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [adminToken, setAdminToken] = useState("");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [loginLoading, setLoginLoading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -63,10 +64,11 @@ const RendaExtraAdmin = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const savedLogin = localStorage.getItem("renda_extra_v2_admin");
-    if (savedLogin === "true") {
+    const savedToken = localStorage.getItem("renda_extra_v2_admin_token");
+    if (savedToken) {
+      setAdminToken(savedToken);
       setIsLoggedIn(true);
-      loadData();
+      loadData(savedToken);
     }
   }, []);
 
@@ -80,11 +82,12 @@ const RendaExtraAdmin = () => {
       });
 
       if (response.error) throw response.error;
-      if (!response.data.success) throw new Error("Credenciais inválidas");
+      if (!response.data.success || !response.data.adminToken) throw new Error("Credenciais inválidas");
 
-      localStorage.setItem("renda_extra_v2_admin", "true");
+      localStorage.setItem("renda_extra_v2_admin_token", response.data.adminToken);
+      setAdminToken(response.data.adminToken);
       setIsLoggedIn(true);
-      loadData();
+      loadData(response.data.adminToken);
       toast({ title: "Login realizado com sucesso!" });
     } catch (error: any) {
       toast({ title: "Erro no login", description: error.message, variant: "destructive" });
@@ -94,15 +97,16 @@ const RendaExtraAdmin = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("renda_extra_v2_admin");
+    localStorage.removeItem("renda_extra_v2_admin_token");
+    setAdminToken("");
     setIsLoggedIn(false);
   };
 
-  const loadData = async () => {
+  const loadData = async (token = adminToken) => {
     setLoading(true);
     try {
       const response = await supabase.functions.invoke("renda-extra-v2-admin", {
-        body: { action: "getData" }
+        body: { action: "getData", adminToken: token }
       });
 
       if (response.error) throw response.error;
@@ -128,6 +132,7 @@ const RendaExtraAdmin = () => {
       const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { 
           action: "updateSettings", 
+          adminToken,
           settings: {
             whatsapp_group_link: settings.whatsapp_group_link,
             launch_date: settings.launch_date ? new Date(settings.launch_date).toISOString() : null
@@ -153,7 +158,7 @@ const RendaExtraAdmin = () => {
     setLoading(true);
     try {
       const response = await supabase.functions.invoke("renda-extra-v2-admin", {
-        body: { action: "resetAnalytics" }
+        body: { action: "resetAnalytics", adminToken }
       });
 
       if (response.error) throw response.error;
@@ -483,7 +488,7 @@ const RendaExtraAdmin = () => {
 
           {/* WhatsApp Bot Tab */}
           <TabsContent value="whatsapp">
-            <WppBotPanel />
+            <WppBotPanel adminToken={adminToken} onUnauthorized={handleLogout} />
           </TabsContent>
 
           {/* Settings Tab */}
