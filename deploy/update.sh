@@ -72,11 +72,17 @@ if [ -d "$WPP_BOT_DIR" ]; then
   echo "📦 Instalando dependências do bot WhatsApp..."
   cd "$WPP_BOT_DIR"
 
-  # Garantir arquivo .env (sem sobrescrever se já existir)
-  if [ ! -f ".env" ] && [ -f ".env.example" ]; then
-    echo "📝 Criando .env a partir do .env.example (ajuste WPP_BOT_TOKEN depois!)..."
-    cp .env.example .env
-    echo "⚠️  IMPORTANTE: edite $WPP_BOT_DIR/.env e defina WPP_BOT_TOKEN antes de usar."
+  # Garantir arquivo .env preenchido (sem sobrescrever se já existir)
+  if [ ! -f ".env" ]; then
+    echo "📝 Criando .env com URL/ANON_KEY do projeto..."
+    cat > .env <<'ENVEOF'
+SUPABASE_URL=https://adljdeekwifwcdcgbpit.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbGpkZWVrd2lmd2NkY2dicGl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMjk0MDMsImV4cCI6MjA4MDcwNTQwM30.odKBOAuEEW0WJEburLRTL9Qj1EbitETmhxqNoE_F_g4
+WPP_BOT_TOKEN=wpp-bot-default-token-change-me
+POLL_INTERVAL=5
+ENVEOF
+    echo "✅ .env criado em $WPP_BOT_DIR/.env"
+    echo "⚠️  Em produção, ajuste WPP_BOT_TOKEN para o mesmo valor configurado em Lovable → Secrets."
   fi
 
   npm install --omit=dev
