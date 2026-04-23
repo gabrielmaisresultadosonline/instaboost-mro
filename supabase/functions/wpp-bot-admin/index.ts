@@ -26,7 +26,7 @@ const DEFAULT_SESSION = {
 };
 
 const AdminActionSchema = z.object({
-  action: z.enum(["getStatus", "requestQr", "logout", "saveSettings", "retryMessage", "deleteMessage", "enqueueLead"]),
+  action: z.enum(["getStatus", "requestQr", "logout", "saveSettings", "retryMessage", "deleteMessage", "enqueueLead", "sendNow", "sendTest"]),
   adminToken: z.string().optional(),
   message_template: z.string().max(4000).optional(),
   delay_minutes: z.coerce.number().int().min(1).max(10080).optional(),
@@ -46,10 +46,21 @@ async function readBody(req: Request) {
 }
 
 function normalizePhone(raw: string | undefined) {
-  const digits = (raw || "").replace(/\D/g, "");
+  let digits = (raw || "").replace(/\D/g, "");
   if (!digits) return null;
+  // Strip Brazilian "9" insertion on 13-digit numbers (55 + DDD + 9 + 8 dígitos antigos)
   if (digits.length === 13 && digits.startsWith("55") && digits[4] === "9") {
-    return `${digits.slice(0, 4)}${digits.slice(5)}`;
+    digits = `${digits.slice(0, 4)}${digits.slice(5)}`;
+  }
+  // Always prepend 55 for BR-style numbers without country code
+  // 11 digits = DDD(2) + 9 + 8 dígitos  -> add 55
+  // 10 digits = DDD(2) + 8 dígitos      -> add 55
+  if ((digits.length === 10 || digits.length === 11) && !digits.startsWith("55")) {
+    digits = `55${digits}`;
+  }
+  // Now if it became 13 with the "9" insertion, strip it
+  if (digits.length === 13 && digits.startsWith("55") && digits[4] === "9") {
+    digits = `${digits.slice(0, 4)}${digits.slice(5)}`;
   }
   return digits;
 }
@@ -239,6 +250,31 @@ const handler = async (req: Request): Promise<Response> => {
     if (parsed.data.action === "deleteMessage" && parsed.data.message_id) {
       await supabase.from("wpp_bot_messages").delete().eq("id", parsed.data.message_id);
       return json({ success: true });
+    }
+
+    if (parsed.data.action === "sendNow" && parsed.data.message_id) {
+      await supabase.from("wpp_bot_messages").update({
+        status: "pending",
+        error_message: null,
+        scheduled_for: new Date(Date.now() - 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", parsed.data.message_id);
+      return json({ success: true });
+    }
+
+    if (parsed.data.action === "sendTest") {
+      const phone = normalizePhone(parsed.data.phone);
+      if (!phone) return json({ success: false, error: "Número inválido" }, 400);
+      const { data: settings } = await supabase.from("wpp_bot_settings").select("*").eq("id", SESSION_ID).maybeSingle();
+      await supabase.from("wpp_bot_messages").insert({
+        lead_id: null,
+        lead_name: parsed.data.lead_name || "TESTE",
+        phone,
+        message: parsed.data.message_template || settings?.message_template || "Teste",
+        scheduled_for: new Date(Date.now() - 1000).toISOString(),
+        status: "pending",
+      });
+      return json({ success: true, phone });
     }
 
     return json({ success: false, error: "Ação inválida" }, 400);
