@@ -37,6 +37,11 @@ interface MessageRow {
   created_at: string;
 }
 
+interface WppBotPanelProps {
+  adminToken: string;
+  onUnauthorized?: () => void;
+}
+
 const STATUS_BADGE: Record<string, { color: string; label: string }> = {
   connected: { color: "bg-green-500/20 text-green-400", label: "Conectado" },
   connecting: { color: "bg-yellow-500/20 text-yellow-400", label: "Conectando" },
@@ -51,7 +56,7 @@ const MSG_STATUS: Record<string, { color: string; label: string }> = {
   failed: { color: "bg-red-500/20 text-red-400", label: "Falhou" },
 };
 
-export default function WppBotPanel() {
+export default function WppBotPanel({ adminToken, onUnauthorized }: WppBotPanelProps) {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<SessionRow | null>(null);
   const [settings, setSettings] = useState<SettingsRow>({
@@ -61,13 +66,30 @@ export default function WppBotPanel() {
   });
   const [messages, setMessages] = useState<MessageRow[]>([]);
 
+  const invokeAdmin = useCallback(
+    async (body: Record<string, unknown>) => {
+      const response = await supabase.functions.invoke("wpp-bot-admin", {
+        body: { ...body, adminToken },
+      });
+
+      if (response.error) throw response.error;
+      if (response.data?.success === false) {
+        const errorMessage = response.data?.error || "Falha ao processar a solicitação";
+        if (response.data?.error?.includes("Sessão expirada")) {
+          onUnauthorized?.();
+        }
+        throw new Error(errorMessage);
+      }
+
+      return response.data;
+    },
+    [adminToken, onUnauthorized],
+  );
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("wpp-bot-admin", {
-        body: { action: "getStatus" },
-      });
-      if (error) throw error;
+      const data = await invokeAdmin({ action: "getStatus" });
       setSession(data.session);
       if (data.settings) setSettings(data.settings);
       setMessages(data.messages || []);
@@ -76,7 +98,7 @@ export default function WppBotPanel() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [invokeAdmin]);
 
   useEffect(() => {
     load();
@@ -85,41 +107,35 @@ export default function WppBotPanel() {
   }, [load]);
 
   const requestQr = async () => {
-    await supabase.functions.invoke("wpp-bot-admin", { body: { action: "requestQr" } });
+    await invokeAdmin({ action: "requestQr" });
     toast({ title: "Solicitando QR Code...", description: "Aguarde alguns segundos" });
     load();
   };
 
   const logout = async () => {
     if (!confirm("Desconectar o WhatsApp?")) return;
-    await supabase.functions.invoke("wpp-bot-admin", { body: { action: "logout" } });
+    await invokeAdmin({ action: "logout" });
     toast({ title: "Desconectando..." });
     load();
   };
 
   const saveSettings = async () => {
-    await supabase.functions.invoke("wpp-bot-admin", {
-      body: {
-        action: "saveSettings",
-        message_template: settings.message_template,
-        delay_minutes: Number(settings.delay_minutes) || 30,
-        enabled: settings.enabled,
-      },
+    await invokeAdmin({
+      action: "saveSettings",
+      message_template: settings.message_template,
+      delay_minutes: Number(settings.delay_minutes) || 30,
+      enabled: settings.enabled,
     });
     toast({ title: "Configurações salvas!" });
   };
 
   const retry = async (id: string) => {
-    await supabase.functions.invoke("wpp-bot-admin", {
-      body: { action: "retryMessage", message_id: id },
-    });
+    await invokeAdmin({ action: "retryMessage", message_id: id });
     load();
   };
 
   const remove = async (id: string) => {
-    await supabase.functions.invoke("wpp-bot-admin", {
-      body: { action: "deleteMessage", message_id: id },
-    });
+    await invokeAdmin({ action: "deleteMessage", message_id: id });
     load();
   };
 
