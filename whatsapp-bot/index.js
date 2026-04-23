@@ -16,15 +16,19 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const fetch = require('node-fetch');
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-const WPP_BOT_TOKEN = process.env.WPP_BOT_TOKEN;
+// Defaults públicos do projeto Lovable Cloud (podem ser sobrescritos via .env)
+const DEFAULT_SUPABASE_URL = 'https://adljdeekwifwcdcgbpit.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbGpkZWVrd2lmd2NkY2dicGl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMjk0MDMsImV4cCI6MjA4MDcwNTQwM30.odKBOAuEEW0WJEburLRTL9Qj1EbitETmhxqNoE_F_g4';
+
+const SUPABASE_URL = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+const WPP_BOT_TOKEN = process.env.WPP_BOT_TOKEN || 'wpp-bot-default-token-change-me';
 const POLL_INTERVAL = Math.max(2, parseInt(process.env.POLL_INTERVAL || '5', 10)) * 1000;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !WPP_BOT_TOKEN) {
-  console.error('❌ Variáveis SUPABASE_URL, SUPABASE_ANON_KEY e WPP_BOT_TOKEN são obrigatórias.');
-  console.error('   Crie um arquivo .env (veja .env.example) e tente novamente.');
-  process.exit(1);
+if (!process.env.WPP_BOT_TOKEN) {
+  console.warn('⚠️  WPP_BOT_TOKEN não definido em .env — usando token padrão.');
+  console.warn('   Para produção defina o mesmo valor configurado em Lovable → Secrets → WPP_BOT_TOKEN.');
 }
 
 const ENDPOINT = `${SUPABASE_URL}/functions/v1/wpp-bot-admin`;
