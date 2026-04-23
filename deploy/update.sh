@@ -81,8 +81,21 @@ if [ -d "$WPP_BOT_DIR" ]; then
   if [ -f .env ]; then
     EXISTING_TOKEN=$(grep -E '^WPP_BOT_TOKEN=' .env | head -1 | cut -d= -f2- || true)
   fi
-  # Token: usa env var WPP_BOT_TOKEN, ou o existente, ou o default
-  BOT_TOKEN="${WPP_BOT_TOKEN:-${EXISTING_TOKEN:-wpp-bot-default-token-change-me}}"
+  # Token: prioriza variável de ambiente WPP_BOT_TOKEN; depois o já existente em .env
+  BOT_TOKEN="${WPP_BOT_TOKEN:-$EXISTING_TOKEN}"
+
+  if [ -z "$BOT_TOKEN" ] || [ "$BOT_TOKEN" = "wpp-bot-default-token-change-me" ]; then
+    echo ""
+    echo "❌ ERRO: WPP_BOT_TOKEN não configurado!"
+    echo ""
+    echo "   O token DEVE ser idêntico ao secret WPP_BOT_TOKEN configurado"
+    echo "   em Lovable Cloud → Secrets."
+    echo ""
+    echo "   Execute novamente assim (substitua pelo valor real do secret):"
+    echo "     WPP_BOT_TOKEN='seu-token-aqui' ./deploy/update.sh"
+    echo ""
+    exit 1
+  fi
 
   echo "📝 Criando/atualizando .env do bot..."
   cat > .env <<ENVEOF
