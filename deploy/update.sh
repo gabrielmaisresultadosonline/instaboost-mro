@@ -76,15 +76,22 @@ if [ -d "$WPP_BOT_DIR" ]; then
   echo "📦 Instalando dependências do bot WhatsApp..."
   cd "$WPP_BOT_DIR"
 
-  # SEMPRE recriar .env para garantir variáveis corretas (sobrescreve)
+  # Preserva WPP_BOT_TOKEN existente (se já configurado em .env anterior)
+  EXISTING_TOKEN=""
+  if [ -f .env ]; then
+    EXISTING_TOKEN=$(grep -E '^WPP_BOT_TOKEN=' .env | head -1 | cut -d= -f2- || true)
+  fi
+  # Token: usa env var WPP_BOT_TOKEN, ou o existente, ou o default
+  BOT_TOKEN="${WPP_BOT_TOKEN:-${EXISTING_TOKEN:-wpp-bot-default-token-change-me}}"
+
   echo "📝 Criando/atualizando .env do bot..."
-  cat > .env <<'ENVEOF'
+  cat > .env <<ENVEOF
 SUPABASE_URL=https://adljdeekwifwcdcgbpit.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbGpkZWVrd2lmd2NkY2dicGl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMjk0MDMsImV4cCI6MjA4MDcwNTQwM30.odKBOAuEEW0WJEburLRTL9Qj1EbitETmhxqNoE_F_g4
-WPP_BOT_TOKEN=wpp-bot-default-token-change-me
+WPP_BOT_TOKEN=${BOT_TOKEN}
 POLL_INTERVAL=5
 ENVEOF
-  echo "✅ .env atualizado em $WPP_BOT_DIR/.env"
+  echo "✅ .env atualizado em $WPP_BOT_DIR/.env (token: ${BOT_TOKEN:0:10}...)"
 
   npm install --omit=dev
 
