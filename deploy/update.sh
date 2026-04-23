@@ -28,6 +28,9 @@ echo "📥 Baixando atualizações do GitHub..."
 git fetch origin
 git reset --hard origin/main
 
+# Garantir permissão de execução nos scripts deploy
+chmod +x "$APP_DIR/deploy/"*.sh 2>/dev/null || true
+
 # ============= Limpar legado whatsapp-server (se existir) =============
 if command -v pm2 >/dev/null 2>&1; then
     pm2 delete zapmro-cloud 2>/dev/null || true
