@@ -6,12 +6,19 @@
  * apareça na página /rendaextra2/admin, e processa mensagens
  * pendentes da fila.
  *
+ * IMPORTANTE: o bot NÃO inicializa o cliente WhatsApp automaticamente.
+ * Ele aguarda o comando `request_qr` do painel para gerar o QR Code.
+ * Quando o painel pede um novo QR, qualquer sessão anterior é apagada
+ * para garantir que um novo QR seja gerado (anulando a conexão antiga).
+ *
  * Rodando na VPS:
  *   pm2 start index.js --name wpp-bot-mro --time
  *   pm2 logs wpp-bot-mro
  */
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const fetch = require('node-fetch');
@@ -25,6 +32,8 @@ const SUPABASE_URL = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 const WPP_BOT_TOKEN = process.env.WPP_BOT_TOKEN || 'wpp-bot-default-token-change-me';
 const POLL_INTERVAL = Math.max(2, parseInt(process.env.POLL_INTERVAL || '5', 10)) * 1000;
+const AUTH_PATH = './.wwebjs_auth';
+const CLIENT_ID = 'renda-extra-v2';
 
 if (!process.env.WPP_BOT_TOKEN) {
   console.warn('⚠️  WPP_BOT_TOKEN não definido em .env — usando token padrão.');
@@ -33,9 +42,11 @@ if (!process.env.WPP_BOT_TOKEN) {
 
 const ENDPOINT = `${SUPABASE_URL}/functions/v1/wpp-bot-admin`;
 
-let currentStatus = 'connecting';
+let currentStatus = 'disconnected';
 let currentQr = null;
 let currentPhone = null;
+let client = null;
+let initializing = false;
 
 async function callBackend(action, extra = {}) {
   try {
@@ -69,75 +80,127 @@ async function sendHeartbeat() {
   });
 }
 
-const client = new Client({
-  authStrategy: new LocalAuth({ clientId: 'renda-extra-v2', dataPath: './.wwebjs_auth' }),
-  puppeteer: {
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--disable-extensions',
-    ],
-    executablePath:
-      process.env.PUPPETEER_EXECUTABLE_PATH ||
-      '/usr/bin/chromium-browser' ||
-      '/usr/bin/chromium' ||
-      undefined,
-  },
-});
-
-client.on('qr', async (qr) => {
-  console.log('\n📱 QR Code recebido — enviando para o painel /rendaextra2/admin\n');
-  qrcodeTerminal.generate(qr, { small: true });
-  currentQr = qr;
-  currentStatus = 'connecting';
-  await sendHeartbeat();
-});
-
-client.on('authenticated', () => {
-  console.log('✅ Autenticado com sucesso!');
-  currentStatus = 'connecting';
-  currentQr = null;
-});
-
-client.on('ready', async () => {
-  currentStatus = 'connected';
-  currentQr = null;
+function wipeAuthSession() {
   try {
-    currentPhone = client.info?.wid?.user || null;
-  } catch {}
-  console.log(`🚀 Bot conectado! Telefone: ${currentPhone || 'desconhecido'}`);
-  await sendHeartbeat();
-});
+    const sessionDir = path.join(AUTH_PATH, `session-${CLIENT_ID}`);
+    if (fs.existsSync(sessionDir)) {
+      fs.rmSync(sessionDir, { recursive: true, force: true });
+      console.log('🧹 Sessão antiga apagada para gerar novo QR.');
+    }
+  } catch (err) {
+    console.error('Erro apagando sessão:', err.message);
+  }
+}
 
-client.on('auth_failure', async (msg) => {
-  console.error('❌ Falha na autenticação:', msg);
-  currentStatus = 'disconnected';
-  currentQr = null;
-  await sendHeartbeat();
-});
+function buildClient() {
+  return new Client({
+    authStrategy: new LocalAuth({ clientId: CLIENT_ID, dataPath: AUTH_PATH }),
+    puppeteer: {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-extensions',
+      ],
+      executablePath:
+        process.env.PUPPETEER_EXECUTABLE_PATH ||
+        '/usr/bin/chromium-browser' ||
+        '/usr/bin/chromium' ||
+        undefined,
+    },
+  });
+}
 
-client.on('disconnected', async (reason) => {
-  console.log('❌ Desconectado:', reason);
-  currentStatus = 'disconnected';
+function attachClientHandlers(c) {
+  c.on('qr', async (qr) => {
+    console.log('\n📱 QR Code recebido — enviando para o painel /rendaextra2/admin\n');
+    qrcodeTerminal.generate(qr, { small: true });
+    currentQr = qr;
+    currentStatus = 'connecting';
+    await sendHeartbeat();
+  });
+
+  c.on('authenticated', () => {
+    console.log('✅ Autenticado com sucesso!');
+    currentStatus = 'connecting';
+    currentQr = null;
+  });
+
+  c.on('ready', async () => {
+    currentStatus = 'connected';
+    currentQr = null;
+    try {
+      currentPhone = c.info?.wid?.user || null;
+    } catch {}
+    console.log(`🚀 Bot conectado! Telefone: ${currentPhone || 'desconhecido'}`);
+    await sendHeartbeat();
+  });
+
+  c.on('auth_failure', async (msg) => {
+    console.error('❌ Falha na autenticação:', msg);
+    currentStatus = 'disconnected';
+    currentQr = null;
+    await sendHeartbeat();
+  });
+
+  c.on('disconnected', async (reason) => {
+    console.log('❌ Desconectado:', reason);
+    currentStatus = 'disconnected';
+    currentQr = null;
+    currentPhone = null;
+    await sendHeartbeat();
+    try { await c.destroy(); } catch {}
+    client = null;
+    console.log('💤 Cliente destruído. Aguardando novo comando "Gerar QR" do painel.');
+  });
+}
+
+async function startClientForQr({ wipe = true } = {}) {
+  if (initializing) {
+    console.log('⏳ Já está inicializando, ignorando comando duplicado.');
+    return;
+  }
+  if (client && currentStatus === 'connected') {
+    console.log('🔄 Conexão atual será encerrada para gerar novo QR.');
+    try { await client.logout(); } catch {}
+    try { await client.destroy(); } catch {}
+    client = null;
+  } else if (client) {
+    try { await client.destroy(); } catch {}
+    client = null;
+  }
+
+  if (wipe) wipeAuthSession();
+
+  initializing = true;
+  currentStatus = 'connecting';
   currentQr = null;
   currentPhone = null;
   await sendHeartbeat();
-  // Sai do processo — PM2 reinicia automaticamente com o browser limpo
-  console.log('🔁 Saindo para que o PM2 reinicie o processo limpo...');
-  setTimeout(() => process.exit(0), 1500);
-});
+
+  console.log('🚀 Iniciando cliente WhatsApp para gerar QR Code...');
+  client = buildClient();
+  attachClientHandlers(client);
+  try {
+    await client.initialize();
+  } catch (err) {
+    console.error('Erro ao inicializar cliente:', err.message);
+    currentStatus = 'disconnected';
+    await sendHeartbeat();
+    client = null;
+  } finally {
+    initializing = false;
+  }
+}
 
 function formatPhone(raw) {
   let digits = String(raw || '').replace(/\D/g, '');
   if (!digits) return null;
-  // Brasil: 55 + DDD + 9 dígitos. Se vier com 13 dígitos e o 5º for "9", remove (formato antigo).
   if (digits.length === 13 && digits.startsWith('55') && digits[4] === '9') {
     digits = digits.slice(0, 4) + digits.slice(5);
   }
-  // Se não tem DDI, assume Brasil
   if (digits.length === 10 || digits.length === 11) {
     digits = '55' + digits;
   }
@@ -145,19 +208,19 @@ function formatPhone(raw) {
 }
 
 async function processPending() {
-  if (currentStatus !== 'connected') return;
   const data = await callBackend('botFetchPending');
   if (!data || !data.success) return;
 
-  // Comandos do painel
   const cmd = data.commands || {};
+
   if (cmd.request_logout) {
     console.log('🔌 Logout solicitado pelo painel.');
-    try {
-      await client.logout();
-    } catch (err) {
-      console.error('Erro no logout:', err.message);
+    if (client) {
+      try { await client.logout(); } catch (err) { console.error('Erro no logout:', err.message); }
+      try { await client.destroy(); } catch {}
+      client = null;
     }
+    wipeAuthSession();
     currentStatus = 'disconnected';
     currentPhone = null;
     currentQr = null;
@@ -165,13 +228,15 @@ async function processPending() {
     await sendHeartbeat();
     return;
   }
-  if (cmd.request_qr && currentStatus !== 'connected') {
-    // Forçar nova sessão
-    try {
-      await client.logout();
-    } catch {}
+
+  if (cmd.request_qr) {
+    console.log('📲 Comando "Gerar QR" recebido do painel.');
     await callBackend('botAckCommand', { cleared: 'qr' });
+    await startClientForQr({ wipe: true });
+    return;
   }
+
+  if (currentStatus !== 'connected' || !client) return;
 
   const messages = data.messages || [];
   for (const msg of messages) {
@@ -185,7 +250,6 @@ async function processPending() {
       continue;
     }
     try {
-      // Verifica se o número existe no WhatsApp
       const numberId = await client.getNumberId(chatId.replace('@c.us', ''));
       if (!numberId) {
         await callBackend('botUpdateMessage', {
@@ -198,7 +262,6 @@ async function processPending() {
       await client.sendMessage(numberId._serialized, msg.message);
       await callBackend('botUpdateMessage', { message_id: msg.id, status: 'sent' });
       console.log(`✉️  Enviado para ${msg.phone}`);
-      // Pequeno delay entre envios
       await new Promise((r) => setTimeout(r, 2000 + Math.random() * 3000));
     } catch (err) {
       console.error(`❌ Erro enviando para ${msg.phone}:`, err.message);
@@ -211,7 +274,7 @@ async function processPending() {
   }
 }
 
-// Loop de polling
+// Loop de polling — mantém heartbeat e escuta comandos do painel
 setInterval(async () => {
   await sendHeartbeat();
   await processPending();
@@ -219,16 +282,14 @@ setInterval(async () => {
 
 process.on('SIGINT', async () => {
   console.log('\n👋 Encerrando bot...');
-  try {
-    await client.destroy();
-  } catch {}
+  try { if (client) await client.destroy(); } catch {}
   process.exit(0);
 });
 
-console.log('🚀 Iniciando bot WhatsApp (Renda Extra v2)...');
+console.log('🚀 Bot WhatsApp pronto (Renda Extra v2)');
 console.log(`   Endpoint: ${ENDPOINT}`);
 console.log(`   Polling:  ${POLL_INTERVAL / 1000}s`);
-client.initialize().catch((err) => {
-  console.error('Erro fatal ao iniciar cliente:', err);
-  process.exit(1);
-});
+console.log('💤 Aguardando comando "Gerar QR" no painel /rendaextra2/admin...');
+
+// Heartbeat inicial para mostrar "desconectado" no painel
+sendHeartbeat();
