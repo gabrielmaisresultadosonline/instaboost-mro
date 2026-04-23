@@ -71,6 +71,14 @@ fi
 if [ -d "$WPP_BOT_DIR" ]; then
   echo "📦 Instalando dependências do bot WhatsApp..."
   cd "$WPP_BOT_DIR"
+
+  # Garantir arquivo .env (sem sobrescrever se já existir)
+  if [ ! -f ".env" ] && [ -f ".env.example" ]; then
+    echo "📝 Criando .env a partir do .env.example (ajuste WPP_BOT_TOKEN depois!)..."
+    cp .env.example .env
+    echo "⚠️  IMPORTANTE: edite $WPP_BOT_DIR/.env e defina WPP_BOT_TOKEN antes de usar."
+  fi
+
   npm install --omit=dev
 
   # Reiniciar (ou iniciar) o processo PM2
