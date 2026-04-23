@@ -71,33 +71,27 @@ if ! command -v pm2 >/dev/null 2>&1; then
 fi
 
 # Se a pasta do bot existir no repo, instalar dependências e iniciar
+# Se a pasta do bot existir no repo, instalar dependências e iniciar
 if [ -d "$WPP_BOT_DIR" ]; then
   echo "📦 Instalando dependências do bot WhatsApp..."
   cd "$WPP_BOT_DIR"
 
-  # Garantir arquivo .env preenchido (sem sobrescrever se já existir)
-  if [ ! -f ".env" ]; then
-    echo "📝 Criando .env com URL/ANON_KEY do projeto..."
-    cat > .env <<'ENVEOF'
+  # SEMPRE recriar .env para garantir variáveis corretas (sobrescreve)
+  echo "📝 Criando/atualizando .env do bot..."
+  cat > .env <<'ENVEOF'
 SUPABASE_URL=https://adljdeekwifwcdcgbpit.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbGpkZWVrd2lmd2NkY2dicGl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMjk0MDMsImV4cCI6MjA4MDcwNTQwM30.odKBOAuEEW0WJEburLRTL9Qj1EbitETmhxqNoE_F_g4
 WPP_BOT_TOKEN=wpp-bot-default-token-change-me
 POLL_INTERVAL=5
 ENVEOF
-    echo "✅ .env criado em $WPP_BOT_DIR/.env"
-    echo "⚠️  Em produção, ajuste WPP_BOT_TOKEN para o mesmo valor configurado em Lovable → Secrets."
-  fi
+  echo "✅ .env atualizado em $WPP_BOT_DIR/.env"
 
   npm install --omit=dev
 
-  # Reiniciar (ou iniciar) o processo PM2
-  if pm2 list | grep -q "wpp-bot-mro"; then
-    echo "♻️  Reiniciando bot WhatsApp..."
-    pm2 restart wpp-bot-mro --update-env
-  else
-    echo "🚀 Iniciando bot WhatsApp pela primeira vez..."
-    pm2 start index.js --name wpp-bot-mro --time
-  fi
+  # Forçar delete + start para garantir código novo carregado
+  pm2 delete wpp-bot-mro 2>/dev/null || true
+  echo "🚀 Iniciando bot WhatsApp..."
+  pm2 start index.js --name wpp-bot-mro --time --cwd "$WPP_BOT_DIR"
 
   pm2 save
   $SUDO pm2 startup systemd -u "$USER" --hp "$HOME" >/dev/null 2>&1 || true
@@ -105,6 +99,9 @@ ENVEOF
   cd "$APP_DIR"
 else
   echo "⚠️  Pasta whatsapp-bot/ não encontrada — pulando instalação do bot."
+  echo "   Caminho esperado: $WPP_BOT_DIR"
+  echo "   Conteúdo de $APP_DIR:"
+  ls -la "$APP_DIR" | head -20
 fi
 
 # ============= Nginx =============
