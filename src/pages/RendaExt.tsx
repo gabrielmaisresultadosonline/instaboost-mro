@@ -158,15 +158,14 @@ const RendaExt = () => {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold leading-tight">
-            Aprenda como fazer{" "}
+            Libere a aula completa de como fazer isso com a{" "}
             <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              5K mensais
-            </span>{" "}
-            com a ferramenta MRO
+              nova onda do mercado
+            </span>
           </h1>
 
           <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto">
-            Por apenas <span className="text-yellow-400 font-bold text-2xl">R$ 19,90</span> você recebe o passo a passo completo no seu email para começar a aplicar HOJE mesmo.
+            Por apenas <span className="text-yellow-400 font-bold text-2xl">R$ 19,90</span> você libera o acesso imediato à aula e ao passo a passo completo.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 text-sm">
@@ -186,7 +185,7 @@ const RendaExt = () => {
         <div className="grid md:grid-cols-3 gap-4 mb-10">
           {[
             { icon: Target, title: "Como prospectar empresas", desc: "Estratégias prontas para fechar contratos" },
-            { icon: Zap, title: "Como rodar a ferramenta", desc: "Passo a passo completo da MRO" },
+            { icon: Zap, title: "Acesso à Aula", desc: "Passo a passo completo em vídeo" },
             { icon: Clock, title: "Aplique HOJE mesmo", desc: "Resultados rápidos e duradouros" },
           ].map((b, i) => (
             <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
@@ -209,12 +208,12 @@ const RendaExt = () => {
             onClick={() => setShowForm(true)}
             className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold text-lg px-10 py-6 rounded-2xl shadow-2xl shadow-yellow-500/20 hover:scale-105 transition-transform"
           >
-            QUERO RECEBER O PASSO A PASSO
+            LIBERAR AULA COMPLETA
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
 
           <p className="text-gray-400 text-xs mt-4">
-            ⚡ Após o pagamento você recebe imediatamente no seu email
+            ⚡ Após o pagamento você recebe acesso imediato à aula no seu email
           </p>
         </div>
       </div>
@@ -309,7 +308,7 @@ const RendaExt = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Após pagar você receberá o passo a passo no seu email automaticamente.
+                  Após pagar você receberá o acesso à aula no seu email automaticamente.
                 </p>
               </form>
             ) : (
@@ -357,7 +356,7 @@ const RendaExt = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Após o pagamento, o passo a passo será enviado automaticamente para seu email.
+                  Após o pagamento, o acesso à aula será enviado automaticamente para seu email.
                 </p>
               </div>
             )}
