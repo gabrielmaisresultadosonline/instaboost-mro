@@ -127,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
           update.qr_code = null;
         }
         await supabase.from(SESSIONS_TABLE).update(update).eq("id", SESSION_ID);
-        return json({ success: true });
+        return json({ success: true }, 200, start);
       }
 
       if (action === "botFetchPending") {
@@ -144,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
           .select("request_qr, request_logout")
           .eq("id", SESSION_ID).single();
 
-        return json({ success: true, messages: messages || [], commands: session || {} });
+        return json({ success: true, messages: messages || [], commands: session || {} }, 200, start);
       }
 
       if (action === "botUpdateMessage") {
@@ -155,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
         };
         if (body.status === "sent") update.sent_at = new Date().toISOString();
         await supabase.from(MESSAGES_TABLE).update(update).eq("id", body.message_id);
-        return json({ success: true });
+        return json({ success: true }, 200, start);
       }
 
       if (action === "botAckCommand") {
@@ -168,7 +168,7 @@ const handler = async (req: Request): Promise<Response> => {
           update.phone_number = null;
         }
         await supabase.from(SESSIONS_TABLE).update(update).eq("id", SESSION_ID);
-        return json({ success: true });
+        return json({ success: true }, 200, start);
       }
     }
 
