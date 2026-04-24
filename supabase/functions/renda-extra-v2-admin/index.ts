@@ -57,6 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
     const body = await readJson(req) as Record<string, unknown>;
     const action = typeof body.action === "string" ? body.action : "";
+    console.log(`[renda-extra-v2-admin] Action: ${action}`);
 
     if (action === "getPublicSettings") {
       const { data: settings } = await supabase
