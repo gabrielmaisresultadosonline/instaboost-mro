@@ -81,6 +81,7 @@ async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, se
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const start = Date.now();
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -92,17 +93,26 @@ const handler = async (req: Request): Promise<Response> => {
   const supabase = createClient(supabaseUrl, serviceRole, { auth: { persistSession: false } });
 
   try {
-    await ensureRecords(supabase);
     const body = await readBody(req) as Record<string, unknown>;
     const action = typeof body.action === "string" ? body.action : "";
-    const botToken = Deno.env.get("WPP_BOT_TOKEN");
     const headerToken = req.headers.get("x-bot-token");
-    const adminSecret = await loadSessionSecret(supabase);
-    const adminAuthorized = await isAuthorizedAdmin(req, body, adminSecret);
-    const botAuthorized = (botToken && headerToken === botToken) || adminAuthorized;
+    const botToken = Deno.env.get("WPP_BOT_TOKEN");
+    
+    let isAuthorized = false;
+    let adminAuthorized = false;
+
+    if (botToken && headerToken === botToken) {
+      isAuthorized = true;
+    }
+
+    if (!isAuthorized) {
+      const adminSecret = await loadSessionSecret(supabase);
+      adminAuthorized = await isAuthorizedAdmin(req, body, adminSecret);
+      isAuthorized = adminAuthorized;
+    }
 
     if (["botHeartbeat", "botFetchPending", "botUpdateMessage", "botAckCommand"].includes(action)) {
-      if (!botAuthorized) return json({ success: false, error: "Unauthorized bot request" }, 401);
+      if (!isAuthorized) return json({ success: false, error: "Unauthorized bot request" }, 401);
 
       if (action === "botHeartbeat") {
         const update: Record<string, unknown> = {
