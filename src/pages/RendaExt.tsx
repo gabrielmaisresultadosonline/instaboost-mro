@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { trackFacebookEvent, trackInitiateCheckout } from "@/lib/facebookTracking";
+import { trackFacebookEvent, trackInitiateCheckout, trackPageView, trackPurchase } from "@/lib/facebookTracking";
 import logoMro from "@/assets/logo-mro-white.png";
 import {
   CheckCircle2,
