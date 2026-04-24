@@ -198,27 +198,7 @@ const RendaExt = () => {
             <span className="text-yellow-400 text-xs md:text-sm font-display font-bold uppercase tracking-widest">Oferta Exclusiva - Renda Extra</span>
           </div>
 
-          <div 
-            className="relative max-w-lg mx-auto mb-10 group cursor-pointer animate-fade-up"
-            onClick={toggleAudio}
-          >
-            <div className="absolute -inset-4 bg-red-600/20 rounded-[2.5rem] blur-2xl group-hover:bg-red-600/30 transition-colors" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl">
-              <img 
-                src="/reference-creative.png" 
-                alt="Renda Extra" 
-                className="w-full h-auto transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 group-hover:bg-black/50 transition-all">
-                <div className="bg-red-600 p-8 rounded-full shadow-[0_0_50px_rgba(220,38,38,0.6)] animate-pulse group-hover:scale-110 transition-transform">
-                  <Mic className="w-16 h-16 text-white" />
-                </div>
-                <span className="mt-6 text-3xl font-display font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] uppercase tracking-tighter">
-                  {isPlaying ? "PAUSAR" : "OUVIR"}
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Hero section was moved below */}
 
           <h1 className="text-4xl md:text-7xl font-display font-black leading-[1.1] tracking-tighter animate-fade-up">
             FATURE MAIS DE <br />
@@ -258,7 +238,24 @@ const RendaExt = () => {
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 pl-2 pr-4 py-2 rounded-full hover:bg-white/10 transition-colors">
               <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
                 <Zap className="w-4 h-4 text-yellow-400" />
+          </div>
+
+          <div className="relative max-w-lg mx-auto mb-10 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
+            <div className="absolute -inset-4 bg-red-600/20 rounded-[2.5rem] blur-2xl group-hover:bg-red-600/30 transition-colors" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl">
+              <img 
+                src="https://maisresultadosonline.com.br/assets/renda-extra-hero-DfDrjZ5D.png" 
+                alt="Renda Extra" 
+                className="w-full h-auto transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 group-hover:bg-black/50 transition-all">
+                <Button className="bg-red-600 hover:bg-red-700 text-white font-display font-black px-8 py-6 rounded-full shadow-[0_0_30px_rgba(220,38,38,0.5)] flex items-center gap-3 transition-transform group-hover:scale-110">
+                  <Mic className="w-6 h-6" />
+                  {isPlaying ? "PAUSAR" : "OUÇA AGORA"}
+                </Button>
               </div>
+            </div>
+          </div>
               <span className="font-medium">Acesso imediato</span>
             </div>
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 pl-2 pr-4 py-2 rounded-full hover:bg-white/10 transition-colors">
