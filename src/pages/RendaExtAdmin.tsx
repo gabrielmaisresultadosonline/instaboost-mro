@@ -135,8 +135,22 @@ const RendaExtAdmin = () => {
       if (response.error) throw response.error;
 
       setLeads(response.data.leads || []);
+      setOrders(response.data.orders || []);
       setEmailLogs(response.data.emailLogs || []);
-      setAnalytics(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 });
+      
+      const orders: Order[] = response.data.orders || [];
+      const paidOrders = orders.filter(o => o.status === "paid");
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const todayPaidOrders = paidOrders.filter(o => new Date(o.paid_at || "") >= startOfDay);
+      
+      setAnalytics({
+        ...(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 }),
+        total_sales: paidOrders.length,
+        today_sales: todayPaidOrders.length,
+        total_revenue: paidOrders.reduce((acc, curr) => acc + Number(curr.amount), 0)
+      });
+
       setSettings({
         whatsapp_group_link: response.data.settings?.whatsapp_group_link || "",
         launch_date: response.data.settings?.launch_date ? format(new Date(response.data.settings.launch_date), "yyyy-MM-dd'T'HH:mm") : ""
