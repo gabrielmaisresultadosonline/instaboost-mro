@@ -550,18 +550,31 @@ const RendaExtAdmin = () => {
                             {order.paid_at ? format(new Date(order.paid_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}
                           </TableCell>
                           <TableCell className="text-right">
-                            {order.status === "paid" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleResendEmail(order.id)}
-                                disabled={loading}
-                                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
-                              >
-                                <Mail className="w-3 h-3 mr-1" />
-                                Reenviar Aula
-                              </Button>
-                            )}
+                            <div className="flex justify-end gap-2">
+                              {order.status === "paid" ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleResendEmail(order.id)}
+                                  disabled={loading}
+                                  className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
+                                >
+                                  <Mail className="w-3 h-3 mr-1" />
+                                  Reenviar Aula
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleApproveOrder(order)}
+                                  disabled={loading}
+                                  className="border-green-500/50 text-green-400 hover:bg-green-500/20"
+                                >
+                                  <Check className="w-3 h-3 mr-1" />
+                                  Aprovar
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
 
