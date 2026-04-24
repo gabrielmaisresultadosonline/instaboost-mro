@@ -39,9 +39,21 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 });
     }
 
-    // If already paid, just return
+    // If already paid, check if email was sent
     if (order.status === "paid") {
-      return new Response(JSON.stringify({ success: true, paid: true, alreadyPaid: true }),
+      if (!order.email_sent) {
+        log("Order already paid but email not sent, sending now...");
+        const emailSent = await sendRendaExtEmail(order.email, order.nome_completo);
+        if (emailSent) {
+          await supabase.from("rendaext_orders").update({
+            email_sent: true,
+            email_sent_at: new Date().toISOString(),
+          }).eq("id", order.id);
+        }
+        return new Response(JSON.stringify({ success: true, paid: true, emailSent }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ success: true, paid: true, alreadyPaid: true, emailSent: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -70,11 +82,7 @@ serve(async (req) => {
     }
 
     // Mark as paid + send email
-    const emailSent = await sendEmail(
-      order.email,
-      "✅ Aula Liberada! Parabéns pelo interesse",
-      buildEmail(order.nome_completo)
-    );
+    const emailSent = await sendRendaExtEmail(order.email, order.nome_completo);
 
     // Track Purchase with Meta
     try {
