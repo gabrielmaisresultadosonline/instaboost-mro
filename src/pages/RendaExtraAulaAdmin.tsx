@@ -17,7 +17,19 @@ interface Analytics {
   today_visits: number;
   total_leads: number;
   today_leads: number;
-  total_clicks: number;
+  total_paid: number;
+  today_revenue: number;
+}
+
+interface Order {
+  id: string;
+  email: string;
+  username: string;
+  status: string;
+  amount: number;
+  phone: string | null;
+  created_at: string;
+  paid_at: string | null;
 }
 
 const RendaExtraAulaAdmin = () => {
@@ -25,9 +37,12 @@ const RendaExtraAulaAdmin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [analytics, setAnalytics] = useState<Analytics>({ total_visits: 0, today_visits: 0, total_leads: 0, today_leads: 0, total_clicks: 0 });
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [analytics, setAnalytics] = useState<Analytics>({ 
+    total_visits: 0, today_visits: 0, total_leads: 0, today_leads: 0, total_paid: 0, today_revenue: 0 
+  });
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<"dashboard" | "leads">("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "leads" | "orders">("dashboard");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
