@@ -216,6 +216,13 @@ const RendaExtAdmin = () => {
     lead.whatsapp.includes(searchQuery)
   );
 
+  const filteredOrders = orders.filter(order => 
+    order.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.whatsapp.includes(searchQuery) ||
+    order.status.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const formatMediaSalarial = (value: string) => {
     const map: Record<string, string> = {
       "menos_5k": "Menos de R$ 5k",
