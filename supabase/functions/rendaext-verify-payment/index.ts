@@ -116,9 +116,26 @@ serve(async (req) => {
     // Mark as paid + send email
     const emailSent = await sendEmail(
       order.email,
-      "✅ Pagamento confirmado! Seu passo a passo MRO chegou",
+      "✅ Aula Liberada! Parabéns pelo interesse",
       buildEmail(order.nome_completo)
     );
+
+    // Track Purchase with Meta
+    try {
+      await supabase.functions.invoke('meta-conversions', {
+        body: {
+          event_name: 'Purchase',
+          event_source_url: 'https://maisresultadosonline.com.br/rendaext',
+          email: order.email,
+          phone: order.whatsapp,
+          value: 19.90,
+          currency: 'BRL',
+          content_name: 'Renda Extra - Aula'
+        }
+      });
+    } catch (metaErr) {
+      log("Meta tracking error", { e: String(metaErr) });
+    }
 
     await supabase
       .from("rendaext_orders")
