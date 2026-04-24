@@ -25,6 +25,13 @@ export const buildRendaExtEmail = (name: string) => `<!DOCTYPE html><html><body 
 
 export const sendRendaExtEmail = async (to: string, name: string): Promise<boolean> => {
   const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  const supabase = (supabaseUrl && supabaseKey) 
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
   if (!smtpPassword) {
     console.error("[RENDAEXT-EMAIL] SMTP_PASSWORD not set");
     return false;
@@ -40,18 +47,42 @@ export const sendRendaExtEmail = async (to: string, name: string): Promise<boole
       },
     });
     
+    const subject = "✅ Aula Liberada! Parabéns pelo interesse";
     await client.send({
       from: "MRO <suporte@maisresultadosonline.com.br>",
       to,
-      subject: "✅ Aula Liberada! Parabéns pelo interesse",
+      subject,
       content: "auto",
       html: buildRendaExtEmail(name),
     });
     
     await client.close();
+
+    if (supabase) {
+      await supabase.from("rendaext_email_logs").insert({
+        email_to: to,
+        email_type: "aula_liberada",
+        subject,
+        status: "sent"
+      });
+    }
+
     return true;
   } catch (e) {
-    console.error("[RENDAEXT-EMAIL] Error sending email:", e);
+    const errorMsg = String(e);
+    console.error("[RENDAEXT-EMAIL] Error sending email:", errorMsg);
+    
+    if (supabase) {
+      await supabase.from("rendaext_email_logs").insert({
+        email_to: to,
+        email_type: "aula_liberada",
+        subject: "✅ Aula Liberada! Parabéns pelo interesse",
+        status: "error",
+        error_message: errorMsg
+      });
+    }
+
     return false;
   }
 };
+
