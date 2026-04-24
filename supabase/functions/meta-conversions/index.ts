@@ -31,6 +31,7 @@ interface ConversionEvent {
 }
 
 interface RequestBody {
+  pixel_id?: string;
   event_name: string;
   event_id?: string;
   event_source_url: string;
