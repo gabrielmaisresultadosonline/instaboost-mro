@@ -235,7 +235,7 @@ const RendaExt = () => {
           </div>
 
           {/* Audio/Image Section */}
-          <div className="relative max-w-lg mx-auto mb-36 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
+          <div className="relative max-w-lg mx-auto mt-12 mb-52 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
             <div className="absolute -inset-4 bg-red-600/20 rounded-[2.5rem] blur-2xl group-hover:bg-red-600/30 transition-colors" />
             <div className="relative flex flex-col items-center">
               <img 
