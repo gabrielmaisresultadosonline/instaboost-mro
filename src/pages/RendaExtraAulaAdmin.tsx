@@ -17,7 +17,19 @@ interface Analytics {
   today_visits: number;
   total_leads: number;
   today_leads: number;
-  total_clicks: number;
+  total_paid: number;
+  today_revenue: number;
+}
+
+interface Order {
+  id: string;
+  email: string;
+  username: string;
+  status: string;
+  amount: number;
+  phone: string | null;
+  created_at: string;
+  paid_at: string | null;
 }
 
 const RendaExtraAulaAdmin = () => {
@@ -25,9 +37,12 @@ const RendaExtraAulaAdmin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [analytics, setAnalytics] = useState<Analytics>({ total_visits: 0, today_visits: 0, total_leads: 0, today_leads: 0, total_clicks: 0 });
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [analytics, setAnalytics] = useState<Analytics>({ 
+    total_visits: 0, today_visits: 0, total_leads: 0, today_leads: 0, total_paid: 0, today_revenue: 0 
+  });
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<"dashboard" | "leads">("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "leads" | "orders">("dashboard");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +69,7 @@ const RendaExtraAulaAdmin = () => {
       });
       if (error) throw error;
       setLeads(data.leads || []);
+      setOrders(data.orders || []);
       setAnalytics(data.analytics || {});
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
@@ -94,10 +110,10 @@ const RendaExtraAulaAdmin = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(["dashboard", "leads"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-xl text-sm font-bold ${tab === t ? "bg-yellow-500 text-black" : "bg-gray-800 text-gray-300"}`}>
-              {t === "dashboard" ? "📊 Dashboard" : `👥 Leads (${leads.length})`}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          {(["dashboard", "leads", "orders"] as const).map((t) => (
+            <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap ${tab === t ? "bg-yellow-500 text-black" : "bg-gray-800 text-gray-300"}`}>
+              {t === "dashboard" ? "📊 Dashboard" : t === "leads" ? `👥 Leads (${leads.length})` : `💰 Pagos (${orders.filter(o => o.status === 'completed').length})`}
             </button>
           ))}
         </div>
@@ -108,13 +124,62 @@ const RendaExtraAulaAdmin = () => {
               { label: "Visitas Totais", value: analytics.total_visits, color: "blue" },
               { label: "Visitas Hoje", value: analytics.today_visits, color: "cyan" },
               { label: "Leads Totais", value: analytics.total_leads, color: "green" },
-              { label: "Leads Hoje", value: analytics.today_leads, color: "yellow" },
+               { label: "Leads Hoje", value: analytics.today_leads, color: "yellow" },
+               { label: "Pagos Total", value: analytics.total_paid, color: "green" },
+               { label: "Receita Hoje", value: `R$ ${analytics.today_revenue}`, color: "emerald" },
             ].map((stat, i) => (
               <div key={i} className="bg-gray-900 border border-gray-700 rounded-xl p-4 text-center">
                 <p className="text-gray-400 text-xs mb-1">{stat.label}</p>
                 <p className="text-3xl font-bold">{stat.value || 0}</p>
               </div>
             ))}
+          </div>
+        )}
+
+        {tab === "orders" && (
+          <div className="bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-800">
+                  <tr>
+                    <th className="text-left p-3">Email/User</th>
+                    <th className="text-left p-3">WhatsApp</th>
+                    <th className="text-left p-3">Status</th>
+                    <th className="text-left p-3">Valor</th>
+                    <th className="text-left p-3">Data Pago</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((order) => (
+                    <tr key={order.id} className="border-t border-gray-800 hover:bg-gray-800/50">
+                      <td className="p-3">
+                        <div className="font-medium">{order.email}</div>
+                        <div className="text-xs text-gray-500">@{order.username}</div>
+                      </td>
+                      <td className="p-3">
+                        {order.phone ? (
+                          <a href={formatPhone(order.phone)} target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 underline">
+                            📱 {order.phone}
+                          </a>
+                        ) : "-"}
+                      </td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${order.status === 'completed' ? 'bg-green-500/20 text-green-400' : order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="p-3">R$ {order.amount}</td>
+                      <td className="p-3 text-gray-500 text-xs">
+                        {order.paid_at ? new Date(order.paid_at).toLocaleString("pt-BR") : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                  {orders.length === 0 && (
+                    <tr><td colSpan={5} className="p-8 text-center text-gray-500">Nenhum pedido ainda</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

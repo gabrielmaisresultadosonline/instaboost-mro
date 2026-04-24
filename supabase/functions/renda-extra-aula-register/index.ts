@@ -118,6 +118,7 @@ serve(async (req) => {
     // Admin get data
     if (action === "adminGetData") {
       const { data: leads } = await supabase.from("renda_extra_aula_leads").select("*").order("created_at", { ascending: false });
+      const { data: orders } = await supabase.from("mro_orders").select("*").order("created_at", { ascending: false });
       
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -127,10 +128,22 @@ serve(async (req) => {
       const { count: todayVisits } = await supabase.from("renda_extra_aula_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", todayIso);
       const { count: totalLeads } = await supabase.from("renda_extra_aula_leads").select("*", { count: "exact", head: true });
       const { count: todayLeads } = await supabase.from("renda_extra_aula_leads").select("*", { count: "exact", head: true }).gte("created_at", todayIso);
+      
+      const { count: totalPaid } = await supabase.from("mro_orders").select("*", { count: "exact", head: true }).eq("status", "completed");
+      const { data: todayPaidData } = await supabase.from("mro_orders").select("amount").eq("status", "completed").gte("paid_at", todayIso);
+      const todayRevenue = todayPaidData?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0;
 
       return new Response(JSON.stringify({
         leads: leads || [],
-        analytics: { total_visits: totalVisits || 0, today_visits: todayVisits || 0, total_leads: totalLeads || 0, today_leads: todayLeads || 0 }
+        orders: orders || [],
+        analytics: { 
+          total_visits: totalVisits || 0, 
+          today_visits: todayVisits || 0, 
+          total_leads: totalLeads || 0, 
+          today_leads: todayLeads || 0,
+          total_paid: totalPaid || 0,
+          today_revenue: todayRevenue
+        }
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
