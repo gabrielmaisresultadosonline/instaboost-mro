@@ -41,22 +41,18 @@ const buildEmail = (name: string) => `<!DOCTYPE html><html><body style="font-fam
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
 <tr><td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
 <div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Pagamento confirmado!</h1>
+<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Aula Liberada!</h1>
 </td></tr>
 <tr><td style="padding:30px;color:#333;">
 <p style="font-size:16px;">Olá <strong>${name}</strong>!</p>
-<p style="font-size:16px;">Recebemos seu pagamento de <strong>R$ 19,90</strong>. Aqui está o seu <strong>passo a passo</strong> para fazer 5K mensais com a ferramenta MRO:</p>
+<p style="font-size:16px;">Parabéns pelo interesse, você é um dos empreendedores de sucesso que a partir de agora vai aprender o novo método.</p>
 <div style="background:#f8f9fa;border-left:4px solid #FFD700;padding:20px;margin:20px 0;border-radius:8px;">
-<p style="margin:0 0 10px 0;font-weight:bold;font-size:18px;">📚 Acesse a aula completa:</p>
-<a href="https://maisresultadosonline.com.br/descontoalunosrendaextrasss" style="display:inline-block;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:16px;font-weight:bold;margin-top:10px;">▶️ ACESSAR PASSO A PASSO</a>
+<p style="margin:0 0 10px 0;font-weight:bold;font-size:18px;">📚 Acesse sua aula aqui:</p>
+<a href="https://maisresultadosonline.com.br/rendaextraaula" style="display:inline-block;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:16px;font-weight:bold;margin-top:10px;">▶️ ACESSAR AULA AGORA</a>
 </div>
-<h3 style="color:#000;">O que você vai aprender:</h3>
-<ul style="font-size:15px;line-height:1.8;">
-<li>Como rodar a ferramenta MRO no seu computador</li>
-<li>Como fechar contratos com empresas</li>
-<li>Como apresentar o serviço e cobrar mensalmente</li>
-<li>Estratégias para faturar 5K+ por mês</li>
-</ul>
+<div style="background:#e8f5e9;border-left:4px solid #4caf50;padding:15px;margin:20px 0;border-radius:8px;">
+<p style="margin:0;font-size:14px;color:#2e7d32;"><strong>Suporte WhatsApp:</strong> <a href="https://maisresultadosonline.com.br/whatsapp" style="color:#2e7d32;">Clique aqui para suporte</a></p>
+</div>
 <p style="font-size:14px;color:#666;margin-top:30px;"><strong>Aplique HOJE mesmo!</strong> Quanto antes começar, antes verá resultados.</p>
 </td></tr>
 <tr><td style="background:#1a1a1a;padding:20px;text-align:center;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</td></tr>
@@ -120,9 +116,26 @@ serve(async (req) => {
     // Mark as paid + send email
     const emailSent = await sendEmail(
       order.email,
-      "✅ Pagamento confirmado! Seu passo a passo MRO chegou",
+      "✅ Aula Liberada! Parabéns pelo interesse",
       buildEmail(order.nome_completo)
     );
+
+    // Track Purchase with Meta
+    try {
+      await supabase.functions.invoke('meta-conversions', {
+        body: {
+          event_name: 'Purchase',
+          event_source_url: 'https://maisresultadosonline.com.br/rendaext',
+          email: order.email,
+          phone: order.whatsapp,
+          value: 19.90,
+          currency: 'BRL',
+          content_name: 'Renda Extra - Aula'
+        }
+      });
+    } catch (metaErr) {
+      log("Meta tracking error", { e: String(metaErr) });
+    }
 
     await supabase
       .from("rendaext_orders")

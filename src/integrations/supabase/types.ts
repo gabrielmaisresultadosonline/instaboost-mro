@@ -2732,6 +2732,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rendaext_audio_events: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          percent: number
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          percent: number
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          percent?: number
+        }
+        Relationships: []
+      }
       rendaext_email_logs: {
         Row: {
           created_at: string
@@ -2778,6 +2799,8 @@ export type Database = {
       }
       rendaext_leads: {
         Row: {
+          audio_listened_at: string | null
+          audio_listened_percent: number | null
           created_at: string
           email: string
           email_confirmacao_enviado: boolean | null
@@ -2793,6 +2816,8 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          audio_listened_at?: string | null
+          audio_listened_percent?: number | null
           created_at?: string
           email: string
           email_confirmacao_enviado?: boolean | null
@@ -2808,6 +2833,8 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          audio_listened_at?: string | null
+          audio_listened_percent?: number | null
           created_at?: string
           email?: string
           email_confirmacao_enviado?: boolean | null
@@ -2827,6 +2854,8 @@ export type Database = {
       rendaext_orders: {
         Row: {
           amount: number
+          audio_listened_at: string | null
+          audio_listened_percent: number | null
           created_at: string
           email: string
           email_sent: boolean | null
@@ -2844,6 +2873,8 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          audio_listened_at?: string | null
+          audio_listened_percent?: number | null
           created_at?: string
           email: string
           email_sent?: boolean | null
@@ -2861,6 +2892,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          audio_listened_at?: string | null
+          audio_listened_percent?: number | null
           created_at?: string
           email?: string
           email_sent?: boolean | null

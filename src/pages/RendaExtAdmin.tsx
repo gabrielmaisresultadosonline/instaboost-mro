@@ -12,7 +12,7 @@ import { ptBR } from "date-fns/locale";
 import { 
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
   CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle,
-  CreditCard, Sparkles, Clock
+  CreditCard, Sparkles, Clock, Mic
 } from "lucide-react";
 import WppBotPanelV2 from "@/components/admin/WppBotPanelV2";
 
@@ -28,6 +28,8 @@ interface Lead {
   created_at: string;
   email_confirmacao_enviado: boolean;
   email_lembrete_enviado: boolean;
+  audio_listened_percent: number;
+  audio_listened_at: string | null;
 }
 
 interface Order {
@@ -38,6 +40,14 @@ interface Order {
   amount: number;
   status: string;
   paid_at: string | null;
+  created_at: string;
+  audio_listened_percent: number;
+}
+
+interface AudioEvent {
+  id: string;
+  email: string;
+  percent: number;
   created_at: string;
 }
 
@@ -59,6 +69,7 @@ interface Analytics {
   total_sales: number;
   today_sales: number;
   total_revenue: number;
+  total_audio_listeners: number;
 }
 
 const RendaExtAdmin = () => {
@@ -71,6 +82,7 @@ const RendaExtAdmin = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
+  const [audioEvents, setAudioEvents] = useState<AudioEvent[]>([]);
   const [analytics, setAnalytics] = useState<Analytics>({ 
     total_visits: 0, 
     total_leads: 0, 
@@ -78,7 +90,8 @@ const RendaExtAdmin = () => {
     today_leads: 0,
     total_sales: 0,
     today_sales: 0,
-    total_revenue: 0
+    total_revenue: 0,
+    total_audio_listeners: 0
   });
   
   const [settings, setSettings] = useState({
@@ -138,18 +151,23 @@ const RendaExtAdmin = () => {
       setLeads(response.data.leads || []);
       setOrders(response.data.orders || []);
       setEmailLogs(response.data.emailLogs || []);
+      setAudioEvents(response.data.audioEvents || []);
       
-      const orders: Order[] = response.data.orders || [];
-      const paidOrders = orders.filter(o => o.status === "paid");
+      const ordersData: Order[] = response.data.orders || [];
+      const paidOrders = ordersData.filter(o => o.status === "paid");
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
       const todayPaidOrders = paidOrders.filter(o => new Date(o.paid_at || "") >= startOfDay);
+      
+      const audioEventsData: AudioEvent[] = response.data.audioEvents || [];
+      const uniqueListeners = new Set(audioEventsData.map(e => e.email)).size;
       
       setAnalytics({
         ...(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 }),
         total_sales: paidOrders.length,
         today_sales: todayPaidOrders.length,
-        total_revenue: paidOrders.reduce((acc, curr) => acc + Number(curr.amount), 0)
+        total_revenue: paidOrders.reduce((acc, curr) => acc + Number(curr.amount), 0),
+        total_audio_listeners: uniqueListeners
       });
 
       setSettings({
@@ -308,7 +326,18 @@ const RendaExtAdmin = () => {
             Zerar Visitas
           </Button>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-red-500/20 rounded-lg">
+                <Mic className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Ouvintes</p>
+                <p className="text-xl font-bold text-white">{analytics.total_audio_listeners}</p>
+              </div>
+            </CardContent>
+          </Card>
           <Card className="bg-gray-800/50 border-gray-700">
             <CardContent className="p-4 flex flex-col items-center text-center gap-2">
               <div className="p-2 bg-blue-500/20 rounded-lg">
@@ -414,6 +443,10 @@ const RendaExtAdmin = () => {
             <TabsTrigger value="whatsapp" className="data-[state=active]:bg-gray-700">
               <MessageCircle className="w-4 h-4 mr-2" />
               WhatsApp
+            </TabsTrigger>
+            <TabsTrigger value="audio" className="data-[state=active]:bg-gray-700">
+              <Mic className="w-4 h-4 mr-2" />
+              Engajamento Áudio
             </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-gray-700">
               <Settings className="w-4 h-4 mr-2" />
@@ -643,6 +676,48 @@ const RendaExtAdmin = () => {
           {/* WhatsApp Bot Tab */}
           <TabsContent value="whatsapp">
             <WppBotPanelV2 adminToken={adminToken} onUnauthorized={handleLogout} />
+          </TabsContent>
+          
+          <TabsContent value="audio">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Engajamento com o Áudio</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-gray-700">
+                        <TableHead className="text-gray-300">Email</TableHead>
+                        <TableHead className="text-gray-300">Progresso</TableHead>
+                        <TableHead className="text-gray-300">Data</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {audioEvents.map((event) => (
+                        <TableRow key={event.id} className="border-gray-700">
+                          <TableCell className="text-white">{event.email}</TableCell>
+                          <TableCell className="text-white">
+                            <div className="flex items-center gap-2">
+                              <div className="w-full bg-gray-700 rounded-full h-2 max-w-[100px]">
+                                <div 
+                                  className={`h-2 rounded-full ${event.percent === 100 ? 'bg-green-500' : 'bg-blue-500'}`}
+                                  style={{ width: `${event.percent}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-bold">{event.percent}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {format(new Date(event.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Settings Tab */}

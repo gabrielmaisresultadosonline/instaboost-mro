@@ -122,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const startOfDay = new Date(new Date().setHours(0,0,0,0)).toISOString();
-      const [leadsRes, emailLogsRes, ordersRes, settingsRes, totalVisitsRes, todayVisitsRes, totalLeadsRes, todayLeadsRes] = await Promise.all([
+      const [leadsRes, emailLogsRes, ordersRes, settingsRes, totalVisitsRes, todayVisitsRes, totalLeadsRes, todayLeadsRes, audioEventsRes] = await Promise.all([
         supabase.from("rendaext_leads").select("*").order("created_at", { ascending: false }),
         supabase.from("rendaext_email_logs").select("*").order("created_at", { ascending: false }),
         supabase.from("rendaext_orders").select("*").order("created_at", { ascending: false }),
@@ -131,6 +131,7 @@ const handler = async (req: Request): Promise<Response> => {
         supabase.from("rendaext_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", startOfDay),
         supabase.from("rendaext_leads").select("*", { count: "exact", head: true }),
         supabase.from("rendaext_leads").select("*", { count: "exact", head: true }).gte("created_at", startOfDay),
+        supabase.from("rendaext_audio_events").select("*").order("created_at", { ascending: false }),
       ]);
 
       return new Response(JSON.stringify({

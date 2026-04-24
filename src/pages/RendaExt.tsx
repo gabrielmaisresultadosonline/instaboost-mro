@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { trackFacebookEvent, trackInitiateCheckout } from "@/lib/facebookTracking";
 import logoMro from "@/assets/logo-mro-white.png";
 import {
   CheckCircle2,
@@ -35,15 +36,61 @@ const RendaExt = () => {
     whatsapp: "",
   });
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audio] = useState(new Audio("/flow_audio_1774628900033_fixed.ogg"));
+  const [audio] = useState(new Audio("/audio_gabr.mp3"));
+  const trackedPercents = useRef(new Set<number>());
 
   useEffect(() => {
+    const handleTimeUpdate = () => {
+      if (!audio.duration) return;
+      const progress = (audio.currentTime / audio.duration) * 100;
+      
+      const milestone = [25, 50, 75, 100].find(m => progress >= m && !trackedPercents.current.has(m));
+      if (milestone) {
+        trackedPercents.current.add(milestone);
+        trackAudioEvent(milestone);
+      }
+    };
+
+    audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", () => setIsPlaying(false));
     return () => {
       audio.pause();
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", () => setIsPlaying(false));
     };
   }, [audio]);
+
+  const trackAudioEvent = async (percent: number) => {
+    try {
+      const email = formData.email || "anonymous";
+      
+      // Track in events table
+      await supabase.from("rendaext_audio_events").insert({
+        email: email,
+        percent: percent
+      });
+
+      // Update lead record if email is present
+      if (email !== "anonymous") {
+        await supabase
+          .from("rendaext_leads")
+          .update({ 
+            audio_listened_percent: percent,
+            audio_listened_at: new Date().toISOString()
+          })
+          .eq("email", email.toLowerCase().trim());
+      }
+      
+      // Track on Facebook
+      trackFacebookEvent("AudioEngagement", {
+        content_name: "Renda Extra Audio",
+        content_category: `Listen ${percent}%`,
+        value: percent
+      });
+    } catch (err) {
+      console.error("Error tracking audio event:", err);
+    }
+  };
 
   const toggleAudio = () => {
     if (isPlaying) {
@@ -60,6 +107,9 @@ const RendaExt = () => {
       source_url: window.location.href,
       user_agent: navigator.userAgent,
     }).then(() => {});
+    
+    // Track PageView on FB
+    trackFacebookEvent("PageView", { content_name: "Renda Extra" });
   }, []);
 
   // Auto-verify if returning from InfiniPay redirect (?paid=1&nsu=...)
@@ -92,6 +142,13 @@ const RendaExt = () => {
 
     setLoading(true);
     try {
+      // Track Lead on Facebook
+      trackFacebookEvent("Lead", {
+        content_name: "Renda Extra - Checkout Form",
+        content_category: "Lead",
+        email: formData.email.toLowerCase().trim()
+      });
+
       const { data, error } = await supabase.functions.invoke("rendaext-checkout", {
         body: {
           nome_completo: formData.nomeCompleto.trim(),
@@ -336,7 +393,10 @@ const RendaExt = () => {
               </div>
 
               <Button
-                onClick={() => setShowForm(true)}
+                onClick={() => {
+                  setShowForm(true);
+                  trackInitiateCheckout("Renda Extra - Aula", 19.90);
+                }}
                 className="group relative w-full md:w-auto bg-green-600 hover:bg-yellow-400 text-white hover:text-black font-display font-black text-xl md:text-2xl px-12 py-8 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] overflow-hidden"
               >
                 <span className="relative z-10 flex items-center gap-3">
