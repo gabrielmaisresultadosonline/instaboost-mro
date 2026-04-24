@@ -20,7 +20,7 @@ interface Lead {
   nome_completo: string;
   email: string;
   whatsapp: string;
-  trabalha_atualmente: boolean;
+  trabalha_atualmente: boolean | string;
   media_salarial: string;
   tipo_computador: string;
   instagram_username: string | null;
