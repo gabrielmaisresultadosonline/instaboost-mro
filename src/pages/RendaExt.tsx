@@ -108,8 +108,8 @@ const RendaExt = () => {
       user_agent: navigator.userAgent,
     }).then(() => {});
     
-    // Track PageView on FB
-    trackFacebookEvent("PageView", { content_name: "Renda Extra" });
+    // Track PageView on FB - accurate real tracking
+    trackPageView("Renda Extra");
   }, []);
 
   // Auto-verify if returning from InfiniPay redirect (?paid=1&nsu=...)
