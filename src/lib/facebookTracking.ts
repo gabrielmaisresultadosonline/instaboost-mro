@@ -190,11 +190,14 @@ export const trackViewContent = (contentName: string, category?: string) => {
  * Track Purchase - when purchase is completed
  */
 export const trackPurchase = (value: number, productName?: string, email?: string) => {
+  // Try to get email from localStorage if not provided
+  const savedEmail = email || (typeof localStorage !== 'undefined' ? localStorage.getItem('mro_customer_email') : undefined);
+  
   trackFacebookEvent('Purchase', {
     content_name: productName || 'MRO Product',
     value: value,
     currency: 'BRL',
-    email: email
+    email: savedEmail || undefined
   });
 };
 
