@@ -392,6 +392,10 @@ const RendaExtAdmin = () => {
         {/* Tabs */}
         <Tabs defaultValue="leads" className="space-y-4">
           <TabsList className="bg-gray-800">
+            <TabsTrigger value="vendas" className="data-[state=active]:bg-gray-700">
+              <CreditCard className="w-4 h-4 mr-2" />
+              Vendas
+            </TabsTrigger>
             <TabsTrigger value="leads" className="data-[state=active]:bg-gray-700">
               <Users className="w-4 h-4 mr-2" />
               Cadastros
