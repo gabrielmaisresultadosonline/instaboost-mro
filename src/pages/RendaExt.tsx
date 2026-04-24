@@ -301,8 +301,8 @@ const RendaExt = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-md bg-gradient-to-br from-[#151a2e] to-[#0d1020] rounded-3xl p-6 md:p-8 border border-white/10 shadow-2xl animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md bg-[#0d121f] rounded-[2.5rem] p-8 md:p-10 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
             <button
               onClick={() => {
                 setShowForm(false);
@@ -310,135 +310,147 @@ const RendaExt = () => {
                 setNsuOrder("");
                 setPaymentLink("");
               }}
-              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-red-500/20 border border-white/10"
+              className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-red-500/20 border border-white/10 transition-colors"
             >
               <X className="w-5 h-5 text-white" />
             </button>
 
             {!paymentCreated ? (
-              <form onSubmit={handleCheckout} className="space-y-4">
-                <div className="text-center mb-2">
-                  <div className="mx-auto w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mb-3">
-                    <CreditCard className="w-7 h-7 text-black" />
+              <form onSubmit={handleCheckout} className="space-y-6">
+                <div className="text-center mb-4">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-[1.25rem] flex items-center justify-center mb-4 rotate-3 shadow-lg shadow-yellow-500/20">
+                    <CreditCard className="w-8 h-8 text-black" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Cadastro</h2>
-                  <p className="text-gray-400 text-sm">Preencha para gerar seu pagamento de R$ 19,90</p>
+                  <h2 className="text-3xl font-display font-black text-white">Cadastro</h2>
+                  <p className="text-gray-400 text-sm mt-1">Preencha os dados para liberação</p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300 flex items-center gap-2">
-                    <User className="w-4 h-4" /> Nome completo
-                  </label>
-                  <Input
-                    value={formData.nomeCompleto}
-                    onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 py-5"
-                    placeholder="Seu nome completo"
-                    required
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                      <User className="w-3 h-3" /> Nome completo
+                    </label>
+                    <Input
+                      value={formData.nomeCompleto}
+                      onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-xl focus:border-yellow-500/50 transition-all px-5"
+                      placeholder="Seu nome aqui"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                      <Mail className="w-3 h-3" /> Email de Acesso
+                    </label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-xl focus:border-yellow-500/50 transition-all px-5"
+                      placeholder="seu@melhoremail.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2">
+                      <Phone className="w-3 h-3" /> WhatsApp
+                    </label>
+                    <Input
+                      value={formData.whatsapp}
+                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 h-14 rounded-xl focus:border-yellow-500/50 transition-all px-5"
+                      placeholder="(00) 00000-0000"
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300 flex items-center gap-2">
-                    <Mail className="w-4 h-4" /> Email
-                  </label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 py-5"
-                    placeholder="seu@email.com"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300 flex items-center gap-2">
-                    <Phone className="w-4 h-4" /> WhatsApp
-                  </label>
-                  <Input
-                    value={formData.whatsapp}
-                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 py-5"
-                    placeholder="(00) 00000-0000"
-                    required
-                  />
-                </div>
-
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
-                  <div className="text-xs text-gray-400">Valor único</div>
-                  <div className="text-3xl font-black text-yellow-400">R$ 19,90</div>
+                <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-2xl p-5 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Valor total</div>
+                    <div className="text-gray-400 text-sm">Acesso Vitalício</div>
+                  </div>
+                  <div className="text-3xl font-display font-black text-yellow-400">R$ 19,90</div>
                 </div>
 
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold py-6 rounded-xl"
+                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-display font-black py-8 rounded-xl text-lg shadow-xl shadow-yellow-500/10 transition-all"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Gerando link...
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      PROCESSANDO...
                     </>
                   ) : (
                     <>
                       <CreditCard className="mr-2 h-5 w-5" />
-                      Pagar R$ 19,90
+                      GERAR PAGAMENTO
                     </>
                   )}
                 </Button>
 
-                <p className="text-xs text-gray-500 text-center">
-                  Após pagar você receberá o acesso à ferramenta no seu email automaticamente.
+                <p className="text-[10px] text-gray-600 text-center uppercase tracking-tighter">
+                  🔒 Conexão criptografada e segura via SSL
                 </p>
               </form>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-8 py-4">
                 <div className="text-center">
-                  <div className="mx-auto w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-3">
-                    <CheckCircle2 className="w-7 h-7 text-white" />
+                  <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                    <CheckCircle2 className="w-8 h-8 text-green-400" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Pagamento gerado!</h2>
-                  <p className="text-gray-400 text-sm mt-1">Conclua o pagamento na nova aba</p>
+                  <h2 className="text-3xl font-display font-black text-white">Quase lá!</h2>
+                  <p className="text-gray-400 text-sm mt-2">Conclua o pagamento na aba aberta</p>
                 </div>
 
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                  <div className="text-xs text-gray-400">Pedido</div>
-                  <div className="font-mono text-yellow-400 text-sm break-all">{nsuOrder}</div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center space-y-2">
+                  <div className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Código do Pedido</div>
+                  <div className="font-mono text-yellow-400 text-sm break-all bg-black/30 p-3 rounded-lg border border-white/5">
+                    {nsuOrder}
+                  </div>
                 </div>
 
-                {paymentLink && (
-                  <Button
-                    onClick={() => window.open(paymentLink, "_blank")}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold py-5 rounded-xl"
-                  >
-                    <CreditCard className="mr-2 h-5 w-5" />
-                    Abrir pagamento novamente
-                  </Button>
-                )}
-
-                <Button
-                  onClick={() => verifyPayment()}
-                  disabled={verifying}
-                  variant="outline"
-                  className="w-full border-white/20 text-white hover:bg-white/10 py-5 rounded-xl"
-                >
-                  {verifying ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verificando...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Já paguei – Verificar
-                    </>
+                <div className="space-y-3">
+                  {paymentLink && (
+                    <Button
+                      onClick={() => window.open(paymentLink, "_blank")}
+                      className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-display font-black py-6 rounded-xl transition-all"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      ABRIR PAGAMENTO
+                    </Button>
                   )}
-                </Button>
 
-                <p className="text-xs text-gray-500 text-center">
-                  Após o pagamento, o acesso à ferramenta será enviado automaticamente para seu email.
-                </p>
+                  <Button
+                    onClick={() => verifyPayment()}
+                    disabled={verifying}
+                    variant="outline"
+                    className="w-full border-white/10 text-white hover:bg-white/5 py-6 rounded-xl font-bold"
+                  >
+                    {verifying ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        VERIFICANDO...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        JÁ PAGUEI, VERIFICAR
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-center gap-4 pt-4 border-t border-white/5">
+                  <Shield className="w-4 h-4 text-gray-600" />
+                  <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">
+                    Acesso automático após aprovação
+                  </p>
+                </div>
               </div>
             )}
           </div>
