@@ -18,7 +18,7 @@ const log = (step: string, details?: unknown) => {
 };
 
 // Send Purchase event to Meta Conversions API
-async function sendMetaPurchaseEvent(email: string, value: number, contentName: string) {
+async function sendMetaPurchaseEvent(email: string, value: number, contentName: string, sourceUrl: string = 'https://maisresultadosonline.com.br/mroobrigado') {
   try {
     const accessToken = Deno.env.get('META_CONVERSIONS_API_TOKEN');
     if (!accessToken) {
