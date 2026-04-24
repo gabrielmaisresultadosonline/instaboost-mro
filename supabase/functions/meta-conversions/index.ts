@@ -11,6 +11,7 @@ const META_API_VERSION = 'v18.0';
 interface ConversionEvent {
   event_name: string;
   event_time: number;
+  event_id?: string;
   action_source: string;
   event_source_url: string;
   user_data: {
@@ -31,6 +32,7 @@ interface ConversionEvent {
 
 interface RequestBody {
   event_name: string;
+  event_id?: string;
   event_source_url: string;
   user_agent?: string;
   client_ip?: string;
@@ -45,7 +47,7 @@ interface RequestBody {
   test_event_code?: string;
 }
 
-// Simple hash function for user data (SHA256 would be better in production)
+// Simple hash function for user data (SHA256)
 async function hashData(data: string): Promise<string> {
   const encoder = new TextEncoder();
   const dataBuffer = encoder.encode(data.toLowerCase().trim());
@@ -72,7 +74,7 @@ serve(async (req) => {
     }
 
     const body: RequestBody = await req.json();
-    console.log('[META-CONVERSIONS] Received event:', body.event_name);
+    console.log('[META-CONVERSIONS] Received event:', body.event_name, body.event_id);
 
     // Build user_data object
     const userData: ConversionEvent['user_data'] = {
@@ -81,6 +83,7 @@ serve(async (req) => {
     };
 
     // Add Facebook click ID and browser ID if available
+    // Ensure fbc is not truncated or modified by the server
     if (body.fbc) userData.fbc = body.fbc;
     if (body.fbp) userData.fbp = body.fbp;
 
@@ -98,20 +101,22 @@ serve(async (req) => {
     const event: ConversionEvent = {
       event_name: body.event_name,
       event_time: Math.floor(Date.now() / 1000),
+      event_id: body.event_id, // CRITICAL for deduplication
       action_source: 'website',
       event_source_url: body.event_source_url,
       user_data: userData,
     };
 
     // Add custom data if provided
-    if (body.content_name || body.content_category || body.value) {
+    // Always include currency if available, especially for Lead events
+    if (body.content_name || body.content_category || body.value || body.currency) {
       event.custom_data = {};
       if (body.content_name) event.custom_data.content_name = body.content_name;
       if (body.content_category) event.custom_data.content_category = body.content_category;
-      if (body.value) {
-        event.custom_data.value = body.value;
-        event.custom_data.currency = body.currency || 'BRL';
-      }
+      if (body.value) event.custom_data.value = body.value;
+      
+      // Default to BRL if any custom data is sent but no currency
+      event.custom_data.currency = body.currency || 'BRL';
     }
 
     // Send to Meta Conversions API
