@@ -90,6 +90,7 @@ async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, se
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const start = Date.now();
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -100,7 +101,10 @@ const handler = async (req: Request): Promise<Response> => {
     return json({ success: false, error: "Backend configuration is missing" }, 500);
   }
 
-  const supabase = createClient(supabaseUrl, serviceRole, { auth: { persistSession: false } });
+  const supabase = createClient(supabaseUrl, serviceRole, { 
+    auth: { persistSession: false },
+    global: { headers: { "x-my-custom-header": "wpp-bot" } }
+  });
 
   try {
     const body = await readBody(req) as Record<string, unknown>;
