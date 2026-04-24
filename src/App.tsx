@@ -63,6 +63,8 @@ import TesteGratisUsuario from "./pages/TesteGratisUsuario";
 import RendaExtra from "./pages/RendaExtra";
 import RendaExtra2 from "./pages/RendaExtra2";
 import RendaExtraAdmin from "./pages/RendaExtraAdmin";
+import RendaExt from "./pages/RendaExt";
+import RendaExtAdmin from "./pages/RendaExtAdmin";
 import RendaExtraOf from "./pages/RendaExtraOf";
 import CorretorMRO from "./pages/CorretorMRO";
 import CorretorMROAdmin from "./pages/CorretorMROAdmin";
@@ -166,6 +168,8 @@ const App = () => (
           <Route path="/rendaextra/admin" element={<RendaExtraAdmin />} />
           <Route path="/rendaextra2" element={<RendaExtra2 />} />
           <Route path="/rendaextra2/admin" element={<RendaExtraAdmin />} />
+          <Route path="/rendaext" element={<RendaExt />} />
+          <Route path="/rendaext/admin" element={<RendaExtAdmin />} />
           <Route path="/rendaextraof" element={<RendaExtraOf />} />
           <Route path="/corretormro" element={<CorretorMRO />} />
           <Route path="/corretormro/admin" element={<CorretorMROAdmin />} />

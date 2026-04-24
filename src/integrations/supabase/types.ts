@@ -2708,6 +2708,155 @@ export type Database = {
         }
         Relationships: []
       }
+      rendaext_analytics: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          referrer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      rendaext_email_logs: {
+        Row: {
+          created_at: string
+          email_to: string | null
+          email_type: string | null
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          recipient_email: string
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_to?: string | null
+          email_type?: string | null
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          recipient_email: string
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_to?: string | null
+          email_type?: string | null
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          recipient_email?: string
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rendaext_email_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "rendaext_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rendaext_leads: {
+        Row: {
+          created_at: string
+          email: string
+          email_confirmacao_enviado: boolean | null
+          email_confirmacao_enviado_at: string | null
+          email_lembrete_enviado: boolean | null
+          id: string
+          instagram_username: string | null
+          media_salarial: string | null
+          nome_completo: string
+          source: string | null
+          tipo_computador: string | null
+          trabalha_atualmente: boolean | null
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          email_lembrete_enviado?: boolean | null
+          id?: string
+          instagram_username?: string | null
+          media_salarial?: string | null
+          nome_completo: string
+          source?: string | null
+          tipo_computador?: string | null
+          trabalha_atualmente?: boolean | null
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          email_lembrete_enviado?: boolean | null
+          id?: string
+          instagram_username?: string | null
+          media_salarial?: string | null
+          nome_completo?: string
+          source?: string | null
+          tipo_computador?: string | null
+          trabalha_atualmente?: boolean | null
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      rendaext_settings: {
+        Row: {
+          admin_email: string
+          admin_password: string
+          created_at: string
+          id: string
+          launch_date: string | null
+          session_secret: string
+          updated_at: string
+          whatsapp_group_link: string | null
+        }
+        Insert: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          launch_date?: string | null
+          session_secret?: string
+          updated_at?: string
+          whatsapp_group_link?: string | null
+        }
+        Update: {
+          admin_email?: string
+          admin_password?: string
+          created_at?: string
+          id?: string
+          launch_date?: string | null
+          session_secret?: string
+          updated_at?: string
+          whatsapp_group_link?: string | null
+        }
+        Relationships: []
+      }
       squarecloud_user_profiles: {
         Row: {
           created_at: string | null
@@ -2969,6 +3118,48 @@ export type Database = {
         }
         Relationships: []
       }
+      wpp_bot_messages_v2: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          lead_name: string | null
+          message: string
+          phone: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          message: string
+          phone: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          message?: string
+          phone?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wpp_bot_session: {
         Row: {
           created_at: string
@@ -3005,6 +3196,42 @@ export type Database = {
         }
         Relationships: []
       }
+      wpp_bot_session_v2: {
+        Row: {
+          created_at: string
+          id: string
+          last_heartbeat: string | null
+          phone_number: string | null
+          qr_code: string | null
+          request_logout: boolean
+          request_qr: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          last_heartbeat?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          request_logout?: boolean
+          request_qr?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_heartbeat?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          request_logout?: boolean
+          request_qr?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wpp_bot_settings: {
         Row: {
           created_at: string
@@ -3019,6 +3246,33 @@ export type Database = {
           delay_minutes?: number
           enabled?: boolean
           id?: string
+          message_template?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delay_minutes?: number
+          enabled?: boolean
+          id?: string
+          message_template?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wpp_bot_settings_v2: {
+        Row: {
+          created_at: string
+          delay_minutes: number
+          enabled: boolean
+          id: string
+          message_template: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delay_minutes?: number
+          enabled?: boolean
+          id: string
           message_template?: string
           updated_at?: string
         }
