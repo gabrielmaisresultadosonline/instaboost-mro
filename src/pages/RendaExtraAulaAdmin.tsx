@@ -124,7 +124,9 @@ const RendaExtraAulaAdmin = () => {
               { label: "Visitas Totais", value: analytics.total_visits, color: "blue" },
               { label: "Visitas Hoje", value: analytics.today_visits, color: "cyan" },
               { label: "Leads Totais", value: analytics.total_leads, color: "green" },
-              { label: "Leads Hoje", value: analytics.today_leads, color: "yellow" },
+               { label: "Leads Hoje", value: analytics.today_leads, color: "yellow" },
+               { label: "Pagos Total", value: analytics.total_paid, color: "green" },
+               { label: "Receita Hoje", value: `R$ ${analytics.today_revenue}`, color: "emerald" },
             ].map((stat, i) => (
               <div key={i} className="bg-gray-900 border border-gray-700 rounded-xl p-4 text-center">
                 <p className="text-gray-400 text-xs mb-1">{stat.label}</p>
