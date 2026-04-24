@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { CheckCircle2, Mail, ExternalLink, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoMro from "@/assets/logo-mro-white.png";
-import { trackFacebookEvent, trackPageView } from "@/lib/facebookTracking";
+import { trackFacebookEvent, trackPageView, trackPurchase } from "@/lib/facebookTracking";
 
 const RendaExtObrigado = () => {
   useEffect(() => {
