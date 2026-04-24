@@ -81,6 +81,7 @@ async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, se
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const start = Date.now();
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -92,17 +93,26 @@ const handler = async (req: Request): Promise<Response> => {
   const supabase = createClient(supabaseUrl, serviceRole, { auth: { persistSession: false } });
 
   try {
-    await ensureRecords(supabase);
     const body = await readBody(req) as Record<string, unknown>;
     const action = typeof body.action === "string" ? body.action : "";
-    const botToken = Deno.env.get("WPP_BOT_TOKEN");
     const headerToken = req.headers.get("x-bot-token");
-    const adminSecret = await loadSessionSecret(supabase);
-    const adminAuthorized = await isAuthorizedAdmin(req, body, adminSecret);
-    const botAuthorized = (botToken && headerToken === botToken) || adminAuthorized;
+    const botToken = Deno.env.get("WPP_BOT_TOKEN");
+    
+    let isAuthorized = false;
+    let adminAuthorized = false;
+
+    if (botToken && headerToken === botToken) {
+      isAuthorized = true;
+    }
+
+    if (!isAuthorized) {
+      const adminSecret = await loadSessionSecret(supabase);
+      adminAuthorized = await isAuthorizedAdmin(req, body, adminSecret);
+      isAuthorized = adminAuthorized;
+    }
 
     if (["botHeartbeat", "botFetchPending", "botUpdateMessage", "botAckCommand"].includes(action)) {
-      if (!botAuthorized) return json({ success: false, error: "Unauthorized bot request" }, 401);
+      if (!isAuthorized) return json({ success: false, error: "Unauthorized bot request" }, 401);
 
       if (action === "botHeartbeat") {
         const update: Record<string, unknown> = {
@@ -117,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
           update.qr_code = null;
         }
         await supabase.from(SESSIONS_TABLE).update(update).eq("id", SESSION_ID);
-        return json({ success: true });
+        return json({ success: true }, 200, start);
       }
 
       if (action === "botFetchPending") {
@@ -134,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
           .select("request_qr, request_logout")
           .eq("id", SESSION_ID).single();
 
-        return json({ success: true, messages: messages || [], commands: session || {} });
+        return json({ success: true, messages: messages || [], commands: session || {} }, 200, start);
       }
 
       if (action === "botUpdateMessage") {
@@ -145,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
         };
         if (body.status === "sent") update.sent_at = new Date().toISOString();
         await supabase.from(MESSAGES_TABLE).update(update).eq("id", body.message_id);
-        return json({ success: true });
+        return json({ success: true }, 200, start);
       }
 
       if (action === "botAckCommand") {
@@ -158,7 +168,7 @@ const handler = async (req: Request): Promise<Response> => {
           update.phone_number = null;
         }
         await supabase.from(SESSIONS_TABLE).update(update).eq("id", SESSION_ID);
-        return json({ success: true });
+        return json({ success: true }, 200, start);
       }
     }
 
@@ -263,7 +273,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function json(data: unknown, status = 200) {
+function json(data: unknown, status = 200, startTime?: number) {
+  if (startTime) {
+    const duration = Date.now() - startTime;
+    if (duration > 1000) console.warn(`Slow response: ${duration}ms`);
+  }
   return new Response(JSON.stringify(data), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
