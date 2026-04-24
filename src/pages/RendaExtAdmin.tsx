@@ -677,6 +677,48 @@ const RendaExtAdmin = () => {
           <TabsContent value="whatsapp">
             <WppBotPanelV2 adminToken={adminToken} onUnauthorized={handleLogout} />
           </TabsContent>
+          
+          <TabsContent value="audio">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Engajamento com o Áudio</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-gray-700">
+                        <TableHead className="text-gray-300">Email</TableHead>
+                        <TableHead className="text-gray-300">Progresso</TableHead>
+                        <TableHead className="text-gray-300">Data</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {audioEvents.map((event) => (
+                        <TableRow key={event.id} className="border-gray-700">
+                          <TableCell className="text-white">{event.email}</TableCell>
+                          <TableCell className="text-white">
+                            <div className="flex items-center gap-2">
+                              <div className="w-full bg-gray-700 rounded-full h-2 max-w-[100px]">
+                                <div 
+                                  className={`h-2 rounded-full ${event.percent === 100 ? 'bg-green-500' : 'bg-blue-500'}`}
+                                  style={{ width: `${event.percent}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-bold">{event.percent}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {format(new Date(event.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings">
