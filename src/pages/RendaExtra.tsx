@@ -599,7 +599,7 @@ const RendaExtra = () => {
           {/* Hero Image */}
           <div className="w-full max-w-md mx-auto">
             <img 
-              src={heroImage} 
+              src="https://maisresultadosonline.com.br/assets/renda-extra-hero-DfDrjZ5D.png" 
               alt="Resultados MRO" 
               className="w-full drop-shadow-2xl"
             />
