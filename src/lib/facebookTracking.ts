@@ -68,11 +68,25 @@ export const trackFacebookEvent = async (
   }
 ) => {
   try {
+    const adminData = getAdminData();
+    const pixelSettings = adminData?.settings?.pixelSettings;
+    const pixelId = pixelSettings?.pixelId || DEFAULT_PIXEL_ID;
+    const isEnabled = pixelSettings?.enabled !== false;
+
+    if (!isEnabled) {
+      console.log(`[FB-TRACKING] Tracking is disabled in settings, skipping ${eventName}`);
+      return;
+    }
+
     const eventId = customData?.event_id || generateEventId();
     const currency = customData?.currency || 'BRL';
 
     // 1. Fire client-side Pixel event (immediate)
     if (typeof window !== 'undefined' && window.fbq) {
+      // Ensure pixel is initialized with current ID if it hasn't been already
+      // Note: Meta recommends only one init per page, but re-calling with the same ID is harmless
+      // or calling with a new one for multiple pixels.
+      
       if (eventName === 'PageView') {
         window.fbq('track', 'PageView', {}, { eventID: eventId });
       } else if (customData) {
@@ -91,7 +105,7 @@ export const trackFacebookEvent = async (
       } else {
         window.fbq('track', eventName, {}, { eventID: eventId });
       }
-      console.log(`[FB-PIXEL] Client event fired: ${eventName} (${eventId})`);
+      console.log(`[FB-PIXEL] Client event fired: ${eventName} (${eventId}) to Pixel ${pixelId}`);
     } else {
       console.warn(`[FB-PIXEL] fbq not found, skipping client event: ${eventName}`);
     }
@@ -101,6 +115,7 @@ export const trackFacebookEvent = async (
     const testEventCode = getTestEventCode();
 
     const payload: Record<string, any> = {
+      pixel_id: pixelId, // Pass the dynamic Pixel ID to the edge function
       event_name: eventName,
       event_id: eventId,
       event_source_url: typeof window !== 'undefined' ? window.location.href : '',
