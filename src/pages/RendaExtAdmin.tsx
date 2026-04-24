@@ -474,7 +474,9 @@ const RendaExtAdmin = () => {
                         <TableHead className="text-gray-300">Status</TableHead>
                         <TableHead className="text-gray-300">Data Pedido</TableHead>
                         <TableHead className="text-gray-300">Data Pagamento</TableHead>
+                        <TableHead className="text-gray-300 text-right">Ações</TableHead>
                       </TableRow>
+
                     </TableHeader>
                     <TableBody>
                       {filteredOrders.map((order) => (
