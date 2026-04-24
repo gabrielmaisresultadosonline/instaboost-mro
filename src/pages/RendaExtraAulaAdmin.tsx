@@ -110,10 +110,10 @@ const RendaExtraAulaAdmin = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(["dashboard", "leads"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-xl text-sm font-bold ${tab === t ? "bg-yellow-500 text-black" : "bg-gray-800 text-gray-300"}`}>
-              {t === "dashboard" ? "📊 Dashboard" : `👥 Leads (${leads.length})`}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          {(["dashboard", "leads", "orders"] as const).map((t) => (
+            <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap ${tab === t ? "bg-yellow-500 text-black" : "bg-gray-800 text-gray-300"}`}>
+              {t === "dashboard" ? "📊 Dashboard" : t === "leads" ? `👥 Leads (${leads.length})` : `💰 Pagos (${orders.filter(o => o.status === 'completed').length})`}
             </button>
           ))}
         </div>
