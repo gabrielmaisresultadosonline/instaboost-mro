@@ -581,8 +581,8 @@ const RendaExtra = () => {
         {/* Badge */}
         <div className="relative z-10 flex justify-center mt-4">
           <div className="bg-yellow-500/10 border border-yellow-500/30 px-5 py-1.5 rounded-full">
-            <span className="text-yellow-400 font-medium text-xs tracking-[0.2em] uppercase">
-              Renda Extra
+            <span className="text-yellow-400 font-bold text-xs tracking-[0.2em] uppercase">
+              OFERTA ESPECIAL - RENDA EXTRA
             </span>
           </div>
         </div>
