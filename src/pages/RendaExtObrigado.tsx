@@ -2,16 +2,19 @@ import { useEffect } from "react";
 import { CheckCircle2, Mail, ExternalLink, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoMro from "@/assets/logo-mro-white.png";
-import { trackFacebookEvent, trackPageView } from "@/lib/facebookTracking";
+import { trackFacebookEvent, trackPageView, trackPurchase } from "@/lib/facebookTracking";
 
 const RendaExtObrigado = () => {
   useEffect(() => {
+    const email = localStorage.getItem("mro_customer_email") || undefined;
+    
     trackPageView("Renda Extra - Obrigado");
-    trackFacebookEvent("Purchase", {
-      value: 19.90,
-      currency: "BRL",
-      content_name: "Renda Extra - Aula"
-    });
+    trackPurchase(19.90, "Renda Extra - Aula", email);
+    
+    // Cleanup email from localStorage after tracking
+    if (email) {
+      setTimeout(() => localStorage.removeItem("mro_customer_email"), 5000);
+    }
   }, []);
 
   return (

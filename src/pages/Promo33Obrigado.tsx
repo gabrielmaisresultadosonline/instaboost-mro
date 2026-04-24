@@ -17,8 +17,18 @@ export default function Promo33Obrigado() {
   const [activated, setActivated] = useState(false);
 
   useEffect(() => {
+    const email = searchParams.get('email');
+    const session = localStorage.getItem(PROMO33_STORAGE_KEY);
+    let userEmail = email;
+    if (!userEmail && session) {
+      try {
+        const user = JSON.parse(session);
+        userEmail = user.email;
+      } catch (e) {}
+    }
+
     trackPageView('Promo33 Thank You');
-    trackPurchase(33, 'Promo33 Monthly');
+    trackPurchase(33, 'Promo33 Monthly', userEmail || undefined);
     
     activateSubscription();
   }, []);

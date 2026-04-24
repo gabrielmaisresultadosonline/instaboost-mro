@@ -149,6 +149,9 @@ const RendaExt = () => {
         email: formData.email.toLowerCase().trim()
       });
 
+      // Save email for the thank you page tracking
+      localStorage.setItem("mro_customer_email", formData.email.toLowerCase().trim());
+
       const { data, error } = await supabase.functions.invoke("rendaext-checkout", {
         body: {
           nome_completo: formData.nomeCompleto.trim(),
@@ -186,8 +189,6 @@ const RendaExt = () => {
         return;
       }
       if (data.paid) {
-        // Track real purchase event
-        trackPurchase(19.90, "Renda Extra - Aula");
         toast.success("Pagamento confirmado! Redirecionando...");
         window.location.href = "/rendaext/obrigado";
       } else if (!silent) {

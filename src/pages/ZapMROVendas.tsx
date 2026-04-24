@@ -127,6 +127,10 @@ const ZapMROVendas = () => {
       }
 
       trackInitiateCheckout('ZAPMRO ' + plan.name, plan.price);
+      
+      // Save email for tracking on thank you page
+      localStorage.setItem('mro_customer_email', email.toLowerCase().trim());
+      
       window.location.href = checkData.payment_link;
 
     } catch (error) {
