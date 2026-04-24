@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Check, X, Phone } from 'lucide-react';
+import { Check, X, Phone, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAdminData } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
