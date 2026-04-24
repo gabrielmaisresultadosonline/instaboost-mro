@@ -301,7 +301,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function json(data: unknown, status = 200) {
+function json(data: unknown, status = 200, startTime?: number) {
+  if (startTime) {
+    const duration = Date.now() - startTime;
+    if (duration > 1000) {
+      console.warn(`Slow response: ${duration}ms`);
+    }
+  }
   return new Response(JSON.stringify(data), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
