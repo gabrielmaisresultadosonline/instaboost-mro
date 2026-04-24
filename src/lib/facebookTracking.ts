@@ -3,8 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 // Facebook Pixel ID
 const PIXEL_ID = '569414052132145';
 
+// Helper to generate a unique event ID for deduplication
+const generateEventId = () => {
+  return `evt_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+};
+
 // Get Facebook cookies
 const getFacebookCookies = () => {
+  if (typeof document === 'undefined') return { fbc: '', fbp: '' };
+  
   const cookies = document.cookie.split(';');
   let fbc = '';
   let fbp = '';
@@ -15,11 +22,22 @@ const getFacebookCookies = () => {
     if (name === '_fbp') fbp = value;
   }
   
+  // If fbc is not in cookies, try to get fbclid from URL and construct it
+  if (!fbc) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fbclid = urlParams.get('fbclid');
+    if (fbclid) {
+      // Format: fb.1.{timestamp}.{fbclid}
+      fbc = `fb.1.${Date.now()}.${fbclid}`;
+    }
+  }
+  
   return { fbc, fbp };
 };
 
 // Get test event code from URL
 const getTestEventCode = (): string | null => {
+  if (typeof window === 'undefined') return null;
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('test_event_code');
 };
@@ -45,24 +63,34 @@ export const trackFacebookEvent = async (
     currency?: string;
     email?: string;
     phone?: string;
+    event_id?: string;
   }
 ) => {
   try {
+    const eventId = customData?.event_id || generateEventId();
+    const currency = customData?.currency || 'BRL';
+
     // 1. Fire client-side Pixel event (immediate)
     if (typeof window !== 'undefined' && window.fbq) {
       if (eventName === 'PageView') {
-        window.fbq('track', 'PageView');
-      } else if (customData && Object.keys(customData).length > 0) {
-        window.fbq('track', eventName, {
+        window.fbq('track', 'PageView', {}, { eventID: eventId });
+      } else if (customData) {
+        const trackingData: Record<string, any> = {
           content_name: customData.content_name,
           content_category: customData.content_category,
           value: customData.value,
-          currency: customData.currency || 'BRL'
+          currency: currency
+        };
+        // Remove undefined from trackingData
+        Object.keys(trackingData).forEach(key => {
+          if (trackingData[key] === undefined) delete trackingData[key];
         });
+        
+        window.fbq('track', eventName, trackingData, { eventID: eventId });
       } else {
-        window.fbq('track', eventName);
+        window.fbq('track', eventName, {}, { eventID: eventId });
       }
-      console.log(`[FB-PIXEL] Client event fired: ${eventName}`);
+      console.log(`[FB-PIXEL] Client event fired: ${eventName} (${eventId})`);
     } else {
       console.warn(`[FB-PIXEL] fbq not found, skipping client event: ${eventName}`);
     }
@@ -73,11 +101,13 @@ export const trackFacebookEvent = async (
 
     const payload: Record<string, any> = {
       event_name: eventName,
-      event_source_url: window.location.href,
-      user_agent: navigator.userAgent,
+      event_id: eventId,
+      event_source_url: typeof window !== 'undefined' ? window.location.href : '',
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
       fbc: fbc || undefined,
       fbp: fbp || undefined,
       test_event_code: testEventCode || undefined,
+      currency: currency,
       ...customData
     };
 
@@ -93,7 +123,7 @@ export const trackFacebookEvent = async (
     if (error) {
       console.error(`[FB-API] Error sending ${eventName}:`, error);
     } else {
-      console.log(`[FB-API] Server event sent: ${eventName}`, data);
+      console.log(`[FB-API] Server event sent: ${eventName} (${eventId})`, data);
     }
   } catch (err) {
     console.error(`[FB-TRACKING] Error tracking ${eventName}:`, err);
@@ -113,7 +143,8 @@ export const trackPageView = (pageName?: string) => {
 export const trackLead = (leadSource?: string) => {
   trackFacebookEvent('Lead', {
     content_name: leadSource || 'WhatsApp Contact',
-    content_category: 'Lead'
+    content_category: 'Lead',
+    currency: 'BRL'
   });
 };
 
@@ -134,7 +165,8 @@ export const trackInitiateCheckout = (productName?: string, value?: number) => {
 export const trackViewContent = (contentName: string, category?: string) => {
   trackFacebookEvent('ViewContent', {
     content_name: contentName,
-    content_category: category
+    content_category: category,
+    currency: 'BRL'
   });
 };
 
@@ -155,6 +187,7 @@ export const trackPurchase = (value: number, productName?: string) => {
 export const trackButtonClick = (buttonName: string, category?: string) => {
   trackFacebookEvent('ViewContent', {
     content_name: `Button: ${buttonName}`,
-    content_category: category || 'Button Click'
+    content_category: category || 'Button Click',
+    currency: 'BRL'
   });
 };
