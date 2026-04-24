@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const PIXEL_ID = '569414052132145';
+const DEFAULT_PIXEL_ID = '569414052132145';
 const META_API_VERSION = 'v18.0';
 
 interface ConversionEvent {
