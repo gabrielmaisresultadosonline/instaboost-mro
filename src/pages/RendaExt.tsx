@@ -235,7 +235,7 @@ const RendaExt = () => {
           </div>
 
           {/* Audio/Image Section */}
-          <div className="relative max-w-lg mx-auto mt-12 mb-52 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
+          <div className="relative max-w-lg mx-auto mt-16 mb-48 md:mb-56 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
             <div className="absolute -inset-4 bg-red-600/20 rounded-[2.5rem] blur-2xl group-hover:bg-red-600/30 transition-colors" />
             <div className="relative flex flex-col items-center">
               <img 
@@ -245,13 +245,13 @@ const RendaExt = () => {
               />
               
               {/* Overlapping Button and Waveform */}
-              <div className="absolute -bottom-16 left-0 right-0 flex flex-col items-center gap-6 z-20">
+              <div className="absolute -bottom-12 md:-bottom-16 left-0 right-0 flex flex-col items-center gap-4 md:gap-6 z-20">
                 {/* Standalone Audio Waveform (Transparent background) */}
-                <div className="flex items-end justify-center gap-1.5 h-16 px-4">
+                <div className="flex items-end justify-center gap-1 md:gap-1.5 h-12 md:h-16 px-4">
                   {[...Array(15)].map((_, i) => (
                     <div
                       key={i}
-                      className="w-1.5 bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.6)]"
+                      className="w-1 md:w-1.5 bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.6)]"
                       style={{
                         height: isPlaying ? '100%' : '15%',
                         animation: isPlaying 
@@ -263,8 +263,8 @@ const RendaExt = () => {
                   ))}
                 </div>
 
-                <Button className="bg-red-600 hover:bg-red-700 text-white font-display font-black px-12 py-10 text-2xl md:text-4xl rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.8)] flex items-center gap-4 transition-all hover:scale-110 active:scale-95 border-2 border-white/20 backdrop-blur-md">
-                  <Mic className={`w-10 h-10 md:w-12 md:h-12 ${isPlaying ? 'animate-pulse text-yellow-400' : ''}`} />
+                <Button className="bg-red-600 hover:bg-red-700 text-white font-display font-black px-8 py-6 md:px-12 md:py-10 text-xl md:text-4xl rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.8)] flex items-center gap-3 md:gap-4 transition-all hover:scale-110 active:scale-95 border-2 border-white/20 backdrop-blur-md">
+                  <Mic className={`w-8 h-8 md:w-12 md:h-12 ${isPlaying ? 'animate-pulse text-yellow-400' : ''}`} />
                   <span>OUÇA AGORA..</span>
                 </Button>
               </div>
