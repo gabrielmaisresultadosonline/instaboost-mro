@@ -62,11 +62,24 @@ const RendaExt = () => {
 
   const trackAudioEvent = async (percent: number) => {
     try {
-      // Track in database
+      const email = formData.email || "anonymous";
+      
+      // Track in events table
       await supabase.from("rendaext_audio_events").insert({
-        email: formData.email || "anonymous",
+        email: email,
         percent: percent
       });
+
+      // Update lead record if email is present
+      if (email !== "anonymous") {
+        await supabase
+          .from("rendaext_leads")
+          .update({ 
+            audio_listened_percent: percent,
+            audio_listened_at: new Date().toISOString()
+          })
+          .eq("email", email.toLowerCase().trim());
+      }
       
       // Track on Facebook
       trackFacebookEvent("AudioEngagement", {
