@@ -26,7 +26,7 @@ import InstagramNovaPromoo2 from "./pages/InstagramNovaPromoo2";
 import DescontoAlunosRendaExtra from "./pages/DescontoAlunosRendaExtra";
 import DescontoAlunosRendaExtras from "./pages/DescontoAlunosRendaExtras";
 import DescontoAlunosRendaExtrasss from "./pages/DescontoAlunosRendaExtrasss";
-import InstagramPromoMila from "./pages/InstagramPromoMila";
+import DescontoAlunosRendaExtrass from "./pages/DescontoAlunosRendaExtrass";
 import AffiliatePromoPage from "./pages/AffiliatePromoPage";
 import AffiliateResumo from "./pages/AffiliateResumo";
 import Membro from "./pages/Membro";
