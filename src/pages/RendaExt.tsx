@@ -208,7 +208,7 @@ const RendaExt = () => {
             onClick={() => setShowForm(true)}
             className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold text-lg px-10 py-6 rounded-2xl shadow-2xl shadow-yellow-500/20 hover:scale-105 transition-transform"
           >
-            QUERO RECEBER O PASSO A PASSO
+            LIBERAR AULA COMPLETA
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
 
