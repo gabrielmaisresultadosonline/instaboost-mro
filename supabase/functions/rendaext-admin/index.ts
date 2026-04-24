@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const sessionSecret = `${settingsRow.admin_email}:${settingsRow.admin_password}`;
+    const sessionSecret = `${settingsRow.admin_email.trim().toLowerCase()}:${settingsRow.admin_password.trim()}`;
 
     if (action === "login") {
       const parsed = LoginSchema.safeParse(body);
