@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { trackFacebookEvent, trackInitiateCheckout } from "@/lib/facebookTracking";
+import { trackFacebookEvent, trackInitiateCheckout, trackPageView, trackPurchase } from "@/lib/facebookTracking";
 import logoMro from "@/assets/logo-mro-white.png";
 import {
   CheckCircle2,
@@ -108,8 +108,8 @@ const RendaExt = () => {
       user_agent: navigator.userAgent,
     }).then(() => {});
     
-    // Track PageView on FB
-    trackFacebookEvent("PageView", { content_name: "Renda Extra" });
+    // Track PageView on FB - accurate real tracking
+    trackPageView("Renda Extra");
   }, []);
 
   // Auto-verify if returning from InfiniPay redirect (?paid=1&nsu=...)
@@ -187,6 +187,8 @@ const RendaExt = () => {
       }
       if (data.paid) {
         setPaymentConfirmed(true);
+        // Track real purchase event
+        trackPurchase(19.90, "Renda Extra - Aula");
         toast.success("Pagamento confirmado! Confira seu email.");
       } else if (!silent) {
         toast.info("Pagamento ainda não confirmado. Aguarde alguns instantes e tente novamente.");
