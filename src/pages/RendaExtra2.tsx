@@ -1,19 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/renda-extra-hero.png";
 import logoMro from "@/assets/logo-mro-white.png";
-import gabrielPhoto from "/gabriel-photo.webp";
-import { Laptop, Monitor, Clock, MapPin, Briefcase, CheckCircle2, Shield, ArrowRight, Loader2, X, Play, Pause, FastForward } from "lucide-react";
+import { Laptop, Monitor, Clock, MapPin, Briefcase, CheckCircle2, Shield, ArrowRight, Loader2, X } from "lucide-react";
 
 const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrendaextrasss";
 
 const RendaExtra2 = () => {
   const [showForm, setShowForm] = useState(false);
-  const [audioHeard, setAudioHeard] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
