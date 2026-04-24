@@ -18,6 +18,7 @@ import {
   Zap,
   Target,
   Clock,
+  Mic,
 } from "lucide-react";
 
 const RendaExt = () => {
