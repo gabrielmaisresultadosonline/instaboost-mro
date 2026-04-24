@@ -247,3 +247,27 @@ verify_jwt = false
 
 [functions.renda-extra-register-v2]
 verify_jwt = false
+
+[functions.renda-extra-v2-admin]
+verify_jwt = false
+
+[functions.renda-extra-admin]
+verify_jwt = false
+
+[functions.wpp-bot-admin]
+verify_jwt = false
+
+[functions.wpp-bot-admin-v2]
+verify_jwt = false
+
+[functions.rendaext-admin]
+verify_jwt = false
+
+[functions.renda-extra-register]
+verify_jwt = false
+
+[functions.renda-extra-aula-register]
+verify_jwt = false
+
+[functions.renda-extra-ligacao-storage]
+verify_jwt = false
