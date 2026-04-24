@@ -69,6 +69,7 @@ const RendaExtraAulaAdmin = () => {
       });
       if (error) throw error;
       setLeads(data.leads || []);
+      setOrders(data.orders || []);
       setAnalytics(data.analytics || {});
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
