@@ -137,6 +137,7 @@ const handler = async (req: Request): Promise<Response> => {
         success: true,
         leads: leadsRes.data || [],
         emailLogs: emailLogsRes.data || [],
+        orders: ordersRes.data || [],
         settings: settingsRes.data || null,
         analytics: {
           total_visits: totalVisitsRes.count || 0,
