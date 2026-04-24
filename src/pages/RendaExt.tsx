@@ -235,7 +235,7 @@ const RendaExt = () => {
           </div>
 
           {/* Audio/Image Section */}
-          <div className="relative max-w-lg mx-auto mt-20 mb-56 md:mb-64 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
+          <div className="relative max-w-lg mx-auto mt-20 mb-80 md:mb-96 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
             <div className="absolute -inset-4 bg-red-600/20 rounded-[2.5rem] blur-2xl group-hover:bg-red-600/30 transition-colors" />
             <div className="relative flex flex-col items-center">
               <img 
@@ -278,7 +278,7 @@ const RendaExt = () => {
           </div>
 
           {/* Badges Section */}
-          <div className="flex flex-wrap justify-center gap-4 text-xs md:text-sm animate-fade-up mt-12 md:mt-0" style={{ animationDelay: "300ms" }}>
+          <div className="flex flex-wrap justify-center gap-4 text-xs md:text-sm animate-fade-up mt-32 md:mt-0 relative z-10" style={{ animationDelay: "300ms" }}>
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 pl-2 pr-4 py-2 rounded-full hover:bg-white/10 transition-colors">
               <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
                 <Zap className="w-4 h-4 text-yellow-400" />
