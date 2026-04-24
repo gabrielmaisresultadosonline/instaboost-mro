@@ -158,14 +158,26 @@ const RendaExt = () => {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold leading-tight">
-            Libere a aula completa de como fazer isso com a{" "}
-            <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              nova onda do mercado
-            </span>
+            RENDA EXTRA ACIMA
           </h1>
 
+          <div className="bg-red-500/20 border border-red-500/50 p-4 rounded-xl mb-6">
+            <p className="text-red-400 font-black text-lg uppercase">
+              NÃO É CURSO É UMA FERRAMENTA!
+            </p>
+            <p className="text-gray-300 text-sm">
+              Não é curso, é uma ferramenta que você instala e utiliza automático.
+            </p>
+          </div>
+
+          <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto space-y-4">
+            <span className="block italic text-yellow-400">"aprenda de uma vez por todas como faturar em casa com apenas seu notebook utilizando a MRO!"</span>
+            <span className="block text-white font-semibold">Desbloqueie o método validado, utilizado por mais de 1700 empreendedores!</span>
+            <span className="block text-gray-400">aprenda hoje como fazer isso e aplique você também!</span>
+          </p>
+
           <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto">
-            Por apenas <span className="text-yellow-400 font-bold text-2xl">R$ 19,90</span> você libera o acesso imediato à aula e ao passo a passo completo.
+            Tenha liberdade financeira.. investimento único de <span className="text-yellow-400 font-bold text-2xl">R$ 19,90</span> libere agora mesmo.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 text-sm">
@@ -182,18 +194,17 @@ const RendaExt = () => {
         </div>
 
         {/* Benefits */}
-        <div className="grid md:grid-cols-3 gap-4 mb-10">
-          {[
-            { icon: Target, title: "Como prospectar empresas", desc: "Estratégias prontas para fechar contratos" },
-            { icon: Zap, title: "Acesso à Aula", desc: "Passo a passo completo em vídeo" },
-            { icon: Clock, title: "Aplique HOJE mesmo", desc: "Resultados rápidos e duradouros" },
-          ].map((b, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
-              <b.icon className="w-8 h-8 text-yellow-400 mb-3" />
-              <h3 className="font-bold text-white mb-1">{b.title}</h3>
-              <p className="text-gray-400 text-sm">{b.desc}</p>
-            </div>
-          ))}
+        <div className="grid md:grid-cols-2 gap-4 mb-10">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+            <Target className="w-8 h-8 text-yellow-400 mb-3" />
+            <h3 className="font-bold text-white mb-1">Método Validado</h3>
+            <p className="text-gray-400 text-sm">+1700 empreendedores utilizando a ferramenta MRO.</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+            <Zap className="w-8 h-8 text-yellow-400 mb-3" />
+            <h3 className="font-bold text-white mb-1">100% Automático</h3>
+            <p className="text-gray-400 text-sm">Instale a ferramenta e comece a utilizar agora mesmo.</p>
+          </div>
         </div>
 
         {/* CTA Card */}
@@ -208,12 +219,12 @@ const RendaExt = () => {
             onClick={() => setShowForm(true)}
             className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold text-lg px-10 py-6 rounded-2xl shadow-2xl shadow-yellow-500/20 hover:scale-105 transition-transform"
           >
-            LIBERAR AULA COMPLETA
+            APRENDER AGORA
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
 
           <p className="text-gray-400 text-xs mt-4">
-            ⚡ Após o pagamento você recebe acesso imediato à aula no seu email
+            ⚡ Após o pagamento você recebe acesso imediato à ferramenta no seu email
           </p>
         </div>
       </div>
@@ -308,7 +319,7 @@ const RendaExt = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Após pagar você receberá o acesso à aula no seu email automaticamente.
+                  Após pagar você receberá o acesso à ferramenta no seu email automaticamente.
                 </p>
               </form>
             ) : (
@@ -356,7 +367,7 @@ const RendaExt = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Após o pagamento, o acesso à aula será enviado automaticamente para seu email.
+                  Após o pagamento, o acesso à ferramenta será enviado automaticamente para seu email.
                 </p>
               </div>
             )}
