@@ -166,7 +166,7 @@ const RendaExt = () => {
               NÃO É CURSO É UMA FERRAMENTA!
             </p>
             <p className="text-gray-300 text-sm">
-              Não é curso, é uma ferramenta que você instala e utiliza automático.
+              Não é curso, é uma ferramenta automática que vai fazer você faturar mais de 5 mil reais mensal!
             </p>
           </div>
 
