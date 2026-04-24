@@ -504,7 +504,22 @@ const RendaExtAdmin = () => {
                           <TableCell className="text-gray-300">
                             {order.paid_at ? format(new Date(order.paid_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}
                           </TableCell>
+                          <TableCell className="text-right">
+                            {order.status === "paid" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResendEmail(order.id)}
+                                disabled={loading}
+                                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
+                              >
+                                <Mail className="w-3 h-3 mr-1" />
+                                Reenviar Aula
+                              </Button>
+                            )}
+                          </TableCell>
                         </TableRow>
+
                       ))}
                       {filteredOrders.length === 0 && (
                         <TableRow>
