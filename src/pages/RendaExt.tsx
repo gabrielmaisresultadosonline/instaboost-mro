@@ -187,6 +187,8 @@ const RendaExt = () => {
       }
       if (data.paid) {
         setPaymentConfirmed(true);
+        // Track real purchase event
+        trackPurchase(19.90, "Renda Extra - Aula");
         toast.success("Pagamento confirmado! Confira seu email.");
       } else if (!silent) {
         toast.info("Pagamento ainda não confirmado. Aguarde alguns instantes e tente novamente.");
