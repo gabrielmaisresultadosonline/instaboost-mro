@@ -248,6 +248,30 @@ const RendaExtAdmin = () => {
     }
   };
 
+  const handleApproveOrder = async (order: Order) => {
+    if (!confirm(`Deseja realmente aprovar o pagamento de ${order.nome_completo}?`)) return;
+    
+    setLoading(true);
+    try {
+      const response = await supabase.functions.invoke("rendaext-admin", {
+        body: { action: "approveOrder", adminToken, orderId: order.id }
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data.success) throw new Error(response.data.error || "Erro ao aprovar");
+
+      // Track purchase event on Facebook
+      trackPurchase(order.amount, "Renda Extra - Aula", order.email);
+
+      toast({ title: "Pagamento aprovado!", description: "O acesso foi enviado ao cliente e o pixel de conversão foi disparado." });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Erro ao aprovar", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredLeads = leads.filter(lead => 
     lead.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
