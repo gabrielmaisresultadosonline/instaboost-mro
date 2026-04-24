@@ -2824,6 +2824,68 @@ export type Database = {
         }
         Relationships: []
       }
+      rendaext_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          email_sent: boolean | null
+          email_sent_at: string | null
+          expired_at: string | null
+          id: string
+          infinitepay_link: string | null
+          lead_id: string | null
+          nome_completo: string
+          nsu_order: string
+          paid_at: string | null
+          status: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          email: string
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          lead_id?: string | null
+          nome_completo: string
+          nsu_order: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          expired_at?: string | null
+          id?: string
+          infinitepay_link?: string | null
+          lead_id?: string | null
+          nome_completo?: string
+          nsu_order?: string
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rendaext_orders_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "rendaext_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rendaext_settings: {
         Row: {
           admin_email: string
