@@ -179,39 +179,6 @@ const RendaExtra2 = () => {
     }
   };
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-      setAudioProgress(progress);
-    }
-  };
-
-  const handleAudioEnded = () => {
-    setAudioHeard(true);
-    setIsPlaying(false);
-    setTimeout(() => {
-      setShowAudioPopup(false);
-      setShowForm(true);
-    }, 1000);
-  };
-
-  const changePlaybackRate = (rate: number) => {
-    setPlaybackRate(rate);
-    if (audioRef.current) {
-      audioRef.current.playbackRate = rate;
-    }
-  };
 
   if (submitted) {
     return (
