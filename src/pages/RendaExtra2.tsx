@@ -468,7 +468,7 @@ const RendaExtra2 = () => {
     <>
       {showAudioPopup && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
-          <div className="relative w-full max-w-md bg-gradient-to-br from-[#1a1f35] to-[#0a0e1a] rounded-[2rem] p-8 border border-white/10 shadow-2xl animate-scale-in text-center">
+          <div className="relative w-full max-w-md bg-gradient-to-br from-[#1a1f35] to-[#0a0e1a] rounded-[2rem] p-8 border border-white/10 shadow-2xl animate-fade-in text-center">
             <button
               onClick={() => {
                 setShowAudioPopup(false);
