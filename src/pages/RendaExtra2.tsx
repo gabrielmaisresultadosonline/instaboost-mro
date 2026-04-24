@@ -40,12 +40,12 @@ const RendaExtra2 = () => {
   }, []);
 
   useEffect(() => {
-    if (showForm || showAudioPopup) {
+    if (showForm) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
-  }, [showForm, showAudioPopup]);
+  }, [showForm]);
 
   const trackVisit = async () => {
     try {
