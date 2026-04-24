@@ -224,7 +224,7 @@ const RendaExt = () => {
           </Button>
 
           <p className="text-gray-400 text-xs mt-4">
-            ⚡ Após o pagamento você recebe acesso imediato à aula no seu email
+            ⚡ Após o pagamento você recebe acesso imediato à ferramenta no seu email
           </p>
         </div>
       </div>
