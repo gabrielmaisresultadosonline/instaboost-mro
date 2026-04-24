@@ -232,6 +232,7 @@ const App = () => (
           <Route path="/descontoalunosrendaextra" element={<DescontoAlunosRendaExtra />} />
           <Route path="/descontoalunosrendaextras" element={<DescontoAlunosRendaExtras />} />
           <Route path="/descontoalunosrendaextrasss" element={<DescontoAlunosRendaExtrasss />} />
+          <Route path="/descontoalunosrendaextrass" element={<DescontoAlunosRendaExtrass />} />
           <Route path="/estruturarendaextra" element={<EstruturaRendaExtra />} />
           <Route path="/whatsappdireto" element={<WhatsAppDireto />} />
           <Route path="/apiwhatsappacess" element={<ApiWhatsAppAccess />} />
