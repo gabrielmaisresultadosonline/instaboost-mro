@@ -1,16 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/renda-extra-hero.png";
 import logoMro from "@/assets/logo-mro-white.png";
-import { Laptop, Monitor, Clock, MapPin, Briefcase, CheckCircle2, Shield, ArrowRight, Loader2, X } from "lucide-react";
+import gabrielPhoto from "/gabriel-photo.webp";
+import { Laptop, Monitor, Clock, MapPin, Briefcase, CheckCircle2, Shield, ArrowRight, Loader2, X, Play, Pause, FastForward } from "lucide-react";
 
 const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrendaextrasss";
 
 const RendaExtra2 = () => {
   const [showForm, setShowForm] = useState(false);
+  const [showAudioPopup, setShowAudioPopup] = useState(false);
+  const [audioHeard, setAudioHeard] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -36,15 +44,12 @@ const RendaExtra2 = () => {
   }, []);
 
   useEffect(() => {
-    if (showForm) {
+    if (showForm || showAudioPopup) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showForm]);
+  }, [showForm, showAudioPopup]);
 
   const trackVisit = async () => {
     try {
@@ -175,6 +180,40 @@ const RendaExtra2 = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+      setAudioProgress(progress);
+    }
+  };
+
+  const handleAudioEnded = () => {
+    setAudioHeard(true);
+    setIsPlaying(false);
+    setTimeout(() => {
+      setShowAudioPopup(false);
+      setShowForm(true);
+    }, 1000);
+  };
+
+  const changePlaybackRate = (rate: number) => {
+    setPlaybackRate(rate);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = rate;
     }
   };
 
@@ -427,6 +466,99 @@ const RendaExtra2 = () => {
 
   return (
     <>
+      {showAudioPopup && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+          <div className="relative w-full max-w-md bg-gradient-to-br from-[#1a1f35] to-[#0a0e1a] rounded-[2rem] p-8 border border-white/10 shadow-2xl animate-fade-in text-center">
+            <button
+              onClick={() => {
+                setShowAudioPopup(false);
+                if (audioRef.current) {
+                  audioRef.current.pause();
+                  audioRef.current.currentTime = 0;
+                }
+                setIsPlaying(false);
+              }}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-red-500/20 border border-white/10 transition-all"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
+
+            <div className="mb-6 relative mx-auto w-32 h-32">
+              <div className="absolute inset-0 bg-yellow-400/20 rounded-full animate-ping opacity-20" />
+              <img 
+                src={gabrielPhoto} 
+                alt="Gabriel" 
+                className="w-full h-full object-cover rounded-full border-2 border-yellow-400/50 shadow-lg shadow-yellow-400/20"
+              />
+            </div>
+
+            <div className="space-y-4 mb-8">
+              <h3 className="text-xl md:text-2xl font-bold text-white leading-tight">
+                Antes de liberar a aula, <span className="text-yellow-400 underline decoration-yellow-400/30">ouça até o final</span> para entender bem a proposta!
+              </h3>
+              <div className="flex justify-center items-center gap-2 text-yellow-400 font-black text-3xl animate-pulse">
+                <span>OUÇA</span>
+              </div>
+            </div>
+
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10 mb-6">
+              <audio
+                ref={audioRef}
+                src="/call-audio.mp3"
+                onTimeUpdate={handleTimeUpdate}
+                onEnded={handleAudioEnded}
+              />
+              
+              <div className="flex items-center gap-4 mb-4">
+                <Button
+                  onClick={togglePlay}
+                  className="w-14 h-14 rounded-full bg-yellow-400 hover:bg-yellow-300 text-black p-0 flex items-center justify-center transition-transform hover:scale-110"
+                >
+                  {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-1" />}
+                </Button>
+                
+                <div className="flex-1 space-y-2">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-yellow-400 transition-all duration-300"
+                      style={{ width: `${audioProgress}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                    <span>{isPlaying ? 'Reproduzindo' : 'Pausado'}</span>
+                    <span>{Math.round(audioProgress)}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center items-center gap-3">
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mr-2">Velocidade:</span>
+                {[1, 1.5, 2].map((rate) => (
+                  <button
+                    key={rate}
+                    onClick={() => changePlaybackRate(rate)}
+                    className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                      playbackRate === rate 
+                        ? "bg-yellow-400 text-black" 
+                        : "bg-white/5 text-gray-400 hover:bg-white/10"
+                    }`}
+                  >
+                    {rate}x
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {audioHeard && (
+              <div className="text-green-400 font-bold text-sm animate-fade-in flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Áudio concluído! Redirecionando...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-lg bg-gradient-to-br from-[#151a2e] to-[#0d1020] rounded-3xl p-6 md:p-10 border border-white/10 shadow-2xl animate-fade-in">
@@ -439,6 +571,12 @@ const RendaExtra2 = () => {
             >
               <X className="w-5 h-5 text-white" />
             </button>
+
+            <div className="text-center mb-6">
+              <p className="text-yellow-400 font-bold text-lg animate-pulse">
+                Preencha para liberar a aula grátis
+              </p>
+            </div>
 
             <div className="mb-8">
               <div className="flex justify-between text-xs text-gray-500 mb-2">
@@ -591,7 +729,7 @@ const RendaExtra2 = () => {
 
           <div className="mt-6 sm:mt-8">
             <Button 
-              onClick={() => setShowForm(true)}
+              onClick={() => setShowAudioPopup(true)}
               className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-base sm:text-lg md:text-xl px-8 sm:px-10 py-5 sm:py-6 rounded-2xl shadow-2xl shadow-yellow-400/30 hover:scale-105 transition-all duration-300 group"
             >
               Aprender grátis agora!
@@ -616,7 +754,7 @@ const RendaExtra2 = () => {
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <Button 
-            onClick={() => setShowForm(true)}
+            onClick={() => setShowAudioPopup(true)}
             className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-yellow-400/30 hover:scale-105 transition-all duration-300 group mb-8"
           >
             Aprender grátis agora!
@@ -658,7 +796,7 @@ const RendaExtra2 = () => {
       <section className="py-12 px-4">
         <div className="max-w-xl mx-auto text-center">
           <Button 
-            onClick={() => setShowForm(true)}
+            onClick={() => setShowAudioPopup(true)}
             className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-yellow-400/30 hover:scale-105 transition-all duration-300 group"
           >
             Aprender grátis agora!
