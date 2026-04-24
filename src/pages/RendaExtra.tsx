@@ -697,7 +697,7 @@ const RendaExtra = () => {
               Isso <span className="text-yellow-400">NÃO É</span> um curso!
             </p>
             <p className="text-gray-400 mt-2">
-              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5k mensal!
+              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5 mil reais mensal!
             </p>
           </div>
 
