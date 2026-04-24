@@ -2735,6 +2735,8 @@ export type Database = {
       rendaext_email_logs: {
         Row: {
           created_at: string
+          email_to: string | null
+          email_type: string | null
           error_message: string | null
           id: string
           lead_id: string | null
@@ -2744,6 +2746,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email_to?: string | null
+          email_type?: string | null
           error_message?: string | null
           id?: string
           lead_id?: string | null
@@ -2753,6 +2757,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email_to?: string | null
+          email_type?: string | null
           error_message?: string | null
           id?: string
           lead_id?: string | null
@@ -2774,25 +2780,46 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          email_confirmacao_enviado: boolean | null
+          email_confirmacao_enviado_at: string | null
+          email_lembrete_enviado: boolean | null
           id: string
+          instagram_username: string | null
+          media_salarial: string | null
           nome_completo: string
           source: string | null
+          tipo_computador: string | null
+          trabalha_atualmente: boolean | null
           whatsapp: string
         }
         Insert: {
           created_at?: string
           email: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          email_lembrete_enviado?: boolean | null
           id?: string
+          instagram_username?: string | null
+          media_salarial?: string | null
           nome_completo: string
           source?: string | null
+          tipo_computador?: string | null
+          trabalha_atualmente?: boolean | null
           whatsapp: string
         }
         Update: {
           created_at?: string
           email?: string
+          email_confirmacao_enviado?: boolean | null
+          email_confirmacao_enviado_at?: string | null
+          email_lembrete_enviado?: boolean | null
           id?: string
+          instagram_username?: string | null
+          media_salarial?: string | null
           nome_completo?: string
           source?: string | null
+          tipo_computador?: string | null
+          trabalha_atualmente?: boolean | null
           whatsapp?: string
         }
         Relationships: []
