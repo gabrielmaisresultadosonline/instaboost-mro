@@ -68,8 +68,17 @@ const RendaExtAdmin = () => {
   const [loading, setLoading] = useState(false);
   
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
-  const [analytics, setAnalytics] = useState<Analytics>({ total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 });
+  const [analytics, setAnalytics] = useState<Analytics>({ 
+    total_visits: 0, 
+    total_leads: 0, 
+    today_visits: 0, 
+    today_leads: 0,
+    total_sales: 0,
+    today_sales: 0,
+    total_revenue: 0
+  });
   
   const [settings, setSettings] = useState({
     whatsapp_group_link: "",
