@@ -36,7 +36,7 @@ const RendaExt = () => {
     whatsapp: "",
   });
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audio] = useState(new Audio("/audio_gabr.mp3"));
+  const [audio] = useState(new Audio("/audio_renda.ogg"));
   const trackedPercents = useRef(new Set<number>());
 
   useEffect(() => {
