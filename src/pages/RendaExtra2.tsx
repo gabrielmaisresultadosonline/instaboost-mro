@@ -600,7 +600,7 @@ const RendaExtra2 = () => {
 
           <div className="mt-6 sm:mt-8">
             <Button 
-              onClick={() => setShowAudioPopup(true)}
+              onClick={() => setShowForm(true)}
               className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-base sm:text-lg md:text-xl px-8 sm:px-10 py-5 sm:py-6 rounded-2xl shadow-2xl shadow-yellow-400/30 hover:scale-105 transition-all duration-300 group"
             >
               Aprender grátis agora!
@@ -625,7 +625,7 @@ const RendaExtra2 = () => {
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <Button 
-            onClick={() => setShowAudioPopup(true)}
+            onClick={() => setShowForm(true)}
             className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-yellow-400/30 hover:scale-105 transition-all duration-300 group mb-8"
           >
             Aprender grátis agora!
@@ -667,7 +667,7 @@ const RendaExtra2 = () => {
       <section className="py-12 px-4">
         <div className="max-w-xl mx-auto text-center">
           <Button 
-            onClick={() => setShowAudioPopup(true)}
+            onClick={() => setShowForm(true)}
             className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-lg md:text-xl px-10 py-6 rounded-2xl shadow-2xl shadow-yellow-400/30 hover:scale-105 transition-all duration-300 group"
           >
             Aprender grátis agora!
