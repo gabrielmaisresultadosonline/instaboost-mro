@@ -729,7 +729,7 @@ const RendaExtra2 = () => {
 
           <div className="mt-6 sm:mt-8">
             <Button 
-              onClick={() => setShowForm(true)}
+              onClick={() => setShowAudioPopup(true)}
               className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-base sm:text-lg md:text-xl px-8 sm:px-10 py-5 sm:py-6 rounded-2xl shadow-2xl shadow-yellow-400/30 hover:scale-105 transition-all duration-300 group"
             >
               Aprender grátis agora!
