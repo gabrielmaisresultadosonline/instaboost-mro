@@ -154,11 +154,11 @@ const RendaExt = () => {
         <div className="text-center space-y-6 mb-12">
           <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 px-4 py-2 rounded-full">
             <Sparkles className="w-4 h-4 text-yellow-400" />
-            <span className="text-yellow-400 text-sm font-semibold">OFERTA ESPECIAL</span>
+            <span className="text-yellow-400 text-sm font-semibold">OFERTA ESPECIAL - RENDA EXTRA</span>
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold leading-tight">
-            RENDA EXTRA ACIMA
+            FATURE MAIS DE <span className="text-yellow-400">5 MIL REAIS</span> COM A MRO!
           </h1>
 
           <div className="bg-red-500/20 border border-red-500/50 p-4 rounded-xl mb-6">
@@ -171,9 +171,8 @@ const RendaExt = () => {
           </div>
 
           <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto space-y-4">
-            <span className="block italic text-yellow-400">"aprenda de uma vez por todas como faturar em casa com apenas seu notebook utilizando a MRO!"</span>
             <span className="block text-white font-semibold">Desbloqueie o método validado, utilizado por mais de 1700 empreendedores!</span>
-            <span className="block text-gray-400">aprenda hoje como fazer isso e aplique você também!</span>
+            <span className="block text-gray-400">Aprenda hoje como fazer isso e aplique você também!</span>
           </p>
 
           <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto">
