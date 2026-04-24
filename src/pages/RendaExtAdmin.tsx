@@ -444,6 +444,10 @@ const RendaExtAdmin = () => {
               <MessageCircle className="w-4 h-4 mr-2" />
               WhatsApp
             </TabsTrigger>
+            <TabsTrigger value="audio" className="data-[state=active]:bg-gray-700">
+              <Mic className="w-4 h-4 mr-2" />
+              Engajamento Áudio
+            </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-gray-700">
               <Settings className="w-4 h-4 mr-2" />
               Configurações
