@@ -28,6 +28,8 @@ interface Lead {
   created_at: string;
   email_confirmacao_enviado: boolean;
   email_lembrete_enviado: boolean;
+  audio_listened_percent: number;
+  audio_listened_at: string | null;
 }
 
 interface Order {
@@ -38,6 +40,14 @@ interface Order {
   amount: number;
   status: string;
   paid_at: string | null;
+  created_at: string;
+  audio_listened_percent: number;
+}
+
+interface AudioEvent {
+  id: string;
+  email: string;
+  percent: number;
   created_at: string;
 }
 
@@ -59,6 +69,7 @@ interface Analytics {
   total_sales: number;
   today_sales: number;
   total_revenue: number;
+  total_audio_listeners: number;
 }
 
 const RendaExtAdmin = () => {
@@ -71,6 +82,7 @@ const RendaExtAdmin = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
+  const [audioEvents, setAudioEvents] = useState<AudioEvent[]>([]);
   const [analytics, setAnalytics] = useState<Analytics>({ 
     total_visits: 0, 
     total_leads: 0, 
@@ -78,7 +90,8 @@ const RendaExtAdmin = () => {
     today_leads: 0,
     total_sales: 0,
     today_sales: 0,
-    total_revenue: 0
+    total_revenue: 0,
+    total_audio_listeners: 0
   });
   
   const [settings, setSettings] = useState({
