@@ -149,6 +149,9 @@ const RendaExt = () => {
         email: formData.email.toLowerCase().trim()
       });
 
+      // Save email for the thank you page tracking
+      localStorage.setItem("mro_customer_email", formData.email.toLowerCase().trim());
+
       const { data, error } = await supabase.functions.invoke("rendaext-checkout", {
         body: {
           nome_completo: formData.nomeCompleto.trim(),
