@@ -300,48 +300,89 @@ const RendaExtAdmin = () => {
             Zerar Visitas
           </Button>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
           <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <Eye className="w-6 h-6 text-blue-400" />
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Eye className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Total Visitas</p>
-                <p className="text-2xl font-bold text-white">{analytics.total_visits}</p>
+                <p className="text-gray-400 text-xs">Visitas Total</p>
+                <p className="text-xl font-bold text-white">{analytics.total_visits}</p>
               </div>
             </CardContent>
           </Card>
+          
           <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-green-500/20 rounded-xl">
-                <Users className="w-6 h-6 text-green-400" />
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Eye className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Total Cadastros</p>
-                <p className="text-2xl font-bold text-white">{analytics.total_leads}</p>
+                <p className="text-gray-400 text-xs">Visitas Hoje</p>
+                <p className="text-xl font-bold text-white">{analytics.today_visits}</p>
               </div>
             </CardContent>
           </Card>
+
           <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-purple-500/20 rounded-xl">
-                <Eye className="w-6 h-6 text-purple-400" />
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <Users className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Visitas Hoje</p>
-                <p className="text-2xl font-bold text-white">{analytics.today_visits}</p>
+                <p className="text-gray-400 text-xs">Cadastros Total</p>
+                <p className="text-xl font-bold text-white">{analytics.total_leads}</p>
               </div>
             </CardContent>
           </Card>
+
           <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-yellow-500/20 rounded-xl">
-                <Users className="w-6 h-6 text-yellow-400" />
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <Users className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Cadastros Hoje</p>
-                <p className="text-2xl font-bold text-white">{analytics.today_leads}</p>
+                <p className="text-gray-400 text-xs">Cadastros Hoje</p>
+                <p className="text-xl font-bold text-white">{analytics.today_leads}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-yellow-500/20 rounded-lg">
+                <CreditCard className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Vendas Total</p>
+                <p className="text-xl font-bold text-white">{analytics.total_sales}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-yellow-500/20 rounded-lg">
+                <CreditCard className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Vendas Hoje</p>
+                <p className="text-xl font-bold text-white">{analytics.today_sales}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-emerald-500/20 rounded-lg">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Faturamento</p>
+                <p className="text-xl font-bold text-white">
+                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(analytics.total_revenue)}
+                </p>
               </div>
             </CardContent>
           </Card>
