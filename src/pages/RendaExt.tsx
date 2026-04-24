@@ -234,28 +234,55 @@ const RendaExt = () => {
             </div>
           </div>
 
+          {/* Audio/Image Section */}
+          <div className="relative max-w-lg mx-auto mb-36 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
+            <div className="absolute -inset-4 bg-red-600/20 rounded-[2.5rem] blur-2xl group-hover:bg-red-600/30 transition-colors" />
+            <div className="relative flex flex-col items-center">
+              <img 
+                src="https://maisresultadosonline.com.br/assets/renda-extra-hero-DfDrjZ5D.png" 
+                alt="Renda Extra" 
+                className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
+              />
+              
+              {/* Overlapping Button and Waveform */}
+              <div className="absolute -bottom-16 left-0 right-0 flex flex-col items-center gap-6 z-20">
+                {/* Standalone Audio Waveform (Transparent background) */}
+                <div className="flex items-end justify-center gap-1.5 h-16 px-4">
+                  {[...Array(15)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.6)]"
+                      style={{
+                        height: isPlaying ? '100%' : '15%',
+                        animation: isPlaying 
+                          ? `waveform 0.5s ease-in-out infinite alternate ${i * 0.07}s` 
+                          : 'none',
+                        opacity: 0.7 + (Math.random() * 0.3)
+                      }}
+                    />
+                  ))}
+                </div>
+
+                <Button className="bg-red-600 hover:bg-red-700 text-white font-display font-black px-12 py-10 text-2xl md:text-4xl rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.8)] flex items-center gap-4 transition-all hover:scale-110 active:scale-95 border-2 border-white/20 backdrop-blur-md">
+                  <Mic className={`w-10 h-10 md:w-12 md:h-12 ${isPlaying ? 'animate-pulse text-yellow-400' : ''}`} />
+                  <span>OUÇA AGORA..</span>
+                </Button>
+              </div>
+            </div>
+            <style dangerouslySetInnerHTML={{ __html: `
+              @keyframes waveform {
+                0% { height: 20%; transform: scaleY(1); }
+                100% { height: 100%; transform: scaleY(1.3); }
+              }
+            `}} />
+          </div>
+
+          {/* Badges Section */}
           <div className="flex flex-wrap justify-center gap-4 text-xs md:text-sm animate-fade-up" style={{ animationDelay: "300ms" }}>
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 pl-2 pr-4 py-2 rounded-full hover:bg-white/10 transition-colors">
               <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
                 <Zap className="w-4 h-4 text-yellow-400" />
-          </div>
-
-          <div className="relative max-w-lg mx-auto mb-10 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
-            <div className="absolute -inset-4 bg-red-600/20 rounded-[2.5rem] blur-2xl group-hover:bg-red-600/30 transition-colors" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl">
-              <img 
-                src="https://maisresultadosonline.com.br/assets/renda-extra-hero-DfDrjZ5D.png" 
-                alt="Renda Extra" 
-                className="w-full h-auto transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 group-hover:bg-black/50 transition-all">
-                <Button className="bg-red-600 hover:bg-red-700 text-white font-display font-black px-8 py-6 rounded-full shadow-[0_0_30px_rgba(220,38,38,0.5)] flex items-center gap-3 transition-transform group-hover:scale-110">
-                  <Mic className="w-6 h-6" />
-                  {isPlaying ? "PAUSAR" : "OUÇA AGORA"}
-                </Button>
               </div>
-            </div>
-          </div>
               <span className="font-medium">Acesso imediato</span>
             </div>
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 pl-2 pr-4 py-2 rounded-full hover:bg-white/10 transition-colors">
