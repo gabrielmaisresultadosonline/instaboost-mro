@@ -170,6 +170,32 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    if (action === "resendEmail") {
+      const orderId = body.orderId as string;
+      if (!orderId) throw new Error("Order ID is required");
+
+      const { data: order } = await supabase
+        .from("rendaext_orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
+
+      if (!order) throw new Error("Order not found");
+
+      const emailSent = await sendRendaExtEmail(order.email, order.nome_completo);
+      
+      if (emailSent) {
+        await supabase.from("rendaext_orders").update({
+          email_sent: true,
+          email_sent_at: new Date().toISOString()
+        }).eq("id", orderId);
+      }
+
+      return new Response(JSON.stringify({ success: true, emailSent }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "resetAnalytics") {
       const { error } = await supabase.from("rendaext_analytics").delete().not("id", "is", null);
       if (error) throw error;
