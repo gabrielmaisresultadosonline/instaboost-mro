@@ -11,7 +11,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
-  CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle
+  CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle,
+  CreditCard, Sparkles, Clock
 } from "lucide-react";
 import WppBotPanelV2 from "@/components/admin/WppBotPanelV2";
 
@@ -29,6 +30,17 @@ interface Lead {
   email_lembrete_enviado: boolean;
 }
 
+interface Order {
+  id: string;
+  nome_completo: string;
+  email: string;
+  whatsapp: string;
+  amount: number;
+  status: string;
+  paid_at: string | null;
+  created_at: string;
+}
+
 interface EmailLog {
   id: string;
   email_to: string;
@@ -44,6 +56,9 @@ interface Analytics {
   total_leads: number;
   today_visits: number;
   today_leads: number;
+  total_sales: number;
+  today_sales: number;
+  total_revenue: number;
 }
 
 const RendaExtAdmin = () => {
@@ -54,8 +69,17 @@ const RendaExtAdmin = () => {
   const [loading, setLoading] = useState(false);
   
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
-  const [analytics, setAnalytics] = useState<Analytics>({ total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 });
+  const [analytics, setAnalytics] = useState<Analytics>({ 
+    total_visits: 0, 
+    total_leads: 0, 
+    today_visits: 0, 
+    today_leads: 0,
+    total_sales: 0,
+    today_sales: 0,
+    total_revenue: 0
+  });
   
   const [settings, setSettings] = useState({
     whatsapp_group_link: "",
@@ -112,8 +136,22 @@ const RendaExtAdmin = () => {
       if (response.error) throw response.error;
 
       setLeads(response.data.leads || []);
+      setOrders(response.data.orders || []);
       setEmailLogs(response.data.emailLogs || []);
-      setAnalytics(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 });
+      
+      const orders: Order[] = response.data.orders || [];
+      const paidOrders = orders.filter(o => o.status === "paid");
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const todayPaidOrders = paidOrders.filter(o => new Date(o.paid_at || "") >= startOfDay);
+      
+      setAnalytics({
+        ...(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 }),
+        total_sales: paidOrders.length,
+        today_sales: todayPaidOrders.length,
+        total_revenue: paidOrders.reduce((acc, curr) => acc + Number(curr.amount), 0)
+      });
+
       setSettings({
         whatsapp_group_link: response.data.settings?.whatsapp_group_link || "",
         launch_date: response.data.settings?.launch_date ? format(new Date(response.data.settings.launch_date), "yyyy-MM-dd'T'HH:mm") : ""
@@ -176,6 +214,13 @@ const RendaExtAdmin = () => {
     lead.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lead.whatsapp.includes(searchQuery)
+  );
+
+  const filteredOrders = orders.filter(order => 
+    order.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.whatsapp.includes(searchQuery) ||
+    order.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const formatMediaSalarial = (value: string) => {
@@ -263,48 +308,89 @@ const RendaExtAdmin = () => {
             Zerar Visitas
           </Button>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
           <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <Eye className="w-6 h-6 text-blue-400" />
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Eye className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Total Visitas</p>
-                <p className="text-2xl font-bold text-white">{analytics.total_visits}</p>
+                <p className="text-gray-400 text-xs">Visitas Total</p>
+                <p className="text-xl font-bold text-white">{analytics.total_visits}</p>
               </div>
             </CardContent>
           </Card>
+          
           <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-green-500/20 rounded-xl">
-                <Users className="w-6 h-6 text-green-400" />
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Eye className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Total Cadastros</p>
-                <p className="text-2xl font-bold text-white">{analytics.total_leads}</p>
+                <p className="text-gray-400 text-xs">Visitas Hoje</p>
+                <p className="text-xl font-bold text-white">{analytics.today_visits}</p>
               </div>
             </CardContent>
           </Card>
+
           <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-purple-500/20 rounded-xl">
-                <Eye className="w-6 h-6 text-purple-400" />
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <Users className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Visitas Hoje</p>
-                <p className="text-2xl font-bold text-white">{analytics.today_visits}</p>
+                <p className="text-gray-400 text-xs">Cadastros Total</p>
+                <p className="text-xl font-bold text-white">{analytics.total_leads}</p>
               </div>
             </CardContent>
           </Card>
+
           <Card className="bg-gray-800/50 border-gray-700">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-yellow-500/20 rounded-xl">
-                <Users className="w-6 h-6 text-yellow-400" />
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <Users className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Cadastros Hoje</p>
-                <p className="text-2xl font-bold text-white">{analytics.today_leads}</p>
+                <p className="text-gray-400 text-xs">Cadastros Hoje</p>
+                <p className="text-xl font-bold text-white">{analytics.today_leads}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-yellow-500/20 rounded-lg">
+                <CreditCard className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Vendas Total</p>
+                <p className="text-xl font-bold text-white">{analytics.total_sales}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-yellow-500/20 rounded-lg">
+                <CreditCard className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Vendas Hoje</p>
+                <p className="text-xl font-bold text-white">{analytics.today_sales}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className="p-2 bg-emerald-500/20 rounded-lg">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Faturamento</p>
+                <p className="text-xl font-bold text-white">
+                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(analytics.total_revenue)}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -313,6 +399,10 @@ const RendaExtAdmin = () => {
         {/* Tabs */}
         <Tabs defaultValue="leads" className="space-y-4">
           <TabsList className="bg-gray-800">
+            <TabsTrigger value="vendas" className="data-[state=active]:bg-gray-700">
+              <CreditCard className="w-4 h-4 mr-2" />
+              Vendas
+            </TabsTrigger>
             <TabsTrigger value="leads" className="data-[state=active]:bg-gray-700">
               <Users className="w-4 h-4 mr-2" />
               Cadastros
@@ -330,6 +420,70 @@ const RendaExtAdmin = () => {
               Configurações
             </TabsTrigger>
           </TabsList>
+
+          {/* Vendas Tab */}
+          <TabsContent value="vendas">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <CardTitle className="text-white">Vendas ({filteredOrders.length})</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-gray-700">
+                        <TableHead className="text-gray-300">Nome</TableHead>
+                        <TableHead className="text-gray-300">Email</TableHead>
+                        <TableHead className="text-gray-300">WhatsApp</TableHead>
+                        <TableHead className="text-gray-300">Valor</TableHead>
+                        <TableHead className="text-gray-300">Status</TableHead>
+                        <TableHead className="text-gray-300">Data Pedido</TableHead>
+                        <TableHead className="text-gray-300">Data Pagamento</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOrders.map((order) => (
+                        <TableRow key={order.id} className="border-gray-700">
+                          <TableCell className="text-white font-medium">{order.nome_completo}</TableCell>
+                          <TableCell className="text-gray-300">{order.email}</TableCell>
+                          <TableCell className="text-gray-300">{order.whatsapp}</TableCell>
+                          <TableCell className="text-gray-300">
+                            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.amount)}
+                          </TableCell>
+                          <TableCell>
+                            {order.status === "paid" ? (
+                              <span className="inline-flex items-center gap-1 bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs font-bold">
+                                <CheckCircle className="w-3 h-3" /> PAGO
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full text-xs font-bold">
+                                <Clock className="w-3 h-3" /> PENDENTE
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {order.paid_at ? format(new Date(order.paid_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {filteredOrders.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                            Nenhuma venda encontrada
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Leads Tab */}
           <TabsContent value="leads">

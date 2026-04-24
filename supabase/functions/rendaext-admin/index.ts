@@ -122,9 +122,10 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const startOfDay = new Date(new Date().setHours(0,0,0,0)).toISOString();
-      const [leadsRes, emailLogsRes, settingsRes, totalVisitsRes, todayVisitsRes, totalLeadsRes, todayLeadsRes] = await Promise.all([
+      const [leadsRes, emailLogsRes, ordersRes, settingsRes, totalVisitsRes, todayVisitsRes, totalLeadsRes, todayLeadsRes] = await Promise.all([
         supabase.from("rendaext_leads").select("*").order("created_at", { ascending: false }),
         supabase.from("rendaext_email_logs").select("*").order("created_at", { ascending: false }),
+        supabase.from("rendaext_orders").select("*").order("created_at", { ascending: false }),
         supabase.from("rendaext_settings").select("whatsapp_group_link, launch_date").limit(1).single(),
         supabase.from("rendaext_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view"),
         supabase.from("rendaext_analytics").select("*", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", startOfDay),
@@ -136,6 +137,7 @@ const handler = async (req: Request): Promise<Response> => {
         success: true,
         leads: leadsRes.data || [],
         emailLogs: emailLogsRes.data || [],
+        orders: ordersRes.data || [],
         settings: settingsRes.data || null,
         analytics: {
           total_visits: totalVisitsRes.count || 0,
