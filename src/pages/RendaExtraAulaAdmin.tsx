@@ -136,6 +136,53 @@ const RendaExtraAulaAdmin = () => {
           </div>
         )}
 
+        {tab === "orders" && (
+          <div className="bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-800">
+                  <tr>
+                    <th className="text-left p-3">Email/User</th>
+                    <th className="text-left p-3">WhatsApp</th>
+                    <th className="text-left p-3">Status</th>
+                    <th className="text-left p-3">Valor</th>
+                    <th className="text-left p-3">Data Pago</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((order) => (
+                    <tr key={order.id} className="border-t border-gray-800 hover:bg-gray-800/50">
+                      <td className="p-3">
+                        <div className="font-medium">{order.email}</div>
+                        <div className="text-xs text-gray-500">@{order.username}</div>
+                      </td>
+                      <td className="p-3">
+                        {order.phone ? (
+                          <a href={formatPhone(order.phone)} target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 underline">
+                            📱 {order.phone}
+                          </a>
+                        ) : "-"}
+                      </td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${order.status === 'completed' ? 'bg-green-500/20 text-green-400' : order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="p-3">R$ {order.amount}</td>
+                      <td className="p-3 text-gray-500 text-xs">
+                        {order.paid_at ? new Date(order.paid_at).toLocaleString("pt-BR") : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                  {orders.length === 0 && (
+                    <tr><td colSpan={5} className="p-8 text-center text-gray-500">Nenhum pedido ainda</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {tab === "leads" && (
           <div className="bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
