@@ -228,11 +228,31 @@ const RendaExtAdmin = () => {
     }
   };
 
+  const handleResendEmail = async (orderId: string) => {
+    setLoading(true);
+    try {
+      const response = await supabase.functions.invoke("rendaext-admin", {
+        body: { action: "resendEmail", adminToken, orderId }
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data.success) throw new Error(response.data.error || "Erro ao reenviar");
+
+      toast({ title: "Email enviado com sucesso!" });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Erro ao reenviar", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredLeads = leads.filter(lead => 
     lead.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lead.whatsapp.includes(searchQuery)
   );
+
 
   const filteredOrders = orders.filter(order => 
     order.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
