@@ -12,8 +12,9 @@ import { ptBR } from "date-fns/locale";
 import { 
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
   CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle,
-  CreditCard, Sparkles, Clock, Mic
+  CreditCard, Sparkles, Clock, Mic, Check
 } from "lucide-react";
+import { trackPurchase } from "@/lib/facebookTracking";
 import WppBotPanelV2 from "@/components/admin/WppBotPanelV2";
 
 interface Lead {
