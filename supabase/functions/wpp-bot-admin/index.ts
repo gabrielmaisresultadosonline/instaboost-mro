@@ -103,17 +103,29 @@ const handler = async (req: Request): Promise<Response> => {
   const supabase = createClient(supabaseUrl, serviceRole, { auth: { persistSession: false } });
 
   try {
-    await ensureRecords(supabase);
     const body = await readBody(req) as Record<string, unknown>;
     const action = typeof body.action === "string" ? body.action : "";
-    const botToken = Deno.env.get("WPP_BOT_TOKEN");
     const headerToken = req.headers.get("x-bot-token");
-    const adminSecret = await loadSessionSecret(supabase);
-    const adminAuthorized = await isAuthorizedAdmin(req, body, adminSecret);
-    const botAuthorized = (botToken && headerToken === botToken) || adminAuthorized;
+    const botToken = Deno.env.get("WPP_BOT_TOKEN");
+    
+    let isAuthorized = false;
+    let adminAuthorized = false;
+
+    // 1. Check Bot Token first (fastest)
+    if (botToken && headerToken === botToken) {
+      isAuthorized = true;
+    }
+
+    // 2. If not bot authorized, check Admin Token
+    if (!isAuthorized) {
+      const adminSecret = await loadSessionSecret(supabase);
+      adminAuthorized = await isAuthorizedAdmin(req, body, adminSecret);
+      isAuthorized = adminAuthorized;
+    }
 
     if (["botHeartbeat", "botFetchPending", "botUpdateMessage", "botAckCommand"].includes(action)) {
-      if (!botAuthorized) {
+      if (!isAuthorized) {
+        console.error(`Unauthorized bot request: action=${action}, hasHeader=${!!headerToken}`);
         return json({ success: false, error: "Unauthorized bot request" }, 401);
       }
 
