@@ -39,7 +39,7 @@ async function readJson(req: Request) {
 async function requireAdminSession(req: Request, body: Record<string, unknown>, secret: string) {
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const token = typeof body.adminToken === "string" ? body.adminToken : bearer;
-  return verifyAdminSessionToken(token, secret);
+  return verifyAdminSessionToken(token, secret, "renda-extra-v2-admin");
 }
 
 const handler = async (req: Request): Promise<Response> => {
