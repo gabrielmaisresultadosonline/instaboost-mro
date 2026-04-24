@@ -36,7 +36,7 @@ async function sendMetaPurchaseEvent(email: string, value: number, contentName: 
       event_name: 'Purchase',
       event_time: Math.floor(Date.now() / 1000),
       action_source: 'website',
-      event_source_url: 'https://maisresultadosonline.com.br/mroobrigado',
+      event_source_url: sourceUrl,
       user_data: { em: hashedEmail },
       custom_data: {
         content_name: contentName,
