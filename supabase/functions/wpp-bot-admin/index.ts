@@ -86,7 +86,10 @@ async function isAuthorizedAdmin(req: Request, body: Record<string, unknown>, se
   if (!secret) return false;
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const token = typeof body.adminToken === "string" ? body.adminToken : bearer;
-  return !!(await verifyAdminSessionToken(token, secret, "rendaext-admin"));
+  // Allow both scopes to be safe, but primarily match the one from renda-extra-v2-admin
+  const verified = await verifyAdminSessionToken(token, secret, "renda-extra-v2-admin") || 
+                   await verifyAdminSessionToken(token, secret, "rendaext-admin");
+  return !!verified;
 }
 
 const handler = async (req: Request): Promise<Response> => {
