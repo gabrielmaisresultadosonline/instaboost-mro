@@ -26,7 +26,7 @@ const UpdateSettingsSchema = z.object({
 });
 
 const ProtectedActionSchema = z.object({
-  action: z.enum(["getData", "resetAnalytics"]),
+  action: z.enum(["getData", "resetAnalytics", "approveOrder"]),
   adminToken: z.string().optional(),
 });
 
