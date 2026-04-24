@@ -285,6 +285,17 @@ const handler = async (req: Request): Promise<Response> => {
         }).eq("id", orderId);
       }
 
+      // Track purchase event on Meta (Conversion API)
+      await sendMetaConversionEvent('Purchase', {
+        email: order.email,
+        ip: req.headers.get('x-forwarded-for')?.split(',')[0] || undefined,
+        userAgent: req.headers.get('user-agent') || undefined
+      }, {
+        value: Number(order.amount) || 19.90,
+        contentName: 'Renda Extra - Aula'
+      });
+
+
       return new Response(JSON.stringify({ success: true, emailSent }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
