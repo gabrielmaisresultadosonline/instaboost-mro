@@ -194,18 +194,17 @@ const RendaExt = () => {
         </div>
 
         {/* Benefits */}
-        <div className="grid md:grid-cols-3 gap-4 mb-10">
-          {[
-            { icon: Target, title: "Como prospectar empresas", desc: "Estratégias prontas para fechar contratos" },
-            { icon: Zap, title: "Acesso à Aula", desc: "Passo a passo completo em vídeo" },
-            { icon: Clock, title: "Aplique HOJE mesmo", desc: "Resultados rápidos e duradouros" },
-          ].map((b, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
-              <b.icon className="w-8 h-8 text-yellow-400 mb-3" />
-              <h3 className="font-bold text-white mb-1">{b.title}</h3>
-              <p className="text-gray-400 text-sm">{b.desc}</p>
-            </div>
-          ))}
+        <div className="grid md:grid-cols-2 gap-4 mb-10">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+            <Target className="w-8 h-8 text-yellow-400 mb-3" />
+            <h3 className="font-bold text-white mb-1">Método Validado</h3>
+            <p className="text-gray-400 text-sm">+1700 empreendedores utilizando a ferramenta MRO.</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+            <Zap className="w-8 h-8 text-yellow-400 mb-3" />
+            <h3 className="font-bold text-white mb-1">100% Automático</h3>
+            <p className="text-gray-400 text-sm">Instale a ferramenta e comece a utilizar agora mesmo.</p>
+          </div>
         </div>
 
         {/* CTA Card */}
@@ -220,7 +219,7 @@ const RendaExt = () => {
             onClick={() => setShowForm(true)}
             className="w-full md:w-auto bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold text-lg px-10 py-6 rounded-2xl shadow-2xl shadow-yellow-500/20 hover:scale-105 transition-transform"
           >
-            LIBERAR AULA COMPLETA
+            APRENDER AGORA
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
 
