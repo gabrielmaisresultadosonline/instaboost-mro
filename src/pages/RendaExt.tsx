@@ -189,8 +189,6 @@ const RendaExt = () => {
         return;
       }
       if (data.paid) {
-        // Track real purchase event
-        trackPurchase(19.90, "Renda Extra - Aula");
         toast.success("Pagamento confirmado! Redirecionando...");
         window.location.href = "/rendaext/obrigado";
       } else if (!silent) {
