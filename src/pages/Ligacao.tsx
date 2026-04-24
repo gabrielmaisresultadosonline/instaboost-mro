@@ -1,35 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { Check, X, ExternalLink, Phone } from 'lucide-react';
+import { Check, X, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAdminData } from '@/lib/adminConfig';
 import { supabase } from '@/integrations/supabase/client';
+import { trackFacebookEvent, trackPageView, trackViewContent, trackInitiateCheckout, trackLead } from '@/lib/facebookTracking';
 import profileImage from '@/assets/mro-profile-call.jpg';
 import fundoChamada from '@/assets/fundo-chamada.jpg';
 import gabrielImage from '@/assets/gabriel-transparente.png';
 
-// fbq type is declared in facebookTracking.ts
-
-const getFacebookCookies = () => {
-  const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-    const [key, value] = cookie.trim().split('=');
-    acc[key] = value;
-    return acc;
-  }, {} as Record<string, string>);
-  
-  return {
-    fbc: cookies['_fbc'] || undefined,
-    fbp: cookies['_fbp'] || undefined,
-  };
-};
-
-// Get test_event_code from URL if present (for Facebook Events Manager testing)
-const getTestEventCode = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('test_event_code') || undefined;
-};
-
 // Detect device type
 const getDeviceType = () => {
+  if (typeof navigator === 'undefined') return 'desktop';
   const ua = navigator.userAgent;
   return /iPhone|iPad|iPod|Android/i.test(ua) ? 'mobile' : 'desktop';
 };
@@ -39,10 +20,10 @@ const saveToCloudAnalytics = async (eventType: string) => {
   try {
     await supabase.from('call_analytics').insert({
       event_type: eventType,
-      user_agent: navigator.userAgent,
-      referrer: document.referrer || 'direct',
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      referrer: typeof document !== 'undefined' ? document.referrer || 'direct' : 'direct',
       device_type: getDeviceType(),
-      source_url: window.location.href
+      source_url: typeof window !== 'undefined' ? window.location.href : 'unknown'
     });
     console.log('[CLOUD-ANALYTICS] Event saved:', eventType);
   } catch (err) {
@@ -52,33 +33,17 @@ const saveToCloudAnalytics = async (eventType: string) => {
 
 // Send event to Meta Conversions API via Edge Function AND save to cloud
 const sendConversionEvent = async (eventName: string, customData?: Record<string, any>) => {
-  try {
-    const { fbc, fbp } = getFacebookCookies();
-    const testEventCode = getTestEventCode();
-    
-    // Save to cloud analytics
-    saveToCloudAnalytics(eventName);
-    
-    // Send to Meta API
-    const { data, error } = await supabase.functions.invoke('meta-conversions', {
-      body: {
-        event_name: eventName,
-        event_source_url: window.location.href,
-        user_agent: navigator.userAgent,
-        fbc,
-        fbp,
-        test_event_code: testEventCode,
-        ...customData,
-      },
+  // Save to cloud analytics
+  saveToCloudAnalytics(eventName);
+  
+  // Use unified Facebook tracking
+  if (eventName === 'PageView') {
+    trackPageView(customData?.content_name);
+  } else {
+    trackFacebookEvent(eventName, {
+      ...customData,
+      currency: 'BRL'
     });
-
-    if (error) {
-      console.error('[META-CONVERSIONS] Error sending event:', error);
-    } else {
-      console.log('[META-CONVERSIONS] Event sent successfully:', eventName, data);
-    }
-  } catch (err) {
-    console.error('[META-CONVERSIONS] Failed to send event:', err);
   }
 };
 
