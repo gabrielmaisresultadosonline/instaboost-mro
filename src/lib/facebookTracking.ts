@@ -189,11 +189,12 @@ export const trackViewContent = (contentName: string, category?: string) => {
 /**
  * Track Purchase - when purchase is completed
  */
-export const trackPurchase = (value: number, productName?: string) => {
+export const trackPurchase = (value: number, productName?: string, email?: string) => {
   trackFacebookEvent('Purchase', {
     content_name: productName || 'MRO Product',
     value: value,
-    currency: 'BRL'
+    currency: 'BRL',
+    email: email
   });
 };
 
