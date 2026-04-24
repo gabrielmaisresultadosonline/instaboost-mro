@@ -142,6 +142,9 @@ const RendaExt = () => {
 
     setLoading(true);
     try {
+      // Track InitiateCheckout on Facebook
+      trackInitiateCheckout("Renda Extra - Aula", 19.90);
+      
       // Track Lead on Facebook
       trackFacebookEvent("Lead", {
         content_name: "Renda Extra - Checkout Form",

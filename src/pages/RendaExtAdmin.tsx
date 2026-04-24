@@ -12,8 +12,9 @@ import { ptBR } from "date-fns/locale";
 import { 
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
   CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle,
-  CreditCard, Sparkles, Clock, Mic
+  CreditCard, Sparkles, Clock, Mic, Check
 } from "lucide-react";
+import { trackPurchase } from "@/lib/facebookTracking";
 import WppBotPanelV2 from "@/components/admin/WppBotPanelV2";
 
 interface Lead {
@@ -242,6 +243,30 @@ const RendaExtAdmin = () => {
       loadData();
     } catch (error: any) {
       toast({ title: "Erro ao reenviar", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveOrder = async (order: Order) => {
+    if (!confirm(`Deseja realmente aprovar o pagamento de ${order.nome_completo}?`)) return;
+    
+    setLoading(true);
+    try {
+      const response = await supabase.functions.invoke("rendaext-admin", {
+        body: { action: "approveOrder", adminToken, orderId: order.id }
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data.success) throw new Error(response.data.error || "Erro ao aprovar");
+
+      // Track purchase event on Facebook
+      trackPurchase(order.amount, "Renda Extra - Aula", order.email);
+
+      toast({ title: "Pagamento aprovado!", description: "O acesso foi enviado ao cliente e o pixel de conversão foi disparado." });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Erro ao aprovar", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -525,18 +550,31 @@ const RendaExtAdmin = () => {
                             {order.paid_at ? format(new Date(order.paid_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}
                           </TableCell>
                           <TableCell className="text-right">
-                            {order.status === "paid" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleResendEmail(order.id)}
-                                disabled={loading}
-                                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
-                              >
-                                <Mail className="w-3 h-3 mr-1" />
-                                Reenviar Aula
-                              </Button>
-                            )}
+                            <div className="flex justify-end gap-2">
+                              {order.status === "paid" ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleResendEmail(order.id)}
+                                  disabled={loading}
+                                  className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
+                                >
+                                  <Mail className="w-3 h-3 mr-1" />
+                                  Reenviar Aula
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleApproveOrder(order)}
+                                  disabled={loading}
+                                  className="border-green-500/50 text-green-400 hover:bg-green-500/20"
+                                >
+                                  <Check className="w-3 h-3 mr-1" />
+                                  Aprovar
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
 
