@@ -428,7 +428,7 @@ const RendaExtraAdmin = () => {
                           <TableCell className="text-gray-300">{lead.email}</TableCell>
                           <TableCell className="text-gray-300">{lead.whatsapp}</TableCell>
                           <TableCell>
-                            {lead.trabalha_atualmente ? (
+                            {lead.trabalha_atualmente === true || lead.trabalha_atualmente === "true" ? (
                               <CheckCircle className="w-5 h-5 text-green-400" />
                             ) : (
                               <XCircle className="w-5 h-5 text-red-400" />
