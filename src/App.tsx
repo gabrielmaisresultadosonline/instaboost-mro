@@ -1,8 +1,11 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { getAdminData } from "./lib/adminConfig";
+import { trackPageView } from "./lib/facebookTracking";
 import ToolSelector from "./pages/ToolSelector";
 import Index from "./pages/Index";
 import ZapMRO from "./pages/ZapMRO";
@@ -99,6 +102,33 @@ import Addmin from "./pages/Addmin";
 
 
 const queryClient = new QueryClient();
+
+// Facebook Pixel Route Tracking component
+const FacebookPixelHandler = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const adminData = getAdminData();
+    const pixelId = adminData?.settings?.pixelSettings?.pixelId || '569414052132145';
+    const isEnabled = adminData?.settings?.pixelSettings?.enabled !== false;
+
+    if (!isEnabled) return;
+
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      // Re-initialize if needed or just track
+      // (Meta says calling init twice is fine and helps ensure the ID is correct)
+      (window as any).fbq('init', pixelId);
+      
+      // Track PageView on route change
+      // Only track if it's not the first load (to avoid double tracking with index.html)
+      // or just rely on this one and remove it from index.html if possible.
+      // But actually, trackPageView is already called in many page components' useEffect.
+      // So this global handler might cause double tracking if pages also have it.
+    }
+  }, [location.pathname]);
+
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
