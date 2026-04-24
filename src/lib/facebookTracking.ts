@@ -50,7 +50,9 @@ export const trackFacebookEvent = async (
   try {
     // 1. Fire client-side Pixel event (immediate)
     if (typeof window !== 'undefined' && window.fbq) {
-      if (customData && Object.keys(customData).length > 0) {
+      if (eventName === 'PageView') {
+        window.fbq('track', 'PageView');
+      } else if (customData && Object.keys(customData).length > 0) {
         window.fbq('track', eventName, {
           content_name: customData.content_name,
           content_category: customData.content_category,
@@ -61,6 +63,8 @@ export const trackFacebookEvent = async (
         window.fbq('track', eventName);
       }
       console.log(`[FB-PIXEL] Client event fired: ${eventName}`);
+    } else {
+      console.warn(`[FB-PIXEL] fbq not found, skipping client event: ${eventName}`);
     }
 
     // 2. Fire server-side Conversions API (for better tracking)
