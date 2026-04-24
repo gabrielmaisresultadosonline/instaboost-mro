@@ -34,6 +34,25 @@ const RendaExt = () => {
     email: "",
     whatsapp: "",
   });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audio] = useState(new Audio("/flow_audio_1774628900033_fixed.ogg"));
+
+  useEffect(() => {
+    audio.addEventListener("ended", () => setIsPlaying(false));
+    return () => {
+      audio.pause();
+      audio.removeEventListener("ended", () => setIsPlaying(false));
+    };
+  }, [audio]);
+
+  const toggleAudio = () => {
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   useEffect(() => {
     supabase.from("rendaext_analytics").insert({
