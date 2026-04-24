@@ -319,7 +319,7 @@ const RendaExt = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Após pagar você receberá o acesso à aula no seu email automaticamente.
+                  Após pagar você receberá o acesso à ferramenta no seu email automaticamente.
                 </p>
               </form>
             ) : (
@@ -367,7 +367,7 @@ const RendaExt = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Após o pagamento, o acesso à aula será enviado automaticamente para seu email.
+                  Após o pagamento, o acesso à ferramenta será enviado automaticamente para seu email.
                 </p>
               </div>
             )}
