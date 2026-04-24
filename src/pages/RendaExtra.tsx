@@ -691,15 +691,32 @@ const RendaExtra = () => {
       {/* Not a Course Section - moved to end */}
       <section className="py-12 px-4">
         <div className="max-w-xl mx-auto">
-          <div className="bg-gradient-to-br from-[#1a1f35] to-[#0f1525] rounded-2xl p-6 md:p-8 border border-blue-500/10 text-center">
+          <div className="bg-gradient-to-br from-[#1a1f35] to-[#0f1525] rounded-2xl p-6 md:p-8 border border-blue-500/10 text-center mb-8">
             <Sparkles className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-            <p className="text-lg md:text-xl font-semibold text-white">
-              Isso <span className="text-yellow-400">NÃO É</span> um curso!
+            <p className="text-xl md:text-2xl font-black text-white mb-2">
+              ((NÃO É CURSO É FERRAMENTA!))
             </p>
-            <p className="text-gray-400 mt-2">
-              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5 mil reais mensal!
+            <p className="text-gray-400 text-lg">
+              Esqueça aulas teóricas. É uma ferramenta automática desenhada para gerar faturamento real superior a 5 mil reais mensais.
             </p>
           </div>
+
+          {/* Image and Ouça Agora Button */}
+          <div className="max-w-sm mx-auto text-center space-y-6">
+            <img 
+              src="https://maisresultadosonline.com.br/assets/renda-extra-hero-DfDrjZ5D.png" 
+              alt="Ferramenta MRO" 
+              className="w-full drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+            />
+            <Button 
+              onClick={() => setShowForm(true)}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-black text-xl py-8 rounded-2xl shadow-2xl shadow-green-500/20 hover:scale-105 transition-all duration-300 group"
+            >
+              OUÇA AGORA
+              <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+
 
           {/* Requirements */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
