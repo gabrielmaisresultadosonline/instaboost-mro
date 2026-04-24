@@ -240,7 +240,7 @@ const RendaExt = () => {
                 <Zap className="w-4 h-4 text-yellow-400" />
           </div>
 
-          <div className="relative max-w-lg mx-auto mb-10 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
+          <div className="relative max-w-lg mx-auto mb-24 group cursor-pointer animate-fade-up" onClick={toggleAudio}>
             <div className="absolute -inset-4 bg-red-600/20 rounded-[2.5rem] blur-2xl group-hover:bg-red-600/30 transition-colors" />
             <div className="relative flex flex-col items-center">
               <img 
@@ -248,38 +248,36 @@ const RendaExt = () => {
                 alt="Renda Extra" 
                 className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <div className="mt-auto mb-4 pointer-events-auto">
-                  <Button className="bg-red-600 hover:bg-red-700 text-white font-display font-black px-12 py-10 text-2xl md:text-3xl rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.6)] flex flex-col items-center gap-4 transition-all hover:scale-110 active:scale-95 border-2 border-white/20 backdrop-blur-sm">
-                    <div className="flex items-center gap-4">
-                      <Mic className={`w-8 h-8 md:w-10 md:h-10 ${isPlaying ? 'animate-pulse text-yellow-400' : ''}`} />
-                      <span>{isPlaying ? "PAUSAR" : "OUÇA AGORA.."}</span>
-                    </div>
-                    
-                    {/* Animated Audio Waveform */}
-                    <div className="flex items-end justify-center gap-1.5 h-12 px-4">
-                      {[...Array(12)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-1.5 bg-white/90 rounded-full"
-                          style={{
-                            height: isPlaying ? '100%' : '20%',
-                            animation: isPlaying 
-                              ? `waveform 0.5s ease-in-out infinite alternate ${i * 0.05}s` 
-                              : 'none',
-                            opacity: 0.4 + (Math.random() * 0.6)
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </Button>
+              
+              {/* Overlapping Button and Waveform */}
+              <div className="absolute -bottom-16 left-0 right-0 flex flex-col items-center gap-4 z-20">
+                {/* Standalone Audio Waveform (Transparent background) */}
+                <div className="flex items-end justify-center gap-1.5 h-16 px-4">
+                  {[...Array(15)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                      style={{
+                        height: isPlaying ? '100%' : '15%',
+                        animation: isPlaying 
+                          ? `waveform 0.5s ease-in-out infinite alternate ${i * 0.07}s` 
+                          : 'none',
+                        opacity: 0.6 + (Math.random() * 0.4)
+                      }}
+                    />
+                  ))}
                 </div>
+
+                <Button className="bg-red-600 hover:bg-red-700 text-white font-display font-black px-12 py-10 text-2xl md:text-4xl rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.7)] flex items-center gap-4 transition-all hover:scale-110 active:scale-95 border-2 border-white/20 backdrop-blur-md">
+                  <Mic className={`w-10 h-10 md:w-12 md:h-12 ${isPlaying ? 'animate-pulse text-yellow-400' : ''}`} />
+                  <span>OUÇA AGORA..</span>
+                </Button>
               </div>
             </div>
             <style dangerouslySetInnerHTML={{ __html: `
               @keyframes waveform {
                 0% { height: 20%; transform: scaleY(1); }
-                100% { height: 100%; transform: scaleY(1.5); }
+                100% { height: 100%; transform: scaleY(1.3); }
               }
             `}} />
           </div>
