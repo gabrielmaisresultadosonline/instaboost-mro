@@ -581,8 +581,8 @@ const RendaExtra = () => {
         {/* Badge */}
         <div className="relative z-10 flex justify-center mt-4">
           <div className="bg-yellow-500/10 border border-yellow-500/30 px-5 py-1.5 rounded-full">
-            <span className="text-yellow-400 font-medium text-xs tracking-[0.2em] uppercase">
-              Renda Extra
+            <span className="text-yellow-400 font-bold text-xs tracking-[0.2em] uppercase">
+              OFERTA ESPECIAL - RENDA EXTRA
             </span>
           </div>
         </div>
@@ -607,17 +607,14 @@ const RendaExtra = () => {
           
           {/* Title Below Image - slightly overlapping */}
           <div className="text-center -mt-12 sm:-mt-16 md:-mt-20 relative z-10">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black leading-none">
-              <span className="text-gold-shimmer" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9)) drop-shadow(0 8px 40px rgba(0, 0, 0, 0.7))' }}>
-                5 a 10
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-tight uppercase">
+              <span className="text-white" style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9))' }}>
+                Fature mais de <span className="text-gold-shimmer">5 mil reais</span>
               </span>
               <br />
-              <span className="text-green-400 uppercase tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>MIL MENSAL</span>
+              <span className="text-green-400 tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>com a MRO!</span>
             </h1>
-            {/* Subtitle */}
-            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mt-2">
-              utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
-            </h2>
+            {/* Subtitle - Hidden as it is now in the title */}
           </div>
 
           {/* Description */}
@@ -700,7 +697,7 @@ const RendaExtra = () => {
               Isso <span className="text-yellow-400">NÃO É</span> um curso!
             </p>
             <p className="text-gray-400 mt-2">
-              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5k mensal!
+              É uma <span className="text-green-400 font-semibold">ferramenta automática</span> que vai fazer você faturar mais de 5 mil reais mensal!
             </p>
           </div>
 
