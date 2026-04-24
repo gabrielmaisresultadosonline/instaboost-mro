@@ -48,6 +48,9 @@ let currentPhone = null;
 let client = null;
 let initializing = false;
 
+let lastBackendError = null;
+let errorCount = 0;
+
 async function callBackend(action, extra = {}) {
   try {
     const res = await fetch(ENDPOINT, {
@@ -60,14 +63,32 @@ async function callBackend(action, extra = {}) {
       },
       body: JSON.stringify({ action, ...extra }),
     });
+
     if (!res.ok) {
       const text = await res.text();
-      console.error(`⚠️  Backend ${action} ${res.status}: ${text.slice(0, 200)}`);
+      const errorMsg = `Backend ${action} ${res.status}: ${text.slice(0, 100)}`;
+      
+      // Só loga o erro se for diferente do último ou se já passou um tempo (throttling)
+      if (errorMsg !== lastBackendError || errorCount % 10 === 0) {
+        console.error(`⚠️  ${errorMsg}${errorCount > 0 ? ` (repetido ${errorCount}x)` : ''}`);
+      }
+      
+      lastBackendError = errorMsg;
+      errorCount++;
       return null;
     }
+
+    // Sucesso: reseta controle de erros
+    lastBackendError = null;
+    errorCount = 0;
     return await res.json();
   } catch (err) {
-    console.error(`⚠️  Erro chamando backend (${action}):`, err.message);
+    const errorMsg = `Erro chamando backend (${action}): ${err.message}`;
+    if (errorMsg !== lastBackendError || errorCount % 10 === 0) {
+      console.error(`⚠️  ${errorMsg}${errorCount > 0 ? ` (repetido ${errorCount}x)` : ''}`);
+    }
+    lastBackendError = errorMsg;
+    errorCount++;
     return null;
   }
 }
@@ -236,10 +257,15 @@ async function processPending() {
     return;
   }
 
+  // Se não estiver conectado, não tenta processar mensagens, mas continua
+  // verificando comandos (request_qr, request_logout) acima.
   if (currentStatus !== 'connected' || !client) return;
 
   const messages = data.messages || [];
   for (const msg of messages) {
+    // Verifica se o cliente ainda está vivo antes de cada mensagem
+    if (!client || currentStatus !== 'connected') break;
+
     const chatId = formatPhone(msg.phone);
     if (!chatId) {
       await callBackend('botUpdateMessage', {
@@ -249,8 +275,12 @@ async function processPending() {
       });
       continue;
     }
+
     try {
+      // Pequena validação extra para evitar o erro de "Execution context destroyed"
+      // Tentamos buscar o ID do número apenas se o cliente parecer estar pronto
       const numberId = await client.getNumberId(chatId.replace('@c.us', ''));
+      
       if (!numberId) {
         await callBackend('botUpdateMessage', {
           message_id: msg.id,
@@ -259,11 +289,23 @@ async function processPending() {
         });
         continue;
       }
+
       await client.sendMessage(numberId._serialized, msg.message);
       await callBackend('botUpdateMessage', { message_id: msg.id, status: 'sent' });
       console.log(`✉️  Enviado para ${msg.phone}`);
+      
+      // Delay entre mensagens para evitar bloqueio
       await new Promise((r) => setTimeout(r, 2000 + Math.random() * 3000));
     } catch (err) {
+      const isNavError = err.message?.includes('Execution context was destroyed') || 
+                         err.message?.includes('Target closed');
+      
+      if (isNavError) {
+        console.warn('⚠️  Conexão do navegador instável (context destroyed). Interrompendo envio.');
+        // Forçamos uma verificação de estado se o erro for grave
+        break;
+      }
+
       console.error(`❌ Erro enviando para ${msg.phone}:`, err.message);
       await callBackend('botUpdateMessage', {
         message_id: msg.id,
