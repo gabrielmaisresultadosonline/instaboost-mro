@@ -121,7 +121,8 @@ serve(async (req) => {
     }
 
     // Send to Meta Conversions API
-    const metaUrl = `https://graph.facebook.com/${META_API_VERSION}/${PIXEL_ID}/events`;
+    const activePixelId = body.pixel_id || DEFAULT_PIXEL_ID;
+    const metaUrl = `https://graph.facebook.com/${META_API_VERSION}/${activePixelId}/events`;
     
     const metaPayload: Record<string, any> = {
       data: [event],
