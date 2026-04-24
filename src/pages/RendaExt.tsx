@@ -185,7 +185,7 @@ const RendaExt = () => {
         <div className="grid md:grid-cols-3 gap-4 mb-10">
           {[
             { icon: Target, title: "Como prospectar empresas", desc: "Estratégias prontas para fechar contratos" },
-            { icon: Zap, title: "Como rodar a ferramenta", desc: "Passo a passo completo da MRO" },
+            { icon: Zap, title: "Acesso à Aula", desc: "Passo a passo completo em vídeo" },
             { icon: Clock, title: "Aplique HOJE mesmo", desc: "Resultados rápidos e duradouros" },
           ].map((b, i) => (
             <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
@@ -213,7 +213,7 @@ const RendaExt = () => {
           </Button>
 
           <p className="text-gray-400 text-xs mt-4">
-            ⚡ Após o pagamento você recebe imediatamente no seu email
+            ⚡ Após o pagamento você recebe acesso imediato à aula no seu email
           </p>
         </div>
       </div>
@@ -308,7 +308,7 @@ const RendaExt = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Após pagar você receberá o passo a passo no seu email automaticamente.
+                  Após pagar você receberá o acesso à aula no seu email automaticamente.
                 </p>
               </form>
             ) : (
@@ -356,7 +356,7 @@ const RendaExt = () => {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Após o pagamento, o passo a passo será enviado automaticamente para seu email.
+                  Após o pagamento, o acesso à aula será enviado automaticamente para seu email.
                 </p>
               </div>
             )}
