@@ -29,6 +29,17 @@ interface Lead {
   email_lembrete_enviado: boolean;
 }
 
+interface Order {
+  id: string;
+  nome_completo: string;
+  email: string;
+  whatsapp: string;
+  amount: number;
+  status: string;
+  paid_at: string | null;
+  created_at: string;
+}
+
 interface EmailLog {
   id: string;
   email_to: string;
@@ -44,6 +55,9 @@ interface Analytics {
   total_leads: number;
   today_visits: number;
   today_leads: number;
+  total_sales: number;
+  today_sales: number;
+  total_revenue: number;
 }
 
 const RendaExtAdmin = () => {
