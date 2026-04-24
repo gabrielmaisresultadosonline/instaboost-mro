@@ -48,6 +48,9 @@ let currentPhone = null;
 let client = null;
 let initializing = false;
 
+let lastBackendError = null;
+let errorCount = 0;
+
 async function callBackend(action, extra = {}) {
   try {
     const res = await fetch(ENDPOINT, {
@@ -60,14 +63,32 @@ async function callBackend(action, extra = {}) {
       },
       body: JSON.stringify({ action, ...extra }),
     });
+
     if (!res.ok) {
       const text = await res.text();
-      console.error(`⚠️  Backend ${action} ${res.status}: ${text.slice(0, 200)}`);
+      const errorMsg = `Backend ${action} ${res.status}: ${text.slice(0, 100)}`;
+      
+      // Só loga o erro se for diferente do último ou se já passou um tempo (throttling)
+      if (errorMsg !== lastBackendError || errorCount % 10 === 0) {
+        console.error(`⚠️  ${errorMsg}${errorCount > 0 ? ` (repetido ${errorCount}x)` : ''}`);
+      }
+      
+      lastBackendError = errorMsg;
+      errorCount++;
       return null;
     }
+
+    // Sucesso: reseta controle de erros
+    lastBackendError = null;
+    errorCount = 0;
     return await res.json();
   } catch (err) {
-    console.error(`⚠️  Erro chamando backend (${action}):`, err.message);
+    const errorMsg = `Erro chamando backend (${action}): ${err.message}`;
+    if (errorMsg !== lastBackendError || errorCount % 10 === 0) {
+      console.error(`⚠️  ${errorMsg}${errorCount > 0 ? ` (repetido ${errorCount}x)` : ''}`);
+    }
+    lastBackendError = errorMsg;
+    errorCount++;
     return null;
   }
 }
