@@ -26,6 +26,7 @@ import InstagramNovaPromoo2 from "./pages/InstagramNovaPromoo2";
 import DescontoAlunosRendaExtra from "./pages/DescontoAlunosRendaExtra";
 import DescontoAlunosRendaExtras from "./pages/DescontoAlunosRendaExtras";
 import DescontoAlunosRendaExtrasss from "./pages/DescontoAlunosRendaExtrasss";
+import DescontoAlunosRendaExtrass from "./pages/DescontoAlunosRendaExtrass";
 import InstagramPromoMila from "./pages/InstagramPromoMila";
 import AffiliatePromoPage from "./pages/AffiliatePromoPage";
 import AffiliateResumo from "./pages/AffiliateResumo";
@@ -231,6 +232,7 @@ const App = () => (
           <Route path="/descontoalunosrendaextra" element={<DescontoAlunosRendaExtra />} />
           <Route path="/descontoalunosrendaextras" element={<DescontoAlunosRendaExtras />} />
           <Route path="/descontoalunosrendaextrasss" element={<DescontoAlunosRendaExtrasss />} />
+          <Route path="/descontoalunosrendaextrass" element={<DescontoAlunosRendaExtrass />} />
           <Route path="/estruturarendaextra" element={<EstruturaRendaExtra />} />
           <Route path="/whatsappdireto" element={<WhatsAppDireto />} />
           <Route path="/apiwhatsappacess" element={<ApiWhatsAppAccess />} />
