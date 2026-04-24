@@ -182,41 +182,15 @@ serve(async (req) => {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
         
+        // Formato RENDAEXT: RENDAEXT_email@domain.com
+        if (itemName.startsWith("RENDAEXT_")) {
+          email = itemName.replace("RENDAEXT_", "").toLowerCase();
+          log("Parsed RENDAEXT order", { email });
+          break;
+        }
+
         // Formato PROMPTS: PROMPTS_email@domain.com
-        if (itemName.startsWith("PROMPTS_")) {
-          isPromptsOrder = true;
-          email = itemName.replace("PROMPTS_", "").toLowerCase();
-          log("Parsed PROMPTS order", { email });
-          break;
-        }
-        
-        // Formato MRO: MROIG_ANUAL_username_afiliado:email ou MROIG_VITALICIO_username_email
-        if (itemName.startsWith("MROIG_")) {
-          isMROOrder = true;
-          const parts = itemName.split("_");
-          if (parts.length >= 4) {
-            username = parts[2];
-            emailWithAffiliate = parts.slice(3).join("_").toLowerCase();
-            
-            if (emailWithAffiliate && emailWithAffiliate.includes(":") && emailWithAffiliate.includes("@")) {
-              const colonIndex = emailWithAffiliate.indexOf(":");
-              const potentialAffiliate = emailWithAffiliate.substring(0, colonIndex);
-              const potentialEmail = emailWithAffiliate.substring(colonIndex + 1);
-              
-              if (potentialEmail.includes("@")) {
-                affiliateId = potentialAffiliate;
-                email = potentialEmail;
-                log("Detected affiliate sale", { affiliateId, realEmail: email });
-              } else {
-                email = emailWithAffiliate;
-              }
-            } else if (emailWithAffiliate) {
-              email = emailWithAffiliate;
-            }
-          }
-          log("Parsed MRO order", { username, email, emailWithAffiliate, affiliateId });
-          break;
-        }
+...
         else if (itemName.startsWith("MRO_")) {
           email = itemName.replace("MRO_", "").toLowerCase();
           emailWithAffiliate = email;
