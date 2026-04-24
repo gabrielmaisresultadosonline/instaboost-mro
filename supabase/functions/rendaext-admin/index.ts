@@ -35,7 +35,7 @@ async function readJson(req: Request) {
 async function requireAdminSession(req: Request, body: Record<string, unknown>, secret: string) {
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const token = typeof body.adminToken === "string" ? body.adminToken : bearer;
-  return verifyAdminSessionToken(token, secret);
+  return verifyAdminSessionToken(token, secret, "rendaext-admin");
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const sessionSecret = `${settingsRow.admin_email}:${settingsRow.admin_password}`;
+    const sessionSecret = `${settingsRow.admin_email.trim().toLowerCase()}:${settingsRow.admin_password.trim()}`;
 
     if (action === "login") {
       const parsed = LoginSchema.safeParse(body);
@@ -97,7 +97,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const adminToken = await createAdminSessionToken(
-        { email: normalizedEmail, exp: Date.now() + 1000 * 60 * 60 * 12 },
+        { email: normalizedEmail, scope: "rendaext-admin", exp: Date.now() + 1000 * 60 * 60 * 12 },
         sessionSecret,
       );
 

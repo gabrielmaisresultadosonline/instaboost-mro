@@ -103,13 +103,30 @@ const RendaExtraAdmin = () => {
   };
 
   const loadData = async (token = adminToken) => {
+    if (!token) {
+      handleLogout();
+      return;
+    }
+    
     setLoading(true);
     try {
       const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { action: "getData", adminToken: token }
       });
 
-      if (response.error) throw response.error;
+      if (response.error) {
+        // Handle 401 Unauthorized from the function
+        if (response.error.status === 401) {
+          handleLogout();
+          toast({ 
+            title: "Sessão expirada", 
+            description: "Por favor, faça login novamente.", 
+            variant: "destructive" 
+          });
+          return;
+        }
+        throw response.error;
+      }
       
       if (response.data?.success === false) {
         if (response.data.error?.includes("Sessão expirada")) {
@@ -138,6 +155,12 @@ const RendaExtraAdmin = () => {
       }
     } catch (error: any) {
       console.error("Error loading data:", error);
+      
+      // Also check for 401 in the caught error
+      if (error.status === 401 || error.message?.includes("401")) {
+        handleLogout();
+      }
+
       toast({ 
         title: "Erro ao carregar dados", 
         description: error.message || "Verifique sua conexão ou tente novamente.", 

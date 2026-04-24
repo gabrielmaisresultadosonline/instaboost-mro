@@ -39,7 +39,7 @@ async function readJson(req: Request) {
 async function requireAdminSession(req: Request, body: Record<string, unknown>, secret: string) {
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const token = typeof body.adminToken === "string" ? body.adminToken : bearer;
-  return verifyAdminSessionToken(token, secret);
+  return verifyAdminSessionToken(token, secret, "renda-extra-v2-admin");
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -57,6 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
     const body = await readJson(req) as Record<string, unknown>;
     const action = typeof body.action === "string" ? body.action : "";
+    console.log(`[renda-extra-v2-admin] Action: ${action}`);
 
     if (action === "getPublicSettings") {
       const { data: settings } = await supabase
@@ -83,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const sessionSecret = `${settingsRow.admin_email}:${settingsRow.admin_password}`;
+    const sessionSecret = `${settingsRow.admin_email.trim().toLowerCase()}:${settingsRow.admin_password.trim()}`;
 
     if (action === "login") {
       const parsed = LoginSchema.safeParse(body);
@@ -108,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const adminToken = await createAdminSessionToken(
-        { email: normalizedEmail, exp: Date.now() + 1000 * 60 * 60 * 12 },
+        { email: normalizedEmail, scope: "renda-extra-v2-admin", exp: Date.now() + 1000 * 60 * 60 * 12 },
         sessionSecret,
       );
 
