@@ -151,18 +151,23 @@ const RendaExtAdmin = () => {
       setLeads(response.data.leads || []);
       setOrders(response.data.orders || []);
       setEmailLogs(response.data.emailLogs || []);
+      setAudioEvents(response.data.audioEvents || []);
       
-      const orders: Order[] = response.data.orders || [];
-      const paidOrders = orders.filter(o => o.status === "paid");
+      const ordersData: Order[] = response.data.orders || [];
+      const paidOrders = ordersData.filter(o => o.status === "paid");
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
       const todayPaidOrders = paidOrders.filter(o => new Date(o.paid_at || "") >= startOfDay);
+      
+      const audioEventsData: AudioEvent[] = response.data.audioEvents || [];
+      const uniqueListeners = new Set(audioEventsData.map(e => e.email)).size;
       
       setAnalytics({
         ...(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 }),
         total_sales: paidOrders.length,
         today_sales: todayPaidOrders.length,
-        total_revenue: paidOrders.reduce((acc, curr) => acc + Number(curr.amount), 0)
+        total_revenue: paidOrders.reduce((acc, curr) => acc + Number(curr.amount), 0),
+        total_audio_listeners: uniqueListeners
       });
 
       setSettings({
