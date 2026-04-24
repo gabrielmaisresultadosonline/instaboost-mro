@@ -12,11 +12,7 @@ const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrenda
 
 const RendaExtra2 = () => {
   const [showForm, setShowForm] = useState(false);
-  const [showAudioPopup, setShowAudioPopup] = useState(false);
   const [audioHeard, setAudioHeard] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const [currentStep, setCurrentStep] = useState(0);
