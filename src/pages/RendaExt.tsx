@@ -9,7 +9,7 @@ import { Laptop, Monitor, Clock, MapPin, Briefcase, CheckCircle2, Shield, ArrowR
 
 const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrendaextrasss";
 
-const RendaExtra2 = () => {
+const RendaExt = () => {
   const [showForm, setShowForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -48,7 +48,7 @@ const RendaExtra2 = () => {
 
   const trackVisit = async () => {
     try {
-      await supabase.from("renda_extra_v2_analytics").insert({
+      await supabase.from("rendaext_analytics").insert({
         event_type: "page_view",
         source_url: window.location.href,
         user_agent: navigator.userAgent,
@@ -135,7 +135,7 @@ const RendaExtra2 = () => {
     setLoading(true);
 
     try {
-      const response = await supabase.functions.invoke("renda-extra-register-v2", {
+      const response = await supabase.functions.invoke("rendaext-register", {
         body: {
           nome_completo: formData.nomeCompleto,
           email: formData.email,
@@ -156,7 +156,7 @@ const RendaExtra2 = () => {
         description: "Você receberá um email com o acesso à aula grátis."
       });
 
-      await supabase.from("renda_extra_v2_analytics").insert({
+      await supabase.from("rendaext_analytics").insert({
         event_type: "lead_conversion",
         source_url: window.location.href,
         user_agent: navigator.userAgent,
@@ -677,4 +677,4 @@ const RendaExtra2 = () => {
   );
 };
 
-export default RendaExtra2;
+export default RendaExt;

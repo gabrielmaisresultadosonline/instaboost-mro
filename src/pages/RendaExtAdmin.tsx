@@ -13,7 +13,7 @@ import {
   Users, Eye, Mail, Settings, LogOut, RefreshCw, 
   CheckCircle, XCircle, Loader2, Calendar, Link2, Search, Trash2, Download, MessageCircle
 } from "lucide-react";
-import WppBotPanel from "@/components/admin/WppBotPanel";
+import WppBotPanelV2 from "@/components/admin/WppBotPanelV2";
 
 interface Lead {
   id: string;
@@ -46,7 +46,7 @@ interface Analytics {
   today_leads: number;
 }
 
-const RendaExtraAdmin = () => {
+const RendaExtAdmin = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminToken, setAdminToken] = useState("");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -64,7 +64,7 @@ const RendaExtraAdmin = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("renda_extra_v2_admin_token");
+    const savedToken = localStorage.getItem("rendaext_admin_token");
     if (savedToken) {
       setAdminToken(savedToken);
       setIsLoggedIn(true);
@@ -77,14 +77,14 @@ const RendaExtraAdmin = () => {
     setLoginLoading(true);
 
     try {
-      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
+      const response = await supabase.functions.invoke("rendaext-admin", {
         body: { action: "login", email: loginData.email, password: loginData.password }
       });
 
       if (response.error) throw response.error;
       if (!response.data.success || !response.data.adminToken) throw new Error("Credenciais inválidas");
 
-      localStorage.setItem("renda_extra_v2_admin_token", response.data.adminToken);
+      localStorage.setItem("rendaext_admin_token", response.data.adminToken);
       setAdminToken(response.data.adminToken);
       setIsLoggedIn(true);
       loadData(response.data.adminToken);
@@ -97,7 +97,7 @@ const RendaExtraAdmin = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("renda_extra_v2_admin_token");
+    localStorage.removeItem("rendaext_admin_token");
     setAdminToken("");
     setIsLoggedIn(false);
   };
@@ -105,7 +105,7 @@ const RendaExtraAdmin = () => {
   const loadData = async (token = adminToken) => {
     setLoading(true);
     try {
-      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
+      const response = await supabase.functions.invoke("rendaext-admin", {
         body: { action: "getData", adminToken: token }
       });
 
@@ -129,7 +129,7 @@ const RendaExtraAdmin = () => {
   const saveSettings = async () => {
     setLoading(true);
     try {
-      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
+      const response = await supabase.functions.invoke("rendaext-admin", {
         body: { 
           action: "updateSettings", 
           adminToken,
@@ -157,7 +157,7 @@ const RendaExtraAdmin = () => {
     
     setLoading(true);
     try {
-      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
+      const response = await supabase.functions.invoke("rendaext-admin", {
         body: { action: "resetAnalytics", adminToken }
       });
 
@@ -488,7 +488,7 @@ const RendaExtraAdmin = () => {
 
           {/* WhatsApp Bot Tab */}
           <TabsContent value="whatsapp">
-            <WppBotPanel adminToken={adminToken} onUnauthorized={handleLogout} />
+            <WppBotPanelV2 adminToken={adminToken} onUnauthorized={handleLogout} />
           </TabsContent>
 
           {/* Settings Tab */}
@@ -541,4 +541,4 @@ const RendaExtraAdmin = () => {
   );
 };
 
-export default RendaExtraAdmin;
+export default RendaExtAdmin;
