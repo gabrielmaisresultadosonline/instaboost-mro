@@ -158,15 +158,14 @@ const RendaExt = () => {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold leading-tight">
-            Aprenda como fazer{" "}
+            Libere a aula completa de como fazer isso com a{" "}
             <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              5K mensais
-            </span>{" "}
-            com a ferramenta MRO
+              nova onda do mercado
+            </span>
           </h1>
 
           <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto">
-            Por apenas <span className="text-yellow-400 font-bold text-2xl">R$ 19,90</span> você recebe o passo a passo completo no seu email para começar a aplicar HOJE mesmo.
+            Por apenas <span className="text-yellow-400 font-bold text-2xl">R$ 19,90</span> você libera o acesso imediato à aula e ao passo a passo completo.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 text-sm">
