@@ -337,7 +337,7 @@ const RendaExt = () => {
 
               <Button
                 onClick={() => setShowForm(true)}
-                className="group relative w-full md:w-auto bg-yellow-400 hover:bg-yellow-300 text-black font-display font-black text-xl md:text-2xl px-12 py-8 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] overflow-hidden"
+                className="group relative w-full md:w-auto bg-green-600 hover:bg-yellow-400 text-white hover:text-black font-display font-black text-xl md:text-2xl px-12 py-8 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(250,204,21,0.4)] overflow-hidden"
               >
                 <span className="relative z-10 flex items-center gap-3">
                   LIBERAR MEU ACESSO
