@@ -129,6 +129,13 @@ const RendaExt = () => {
 
     setLoading(true);
     try {
+      // Track Lead on Facebook
+      trackFacebookEvent("Lead", {
+        content_name: "Renda Extra - Checkout Form",
+        content_category: "Lead",
+        email: formData.email.toLowerCase().trim()
+      });
+
       const { data, error } = await supabase.functions.invoke("rendaext-checkout", {
         body: {
           nome_completo: formData.nomeCompleto.trim(),
