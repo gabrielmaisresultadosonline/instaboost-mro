@@ -36,15 +36,48 @@ const RendaExt = () => {
     whatsapp: "",
   });
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audio] = useState(new Audio("/flow_audio_1774628900033_fixed.ogg"));
+  const [audio] = useState(new Audio("/audio_gabr.mp3"));
+  const trackedPercents = useRef(new Set<number>());
 
   useEffect(() => {
+    const handleTimeUpdate = () => {
+      if (!audio.duration) return;
+      const progress = (audio.currentTime / audio.duration) * 100;
+      
+      const milestone = [25, 50, 75, 100].find(m => progress >= m && !trackedPercents.current.has(m));
+      if (milestone) {
+        trackedPercents.current.add(milestone);
+        trackAudioEvent(milestone);
+      }
+    };
+
+    audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", () => setIsPlaying(false));
     return () => {
       audio.pause();
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", () => setIsPlaying(false));
     };
   }, [audio]);
+
+  const trackAudioEvent = async (percent: number) => {
+    try {
+      // Track in database
+      await supabase.from("rendaext_audio_events").insert({
+        email: formData.email || "anonymous",
+        percent: percent
+      });
+      
+      // Track on Facebook
+      trackFacebookEvent("AudioEngagement", {
+        content_name: "Renda Extra Audio",
+        content_category: `Listen ${percent}%`,
+        value: percent
+      });
+    } catch (err) {
+      console.error("Error tracking audio event:", err);
+    }
+  };
 
   const toggleAudio = () => {
     if (isPlaying) {
@@ -61,6 +94,9 @@ const RendaExt = () => {
       source_url: window.location.href,
       user_agent: navigator.userAgent,
     }).then(() => {});
+    
+    // Track PageView on FB
+    trackFacebookEvent("PageView", { content_name: "Renda Extra" });
   }, []);
 
   // Auto-verify if returning from InfiniPay redirect (?paid=1&nsu=...)
