@@ -421,6 +421,70 @@ const RendaExtAdmin = () => {
             </TabsTrigger>
           </TabsList>
 
+          {/* Vendas Tab */}
+          <TabsContent value="vendas">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <CardTitle className="text-white">Vendas ({filteredOrders.length})</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-gray-700">
+                        <TableHead className="text-gray-300">Nome</TableHead>
+                        <TableHead className="text-gray-300">Email</TableHead>
+                        <TableHead className="text-gray-300">WhatsApp</TableHead>
+                        <TableHead className="text-gray-300">Valor</TableHead>
+                        <TableHead className="text-gray-300">Status</TableHead>
+                        <TableHead className="text-gray-300">Data Pedido</TableHead>
+                        <TableHead className="text-gray-300">Data Pagamento</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOrders.map((order) => (
+                        <TableRow key={order.id} className="border-gray-700">
+                          <TableCell className="text-white font-medium">{order.nome_completo}</TableCell>
+                          <TableCell className="text-gray-300">{order.email}</TableCell>
+                          <TableCell className="text-gray-300">{order.whatsapp}</TableCell>
+                          <TableCell className="text-gray-300">
+                            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.amount)}
+                          </TableCell>
+                          <TableCell>
+                            {order.status === "paid" ? (
+                              <span className="inline-flex items-center gap-1 bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs font-bold">
+                                <CheckCircle className="w-3 h-3" /> PAGO
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full text-xs font-bold">
+                                <Clock className="w-3 h-3" /> PENDENTE
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {order.paid_at ? format(new Date(order.paid_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {filteredOrders.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                            Nenhuma venda encontrada
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Leads Tab */}
           <TabsContent value="leads">
             <Card className="bg-gray-800/50 border-gray-700">
