@@ -176,21 +176,53 @@ serve(async (req) => {
     let affiliateId: string | null = null;
     let isMROOrder = false;
     let isPromptsOrder = false;
+    let isRendaExtOrder = false;
     
     if (items && Array.isArray(items)) {
       for (const item of items) {
         const itemName = item.description || item.name || "";
         log("Processing item", { itemName });
         
-        // Formato RENDAEXT: RENDAEXT_email@domain.com
         if (itemName.startsWith("RENDAEXT_")) {
+          isRendaExtOrder = true;
           email = itemName.replace("RENDAEXT_", "").toLowerCase();
           log("Parsed RENDAEXT order", { email });
           break;
         }
 
-        // Formato PROMPTS: PROMPTS_email@domain.com
-...
+        if (itemName.startsWith("PROMPTS_")) {
+          isPromptsOrder = true;
+          email = itemName.replace("PROMPTS_", "").toLowerCase();
+          log("Parsed PROMPTS order", { email });
+          break;
+        }
+        
+        if (itemName.startsWith("MROIG_")) {
+          isMROOrder = true;
+          const parts = itemName.split("_");
+          if (parts.length >= 4) {
+            username = parts[2];
+            emailWithAffiliate = parts.slice(3).join("_").toLowerCase();
+            
+            if (emailWithAffiliate && emailWithAffiliate.includes(":") && emailWithAffiliate.includes("@")) {
+              const colonIndex = emailWithAffiliate.indexOf(":");
+              const potentialAffiliate = emailWithAffiliate.substring(0, colonIndex);
+              const potentialEmail = emailWithAffiliate.substring(colonIndex + 1);
+              
+              if (potentialEmail.includes("@")) {
+                affiliateId = potentialAffiliate;
+                email = potentialEmail;
+                log("Detected affiliate sale", { affiliateId, realEmail: email });
+              } else {
+                email = emailWithAffiliate;
+              }
+            } else if (emailWithAffiliate) {
+              email = emailWithAffiliate;
+            }
+          }
+          log("Parsed MRO order", { username, email, emailWithAffiliate, affiliateId });
+          break;
+        }
         else if (itemName.startsWith("MRO_")) {
           email = itemName.replace("MRO_", "").toLowerCase();
           emailWithAffiliate = email;
@@ -203,14 +235,43 @@ serve(async (req) => {
       order_nsu, 
       transaction_nsu, 
       email, 
-      emailWithAffiliate,
-      affiliateId,
-      username,
+      isRendaExtOrder,
+      isPromptsOrder,
       isMROOrder,
       amount, 
-      paid_amount,
-      capture_method 
+      paid_amount
     });
+
+    // RENDAEXT orders
+    if (isRendaExtOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("RENDAEXT"))) {
+      log("Processing as RENDAEXT order", { order_nsu, email });
+      
+      const { data: order } = await supabase
+        .from("rendaext_orders")
+        .select("*")
+        .eq("nsu_order", order_nsu)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      if (order) {
+        // Mark as paid
+        await supabase.from("rendaext_orders").update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+        }).eq("id", order.id);
+
+        // Fire Meta Conversions API Purchase event
+        await sendMetaPurchaseEvent(
+          email || order.email,
+          order.amount || 19.90,
+          "Renda Extra - Aula"
+        );
+
+        log("RENDAEXT order confirmed and tracked", { orderId: order.id });
+        
+        return new Response(JSON.stringify({ success: true, message: "RENDAEXT confirmed" }), { status: 200, headers: corsHeaders });
+      }
+    }
 
     // PROMPTS MRO orders
     if (isPromptsOrder || (order_nsu && typeof order_nsu === 'string' && order_nsu.startsWith("PROMPTS"))) {
