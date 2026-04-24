@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { verifyInfinitePayWebhook } from "../_shared/webhook-security.ts";
+import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -252,9 +254,14 @@ serve(async (req) => {
         .maybeSingle();
 
       if (order) {
+        // Send email
+        const emailSent = await sendRendaExtEmail(order.email, order.nome_completo);
+
         await supabase.from("rendaext_orders").update({
           status: "paid",
           paid_at: new Date().toISOString(),
+          email_sent: emailSent,
+          email_sent_at: emailSent ? new Date().toISOString() : null,
         }).eq("id", order.id);
 
         await sendMetaPurchaseEvent(
@@ -263,7 +270,7 @@ serve(async (req) => {
           "Renda Extra - Aula"
         );
 
-        log("RENDAEXT order confirmed and tracked", { orderId: order.id });
+        log("RENDAEXT order confirmed, email sent and tracked", { orderId: order.id, emailSent });
         
         return new Response(JSON.stringify({ success: true, message: "RENDAEXT confirmed" }), { status: 200, headers: corsHeaders });
       }

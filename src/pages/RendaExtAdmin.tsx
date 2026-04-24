@@ -228,11 +228,31 @@ const RendaExtAdmin = () => {
     }
   };
 
+  const handleResendEmail = async (orderId: string) => {
+    setLoading(true);
+    try {
+      const response = await supabase.functions.invoke("rendaext-admin", {
+        body: { action: "resendEmail", adminToken, orderId }
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data.success) throw new Error(response.data.error || "Erro ao reenviar");
+
+      toast({ title: "Email enviado com sucesso!" });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Erro ao reenviar", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredLeads = leads.filter(lead => 
     lead.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lead.whatsapp.includes(searchQuery)
   );
+
 
   const filteredOrders = orders.filter(order => 
     order.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -474,7 +494,9 @@ const RendaExtAdmin = () => {
                         <TableHead className="text-gray-300">Status</TableHead>
                         <TableHead className="text-gray-300">Data Pedido</TableHead>
                         <TableHead className="text-gray-300">Data Pagamento</TableHead>
+                        <TableHead className="text-gray-300 text-right">Ações</TableHead>
                       </TableRow>
+
                     </TableHeader>
                     <TableBody>
                       {filteredOrders.map((order) => (
@@ -502,7 +524,22 @@ const RendaExtAdmin = () => {
                           <TableCell className="text-gray-300">
                             {order.paid_at ? format(new Date(order.paid_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}
                           </TableCell>
+                          <TableCell className="text-right">
+                            {order.status === "paid" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResendEmail(order.id)}
+                                disabled={loading}
+                                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
+                              >
+                                <Mail className="w-3 h-3 mr-1" />
+                                Reenviar Aula
+                              </Button>
+                            )}
+                          </TableCell>
                         </TableRow>
+
                       ))}
                       {filteredOrders.length === 0 && (
                         <TableRow>

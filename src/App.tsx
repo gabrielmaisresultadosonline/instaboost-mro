@@ -99,6 +99,8 @@ import ApiWhatsAppAccess from "./pages/ApiWhatsAppAccess";
 import RendaExtraAula from "./pages/RendaExtraAula";
 import RendaExtraAulaAdmin from "./pages/RendaExtraAulaAdmin";
 import Addmin from "./pages/Addmin";
+import RendaExtObrigado from "./pages/RendaExtObrigado";
+
 
 
 const queryClient = new QueryClient();
@@ -200,7 +202,9 @@ const App = () => (
           <Route path="/rendaextra2/admin" element={<RendaExtraAdmin />} />
           <Route path="/rendaext" element={<RendaExt />} />
           <Route path="/rendaext/admin" element={<RendaExtAdmin />} />
+          <Route path="/rendaext/obrigado" element={<RendaExtObrigado />} />
           <Route path="/rendaextraof" element={<RendaExtraOf />} />
+
           <Route path="/corretormro" element={<CorretorMRO />} />
           <Route path="/corretormro/admin" element={<CorretorMROAdmin />} />
           <Route path="/corretormro/obrigado" element={<CorretorMROObrigado />} />

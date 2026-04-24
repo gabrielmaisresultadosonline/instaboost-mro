@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { z } from "https://esm.sh/zod@3.25.76";
 import { createAdminSessionToken, verifyAdminSessionToken } from "../_shared/admin-session.ts";
+import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -164,6 +166,32 @@ const handler = async (req: Request): Promise<Response> => {
       const { error } = await supabase.from("rendaext_settings").update(payload).not("id", "is", null);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "resendEmail") {
+      const orderId = body.orderId as string;
+      if (!orderId) throw new Error("Order ID is required");
+
+      const { data: order } = await supabase
+        .from("rendaext_orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
+
+      if (!order) throw new Error("Order not found");
+
+      const emailSent = await sendRendaExtEmail(order.email, order.nome_completo);
+      
+      if (emailSent) {
+        await supabase.from("rendaext_orders").update({
+          email_sent: true,
+          email_sent_at: new Date().toISOString()
+        }).eq("id", orderId);
+      }
+
+      return new Response(JSON.stringify({ success: true, emailSent }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

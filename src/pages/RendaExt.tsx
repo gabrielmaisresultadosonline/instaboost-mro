@@ -186,11 +186,12 @@ const RendaExt = () => {
         return;
       }
       if (data.paid) {
-        setPaymentConfirmed(true);
         // Track real purchase event
         trackPurchase(19.90, "Renda Extra - Aula");
-        toast.success("Pagamento confirmado! Confira seu email.");
+        toast.success("Pagamento confirmado! Redirecionando...");
+        window.location.href = "/rendaext/obrigado";
       } else if (!silent) {
+
         toast.info("Pagamento ainda não confirmado. Aguarde alguns instantes e tente novamente.");
       }
     } catch (_e) {

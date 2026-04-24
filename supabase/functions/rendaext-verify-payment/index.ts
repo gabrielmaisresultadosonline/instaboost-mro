@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,50 +13,6 @@ const log = (step: string, details?: unknown) => {
   console.log(`[RENDAEXT-VERIFY] ${step}`, details ? JSON.stringify(details) : "");
 };
 
-const sendEmail = async (to: string, subject: string, html: string): Promise<boolean> => {
-  const smtpPassword = Deno.env.get("SMTP_PASSWORD");
-  if (!smtpPassword) return false;
-  try {
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.hostinger.com",
-        port: 465,
-        tls: true,
-        auth: { username: "suporte@maisresultadosonline.com.br", password: smtpPassword },
-      },
-    });
-    await client.send({
-      from: "MRO <suporte@maisresultadosonline.com.br>",
-      to, subject, content: "auto", html,
-    });
-    await client.close();
-    return true;
-  } catch (e) {
-    log("Email error", { e: String(e) });
-    return false;
-  }
-};
-
-const buildEmail = (name: string) => `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;">
-<tr><td style="background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);padding:30px;text-align:center;">
-<div style="background:#000;color:#fff;display:inline-block;padding:10px 25px;border-radius:8px;font-size:32px;font-weight:bold;">MRO</div>
-<h1 style="color:#000;margin:15px 0 0 0;font-size:24px;">🎉 Aula Liberada!</h1>
-</td></tr>
-<tr><td style="padding:30px;color:#333;">
-<p style="font-size:16px;">Olá <strong>${name}</strong>!</p>
-<p style="font-size:16px;">Parabéns pelo interesse, você é um dos empreendedores de sucesso que a partir de agora vai aprender o novo método.</p>
-<div style="background:#f8f9fa;border-left:4px solid #FFD700;padding:20px;margin:20px 0;border-radius:8px;">
-<p style="margin:0 0 10px 0;font-weight:bold;font-size:18px;">📚 Acesse sua aula aqui:</p>
-<a href="https://maisresultadosonline.com.br/rendaextraaula" style="display:inline-block;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:16px;font-weight:bold;margin-top:10px;">▶️ ACESSAR AULA AGORA</a>
-</div>
-<div style="background:#e8f5e9;border-left:4px solid #4caf50;padding:15px;margin:20px 0;border-radius:8px;">
-<p style="margin:0;font-size:14px;color:#2e7d32;"><strong>Suporte WhatsApp:</strong> <a href="https://maisresultadosonline.com.br/whatsapp" style="color:#2e7d32;">Clique aqui para suporte</a></p>
-</div>
-<p style="font-size:14px;color:#666;margin-top:30px;"><strong>Aplique HOJE mesmo!</strong> Quanto antes começar, antes verá resultados.</p>
-</td></tr>
-<tr><td style="background:#1a1a1a;padding:20px;text-align:center;color:#999;font-size:12px;">© 2026 MRO - Mais Resultados Online</td></tr>
-</table></body></html>`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -83,9 +39,21 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 });
     }
 
-    // If already paid, just return
+    // If already paid, check if email was sent
     if (order.status === "paid") {
-      return new Response(JSON.stringify({ success: true, paid: true, alreadyPaid: true }),
+      if (!order.email_sent) {
+        log("Order already paid but email not sent, sending now...");
+        const emailSent = await sendRendaExtEmail(order.email, order.nome_completo);
+        if (emailSent) {
+          await supabase.from("rendaext_orders").update({
+            email_sent: true,
+            email_sent_at: new Date().toISOString(),
+          }).eq("id", order.id);
+        }
+        return new Response(JSON.stringify({ success: true, paid: true, emailSent }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ success: true, paid: true, alreadyPaid: true, emailSent: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -114,11 +82,7 @@ serve(async (req) => {
     }
 
     // Mark as paid + send email
-    const emailSent = await sendEmail(
-      order.email,
-      "✅ Aula Liberada! Parabéns pelo interesse",
-      buildEmail(order.nome_completo)
-    );
+    const emailSent = await sendRendaExtEmail(order.email, order.nome_completo);
 
     // Track Purchase with Meta
     try {
