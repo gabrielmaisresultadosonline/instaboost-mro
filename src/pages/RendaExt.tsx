@@ -201,7 +201,6 @@ const RendaExt = () => {
           <div className="space-y-6 max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: "200ms" }}>
             <p className="text-lg md:text-2xl text-gray-300 leading-relaxed">
               <span className="text-white font-semibold block mb-2">Desbloqueie o método validado por mais de 1700 empreendedores!</span>
-              <span className="text-gray-400 text-base md:text-lg">Comece a aplicar em poucos minutos após o acesso.</span>
             </p>
 
             <div className="flex flex-col items-center gap-2">
