@@ -124,9 +124,16 @@ const RendaExtraAdmin = () => {
       setAnalytics(data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 });
       
       if (data.settings) {
+        let formattedLaunchDate = "";
+        if (data.settings.launch_date) {
+          const date = new Date(data.settings.launch_date);
+          if (!isNaN(date.getTime())) {
+            formattedLaunchDate = format(date, "yyyy-MM-dd'T'HH:mm");
+          }
+        }
         setSettings({
           whatsapp_group_link: data.settings.whatsapp_group_link || "",
-          launch_date: data.settings.launch_date ? format(new Date(data.settings.launch_date), "yyyy-MM-dd'T'HH:mm") : ""
+          launch_date: formattedLaunchDate
         });
       }
     } catch (error: any) {
