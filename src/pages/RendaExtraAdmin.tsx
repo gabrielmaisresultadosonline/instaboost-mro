@@ -20,7 +20,7 @@ interface Lead {
   nome_completo: string;
   email: string;
   whatsapp: string;
-  trabalha_atualmente: boolean;
+  trabalha_atualmente: boolean | string;
   media_salarial: string;
   tipo_computador: string;
   instagram_username: string | null;
@@ -110,17 +110,39 @@ const RendaExtraAdmin = () => {
       });
 
       if (response.error) throw response.error;
+      
+      if (response.data?.success === false) {
+        if (response.data.error?.includes("Sessão expirada")) {
+          handleLogout();
+        }
+        throw new Error(response.data.error || "Falha ao carregar dados");
+      }
 
-      setLeads(response.data.leads || []);
-      setEmailLogs(response.data.emailLogs || []);
-      setAnalytics(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 });
-      setSettings({
-        whatsapp_group_link: response.data.settings?.whatsapp_group_link || "",
-        launch_date: response.data.settings?.launch_date ? format(new Date(response.data.settings.launch_date), "yyyy-MM-dd'T'HH:mm") : ""
-      });
+      const data = response.data;
+      setLeads(data.leads || []);
+      setEmailLogs(data.emailLogs || []);
+      setAnalytics(data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 });
+      
+      if (data.settings) {
+        let formattedLaunchDate = "";
+        if (data.settings.launch_date) {
+          const date = new Date(data.settings.launch_date);
+          if (!isNaN(date.getTime())) {
+            formattedLaunchDate = format(date, "yyyy-MM-dd'T'HH:mm");
+          }
+        }
+        setSettings({
+          whatsapp_group_link: data.settings.whatsapp_group_link || "",
+          launch_date: formattedLaunchDate
+        });
+      }
     } catch (error: any) {
       console.error("Error loading data:", error);
-      toast({ title: "Erro ao carregar dados", description: error.message, variant: "destructive" });
+      toast({ 
+        title: "Erro ao carregar dados", 
+        description: error.message || "Verifique sua conexão ou tente novamente.", 
+        variant: "destructive" 
+      });
     } finally {
       setLoading(false);
     }
@@ -413,7 +435,7 @@ const RendaExtraAdmin = () => {
                           <TableCell className="text-gray-300">{lead.email}</TableCell>
                           <TableCell className="text-gray-300">{lead.whatsapp}</TableCell>
                           <TableCell>
-                            {lead.trabalha_atualmente ? (
+                            {lead.trabalha_atualmente === true || lead.trabalha_atualmente === "true" ? (
                               <CheckCircle className="w-5 h-5 text-green-400" />
                             ) : (
                               <XCircle className="w-5 h-5 text-red-400" />
