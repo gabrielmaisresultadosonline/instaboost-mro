@@ -614,10 +614,7 @@ const RendaExtra = () => {
               <br />
               <span className="text-green-400 tracking-tight" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)' }}>com a MRO!</span>
             </h1>
-            {/* Subtitle */}
-            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mt-2">
-              utilizando a ferramenta <span className="text-yellow-400 font-bold">MRO</span>!
-            </h2>
+            {/* Subtitle - Hidden as it is now in the title */}
           </div>
 
           {/* Description */}
