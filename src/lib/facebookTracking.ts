@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminData } from "./adminConfig";
 
-// Facebook Pixel ID
-const PIXEL_ID = '569414052132145';
+// Default Facebook Pixel ID (fallback)
+const DEFAULT_PIXEL_ID = '569414052132145';
 
 // Helper to generate a unique event ID for deduplication
 const generateEventId = () => {
