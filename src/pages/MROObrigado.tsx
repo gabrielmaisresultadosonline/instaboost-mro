@@ -22,6 +22,11 @@ const MROObrigado = () => {
       .then(({ data }) => {
         if (data?.whatsapp_number) setWhatsappNumber(data.whatsapp_number);
       });
+    
+    toast({
+      title: "Compra aprovada!",
+      description: "Verifique no seu email para acessar a aula.",
+    });
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
