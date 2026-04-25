@@ -621,12 +621,12 @@ const DescontoAlunosRendaExtra = () => {
               <div className="text-base sm:text-lg text-gray-300 mb-2">por apenas</div>
               
               <div className="text-green-400 mb-1">
-                <span className="text-lg sm:text-xl md:text-2xl font-medium">12x de</span>
-                <span className="text-5xl sm:text-6xl md:text-7xl font-black ml-2">R$30</span>
+                <span className="text-5xl sm:text-6xl md:text-7xl font-black">12X DE R$30</span>
+                <span className="text-lg sm:text-xl md:text-2xl font-medium ml-2">mensal</span>
               </div>
               
               <p className="text-gray-300 text-lg sm:text-xl mb-3">
-                ou <span className="text-white font-bold">R$300 à vista</span>
+                avista <span className="text-white font-bold">R$297 por 1 ano todo</span>
               </p>
               
               {/* Animated discount highlight */}
