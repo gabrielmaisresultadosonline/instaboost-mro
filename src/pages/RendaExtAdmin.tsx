@@ -108,7 +108,56 @@ const RendaExtAdmin = () => {
       setIsLoggedIn(true);
       loadData(savedToken);
     }
-  }, []);
+    const interval = setInterval(() => {
+      if (isLoggedIn && adminToken) {
+        loadData(adminToken);
+      }
+    }, 30000); // Auto refresh every 30s
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn, adminToken]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    // Real-time listener for analytics
+    const analyticsChannel = supabase
+      .channel('rendaext-analytics-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'rendaext_analytics' },
+        (payload) => {
+          console.log('New visit detected!', payload);
+          setAnalytics(prev => ({
+            ...prev,
+            total_visits: prev.total_visits + 1,
+            today_visits: prev.today_visits + 1
+          }));
+        }
+      )
+      .subscribe();
+
+    // Real-time listener for audio events
+    const audioChannel = supabase
+      .channel('rendaext-audio-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'rendaext_audio_events' },
+        (payload) => {
+          console.log('New audio event detected!', payload);
+          // Only increment if it's a new email or we can just reload audio events
+          // For simplicity, let's just trigger a reload of data for audio events
+          // or we can be smart about it.
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(analyticsChannel);
+      supabase.removeChannel(audioChannel);
+    };
+  }, [isLoggedIn]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
