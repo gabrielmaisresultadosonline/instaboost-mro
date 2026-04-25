@@ -231,7 +231,7 @@ const RendaExtAdmin = () => {
     } finally {
       setLoading(false);
     }
-  }, [adminToken, settings.whatsapp_group_link, settings.launch_date]);
+  }, [adminToken]);
 
   const saveSettings = async () => {
     setLoading(true);
