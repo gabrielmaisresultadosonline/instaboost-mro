@@ -57,7 +57,7 @@ const RendaExtObrigado = () => {
           <div className="grid gap-4">
             <Button 
               className="bg-green-600 hover:bg-green-700 text-white font-bold py-8 rounded-2xl text-xl flex items-center justify-center gap-3 transition-transform hover:scale-105"
-              onClick={() => window.location.href = "https://maisresultadosonline.com.br/rendaextraaula"}
+              onClick={() => window.location.href = "/descontoalunosrendaextrass"}
             >
               <ArrowRight className="w-6 h-6" />
               ACESSAR AULA AGORA

@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrendaextrasss";
+const FREE_CLASS_LINK = "https://maisresultadosonline.com.br/descontoalunosrendaextrass";
 const BOT_SESSION_ID = "rendaext";
 
 const log = (message: string, data?: any) => {

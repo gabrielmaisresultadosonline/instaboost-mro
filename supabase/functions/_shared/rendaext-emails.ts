@@ -13,7 +13,7 @@ export const buildRendaExtEmail = (name: string) => `<!DOCTYPE html><html><body 
 <p style="font-size:16px;">Parabéns pelo interesse, você é um dos empreendedores de sucesso que a partir de agora vai aprender o novo método.</p>
 <div style="background:#f8f9fa;border-left:4px solid #FFD700;padding:20px;margin:20px 0;border-radius:8px;">
 <p style="margin:0 0 10px 0;font-weight:bold;font-size:18px;">📚 Acesse sua aula aqui:</p>
-<a href="https://maisresultadosonline.com.br/rendaextraaula" style="display:inline-block;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:16px;font-weight:bold;margin-top:10px;">▶️ ACESSAR AULA AGORA</a>
+<a href="https://maisresultadosonline.com.br/descontoalunosrendaextrass" style="display:inline-block;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;text-decoration:none;padding:15px 40px;border-radius:30px;font-size:16px;font-weight:bold;margin-top:10px;">▶️ ACESSAR AULA AGORA</a>
 </div>
 <div style="background:#e8f5e9;border-left:4px solid #4caf50;padding:15px;margin:20px 0;border-radius:8px;">
 <p style="margin:0;font-size:14px;color:#2e7d32;"><strong>Suporte WhatsApp:</strong> <a href="https://maisresultadosonline.com.br/whatsapp" style="color:#2e7d32;">Clique aqui para suporte</a></p>
