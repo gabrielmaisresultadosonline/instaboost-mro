@@ -101,6 +101,50 @@ const RendaExtAdmin = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
 
+  const loadData = useCallback(async (token = adminToken) => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const response = await supabase.functions.invoke("rendaext-admin", {
+        body: { action: "getData", adminToken: token }
+      });
+
+      if (response.error) throw response.error;
+
+      setLeads(response.data.leads || []);
+      setOrders(response.data.orders || []);
+      setEmailLogs(response.data.emailLogs || []);
+      setAudioEvents(response.data.audioEvents || []);
+      
+      const ordersData: Order[] = response.data.orders || [];
+      const paidOrders = ordersData.filter(o => o.status === "paid");
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const todayPaidOrders = paidOrders.filter(o => new Date(o.paid_at || "") >= startOfDay);
+      
+      const audioEventsData: AudioEvent[] = response.data.audioEvents || [];
+      const uniqueListeners = new Set(audioEventsData.map(e => e.email)).size;
+      
+      setAnalytics({
+        ...(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 }),
+        total_sales: paidOrders.length,
+        today_sales: todayPaidOrders.length,
+        total_revenue: paidOrders.reduce((acc, curr) => acc + Number(curr.amount), 0),
+        total_audio_listeners: uniqueListeners
+      });
+
+      setSettings({
+        whatsapp_group_link: response.data.settings?.whatsapp_group_link || "",
+        launch_date: response.data.settings?.launch_date ? format(new Date(response.data.settings.launch_date), "yyyy-MM-dd'T'HH:mm") : ""
+      });
+    } catch (error: any) {
+      console.error("Error loading data:", error);
+      toast({ title: "Erro ao carregar dados", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [adminToken]);
+
   useEffect(() => {
     const savedToken = localStorage.getItem("rendaext_admin_token");
     if (savedToken) {
@@ -188,50 +232,6 @@ const RendaExtAdmin = () => {
     setAdminToken("");
     setIsLoggedIn(false);
   };
-
-  const loadData = useCallback(async (token = adminToken) => {
-    if (!token) return;
-    setLoading(true);
-    try {
-      const response = await supabase.functions.invoke("rendaext-admin", {
-        body: { action: "getData", adminToken: token }
-      });
-
-      if (response.error) throw response.error;
-
-      setLeads(response.data.leads || []);
-      setOrders(response.data.orders || []);
-      setEmailLogs(response.data.emailLogs || []);
-      setAudioEvents(response.data.audioEvents || []);
-      
-      const ordersData: Order[] = response.data.orders || [];
-      const paidOrders = ordersData.filter(o => o.status === "paid");
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-      const todayPaidOrders = paidOrders.filter(o => new Date(o.paid_at || "") >= startOfDay);
-      
-      const audioEventsData: AudioEvent[] = response.data.audioEvents || [];
-      const uniqueListeners = new Set(audioEventsData.map(e => e.email)).size;
-      
-      setAnalytics({
-        ...(response.data.analytics || { total_visits: 0, total_leads: 0, today_visits: 0, today_leads: 0 }),
-        total_sales: paidOrders.length,
-        today_sales: todayPaidOrders.length,
-        total_revenue: paidOrders.reduce((acc, curr) => acc + Number(curr.amount), 0),
-        total_audio_listeners: uniqueListeners
-      });
-
-      setSettings({
-        whatsapp_group_link: response.data.settings?.whatsapp_group_link || "",
-        launch_date: response.data.settings?.launch_date ? format(new Date(response.data.settings.launch_date), "yyyy-MM-dd'T'HH:mm") : ""
-      });
-    } catch (error: any) {
-      console.error("Error loading data:", error);
-      toast({ title: "Erro ao carregar dados", description: error.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  }, [adminToken]);
 
   const saveSettings = async () => {
     setLoading(true);
