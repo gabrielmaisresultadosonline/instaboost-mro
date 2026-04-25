@@ -260,8 +260,8 @@ const RendaExtAdmin = () => {
       if (response.error) throw response.error;
       if (!response.data.success) throw new Error(response.data.error || "Erro ao aprovar");
 
-      // Track purchase event on Facebook
-      trackPurchase(order.amount, "Renda Extra - Aula", order.email);
+      // Tracking is now handled automatically by the backend (Conversion API)
+
 
       toast({ title: "Pagamento aprovado!", description: "O acesso foi enviado ao cliente e o pixel de conversão foi disparado." });
       loadData();

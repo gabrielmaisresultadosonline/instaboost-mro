@@ -145,15 +145,9 @@ const RendaExt = () => {
       // Track InitiateCheckout on Facebook
       trackInitiateCheckout("Renda Extra - Aula", 19.90);
       
-      // Track Lead on Facebook
-      trackFacebookEvent("Lead", {
-        content_name: "Renda Extra - Checkout Form",
-        content_category: "Lead",
-        email: formData.email.toLowerCase().trim()
-      });
-
       // Save email for the thank you page tracking
       localStorage.setItem("mro_customer_email", formData.email.toLowerCase().trim());
+
 
       const { data, error } = await supabase.functions.invoke("rendaext-checkout", {
         body: {

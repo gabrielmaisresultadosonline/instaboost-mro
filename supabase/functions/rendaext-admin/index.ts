@@ -4,6 +4,65 @@ import { z } from "https://esm.sh/zod@3.25.76";
 import { createAdminSessionToken, verifyAdminSessionToken } from "../_shared/admin-session.ts";
 import { sendRendaExtEmail } from "../_shared/rendaext-emails.ts";
 
+const META_PIXEL_ID = '569414052132145';
+const META_API_VERSION = 'v18.0';
+
+async function hashData(data: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(data.toLowerCase().trim());
+  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function sendMetaConversionEvent(eventName: string, userData: any, customData: any = {}) {
+  const accessToken = Deno.env.get('META_CONVERSIONS_API_TOKEN');
+  if (!accessToken) {
+    console.error('[META-CONVERSIONS] Access token not configured');
+    return;
+  }
+
+  const hashedEmail = await hashData(userData.email || "");
+  const hashedPhone = userData.phone ? await hashData(userData.phone) : undefined;
+  
+  const event = {
+    event_name: eventName,
+    event_time: Math.floor(Date.now() / 1000),
+    action_source: 'website',
+    event_source_url: 'https://maisresultadosonline.com.br/rendaext',
+    user_data: {
+      em: [hashedEmail],
+      ph: hashedPhone ? [hashedPhone] : undefined,
+      client_ip_address: userData.ip,
+      client_user_agent: userData.userAgent
+    },
+    custom_data: {
+      currency: 'BRL',
+      value: customData.value || 0,
+      content_name: customData.contentName || ""
+    }
+  };
+
+
+  const metaUrl = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events`;
+  
+  try {
+    const response = await fetch(metaUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: [event],
+        access_token: accessToken,
+      }),
+    });
+    const result = await response.json();
+    console.log('[META-CONVERSIONS] API Response:', result);
+  } catch (error) {
+    console.error('[META-CONVERSIONS] Error sending event:', error);
+  }
+}
+
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -228,6 +287,19 @@ const handler = async (req: Request): Promise<Response> => {
           email_sent_at: new Date().toISOString()
         }).eq("id", orderId);
       }
+
+      // Track purchase event on Meta (Conversion API)
+      await sendMetaConversionEvent('Purchase', {
+        email: order.email,
+        phone: order.whatsapp,
+        ip: req.headers.get('x-forwarded-for')?.split(',')[0] || undefined,
+        userAgent: req.headers.get('user-agent') || undefined
+      }, {
+        value: Number(order.amount) || 19.90,
+        contentName: 'Renda Extra - Aula'
+      });
+
+
 
       return new Response(JSON.stringify({ success: true, emailSent }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
