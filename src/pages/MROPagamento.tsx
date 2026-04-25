@@ -189,7 +189,7 @@ export default function MROPagamento() {
       }
 
       if (data.status === "completed") {
-        toast.success("Pagamento confirmado e acesso liberado!");
+        toast.success("Compra aprovada! Verifique no seu email para acessar a aula.");
         navigate("/mroobrigado?nsu=" + nsuOrder);
       } else if (data.status === "paid") {
         toast.info("Pagamento confirmado! Aguarde a liberação do acesso...");
