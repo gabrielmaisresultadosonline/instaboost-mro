@@ -349,7 +349,7 @@ const DescontoAlunosRendaExtrass = () => {
               <div className="aspect-video">
                 <iframe 
                   src="https://www.youtube.com/embed/-0CHlqHVe0g?rel=0&modestbranding=1" 
-                  title="Aula Grátis"
+                  title="Aula"
                   className="w-full h-full" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen 
