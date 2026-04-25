@@ -44,7 +44,7 @@ const RendaExtra = () => {
 
   const fetchLaunchDate = async () => {
     try {
-      const response = await supabase.functions.invoke("renda-extra-admin", {
+      const response = await supabase.functions.invoke("renda-extra-v2-admin", {
         body: { action: "getPublicSettings" }
       });
       if (response.data?.launch_date) {

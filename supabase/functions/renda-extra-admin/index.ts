@@ -21,7 +21,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Public settings (no auth required)
     if (action === "getPublicSettings") {
       const { data: settings } = await supabase
-        .from("renda_extra_settings")
+        .from("renda_extra_v2_settings")
         .select("launch_date")
         .limit(1)
         .single();
@@ -34,7 +34,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Login action
     if (action === "login") {
       const { data: settingsData } = await supabase
-        .from("renda_extra_settings")
+        .from("renda_extra_v2_settings")
         .select("admin_email, admin_password")
         .limit(1)
         .single();
@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Get settings
       const { data: settings } = await supabase
-        .from("renda_extra_settings")
+        .from("renda_extra_v2_settings")
         .select("whatsapp_group_link, launch_date")
         .limit(1)
         .single();
@@ -124,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Update settings action
     if (action === "updateSettings") {
       const { error } = await supabase
-        .from("renda_extra_settings")
+        .from("renda_extra_v2_settings")
         .update({
           whatsapp_group_link: newSettings.whatsapp_group_link,
           launch_date: newSettings.launch_date,
