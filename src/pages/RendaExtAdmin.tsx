@@ -189,7 +189,8 @@ const RendaExtAdmin = () => {
     setIsLoggedIn(false);
   };
 
-  const loadData = async (token = adminToken) => {
+  const loadData = useCallback(async (token = adminToken) => {
+    if (!token) return;
     setLoading(true);
     try {
       const response = await supabase.functions.invoke("rendaext-admin", {
@@ -230,7 +231,7 @@ const RendaExtAdmin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminToken, settings.whatsapp_group_link, settings.launch_date]);
 
   const saveSettings = async () => {
     setLoading(true);
