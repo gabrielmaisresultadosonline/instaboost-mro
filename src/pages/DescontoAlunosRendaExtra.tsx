@@ -744,7 +744,7 @@ const DescontoAlunosRendaExtra = () => {
             disabled={promoTimeLeft.expired}
             className="btn-pulse-color text-black font-bold text-sm sm:text-xl px-6 sm:px-12 py-5 sm:py-7 rounded-full shadow-lg shadow-yellow-500/30 disabled:opacity-50"
           >
-            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$300"}
+            {promoTimeLeft.expired ? "PROMOÇÃO EXPIRADA" : "GARANTIR MEU DESCONTO DE R$297"}
           </Button>
           <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
             <span className="arrow-bounce-right text-white text-xl sm:text-2xl">▶</span>
