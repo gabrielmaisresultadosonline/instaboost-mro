@@ -108,14 +108,17 @@ const RendaExtAdmin = () => {
       setIsLoggedIn(true);
       loadData(savedToken);
     }
+  }, [loadData]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !adminToken) return;
+
     const interval = setInterval(() => {
-      if (isLoggedIn && adminToken) {
-        loadData(adminToken);
-      }
+      loadData(adminToken);
     }, 30000); // Auto refresh every 30s
 
     return () => clearInterval(interval);
-  }, [isLoggedIn, adminToken]);
+  }, [isLoggedIn, adminToken, loadData]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -145,9 +148,6 @@ const RendaExtAdmin = () => {
         { event: 'INSERT', schema: 'public', table: 'rendaext_audio_events' },
         (payload) => {
           console.log('New audio event detected!', payload);
-          // Only increment if it's a new email or we can just reload audio events
-          // For simplicity, let's just trigger a reload of data for audio events
-          // or we can be smart about it.
           loadData();
         }
       )
@@ -157,7 +157,7 @@ const RendaExtAdmin = () => {
       supabase.removeChannel(analyticsChannel);
       supabase.removeChannel(audioChannel);
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, loadData]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
