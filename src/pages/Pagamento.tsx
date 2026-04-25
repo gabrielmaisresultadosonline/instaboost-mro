@@ -66,6 +66,9 @@ export default function Pagamento() {
   };
 
   const handleOpenPayment = () => {
+    toast.info("Compra em processamento! Verifique seu email após o pagamento para acessar a aula.", {
+      duration: 8000,
+    });
     window.open(paymentLink, "_blank");
   };
 
