@@ -66,6 +66,9 @@ export default function Pagamento() {
   };
 
   const handleOpenPayment = () => {
+    toast.info("Compra em processamento! Verifique seu email após o pagamento para acessar a aula.", {
+      duration: 8000,
+    });
     window.open(paymentLink, "_blank");
   };
 
@@ -84,7 +87,7 @@ export default function Pagamento() {
       }
 
       if (data.status === "paid") {
-        toast.success("Pagamento confirmado!");
+        toast.success("Compra aprovada! Verifique no seu email para acessar a aula.");
         navigate("/pagamentoobrigado", { state: { email, nsuOrder } });
       } else {
         toast.info("Pagamento ainda não confirmado. Aguarde alguns instantes.");

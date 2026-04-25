@@ -168,6 +168,9 @@ export default function MROPagamento() {
   };
 
   const handleOpenPayment = () => {
+    toast.info("Compra em processamento! Verifique seu email após o pagamento para acessar a aula.", {
+      duration: 8000,
+    });
     window.open(paymentLink, "_blank");
   };
 
@@ -186,7 +189,7 @@ export default function MROPagamento() {
       }
 
       if (data.status === "completed") {
-        toast.success("Pagamento confirmado e acesso liberado!");
+        toast.success("Compra aprovada! Verifique no seu email para acessar a aula.");
         navigate("/mroobrigado?nsu=" + nsuOrder);
       } else if (data.status === "paid") {
         toast.info("Pagamento confirmado! Aguarde a liberação do acesso...");

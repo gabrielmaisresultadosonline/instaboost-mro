@@ -53,7 +53,7 @@ export default function PagamentoObrigado() {
 
         if (data?.paid) {
           setVerifyState("paid");
-          toast.success("Pagamento confirmado e registrado!");
+          toast.success("Compra aprovada! Verifique no seu email para acessar a aula.");
         } else {
           setVerifyState("not_paid");
           toast.info("Pagamento ainda não consta como aprovado. Se acabou de pagar, aguarde 1-2 minutos.");
