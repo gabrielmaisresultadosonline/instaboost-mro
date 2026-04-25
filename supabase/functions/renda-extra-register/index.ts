@@ -89,7 +89,7 @@ serve(async (req) => {
 
     // Get settings for WhatsApp group link
     const { data: settings } = await supabase
-      .from("renda_extra_settings")
+      .from("renda_extra_v2_settings")
       .select("whatsapp_group_link, launch_date")
       .single();
 
