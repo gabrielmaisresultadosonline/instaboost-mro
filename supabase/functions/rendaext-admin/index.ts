@@ -23,6 +23,7 @@ async function sendMetaConversionEvent(eventName: string, userData: any, customD
   }
 
   const hashedEmail = await hashData(userData.email || "");
+  const hashedPhone = userData.phone ? await hashData(userData.phone) : undefined;
   
   const event = {
     event_name: eventName,
@@ -31,6 +32,7 @@ async function sendMetaConversionEvent(eventName: string, userData: any, customD
     event_source_url: 'https://maisresultadosonline.com.br/rendaext',
     user_data: {
       em: [hashedEmail],
+      ph: hashedPhone ? [hashedPhone] : undefined,
       client_ip_address: userData.ip,
       client_user_agent: userData.userAgent
     },
@@ -40,6 +42,7 @@ async function sendMetaConversionEvent(eventName: string, userData: any, customD
       content_name: customData.contentName || ""
     }
   };
+
 
   const metaUrl = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events`;
   
