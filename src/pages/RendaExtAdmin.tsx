@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,46 +101,8 @@ const RendaExtAdmin = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const savedToken = localStorage.getItem("rendaext_admin_token");
-    if (savedToken) {
-      setAdminToken(savedToken);
-      setIsLoggedIn(true);
-      loadData(savedToken);
-    }
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginLoading(true);
-
-    try {
-      const response = await supabase.functions.invoke("rendaext-admin", {
-        body: { action: "login", email: loginData.email, password: loginData.password }
-      });
-
-      if (response.error) throw response.error;
-      if (!response.data.success || !response.data.adminToken) throw new Error("Credenciais inválidas");
-
-      localStorage.setItem("rendaext_admin_token", response.data.adminToken);
-      setAdminToken(response.data.adminToken);
-      setIsLoggedIn(true);
-      loadData(response.data.adminToken);
-      toast({ title: "Login realizado com sucesso!" });
-    } catch (error: any) {
-      toast({ title: "Erro no login", description: error.message, variant: "destructive" });
-    } finally {
-      setLoginLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("rendaext_admin_token");
-    setAdminToken("");
-    setIsLoggedIn(false);
-  };
-
-  const loadData = async (token = adminToken) => {
+  const loadData = useCallback(async (token = adminToken) => {
+    if (!token) return;
     setLoading(true);
     try {
       const response = await supabase.functions.invoke("rendaext-admin", {
@@ -181,6 +143,94 @@ const RendaExtAdmin = () => {
     } finally {
       setLoading(false);
     }
+  }, [adminToken]);
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem("rendaext_admin_token");
+    if (savedToken) {
+      setAdminToken(savedToken);
+      setIsLoggedIn(true);
+      loadData(savedToken);
+    }
+  }, [loadData]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !adminToken) return;
+
+    const interval = setInterval(() => {
+      loadData(adminToken);
+    }, 30000); // Auto refresh every 30s
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn, adminToken, loadData]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    // Real-time listener for analytics
+    const analyticsChannel = supabase
+      .channel('rendaext-analytics-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'rendaext_analytics' },
+        (payload) => {
+          console.log('New visit detected!', payload);
+          setAnalytics(prev => ({
+            ...prev,
+            total_visits: prev.total_visits + 1,
+            today_visits: prev.today_visits + 1
+          }));
+        }
+      )
+      .subscribe();
+
+    // Real-time listener for audio events
+    const audioChannel = supabase
+      .channel('rendaext-audio-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'rendaext_audio_events' },
+        (payload) => {
+          console.log('New audio event detected!', payload);
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(analyticsChannel);
+      supabase.removeChannel(audioChannel);
+    };
+  }, [isLoggedIn, loadData]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+
+    try {
+      const response = await supabase.functions.invoke("rendaext-admin", {
+        body: { action: "login", email: loginData.email, password: loginData.password }
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data.success || !response.data.adminToken) throw new Error("Credenciais inválidas");
+
+      localStorage.setItem("rendaext_admin_token", response.data.adminToken);
+      setAdminToken(response.data.adminToken);
+      setIsLoggedIn(true);
+      loadData(response.data.adminToken);
+      toast({ title: "Login realizado com sucesso!" });
+    } catch (error: any) {
+      toast({ title: "Erro no login", description: error.message, variant: "destructive" });
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("rendaext_admin_token");
+    setAdminToken("");
+    setIsLoggedIn(false);
   };
 
   const saveSettings = async () => {

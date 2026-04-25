@@ -2714,6 +2714,7 @@ export type Database = {
           event_type: string
           id: string
           referrer: string | null
+          source_url: string | null
           user_agent: string | null
         }
         Insert: {
@@ -2721,6 +2722,7 @@ export type Database = {
           event_type: string
           id?: string
           referrer?: string | null
+          source_url?: string | null
           user_agent?: string | null
         }
         Update: {
@@ -2728,6 +2730,7 @@ export type Database = {
           event_type?: string
           id?: string
           referrer?: string | null
+          source_url?: string | null
           user_agent?: string | null
         }
         Relationships: []
