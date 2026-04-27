@@ -57,17 +57,12 @@ const Admin = () => {
   const [testingApi, setTestingApi] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAdminAccess = async () => {
+    const checkAdminAccess = () => {
       setIsVerifying(true);
       
-      // First check cached status for quick rejection
       if (!isAdminLoggedIn()) {
-        // Verify with server to be sure
-        const isValid = await verifyAdmin();
-        if (!isValid) {
-          navigate('/admin/login');
-          return;
-        }
+        navigate('/admin/login');
+        return;
       }
       
       // Load data from server on mount
