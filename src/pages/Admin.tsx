@@ -57,7 +57,7 @@ const Admin = () => {
   const [testingApi, setTestingApi] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAdminAccess = () => {
+    const checkAdminAccess = async () => {
       setIsVerifying(true);
       
       if (!isAdminLoggedIn()) {
@@ -67,8 +67,13 @@ const Admin = () => {
       
       // Load data from server on mount
       console.log('🔄 Admin: Carregando dados do servidor...');
-      const serverSyncData = await loadSyncDataFromServer();
-      setSyncData(serverSyncData);
+      try {
+        const serverSyncData = await loadSyncDataFromServer();
+        setSyncData(serverSyncData);
+        console.log(`✅ Admin: ${serverSyncData.profiles.length} perfis carregados do servidor`);
+      } catch (error) {
+        console.error('Erro ao carregar dados do servidor:', error);
+      }
       
       // Load sessions
       const mroSession = getSession();
@@ -81,7 +86,6 @@ const Admin = () => {
       setAdminData(savedData);
       setSettings(savedData.settings);
       
-      console.log(`✅ Admin: ${serverSyncData.profiles.length} perfis carregados do servidor`);
       setIsVerifying(false);
     };
     
