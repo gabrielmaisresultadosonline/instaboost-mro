@@ -748,7 +748,7 @@ export const deleteVideo = (stepId: string, videoId: string): void => {
 };
 
 // Check if admin is logged in - checks localStorage session
-export const isAdminLoggedIn = async (): Promise<boolean> => {
+export const isAdminLoggedIn = (): boolean => {
   try {
     const stored = localStorage.getItem('mro_admin_session');
     if (!stored) return false;
