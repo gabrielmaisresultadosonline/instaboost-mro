@@ -1273,7 +1273,8 @@ const CRM = () => {
                   </>
                 )}
               </div>
-            </TabsContent>
+            </div>
+          </TabsContent>
 
           {/* Remarketing / Broadcast Content */}
           <TabsContent value="broadcast">
