@@ -138,7 +138,7 @@ serve(async (req) => {
             .update({ total_messages_sent: (contact.total_messages_sent || 0) + 1 })
             .eq('id', contact.id)
           
-          await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' }).catch(() => {})
+          await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
         }
       }
 
