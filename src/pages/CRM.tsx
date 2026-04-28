@@ -542,7 +542,7 @@ const CRM = () => {
 
     setSaving(true);
     try {
-      const { steps, id, ...flowData } = editingFlow;
+      const { steps, id, crm_flow_steps, created_at, updated_at, ...flowData } = editingFlow;
       let flowId = id;
 
       if (flowId) {
