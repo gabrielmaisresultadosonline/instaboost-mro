@@ -383,9 +383,26 @@ const CRM = () => {
             if (index === 0 && selectedContact.name) {
               return { type: "text", text: selectedContact.name };
             }
-            // For other variables, try to get from example if exists
-            const exampleValues = bodyComponent.example?.body_text?.[0] || [];
-            return { type: "text", text: exampleValues[index] || "---" };
+            
+            // Try to get from example
+            const exampleData = bodyComponent.example?.body_text?.[0] || [];
+            
+            // If exampleData is a string or array, try to extract values
+            let val = "---";
+            if (Array.isArray(exampleData)) {
+              if (exampleData.length === 1 && typeof exampleData[0] === 'string' && bodyVariables.length > 1) {
+                // Handle case where all examples are in one space-separated string
+                const splitExamples = exampleData[0].split(' ');
+                val = splitExamples[index] || "---";
+              } else {
+                val = exampleData[index] || "---";
+              }
+            } else if (typeof exampleData === 'string') {
+              const splitExamples = exampleData.split(' ');
+              val = splitExamples[index] || "---";
+            }
+            
+            return { type: "text", text: val };
           });
           
           components.push({
