@@ -1238,6 +1238,7 @@ const CRM = () => {
                   </div>
                 ))
               )}
+              <div ref={scrollRef} />
             </div>
           </ScrollArea>
           
