@@ -33,7 +33,7 @@ serve(async (req) => {
     const { meta_access_token, meta_phone_number_id } = settings
 
     if (action === 'sendMessage') {
-      const { to, text, buttons } = params
+      const { to, text, buttons, audioUrl } = params
       
       let body: any = {
         messaging_product: "whatsapp",
@@ -41,7 +41,10 @@ serve(async (req) => {
         to: to,
       }
 
-      if (buttons && buttons.length > 0) {
+      if (audioUrl) {
+        body.type = "audio"
+        body.audio = { link: audioUrl }
+      } else if (buttons && buttons.length > 0) {
         body.type = "interactive"
         body.interactive = {
           type: "button",
@@ -75,32 +78,31 @@ serve(async (req) => {
 
       const result = await response.json()
       
-      // Log outbound message
+      // Log outbound message and update stats
       if (result.messages && result.messages[0]) {
-        // Find or create contact
-        let { data: contact } = await supabase
+        const { data: contact } = await supabase
           .from('crm_contacts')
-          .select('id')
+          .select('id, total_messages_sent')
           .eq('wa_id', to)
           .single()
-        
-        if (!contact) {
-          const { data: newContact } = await supabase
-            .from('crm_contacts')
-            .insert({ wa_id: to })
-            .select('id')
-            .single()
-          contact = newContact
-        }
 
         if (contact) {
           await supabase.from('crm_messages').insert({
             contact_id: contact.id,
             direction: 'outbound',
-            content: text,
+            content: audioUrl ? '[Mensagem de Áudio]' : text,
+            message_type: audioUrl ? 'audio' : 'text',
             meta_message_id: result.messages[0].id,
             status: 'sent'
           })
+
+          await supabase
+            .from('crm_contacts')
+            .update({ total_messages_sent: (contact.total_messages_sent || 0) + 1 })
+            .eq('id', contact.id)
+          
+          // Increment sent metric
+          await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' }).catch(() => {})
         }
       }
 
@@ -110,15 +112,13 @@ serve(async (req) => {
     }
 
     if (action === 'broadcast') {
-      const { name, text, buttons, contactIds } = params
+      const { name, text, contactIds } = params
       
-      // Create broadcast record
       const { data: broadcast } = await supabase
         .from('crm_broadcasts')
         .insert({
           name,
           message_text: text,
-          buttons,
           total_contacts: contactIds.length,
           status: 'sending'
         })
@@ -156,8 +156,6 @@ serve(async (req) => {
           
           if (response.ok) sent++
           else failed++
-          
-          await new Promise(r => setTimeout(r, 100))
         } catch (e) {
           failed++
         }
@@ -165,11 +163,7 @@ serve(async (req) => {
 
       await supabase
         .from('crm_broadcasts')
-        .update({ 
-          status: 'completed', 
-          sent_count: sent, 
-          failed_count: failed 
-        })
+        .update({ status: 'completed', sent_count: sent, failed_count: failed })
         .eq('id', broadcast.id)
 
       return new Response(JSON.stringify({ success: true, sent, failed }), {
