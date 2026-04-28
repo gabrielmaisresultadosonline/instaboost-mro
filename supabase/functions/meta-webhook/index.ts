@@ -103,8 +103,8 @@ serve(async (req) => {
                          body: {
                            action: 'sendMessage',
                            to: wa_id,
-                           text: `Olá ${contact_name}! Como posso te ajudar hoje?`,
-                           buttons: [
+                           text: settings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
+                           buttons: settings.initial_response_buttons || [
                              { id: 'opt_1', text: 'Quero saber mais' },
                              { id: 'opt_2', text: 'Falar com atendente' }
                            ]
