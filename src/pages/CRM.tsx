@@ -463,9 +463,12 @@ const CRM = () => {
                                 <SelectValue placeholder="Enviar Template" />
                               </SelectTrigger>
                               <SelectContent>
-                                {templates.filter(t => t.status === 'APPROVED').map(t => (
-                                  <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                                {templates.map(t => (
+                                  <SelectItem key={t.id} value={t.name}>
+                                    {t.name} {t.status !== 'APPROVED' ? `(${t.status})` : ''}
+                                  </SelectItem>
                                 ))}
+
                               </SelectContent>
                             </Select>
                             <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })}>Qualificar</Button>
