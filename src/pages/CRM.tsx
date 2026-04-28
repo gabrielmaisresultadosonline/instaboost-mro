@@ -1396,13 +1396,14 @@ const CRM = () => {
                     <p className="font-bold text-blue-400 mb-1">Passos na Meta:</p>
                     <ol className="list-decimal ml-4 space-y-1">
                       <li>Acesse developers.facebook.com</li>
-                      <li>Vá em seu App > WhatsApp > Configuração</li>
+                      <li>Vá em seu App {"->"} WhatsApp {"->"} Configuração</li>
                       <li>Clique em "Editar" no Webhook</li>
                       <li>Cole a URL e o Token acima</li>
-                      <li>Em "Campos do Webhook", clique em "Gerenciar" e selecione <b>messages</b></li>
+                      <li>Em "Campos do Webhook", selecione <b>messages</b></li>
                     </ol>
                   </div>
                 </CardContent>
+              </Card>
 
               {/* AI & Automation Settings */}
               <Card className="glass-card border-purple-500/20">
