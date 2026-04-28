@@ -484,22 +484,36 @@ const CRM = () => {
                             )}
                           </div>
                           <div className="flex gap-2">
-                            <Select onValueChange={(val) => handleSendTemplate(val, 'pt_BR')}>
-                              <SelectTrigger className="w-[140px] h-8 text-xs bg-primary text-primary-foreground">
-                                <SelectValue placeholder="Enviar Template" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {templates.map(t => (
-                                  <SelectItem key={t.id} value={t.name}>
-                                    {t.name} {t.status !== 'APPROVED' ? `(${t.status})` : ''}
-                                  </SelectItem>
-                                ))}
-
-                              </SelectContent>
-                            </Select>
-                            <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })}>Qualificar</Button>
-                            <Button size="sm" className="bg-green-600" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                            <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })} className="hidden sm:flex">Qualificar</Button>
+                            <Button size="sm" className="bg-green-600 hidden sm:flex" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
                           </div>
+                        </div>
+                        <div className="bg-muted/10 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center">
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1"><Zap className="w-3 h-3" /> Atalhos:</span>
+                          {templates.slice(0, 5).map(t => (
+                            <Button 
+                              key={t.id} 
+                              variant="secondary" 
+                              size="sm" 
+                              className="h-7 text-[10px] px-2 whitespace-nowrap"
+                              onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')}
+                            >
+                              {t.name}
+                              {t.status !== 'APPROVED' && <ClockIcon className="w-2 h-2 ml-1 opacity-50" />}
+                            </Button>
+                          ))}
+                          <div className="w-px h-4 bg-border mx-1" />
+                          {flows.slice(0, 5).map(f => (
+                            <Button 
+                              key={f.id} 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-7 text-[10px] px-2 whitespace-nowrap border-primary/20 text-primary"
+                              onClick={() => handleTriggerFlow(f.id)}
+                            >
+                              <GitBranch className="w-2 h-2 mr-1" /> {f.name}
+                            </Button>
+                          ))}
                         </div>
                         <ScrollArea className="flex-1 p-4">
                           <div className="space-y-4">
