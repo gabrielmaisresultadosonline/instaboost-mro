@@ -105,9 +105,11 @@ const CRM = () => {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
+      const { id, created_at, updated_at, webhook_verify_token, ...updatableSettings } = metaSettings;
+      
       const { error } = await supabase
         .from('crm_settings')
-        .update(metaSettings)
+        .update(updatableSettings)
         .eq('id', '00000000-0000-0000-0000-000000000001');
 
       if (error) throw error;
