@@ -1274,8 +1274,7 @@ const CRM = () => {
                 </>
               )}
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
           {/* Remarketing / Broadcast Content */}
           <TabsContent value="broadcast">
             <Card className="glass-card max-w-3xl mx-auto">
