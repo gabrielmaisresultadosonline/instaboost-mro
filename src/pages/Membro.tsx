@@ -656,7 +656,7 @@ export default function Membro() {
   };
 
   const openWhatsApp = () => {
-    window.open('https://wa.me/5551920936540?text=Olá! Sou membro do plano mensal e tenho interesse na Ferramenta MRO com valor promocional.', '_blank');
+    window.open(`https://wa.me/${whatsappNumber}?text=Olá! Sou membro do plano mensal e tenho interesse na Ferramenta MRO com valor promocional.`, '_blank');
   };
 
   // Show loading overlay for add/sync operations
