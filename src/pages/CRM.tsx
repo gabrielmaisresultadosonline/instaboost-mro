@@ -348,7 +348,7 @@ const CRM = () => {
                     placeholder="Olá! Temos uma novidade para você..." 
                     className="min-h-[150px]"
                   />
-                  <p className="text-xs text-muted-foreground">Use {{name}} para personalizar com o nome do cliente.</p>
+                  <p className="text-xs text-muted-foreground">Use {"{{name}}"} para personalizar com o nome do cliente.</p>
                 </div>
 
                 <div className="space-y-4">
