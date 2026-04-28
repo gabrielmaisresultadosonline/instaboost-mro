@@ -136,49 +136,45 @@ serve(async (req) => {
       
       console.log(`Sending template ${templateName} to ${to}...`);
 
-      // Auto-fill variables if components are missing or empty
-      let finalComponents = components || [];
-      if (finalComponents.length === 0) {
-        // Try to find the template to see how many body variables it needs
-        const { data: templateData } = await supabase
-          .from('crm_templates')
-          .select('components')
-          .eq('name', templateName)
-          .single();
+      // Fetch template details for content reconstruction
+      const { data: templateData } = await supabase
+        .from('crm_templates')
+        .select('components')
+        .eq('name', templateName)
+        .single();
 
-        if (templateData?.components) {
-          const bodyComponent = templateData.components.find((c: any) => c.type === 'BODY');
-          if (bodyComponent && bodyComponent.text) {
-            const varCount = (bodyComponent.text.match(/\{\{\d+\}\}/g) || []).length;
-            if (varCount > 0) {
-              console.log(`Auto-filling ${varCount} variables for template ${templateName}`);
-              
-              // Get contact name for personalization
-              const { data: contact } = await supabase
-                .from('crm_contacts')
-                .select('name')
-                .eq('wa_id', to)
-                .single();
-              
-              const name = contact?.name || 'Cliente';
-              const bodyParams = [];
-              
-              // Fill {{1}} with name, others with placeholder
-              for (let i = 1; i <= varCount; i++) {
-                bodyParams.push({
-                  type: "text",
-                  text: i === 1 ? name : "-"
-                });
-              }
-              
-              finalComponents.push({
-                type: "body",
-                parameters: bodyParams
+      let finalComponents = components || [];
+      let messageContent = `[Template: ${templateName}]`;
+
+      if (templateData?.components) {
+        const bodyComponent = templateData.components.find((c: any) => c.type === 'BODY');
+        
+        // Auto-fill variables if components are missing or empty
+        if (finalComponents.length === 0 && bodyComponent && bodyComponent.text) {
+          const varCount = (bodyComponent.text.match(/\{\{\d+\}\}/g) || []).length;
+          if (varCount > 0) {
+            const { data: contact } = await supabase
+              .from('crm_contacts')
+              .select('name')
+              .eq('wa_id', to)
+              .single();
+            
+            const name = contact?.name || 'Cliente';
+            const bodyParams = [];
+            
+            for (let i = 1; i <= varCount; i++) {
+              bodyParams.push({
+                type: "text",
+                text: i === 1 ? name : "-"
               });
             }
+            
+            finalComponents.push({
+              type: "body",
+              parameters: bodyParams
+            });
           }
 
-          // Handle Header if needed (e.g., IMAGE)
           const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
           if (headerComponent && headerComponent.format === 'IMAGE') {
             const imageUrl = headerComponent.example?.header_handle?.[0] || 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=800&auto=format&fit=crop&q=60';
@@ -190,6 +186,19 @@ serve(async (req) => {
               }]
             });
           }
+        }
+
+        // Reconstruct message content for history
+        if (bodyComponent && bodyComponent.text) {
+          let text = bodyComponent.text;
+          const bodyParams = finalComponents.find((c: any) => c.type === 'body')?.parameters || [];
+          
+          bodyParams.forEach((param: any, index: number) => {
+            const placeholder = `{{${index + 1}}}`;
+            text = text.replace(placeholder, param.text || '-');
+          });
+          
+          messageContent = text;
         }
       }
 
@@ -242,7 +251,7 @@ serve(async (req) => {
           await supabase.from('crm_messages').insert({
             contact_id: contact.id,
             direction: 'outbound',
-            content: `[Template: ${templateName}]`,
+            content: messageContent,
             message_type: 'template',
             meta_message_id: result.messages[0].id,
             status: 'sent'
