@@ -494,6 +494,22 @@ const CRM = () => {
     }
   };
 
+  const getWindowInfo = (lastInteraction: string) => {
+    if (!lastInteraction) return null;
+    const last = new Date(lastInteraction).getTime();
+    const now = new Date().getTime();
+    const diffMs = now - last;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return {
+      hours: diffHours,
+      minutes: diffMinutes,
+      isExpired: diffHours >= 24,
+      label: `${diffHours}h ${diffMinutes}m desde o último contato`
+    };
+  };
+
   const stopRecording = () => {
     if (mediaRecorder) {
       mediaRecorder.stop();
@@ -957,9 +973,28 @@ const CRM = () => {
                       </div>
                       <div>
                         <h3 className="font-bold leading-none">{selectedContact.name || "Sem Nome"}</h3>
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online • +{selectedContact.wa_id}
-                        </p>
+                        <div className="flex flex-col gap-1 mt-1">
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online • +{selectedContact.wa_id}
+                          </p>
+                          {selectedContact.last_interaction && (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${
+                                getWindowInfo(selectedContact.last_interaction)?.isExpired 
+                                  ? "bg-red-500/10 text-red-500 border border-red-500/20" 
+                                  : "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                              }`}>
+                                <Clock className="w-2.5 h-2.5" />
+                                {getWindowInfo(selectedContact.last_interaction)?.label}
+                              </span>
+                              {getWindowInfo(selectedContact.last_interaction)?.isExpired && (
+                                <span className="text-[9px] text-red-400 font-semibold animate-pulse">
+                                  ⚠️ Janela de 24h expirada (Cobra custo por envio)
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1045,29 +1080,38 @@ const CRM = () => {
                   </ScrollArea>
 
                   {/* Automation Quick Actions */}
-                  <div className="px-4 py-2 border-t bg-secondary/5 flex gap-2 overflow-x-auto no-scrollbar">
-                    {flows.filter(f => f.is_active).map(flow => (
-                      <Button 
-                        key={flow.id} 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-7 text-[10px] whitespace-nowrap bg-background"
-                        onClick={() => handleTriggerFlow(flow.id)}
-                      >
-                        <Bot className="w-3 h-3 mr-1 text-purple-500" /> {flow.name}
-                      </Button>
-                    ))}
-                    {templates.filter(t => t.status === 'APPROVED').slice(0, 5).map(tpl => (
-                      <Button 
-                        key={tpl.id} 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-7 text-[10px] whitespace-nowrap bg-background"
-                        onClick={() => handleSendTemplate(tpl.name, tpl.language)}
-                      >
-                        <GitBranch className="w-3 h-3 mr-1 text-blue-500" /> {tpl.name}
-                      </Button>
-                    ))}
+                  <div className="px-4 py-2 border-t bg-secondary/5 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Acionadores:</span>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                      {flows.filter(f => f.is_active).map(flow => (
+                        <Button 
+                          key={flow.id} 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 text-[11px] whitespace-nowrap bg-background border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all"
+                          onClick={() => {
+                            if (confirm(`Deseja iniciar o fluxo "${flow.name}" para este contato?`)) {
+                              handleTriggerFlow(flow.id);
+                            }
+                          }}
+                        >
+                          <Bot className="w-3.5 h-3.5 mr-1.5 text-purple-500" /> {flow.name}
+                        </Button>
+                      ))}
+                      {templates.filter(t => t.status === 'APPROVED').slice(0, 5).map(tpl => (
+                        <Button 
+                          key={tpl.id} 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 text-[11px] whitespace-nowrap bg-background border-blue-500/20 hover:border-blue-500/50 hover:bg-blue-500/5"
+                          onClick={() => handleSendTemplate(tpl.name, tpl.language)}
+                        >
+                          <GitBranch className="w-3.5 h-3.5 mr-1.5 text-blue-500" /> {tpl.name}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Input Area */}
