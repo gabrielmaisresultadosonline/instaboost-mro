@@ -1049,10 +1049,7 @@ const CRM = () => {
                   )}
                 </div>
               </ScrollArea>
-                </>
-              )}
-            </div>
-          </TabsContent>
+              </div>
             {/* Main Chat Area */}
             <div className={`flex-1 flex flex-col bg-secondary/5 relative ${!selectedContact ? 'hidden md:flex items-center justify-center text-center p-10' : 'flex'}`}>
               {!selectedContact ? (
