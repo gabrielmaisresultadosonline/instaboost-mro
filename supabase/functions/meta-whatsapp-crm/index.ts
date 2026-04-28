@@ -202,6 +202,19 @@ serve(async (req) => {
         }
       }
 
+      const metaRequestBody = {
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: templateName,
+          language: { code: languageCode || 'pt_BR' },
+          components: finalComponents
+        }
+      };
+
+      console.log('Sending to Meta API:', JSON.stringify(metaRequestBody, null, 2));
+
       const response = await fetch(
         `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
         {
@@ -210,16 +223,7 @@ serve(async (req) => {
             'Authorization': `Bearer ${meta_access_token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            to,
-            type: "template",
-            template: {
-              name: templateName,
-              language: { code: languageCode || 'pt_BR' },
-              components: finalComponents
-            }
-          }),
+          body: JSON.stringify(metaRequestBody),
         }
       )
 
