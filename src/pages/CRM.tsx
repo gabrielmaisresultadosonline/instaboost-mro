@@ -143,20 +143,20 @@ const CRM = () => {
         (payload) => {
           console.log("Realtime message update:", payload);
           
-          // If a new message is inserted
           if (payload.eventType === 'INSERT') {
             const newMessage = payload.new;
             
             // If the message belongs to the current open chat, update UI
             if (selectedContactRef.current && newMessage.contact_id === selectedContactRef.current.id) {
               setChatMessages(prev => {
+                // Evitar duplicados
                 if (prev.find(m => m.id === newMessage.id)) return prev;
                 return [...prev, newMessage];
               });
             }
           }
           
-          // Always refresh contacts to update "last interaction" and unread indicators
+          // Sempre atualizar a lista de contatos para refletir a última interação e status
           fetchContacts();
         }
       )
@@ -166,10 +166,18 @@ const CRM = () => {
         (payload) => {
           console.log("Realtime contact update:", payload);
           fetchContacts();
+          
+          // Se o contato selecionado for atualizado, refletir no cabeçalho do chat
+          if (selectedContactRef.current && payload.new && (payload.new as any).id === selectedContactRef.current.id) {
+            setSelectedContact((prev: any) => ({ ...prev, ...payload.new }));
+          }
         }
       )
       .subscribe((status) => {
         console.log("Realtime subscription status:", status);
+        if (status === 'SUBSCRIBED') {
+          console.log("Successfully subscribed to real-time updates");
+        }
       });
 
     return () => {
@@ -1333,6 +1341,67 @@ const CRM = () => {
                   <Button onClick={handleSaveSettings} disabled={saving} className="w-full mt-4">
                     {saving ? "Salvando..." : <><Save className="w-4 h-4 mr-2" /> Atualizar Credenciais</>}
                   </Button>
+                </CardContent>
+              </Card>
+              
+              {/* Webhook Configuration Information */}
+              <Card className="glass-card border-blue-500/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-blue-500"><GitBranch className="w-5 h-5" /> Webhook da Meta</CardTitle>
+                  <CardDescription>Configure estas informações no Portal do Desenvolvedor da Meta (WhatsApp &rarr; Configuração)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-3 bg-secondary/50 rounded-lg border border-blue-500/10 space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase text-muted-foreground">URL de Retorno (Callback URL)</Label>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-background/80 p-1.5 rounded text-[11px] flex-1 truncate select-all">
+                          {window.location.origin.replace('lovable.app', 'supabase.co').replace('lovableproject.com', 'supabase.co')}/functions/v1/meta-webhook
+                        </code>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-7 w-7" 
+                          onClick={() => {
+                            const url = `${window.location.origin.replace('lovable.app', 'supabase.co').replace('lovableproject.com', 'supabase.co')}/functions/v1/meta-webhook`;
+                            navigator.clipboard.writeText(url);
+                            toast({ title: "URL Copiada!" });
+                          }}
+                        >
+                          <Paperclip className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase text-muted-foreground">Token de Verificação (Verify Token)</Label>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-background/80 p-1.5 rounded text-[11px] flex-1 select-all">
+                          {metaSettings.webhook_verify_token || "0999a884-d967-404e-afff-6a9c8c155299"}
+                        </code>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-7 w-7" 
+                          onClick={() => {
+                            navigator.clipboard.writeText(metaSettings.webhook_verify_token || "0999a884-d967-404e-afff-6a9c8c155299");
+                            toast({ title: "Token Copiado!" });
+                          }}
+                        >
+                          <Paperclip className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[11px] text-muted-foreground bg-blue-500/5 p-3 rounded border border-blue-500/10">
+                    <p className="font-bold text-blue-400 mb-1">Passos na Meta:</p>
+                    <ol className="list-decimal ml-4 space-y-1">
+                      <li>Acesse developers.facebook.com</li>
+                      <li>Vá em seu App &rarr; WhatsApp &rarr; Configuração</li>
+                      <li>Clique em "Editar" no Webhook</li>
+                      <li>Cole a URL e o Token acima</li>
+                      <li>Em "Campos do Webhook", selecione <b>messages</b></li>
+                    </ol>
+                  </div>
                 </CardContent>
               </Card>
 
