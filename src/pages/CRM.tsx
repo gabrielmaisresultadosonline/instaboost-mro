@@ -29,7 +29,8 @@ import {
   Mic,
   DollarSign,
   TrendingUp,
-  Filter
+  Filter,
+  FileUp
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
