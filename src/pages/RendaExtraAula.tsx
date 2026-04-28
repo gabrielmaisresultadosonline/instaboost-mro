@@ -25,10 +25,6 @@ const RendaExtraAula = () => {
       setShowVideo(true);
     }
 
-    // Fetch WhatsApp number from settings
-    supabase.from("whatsapp_page_settings").select("whatsapp_number").limit(1).single().then(({ data }) => {
-      if (data) setWhatsappNumber(data.whatsapp_number);
-    });
     // Track page view
     supabase.functions.invoke("renda-extra-aula-register", {
       body: { action: "trackPageView", source_url: window.location.href, user_agent: navigator.userAgent }
