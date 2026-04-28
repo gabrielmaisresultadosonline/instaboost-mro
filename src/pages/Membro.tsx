@@ -27,6 +27,7 @@ import {
   Shield
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 import { toast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
 import { StrategyDisplay } from "@/components/StrategyDisplay";
