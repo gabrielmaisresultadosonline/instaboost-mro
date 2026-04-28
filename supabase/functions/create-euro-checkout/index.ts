@@ -67,7 +67,7 @@ serve(async (req) => {
     if (checkUserExists) {
       try {
         log("Checking if user exists in SquareCloud", { username: cleanUsername });
-        const checkUrl = `https://codigoinstashopapi.squareweb.app/api/users/${cleanUsername}`;
+        const checkUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users/${cleanUsername}`;
         const checkResponse = await fetch(checkUrl);
         
         if (checkResponse.ok) {
