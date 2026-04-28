@@ -102,6 +102,14 @@ const CRM = () => {
   // Flow Editor State
   const [isFlowEditorOpen, setIsFlowEditorOpen] = useState(false);
   const [editingFlow, setEditingFlow] = useState<any>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages]);
+
   const [newStep, setNewStep] = useState<any>({
     step_type: 'text',
     message_text: '',
@@ -117,7 +125,48 @@ const CRM = () => {
       return;
     }
     fetchData();
-  }, [navigate]);
+
+    // Subscribe to new messages for real-time updates
+    const messageChannel = supabase
+      .channel('crm_realtime_messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'crm_messages' },
+        (payload) => {
+          // If the message is for the currently selected contact, add it to the chat
+          if (selectedContact && payload.new.contact_id === selectedContact.id) {
+            setChatMessages(prev => {
+              // Avoid duplicates
+              if (prev.find(m => m.id === payload.new.id)) return prev;
+              return [...prev, payload.new];
+            });
+          }
+          
+          // Also refresh contacts list to show latest interaction/new leads
+          fetchContacts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'crm_contacts' },
+        () => {
+          fetchContacts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messageChannel);
+    };
+  }, [navigate, selectedContact]);
+
+  const fetchContacts = async () => {
+    const { data: contactsData } = await supabase
+      .from('crm_contacts')
+      .select('*')
+      .order('last_interaction', { ascending: false });
+    setContacts(contactsData || []);
+  };
 
   useEffect(() => {
     if (statusFilter === 'all') {
@@ -284,6 +333,34 @@ const CRM = () => {
     } catch (err) {
       console.error("Error sending message:", err);
       toast({ title: "Erro ao enviar", variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleTriggerFlow = async (flowId: string) => {
+    if (!selectedContact) return;
+    setSendingMessage(true);
+    try {
+      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: {
+          action: 'startFlow',
+          contactId: selectedContact.id,
+          waId: selectedContact.wa_id,
+          flowId
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({ 
+        title: "Fluxo Iniciado!",
+        description: "A sequência de mensagens começará em breve."
+      });
+      fetchMessages(selectedContact.id);
+    } catch (err) {
+      console.error("Error triggering flow:", err);
+      toast({ title: "Erro ao iniciar fluxo", variant: "destructive" });
     } finally {
       setSendingMessage(false);
     }
@@ -1162,26 +1239,47 @@ const CRM = () => {
                   </div>
                 ))
               )}
+              <div ref={scrollRef} />
             </div>
           </ScrollArea>
           
           <div className="p-4 border-t bg-card space-y-3">
-            {/* Quick Templates */}
-            <ScrollArea className="w-full whitespace-nowrap pb-2">
-               <div className="flex gap-2">
-                 {templates.slice(0, 5).map(t => (
-                   <Button 
-                    key={t.id} 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-[10px] h-7"
-                    onClick={() => handleSendTemplate(t.name, t.language)}
-                   >
-                     {t.name}
-                   </Button>
-                 ))}
-               </div>
-            </ScrollArea>
+            {/* Quick Templates & Flows */}
+            <div className="space-y-2">
+              <ScrollArea className="w-full whitespace-nowrap pb-2">
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-[9px] uppercase">Templates</Badge>
+                  {templates.slice(0, 5).map(t => (
+                    <Button 
+                      key={t.id} 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-[10px] h-7"
+                      onClick={() => handleSendTemplate(t.name, t.language)}
+                    >
+                      {t.name}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <ScrollArea className="w-full whitespace-nowrap pb-2">
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-[9px] uppercase border-primary/30 text-primary">Fluxos</Badge>
+                  {flows.filter(f => f.is_active).map(f => (
+                    <Button 
+                      key={f.id} 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-[10px] h-7 border-primary/20 hover:bg-primary/10"
+                      onClick={() => handleTriggerFlow(f.id)}
+                    >
+                      <GitBranch className="w-3 h-3 mr-1" /> {f.name}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
 
             <div className="flex items-center gap-2">
               <div className="flex gap-1">
