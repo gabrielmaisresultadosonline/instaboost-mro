@@ -494,6 +494,22 @@ const CRM = () => {
     }
   };
 
+  const getWindowInfo = (lastInteraction: string) => {
+    if (!lastInteraction) return null;
+    const last = new Date(lastInteraction).getTime();
+    const now = new Date().getTime();
+    const diffMs = now - last;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return {
+      hours: diffHours,
+      minutes: diffMinutes,
+      isExpired: diffHours >= 24,
+      label: `${diffHours}h ${diffMinutes}m desde o último contato`
+    };
+  };
+
   const stopRecording = () => {
     if (mediaRecorder) {
       mediaRecorder.stop();
