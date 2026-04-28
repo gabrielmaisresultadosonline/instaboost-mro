@@ -157,6 +157,18 @@ serve(async (req) => {
 
       const result = await response.json()
       
+      if (!response.ok) {
+        console.error('Meta API Error (Template):', result)
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: result.error?.message || 'Meta API returned an error',
+          details: result 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      
       if (result.messages && result.messages[0]) {
         const { data: contact } = await supabase
           .from('crm_contacts')
@@ -176,7 +188,10 @@ serve(async (req) => {
 
           await supabase
             .from('crm_contacts')
-            .update({ total_messages_sent: (contact.total_messages_sent || 0) + 1 })
+            .update({ 
+              total_messages_sent: (contact.total_messages_sent || 0) + 1,
+              last_interaction: new Date().toISOString()
+            })
             .eq('id', contact.id)
           
           await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
@@ -188,7 +203,8 @@ serve(async (req) => {
       })
     }
 
-      if (action === 'sendMessage') {
+    if (action === 'sendMessage') {
+      const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons } = params
       
       let body: any = {
         messaging_product: "whatsapp",
@@ -242,6 +258,18 @@ serve(async (req) => {
 
       const result = await response.json()
       
+      if (!response.ok) {
+        console.error('Meta API Error:', result)
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: result.error?.message || 'Meta API returned an error',
+          details: result 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      
       if (result.messages && result.messages[0]) {
         const { data: contact } = await supabase
           .from('crm_contacts')
@@ -261,7 +289,10 @@ serve(async (req) => {
 
           await supabase
             .from('crm_contacts')
-            .update({ total_messages_sent: (contact.total_messages_sent || 0) + 1 })
+            .update({ 
+              total_messages_sent: (contact.total_messages_sent || 0) + 1,
+              last_interaction: new Date().toISOString()
+            })
             .eq('id', contact.id)
           
           await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
