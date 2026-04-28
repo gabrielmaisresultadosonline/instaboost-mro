@@ -1109,20 +1109,25 @@ const CRM = () => {
 
       {/* Chat Dialog */}
       <Dialog open={!!selectedContact} onOpenChange={(open) => !open && setSelectedContact(null)}>
-        <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden glass-card border-primary/20">
+        <DialogContent className="sm:max-w-[500px] h-[700px] flex flex-col p-0 overflow-hidden glass-card border-primary/20">
           <DialogHeader className="p-4 border-b bg-secondary/30">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
-                {selectedContact?.name?.charAt(0) || selectedContact?.wa_id.slice(-2)}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
+                  {selectedContact?.name?.charAt(0) || selectedContact?.wa_id.slice(-2)}
+                </div>
+                <div>
+                  <DialogTitle>{selectedContact?.name || "Sem Nome"}</DialogTitle>
+                  <DialogDescription className="text-[10px]">+{selectedContact?.wa_id}</DialogDescription>
+                </div>
               </div>
-              <div>
-                <DialogTitle>{selectedContact?.name || "Sem Nome"}</DialogTitle>
-                <DialogDescription className="text-[10px]">+{selectedContact?.wa_id}</DialogDescription>
-              </div>
+              <Badge variant="outline" className={getStatusColor(selectedContact?.status || 'new')}>
+                {selectedContact?.status}
+              </Badge>
             </div>
           </DialogHeader>
           
-          <ScrollArea className="flex-1 p-4 bg-secondary/10">
+          <ScrollArea className="flex-1 p-4 bg-secondary/5">
             <div className="space-y-4">
               {chatMessages.length === 0 ? (
                 <div className="text-center py-10 text-muted-foreground text-sm">
@@ -1131,13 +1136,26 @@ const CRM = () => {
               ) : (
                 chatMessages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${
+                    <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${
                       msg.direction === 'inbound' 
-                        ? 'bg-secondary text-foreground rounded-tl-none' 
+                        ? 'bg-card text-foreground rounded-tl-none border' 
                         : 'bg-primary text-primary-foreground rounded-tr-none'
                     }`}>
-                      <p>{msg.content}</p>
-                      <p className="text-[9px] opacity-50 mt-1 text-right">
+                      {msg.message_type === 'audio' ? (
+                        <div className="flex items-center gap-2">
+                          <Mic className="w-4 h-4" />
+                          <span className="text-xs">Mensagem de Áudio</span>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                             const audio = new Audio(msg.content);
+                             audio.play();
+                          }}>
+                            <Play className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      )}
+                      <p className="text-[9px] opacity-70 mt-1 text-right">
                         {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -1146,20 +1164,197 @@ const CRM = () => {
               )}
             </div>
           </ScrollArea>
+          
+          <div className="p-4 border-t bg-card space-y-3">
+            {/* Quick Templates */}
+            <ScrollArea className="w-full whitespace-nowrap pb-2">
+               <div className="flex gap-2">
+                 {templates.slice(0, 5).map(t => (
+                   <Button 
+                    key={t.id} 
+                    variant="outline" 
+                    size="xs" 
+                    className="text-[10px] h-7"
+                    onClick={() => handleSendTemplate(t.name, t.language)}
+                   >
+                     {t.name}
+                   </Button>
+                 ))}
+               </div>
+            </ScrollArea>
 
-          <div className="p-4 border-t bg-card/50">
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1">
+                <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'image')} accept="image/*" id="img-upload" />
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => document.getElementById('img-upload')?.click()}>
+                  <ImageIcon className="w-4 h-4" />
+                </Button>
+                <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} accept="video/*" id="vid-upload" />
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => document.getElementById('vid-upload')?.click()}>
+                  <Video className="w-4 h-4" />
+                </Button>
+                <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'document')} accept=".pdf,.doc,.docx" id="doc-upload" />
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => document.getElementById('doc-upload')?.click()}>
+                  <FileText className="w-4 h-4" />
+                </Button>
+              </div>
+
               <Input 
                 placeholder="Digite sua mensagem..." 
                 value={newMessage} 
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                className="flex-1"
               />
-              <Button size="icon" onClick={handleSendMessage} disabled={sendingMessage || !newMessage.trim()}>
-                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              
+              {isRecording ? (
+                <Button variant="destructive" size="icon" onClick={stopRecording} className="animate-pulse h-10 w-10 rounded-full">
+                  <StopCircle className="w-5 h-5" />
+                </Button>
+              ) : (
+                <Button variant="ghost" size="icon" onClick={startRecording} className="h-10 w-10 hover:bg-red-500/10 hover:text-red-500 transition-colors">
+                  <Mic className="w-5 h-5" />
+                </Button>
+              )}
+              
+              <Button onClick={handleSendMessage} disabled={sendingMessage || (!newMessage.trim() && !isRecording)} className="h-10 w-10 rounded-full p-0">
+                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Send className="w-5 h-5" />}
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Flow Editor Dialog */}
+      <Dialog open={isFlowEditorOpen} onOpenChange={setIsFlowEditorOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col p-0 glass-card">
+          <DialogHeader className="p-6 border-b">
+            <DialogTitle>Editor de Fluxo Automático</DialogTitle>
+            <DialogDescription>Configure a sequência de atendimento inteligente.</DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 p-6">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Nome do Fluxo</Label>
+                  <Input 
+                    value={editingFlow?.name || ''} 
+                    onChange={e => setEditingFlow({...editingFlow, name: e.target.value})} 
+                    placeholder="Ex: Boas-vindas"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Palavras-chave (Gatilhos)</Label>
+                  <Input 
+                    placeholder="oi, olá, quero saber (separado por vírgula)" 
+                    value={editingFlow?.trigger_keywords?.join(', ') || ''}
+                    onChange={e => setEditingFlow({...editingFlow, trigger_keywords: e.target.value.split(',').map((s: string) => s.trim().toLowerCase())})}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="font-bold flex items-center gap-2"><GitBranch className="w-4 h-4" /> Sequência de Passos</h3>
+                
+                {editingFlow?.steps?.map((step: any, index: number) => (
+                  <div key={step.id || index} className="p-4 rounded-xl border bg-secondary/10 relative group">
+                    <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
+                      {index + 1}
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removeStepFromFlow(index)}
+                    >
+                      <Trash2 className="w-3 h-3 text-destructive" />
+                    </Button>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <div className="md:col-span-1">
+                        <Label className="text-[10px] uppercase">Tipo</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          {step.step_type === 'text' && <MessageSquare className="w-4 h-4" />}
+                          {step.step_type === 'audio' && <Mic className="w-4 h-4" />}
+                          {step.step_type === 'delay' && <Clock className="w-4 h-4" />}
+                          {step.step_type === 'wait_response' && <RefreshCcw className="w-4 h-4" />}
+                          <span className="text-xs font-bold uppercase">{step.step_type}</span>
+                        </div>
+                      </div>
+                      <div className="md:col-span-3">
+                        <p className="text-sm">{step.message_text || (step.step_type === 'delay' ? `Aguardar ${step.delay_seconds} segundos` : 'Aguardar resposta do cliente')}</p>
+                        {step.media_url && <p className="text-[10px] text-primary truncate mt-1">{step.media_url}</p>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* New Step Form */}
+                <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Tipo do Passo</Label>
+                      <Select value={newStep.step_type} onValueChange={val => setNewStep({...newStep, step_type: val})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Mensagem de Texto</SelectItem>
+                          <SelectItem value="audio">Mensagem de Áudio</SelectItem>
+                          <SelectItem value="image">Imagem</SelectItem>
+                          <SelectItem value="video">Vídeo</SelectItem>
+                          <SelectItem value="document">Documento</SelectItem>
+                          <SelectItem value="delay">Aguardar (Segundos)</SelectItem>
+                          <SelectItem value="wait_response">Aguardar Resposta</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {newStep.step_type === 'delay' && (
+                      <div className="space-y-2">
+                        <Label>Segundos</Label>
+                        <Input type="number" value={newStep.delay_seconds} onChange={e => setNewStep({...newStep, delay_seconds: parseInt(e.target.value)})} />
+                      </div>
+                    )}
+                  </div>
+
+                  {['text', 'audio', 'image', 'video', 'document'].includes(newStep.step_type) && (
+                    <div className="space-y-2">
+                      <Label>{newStep.step_type === 'text' ? 'Conteúdo da Mensagem' : 'URL da Mídia (ou Texto de Legenda)'}</Label>
+                      <Textarea 
+                        value={newStep.message_text} 
+                        onChange={e => setNewStep({...newStep, message_text: e.target.value})}
+                        placeholder="Escreva aqui..."
+                      />
+                    </div>
+                  )}
+
+                  {['audio', 'image', 'video', 'document'].includes(newStep.step_type) && (
+                    <div className="space-y-2">
+                      <Label>Link Direto do Arquivo</Label>
+                      <Input 
+                        value={newStep.media_url} 
+                        onChange={e => setNewStep({...newStep, media_url: e.target.value})}
+                        placeholder="https://..."
+                      />
+                      <p className="text-[10px] text-muted-foreground">Dica: Use a aba 'Remarketing' para subir arquivos e pegar o link.</p>
+                    </div>
+                  )}
+
+                  <Button variant="outline" className="w-full border-primary/50 text-primary hover:bg-primary/10" onClick={addStepToFlow}>
+                    <Plus className="w-4 h-4 mr-2" /> Adicionar Passo na Sequência
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
+          
+          <DialogFooter className="p-6 border-t bg-secondary/20">
+            <Button variant="ghost" onClick={() => setIsFlowEditorOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveFlow} disabled={saving} className="bg-primary hover:bg-primary/90">
+              {saving ? "Salvando..." : <><Save className="w-4 h-4 mr-2" /> Salvar Fluxo Completo</>}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
