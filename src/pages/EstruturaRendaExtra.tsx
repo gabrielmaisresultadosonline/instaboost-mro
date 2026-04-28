@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Upload, CheckSquare, Square, Palette, Package, ChevronDown, ChevronUp, Eye, X, Hash, Sparkles, User, Tag, MapPin, Move, Sliders, ImagePlus, RotateCcw, ZoomIn, ArrowLeft, Image, Video, FileText, Camera, Play, Loader2, TestTube, PenTool, ExternalLink, BarChart3, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 import { MateriaisRendaExtra } from '@/components/MateriaisRendaExtra';
 import { ContratoGenerator } from '@/components/ContratoGenerator';
 import { EstruturaTutoriais } from '@/components/EstruturaTutoriais';
