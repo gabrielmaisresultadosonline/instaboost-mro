@@ -13,7 +13,7 @@ const log = (step: string, details?: any) => {
 };
 
 // SquareCloud API URL
-const SQUARE_API_URL = "https://codigoinstashopapimro.squareweb.app";
+const SQUARE_API_URL = "https://codigoinstashopapi.squareweb.app";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
