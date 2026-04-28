@@ -571,7 +571,7 @@ const CRM = () => {
                             >
                               <XCircle className="w-3 h-3 mr-1" /> Perdido
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => toast({ title: "Abrindo chat..." })}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openChat(contact)}>
                               <MessageSquare className="w-4 h-4" />
                             </Button>
                           </div>
