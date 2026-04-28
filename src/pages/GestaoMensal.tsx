@@ -61,7 +61,7 @@ const GestaoMensal = () => {
 
   const handleWhatsApp = () => {
     const message = `*NOVO CADASTRO - GESTÃO MENSAL MRO*\n\n*Nome:* ${nome}\n*Email:* ${email}\n*Instagram:* @${instagram}\n*Perspectiva/Expectativa:* ${perspectiva}`;
-    const whatsappUrl = `https://wa.me/5551920356540?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };
 
