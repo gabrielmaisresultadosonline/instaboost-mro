@@ -473,8 +473,15 @@ const CRM = () => {
                     {selectedContact ? (
                       <>
                         <div className="p-4 border-b flex justify-between items-center bg-card">
-                          <div>
-                            <p className="font-bold">{selectedContact.name || selectedContact.wa_id}</p>
+                          <div className="flex flex-col">
+                            <p className="font-bold flex items-center gap-2">
+                              {selectedContact.name || selectedContact.wa_id}
+                              {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
+                                <Badge variant="outline" className="text-[10px] animate-pulse bg-primary/10">
+                                  Fluxo: {selectedContact.flow_state}
+                                </Badge>
+                              )}
+                            </p>
                             {selectedContact.last_interaction && (
                               <div className="flex items-center gap-1 mt-1">
                                 <ClockIcon className={`w-3 h-3 ${getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500'}`} />
