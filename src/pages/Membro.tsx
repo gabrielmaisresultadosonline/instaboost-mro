@@ -110,6 +110,7 @@ const saveCurrentMember = (member: PaidMemberUser | null) => {
 export default function Membro() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { whatsappNumber } = useWhatsAppConfig();
   const [user, setUser] = useState<PaidMemberUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
