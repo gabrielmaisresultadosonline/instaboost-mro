@@ -163,13 +163,36 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
       </div>
       <div className="sticky top-24 h-fit">
         <Label className="mb-2 block text-center font-bold text-muted-foreground uppercase text-xs">Prévia em Tempo Real</Label>
-        <div className="bg-[#e5ddd5] dark:bg-zinc-900 rounded-3xl p-6 shadow-2xl border-8 border-zinc-800 relative overflow-hidden max-w-[360px] mx-auto min-h-[500px]">
-          <div className="absolute top-0 left-0 right-0 h-12 bg-zinc-800 flex items-center px-4 gap-3"><div className="w-8 h-8 rounded-full bg-zinc-600 flex items-center justify-center"><ImageIcon className="w-4 h-4 text-white" /></div><div className="text-white text-sm font-medium">Meta Business</div></div>
-          <div className="mt-14 space-y-1">
-            <div className="bg-white dark:bg-zinc-800 rounded-lg rounded-tl-none shadow-sm overflow-hidden border border-zinc-200/50 dark:border-zinc-700">
+        <div className="bg-[#e5ddd5] dark:bg-zinc-950 rounded-3xl p-6 shadow-2xl border-[12px] border-zinc-800 relative overflow-hidden max-w-[360px] mx-auto min-h-[580px]">
+          <div className="absolute top-0 left-0 right-0 h-14 bg-[#075e54] flex items-center px-4 gap-3 z-20">
+            <div className="w-8 h-8 rounded-full bg-zinc-200/20 flex items-center justify-center">
+              <ImageIcon className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="text-white text-sm font-bold">Meta Business</div>
+              <div className="text-white/70 text-[10px]">online</div>
+            </div>
+          </div>
+          <div className="mt-16 space-y-1 relative z-10">
+            <div className="bg-white dark:bg-zinc-900 rounded-lg rounded-tl-none shadow-md overflow-hidden border border-zinc-200/50 dark:border-zinc-800">
               {headerType !== 'NONE' && (
-                <div className="p-0 border-b border-zinc-100 dark:border-zinc-700">
-                  {headerType === 'TEXT' ? <div className="p-3 font-bold text-sm text-zinc-900 dark:text-zinc-100">{headerText || "Cabeçalho"}</div> : <div className="aspect-video bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center"><ImageIcon className="w-8 h-8 text-zinc-400" /></div>}
+                <div className="p-0 border-b border-zinc-100 dark:border-zinc-800">
+                  {headerType === 'TEXT' ? (
+                    <div className="p-3 font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                      {headerText || "Título do Cabeçalho"}
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center relative">
+                      {headerUrl ? (
+                        <img src={headerUrl} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="w-8 h-8 text-zinc-400" />
+                      )}
+                      <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
+                         <Play className="w-10 h-10 text-white/50" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="p-3"><div className="text-[13px] whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">{bodyText || "Mensagem..."}</div>{footerText && <div className="mt-1 text-[11px] text-zinc-500 uppercase">{footerText}</div>}</div>
