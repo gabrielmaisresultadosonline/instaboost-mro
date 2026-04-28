@@ -6,6 +6,7 @@ import profileImage from '@/assets/mro-profile-call.jpg';
 import fundoChamada from '@/assets/fundo-chamada.jpg';
 import gabrielPhoneImage from '@/assets/gabriel-phone.png';
 import logoMro from '@/assets/logo-mro.png';
+import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 
 type FunnelState =
   | 'landing'
@@ -19,6 +20,7 @@ type FunnelState =
   | 'final_whatsapp';
 
 const IAVendeMais = () => {
+  const { whatsappNumber } = useWhatsAppConfig();
   const [state, setState] = useState<FunnelState>('landing');
   const [callDuration, setCallDuration] = useState(0);
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
@@ -189,7 +191,7 @@ const IAVendeMais = () => {
     }
   };
 
-  const whatsappUrl = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(settings.whatsappMessage)}`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber || settings.whatsappNumber}?text=${encodeURIComponent(settings.whatsappMessage)}`;
 
   const fullscreenStyle: React.CSSProperties = {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,

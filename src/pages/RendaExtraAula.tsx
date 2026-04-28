@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { trackFacebookEvent } from "@/lib/facebookTracking";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 
 const RendaExtraAula = () => {
   const [showDeviceCheck, setShowDeviceCheck] = useState(false);
@@ -12,7 +13,7 @@ const RendaExtraAula = () => {
   const [form, setForm] = useState({ nome_completo: "", email: "", whatsapp: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showWhatsApp, setShowWhatsApp] = useState(false);
-  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const { whatsappNumber } = useWhatsAppConfig();
   const [countdown, setCountdown] = useState(20 * 60);
 
   useEffect(() => {
@@ -24,10 +25,6 @@ const RendaExtraAula = () => {
       setShowVideo(true);
     }
 
-    // Fetch WhatsApp number from settings
-    supabase.from("whatsapp_page_settings").select("whatsapp_number").limit(1).single().then(({ data }) => {
-      if (data) setWhatsappNumber(data.whatsapp_number);
-    });
     // Track page view
     supabase.functions.invoke("renda-extra-aula-register", {
       body: { action: "trackPageView", source_url: window.location.href, user_agent: navigator.userAgent }

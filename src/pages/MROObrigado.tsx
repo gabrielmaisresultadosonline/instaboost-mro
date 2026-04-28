@@ -6,22 +6,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Sparkles, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { trackPageView, trackPurchase, trackLead } from "@/lib/facebookTracking";
-import { supabase } from "@/integrations/supabase/client";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 
 const MROObrigado = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [whatsappNumber, setWhatsappNumber] = useState("555192036540");
+  const { whatsappNumber } = useWhatsAppConfig();
   const { toast } = useToast();
 
   useEffect(() => {
     trackPageView('Thank You Page - MRO Purchase Complete');
     trackPurchase(397, 'MRO I.A + Automação');
-    
-    supabase.from('whatsapp_page_settings').select('whatsapp_number').limit(1).single()
-      .then(({ data }) => {
-        if (data?.whatsapp_number) setWhatsappNumber(data.whatsapp_number);
-      });
     
     toast({
       title: "Compra aprovada!",

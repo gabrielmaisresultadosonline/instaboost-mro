@@ -27,6 +27,7 @@ import {
   Shield
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 import { toast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
 import { StrategyDisplay } from "@/components/StrategyDisplay";
@@ -109,6 +110,7 @@ const saveCurrentMember = (member: PaidMemberUser | null) => {
 export default function Membro() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { whatsappNumber } = useWhatsAppConfig();
   const [user, setUser] = useState<PaidMemberUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -654,7 +656,7 @@ export default function Membro() {
   };
 
   const openWhatsApp = () => {
-    window.open('https://wa.me/5551920936540?text=Olá! Sou membro do plano mensal e tenho interesse na Ferramenta MRO com valor promocional.', '_blank');
+    window.open(`https://wa.me/${whatsappNumber}?text=Olá! Sou membro do plano mensal e tenho interesse na Ferramenta MRO com valor promocional.`, '_blank');
   };
 
   // Show loading overlay for add/sync operations

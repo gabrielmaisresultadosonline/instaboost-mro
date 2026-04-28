@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { UserPlus, X, ExternalLink, MessageCircle, Play } from 'lucide-react';
+import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 
 export const CadastrarContaButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const { whatsappNumber } = useWhatsAppConfig();
 
   return (
     <>
@@ -90,7 +92,7 @@ export const CadastrarContaButton = () => {
                   Cadastrar na Área do Instagram
                 </a>
                 <a
-                  href="https://wa.me/555195781011?text=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20minha%20conta%20do%20Instagram%20na%20MRO"
+                  href={`https://wa.me/${whatsappNumber}?text=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20minha%20conta%20do%20Instagram%20na%20MRO`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-600/20 border border-green-500/40 hover:bg-green-600/30 text-green-400 font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"

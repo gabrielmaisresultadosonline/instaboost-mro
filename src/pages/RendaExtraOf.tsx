@@ -44,8 +44,10 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import MoneyParticles from "@/components/MoneyParticles";
 import rendaExtraMroBanner from "@/assets/renda-extra-mro-banner.jpeg";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 
 const RendaExtraOf = () => {
+  const { whatsappNumber } = useWhatsAppConfig();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
@@ -981,7 +983,7 @@ const RendaExtraOf = () => {
       {/* WhatsApp Floating Button */}
       {shouldShowSalesContent && (
         <a
-          href="https://wa.me/5551920365400?text=Ol%C3%A1%20vim%20pelo%20site%20de%20Renda%20Extra%20gostaria%20de%20tirar%20algumas%20d%C3%BAvidas."
+          href={`https://wa.me/${whatsappNumber}?text=Ol%C3%A1%20vim%20pelo%20site%20de%20Renda%20Extra%20gostaria%20de%20tirar%20algumas%20d%C3%BAvidas.`}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Chat no WhatsApp"

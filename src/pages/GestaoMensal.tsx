@@ -37,8 +37,10 @@ import { Textarea } from "@/components/ui/textarea";
 import logoMro from "@/assets/logo-mro.png";
 import gestaoBg1 from "@/assets/gestao-bg-1.jpg";
 import gestaoBg2 from "@/assets/gestao-bg-2.jpg";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 
 const GestaoMensal = () => {
+  const { whatsappNumber } = useWhatsAppConfig();
   const [instagram, setInstagram] = useState("");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -59,7 +61,7 @@ const GestaoMensal = () => {
 
   const handleWhatsApp = () => {
     const message = `*NOVO CADASTRO - GESTÃO MENSAL MRO*\n\n*Nome:* ${nome}\n*Email:* ${email}\n*Instagram:* @${instagram}\n*Perspectiva/Expectativa:* ${perspectiva}`;
-    const whatsappUrl = `https://wa.me/5551920356540?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };
 

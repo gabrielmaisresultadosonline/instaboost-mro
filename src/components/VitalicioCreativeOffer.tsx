@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Lock, Sparkles, ExternalLink, MessageCircle, Crown } from 'lucide-react';
+import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 import { getCurrentUser } from '@/lib/userStorage';
 
 interface VitalicioCreativeOfferProps {
@@ -9,6 +10,7 @@ interface VitalicioCreativeOfferProps {
 }
 
 export const VitalicioCreativeOffer = ({ username, onClose }: VitalicioCreativeOfferProps) => {
+  const { whatsappNumber } = useWhatsAppConfig();
   const [canUnlock, setCanUnlock] = useState(false);
   const [countdown, setCountdown] = useState(8);
 
@@ -30,7 +32,7 @@ export const VitalicioCreativeOffer = ({ username, onClose }: VitalicioCreativeO
     const message = encodeURIComponent(
       `Olá! Acabei de comprar o plano PRO de criativos!\n\nUsuário: ${username}`
     );
-    window.open(`https://wa.me/5551920536540?text=${message}`, '_blank');
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
   return (

@@ -6,10 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Sparkles, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { trackPageView, trackPurchase, trackLead } from "@/lib/facebookTracking";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 
 const ObrigadoZapmro = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const { whatsappNumber } = useWhatsAppConfig();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,7 +37,7 @@ const ObrigadoZapmro = () => {
       `Olá! Acabei de comprar o ZAPMRO!\n\nNome: ${nome.trim()}\nEmail: ${email.trim()}`
     );
     
-    window.open(`https://wa.me/5551920356540?text=${message}`, "_blank");
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
   };
 
   return (
