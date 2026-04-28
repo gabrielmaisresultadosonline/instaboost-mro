@@ -1271,10 +1271,11 @@ const CRM = () => {
                       </div>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
-          </TabsContent>
+              </>
+            )}
+          </div>
+        </div>
+      </TabsContent>
           {/* Remarketing / Broadcast Content */}
           <TabsContent value="broadcast">
             <Card className="glass-card max-w-3xl mx-auto">
