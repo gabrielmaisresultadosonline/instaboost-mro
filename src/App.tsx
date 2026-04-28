@@ -242,6 +242,8 @@ const App = () => (
           <Route path="/rendaextraaula" element={<RendaExtraAula />} />
           <Route path="/rendaextraaula/admin" element={<RendaExtraAulaAdmin />} />
           <Route path="/addmin" element={<Addmin />} />
+          <Route path="/crm" element={<CRM />} />
+          <Route path="/crm/login" element={<CRMLogin />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
