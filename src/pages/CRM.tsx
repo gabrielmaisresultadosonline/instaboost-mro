@@ -38,20 +38,18 @@ import {
   StopCircle,
   Clock,
   Play,
-  ArrowRight
+  ArrowRight,
+  Check,
+  Clock as ClockIcon,
+  AlertCircle,
+  FileCheck2,
+  ListFilter
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
-import { 
-  Check, 
-  Clock as ClockIcon, 
-  AlertCircle, 
-  FileCheck2,
-  ListFilter
-} from "lucide-react";
 
 const CRM = () => {
   const navigate = useNavigate();
@@ -312,6 +310,11 @@ const CRM = () => {
       fetchMessages(selectedContact.id);
     } catch (err) {
       toast({ title: "Erro ao enviar template", variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   const handleSaveTemplate = async (template: any) => {
     setSaving(true);
     try {
@@ -385,8 +388,6 @@ const CRM = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="contacts">Contatos/CRM</TabsTrigger>
-            <TabsTrigger value="broadcast">Remarketing</TabsTrigger>
-            <TabsTrigger value="flows">Automação</TabsTrigger>
             <TabsTrigger value="templates">Templates Meta</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
@@ -429,7 +430,9 @@ const CRM = () => {
               ) : (
                 <>
                   <div className={`w-full md:w-[350px] border-r flex flex-col ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
-                    <div className="p-4 border-b"><Input placeholder="Buscar contatos..." onChange={e => setStatusFilter(e.target.value || 'all')} /></div>
+                    <div className="p-4 border-b flex gap-2">
+                      <Input placeholder="Buscar..." onChange={e => setStatusFilter(e.target.value || 'all')} />
+                    </div>
                     <ScrollArea className="flex-1">
                       {filteredContacts.map(contact => (
                         <button key={contact.id} onClick={() => openChat(contact)} className={`w-full p-4 text-left border-b hover:bg-secondary/30 ${selectedContact?.id === contact.id ? 'bg-secondary/50' : ''}`}>
@@ -445,26 +448,163 @@ const CRM = () => {
                         <div className="p-4 border-b flex justify-between items-center bg-card">
                           <div>
                             <p className="font-bold">{selectedContact.name || selectedContact.wa_id}</p>
-                            {selectedContact.last_interaction && <p className="text-[10px] text-muted-foreground">{getWindowInfo(selectedContact.last_interaction)?.label}</p>}
+                            {selectedContact.last_interaction && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <ClockIcon className={`w-3 h-3 ${getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500'}`} />
+                                <span className={`text-[10px] font-medium ${getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500'}`}>
+                                  {getWindowInfo(selectedContact.last_interaction)?.label}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex gap-2">
+                            <Select onValueChange={(val) => handleSendTemplate(val, 'pt_BR')}>
+                              <SelectTrigger className="w-[140px] h-8 text-xs bg-primary text-primary-foreground">
+                                <SelectValue placeholder="Enviar Template" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {templates.filter(t => t.status === 'APPROVED').map(t => (
+                                  <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })}>Qualificar</Button>
                             <Button size="sm" className="bg-green-600" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
                           </div>
                         </div>
-                        <ScrollArea className="flex-1 p-4"><div className="space-y-4">{chatMessages.map(m => <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}><div className={`p-2 rounded-lg max-w-[80%] ${m.direction === 'inbound' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>{m.content}</div></div>)}<div ref={scrollRef} /></div></ScrollArea>
-                        <div className="p-4 border-t flex gap-2"><Input value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} placeholder="Mensagem..." /><Button onClick={handleSendMessage} disabled={sendingMessage}><Send className="h-4 w-4" /></Button></div>
+                        <ScrollArea className="flex-1 p-4">
+                          <div className="space-y-4">
+                            {chatMessages.map(m => (
+                              <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
+                                <div className={`p-3 rounded-2xl max-w-[80%] shadow-sm ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
+                                  <div className="text-sm whitespace-pre-wrap">{m.content}</div>
+                                  <div className="text-[9px] mt-1 opacity-50 flex justify-end">
+                                    {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            <div ref={scrollRef} />
+                          </div>
+                        </ScrollArea>
+                        <div className="p-4 border-t bg-muted/20">
+                          <div className="flex gap-2">
+                            <Input 
+                              value={newMessage} 
+                              onChange={e => setNewMessage(e.target.value)} 
+                              onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
+                              placeholder="Digite uma mensagem..." 
+                              className="bg-background"
+                            />
+                            <Button onClick={handleSendMessage} disabled={sendingMessage} size="icon">
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </>
-                    ) : <p>Selecione um contato</p>}
+                    ) : (
+                      <div className="text-center space-y-4">
+                        <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground opacity-20" />
+                        <p className="text-muted-foreground">Selecione uma conversa para começar</p>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="templates" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold">Templates do WhatsApp</h2>
+                <p className="text-muted-foreground">Gerencie seus modelos de mensagem oficiais da Meta</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates}>
+                  <RefreshCcw className={`w-4 h-4 mr-2 ${syncingTemplates ? 'animate-spin' : ''}`} />
+                  Sincronizar com Meta
+                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button><Plus className="w-4 h-4 mr-2" /> Novo Template</Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-6xl h-[90vh] p-0">
+                    <ScrollArea className="h-full">
+                      <TemplateBuilder onSave={handleSaveTemplate} isSaving={saving} />
+                    </ScrollArea>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {templates.map((template) => (
+                <Card key={template.id} className="overflow-hidden border-zinc-200 dark:border-zinc-800">
+                  <CardHeader className="bg-muted/30 pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge variant={
+                        template.status === 'APPROVED' ? 'default' : 
+                        template.status === 'REJECTED' ? 'destructive' : 'secondary'
+                      } className="mb-2">
+                        {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
+                         template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
+                         <ClockIcon className="w-3 h-3 mr-1" />}
+                        {template.status}
+                      </Badge>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteTemplate(template.name)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <CardTitle className="text-base truncate">{template.name}</CardTitle>
+                    <CardDescription>{template.category} • {template.language}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 bg-[#e5ddd5]/30 dark:bg-zinc-900/50">
+                    <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg shadow-sm border border-zinc-100 dark:border-zinc-700">
+                      <div className="text-[13px] text-zinc-800 dark:text-zinc-200 line-clamp-4">
+                        {template.components?.find((c: any) => c.type === 'BODY')?.text}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações da API Meta</CardTitle>
+                <CardDescription>Configure suas credenciais do Facebook Business</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Access Token (Permanente)</Label>
+                    <Input type="password" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone Number ID</Label>
+                    <Input value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>WhatsApp Business Account ID</Label>
+                    <Input value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
+                  </div>
+                </div>
+                <Button onClick={handleSaveSettings} disabled={saving}>
+                  {saving ? "Salvando..." : "Salvar Configurações"}
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>
     </div>
   );
 };
+
+// Subcomponents for the Dialog
+import { DialogTrigger } from "@/components/ui/dialog";
 
 export default CRM;
