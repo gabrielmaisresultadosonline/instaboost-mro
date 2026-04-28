@@ -671,25 +671,40 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_qualified: boolean | null
           last_interaction: string | null
           metadata: Json | null
           name: string | null
+          sale_closed: boolean | null
+          status: string | null
+          total_messages_received: number | null
+          total_messages_sent: number | null
           wa_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
+          is_qualified?: boolean | null
           last_interaction?: string | null
           metadata?: Json | null
           name?: string | null
+          sale_closed?: boolean | null
+          status?: string | null
+          total_messages_received?: number | null
+          total_messages_sent?: number | null
           wa_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
+          is_qualified?: boolean | null
           last_interaction?: string | null
           metadata?: Json | null
           name?: string | null
+          sale_closed?: boolean | null
+          status?: string | null
+          total_messages_received?: number | null
+          total_messages_sent?: number | null
           wa_id?: string
         }
         Relationships: []
@@ -803,8 +818,40 @@ export type Database = {
           },
         ]
       }
+      crm_metrics: {
+        Row: {
+          created_at: string | null
+          date: string | null
+          id: string
+          qualified_count: number | null
+          responded_count: number | null
+          sales_count: number | null
+          sent_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          qualified_count?: number | null
+          responded_count?: number | null
+          sales_count?: number | null
+          sent_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          qualified_count?: number | null
+          responded_count?: number | null
+          sales_count?: number | null
+          sent_count?: number | null
+        }
+        Relationships: []
+      }
       crm_settings: {
         Row: {
+          ai_agent_enabled: boolean | null
+          ai_agent_trigger: string | null
           created_at: string | null
           id: string
           initial_auto_response_enabled: boolean | null
@@ -815,10 +862,13 @@ export type Database = {
           meta_app_secret: string | null
           meta_phone_number_id: string | null
           meta_waba_id: string | null
+          openai_api_key: string | null
           updated_at: string | null
           webhook_verify_token: string | null
         }
         Insert: {
+          ai_agent_enabled?: boolean | null
+          ai_agent_trigger?: string | null
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
@@ -829,10 +879,13 @@ export type Database = {
           meta_app_secret?: string | null
           meta_phone_number_id?: string | null
           meta_waba_id?: string | null
+          openai_api_key?: string | null
           updated_at?: string | null
           webhook_verify_token?: string | null
         }
         Update: {
+          ai_agent_enabled?: boolean | null
+          ai_agent_trigger?: string | null
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
@@ -843,6 +896,7 @@ export type Database = {
           meta_app_secret?: string | null
           meta_phone_number_id?: string | null
           meta_waba_id?: string | null
+          openai_api_key?: string | null
           updated_at?: string | null
           webhook_verify_token?: string | null
         }
