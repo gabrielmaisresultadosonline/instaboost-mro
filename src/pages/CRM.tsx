@@ -161,7 +161,7 @@ const CRM = () => {
       setContacts(contactsData || []);
 
       // Fetch Templates from DB
-      const { data: templatesData } = await supabase
+      const { data: templatesData } = await (supabase as any)
         .from('crm_templates')
         .select('*');
       setTemplates(templatesData || []);
