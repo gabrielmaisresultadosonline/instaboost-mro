@@ -44,6 +44,14 @@ import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
+import { 
+  Check, 
+  Clock as ClockIcon, 
+  AlertCircle, 
+  FileCheck2,
+  ListFilter
+} from "lucide-react";
 
 const CRM = () => {
   const navigate = useNavigate();
