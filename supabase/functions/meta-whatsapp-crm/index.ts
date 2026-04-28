@@ -153,8 +153,9 @@ serve(async (req) => {
       const isWindowOpen = lastInteraction && (new Date().getTime() - new Date(lastInteraction).getTime()) < 24 * 60 * 60 * 1000;
 
       // If we are in the 24h window, fallback to sendMessage (interactive message) to allow rich formatting
-      if (templateData && isWindowOpen) {
-        console.log(`Template ${templateName} - window is open. Sending as interactive message...`);
+      // ONLY if the template is not yet approved. If it is approved, use the official Template API which is more reliable.
+      if (templateData && templateData.status !== 'APPROVED' && isWindowOpen) {
+        console.log(`Template ${templateName} - window is open and not approved. Sending as interactive message...`);
         
         const headerComponent = templateData.components?.find((c: any) => c.type === 'HEADER');
         const bodyComponent = templateData.components?.find((c: any) => c.type === 'BODY');
