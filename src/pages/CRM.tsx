@@ -1049,9 +1049,9 @@ const CRM = () => {
                   )}
                 </div>
               </ScrollArea>
-              </div>
-            ) : (
-              <>
+            </div>
+          ) : (
+            <>
             <div className={`flex-1 flex flex-col bg-secondary/5 relative ${!selectedContact ? 'hidden md:flex items-center justify-center text-center p-10' : 'flex'}`}>
               {!selectedContact ? (
                 <div className="max-w-md space-y-4 opacity-40">
