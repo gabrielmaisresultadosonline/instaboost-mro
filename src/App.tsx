@@ -101,6 +101,8 @@ import RendaExtraAula from "./pages/RendaExtraAula";
 import RendaExtraAulaAdmin from "./pages/RendaExtraAulaAdmin";
 import Addmin from "./pages/Addmin";
 import RendaExtObrigado from "./pages/RendaExtObrigado";
+import CRM from "./pages/CRM";
+import CRMLogin from "./pages/CRMLogin";
 
 
 
