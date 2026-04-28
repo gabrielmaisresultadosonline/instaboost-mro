@@ -973,9 +973,28 @@ const CRM = () => {
                       </div>
                       <div>
                         <h3 className="font-bold leading-none">{selectedContact.name || "Sem Nome"}</h3>
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online • +{selectedContact.wa_id}
-                        </p>
+                        <div className="flex flex-col gap-1 mt-1">
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online • +{selectedContact.wa_id}
+                          </p>
+                          {selectedContact.last_interaction && (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${
+                                getWindowInfo(selectedContact.last_interaction)?.isExpired 
+                                  ? "bg-red-500/10 text-red-500 border border-red-500/20" 
+                                  : "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                              }`}>
+                                <Clock className="w-2.5 h-2.5" />
+                                {getWindowInfo(selectedContact.last_interaction)?.label}
+                              </span>
+                              {getWindowInfo(selectedContact.last_interaction)?.isExpired && (
+                                <span className="text-[9px] text-red-400 font-semibold animate-pulse">
+                                  ⚠️ Janela de 24h expirada (Cobra custo por envio)
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
