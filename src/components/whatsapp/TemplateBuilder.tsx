@@ -99,9 +99,15 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
               {headerType === 'IMAGE' && <Input placeholder="URL da imagem de exemplo" value={headerUrl} onChange={e => setHeaderUrl(e.target.value)} />}
             </div>
             <div className="space-y-2">
-              <Label>Corpo da Mensagem</Label>
-              <Textarea placeholder="Olá {{1}}, tudo bem?" value={bodyText} onChange={e => setBodyText(e.target.value)} rows={5} className="resize-none" />
-              <p className="text-[10px] text-muted-foreground">Use {"{{1}}"} para variáveis.</p>
+              <Label className="flex justify-between items-center">
+                Corpo da Mensagem
+                <span className={`text-[10px] ${bodyText.length > 1024 ? 'text-destructive' : 'text-muted-foreground'}`}>{bodyText.length}/1024</span>
+              </Label>
+              <Textarea placeholder="Olá {{1}}, tudo bem?" value={bodyText} onChange={e => setBodyText(e.target.value)} rows={5} className="resize-none font-mono text-sm" />
+              <div className="flex justify-between items-center">
+                <p className="text-[10px] text-muted-foreground">Use {"{{1}}"}, {"{{2}}"} para variáveis.</p>
+                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => setBodyText(prev => prev + '{{1}}')}>+ Adicionar Variável</Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Rodapé (Opcional)</Label>
