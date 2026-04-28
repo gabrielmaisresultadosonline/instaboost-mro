@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { UserPlus, X, ExternalLink, MessageCircle, Play } from 'lucide-react';
+import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 
 export const CadastrarContaButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const { whatsappNumber } = useWhatsAppConfig();
 
   return (
     <>
