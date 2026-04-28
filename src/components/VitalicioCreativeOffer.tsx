@@ -10,6 +10,7 @@ interface VitalicioCreativeOfferProps {
 }
 
 export const VitalicioCreativeOffer = ({ username, onClose }: VitalicioCreativeOfferProps) => {
+  const { whatsappNumber } = useWhatsAppConfig();
   const [canUnlock, setCanUnlock] = useState(false);
   const [countdown, setCountdown] = useState(8);
 
