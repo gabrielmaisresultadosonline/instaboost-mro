@@ -39,7 +39,9 @@ const CRM = () => {
     meta_waba_id: '',
     meta_app_id: '',
     meta_app_secret: '',
-    initial_auto_response_enabled: true
+    initial_auto_response_enabled: true,
+    initial_response_text: '',
+    initial_response_buttons: [] as any[]
   });
 
   // Flows State
