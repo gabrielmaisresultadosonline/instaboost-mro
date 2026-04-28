@@ -300,6 +300,21 @@ const CRM = () => {
 
   const handleSendTemplate = async (templateName: string, language: string) => {
     if (!selectedContact) return;
+    
+    const template = templates.find(t => t.name === templateName);
+    const windowInfo = getWindowInfo(selectedContact.last_interaction);
+    const isWindowOpen = windowInfo && !windowInfo.isExpired;
+
+    // If template is not approved but window is open, send as text
+    if (template?.status !== 'APPROVED' && isWindowOpen) {
+      const bodyText = template.components?.find((c: any) => c.type === 'BODY')?.text;
+      if (bodyText) {
+        setNewMessage(bodyText);
+        toast({ title: "Conteúdo do template copiado para a mensagem (Aguardando aprovação Meta)" });
+        return;
+      }
+    }
+
     setSendingMessage(true);
     try {
       const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
