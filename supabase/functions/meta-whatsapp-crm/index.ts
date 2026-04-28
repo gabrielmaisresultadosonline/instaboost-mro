@@ -61,7 +61,121 @@ serve(async (req) => {
       })
     }
 
-    if (action === 'sendMessage') {
+    if (action === 'createTemplate') {
+      const { meta_waba_id } = settings
+      const { name, category, language, components } = params
+      
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${meta_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, category, language, components }),
+        }
+      )
+      
+      const result = await response.json()
+      
+      if (result.id) {
+        await supabase.from('crm_templates').upsert({
+          id: result.id,
+          name,
+          category,
+          language,
+          status: 'PENDING',
+          components,
+          updated_at: new Date().toISOString()
+        })
+      }
+      
+      return new Response(JSON.stringify({ success: !!result.id, result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (action === 'deleteTemplate') {
+      const { meta_waba_id } = settings
+      const { name } = params
+      
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates?name=${name}`,
+        {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${meta_access_token}` },
+        }
+      )
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        await supabase.from('crm_templates').delete().eq('name', name)
+      }
+      
+      return new Response(JSON.stringify({ success: result.success, result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (action === 'sendTemplate') {
+      const { to, templateName, languageCode, components } = params
+      
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${meta_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: "whatsapp",
+            to,
+            type: "template",
+            template: {
+              name: templateName,
+              language: { code: languageCode },
+              components: components || []
+            }
+          }),
+        }
+      )
+
+      const result = await response.json()
+      
+      if (result.messages && result.messages[0]) {
+        const { data: contact } = await supabase
+          .from('crm_contacts')
+          .select('id, total_messages_sent')
+          .eq('wa_id', to)
+          .single()
+
+        if (contact) {
+          await supabase.from('crm_messages').insert({
+            contact_id: contact.id,
+            direction: 'outbound',
+            content: `[Template: ${templateName}]`,
+            message_type: 'template',
+            meta_message_id: result.messages[0].id,
+            status: 'sent'
+          })
+
+          await supabase
+            .from('crm_contacts')
+            .update({ total_messages_sent: (contact.total_messages_sent || 0) + 1 })
+            .eq('id', contact.id)
+          
+          await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
+        }
+      }
+
+      return new Response(JSON.stringify({ success: !!result.messages, result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
       const { to, text, buttons, audioUrl, imageUrl, videoUrl, documentUrl, fileName } = params
       
       let body: any = {
