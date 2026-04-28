@@ -43,7 +43,8 @@ import {
   Clock as ClockIcon,
   AlertCircle,
   FileCheck2,
-  ListFilter
+  ListFilter,
+  Zap
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
@@ -300,6 +301,21 @@ const CRM = () => {
 
   const handleSendTemplate = async (templateName: string, language: string) => {
     if (!selectedContact) return;
+    
+    const template = templates.find(t => t.name === templateName);
+    const windowInfo = getWindowInfo(selectedContact.last_interaction);
+    const isWindowOpen = windowInfo && !windowInfo.isExpired;
+
+    // If template is not approved but window is open, send as text
+    if (template?.status !== 'APPROVED' && isWindowOpen) {
+      const bodyText = template.components?.find((c: any) => c.type === 'BODY')?.text;
+      if (bodyText) {
+        setNewMessage(bodyText);
+        toast({ title: "Conteúdo do template copiado para a mensagem (Aguardando aprovação Meta)" });
+        return;
+      }
+    }
+
     setSendingMessage(true);
     try {
       const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
@@ -318,14 +334,25 @@ const CRM = () => {
   const handleSaveTemplate = async (template: any) => {
     setSaving(true);
     try {
-      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'createTemplate', ...template }
       });
+      
       if (error) throw error;
+      
+      if (!data.success) {
+        throw new Error(data.error || "Erro ao criar template na Meta");
+      }
+      
       toast({ title: "Template enviado para aprovação!" });
       fetchData();
-    } catch (err) {
-      toast({ title: "Erro ao criar template", variant: "destructive" });
+    } catch (err: any) {
+      console.error('Error creating template:', err);
+      toast({ 
+        title: "Erro ao criar template", 
+        description: err.message || "Verifique as configurações da API Meta",
+        variant: "destructive" 
+      });
     } finally {
       setSaving(false);
     }
@@ -446,8 +473,15 @@ const CRM = () => {
                     {selectedContact ? (
                       <>
                         <div className="p-4 border-b flex justify-between items-center bg-card">
-                          <div>
-                            <p className="font-bold">{selectedContact.name || selectedContact.wa_id}</p>
+                          <div className="flex flex-col">
+                            <p className="font-bold flex items-center gap-2">
+                              {selectedContact.name || selectedContact.wa_id}
+                              {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
+                                <Badge variant="outline" className="text-[10px] animate-pulse bg-primary/10">
+                                  Fluxo: {selectedContact.flow_state}
+                                </Badge>
+                              )}
+                            </p>
                             {selectedContact.last_interaction && (
                               <div className="flex items-center gap-1 mt-1">
                                 <ClockIcon className={`w-3 h-3 ${getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500'}`} />
@@ -458,22 +492,52 @@ const CRM = () => {
                             )}
                           </div>
                           <div className="flex gap-2">
-                            <Select onValueChange={(val) => handleSendTemplate(val, 'pt_BR')}>
-                              <SelectTrigger className="w-[140px] h-8 text-xs bg-primary text-primary-foreground">
-                                <SelectValue placeholder="Enviar Template" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {templates.map(t => (
-                                  <SelectItem key={t.id} value={t.name}>
-                                    {t.name} {t.status !== 'APPROVED' ? `(${t.status})` : ''}
-                                  </SelectItem>
-                                ))}
-
-                              </SelectContent>
-                            </Select>
-                            <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })}>Qualificar</Button>
-                            <Button size="sm" className="bg-green-600" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                            <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })} className="hidden sm:flex">Qualificar</Button>
+                            <Button size="sm" className="bg-green-600 hidden sm:flex" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                            {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
+                              <Button 
+                                size="sm" 
+                                variant="secondary" 
+                                className="bg-orange-500 text-white hover:bg-orange-600"
+                                onClick={async () => {
+                                  await supabase.functions.invoke('meta-whatsapp-crm', {
+                                    body: { action: 'continueFlow', contactId: selectedContact.id, waId: selectedContact.wa_id }
+                                  });
+                                  fetchMessages(selectedContact.id);
+                                  toast({ title: "Comando enviado para continuar o fluxo" });
+                                }}
+                              >
+                                <Play className="w-3 h-3 mr-1" /> Continuar Fluxo
+                              </Button>
+                            )}
                           </div>
+                        </div>
+                        <div className="bg-muted/10 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center">
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1"><Zap className="w-3 h-3" /> Atalhos:</span>
+                          {templates.slice(0, 5).map(t => (
+                            <Button 
+                              key={t.id} 
+                              variant="secondary" 
+                              size="sm" 
+                              className="h-7 text-[10px] px-2 whitespace-nowrap"
+                              onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')}
+                            >
+                              {t.name}
+                              {t.status !== 'APPROVED' && <ClockIcon className="w-2 h-2 ml-1 opacity-50" />}
+                            </Button>
+                          ))}
+                          <div className="w-px h-4 bg-border mx-1" />
+                          {flows.slice(0, 5).map(f => (
+                            <Button 
+                              key={f.id} 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-7 text-[10px] px-2 whitespace-nowrap border-primary/20 text-primary"
+                              onClick={() => handleTriggerFlow(f.id)}
+                            >
+                              <GitBranch className="w-2 h-2 mr-1" /> {f.name}
+                            </Button>
+                          ))}
                         </div>
                         <ScrollArea className="flex-1 p-4">
                           <div className="space-y-4">
