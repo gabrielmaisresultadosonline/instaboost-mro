@@ -4110,6 +4110,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      increment_crm_metric: {
+        Args: { metric_column: string }
+        Returns: undefined
+      }
       whatsapp_admin_login: {
         Args: { login_email: string; login_password: string }
         Returns: Json
