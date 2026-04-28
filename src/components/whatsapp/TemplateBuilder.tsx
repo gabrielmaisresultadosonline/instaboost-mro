@@ -45,25 +45,51 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
 
   const handleSubmit = () => {
     const components: any[] = [];
+    
+    // Header
     if (headerType !== 'NONE') {
       const header: any = { type: 'HEADER', format: headerType };
-      if (headerType === 'TEXT') header.text = headerText;
-      else header.example = { header_handle: [headerUrl] };
+      if (headerType === 'TEXT') {
+        header.text = headerText;
+        // Check for variables in header
+        const variables = headerText.match(/\{\{\d+\}\}/g);
+        if (variables) {
+          header.example = { header_text: [headerText.replace(/\{\{\d+\}\}/g, "Exemplo")] };
+        }
+      } else {
+        header.example = { header_handle: [headerUrl || "https://example.com/image.png"] };
+      }
       components.push(header);
     }
-    components.push({ type: 'BODY', text: bodyText });
+    
+    // Body
+    const body: any = { type: 'BODY', text: bodyText };
+    const bodyVariables = bodyText.match(/\{\{\d+\}\}/g);
+    if (bodyVariables) {
+      body.example = { body_text: [bodyVariables.map(() => "Exemplo")] };
+    }
+    components.push(body);
+    
+    // Footer
     if (footerText) components.push({ type: 'FOOTER', text: footerText });
+    
+    // Buttons
     if (buttons.length > 0) {
       components.push({
         type: 'BUTTONS',
         buttons: buttons.map(b => {
           const btn: any = { type: b.type, text: b.text };
-          if (b.type === 'URL') btn.url = b.url;
-          if (b.type === 'PHONE') btn.phone_number = b.phone_number;
+          if (b.type === 'URL') {
+            btn.url = b.url || "https://example.com";
+          }
+          if (b.type === 'PHONE') {
+            btn.phone_number = b.phone_number || "5511999999999";
+          }
           return btn;
         })
       });
     }
+    
     onSave({ name, category, language, components });
   };
 
