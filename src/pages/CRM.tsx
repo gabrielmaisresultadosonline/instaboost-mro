@@ -117,6 +117,13 @@ const CRM = () => {
     media_type: ''
   });
 
+  const [confirmSend, setConfirmSend] = useState<{
+    type: 'template' | 'flow';
+    id: string;
+    name: string;
+    language?: string;
+  } | null>(null);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
