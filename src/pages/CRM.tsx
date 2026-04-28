@@ -90,6 +90,12 @@ const CRM = () => {
 
   // Chat State
   const [selectedContact, setSelectedContact] = useState<any>(null);
+  const selectedContactRef = useRef<any>(null);
+
+  useEffect(() => {
+    selectedContactRef.current = selectedContact;
+  }, [selectedContact]);
+
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -126,39 +132,51 @@ const CRM = () => {
     }
     fetchData();
 
-    // Subscribe to new messages for real-time updates
+    console.log("Setting up Realtime subscription...");
+    
+    // Subscribe to ALL changes in messages and contacts for real-time updates
     const messageChannel = supabase
-      .channel('crm_realtime_messages')
+      .channel('crm_global_updates')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'crm_messages' },
+        { event: '*', schema: 'public', table: 'crm_messages' },
         (payload) => {
-          // If the message is for the currently selected contact, add it to the chat
-          if (selectedContact && payload.new.contact_id === selectedContact.id) {
-            setChatMessages(prev => {
-              // Avoid duplicates
-              if (prev.find(m => m.id === payload.new.id)) return prev;
-              return [...prev, payload.new];
-            });
+          console.log("Realtime message update:", payload);
+          
+          // If a new message is inserted
+          if (payload.eventType === 'INSERT') {
+            const newMessage = payload.new;
+            
+            // If the message belongs to the current open chat, update UI
+            if (selectedContactRef.current && newMessage.contact_id === selectedContactRef.current.id) {
+              setChatMessages(prev => {
+                if (prev.find(m => m.id === newMessage.id)) return prev;
+                return [...prev, newMessage];
+              });
+            }
           }
           
-          // Also refresh contacts list to show latest interaction/new leads
+          // Always refresh contacts to update "last interaction" and unread indicators
           fetchContacts();
         }
       )
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'crm_contacts' },
-        () => {
+        { event: '*', schema: 'public', table: 'crm_contacts' },
+        (payload) => {
+          console.log("Realtime contact update:", payload);
           fetchContacts();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Realtime subscription status:", status);
+      });
 
     return () => {
+      console.log("Cleaning up Realtime subscription");
       supabase.removeChannel(messageChannel);
     };
-  }, [navigate, selectedContact]);
+  }, [navigate]); // Removed selectedContact from dependencies to avoid re-subscribing on every chat switch
 
   const fetchContacts = async () => {
     const { data: contactsData } = await supabase
