@@ -232,6 +232,34 @@ const CRM = () => {
                     />
                   </div>
                   
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="space-y-2">
+                      <Label>Mensagem da Resposta Automática</Label>
+                      <Textarea 
+                        value={metaSettings.initial_response_text} 
+                        onChange={e => setMetaSettings({...metaSettings, initial_response_text: e.target.value})}
+                        placeholder="Ex: Olá! Como podemos ajudar?"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Configuração de Botões (JSON)</Label>
+                      <Textarea 
+                        value={JSON.stringify(metaSettings.initial_response_buttons, null, 2)} 
+                        onChange={e => {
+                          try {
+                            const parsed = JSON.parse(e.target.value);
+                            setMetaSettings({...metaSettings, initial_response_buttons: parsed});
+                          } catch (err) {
+                            // Validating as user types, ignore errors
+                          }
+                        }}
+                        placeholder='[{"id": "opt_1", "text": "Saber mais"}]'
+                        className="font-mono text-xs h-24"
+                      />
+                    </div>
+                  </div>
+
                   <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 space-y-4">
                     <h3 className="font-semibold flex items-center gap-2">
                       <Bot className="w-4 h-4 text-primary" /> Webhook URL
@@ -241,7 +269,7 @@ const CRM = () => {
                     </p>
                     <div className="space-y-2">
                       <Label className="text-xs">Verify Token (Use no Meta Developer Portal)</Label>
-                      <Input readOnly value={(metaSettings as any).webhook_verify_token || 'mro_token_verification'} className="h-8 text-xs font-mono" />
+                      <Input readOnly value={metaSettings.webhook_verify_token || 'mro_token_verification'} className="h-8 text-xs font-mono" />
                     </div>
                   </div>
                 </CardContent>
