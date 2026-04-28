@@ -80,6 +80,8 @@ const CRM = () => {
   const [contacts, setContacts] = useState<any[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [kanbanView, setKanbanView] = useState(false);
+  const [draggedContact, setDraggedContact] = useState<any>(null);
   
   // Broadcast State
   const [broadcast, setBroadcast] = useState({
