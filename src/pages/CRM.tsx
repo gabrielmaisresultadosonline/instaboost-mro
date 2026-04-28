@@ -1173,7 +1173,7 @@ const CRM = () => {
                    <Button 
                     key={t.id} 
                     variant="outline" 
-                    size="xs" 
+                    size="sm" 
                     className="text-[10px] h-7"
                     onClick={() => handleSendTemplate(t.name, t.language)}
                    >
