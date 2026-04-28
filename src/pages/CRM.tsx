@@ -95,6 +95,21 @@ const CRM = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
   const [syncingTemplates, setSyncingTemplates] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Flow Editor State
+  const [isFlowEditorOpen, setIsFlowEditorOpen] = useState(false);
+  const [editingFlow, setEditingFlow] = useState<any>(null);
+  const [newStep, setNewStep] = useState<any>({
+    step_type: 'text',
+    message_text: '',
+    delay_seconds: 5,
+    media_url: '',
+    media_type: ''
+  });
+
 
   useEffect(() => {
     if (!isAdminLoggedIn()) {
