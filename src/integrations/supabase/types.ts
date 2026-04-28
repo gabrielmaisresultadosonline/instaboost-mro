@@ -631,6 +631,41 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_activities: {
+        Row: {
+          activity_type: string
+          contact_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          activity_type: string
+          contact_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          activity_type?: string
+          contact_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_activities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_broadcasts: {
         Row: {
           buttons: Json | null
@@ -670,8 +705,12 @@ export type Database = {
       crm_contacts: {
         Row: {
           created_at: string | null
+          current_flow_id: string | null
+          current_step_index: number | null
+          flow_state: string | null
           id: string
           is_qualified: boolean | null
+          last_flow_interaction: string | null
           last_interaction: string | null
           metadata: Json | null
           name: string | null
@@ -683,8 +722,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          current_flow_id?: string | null
+          current_step_index?: number | null
+          flow_state?: string | null
           id?: string
           is_qualified?: boolean | null
+          last_flow_interaction?: string | null
           last_interaction?: string | null
           metadata?: Json | null
           name?: string | null
@@ -696,8 +739,12 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          current_flow_id?: string | null
+          current_step_index?: number | null
+          flow_state?: string | null
           id?: string
           is_qualified?: boolean | null
+          last_flow_interaction?: string | null
           last_interaction?: string | null
           metadata?: Json | null
           name?: string | null
@@ -707,7 +754,15 @@ export type Database = {
           total_messages_sent?: number | null
           wa_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crm_contacts_current_flow_id_fkey"
+            columns: ["current_flow_id"]
+            isOneToOne: false
+            referencedRelation: "crm_flows"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_flow_steps: {
         Row: {
@@ -716,8 +771,11 @@ export type Database = {
           delay_seconds: number | null
           flow_id: string | null
           id: string
+          media_type: string | null
+          media_url: string | null
           message_text: string | null
           step_order: number
+          step_type: string | null
         }
         Insert: {
           buttons?: Json | null
@@ -725,8 +783,11 @@ export type Database = {
           delay_seconds?: number | null
           flow_id?: string | null
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           message_text?: string | null
           step_order: number
+          step_type?: string | null
         }
         Update: {
           buttons?: Json | null
@@ -734,8 +795,11 @@ export type Database = {
           delay_seconds?: number | null
           flow_id?: string | null
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           message_text?: string | null
           step_order?: number
+          step_type?: string | null
         }
         Relationships: [
           {
@@ -755,6 +819,8 @@ export type Database = {
           is_active: boolean | null
           name: string
           trigger_keyword: string | null
+          trigger_keywords: string[] | null
+          trigger_type: string | null
           updated_at: string | null
         }
         Insert: {
@@ -764,6 +830,8 @@ export type Database = {
           is_active?: boolean | null
           name: string
           trigger_keyword?: string | null
+          trigger_keywords?: string[] | null
+          trigger_type?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -773,6 +841,8 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           trigger_keyword?: string | null
+          trigger_keywords?: string[] | null
+          trigger_type?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -899,6 +969,39 @@ export type Database = {
           openai_api_key?: string | null
           updated_at?: string | null
           webhook_verify_token?: string | null
+        }
+        Relationships: []
+      }
+      crm_templates: {
+        Row: {
+          category: string | null
+          components: Json | null
+          created_at: string | null
+          id: string
+          language: string | null
+          name: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          components?: Json | null
+          created_at?: string | null
+          id: string
+          language?: string | null
+          name: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          components?: Json | null
+          created_at?: string | null
+          id?: string
+          language?: string | null
+          name?: string
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
