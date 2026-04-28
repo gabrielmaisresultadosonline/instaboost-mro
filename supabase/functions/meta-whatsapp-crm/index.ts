@@ -79,6 +79,18 @@ serve(async (req) => {
       
       const result = await response.json()
       
+      if (!response.ok) {
+        console.error('Meta API Error:', result)
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: result.error?.message || 'Meta API returned an error',
+          details: result 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      
       if (result.id) {
         await supabase.from('crm_templates').upsert({
           id: result.id,
@@ -91,7 +103,7 @@ serve(async (req) => {
         })
       }
       
-      return new Response(JSON.stringify({ success: !!result.id, result }), {
+      return new Response(JSON.stringify({ success: true, result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
