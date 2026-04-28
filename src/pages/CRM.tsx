@@ -673,6 +673,27 @@ const CRM = () => {
               </div>
             </div>
 
+            <Dialog open={!!confirmSend} onOpenChange={(open) => !open && setConfirmSend(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Confirmar Envio</DialogTitle>
+                  <DialogDescription>
+                    Você tem certeza que deseja enviar o {confirmSend?.type === 'template' ? 'template' : 'fluxo'} <strong>"{confirmSend?.name}"</strong> para {selectedContact?.name || selectedContact?.wa_id}?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setConfirmSend(null)}>Cancelar</Button>
+                  <Button onClick={() => {
+                    if (confirmSend?.type === 'template') {
+                      handleSendTemplate(confirmSend.id, confirmSend.language || 'pt_BR');
+                    } else if (confirmSend?.type === 'flow') {
+                      handleTriggerFlow(confirmSend.id);
+                    }
+                  }}>Confirmar e Enviar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {templates.map((template) => (
                 <Card key={template.id} className="overflow-hidden border-zinc-200 dark:border-zinc-800">
