@@ -387,13 +387,19 @@ const CRM = () => {
             // Try to get from example
             const exampleData = bodyComponent.example?.body_text?.[0] || [];
             
-            // If exampleData is a string, it might be a single value or we need to try and split it
-            // but usually it should be an array. Let's be safe.
+            // If exampleData is a string or array, try to extract values
             let val = "---";
             if (Array.isArray(exampleData)) {
-              val = exampleData[index] || "---";
-            } else if (typeof exampleData === 'string' && index === 0) {
-              val = exampleData;
+              if (exampleData.length === 1 && typeof exampleData[0] === 'string' && bodyVariables.length > 1) {
+                // Handle case where all examples are in one space-separated string
+                const splitExamples = exampleData[0].split(' ');
+                val = splitExamples[index] || "---";
+              } else {
+                val = exampleData[index] || "---";
+              }
+            } else if (typeof exampleData === 'string') {
+              const splitExamples = exampleData.split(' ');
+              val = splitExamples[index] || "---";
             }
             
             return { type: "text", text: val };
