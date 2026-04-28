@@ -109,6 +109,8 @@ const CRM = () => {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatMessages]);
+
+  const [newStep, setNewStep] = useState<any>({
     step_type: 'text',
     message_text: '',
     delay_seconds: 5,
