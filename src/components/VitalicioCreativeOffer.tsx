@@ -32,7 +32,7 @@ export const VitalicioCreativeOffer = ({ username, onClose }: VitalicioCreativeO
     const message = encodeURIComponent(
       `Olá! Acabei de comprar o plano PRO de criativos!\n\nUsuário: ${username}`
     );
-    window.open(`https://wa.me/5551920536540?text=${message}`, '_blank');
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
   return (
