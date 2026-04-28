@@ -808,6 +808,8 @@ export type Database = {
           created_at: string | null
           id: string
           initial_auto_response_enabled: boolean | null
+          initial_response_buttons: Json | null
+          initial_response_text: string | null
           meta_access_token: string | null
           meta_app_id: string | null
           meta_app_secret: string | null
@@ -820,6 +822,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
+          initial_response_buttons?: Json | null
+          initial_response_text?: string | null
           meta_access_token?: string | null
           meta_app_id?: string | null
           meta_app_secret?: string | null
@@ -832,6 +836,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
+          initial_response_buttons?: Json | null
+          initial_response_text?: string | null
           meta_access_token?: string | null
           meta_app_id?: string | null
           meta_app_secret?: string | null
