@@ -338,21 +338,36 @@ const CRM = () => {
 
   const updateContactStatus = async (contactId: string, updates: any) => {
     try {
+      // Optimistic update
+      setContacts(prev => prev.map(c => c.id === contactId ? { ...c, ...updates } : c));
+      
       const { error } = await supabase
         .from('crm_contacts')
         .update(updates)
         .eq('id', contactId);
       
-      if (error) throw error;
+      if (error) {
+        // Rollback on error
+        fetchContacts();
+        throw error;
+      }
       
-      setContacts(contacts.map(c => c.id === contactId ? { ...c, ...updates } : c));
       toast({ title: "Status atualizado!" });
-      
-      // Update local metrics if status changed
       fetchData();
     } catch (err) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
     }
+  };
+
+  const handleDragStart = (contact: any) => {
+    setDraggedContact(contact);
+  };
+
+  const handleDrop = async (status: string) => {
+    if (!draggedContact || draggedContact.status === status) return;
+    
+    await updateContactStatus(draggedContact.id, { status });
+    setDraggedContact(null);
   };
 
   const fetchMessages = async (contactId: string) => {
