@@ -11,17 +11,29 @@ import { supabase } from "@/integrations/supabase/client";
 const Obrigado = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [whatsappNumber, setWhatsappNumber] = useState("555195781011");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     trackPageView('Thank You Page - Purchase Complete');
     trackPurchase(397, 'MRO I.A + Automação');
     
-    supabase.from('whatsapp_page_settings').select('whatsapp_number').limit(1).single()
-      .then(({ data }) => {
-        if (data?.whatsapp_number) setWhatsappNumber(data.whatsapp_number);
-      });
+    // Fetch the currently configured WhatsApp number from the central settings
+    const fetchConfig = async () => {
+      try {
+        const { data, error } = await supabase.rpc("get_whatsapp_public_config");
+        if (!error && data) {
+          const config = data as { whatsapp_number?: string };
+          if (config.whatsapp_number) {
+            setWhatsappNumber(config.whatsapp_number);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching WhatsApp config:", err);
+      }
+    };
+    
+    fetchConfig();
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
