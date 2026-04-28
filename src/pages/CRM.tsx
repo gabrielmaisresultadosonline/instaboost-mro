@@ -255,14 +255,17 @@ const CRM = () => {
     if (!newMessage.trim() || !selectedContact || sendingMessage) return;
     setSendingMessage(true);
     try {
-      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'sendMessage', to: selectedContact.wa_id, text: newMessage }
       });
       if (error) throw error;
+      if (!data.success) {
+        throw new Error(data.error || "Erro ao enviar mensagem pela Meta");
+      }
       await fetchMessages(selectedContact.id);
       setNewMessage('');
-    } catch (err) {
-      toast({ title: "Erro ao enviar", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
     } finally {
       setSendingMessage(false);
     }
@@ -318,14 +321,17 @@ const CRM = () => {
 
     setSendingMessage(true);
     try {
-      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'sendTemplate', to: selectedContact.wa_id, templateName, languageCode: language }
       });
       if (error) throw error;
+      if (!data.success) {
+        throw new Error(data.error || "Erro ao enviar template pela Meta");
+      }
       toast({ title: "Template enviado!" });
-      fetchMessages(selectedContact.id);
-    } catch (err) {
-      toast({ title: "Erro ao enviar template", variant: "destructive" });
+      await fetchMessages(selectedContact.id);
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar template", description: err.message, variant: "destructive" });
     } finally {
       setSendingMessage(false);
     }
