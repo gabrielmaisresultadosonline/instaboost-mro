@@ -136,13 +136,67 @@ serve(async (req) => {
       
       console.log(`Sending template ${templateName} to ${to}...`);
 
-      // Fetch template details for content reconstruction
+      // Fetch template details and contact interaction
       const { data: templateData } = await supabase
         .from('crm_templates')
-        .select('components')
+        .select('*')
         .eq('name', templateName)
         .single();
 
+      const { data: contact } = await supabase
+        .from('crm_contacts')
+        .select('*')
+        .eq('wa_id', to)
+        .single();
+
+      const lastInteraction = contact?.last_interaction;
+      const isWindowOpen = lastInteraction && (new Date().getTime() - new Date(lastInteraction).getTime()) < 24 * 60 * 60 * 1000;
+
+      // If template is not approved but we are in the 24h window, fallback to sendMessage
+      if (templateData && templateData.status !== 'APPROVED' && isWindowOpen) {
+        console.log(`Template ${templateName} is ${templateData.status}, but window is open. Falling back to sendMessage...`);
+        
+        const bodyComponent = templateData.components?.find((c: any) => c.type === 'BODY');
+        const buttonsComponent = templateData.components?.find((c: any) => c.type === 'BUTTONS');
+        
+        if (bodyComponent && bodyComponent.text) {
+          let text = bodyComponent.text;
+          const bodyParams = components?.find((c: any) => c.type === 'body')?.parameters || [];
+          
+          // Auto-fill variables if parameters provided
+          bodyParams.forEach((param: any, index: number) => {
+            const placeholder = `{{${index + 1}}}`;
+            text = text.replace(placeholder, param.text || '-');
+          });
+
+          // Handle case where no params provided but we have contact name
+          if (bodyParams.length === 0 && text.includes('{{1}}') && contact?.name) {
+            text = text.replace(/\{\{1\}\}/g, contact.name);
+          }
+          // Clean up remaining placeholders
+          text = text.replace(/\{\{\d+\}\}/g, '---');
+
+          // Extract buttons if they exist
+          let buttons = [];
+          if (buttonsComponent && buttonsComponent.buttons) {
+            buttons = buttonsComponent.buttons
+              .filter((b: any) => b.type === 'QUICK_REPLY')
+              .map((b: any) => ({
+                id: b.text,
+                text: b.text
+              }));
+          }
+
+          // Recursive call to sendMessage logic
+          return await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+            to,
+            text,
+            buttons: buttons.length > 0 ? buttons : undefined
+          }, contact);
+        }
+      }
+
+      // Standard Template Sending
       let finalComponents = components || [];
       let messageContent = `[Template: ${templateName}]`;
 
@@ -153,12 +207,6 @@ serve(async (req) => {
         if (finalComponents.length === 0 && bodyComponent && bodyComponent.text) {
           const varCount = (bodyComponent.text.match(/\{\{\d+\}\}/g) || []).length;
           if (varCount > 0) {
-            const { data: contact } = await supabase
-              .from('crm_contacts')
-              .select('name')
-              .eq('wa_id', to)
-              .single();
-            
             const name = contact?.name || 'Cliente';
             const bodyParams = [];
             
@@ -245,12 +293,6 @@ serve(async (req) => {
 
       // Save to message history
       if (result.messages && result.messages[0]) {
-        const { data: contact } = await supabase
-          .from('crm_contacts')
-          .select('id, total_messages_sent')
-          .eq('wa_id', to)
-          .single()
-
         if (contact) {
           await supabase.from('crm_messages').insert({
             contact_id: contact.id,
@@ -277,6 +319,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+
 
 
     if (action === 'sendMessage') {
