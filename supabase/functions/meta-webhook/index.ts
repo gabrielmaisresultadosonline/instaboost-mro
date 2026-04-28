@@ -67,7 +67,8 @@ serve(async (req) => {
                     .from('crm_contacts')
                     .update({ 
                       last_interaction: new Date().toISOString(), 
-                      name: contact_name,
+                      // Only update name if it's the wa_id or null/empty
+                      name: (!contact.name || contact.name === contact.wa_id) ? contact_name : contact.name,
                       total_messages_received: (contact.total_messages_received || 0) + 1,
                       status: contact.status === 'new' ? 'responded' : contact.status
                     })

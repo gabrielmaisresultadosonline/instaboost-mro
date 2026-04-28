@@ -29,11 +29,13 @@ import {
   Mic,
   DollarSign,
   TrendingUp,
-  Filter
+  Filter,
+  FileUp
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const CRM = () => {
   const navigate = useNavigate();
@@ -76,6 +78,12 @@ const CRM = () => {
     message_text: '',
     status: 'pending'
   });
+
+  // Chat State
+  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     if (!isAdminLoggedIn()) {
@@ -205,6 +213,135 @@ const CRM = () => {
     } catch (err) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
     }
+  };
+
+  const fetchMessages = async (contactId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('crm_messages')
+        .select('*')
+        .eq('contact_id', contactId)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      setChatMessages(data || []);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedContact || sendingMessage) return;
+    
+    setSendingMessage(true);
+    try {
+      // 1. Send via Edge Function
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: {
+          action: 'sendMessage',
+          to: selectedContact.wa_id,
+          text: newMessage
+        }
+      });
+
+      if (error) throw error;
+
+      // 2. Refresh messages
+      await fetchMessages(selectedContact.id);
+      setNewMessage('');
+    } catch (err) {
+      console.error("Error sending message:", err);
+      toast({ title: "Erro ao enviar", variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const openChat = (contact: any) => {
+    setSelectedContact(contact);
+    fetchMessages(contact.id);
+  };
+
+  const handleVCardImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target?.result as string;
+      const cards = text.split('BEGIN:VCARD');
+      const contactsToUpsert: any[] = [];
+
+      cards.forEach(card => {
+        if (!card.trim()) return;
+        
+        // Extract Name (FN or N)
+        let name = '';
+        const fnMatch = card.match(/FN:(.*)/);
+        if (fnMatch) {
+          name = fnMatch[1].trim();
+        } else {
+          const nMatch = card.match(/N:(.*)/);
+          if (nMatch) {
+            name = nMatch[1].replace(/;/g, ' ').trim();
+          }
+        }
+
+        // Extract Phone (TEL)
+        const telMatches = card.matchAll(/TEL.*:(.*)/g);
+        for (const match of telMatches) {
+          let phone = match[1].replace(/\D/g, ''); // Keep only digits
+          if (phone.length >= 10) {
+            // Basic WhatsApp ID validation
+            contactsToUpsert.push({
+              wa_id: phone,
+              name: name || phone,
+              status: 'new',
+              last_interaction: new Date().toISOString()
+            });
+          }
+        }
+      });
+
+      if (contactsToUpsert.length > 0) {
+        try {
+          // Chunk upserts if too many
+          const chunkSize = 50;
+          for (let i = 0; i < contactsToUpsert.length; i += chunkSize) {
+            const chunk = contactsToUpsert.slice(i, i + chunkSize);
+            const { error } = await supabase
+              .from('crm_contacts')
+              .upsert(chunk, { onConflict: 'wa_id' });
+            
+            if (error) throw error;
+          }
+
+          toast({
+            title: "Contatos importados!",
+            description: `${contactsToUpsert.length} contatos foram adicionados ou atualizados.`
+          });
+          fetchData();
+        } catch (error) {
+          console.error("Error importing VCard:", error);
+          toast({
+            title: "Erro na importação",
+            description: "Não foi possível salvar os contatos no banco de dados.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Nenhum contato encontrado",
+          description: "O arquivo VCard não parece conter contatos válidos.",
+          variant: "destructive"
+        });
+      }
+      setLoading(false);
+    };
+    reader.readAsText(file);
+    // Clear input
+    event.target.value = '';
   };
 
   const handleLogout = () => {
@@ -343,21 +480,41 @@ const CRM = () => {
                   <CardTitle>Gestão de Leads</CardTitle>
                   <CardDescription>Gerencie seus contatos e o progresso no funil</CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-muted-foreground" />
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filtrar por status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="new">Novos</SelectItem>
-                      <SelectItem value="responded">Respondidos</SelectItem>
-                      <SelectItem value="qualified">Qualificados</SelectItem>
-                      <SelectItem value="closed">Vendas</SelectItem>
-                      <SelectItem value="lost">Perdidos</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="vcard-upload"
+                      accept=".vcf"
+                      className="hidden"
+                      onChange={handleVCardImport}
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="gap-2"
+                      onClick={() => document.getElementById('vcard-upload')?.click()}
+                    >
+                      <FileUp className="w-4 h-4" /> Importar VCard
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-muted-foreground" />
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="new">Novos</SelectItem>
+                        <SelectItem value="responded">Respondidos</SelectItem>
+                        <SelectItem value="qualified">Qualificados</SelectItem>
+                        <SelectItem value="closed">Vendas</SelectItem>
+                        <SelectItem value="lost">Perdidos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -414,7 +571,7 @@ const CRM = () => {
                             >
                               <XCircle className="w-3 h-3 mr-1" /> Perdido
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => toast({ title: "Abrindo chat..." })}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openChat(contact)}>
                               <MessageSquare className="w-4 h-4" />
                             </Button>
                           </div>
@@ -637,6 +794,62 @@ const CRM = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Chat Dialog */}
+      <Dialog open={!!selectedContact} onOpenChange={(open) => !open && setSelectedContact(null)}>
+        <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden glass-card border-primary/20">
+          <DialogHeader className="p-4 border-b bg-secondary/30">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
+                {selectedContact?.name?.charAt(0) || selectedContact?.wa_id.slice(-2)}
+              </div>
+              <div>
+                <DialogTitle>{selectedContact?.name || "Sem Nome"}</DialogTitle>
+                <DialogDescription className="text-[10px]">+{selectedContact?.wa_id}</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 p-4 bg-secondary/10">
+            <div className="space-y-4">
+              {chatMessages.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground text-sm">
+                  Nenhuma mensagem ainda.
+                </div>
+              ) : (
+                chatMessages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${
+                      msg.direction === 'inbound' 
+                        ? 'bg-secondary text-foreground rounded-tl-none' 
+                        : 'bg-primary text-primary-foreground rounded-tr-none'
+                    }`}>
+                      <p>{msg.content}</p>
+                      <p className="text-[9px] opacity-50 mt-1 text-right">
+                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+
+          <div className="p-4 border-t bg-card/50">
+            <div className="flex gap-2">
+              <Input 
+                placeholder="Digite sua mensagem..." 
+                value={newMessage} 
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              />
+              <Button size="icon" onClick={handleSendMessage} disabled={sendingMessage || !newMessage.trim()}>
+                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
