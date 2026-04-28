@@ -90,6 +90,12 @@ const CRM = () => {
 
   // Chat State
   const [selectedContact, setSelectedContact] = useState<any>(null);
+  const selectedContactRef = useRef<any>(null);
+
+  useEffect(() => {
+    selectedContactRef.current = selectedContact;
+  }, [selectedContact]);
+
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
