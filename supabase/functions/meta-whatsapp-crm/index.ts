@@ -152,11 +152,13 @@ serve(async (req) => {
       const lastInteraction = contact?.last_interaction;
       const isWindowOpen = lastInteraction && (new Date().getTime() - new Date(lastInteraction).getTime()) < 24 * 60 * 60 * 1000;
 
-      // If template is not approved but we are in the 24h window, fallback to sendMessage
-      if (templateData && templateData.status !== 'APPROVED' && isWindowOpen) {
-        console.log(`Template ${templateName} is ${templateData.status}, but window is open. Falling back to sendMessage...`);
+      // If we are in the 24h window, fallback to sendMessage (interactive message) to allow rich formatting
+      if (templateData && isWindowOpen) {
+        console.log(`Template ${templateName} - window is open. Sending as interactive message...`);
         
+        const headerComponent = templateData.components?.find((c: any) => c.type === 'HEADER');
         const bodyComponent = templateData.components?.find((c: any) => c.type === 'BODY');
+        const footerComponent = templateData.components?.find((c: any) => c.type === 'FOOTER');
         const buttonsComponent = templateData.components?.find((c: any) => c.type === 'BUTTONS');
         
         if (bodyComponent && bodyComponent.text) {
@@ -176,21 +178,35 @@ serve(async (req) => {
           // Clean up remaining placeholders
           text = text.replace(/\{\{\d+\}\}/g, '---');
 
-          // Extract buttons if they exist
+          // Extract header if it exists
+          let imageUrl = null;
+          let headerText = null;
+          if (headerComponent) {
+            if (headerComponent.format === 'IMAGE') {
+              imageUrl = headerComponent.example?.header_handle?.[0] || components?.find((c: any) => c.type === 'header')?.parameters?.[0]?.image?.link;
+            } else if (headerComponent.format === 'TEXT') {
+              headerText = headerComponent.text;
+            }
+          }
+
+          // Extract buttons
           let buttons = [];
           if (buttonsComponent && buttonsComponent.buttons) {
             buttons = buttonsComponent.buttons
               .filter((b: any) => b.type === 'QUICK_REPLY')
-              .map((b: any) => ({
-                id: b.text,
+              .map((b: any, index: number) => ({
+                id: b.text || `btn_${index}`,
                 text: b.text
               }));
           }
 
-          // Recursive call to internal helper
+          // Send as rich message using handleInternalSendMessage
           return await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
             to,
             text,
+            imageUrl,
+            headerText,
+            footerText: footerComponent?.text,
             buttons: buttons.length > 0 ? buttons : undefined
           }, contact);
         }
@@ -421,7 +437,7 @@ serve(async (req) => {
 })
 
 async function handleInternalSendMessage(supabase: any, meta_phone_number_id: string, meta_access_token: string, params: any, contact: any) {
-  const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons } = params
+  const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons, headerText, footerText } = params
   
   let body: any = {
     messaging_product: "whatsapp",
@@ -432,7 +448,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
   if (audioUrl) {
     body.type = "audio"
     body.audio = { link: audioUrl }
-  } else if (imageUrl) {
+  } else if (imageUrl && !buttons) {
     body.type = "image"
     body.image = { link: imageUrl, caption: text }
   } else if (videoUrl) {
@@ -443,7 +459,9 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     body.document = { link: documentUrl, caption: text, filename: fileName || "document.pdf" }
   } else if (buttons && buttons.length > 0) {
     body.type = "interactive"
-    body.interactive = {
+    
+    // Interactive messages can have a header (text or image)
+    const interactive: any = {
       type: "button",
       body: { text: text || "Selecione uma opção:" },
       action: {
@@ -456,6 +474,26 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
         }))
       }
     }
+
+    if (imageUrl) {
+      interactive.header = {
+        type: "image",
+        image: { link: imageUrl }
+      }
+    } else if (headerText) {
+      interactive.header = {
+        type: "text",
+        text: headerText
+      }
+    }
+
+    if (footerText) {
+      interactive.footer = {
+        text: footerText
+      }
+    }
+
+    body.interactive = interactive
   } else {
     body.type = "text"
     body.text = { body: text }
