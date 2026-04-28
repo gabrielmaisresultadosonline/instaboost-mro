@@ -1356,14 +1356,14 @@ const CRM = () => {
                       <Label className="text-[10px] uppercase text-muted-foreground">URL de Retorno (Callback URL)</Label>
                       <div className="flex items-center gap-2">
                         <code className="bg-background/80 p-1.5 rounded text-[11px] flex-1 truncate select-all">
-                          {window.location.origin.replace('lovable.app', 'supabase.co').replace('lovableproject.com', 'supabase.co')}/functions/v1/meta-webhook
+                          {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-webhook`}
                         </code>
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="h-7 w-7" 
                           onClick={() => {
-                            const url = `${window.location.origin.replace('lovable.app', 'supabase.co').replace('lovableproject.com', 'supabase.co')}/functions/v1/meta-webhook`;
+                            const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-webhook`;
                             navigator.clipboard.writeText(url);
                             toast({ title: "URL Copiada!" });
                           }}
