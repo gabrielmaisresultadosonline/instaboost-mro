@@ -88,7 +88,7 @@ const VendasCompleta = () => {
     setCheckingUsername(true);
     try {
       const body = new URLSearchParams({ nome: usernameToCheck, numero: usernameToCheck });
-      const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero', {
+      const response = await fetch('https://codigoinstashopapimro.squareweb.app/verificar-numero', {
         method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body,
       });
       const data = await response.json().catch(() => null);

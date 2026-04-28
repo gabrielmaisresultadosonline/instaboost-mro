@@ -190,7 +190,7 @@ const AffiliatePromoPage = () => {
       });
 
       const response = await fetch(
-        'https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero',
+        'https://codigoinstashopapimro.squareweb.app/verificar-numero',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

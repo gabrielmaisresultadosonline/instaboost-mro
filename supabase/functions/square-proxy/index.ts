@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SQUARE_API_BASE = 'https://dashboardmroinstagramvini-online.squareweb.app';
+const SQUARE_API_BASE = 'https://codigoinstashopapimro.squareweb.app';
 
 serve(async (req) => {
   // Handle CORS preflight requests

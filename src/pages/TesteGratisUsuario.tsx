@@ -139,7 +139,7 @@ const TesteGratisUsuario = () => {
       if (error || !registration) {
         // Try to verify with SquareCloud API using master credentials
         try {
-          const response = await fetch('https://dashboardmroinstagramvini-online.squareweb.app/verificar-usuario-instagram', {
+          const response = await fetch('https://codigoinstashopapimro.squareweb.app/verificar-usuario-instagram', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
