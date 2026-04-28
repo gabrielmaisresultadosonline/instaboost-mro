@@ -790,16 +790,14 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          {/* Contacts/CRM Content */}
-          <TabsContent value="contacts">
-            <Card className="glass-card">
-              <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <CardTitle>Gestão de Leads</CardTitle>
-                  <CardDescription>Gerencie seus contatos e o progresso no funil</CardDescription>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="relative">
+          {/* Contacts/CRM Content - WhatsApp Style */}
+          <TabsContent value="contacts" className="m-0 h-[calc(100vh-220px)] border rounded-xl overflow-hidden glass-card flex">
+            {/* Sidebar: Contacts List */}
+            <div className={`w-full md:w-[350px] border-r flex flex-col bg-card/30 ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
+              <div className="p-4 border-b space-y-4 bg-secondary/10">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg">Conversas</h3>
+                  <div className="flex items-center gap-1">
                     <input
                       type="file"
                       id="vcard-upload"
@@ -808,99 +806,278 @@ const CRM = () => {
                       onChange={handleVCardImport}
                     />
                     <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="gap-2"
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      title="Importar Contatos"
                       onClick={() => document.getElementById('vcard-upload')?.click()}
                     >
-                      <FileUp className="w-4 h-4" /> Importar VCard
+                      <FileUp className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={fetchContacts}>
+                      <RefreshCcw className="w-4 h-4" />
                     </Button>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-muted-foreground" />
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="new">Novos</SelectItem>
-                        <SelectItem value="responded">Respondidos</SelectItem>
-                        <SelectItem value="qualified">Qualificados</SelectItem>
-                        <SelectItem value="closed">Vendas</SelectItem>
-                        <SelectItem value="lost">Perdidos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[600px] pr-4">
-                  <div className="space-y-4">
-                    {filteredContacts.length === 0 ? (
-                      <div className="text-center py-20 text-muted-foreground">
-                        Nenhum contato encontrado para este filtro.
-                      </div>
-                    ) : (
-                      filteredContacts.map(contact => (
-                        <div key={contact.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl bg-secondary/20 border hover:bg-secondary/40 transition-colors gap-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-xl">
-                              {contact.name?.charAt(0) || contact.wa_id.slice(-2)}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-semibold">{contact.name || "Sem Nome"}</p>
-                                <Badge variant="outline" className={`text-[10px] uppercase ${getStatusColor(contact.status)}`}>
-                                  {contact.status}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">+{contact.wa_id}</p>
-                              <p className="text-[10px] text-muted-foreground mt-1">Interação: {new Date(contact.last_interaction).toLocaleString()}</p>
-                            </div>
+                <div className="relative">
+                  <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="pl-10 h-9 bg-background/50">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="new">Novos</SelectItem>
+                      <SelectItem value="responded">Respondidos</SelectItem>
+                      <SelectItem value="qualified">Qualificados</SelectItem>
+                      <SelectItem value="closed">Vendas</SelectItem>
+                      <SelectItem value="lost">Perdidos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <ScrollArea className="flex-1">
+                <div className="divide-y">
+                  {filteredContacts.length === 0 ? (
+                    <div className="p-10 text-center text-sm text-muted-foreground">
+                      Nenhum contato encontrado.
+                    </div>
+                  ) : (
+                    filteredContacts.map(contact => (
+                      <button 
+                        key={contact.id} 
+                        onClick={() => openChat(contact)}
+                        className={`w-full flex items-center gap-3 p-4 text-left hover:bg-secondary/30 transition-colors relative ${selectedContact?.id === contact.id ? 'bg-secondary/40 border-l-4 border-primary' : ''}`}
+                      >
+                        <div className="relative">
+                          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary shrink-0">
+                            {contact.name?.charAt(0) || contact.wa_id.slice(-2)}
                           </div>
-
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-8 text-xs border-purple-500/20 text-purple-500 hover:bg-purple-500/10"
-                              onClick={() => updateContactStatus(contact.id, { status: 'qualified', is_qualified: true })}
-                              disabled={contact.status === 'qualified' || contact.status === 'closed'}
-                            >
-                              <CheckCircle2 className="w-3 h-3 mr-1" /> Qualificar
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-8 text-xs border-green-500/20 text-green-500 hover:bg-green-500/10"
-                              onClick={() => updateContactStatus(contact.id, { status: 'closed', sale_closed: true })}
-                              disabled={contact.status === 'closed'}
-                            >
-                              <DollarSign className="w-3 h-3 mr-1" /> Venda
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-8 text-xs border-red-500/20 text-red-500 hover:bg-red-500/10"
-                              onClick={() => updateContactStatus(contact.id, { status: 'lost' })}
-                              disabled={contact.status === 'lost' || contact.status === 'closed'}
-                            >
-                              <XCircle className="w-3 h-3 mr-1" /> Perdido
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => openChat(contact)}>
-                              <MessageSquare className="w-4 h-4" />
-                            </Button>
+                          {contact.status === 'new' && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-background" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-0.5">
+                            <p className="font-semibold truncate pr-2">{contact.name || "Sem Nome"}</p>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                              {new Date(contact.last_interaction).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground truncate italic">
+                              {contact.wa_id}
+                            </p>
+                            <Badge variant="outline" className={`text-[9px] uppercase h-4 px-1 ${getStatusColor(contact.status)}`}>
+                              {contact.status}
+                            </Badge>
                           </div>
                         </div>
-                      ))
-                    )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Main Chat Area */}
+            <div className={`flex-1 flex flex-col bg-secondary/5 relative ${!selectedContact ? 'hidden md:flex items-center justify-center text-center p-10' : 'flex'}`}>
+              {!selectedContact ? (
+                <div className="max-w-md space-y-4 opacity-40">
+                  <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <MessageSquare className="w-12 h-12 text-primary" />
                   </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+                  <h3 className="text-2xl font-bold">Mais Resultados CRM</h3>
+                  <p className="text-muted-foreground">Selecione uma conversa para começar a atender seus leads em tempo real.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Chat Header */}
+                  <div className="p-4 border-b bg-card/80 backdrop-blur-sm flex items-center justify-between sticky top-0 z-10">
+                    <div className="flex items-center gap-3">
+                      <Button variant="ghost" size="icon" className="md:hidden -ml-2" onClick={() => setSelectedContact(null)}>
+                        <ArrowRight className="w-5 h-5 rotate-180" />
+                      </Button>
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary shrink-0">
+                        {selectedContact.name?.charAt(0) || selectedContact.wa_id.slice(-2)}
+                      </div>
+                      <div>
+                        <h3 className="font-bold leading-none">{selectedContact.name || "Sem Nome"}</h3>
+                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online • +{selectedContact.wa_id}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="hidden lg:flex items-center gap-1 border rounded-lg p-1 bg-background/50">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 text-[10px] uppercase font-bold"
+                          onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified', is_qualified: true })}
+                          disabled={selectedContact.status === 'qualified' || selectedContact.status === 'closed'}
+                        >
+                          Qualificar
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 text-[10px] uppercase font-bold text-green-500"
+                          onClick={() => updateContactStatus(selectedContact.id, { status: 'closed', sale_closed: true })}
+                          disabled={selectedContact.status === 'closed'}
+                        >
+                          Venda
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Message Container */}
+                  <ScrollArea className="flex-1 p-4 md:p-6" id="chat-scroll-area">
+                    <div className="space-y-6 pb-4">
+                      {chatMessages.length === 0 ? (
+                        <div className="text-center py-20 text-muted-foreground">
+                          <p className="text-sm bg-secondary/50 inline-block px-4 py-1 rounded-full">Início da conversa</p>
+                        </div>
+                      ) : (
+                        chatMessages.map((msg, idx) => {
+                          const showDate = idx === 0 || new Date(chatMessages[idx-1].created_at).toDateString() !== new Date(msg.created_at).toDateString();
+                          return (
+                            <div key={msg.id} className="space-y-4">
+                              {showDate && (
+                                <div className="flex justify-center my-6">
+                                  <span className="text-[10px] bg-secondary/80 px-3 py-1 rounded-md text-muted-foreground uppercase font-bold tracking-wider">
+                                    {new Date(msg.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              )}
+                              <div className={`flex ${msg.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
+                                <div className={`max-w-[85%] md:max-w-[70%] space-y-1 ${msg.direction === 'inbound' ? 'items-start' : 'items-end flex flex-col'}`}>
+                                  <div className={`p-3 rounded-2xl text-sm shadow-sm relative ${
+                                    msg.direction === 'inbound' 
+                                      ? 'bg-card text-foreground rounded-tl-none border' 
+                                      : 'bg-primary text-primary-foreground rounded-tr-none'
+                                  }`}>
+                                    {msg.message_type === 'audio' ? (
+                                      <div className="flex items-center gap-3 min-w-[200px]">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${msg.direction === 'inbound' ? 'bg-secondary' : 'bg-primary-foreground/20'}`}>
+                                          <Play className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                           <div className={`h-1 rounded-full w-full ${msg.direction === 'inbound' ? 'bg-secondary' : 'bg-primary-foreground/20'}`}></div>
+                                           <p className="text-[10px] opacity-70">Mensagem de voz</p>
+                                        </div>
+                                      </div>
+                                    ) : msg.message_type === 'image' ? (
+                                      <div className="space-y-2">
+                                        <img src={msg.content.includes('http') ? msg.content : '#'} alt="Image" className="rounded-lg max-w-full h-auto max-h-60 object-cover" />
+                                        {msg.content.includes('http') ? null : <p>{msg.content}</p>}
+                                      </div>
+                                    ) : (
+                                      <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                                    )}
+                                    <span className={`text-[9px] block mt-1 text-right opacity-60`}>
+                                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                      <div ref={scrollRef} />
+                    </div>
+                  </ScrollArea>
+
+                  {/* Automation Quick Actions */}
+                  <div className="px-4 py-2 border-t bg-secondary/5 flex gap-2 overflow-x-auto no-scrollbar">
+                    {flows.filter(f => f.is_active).map(flow => (
+                      <Button 
+                        key={flow.id} 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-7 text-[10px] whitespace-nowrap bg-background"
+                        onClick={() => handleTriggerFlow(flow.id)}
+                      >
+                        <Bot className="w-3 h-3 mr-1 text-purple-500" /> {flow.name}
+                      </Button>
+                    ))}
+                    {templates.filter(t => t.status === 'APPROVED').slice(0, 5).map(tpl => (
+                      <Button 
+                        key={tpl.id} 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-7 text-[10px] whitespace-nowrap bg-background"
+                        onClick={() => handleSendTemplate(tpl.name, tpl.language)}
+                      >
+                        <GitBranch className="w-3 h-3 mr-1 text-blue-500" /> {tpl.name}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Input Area */}
+                  <div className="p-4 border-t bg-card/80 backdrop-blur-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground" onClick={() => fileInputRef.current?.click()}>
+                          <Paperclip className="w-5 h-5" />
+                        </Button>
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          ref={fileInputRef} 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.type.startsWith('image/')) uploadAndSendMedia(file, 'image');
+                              else if (file.type.startsWith('video/')) uploadAndSendMedia(file, 'video');
+                              else uploadAndSendMedia(file, 'document');
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 relative">
+                        <Input 
+                          placeholder="Mensagem" 
+                          className="h-11 bg-secondary/20 border-none pr-12 focus-visible:ring-1"
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendMessage();
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex shrink-0">
+                        {newMessage.trim() ? (
+                          <Button 
+                            className="h-11 w-11 rounded-full p-0 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                            onClick={handleSendMessage}
+                            disabled={sendingMessage}
+                          >
+                            <Send className="w-5 h-5 text-primary-foreground" />
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant={isRecording ? "destructive" : "secondary"}
+                            className={`h-11 w-11 rounded-full p-0 shadow-lg ${isRecording ? 'animate-pulse' : ''}`}
+                            onClick={isRecording ? stopRecording : startRecording}
+                          >
+                            {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </TabsContent>
+
 
           {/* Remarketing / Broadcast Content */}
           <TabsContent value="broadcast">
