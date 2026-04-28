@@ -117,7 +117,48 @@ const CRM = () => {
       return;
     }
     fetchData();
-  }, [navigate]);
+
+    // Subscribe to new messages for real-time updates
+    const messageChannel = supabase
+      .channel('crm_realtime_messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'crm_messages' },
+        (payload) => {
+          // If the message is for the currently selected contact, add it to the chat
+          if (selectedContact && payload.new.contact_id === selectedContact.id) {
+            setChatMessages(prev => {
+              // Avoid duplicates
+              if (prev.find(m => m.id === payload.new.id)) return prev;
+              return [...prev, payload.new];
+            });
+          }
+          
+          // Also refresh contacts list to show latest interaction/new leads
+          fetchContacts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'crm_contacts' },
+        () => {
+          fetchContacts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messageChannel);
+    };
+  }, [navigate, selectedContact]);
+
+  const fetchContacts = async () => {
+    const { data: contactsData } = await supabase
+      .from('crm_contacts')
+      .select('*')
+      .order('last_interaction', { ascending: false });
+    setContacts(contactsData || []);
+  };
 
   useEffect(() => {
     if (statusFilter === 'all') {
