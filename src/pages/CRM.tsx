@@ -882,9 +882,12 @@ const CRM = () => {
           {/* Flows Content */}
           <TabsContent value="flows">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Automação de Fluxos</h2>
-              <Button onClick={() => toast({ title: "Funcionalidade de Designer Visual vindo em breve!" })}>
-                <Plus className="w-4 h-4 mr-2" /> Novo Fluxo
+              <div>
+                <h2 className="text-2xl font-bold">Automação de Fluxos</h2>
+                <p className="text-muted-foreground text-sm">Crie sequências inteligentes com mensagens, áudios e esperas.</p>
+              </div>
+              <Button onClick={handleCreateFlow} className="gap-2">
+                <Plus className="w-4 h-4" /> Novo Fluxo
               </Button>
             </div>
             
@@ -894,22 +897,43 @@ const CRM = () => {
                   <GitBranch className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-20" />
                   <p className="text-muted-foreground font-medium text-lg">Crie sequências inteligentes</p>
                   <p className="text-xs text-muted-foreground mt-2">Envie áudios, mensagens e espere respostas automaticamente.</p>
+                  <Button variant="outline" className="mt-4" onClick={handleCreateFlow}>Começar agora</Button>
                 </div>
               ) : (
                 flows.map(flow => (
-                  <Card key={flow.id} className="glass-card overflow-hidden">
+                  <Card key={flow.id} className="glass-card overflow-hidden border-primary/10 hover:border-primary/30 transition-all">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">{flow.name}</CardTitle>
-                      <CardDescription>Gatilho: {flow.trigger_keyword || "Nenhum"}</CardDescription>
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg">{flow.name}</CardTitle>
+                        <Switch checked={flow.is_active} onCheckedChange={async (val) => {
+                          await supabase.from('crm_flows').update({ is_active: val }).eq('id', flow.id);
+                          fetchData();
+                        }} />
+                      </div>
+                      <CardDescription>
+                        {flow.trigger_keywords?.length > 0 
+                          ? `Gatilhos: ${flow.trigger_keywords.join(', ')}` 
+                          : "Sem gatilhos de palavra-chave"}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{flow.crm_flow_steps?.length || 0} passos</span>
-                        <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">ATIVO</Badge>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {flow.crm_flow_steps?.length || 0} passos</span>
+                        <Badge variant="outline" className={flow.is_active ? "bg-green-500/10 text-green-500 border-green-500/20" : ""}>
+                          {flow.is_active ? "ATIVO" : "INATIVO"}
+                        </Badge>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">Configurar</Button>
-                        <Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                          setEditingFlow(flow);
+                          setIsFlowEditorOpen(true);
+                        }}>Editar Fluxo</Button>
+                        <Button variant="ghost" size="sm" className="text-destructive" onClick={async () => {
+                          if (confirm('Deseja excluir este fluxo?')) {
+                            await supabase.from('crm_flows').delete().eq('id', flow.id);
+                            fetchData();
+                          }
+                        }}><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -917,6 +941,7 @@ const CRM = () => {
               )}
             </div>
           </TabsContent>
+
 
           {/* Templates Content */}
           <TabsContent value="templates">
