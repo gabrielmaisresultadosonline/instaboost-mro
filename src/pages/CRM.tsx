@@ -344,8 +344,9 @@ const CRM = () => {
     try {
       const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: {
-          action: 'triggerFlow',
+          action: 'startFlow',
           contactId: selectedContact.id,
+          waId: selectedContact.wa_id,
           flowId
         }
       });
