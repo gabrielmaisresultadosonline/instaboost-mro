@@ -143,20 +143,20 @@ const CRM = () => {
         (payload) => {
           console.log("Realtime message update:", payload);
           
-          // If a new message is inserted
           if (payload.eventType === 'INSERT') {
             const newMessage = payload.new;
             
             // If the message belongs to the current open chat, update UI
             if (selectedContactRef.current && newMessage.contact_id === selectedContactRef.current.id) {
               setChatMessages(prev => {
+                // Evitar duplicados
                 if (prev.find(m => m.id === newMessage.id)) return prev;
                 return [...prev, newMessage];
               });
             }
           }
           
-          // Always refresh contacts to update "last interaction" and unread indicators
+          // Sempre atualizar a lista de contatos para refletir a última interação e status
           fetchContacts();
         }
       )
@@ -166,10 +166,18 @@ const CRM = () => {
         (payload) => {
           console.log("Realtime contact update:", payload);
           fetchContacts();
+          
+          // Se o contato selecionado for atualizado, refletir no cabeçalho do chat
+          if (selectedContactRef.current && payload.new && (payload.new as any).id === selectedContactRef.current.id) {
+            setSelectedContact((prev: any) => ({ ...prev, ...payload.new }));
+          }
         }
       )
       .subscribe((status) => {
         console.log("Realtime subscription status:", status);
+        if (status === 'SUBSCRIBED') {
+          console.log("Successfully subscribed to real-time updates");
+        }
       });
 
     return () => {
