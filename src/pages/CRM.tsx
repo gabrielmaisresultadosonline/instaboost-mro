@@ -398,6 +398,9 @@ const CRM = () => {
               <TabsTrigger value="broadcast" className="flex-1 md:flex-none gap-2">
                 <Send className="w-4 h-4" /> Remarketing
               </TabsTrigger>
+              <TabsTrigger value="templates" className="flex-1 md:flex-none gap-2">
+                <GitBranch className="w-4 h-4" /> Templates Meta
+              </TabsTrigger>
               <TabsTrigger value="flows" className="flex-1 md:flex-none gap-2">
                 <GitBranch className="w-4 h-4" /> Automação
               </TabsTrigger>
