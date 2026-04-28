@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SQUARE_API_URL = "https://codigoinstashopapimro.squareweb.app";
+const SQUARE_API_URL = "https://codigoinstashopapi.squareweb.app";
 const MONTHLY_MAX_TRIALS = 5;
 const RECENT_TRIAL_SYNC_WINDOW_MS = 2 * 60 * 1000;
 

@@ -13,7 +13,7 @@ const logStep = (step: string, details?: any) => {
 };
 
 const WHATSAPP_API_URL = 'https://mrozap.squareweb.app';
-const INSTAGRAM_API_URL = 'https://codigoinstashopapimro.squareweb.app';
+const INSTAGRAM_API_URL = 'https://codigoinstashopapi.squareweb.app';
 
 // Send email via SMTP
 async function sendAccessEmail(
