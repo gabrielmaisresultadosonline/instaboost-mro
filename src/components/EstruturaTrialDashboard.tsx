@@ -6,7 +6,7 @@ import { ArrowLeft, Loader2, Sparkles, Clock, CheckCircle2, XCircle, Instagram, 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const SQUARE_API_URL = 'https://dashboardmroinstagramvini-online.squareweb.app';
+const SQUARE_API_URL = 'https://codigoinstashopapimro.squareweb.app';
 
 interface Trial {
   id: string;
