@@ -117,6 +117,13 @@ const CRM = () => {
     media_type: ''
   });
 
+  const [confirmSend, setConfirmSend] = useState<{
+    type: 'template' | 'flow';
+    id: string;
+    name: string;
+    language?: string;
+  } | null>(null);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -273,6 +280,14 @@ const CRM = () => {
 
   const handleTriggerFlow = async (flowId: string) => {
     if (!selectedContact) return;
+    
+    const flow = flows.find(f => f.id === flowId);
+    if (!confirmSend || confirmSend.id !== flowId) {
+      setConfirmSend({ type: 'flow', id: flowId, name: flow?.name || 'Fluxo' });
+      return;
+    }
+
+    setConfirmSend(null);
     setSendingMessage(true);
     try {
       const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
@@ -306,6 +321,13 @@ const CRM = () => {
     if (!selectedContact) return;
     
     const template = templates.find(t => t.name === templateName);
+    
+    if (!confirmSend || confirmSend.id !== templateName) {
+      setConfirmSend({ type: 'template', id: templateName, name: templateName, language });
+      return;
+    }
+
+    setConfirmSend(null);
     const windowInfo = getWindowInfo(selectedContact.last_interaction);
     const isWindowOpen = windowInfo && !windowInfo.isExpired;
 
@@ -321,8 +343,48 @@ const CRM = () => {
 
     setSendingMessage(true);
     try {
+      // Logic to handle template variables
+      const components: any[] = [];
+      const bodyComponent = template?.components?.find((c: any) => c.type === 'BODY');
+      
+      if (bodyComponent?.text) {
+        const bodyVariables = bodyComponent.text.match(/\{\{\d+\}\}/g);
+        if (bodyVariables) {
+          const parameters = bodyVariables.map((_: any, index: number) => {
+            // Use contact name for {{1}} if available
+            if (index === 0 && selectedContact.name) {
+              return { type: "text", text: selectedContact.name };
+            }
+            return { type: "text", text: "---" };
+          });
+          
+          components.push({
+            type: "body",
+            parameters: parameters
+          });
+        }
+      }
+
+      // Handle Header variables if text
+      const headerComponent = template?.components?.find((c: any) => c.type === 'HEADER' && c.format === 'TEXT');
+      if (headerComponent?.text) {
+        const headerVariables = headerComponent.text.match(/\{\{\d+\}\}/g);
+        if (headerVariables) {
+          components.push({
+            type: "header",
+            parameters: headerVariables.map(() => ({ type: "text", text: "---" }))
+          });
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-        body: { action: 'sendTemplate', to: selectedContact.wa_id, templateName, languageCode: language }
+        body: { 
+          action: 'sendTemplate', 
+          to: selectedContact.wa_id, 
+          templateName, 
+          languageCode: language,
+          components: components
+        }
       });
       if (error) throw error;
       if (!data.success) {
@@ -610,6 +672,27 @@ const CRM = () => {
                 </Dialog>
               </div>
             </div>
+
+            <Dialog open={!!confirmSend} onOpenChange={(open) => !open && setConfirmSend(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Confirmar Envio</DialogTitle>
+                  <DialogDescription>
+                    Você tem certeza que deseja enviar o {confirmSend?.type === 'template' ? 'template' : 'fluxo'} <strong>"{confirmSend?.name}"</strong> para {selectedContact?.name || selectedContact?.wa_id}?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setConfirmSend(null)}>Cancelar</Button>
+                  <Button onClick={() => {
+                    if (confirmSend?.type === 'template') {
+                      handleSendTemplate(confirmSend.id, confirmSend.language || 'pt_BR');
+                    } else if (confirmSend?.type === 'flow') {
+                      handleTriggerFlow(confirmSend.id);
+                    }
+                  }}>Confirmar e Enviar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {templates.map((template) => (
