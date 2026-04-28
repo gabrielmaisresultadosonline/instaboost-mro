@@ -329,33 +329,33 @@ const CRM = () => {
       setSendingMessage(false);
     }
   };
-337: 
-338:   const handleTriggerFlow = async (flowId: string) => {
-339:     if (!selectedContact) return;
-340:     setSendingMessage(true);
-341:     try {
-342:       const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-343:         body: {
-344:           action: 'triggerFlow',
-345:           contactId: selectedContact.id,
-346:           flowId
-347:         }
-348:       });
-349: 
-350:       if (error) throw error;
-351:       
-352:       toast({ 
-353:         title: "Fluxo Iniciado!",
-354:         description: "A sequência de mensagens começará em breve."
-355:       });
-356:       fetchMessages(selectedContact.id);
-357:     } catch (err) {
-358:       console.error("Error triggering flow:", err);
-359:       toast({ title: "Erro ao iniciar fluxo", variant: "destructive" });
-360:     } finally {
-361:       setSendingMessage(false);
-362:     }
-363:   };
+
+  const handleTriggerFlow = async (flowId: string) => {
+    if (!selectedContact) return;
+    setSendingMessage(true);
+    try {
+      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: {
+          action: 'triggerFlow',
+          contactId: selectedContact.id,
+          flowId
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({ 
+        title: "Fluxo Iniciado!",
+        description: "A sequência de mensagens começará em breve."
+      });
+      fetchMessages(selectedContact.id);
+    } catch (err) {
+      console.error("Error triggering flow:", err);
+      toast({ title: "Erro ao iniciar fluxo", variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
 
   const syncTemplates = async () => {
     setSyncingTemplates(true);
