@@ -1272,7 +1272,6 @@ const CRM = () => {
                   </div>
                 </>
               )}
-              </div>
             </div>
           </TabsContent>
 
