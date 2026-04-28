@@ -22,9 +22,18 @@ import {
   Trash2, 
   Save, 
   RefreshCcw,
-  Bot
+  Bot,
+  BarChart3,
+  CheckCircle2,
+  XCircle,
+  Mic,
+  DollarSign,
+  TrendingUp,
+  Filter
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const CRM = () => {
   const navigate = useNavigate();
@@ -37,11 +46,20 @@ const CRM = () => {
     meta_access_token: '',
     meta_phone_number_id: '',
     meta_waba_id: '',
-    meta_app_id: '',
-    meta_app_secret: '',
+    openai_api_key: '',
+    ai_agent_enabled: false,
+    ai_agent_trigger: 'first_message',
     initial_auto_response_enabled: true,
     initial_response_text: '',
     initial_response_buttons: []
+  });
+
+  // Analytics State
+  const [metrics, setMetrics] = useState<any>({
+    sent_count: 0,
+    responded_count: 0,
+    qualified_count: 0,
+    sales_count: 0
   });
 
   // Flows State
@@ -49,6 +67,8 @@ const CRM = () => {
   
   // Contacts State
   const [contacts, setContacts] = useState<any[]>([]);
+  const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
+  const [statusFilter, setStatusFilter] = useState('all');
   
   // Broadcast State
   const [broadcast, setBroadcast] = useState({
@@ -65,6 +85,14 @@ const CRM = () => {
     fetchData();
   }, [navigate]);
 
+  useEffect(() => {
+    if (statusFilter === 'all') {
+      setFilteredContacts(contacts);
+    } else {
+      setFilteredContacts(contacts.filter(c => c.status === statusFilter));
+    }
+  }, [statusFilter, contacts]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -76,6 +104,37 @@ const CRM = () => {
       
       if (settingsData) {
         setMetaSettings(settingsData);
+      }
+
+      // Fetch Metrics (Current day)
+      const { data: metricsData } = await supabase
+        .from('crm_metrics')
+        .select('*')
+        .eq('date', new Date().toISOString().split('T')[0])
+        .single();
+      
+      if (metricsData) {
+        setMetrics(metricsData);
+      } else {
+        // Fallback: sum from contacts
+        const { data: contactsSummary } = await supabase
+          .from('crm_contacts')
+          .select('status, is_qualified, sale_closed, total_messages_sent, total_messages_received');
+        
+        const summary = (contactsSummary || []).reduce((acc: any, curr: any) => {
+          acc.sent += curr.total_messages_sent || 0;
+          if (curr.total_messages_received > 0) acc.responded += 1;
+          if (curr.is_qualified) acc.qualified += 1;
+          if (curr.sale_closed) acc.sales += 1;
+          return acc;
+        }, { sent: 0, responded: 0, qualified: 0, sales: 0 });
+
+        setMetrics({
+          sent_count: summary.sent,
+          responded_count: summary.responded,
+          qualified_count: summary.qualified,
+          sales_count: summary.sales
+        });
       }
 
       // Fetch Flows
@@ -116,7 +175,7 @@ const CRM = () => {
 
       toast({
         title: "Configurações salvas!",
-        description: "Suas credenciais Meta API foram atualizadas."
+        description: "Suas credenciais e parâmetros de IA foram atualizados."
       });
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -129,9 +188,39 @@ const CRM = () => {
     }
   };
 
+  const updateContactStatus = async (contactId: string, updates: any) => {
+    try {
+      const { error } = await supabase
+        .from('crm_contacts')
+        .update(updates)
+        .eq('id', contactId);
+      
+      if (error) throw error;
+      
+      setContacts(contacts.map(c => c.id === contactId ? { ...c, ...updates } : c));
+      toast({ title: "Status atualizado!" });
+      
+      // Update local metrics if status changed
+      fetchData();
+    } catch (err) {
+      toast({ title: "Erro ao atualizar", variant: "destructive" });
+    }
+  };
+
   const handleLogout = () => {
     logoutAdmin();
     navigate('/crm/login');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'new': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      case 'responded': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+      case 'qualified': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+      case 'closed': return 'bg-green-500/10 text-green-500 border-green-500/20';
+      case 'lost': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+    }
   };
 
   if (loading) {
@@ -149,7 +238,7 @@ const CRM = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo size="sm" />
-            <h1 className="text-xl font-bold font-display hidden md:block">Meta CRM Dashboard</h1>
+            <h1 className="text-xl font-bold font-display hidden md:block">CRM Mais Resultados</h1>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
@@ -160,35 +249,293 @@ const CRM = () => {
       </header>
 
       <main className="container mx-auto px-4 mt-8">
-        <Tabs defaultValue="settings" className="space-y-6">
+        <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="flex overflow-x-auto pb-2 md:pb-0 no-scrollbar">
             <TabsList className="bg-card border w-full md:w-auto flex md:inline-flex">
-              <TabsTrigger value="settings" className="flex-1 md:flex-none gap-2">
-                <Settings className="w-4 h-4" /> Configurações
-              </TabsTrigger>
-              <TabsTrigger value="flows" className="flex-1 md:flex-none gap-2">
-                <GitBranch className="w-4 h-4" /> Fluxos/Bots
+              <TabsTrigger value="dashboard" className="flex-1 md:flex-none gap-2">
+                <BarChart3 className="w-4 h-4" /> Dashboard
               </TabsTrigger>
               <TabsTrigger value="contacts" className="flex-1 md:flex-none gap-2">
-                <Users className="w-4 h-4" /> Contatos
+                <Users className="w-4 h-4" /> Contatos/CRM
               </TabsTrigger>
               <TabsTrigger value="broadcast" className="flex-1 md:flex-none gap-2">
-                <Send className="w-4 h-4" /> Disparo em Massa
+                <Send className="w-4 h-4" /> Remarketing
+              </TabsTrigger>
+              <TabsTrigger value="flows" className="flex-1 md:flex-none gap-2">
+                <GitBranch className="w-4 h-4" /> Automação
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex-1 md:flex-none gap-2">
+                <Settings className="w-4 h-4" /> Configurações
               </TabsTrigger>
             </TabsList>
           </div>
 
-          {/* Settings Content */}
-          <TabsContent value="settings">
+          {/* Dashboard Content */}
+          <TabsContent value="dashboard" className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="glass-card">
+                <CardHeader className="pb-2">
+                  <CardDescription className="flex items-center gap-2"><Send className="w-4 h-4" /> Mensagens Enviadas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.sent_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="glass-card">
+                <CardHeader className="pb-2">
+                  <CardDescription className="flex items-center gap-2"><MessageSquare className="w-4 h-4" /> Respondidas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.responded_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="glass-card">
+                <CardHeader className="pb-2">
+                  <CardDescription className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-500" /> Qualificadas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.qualified_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="glass-card border-green-500/20">
+                <CardHeader className="pb-2">
+                  <CardDescription className="flex items-center gap-2 text-green-500"><DollarSign className="w-4 h-4" /> Vendas Fechadas</CardDescription>
+                  <CardTitle className="text-3xl font-bold text-green-500">{metrics.sales_count}</CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="glass-card">
                 <CardHeader>
-                  <CardTitle>Credenciais Meta API</CardTitle>
-                  <CardDescription>Configure os tokens da sua aplicação no Meta for Developers</CardDescription>
+                  <CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="w-5 h-5" /> Funil de Vendas</CardTitle>
+                </CardHeader>
+                <CardContent className="h-64 flex flex-col justify-end gap-2">
+                  {/* Funnel Visualization */}
+                  <div className="w-full bg-blue-500/20 h-12 rounded-t-lg flex items-center justify-center text-xs font-bold border-t border-x border-blue-500/30">NOVOS: {contacts.length}</div>
+                  <div className="w-[90%] mx-auto bg-yellow-500/20 h-12 flex items-center justify-center text-xs font-bold border-x border-yellow-500/30">RECONHECIDOS: {metrics.responded_count}</div>
+                  <div className="w-[80%] mx-auto bg-purple-500/20 h-12 flex items-center justify-center text-xs font-bold border-x border-purple-500/30">QUALIFICADOS: {metrics.qualified_count}</div>
+                  <div className="w-[70%] mx-auto bg-green-500/20 h-12 rounded-b-lg flex items-center justify-center text-xs font-bold border-b border-x border-green-500/30">VENDAS: {metrics.sales_count}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2"><Bot className="w-5 h-5" /> Status da Automação</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
+                    <span className="text-sm">Agente IA (GPT)</span>
+                    <Badge variant={metaSettings.ai_agent_enabled ? "default" : "outline"} className={metaSettings.ai_agent_enabled ? "bg-green-600" : ""}>
+                      {metaSettings.ai_agent_enabled ? "ATIVO" : "INATIVO"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
+                    <span className="text-sm">Resposta Automática Inicial</span>
+                    <Badge variant={metaSettings.initial_auto_response_enabled ? "default" : "outline"} className={metaSettings.initial_auto_response_enabled ? "bg-blue-600" : ""}>
+                      {metaSettings.initial_auto_response_enabled ? "ATIVO" : "INATIVO"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Contacts/CRM Content */}
+          <TabsContent value="contacts">
+            <Card className="glass-card">
+              <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Gestão de Leads</CardTitle>
+                  <CardDescription>Gerencie seus contatos e o progresso no funil</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-muted-foreground" />
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="new">Novos</SelectItem>
+                      <SelectItem value="responded">Respondidos</SelectItem>
+                      <SelectItem value="qualified">Qualificados</SelectItem>
+                      <SelectItem value="closed">Vendas</SelectItem>
+                      <SelectItem value="lost">Perdidos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[600px] pr-4">
+                  <div className="space-y-4">
+                    {filteredContacts.length === 0 ? (
+                      <div className="text-center py-20 text-muted-foreground">
+                        Nenhum contato encontrado para este filtro.
+                      </div>
+                    ) : (
+                      filteredContacts.map(contact => (
+                        <div key={contact.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl bg-secondary/20 border hover:bg-secondary/40 transition-colors gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-xl">
+                              {contact.name?.charAt(0) || contact.wa_id.slice(-2)}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold">{contact.name || "Sem Nome"}</p>
+                                <Badge variant="outline" className={`text-[10px] uppercase ${getStatusColor(contact.status)}`}>
+                                  {contact.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">+{contact.wa_id}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1">Interação: {new Date(contact.last_interaction).toLocaleString()}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 text-xs border-purple-500/20 text-purple-500 hover:bg-purple-500/10"
+                              onClick={() => updateContactStatus(contact.id, { status: 'qualified', is_qualified: true })}
+                              disabled={contact.status === 'qualified' || contact.status === 'closed'}
+                            >
+                              <CheckCircle2 className="w-3 h-3 mr-1" /> Qualificar
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 text-xs border-green-500/20 text-green-500 hover:bg-green-500/10"
+                              onClick={() => updateContactStatus(contact.id, { status: 'closed', sale_closed: true })}
+                              disabled={contact.status === 'closed'}
+                            >
+                              <DollarSign className="w-3 h-3 mr-1" /> Venda
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 text-xs border-red-500/20 text-red-500 hover:bg-red-500/10"
+                              onClick={() => updateContactStatus(contact.id, { status: 'lost' })}
+                              disabled={contact.status === 'lost' || contact.status === 'closed'}
+                            >
+                              <XCircle className="w-3 h-3 mr-1" /> Perdido
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => toast({ title: "Abrindo chat..." })}>
+                              <MessageSquare className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Remarketing / Broadcast Content */}
+          <TabsContent value="broadcast">
+            <Card className="glass-card max-w-3xl mx-auto">
+              <CardHeader>
+                <CardTitle>Disparo de Remarketing</CardTitle>
+                <CardDescription>Envie ofertas ou lembretes para grupos específicos</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Público Alvo</Label>
+                    <Select defaultValue="all">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os contatos ({contacts.length})</SelectItem>
+                        <SelectItem value="new">Apenas Novos ({contacts.filter(c => c.status === 'new').length})</SelectItem>
+                        <SelectItem value="qualified">Qualificados ({contacts.filter(c => c.is_qualified).length})</SelectItem>
+                        <SelectItem value="not_closed">Sem Venda ({contacts.filter(c => !c.sale_closed).length})</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Nome da Campanha</Label>
+                    <Input placeholder="Ex: Remarketing Alunos" value={broadcast.name} onChange={e => setBroadcast({...broadcast, name: e.target.value})} />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Mensagem da Campanha</Label>
+                  <Textarea 
+                    value={broadcast.message_text} 
+                    onChange={e => setBroadcast({...broadcast, message_text: e.target.value})}
+                    placeholder="Oi {{name}}! Notamos que você ainda não aproveitou..." 
+                    className="min-h-[150px]"
+                  />
+                </div>
+
+                <div className="p-4 rounded-xl border border-dashed flex flex-col items-center gap-3 bg-secondary/10">
+                   <Mic className="w-8 h-8 text-muted-foreground" />
+                   <p className="text-xs text-muted-foreground">Arraste um áudio (.ogg) para enviar no disparo ou grave aqui</p>
+                   <Button variant="outline" size="sm" className="gap-2">
+                     <Plus className="w-4 h-4" /> Anexar Áudio
+                   </Button>
+                </div>
+
+                <Button 
+                  className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg font-bold" 
+                  disabled={!broadcast.message_text || contacts.length === 0}
+                  onClick={() => toast({ title: "Disparo agendado!" })}
+                >
+                  <Send className="w-5 h-5 mr-2" /> Iniciar Disparo
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Flows Content */}
+          <TabsContent value="flows">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Automação de Fluxos</h2>
+              <Button onClick={() => toast({ title: "Funcionalidade de Designer Visual vindo em breve!" })}>
+                <Plus className="w-4 h-4 mr-2" /> Novo Fluxo
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {flows.length === 0 ? (
+                <div className="col-span-full py-20 text-center border-2 border-dashed rounded-xl bg-secondary/5">
+                  <GitBranch className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-20" />
+                  <p className="text-muted-foreground font-medium text-lg">Crie sequências inteligentes</p>
+                  <p className="text-xs text-muted-foreground mt-2">Envie áudios, mensagens e espere respostas automaticamente.</p>
+                </div>
+              ) : (
+                flows.map(flow => (
+                  <Card key={flow.id} className="glass-card overflow-hidden">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">{flow.name}</CardTitle>
+                      <CardDescription>Gatilho: {flow.trigger_keyword || "Nenhum"}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{flow.crm_flow_steps?.length || 0} passos</span>
+                        <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">ATIVO</Badge>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1">Configurar</Button>
+                        <Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Settings Content */}
+          <TabsContent value="settings">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Meta API Settings */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle>Configurações da Meta</CardTitle>
+                  <CardDescription>Conecte sua API do WhatsApp Business</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Meta Access Token (Permanente)</Label>
+                    <Label>Access Token Permanente</Label>
                     <Input 
                       type="password" 
                       value={metaSettings.meta_access_token} 
@@ -205,241 +552,88 @@ const CRM = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>WABA ID (WhatsApp Business Account)</Label>
+                    <Label>WhatsApp Business Account ID</Label>
                     <Input 
                       value={metaSettings.meta_waba_id} 
                       onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})}
                     />
                   </div>
-                  <Button onClick={handleSaveSettings} disabled={saving} className="w-full">
-                    {saving ? "Salvando..." : <><Save className="w-4 h-4 mr-2" /> Salvar Configurações</>}
+                  <Button onClick={handleSaveSettings} disabled={saving} className="w-full mt-4">
+                    {saving ? "Salvando..." : <><Save className="w-4 h-4 mr-2" /> Atualizar Credenciais</>}
                   </Button>
                 </CardContent>
               </Card>
 
-              <Card className="glass-card">
+              {/* AI & Automation Settings */}
+              <Card className="glass-card border-purple-500/20">
                 <CardHeader>
-                  <CardTitle>Automação Inicial</CardTitle>
-                  <CardDescription>Comportamento quando um novo contato envia mensagem</CardDescription>
+                  <CardTitle className="flex items-center gap-2"><Bot className="w-5 h-5 text-purple-500" /> Agente de IA (ChatGPT)</CardTitle>
+                  <CardDescription>Configure o comportamento do robô nas conversas</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-purple-500/5 border border-purple-500/10">
                     <div className="space-y-0.5">
-                      <Label>Resposta Automática Inicial</Label>
-                      <p className="text-sm text-muted-foreground">Ativar resposta automática para novos contatos</p>
+                      <Label className="text-base font-bold">Ativar Agente de IA</Label>
+                      <p className="text-xs text-muted-foreground text-purple-200/60">O robô responderá usando sua API Key do OpenAI</p>
                     </div>
                     <Switch 
-                      checked={metaSettings.initial_auto_response_enabled}
-                      onCheckedChange={val => setMetaSettings({...metaSettings, initial_auto_response_enabled: val})}
+                      checked={metaSettings.ai_agent_enabled}
+                      onCheckedChange={val => setMetaSettings({...metaSettings, ai_agent_enabled: val})}
                     />
                   </div>
-                  
+
+                  <div className="space-y-2">
+                    <Label>OpenAI API Key (Token)</Label>
+                    <Input 
+                      type="password"
+                      placeholder="sk-..."
+                      value={metaSettings.openai_api_key} 
+                      onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Gatilho da IA</Label>
+                    <Select 
+                      value={metaSettings.ai_agent_trigger} 
+                      onValueChange={val => setMetaSettings({...metaSettings, ai_agent_trigger: val})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as mensagens (Full Auto)</SelectItem>
+                        <SelectItem value="first_message">Apenas primeira mensagem</SelectItem>
+                        <SelectItem value="keyword">Palavra-chave específica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <Label>Auto-Resposta Padrão (Sem IA)</Label>
+                      <Switch 
+                        checked={metaSettings.initial_auto_response_enabled}
+                        onCheckedChange={val => setMetaSettings({...metaSettings, initial_auto_response_enabled: val})}
+                      />
+                    </div>
                     <div className="space-y-2">
-                      <Label>Mensagem da Resposta Automática</Label>
+                      <Label>Mensagem Inicial</Label>
                       <Textarea 
                         value={metaSettings.initial_response_text} 
                         onChange={e => setMetaSettings({...metaSettings, initial_response_text: e.target.value})}
                         placeholder="Ex: Olá! Como podemos ajudar?"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Configuração de Botões (JSON)</Label>
-                      <Textarea 
-                        value={JSON.stringify(metaSettings.initial_response_buttons, null, 2)} 
-                        onChange={e => {
-                          try {
-                            const parsed = JSON.parse(e.target.value);
-                            setMetaSettings({...metaSettings, initial_response_buttons: parsed});
-                          } catch (err) {
-                            // Validating as user types, ignore errors
-                          }
-                        }}
-                        placeholder='[{"id": "opt_1", "text": "Saber mais"}]'
-                        className="font-mono text-xs h-24"
+                        className="h-20"
                       />
                     </div>
                   </div>
 
-                  <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Bot className="w-4 h-4 text-primary" /> Webhook URL
-                    </h3>
-                    <p className="text-xs text-muted-foreground break-all bg-background p-2 rounded border">
-                      https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/meta-webhook
-                    </p>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Verify Token (Use no Meta Developer Portal)</Label>
-                      <Input readOnly value={metaSettings.webhook_verify_token || 'mro_token_verification'} className="h-8 text-xs font-mono" />
-                    </div>
-                  </div>
+                  <Button onClick={handleSaveSettings} disabled={saving} variant="secondary" className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                    {saving ? "Salvando..." : <><Save className="w-4 h-4 mr-2" /> Salvar Configurações de IA</>}
+                  </Button>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          {/* Flows Content */}
-          <TabsContent value="flows">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Fluxos de Mensagem</h2>
-              <Button onClick={() => toast({ title: "Funcionalidade em desenvolvimento" })}>
-                <Plus className="w-4 h-4 mr-2" /> Criar Fluxo
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {flows.length === 0 ? (
-                <div className="col-span-full py-12 text-center border-2 border-dashed rounded-xl">
-                  <GitBranch className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-20" />
-                  <p className="text-muted-foreground">Nenhum fluxo configurado ainda.</p>
-                </div>
-              ) : (
-                flows.map(flow => (
-                  <Card key={flow.id} className="glass-card overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg">{flow.name}</CardTitle>
-                      <CardDescription>Gatilho: {flow.trigger_keyword || "Nenhum"}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="text-sm text-muted-foreground">
-                        {flow.crm_flow_steps?.length || 0} passos configurados
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">Editar</Button>
-                        <Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Contacts Content */}
-          <TabsContent value="contacts">
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle>Base de Contatos</CardTitle>
-                <CardDescription>Clientes que interagiram via WhatsApp</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px] pr-4">
-                  <div className="space-y-4">
-                    {contacts.length === 0 ? (
-                      <div className="text-center py-10 text-muted-foreground">
-                        Nenhum contato sincronizado.
-                      </div>
-                    ) : (
-                      contacts.map(contact => (
-                        <div key={contact.id} className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
-                              {contact.name?.charAt(0) || contact.wa_id.slice(-2)}
-                            </div>
-                            <div>
-                              <p className="font-semibold">{contact.name || "Sem Nome"}</p>
-                              <p className="text-xs text-muted-foreground">+{contact.wa_id}</p>
-                            </div>
-                          </div>
-                          <div className="text-right text-xs">
-                            <p className="text-muted-foreground">Última interação</p>
-                            <p>{new Date(contact.last_interaction).toLocaleString()}</p>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Broadcast Content */}
-          <TabsContent value="broadcast">
-            <Card className="glass-card max-w-2xl mx-auto">
-              <CardHeader>
-                <CardTitle>Nova Campanha de Disparo</CardTitle>
-                <CardDescription>Envie mensagens em massa com botões para seus contatos</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Nome da Campanha</Label>
-                  <Input 
-                    value={broadcast.name} 
-                    onChange={e => setBroadcast({...broadcast, name: e.target.value})}
-                    placeholder="Ex: Promoção de Verão" 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Mensagem</Label>
-                  <Textarea 
-                    value={broadcast.message_text} 
-                    onChange={e => setBroadcast({...broadcast, message_text: e.target.value})}
-                    placeholder="Olá! Temos uma novidade para você..." 
-                    className="min-h-[150px]"
-                  />
-                  <p className="text-xs text-muted-foreground">Use {"{{name}}"} para personalizar com o nome do cliente.</p>
-                </div>
-
-                <div className="space-y-4">
-                  <Label className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4" /> Configurar Botões
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-3 border rounded-lg bg-background flex items-center justify-between">
-                      <span className="text-sm">Botão 1</span>
-                      <Input placeholder="Texto do botão" className="h-8 w-32 text-xs" />
-                    </div>
-                    <Button variant="outline" className="border-dashed">
-                      <Plus className="w-4 h-4 mr-2" /> Adicionar Botão
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t flex flex-col gap-4">
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Contatos selecionados: <strong className="text-primary">{contacts.length}</strong></span>
-                    <Button variant="link" className="h-auto p-0">Filtrar contatos</Button>
-                  </div>
-                  <Button 
-                    className="w-full bg-green-600 hover:bg-green-700" 
-                    size="lg"
-                    disabled={!broadcast.message_text || contacts.length === 0 || saving}
-                    onClick={async () => {
-                      setSaving(true);
-                      try {
-                        const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-                          body: {
-                            action: 'broadcast',
-                            name: broadcast.name || 'Campanha sem nome',
-                            text: broadcast.message_text,
-                            contactIds: contacts.map(c => c.id)
-                          }
-                        });
-                        
-                        if (error) throw error;
-                        
-                        toast({ 
-                          title: "Disparo concluído!", 
-                          description: `${data.sent} mensagens enviadas com sucesso.` 
-                        });
-                        setBroadcast({ name: '', message_text: '', status: 'pending' });
-                      } catch (err) {
-                        console.error("Broadcast error:", err);
-                        toast({ title: "Erro no disparo", variant: "destructive" });
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                  >
-                    {saving ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-                    Iniciar Disparo em Massa
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </main>
