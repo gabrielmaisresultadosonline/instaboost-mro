@@ -9,7 +9,6 @@ const supabase = createClient(
 serve(async (req) => {
   const url = new URL(req.url)
 
-  // Webhook verification (GET)
   if (req.method === 'GET') {
     const mode = url.searchParams.get('hub.mode')
     const token = url.searchParams.get('hub.verify_token')
@@ -28,7 +27,6 @@ serve(async (req) => {
     }
   }
 
-  // Handle incoming notifications (POST)
   if (req.method === 'POST') {
     try {
       const body = await req.json()
@@ -42,7 +40,6 @@ serve(async (req) => {
                 const wa_id = message.from
                 const contact_name = value.contacts?.[0]?.profile?.name || wa_id
                 
-                // 1. Find or create contact
                 let { data: contact } = await supabase
                   .from('crm_contacts')
                   .select('*')
@@ -67,7 +64,6 @@ serve(async (req) => {
                     .from('crm_contacts')
                     .update({ 
                       last_interaction: new Date().toISOString(), 
-                      // Only update name if it's the wa_id or null/empty
                       name: (!contact.name || contact.name === contact.wa_id) ? contact_name : contact.name,
                       total_messages_received: (contact.total_messages_received || 0) + 1,
                       status: contact.status === 'new' ? 'responded' : contact.status
@@ -78,17 +74,28 @@ serve(async (req) => {
                   contact = updatedContact
                 }
 
-                // 2. Save incoming message
                 if (contact) {
                   let content = ''
+                  let message_type = message.type
+                  
                   if (message.type === 'text') {
                     content = message.text.body
                   } else if (message.type === 'button') {
                     content = `[Button Click] ${message.button.text}`
-                  } else if (message.type === 'interactive' && message.interactive.type === 'button_reply') {
-                    content = `[Button Reply] ${message.interactive.button_reply.title}`
+                  } else if (message.type === 'interactive') {
+                    if (message.interactive.type === 'button_reply') {
+                      content = `[Button Reply] ${message.interactive.button_reply.title}`
+                    } else if (message.interactive.type === 'list_reply') {
+                      content = `[List Reply] ${message.interactive.list_reply.title}`
+                    }
                   } else if (message.type === 'audio') {
                     content = `[Audio Message]`
+                  } else if (message.type === 'image') {
+                    content = `[Image Message] ${message.image.caption || ''}`
+                  } else if (message.type === 'video') {
+                    content = `[Video Message] ${message.video.caption || ''}`
+                  } else if (message.type === 'document') {
+                    content = `[Document] ${message.document.filename || ''}`
                   } else {
                     content = `[${message.type}]`
                   }
@@ -96,23 +103,44 @@ serve(async (req) => {
                   await supabase.from('crm_messages').insert({
                     contact_id: contact.id,
                     direction: 'inbound',
-                    message_type: message.type,
+                    message_type: message_type,
                     content: content,
                     meta_message_id: message.id,
                     status: 'received'
                   })
 
-                  // Update metrics
-                  await supabase.rpc('increment_crm_metric', { metric_column: 'responded_count' }).catch(() => {
-                    // Fallback if RPC doesn't exist
-                    supabase.from('crm_metrics')
-                      .upsert({ date: new Date().toISOString().split('T')[0] }, { onConflict: 'date' })
-                      .then(({ data }) => {
-                         // We'll handle metrics better in a real app, for now this is a placeholder
-                      })
-                  })
+                  await supabase.rpc('increment_crm_metric', { metric_column: 'responded_count' }).catch(() => {})
 
-                  // 3. AI Agent or Auto-Responder logic
+                  // --- FLOW LOGIC ---
+                  
+                  // 1. Check if waiting for response in current flow
+                  if (contact.flow_state === 'waiting_response' && contact.current_flow_id) {
+                    await supabase.functions.invoke('meta-whatsapp-crm', {
+                      body: { action: 'continueFlow', contactId: contact.id, waId: wa_id }
+                    })
+                    return new Response('OK - Flow Continued', { status: 200 })
+                  }
+
+                  // 2. Check for trigger keywords
+                  if (message.type === 'text') {
+                    const text = message.text.body.toLowerCase().trim()
+                    
+                    const { data: triggeredFlow } = await supabase
+                      .from('crm_flows')
+                      .select('*')
+                      .eq('is_active', true)
+                      .contains('trigger_keywords', [text])
+                      .maybeSingle()
+                    
+                    if (triggeredFlow) {
+                      await supabase.functions.invoke('meta-whatsapp-crm', {
+                        body: { action: 'startFlow', flowId: triggeredFlow.id, contactId: contact.id, waId: wa_id }
+                      })
+                      return new Response('OK - Flow Started', { status: 200 })
+                    }
+                  }
+
+                  // 3. Fallback to AI Agent or Auto-Responder
                   const { data: settings } = await supabase
                     .from('crm_settings')
                     .select('*')
@@ -125,16 +153,15 @@ serve(async (req) => {
                     else if (settings.ai_agent_trigger === 'first_message' && contact.total_messages_received === 1) shouldTrigger = true
                     
                     if (shouldTrigger) {
-                      // Fetch context
                       const { data: history } = await supabase
                         .from('crm_messages')
                         .select('content, direction')
                         .eq('contact_id', contact.id)
                         .order('created_at', { ascending: false })
-                        .limit(5)
+                        .limit(10)
                       
                       const messages = [
-                        { role: 'system', content: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Seja prestativo, direto e use uma linguagem amigável mas profissional.' },
+                        { role: 'system', content: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Responda em Português do Brasil.' },
                         ...history!.reverse().map(m => ({ 
                           role: m.direction === 'inbound' ? 'user' : 'assistant', 
                           content: m.content 
@@ -149,20 +176,15 @@ serve(async (req) => {
                             'Content-Type': 'application/json'
                           },
                           body: JSON.stringify({
-                            model: 'gpt-3.5-turbo',
+                            model: 'gpt-4o-mini',
                             messages: messages
                           })
                         })
                         const aiData = await aiResponse.json()
                         const aiText = aiData.choices[0].message.content
 
-                        // Send AI response
                         await supabase.functions.invoke('meta-whatsapp-crm', {
-                          body: {
-                            action: 'sendMessage',
-                            to: wa_id,
-                            text: aiText
-                          }
+                          body: { action: 'sendMessage', to: wa_id, text: aiText }
                         })
                         return new Response('OK with AI', { status: 200 })
                       } catch (err) {
@@ -171,7 +193,6 @@ serve(async (req) => {
                     }
                   }
 
-                  // 4. Initial Auto-Responder logic (only if AI didn't trigger)
                   if (settings?.initial_auto_response_enabled && contact.total_messages_received === 1) {
                     if (message.type === 'text') {
                        await supabase.functions.invoke('meta-whatsapp-crm', {
