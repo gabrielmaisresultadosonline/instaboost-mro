@@ -331,13 +331,40 @@ const CRM = () => {
     const windowInfo = getWindowInfo(selectedContact.last_interaction);
     const isWindowOpen = windowInfo && !windowInfo.isExpired;
 
-    // If template is not approved but window is open, send as text
-    if (template?.status !== 'APPROVED' && isWindowOpen) {
+    // Se o template não está aprovado OU se estamos dentro da janela de 24h, 
+    // podemos tentar enviar como mensagem normal para evitar burocracia da Meta
+    // ou apenas para garantir que a mensagem chegue se for uma conversa ativa.
+    if (isWindowOpen) {
       const bodyText = template.components?.find((c: any) => c.type === 'BODY')?.text;
       if (bodyText) {
-        setNewMessage(bodyText);
-        toast({ title: "Conteúdo do template copiado para a mensagem (Aguardando aprovação Meta)" });
-        return;
+        // Se for conversa ativa, tentamos enviar o conteúdo do template como mensagem normal
+        // Isso permite botões e interatividade sem restrições de template aprovado
+        setSendingMessage(true);
+        try {
+          let textToSend = bodyText;
+          // Substituir variáveis básicas se houver
+          if (selectedContact.name) {
+            textToSend = textToSend.replace(/\{\{1\}\}/g, selectedContact.name);
+          }
+          // Limpar outros placeholders
+          textToSend = textToSend.replace(/\{\{\d+\}\}/g, '---');
+
+          const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+            body: { action: 'sendMessage', to: selectedContact.wa_id, text: textToSend }
+          });
+          
+          if (error) throw error;
+          if (!data.success) throw new Error(data.error);
+          
+          toast({ title: "Mensagem enviada (Conversa Ativa)" });
+          await fetchMessages(selectedContact.id);
+          return;
+        } catch (err: any) {
+          console.error("Erro ao enviar como mensagem normal, tentando como template...", err);
+          // Se falhar como mensagem normal, continua para tentar como template oficial
+        } finally {
+          setSendingMessage(false);
+        }
       }
     }
 
