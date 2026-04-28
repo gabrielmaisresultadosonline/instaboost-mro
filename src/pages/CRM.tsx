@@ -960,11 +960,10 @@ const CRM = () => {
                     ))}
                   </div>
                 </div>
-              ) : (
                 <>
                   {/* Sidebar: Contacts List */}
                   <div className={`w-full md:w-[350px] border-r flex flex-col bg-card/30 ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
-              <div className="p-4 border-b space-y-4 bg-secondary/10">
+                    <div className="p-4 border-b space-y-4 bg-secondary/10">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-lg">Conversas</h3>
                   <div className="flex items-center gap-1">
