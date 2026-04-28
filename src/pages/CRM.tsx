@@ -383,9 +383,20 @@ const CRM = () => {
             if (index === 0 && selectedContact.name) {
               return { type: "text", text: selectedContact.name };
             }
-            // For other variables, try to get from example if exists
-            const exampleValues = bodyComponent.example?.body_text?.[0] || [];
-            return { type: "text", text: exampleValues[index] || "---" };
+            
+            // Try to get from example
+            const exampleData = bodyComponent.example?.body_text?.[0] || [];
+            
+            // If exampleData is a string, it might be a single value or we need to try and split it
+            // but usually it should be an array. Let's be safe.
+            let val = "---";
+            if (Array.isArray(exampleData)) {
+              val = exampleData[index] || "---";
+            } else if (typeof exampleData === 'string' && index === 0) {
+              val = exampleData;
+            }
+            
+            return { type: "text", text: val };
           });
           
           components.push({
