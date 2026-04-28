@@ -877,9 +877,93 @@ const CRM = () => {
           </TabsContent>
 
           {/* Contacts/CRM Content - WhatsApp Style */}
-          <TabsContent value="contacts" className="m-0 h-[calc(100vh-220px)] border rounded-xl overflow-hidden glass-card flex">
-            {/* Sidebar: Contacts List */}
-            <div className={`w-full md:w-[350px] border-r flex flex-col bg-card/30 ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
+          <TabsContent value="contacts" className="m-0 h-[calc(100vh-220px)] border rounded-xl overflow-hidden glass-card flex flex-col">
+            <div className="flex items-center justify-between p-2 border-b bg-muted/30">
+              <div className="flex gap-2">
+                <Button 
+                  variant={!kanbanView ? "default" : "ghost"} 
+                  size="sm" 
+                  onClick={() => setKanbanView(false)}
+                  className="h-8 gap-1"
+                >
+                  <MessageSquare className="w-4 h-4" /> Lista
+                </Button>
+                <Button 
+                  variant={kanbanView ? "default" : "ghost"} 
+                  size="sm" 
+                  onClick={() => setKanbanView(true)}
+                  className="h-8 gap-1"
+                >
+                  <BarChart3 className="w-4 h-4" /> Kanban
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 flex overflow-hidden">
+              {kanbanView ? (
+                <div className="flex-1 overflow-x-auto p-4 bg-secondary/5">
+                  <div className="flex gap-4 h-full min-w-max">
+                    {['new', 'responded', 'qualified', 'closed', 'lost'].map((status) => (
+                      <div 
+                        key={status}
+                        className="w-72 flex flex-col bg-muted/20 rounded-lg border border-border/50"
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={() => handleDrop(status)}
+                      >
+                        <div className="p-3 border-b flex items-center justify-between">
+                          <h4 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${
+                              status === 'new' ? 'bg-blue-500' : 
+                              status === 'responded' ? 'bg-yellow-500' : 
+                              status === 'qualified' ? 'bg-purple-500' : 
+                              status === 'closed' ? 'bg-green-500' : 'bg-red-500'
+                            }`} />
+                            {status === 'new' ? 'Novos' : 
+                             status === 'responded' ? 'Respondidos' : 
+                             status === 'qualified' ? 'Qualificados' : 
+                             status === 'closed' ? 'Vendas' : 'Perdidos'}
+                          </h4>
+                          <Badge variant="secondary" className="text-[10px]">
+                            {contacts.filter(c => c.status === status).length}
+                          </Badge>
+                        </div>
+                        <ScrollArea className="flex-1 p-2">
+                          <div className="space-y-2">
+                            {contacts
+                              .filter(c => c.status === status)
+                              .map(contact => (
+                                <Card 
+                                  key={contact.id}
+                                  draggable
+                                  onDragStart={() => handleDragStart(contact)}
+                                  className="p-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors glass-card"
+                                  onClick={() => {
+                                    openChat(contact);
+                                    setKanbanView(false);
+                                  }}
+                                >
+                                  <div className="flex flex-col gap-2">
+                                    <p className="font-semibold text-sm truncate">{contact.name || contact.wa_id}</p>
+                                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {new Date(contact.last_interaction).toLocaleDateString()}
+                                      </span>
+                                      {contact.is_qualified && <CheckCircle2 className="w-3 h-3 text-purple-500" />}
+                                    </div>
+                                  </div>
+                                </Card>
+                              ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Sidebar: Contacts List */}
+                  <div className={`w-full md:w-[350px] border-r flex flex-col bg-card/30 ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
               <div className="p-4 border-b space-y-4 bg-secondary/10">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-lg">Conversas</h3>
