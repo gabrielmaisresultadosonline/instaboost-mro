@@ -786,8 +786,8 @@ const CRM = () => {
                 ))
               )}
             </div>
-          </TabsContent>
-
+          {/* Settings Content */}
+          <TabsContent value="settings">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Meta API Settings */}
               <Card className="glass-card">
