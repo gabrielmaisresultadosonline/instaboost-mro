@@ -30,6 +30,7 @@ serve(async (req) => {
   if (req.method === 'POST') {
     try {
       const body = await req.json()
+      console.log('Webhook received payload:', JSON.stringify(body, null, 2))
 
       if (body.object === 'whatsapp_business_account') {
         for (const entry of body.entry) {
