@@ -346,7 +346,35 @@ const CRM = () => {
       // Logic to handle template variables
       const components: any[] = [];
       const bodyComponent = template?.components?.find((c: any) => c.type === 'BODY');
+      const headerComponent = template?.components?.find((c: any) => c.type === 'HEADER');
       
+      // Handle Header variables or images
+      if (headerComponent) {
+        if (headerComponent.format === 'IMAGE') {
+          // If there's an example image handle, use it as default
+          const imageUrl = headerComponent.example?.header_handle?.[0];
+          if (imageUrl) {
+            components.push({
+              type: "header",
+              parameters: [
+                {
+                  type: "image",
+                  image: { link: imageUrl }
+                }
+              ]
+            });
+          }
+        } else if (headerComponent.format === 'TEXT' && headerComponent.text) {
+          const headerVariables = headerComponent.text.match(/\{\{\d+\}\}/g);
+          if (headerVariables) {
+            components.push({
+              type: "header",
+              parameters: headerVariables.map(() => ({ type: "text", text: "---" }))
+            });
+          }
+        }
+      }
+
       if (bodyComponent?.text) {
         const bodyVariables = bodyComponent.text.match(/\{\{\d+\}\}/g);
         if (bodyVariables) {
@@ -355,7 +383,9 @@ const CRM = () => {
             if (index === 0 && selectedContact.name) {
               return { type: "text", text: selectedContact.name };
             }
-            return { type: "text", text: "---" };
+            // For other variables, try to get from example if exists
+            const exampleValues = bodyComponent.example?.body_text?.[0] || [];
+            return { type: "text", text: exampleValues[index] || "---" };
           });
           
           components.push({
@@ -365,17 +395,7 @@ const CRM = () => {
         }
       }
 
-      // Handle Header variables if text
-      const headerComponent = template?.components?.find((c: any) => c.type === 'HEADER' && c.format === 'TEXT');
-      if (headerComponent?.text) {
-        const headerVariables = headerComponent.text.match(/\{\{\d+\}\}/g);
-        if (headerVariables) {
-          components.push({
-            type: "header",
-            parameters: headerVariables.map(() => ({ type: "text", text: "---" }))
-          });
-        }
-      }
+      console.log('Sending template with components:', components);
 
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { 
