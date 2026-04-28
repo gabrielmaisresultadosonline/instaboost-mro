@@ -631,6 +631,217 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_broadcasts: {
+        Row: {
+          buttons: Json | null
+          created_at: string | null
+          failed_count: number | null
+          id: string
+          message_text: string
+          name: string
+          sent_count: number | null
+          status: string | null
+          total_contacts: number | null
+        }
+        Insert: {
+          buttons?: Json | null
+          created_at?: string | null
+          failed_count?: number | null
+          id?: string
+          message_text: string
+          name: string
+          sent_count?: number | null
+          status?: string | null
+          total_contacts?: number | null
+        }
+        Update: {
+          buttons?: Json | null
+          created_at?: string | null
+          failed_count?: number | null
+          id?: string
+          message_text?: string
+          name?: string
+          sent_count?: number | null
+          status?: string | null
+          total_contacts?: number | null
+        }
+        Relationships: []
+      }
+      crm_contacts: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_interaction: string | null
+          metadata: Json | null
+          name: string | null
+          wa_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_interaction?: string | null
+          metadata?: Json | null
+          name?: string | null
+          wa_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_interaction?: string | null
+          metadata?: Json | null
+          name?: string | null
+          wa_id?: string
+        }
+        Relationships: []
+      }
+      crm_flow_steps: {
+        Row: {
+          buttons: Json | null
+          created_at: string | null
+          delay_seconds: number | null
+          flow_id: string | null
+          id: string
+          message_text: string | null
+          step_order: number
+        }
+        Insert: {
+          buttons?: Json | null
+          created_at?: string | null
+          delay_seconds?: number | null
+          flow_id?: string | null
+          id?: string
+          message_text?: string | null
+          step_order: number
+        }
+        Update: {
+          buttons?: Json | null
+          created_at?: string | null
+          delay_seconds?: number | null
+          flow_id?: string | null
+          id?: string
+          message_text?: string | null
+          step_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_flow_steps_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "crm_flows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_flows: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          trigger_keyword: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          trigger_keyword?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          trigger_keyword?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      crm_messages: {
+        Row: {
+          contact_id: string | null
+          content: string | null
+          created_at: string | null
+          direction: string | null
+          id: string
+          message_type: string | null
+          meta_message_id: string | null
+          status: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          direction?: string | null
+          id?: string
+          message_type?: string | null
+          meta_message_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          direction?: string | null
+          id?: string
+          message_type?: string | null
+          meta_message_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          initial_auto_response_enabled: boolean | null
+          meta_access_token: string | null
+          meta_app_id: string | null
+          meta_app_secret: string | null
+          meta_phone_number_id: string | null
+          meta_waba_id: string | null
+          updated_at: string | null
+          webhook_verify_token: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          initial_auto_response_enabled?: boolean | null
+          meta_access_token?: string | null
+          meta_app_id?: string | null
+          meta_app_secret?: string | null
+          meta_phone_number_id?: string | null
+          meta_waba_id?: string | null
+          updated_at?: string | null
+          webhook_verify_token?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          initial_auto_response_enabled?: boolean | null
+          meta_access_token?: string | null
+          meta_app_id?: string | null
+          meta_app_secret?: string | null
+          meta_phone_number_id?: string | null
+          meta_waba_id?: string | null
+          updated_at?: string | null
+          webhook_verify_token?: string | null
+        }
+        Relationships: []
+      }
       free_trial_registrations: {
         Row: {
           created_at: string
