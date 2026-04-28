@@ -960,6 +960,7 @@ const CRM = () => {
                     ))}
                   </div>
                 </div>
+              ) : (
                 <>
                   {/* Sidebar: Contacts List */}
                   <div className={`w-full md:w-[350px] border-r flex flex-col bg-card/30 ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
