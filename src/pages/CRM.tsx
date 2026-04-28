@@ -374,10 +374,36 @@ const CRM = () => {
                   <Button 
                     className="w-full bg-green-600 hover:bg-green-700" 
                     size="lg"
-                    disabled={!broadcast.message_text || contacts.length === 0}
-                    onClick={() => toast({ title: "Disparo iniciado!", description: "As mensagens estão sendo processadas." })}
+                    disabled={!broadcast.message_text || contacts.length === 0 || saving}
+                    onClick={async () => {
+                      setSaving(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+                          body: {
+                            action: 'broadcast',
+                            name: broadcast.name || 'Campanha sem nome',
+                            text: broadcast.message_text,
+                            contactIds: contacts.map(c => c.id)
+                          }
+                        });
+                        
+                        if (error) throw error;
+                        
+                        toast({ 
+                          title: "Disparo concluído!", 
+                          description: `${data.sent} mensagens enviadas com sucesso.` 
+                        });
+                        setBroadcast({ name: '', message_text: '', status: 'pending' });
+                      } catch (err) {
+                        console.error("Broadcast error:", err);
+                        toast({ title: "Erro no disparo", variant: "destructive" });
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
                   >
-                    <Send className="w-4 h-4 mr-2" /> Iniciar Disparo em Massa
+                    {saving ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                    Iniciar Disparo em Massa
                   </Button>
                 </div>
               </CardContent>
