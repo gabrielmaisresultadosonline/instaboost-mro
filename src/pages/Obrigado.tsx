@@ -6,34 +6,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Sparkles, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { trackPageView, trackPurchase, trackLead } from "@/lib/facebookTracking";
-import { supabase } from "@/integrations/supabase/client";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 
 const Obrigado = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const { whatsappNumber } = useWhatsAppConfig();
   const { toast } = useToast();
 
   useEffect(() => {
     trackPageView('Thank You Page - Purchase Complete');
     trackPurchase(397, 'MRO I.A + Automação');
-    
-    // Fetch the currently configured WhatsApp number from the central settings
-    const fetchConfig = async () => {
-      try {
-        const { data, error } = await supabase.rpc("get_whatsapp_public_config");
-        if (!error && data) {
-          const config = data as { whatsapp_number?: string };
-          if (config.whatsapp_number) {
-            setWhatsappNumber(config.whatsapp_number);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching WhatsApp config:", err);
-      }
-    };
-    
-    fetchConfig();
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
