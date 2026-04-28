@@ -287,7 +287,7 @@ const CRM = () => {
               </Card>
               <Card className="glass-card">
                 <CardHeader className="pb-2">
-                  <CardDescription className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-500" /> Qualificadas</CardTitle>
+                  <CardDescription className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-500" /> Qualificadas</CardDescription>
                   <CardTitle className="text-3xl font-bold">{metrics.qualified_count}</CardTitle>
                 </CardHeader>
               </Card>
