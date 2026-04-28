@@ -1348,7 +1348,7 @@ const CRM = () => {
               <Card className="glass-card border-blue-500/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-blue-500"><GitBranch className="w-5 h-5" /> Webhook da Meta</CardTitle>
-                  <CardDescription>Configure estas informações no Portal do Desenvolvedor da Meta (WhatsApp > Configuração)</CardDescription>
+                  <CardDescription>Configure estas informações no Portal do Desenvolvedor da Meta (WhatsApp {"->"} Configuração)</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="p-3 bg-secondary/50 rounded-lg border border-blue-500/10 space-y-3">
