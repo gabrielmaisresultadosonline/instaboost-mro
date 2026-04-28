@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SQUARE_API_BASE = 'https://codigoinstashopapi.squareweb.app';
+const SQUARE_API_BASE = 'https://dashboardmroinstagramvini-online.squareweb.app';
 
 // Background task to update user days
 async function updateUserDaysInBackground() {

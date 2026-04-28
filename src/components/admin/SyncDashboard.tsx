@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
-const SQUARECLOUD_API = 'https://codigoinstashopapi.squareweb.app';
+const SQUARECLOUD_API = 'https://dashboardmroinstagramvini-online.squareweb.app';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const SyncDashboard = () => {

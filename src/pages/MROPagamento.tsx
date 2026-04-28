@@ -45,7 +45,7 @@ export default function MROPagamento() {
       });
 
       const response = await fetch(
-        'https://codigoinstashopapi.squareweb.app/verificar-numero',
+        'https://dashboardmroinstagramvini-online.squareweb.app/verificar-numero',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
