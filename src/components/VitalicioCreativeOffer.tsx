@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Lock, Sparkles, ExternalLink, MessageCircle, Crown } from 'lucide-react';
+import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 import { getCurrentUser } from '@/lib/userStorage';
 
 interface VitalicioCreativeOfferProps {
