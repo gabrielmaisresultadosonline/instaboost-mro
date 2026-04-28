@@ -192,12 +192,26 @@ serve(async (req) => {
           // Extract buttons
           let buttons = [];
           if (buttonsComponent && buttonsComponent.buttons) {
-            buttons = buttonsComponent.buttons
-              .filter((b: any) => b.type === 'QUICK_REPLY')
-              .map((b: any, index: number) => ({
-                id: b.text || `btn_${index}`,
-                text: b.text
-              }));
+            buttonsComponent.buttons.forEach((b: any, index: number) => {
+              if (b.type === 'QUICK_REPLY') {
+                buttons.push({
+                  id: b.payload || b.text || `btn_${index}`,
+                  text: b.text
+                });
+              } else if (b.type === 'URL') {
+                // For URL buttons, append to text as they aren't supported in interactive buttons
+                let buttonUrl = b.url || '';
+                const buttonParams = components?.find((c: any) => c.type === 'button' && c.index === index)?.parameters || [];
+                
+                if (buttonParams.length > 0 && buttonUrl.includes('{{1}}')) {
+                  buttonUrl = buttonUrl.replace('{{1}}', buttonParams[0].text || '');
+                }
+                
+                text += `\n\n🔗 ${b.text}:\n${buttonUrl}`;
+              } else if (b.type === 'PHONE_NUMBER') {
+                text += `\n\n📞 ${b.text}: ${b.phone_number}`;
+              }
+            });
           }
 
           // Send as rich message using handleInternalSendMessage
