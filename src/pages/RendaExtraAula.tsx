@@ -13,7 +13,7 @@ const RendaExtraAula = () => {
   const [form, setForm] = useState({ nome_completo: "", email: "", whatsapp: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showWhatsApp, setShowWhatsApp] = useState(false);
-  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const { whatsappNumber } = useWhatsAppConfig();
   const [countdown, setCountdown] = useState(20 * 60);
 
   useEffect(() => {
