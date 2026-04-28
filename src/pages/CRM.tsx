@@ -312,8 +312,32 @@ const CRM = () => {
       fetchMessages(selectedContact.id);
     } catch (err) {
       toast({ title: "Erro ao enviar template", variant: "destructive" });
+  const handleSaveTemplate = async (template: any) => {
+    setSaving(true);
+    try {
+      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'createTemplate', ...template }
+      });
+      if (error) throw error;
+      toast({ title: "Template enviado para aprovação!" });
+      fetchData();
+    } catch (err) {
+      toast({ title: "Erro ao criar template", variant: "destructive" });
     } finally {
-      setSendingMessage(false);
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteTemplate = async (name: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'deleteTemplate', name }
+      });
+      if (error) throw error;
+      toast({ title: "Template excluído" });
+      fetchData();
+    } catch (err) {
+      toast({ title: "Erro ao excluir", variant: "destructive" });
     }
   };
 
