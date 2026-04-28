@@ -26,7 +26,7 @@ import {
   BarChart3,
   CheckCircle2,
   XCircle,
-  Microphone,
+  Mic,
   DollarSign,
   TrendingUp,
   Filter
@@ -467,7 +467,7 @@ const CRM = () => {
                 </div>
 
                 <div className="p-4 rounded-xl border border-dashed flex flex-col items-center gap-3 bg-secondary/10">
-                   <Microphone className="w-8 h-8 text-muted-foreground" />
+                   <Mic className="w-8 h-8 text-muted-foreground" />
                    <p className="text-xs text-muted-foreground">Arraste um áudio (.ogg) para enviar no disparo ou grave aqui</p>
                    <Button variant="outline" size="sm" className="gap-2">
                      <Plus className="w-4 h-4" /> Anexar Áudio
