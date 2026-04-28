@@ -191,7 +191,7 @@ const IAVendeMais = () => {
     }
   };
 
-  const whatsappUrl = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(settings.whatsappMessage)}`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber || settings.whatsappNumber}?text=${encodeURIComponent(settings.whatsappMessage)}`;
 
   const fullscreenStyle: React.CSSProperties = {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
