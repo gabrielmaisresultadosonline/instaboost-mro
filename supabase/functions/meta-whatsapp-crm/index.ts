@@ -134,6 +134,8 @@ serve(async (req) => {
     if (action === 'sendTemplate') {
       const { to, templateName, languageCode, components } = params
       
+      console.log(`Sending template ${templateName} to ${to}...`);
+
       const response = await fetch(
         `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
         {
@@ -158,7 +160,7 @@ serve(async (req) => {
       const result = await response.json()
       
       if (!response.ok) {
-        console.error('Meta API Error (Template):', result)
+        console.error('Meta API Error (Template):', JSON.stringify(result, null, 2));
         return new Response(JSON.stringify({ 
           success: false, 
           error: result.error?.message || 'Meta API returned an error',
@@ -169,39 +171,8 @@ serve(async (req) => {
         })
       }
       
-      if (result.messages && result.messages[0]) {
-        const { data: contact } = await supabase
-          .from('crm_contacts')
-          .select('id, total_messages_sent')
-          .eq('wa_id', to)
-          .single()
+      console.log('Template sent successfully:', JSON.stringify(result));
 
-        if (contact) {
-          await supabase.from('crm_messages').insert({
-            contact_id: contact.id,
-            direction: 'outbound',
-            content: `[Template: ${templateName}]`,
-            message_type: 'template',
-            meta_message_id: result.messages[0].id,
-            status: 'sent'
-          })
-
-          await supabase
-            .from('crm_contacts')
-            .update({ 
-              total_messages_sent: (contact.total_messages_sent || 0) + 1,
-              last_interaction: new Date().toISOString()
-            })
-            .eq('id', contact.id)
-          
-          await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
-        }
-      }
-
-      return new Response(JSON.stringify({ success: !!result.messages, result }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
 
     if (action === 'sendMessage') {
       const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons } = params
