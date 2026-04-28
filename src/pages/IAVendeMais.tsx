@@ -6,6 +6,7 @@ import profileImage from '@/assets/mro-profile-call.jpg';
 import fundoChamada from '@/assets/fundo-chamada.jpg';
 import gabrielPhoneImage from '@/assets/gabriel-phone.png';
 import logoMro from '@/assets/logo-mro.png';
+import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
 
 type FunnelState =
   | 'landing'
@@ -19,6 +20,7 @@ type FunnelState =
   | 'final_whatsapp';
 
 const IAVendeMais = () => {
+  const { whatsappNumber } = useWhatsAppConfig();
   const [state, setState] = useState<FunnelState>('landing');
   const [callDuration, setCallDuration] = useState(0);
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
