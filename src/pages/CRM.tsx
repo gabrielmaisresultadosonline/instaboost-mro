@@ -280,6 +280,14 @@ const CRM = () => {
 
   const handleTriggerFlow = async (flowId: string) => {
     if (!selectedContact) return;
+    
+    const flow = flows.find(f => f.id === flowId);
+    if (!confirmSend || confirmSend.id !== flowId) {
+      setConfirmSend({ type: 'flow', id: flowId, name: flow?.name || 'Fluxo' });
+      return;
+    }
+
+    setConfirmSend(null);
     setSendingMessage(true);
     try {
       const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
@@ -313,6 +321,13 @@ const CRM = () => {
     if (!selectedContact) return;
     
     const template = templates.find(t => t.name === templateName);
+    
+    if (!confirmSend || confirmSend.id !== templateName) {
+      setConfirmSend({ type: 'template', id: templateName, name: templateName, language });
+      return;
+    }
+
+    setConfirmSend(null);
     const windowInfo = getWindowInfo(selectedContact.last_interaction);
     const isWindowOpen = windowInfo && !windowInfo.isExpired;
 
@@ -328,8 +343,48 @@ const CRM = () => {
 
     setSendingMessage(true);
     try {
+      // Logic to handle template variables
+      const components: any[] = [];
+      const bodyComponent = template?.components?.find((c: any) => c.type === 'BODY');
+      
+      if (bodyComponent?.text) {
+        const bodyVariables = bodyComponent.text.match(/\{\{\d+\}\}/g);
+        if (bodyVariables) {
+          const parameters = bodyVariables.map((_: any, index: number) => {
+            // Use contact name for {{1}} if available
+            if (index === 0 && selectedContact.name) {
+              return { type: "text", text: selectedContact.name };
+            }
+            return { type: "text", text: "---" };
+          });
+          
+          components.push({
+            type: "body",
+            parameters: parameters
+          });
+        }
+      }
+
+      // Handle Header variables if text
+      const headerComponent = template?.components?.find((c: any) => c.type === 'HEADER' && c.format === 'TEXT');
+      if (headerComponent?.text) {
+        const headerVariables = headerComponent.text.match(/\{\{\d+\}\}/g);
+        if (headerVariables) {
+          components.push({
+            type: "header",
+            parameters: headerVariables.map(() => ({ type: "text", text: "---" }))
+          });
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-        body: { action: 'sendTemplate', to: selectedContact.wa_id, templateName, languageCode: language }
+        body: { 
+          action: 'sendTemplate', 
+          to: selectedContact.wa_id, 
+          templateName, 
+          languageCode: language,
+          components: components
+        }
       });
       if (error) throw error;
       if (!data.success) {
