@@ -32,6 +32,64 @@ serve(async (req) => {
 
     const { meta_access_token, meta_phone_number_id } = settings
 
+    if (action === 'getTemplates') {
+      const { meta_waba_id } = settings
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates`,
+        {
+          headers: { 'Authorization': `Bearer ${meta_access_token}` },
+        }
+      )
+      const data = await response.json()
+      
+      if (data.data) {
+        // Sync to database
+        for (const template of data.data) {
+          await supabase.from('crm_templates').upsert({
+            id: template.id,
+            name: template.name,
+            category: template.category,
+            language: template.language,
+            status: template.status,
+            components: template.components,
+            updated_at: new Date().toISOString()
+          })
+        }
+      }
+      
+      return new Response(JSON.stringify({ success: true, templates: data.data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (action === 'sendTemplate') {
+      const { to, templateName, languageCode, components } = params
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${meta_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: "whatsapp",
+            to,
+            type: "template",
+            template: {
+              name: templateName,
+              language: { code: languageCode },
+              components: components || []
+            }
+          }),
+        }
+      )
+      const result = await response.json()
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     if (action === 'sendMessage') {
       const { to, text, buttons, audioUrl } = params
       

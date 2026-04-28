@@ -84,6 +84,8 @@ const CRM = () => {
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [syncingTemplates, setSyncingTemplates] = useState(false);
 
   useEffect(() => {
     if (!isAdminLoggedIn()) {
@@ -157,6 +159,12 @@ const CRM = () => {
         .select('*')
         .order('last_interaction', { ascending: false });
       setContacts(contactsData || []);
+
+      // Fetch Templates from DB
+      const { data: templatesData } = await (supabase as any)
+        .from('crm_templates')
+        .select('*');
+      setTemplates(templatesData || []);
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -252,6 +260,52 @@ const CRM = () => {
     } catch (err) {
       console.error("Error sending message:", err);
       toast({ title: "Erro ao enviar", variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const syncTemplates = async () => {
+    setSyncingTemplates(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'getTemplates' }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Templates Sincronizados",
+        description: `${data.templates?.length || 0} templates importados da Meta.`
+      });
+      fetchData();
+    } catch (err) {
+      console.error("Error syncing templates:", err);
+      toast({ title: "Erro ao sincronizar templates", variant: "destructive" });
+    } finally {
+      setSyncingTemplates(false);
+    }
+  };
+
+  const handleSendTemplate = async (templateName: string, language: string) => {
+    if (!selectedContact) return;
+    setSendingMessage(true);
+    try {
+      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: {
+          action: 'sendTemplate',
+          to: selectedContact.wa_id,
+          templateName,
+          languageCode: language
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({ title: "Template enviado!" });
+      fetchMessages(selectedContact.id);
+    } catch (err) {
+      toast({ title: "Erro ao enviar template", variant: "destructive" });
     } finally {
       setSendingMessage(false);
     }
@@ -397,6 +451,9 @@ const CRM = () => {
               </TabsTrigger>
               <TabsTrigger value="broadcast" className="flex-1 md:flex-none gap-2">
                 <Send className="w-4 h-4" /> Remarketing
+              </TabsTrigger>
+              <TabsTrigger value="templates" className="flex-1 md:flex-none gap-2">
+                <GitBranch className="w-4 h-4" /> Templates Meta
               </TabsTrigger>
               <TabsTrigger value="flows" className="flex-1 md:flex-none gap-2">
                 <GitBranch className="w-4 h-4" /> Automação
@@ -673,6 +730,56 @@ const CRM = () => {
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="flex-1">Configurar</Button>
                         <Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Templates Content */}
+          <TabsContent value="templates">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">Templates da Meta</h2>
+                <p className="text-muted-foreground text-sm">Visualize e utilize as mensagens aprovadas no Gerenciador da Meta</p>
+              </div>
+              <Button onClick={syncTemplates} disabled={syncingTemplates} className="gap-2">
+                <RefreshCcw className={`w-4 h-4 ${syncingTemplates ? 'animate-spin' : ''}`} />
+                Sincronizar com Meta
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {templates.length === 0 ? (
+                <div className="col-span-full py-20 text-center border-2 border-dashed rounded-xl bg-secondary/5">
+                  <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-20" />
+                  <p className="text-muted-foreground font-medium">Nenhum template encontrado</p>
+                  <Button variant="link" onClick={syncTemplates}>Sincronizar agora</Button>
+                </div>
+              ) : (
+                templates.map(template => (
+                  <Card key={template.id} className="glass-card flex flex-col">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-sm font-bold truncate max-w-[200px]">{template.name}</CardTitle>
+                        <Badge variant="outline" className={template.status === 'APPROVED' ? 'bg-green-500/10 text-green-500' : ''}>
+                          {template.status}
+                        </Badge>
+                      </div>
+                      <CardDescription className="text-[10px] uppercase">{template.category} • {template.language}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-4">
+                      <div className="bg-secondary/30 p-3 rounded-lg text-xs font-mono whitespace-pre-wrap min-h-[80px]">
+                        {template.components?.find((c: any) => c.type === 'BODY')?.text || "Sem conteúdo de texto"}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                          toast({ title: "Edição de templates deve ser feita no Painel da Meta" });
+                        }}>
+                          Ver Detalhes
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
