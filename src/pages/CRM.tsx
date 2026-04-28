@@ -33,7 +33,7 @@ const CRM = () => {
   const [saving, setSaving] = useState(false);
   
   // Settings State
-  const [metaSettings, setMetaSettings] = useState({
+  const [metaSettings, setMetaSettings] = useState<any>({
     meta_access_token: '',
     meta_phone_number_id: '',
     meta_waba_id: '',
@@ -41,7 +41,7 @@ const CRM = () => {
     meta_app_secret: '',
     initial_auto_response_enabled: true,
     initial_response_text: '',
-    initial_response_buttons: [] as any[]
+    initial_response_buttons: []
   });
 
   // Flows State
