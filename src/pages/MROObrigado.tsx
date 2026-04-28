@@ -22,13 +22,6 @@ const MROObrigado = () => {
       title: "Compra aprovada!",
       description: "Verifique no seu email para acessar a aula.",
     });
-  }, []);
-    
-    toast({
-      title: "Compra aprovada!",
-      description: "Verifique no seu email para acessar a aula.",
-    });
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
