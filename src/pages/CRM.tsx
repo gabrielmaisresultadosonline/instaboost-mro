@@ -79,6 +79,12 @@ const CRM = () => {
     status: 'pending'
   });
 
+  // Chat State
+  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+
   useEffect(() => {
     if (!isAdminLoggedIn()) {
       navigate('/crm/login');
