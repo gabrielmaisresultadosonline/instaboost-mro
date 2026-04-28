@@ -144,7 +144,7 @@ serve(async (req) => {
       try {
         log("Creating user access in SquareCloud (manual)", { username: order.username });
         
-        const createUserUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users`;
+        const createUserUrl = `https://codigoinstashopapimro.squareweb.app/api/users`;
         const createResponse = await fetch(createUserUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -277,7 +277,7 @@ serve(async (req) => {
       try {
         log("Creating user access in SquareCloud", { username: order.username });
         
-        const createUserUrl = `https://dashboardmroinstagramvini-online.squareweb.app/api/users`;
+        const createUserUrl = `https://codigoinstashopapimro.squareweb.app/api/users`;
         const createResponse = await fetch(createUserUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
