@@ -1348,7 +1348,7 @@ const CRM = () => {
               <Card className="glass-card border-blue-500/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-blue-500"><GitBranch className="w-5 h-5" /> Webhook da Meta</CardTitle>
-                  <CardDescription>Configure estas informações no Portal do Desenvolvedor da Meta (WhatsApp {"->"} Configuração)</CardDescription>
+                  <CardDescription>Configure estas informações no Portal do Desenvolvedor da Meta (WhatsApp &rarr; Configuração)</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="p-3 bg-secondary/50 rounded-lg border border-blue-500/10 space-y-3">
@@ -1396,7 +1396,7 @@ const CRM = () => {
                     <p className="font-bold text-blue-400 mb-1">Passos na Meta:</p>
                     <ol className="list-decimal ml-4 space-y-1">
                       <li>Acesse developers.facebook.com</li>
-                      <li>Vá em seu App {"->"} WhatsApp {"->"} Configuração</li>
+                      <li>Vá em seu App &rarr; WhatsApp &rarr; Configuração</li>
                       <li>Clique em "Editar" no Webhook</li>
                       <li>Cole a URL e o Token acima</li>
                       <li>Em "Campos do Webhook", selecione <b>messages</b></li>
