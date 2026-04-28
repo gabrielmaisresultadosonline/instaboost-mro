@@ -363,6 +363,7 @@ const CRM = () => {
             <TabsTrigger value="contacts">Contatos/CRM</TabsTrigger>
             <TabsTrigger value="broadcast">Remarketing</TabsTrigger>
             <TabsTrigger value="flows">Automação</TabsTrigger>
+            <TabsTrigger value="templates">Templates Meta</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
