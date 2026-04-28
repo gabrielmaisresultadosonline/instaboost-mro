@@ -37,7 +37,7 @@ const ObrigadoZapmro = () => {
       `Olá! Acabei de comprar o ZAPMRO!\n\nNome: ${nome.trim()}\nEmail: ${email.trim()}`
     );
     
-    window.open(`https://wa.me/5551920356540?text=${message}`, "_blank");
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
   };
 
   return (
