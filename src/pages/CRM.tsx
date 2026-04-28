@@ -340,6 +340,162 @@ const CRM = () => {
     fetchMessages(contact.id);
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+        await uploadAndSendMedia(audioBlob, 'audio');
+      };
+      
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (err) {
+      toast({ title: "Erro ao acessar microfone", variant: "destructive" });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const uploadAndSendMedia = async (file: File | Blob, type: 'audio' | 'image' | 'video' | 'document') => {
+    if (!selectedContact) return;
+    
+    setSendingMessage(true);
+    try {
+      const fileName = `${Date.now()}-${type}.${type === 'audio' ? 'ogg' : (file as File).name?.split('.').pop() || 'bin'}`;
+      const filePath = `chat/${selectedContact.id}/${fileName}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('crm-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('crm-media')
+        .getPublicUrl(filePath);
+
+      const payload: any = {
+        action: 'sendMessage',
+        to: selectedContact.wa_id,
+      };
+
+      if (type === 'audio') payload.audioUrl = publicUrl;
+      else if (type === 'image') payload.imageUrl = publicUrl;
+      else if (type === 'video') payload.videoUrl = publicUrl;
+      else if (type === 'document') {
+        payload.documentUrl = publicUrl;
+        payload.fileName = (file as File).name || 'document.pdf';
+      }
+
+      const { error: invokeError } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: payload
+      });
+
+      if (invokeError) throw invokeError;
+
+      fetchMessages(selectedContact.id);
+      toast({ title: "Arquivo enviado!" });
+    } catch (err) {
+      console.error("Error sending media:", err);
+      toast({ title: "Erro ao enviar arquivo", variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video' | 'document') => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await uploadAndSendMedia(file, type);
+    }
+    event.target.value = '';
+  };
+
+  const handleCreateFlow = () => {
+    setEditingFlow({
+      name: 'Novo Fluxo',
+      trigger_keywords: [],
+      is_active: true,
+      steps: []
+    });
+    setIsFlowEditorOpen(true);
+  };
+
+  const addStepToFlow = () => {
+    setEditingFlow({
+      ...editingFlow,
+      steps: [...(editingFlow.steps || []), { ...newStep, id: crypto.randomUUID() }]
+    });
+    setNewStep({
+      step_type: 'text',
+      message_text: '',
+      delay_seconds: 5,
+      media_url: '',
+      media_type: ''
+    });
+  };
+
+  const removeStepFromFlow = (index: number) => {
+    const steps = [...editingFlow.steps];
+    steps.splice(index, 1);
+    setEditingFlow({ ...editingFlow, steps });
+  };
+
+  const handleSaveFlow = async () => {
+    if (!editingFlow.name) {
+      toast({ title: "Dê um nome ao fluxo", variant: "destructive" });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { steps, id, ...flowData } = editingFlow;
+      let flowId = id;
+
+      if (flowId) {
+        const { error } = await supabase.from('crm_flows').update(flowData).eq('id', flowId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('crm_flows').insert(flowData).select().single();
+        if (error) throw error;
+        flowId = data.id;
+      }
+
+      // Sync steps
+      await supabase.from('crm_flow_steps').delete().eq('flow_id', flowId);
+      if (steps && steps.length > 0) {
+        const stepsToInsert = steps.map((s: any, i: number) => {
+          const { id: _, ...stepData } = s;
+          return { ...stepData, flow_id: flowId, step_order: i };
+        });
+        const { error } = await supabase.from('crm_flow_steps').insert(stepsToInsert);
+        if (error) throw error;
+      }
+
+      toast({ title: "Fluxo salvo com sucesso!" });
+      fetchData();
+      setIsFlowEditorOpen(false);
+    } catch (err) {
+      console.error("Error saving flow:", err);
+      toast({ title: "Erro ao salvar fluxo", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
   const handleVCardImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
