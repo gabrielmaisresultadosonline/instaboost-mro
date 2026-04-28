@@ -102,7 +102,13 @@ const CRM = () => {
   // Flow Editor State
   const [isFlowEditorOpen, setIsFlowEditorOpen] = useState(false);
   const [editingFlow, setEditingFlow] = useState<any>(null);
-  const [newStep, setNewStep] = useState<any>({
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages]);
     step_type: 'text',
     message_text: '',
     delay_seconds: 5,
