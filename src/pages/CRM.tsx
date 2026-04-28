@@ -494,6 +494,22 @@ const CRM = () => {
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })} className="hidden sm:flex">Qualificar</Button>
                             <Button size="sm" className="bg-green-600 hidden sm:flex" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                            {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
+                              <Button 
+                                size="sm" 
+                                variant="secondary" 
+                                className="bg-orange-500 text-white hover:bg-orange-600"
+                                onClick={async () => {
+                                  await supabase.functions.invoke('meta-whatsapp-crm', {
+                                    body: { action: 'continueFlow', contactId: selectedContact.id, waId: selectedContact.wa_id }
+                                  });
+                                  fetchMessages(selectedContact.id);
+                                  toast({ title: "Comando enviado para continuar o fluxo" });
+                                }}
+                              >
+                                <Play className="w-3 h-3 mr-1" /> Continuar Fluxo
+                              </Button>
+                            )}
                           </div>
                         </div>
                         <div className="bg-muted/10 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center">
