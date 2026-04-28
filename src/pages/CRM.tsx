@@ -43,7 +43,8 @@ import {
   Clock as ClockIcon,
   AlertCircle,
   FileCheck2,
-  ListFilter
+  ListFilter,
+  Zap
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
