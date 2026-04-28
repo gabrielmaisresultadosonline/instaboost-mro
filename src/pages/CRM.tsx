@@ -1270,10 +1270,10 @@ const CRM = () => {
                       </div>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
-          </TabsContent>
+              </>
+            )}
+          </div>
+        </TabsContent>
 
           {/* Remarketing / Broadcast Content */}
           <TabsContent value="broadcast">
