@@ -257,8 +257,11 @@ const CRM = () => {
       
       const { error } = await supabase
         .from('crm_settings')
-        .update(updatableSettings)
-        .eq('id', '00000000-0000-0000-0000-000000000001');
+        .upsert({
+          ...updatableSettings,
+          id: '00000000-0000-0000-0000-000000000001',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
 
       if (error) throw error;
 
@@ -266,6 +269,7 @@ const CRM = () => {
         title: "Configurações salvas!",
         description: "Suas credenciais e parâmetros de IA foram atualizados."
       });
+      fetchData(); // Refresh state
     } catch (error) {
       console.error("Error saving settings:", error);
       toast({
