@@ -794,6 +794,62 @@ const CRM = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Chat Dialog */}
+      <Dialog open={!!selectedContact} onOpenChange={(open) => !open && setSelectedContact(null)}>
+        <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden glass-card border-primary/20">
+          <DialogHeader className="p-4 border-b bg-secondary/30">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
+                {selectedContact?.name?.charAt(0) || selectedContact?.wa_id.slice(-2)}
+              </div>
+              <div>
+                <DialogTitle>{selectedContact?.name || "Sem Nome"}</DialogTitle>
+                <DialogDescription className="text-[10px]">+{selectedContact?.wa_id}</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 p-4 bg-secondary/10">
+            <div className="space-y-4">
+              {chatMessages.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground text-sm">
+                  Nenhuma mensagem ainda.
+                </div>
+              ) : (
+                chatMessages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${
+                      msg.direction === 'inbound' 
+                        ? 'bg-secondary text-foreground rounded-tl-none' 
+                        : 'bg-primary text-primary-foreground rounded-tr-none'
+                    }`}>
+                      <p>{msg.content}</p>
+                      <p className="text-[9px] opacity-50 mt-1 text-right">
+                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+
+          <div className="p-4 border-t bg-card/50">
+            <div className="flex gap-2">
+              <Input 
+                placeholder="Digite sua mensagem..." 
+                value={newMessage} 
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              />
+              <Button size="icon" onClick={handleSendMessage} disabled={sendingMessage || !newMessage.trim()}>
+                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
