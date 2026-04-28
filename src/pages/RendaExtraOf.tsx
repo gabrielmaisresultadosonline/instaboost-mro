@@ -44,8 +44,10 @@ import {
 import logoMro from "@/assets/logo-mro.png";
 import MoneyParticles from "@/components/MoneyParticles";
 import rendaExtraMroBanner from "@/assets/renda-extra-mro-banner.jpeg";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 
 const RendaExtraOf = () => {
+  const { whatsappNumber } = useWhatsAppConfig();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [isMainVideoPlaying, setIsMainVideoPlaying] = useState(false);
