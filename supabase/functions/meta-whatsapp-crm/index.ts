@@ -1,0 +1,191 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
+
+  try {
+    const { action, ...params } = await req.json()
+
+    // Get Meta Settings
+    const { data: settings } = await supabase
+      .from('crm_settings')
+      .select('*')
+      .eq('id', '00000000-0000-0000-0000-000000000001')
+      .single()
+
+    if (!settings?.meta_access_token) {
+      throw new Error('Meta API credentials not configured')
+    }
+
+    const { meta_access_token, meta_phone_number_id } = settings
+
+    if (action === 'sendMessage') {
+      const { to, text, buttons } = params
+      
+      let body: any = {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: to,
+      }
+
+      if (buttons && buttons.length > 0) {
+        body.type = "interactive"
+        body.interactive = {
+          type: "button",
+          body: { text: text },
+          action: {
+            buttons: buttons.map((b: any) => ({
+              type: "reply",
+              reply: {
+                id: b.id || Math.random().toString(36).substr(2, 9),
+                title: b.text.substring(0, 20)
+              }
+            }))
+          }
+        }
+      } else {
+        body.type = "text"
+        body.text = { body: text }
+      }
+
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${meta_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        }
+      )
+
+      const result = await response.json()
+      
+      // Log outbound message
+      if (result.messages && result.messages[0]) {
+        // Find or create contact
+        let { data: contact } = await supabase
+          .from('crm_contacts')
+          .select('id')
+          .eq('wa_id', to)
+          .single()
+        
+        if (!contact) {
+          const { data: newContact } = await supabase
+            .from('crm_contacts')
+            .insert({ wa_id: to })
+            .select('id')
+            .single()
+          contact = newContact
+        }
+
+        if (contact) {
+          await supabase.from('crm_messages').insert({
+            contact_id: contact.id,
+            direction: 'outbound',
+            content: text,
+            meta_message_id: result.messages[0].id,
+            status: 'sent'
+          })
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (action === 'broadcast') {
+      const { name, text, buttons, contactIds } = params
+      
+      // Create broadcast record
+      const { data: broadcast } = await supabase
+        .from('crm_broadcasts')
+        .insert({
+          name,
+          message_text: text,
+          buttons,
+          total_contacts: contactIds.length,
+          status: 'sending'
+        })
+        .select('id')
+        .single()
+
+      if (!broadcast) throw new Error('Failed to create broadcast record')
+      
+      const { data: contacts } = await supabase
+        .from('crm_contacts')
+        .select('wa_id')
+        .in('id', contactIds)
+
+      let sent = 0
+      let failed = 0
+
+      for (const contact of contacts || []) {
+        try {
+          const response = await fetch(
+            `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${meta_access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                messaging_product: "whatsapp",
+                to: contact.wa_id,
+                type: "text",
+                text: { body: text }
+              }),
+            }
+          )
+          
+          if (response.ok) sent++
+          else failed++
+          
+          await new Promise(r => setTimeout(r, 100))
+        } catch (e) {
+          failed++
+        }
+      }
+
+      await supabase
+        .from('crm_broadcasts')
+        .update({ 
+          status: 'completed', 
+          sent_count: sent, 
+          failed_count: failed 
+        })
+        .eq('id', broadcast.id)
+
+      return new Response(JSON.stringify({ success: true, sent, failed }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    return new Response(JSON.stringify({ error: 'Invalid action' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+})
