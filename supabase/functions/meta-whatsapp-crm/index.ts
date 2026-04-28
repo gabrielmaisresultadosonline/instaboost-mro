@@ -188,7 +188,7 @@ serve(async (req) => {
       })
     }
 
-      const { to, text, buttons, audioUrl, imageUrl, videoUrl, documentUrl, fileName } = params
+      if (action === 'sendMessage') {
       
       let body: any = {
         messaging_product: "whatsapp",
