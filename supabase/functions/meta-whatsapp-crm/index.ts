@@ -136,6 +136,63 @@ serve(async (req) => {
       
       console.log(`Sending template ${templateName} to ${to}...`);
 
+      // Auto-fill variables if components are missing or empty
+      let finalComponents = components || [];
+      if (finalComponents.length === 0) {
+        // Try to find the template to see how many body variables it needs
+        const { data: templateData } = await supabase
+          .from('crm_templates')
+          .select('components')
+          .eq('name', templateName)
+          .single();
+
+        if (templateData?.components) {
+          const bodyComponent = templateData.components.find((c: any) => c.type === 'BODY');
+          if (bodyComponent && bodyComponent.text) {
+            const varCount = (bodyComponent.text.match(/\{\{\d+\}\}/g) || []).length;
+            if (varCount > 0) {
+              console.log(`Auto-filling ${varCount} variables for template ${templateName}`);
+              
+              // Get contact name for personalization
+              const { data: contact } = await supabase
+                .from('crm_contacts')
+                .select('name')
+                .eq('wa_id', to)
+                .single();
+              
+              const name = contact?.name || 'Cliente';
+              const bodyParams = [];
+              
+              // Fill {{1}} with name, others with placeholder
+              for (let i = 1; i <= varCount; i++) {
+                bodyParams.push({
+                  type: "text",
+                  text: i === 1 ? name : "-"
+                });
+              }
+              
+              finalComponents.push({
+                type: "body",
+                parameters: bodyParams
+              });
+            }
+          }
+
+          // Handle Header if needed (e.g., IMAGE)
+          const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
+          if (headerComponent && headerComponent.format === 'IMAGE') {
+            const imageUrl = headerComponent.example?.header_handle?.[0] || 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=800&auto=format&fit=crop&q=60';
+            finalComponents.push({
+              type: "header",
+              parameters: [{
+                type: "image",
+                image: { link: imageUrl }
+              }]
+            });
+          }
+        }
+      }
+
       const response = await fetch(
         `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
         {
@@ -150,8 +207,8 @@ serve(async (req) => {
             type: "template",
             template: {
               name: templateName,
-              language: { code: languageCode },
-              components: components || []
+              language: { code: languageCode || 'pt_BR' },
+              components: finalComponents
             }
           }),
         }
@@ -172,6 +229,41 @@ serve(async (req) => {
       }
       
       console.log('Template sent successfully:', JSON.stringify(result));
+
+      // Save to message history
+      if (result.messages && result.messages[0]) {
+        const { data: contact } = await supabase
+          .from('crm_contacts')
+          .select('id, total_messages_sent')
+          .eq('wa_id', to)
+          .single()
+
+        if (contact) {
+          await supabase.from('crm_messages').insert({
+            contact_id: contact.id,
+            direction: 'outbound',
+            content: `[Template: ${templateName}]`,
+            message_type: 'template',
+            meta_message_id: result.messages[0].id,
+            status: 'sent'
+          })
+
+          await supabase
+            .from('crm_contacts')
+            .update({ 
+              total_messages_sent: (contact.total_messages_sent || 0) + 1,
+              last_interaction: new Date().toISOString()
+            })
+            .eq('id', contact.id)
+          
+          await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, result }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
 
     if (action === 'sendMessage') {
