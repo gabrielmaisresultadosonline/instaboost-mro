@@ -208,6 +208,88 @@ const CRM = () => {
     }
   };
 
+  const handleVCardImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target?.result as string;
+      const cards = text.split('BEGIN:VCARD');
+      const contactsToUpsert: any[] = [];
+
+      cards.forEach(card => {
+        if (!card.trim()) return;
+        
+        // Extract Name (FN or N)
+        let name = '';
+        const fnMatch = card.match(/FN:(.*)/);
+        if (fnMatch) {
+          name = fnMatch[1].trim();
+        } else {
+          const nMatch = card.match(/N:(.*)/);
+          if (nMatch) {
+            name = nMatch[1].replace(/;/g, ' ').trim();
+          }
+        }
+
+        // Extract Phone (TEL)
+        const telMatches = card.matchAll(/TEL.*:(.*)/g);
+        for (const match of telMatches) {
+          let phone = match[1].replace(/\D/g, ''); // Keep only digits
+          if (phone.length >= 10) {
+            // Basic WhatsApp ID validation
+            contactsToUpsert.push({
+              wa_id: phone,
+              name: name || phone,
+              status: 'new',
+              last_interaction: new Date().toISOString()
+            });
+          }
+        }
+      });
+
+      if (contactsToUpsert.length > 0) {
+        try {
+          // Chunk upserts if too many
+          const chunkSize = 50;
+          for (let i = 0; i < contactsToUpsert.length; i += chunkSize) {
+            const chunk = contactsToUpsert.slice(i, i + chunkSize);
+            const { error } = await supabase
+              .from('crm_contacts')
+              .upsert(chunk, { onConflict: 'wa_id' });
+            
+            if (error) throw error;
+          }
+
+          toast({
+            title: "Contatos importados!",
+            description: `${contactsToUpsert.length} contatos foram adicionados ou atualizados.`
+          });
+          fetchData();
+        } catch (error) {
+          console.error("Error importing VCard:", error);
+          toast({
+            title: "Erro na importação",
+            description: "Não foi possível salvar os contatos no banco de dados.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Nenhum contato encontrado",
+          description: "O arquivo VCard não parece conter contatos válidos.",
+          variant: "destructive"
+        });
+      }
+      setLoading(false);
+    };
+    reader.readAsText(file);
+    // Clear input
+    event.target.value = '';
+  };
+
   const handleLogout = () => {
     logoutAdmin();
     navigate('/crm/login');
