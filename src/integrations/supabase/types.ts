@@ -707,6 +707,7 @@ export type Database = {
           created_at: string | null
           current_flow_id: string | null
           current_step_index: number | null
+          custom_labels: string[] | null
           flow_state: string | null
           id: string
           is_qualified: boolean | null
@@ -724,6 +725,7 @@ export type Database = {
           created_at?: string | null
           current_flow_id?: string | null
           current_step_index?: number | null
+          custom_labels?: string[] | null
           flow_state?: string | null
           id?: string
           is_qualified?: boolean | null
@@ -741,6 +743,7 @@ export type Database = {
           created_at?: string | null
           current_flow_id?: string | null
           current_step_index?: number | null
+          custom_labels?: string[] | null
           flow_state?: string | null
           id?: string
           is_qualified?: boolean | null
