@@ -180,13 +180,31 @@ const CRM = () => {
     setLoading(true);
     try {
       // Fetch Settings
-      const { data: settingsData } = await supabase
+      const { data: settingsData, error: settingsError } = await supabase
         .from('crm_settings')
         .select('*')
-        .single();
+        .maybeSingle();
       
+      if (settingsError) console.error("Error fetching settings:", settingsError);
       if (settingsData) {
         setMetaSettings(settingsData);
+      } else {
+        // Initialize settings if none exist
+        const defaultSettings = {
+          id: '00000000-0000-0000-0000-000000000001',
+          meta_access_token: '',
+          meta_phone_number_id: '',
+          meta_waba_id: '',
+          openai_api_key: '',
+          ai_agent_enabled: false,
+          ai_agent_trigger: 'first_message',
+          initial_auto_response_enabled: true,
+          initial_response_text: '',
+          initial_response_buttons: []
+        };
+        setMetaSettings(defaultSettings);
+        // Silently try to create them if missing
+        await supabase.from('crm_settings').insert(defaultSettings);
       }
 
       // Fetch Metrics (Current day)
@@ -194,12 +212,12 @@ const CRM = () => {
         .from('crm_metrics')
         .select('*')
         .eq('date', new Date().toISOString().split('T')[0])
-        .single();
+        .maybeSingle();
       
       if (metricsData) {
         setMetrics(metricsData);
       } else {
-        // Fallback: sum from contacts
+        // Calculate from contacts
         const { data: contactsSummary } = await supabase
           .from('crm_contacts')
           .select('status, is_qualified, sale_closed, total_messages_sent, total_messages_received');
@@ -220,7 +238,7 @@ const CRM = () => {
         });
       }
 
-      // Fetch Flows
+      // Fetch Flows - separate steps fetch is handled by handleSaveFlow but we need steps here too
       const { data: flowsData } = await supabase
         .from('crm_flows')
         .select('*, crm_flow_steps(*)');
@@ -234,17 +252,14 @@ const CRM = () => {
       setContacts(contactsData || []);
 
       // Fetch Templates from DB
-      const { data: templatesData } = await (supabase as any)
+      const { data: templatesData } = await supabase
         .from('crm_templates')
         .select('*');
       setTemplates(templatesData || []);
 
     } catch (error) {
       console.error("Error fetching data:", error);
-      toast({
-        title: "Erro ao carregar dados",
-        variant: "destructive"
-      });
+      // We don't always want to show a scary toast for background fetches
     } finally {
       setLoading(false);
     }
