@@ -1234,22 +1234,42 @@ const CRM = () => {
           </ScrollArea>
           
           <div className="p-4 border-t bg-card space-y-3">
-            {/* Quick Templates */}
-            <ScrollArea className="w-full whitespace-nowrap pb-2">
-               <div className="flex gap-2">
-                 {templates.slice(0, 5).map(t => (
-                   <Button 
-                    key={t.id} 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-[10px] h-7"
-                    onClick={() => handleSendTemplate(t.name, t.language)}
-                   >
-                     {t.name}
-                   </Button>
-                 ))}
-               </div>
-            </ScrollArea>
+            {/* Quick Templates & Flows */}
+            <div className="space-y-2">
+              <ScrollArea className="w-full whitespace-nowrap pb-2">
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-[9px] uppercase">Templates</Badge>
+                  {templates.slice(0, 5).map(t => (
+                    <Button 
+                      key={t.id} 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-[10px] h-7"
+                      onClick={() => handleSendTemplate(t.name, t.language)}
+                    >
+                      {t.name}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <ScrollArea className="w-full whitespace-nowrap pb-2">
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-[9px] uppercase border-primary/30 text-primary">Fluxos</Badge>
+                  {flows.filter(f => f.is_active).map(f => (
+                    <Button 
+                      key={f.id} 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-[10px] h-7 border-primary/20 hover:bg-primary/10"
+                      onClick={() => handleTriggerFlow(f.id)}
+                    >
+                      <GitBranch className="w-3 h-3 mr-1" /> {f.name}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
 
             <div className="flex items-center gap-2">
               <div className="flex gap-1">
