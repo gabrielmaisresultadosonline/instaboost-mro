@@ -268,15 +268,26 @@ const CRM = () => {
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
-      const { id, created_at, updated_at, webhook_verify_token, ...updatableSettings } = metaSettings;
+      // Remove any fields that aren't in the DB to avoid errors
+      const { id, created_at, updated_at, webhook_verify_token, ...rest } = metaSettings;
       
+      const settingsToUpsert = {
+        meta_access_token: rest.meta_access_token || '',
+        meta_phone_number_id: rest.meta_phone_number_id || '',
+        meta_waba_id: rest.meta_waba_id || '',
+        openai_api_key: rest.openai_api_key || '',
+        ai_agent_enabled: rest.ai_agent_enabled ?? false,
+        ai_agent_trigger: rest.ai_agent_trigger || 'first_message',
+        initial_auto_response_enabled: rest.initial_auto_response_enabled ?? true,
+        initial_response_text: rest.initial_response_text || '',
+        initial_response_buttons: rest.initial_response_buttons || [],
+        id: '00000000-0000-0000-0000-000000000001',
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('crm_settings')
-        .upsert({
-          ...updatableSettings,
-          id: '00000000-0000-0000-0000-000000000001',
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
+        .upsert(settingsToUpsert, { onConflict: 'id' });
 
       if (error) throw error;
 
@@ -289,6 +300,7 @@ const CRM = () => {
       console.error("Error saving settings:", error);
       toast({
         title: "Erro ao salvar",
+        description: error instanceof Error ? error.message : "Verifique os dados e tente novamente.",
         variant: "destructive"
       });
     } finally {
