@@ -215,6 +215,53 @@ const CRM = () => {
     }
   };
 
+  const fetchMessages = async (contactId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('crm_messages')
+        .select('*')
+        .eq('contact_id', contactId)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      setChatMessages(data || []);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedContact || sendingMessage) return;
+    
+    setSendingMessage(true);
+    try {
+      // 1. Send via Edge Function
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: {
+          action: 'sendMessage',
+          to: selectedContact.wa_id,
+          text: newMessage
+        }
+      });
+
+      if (error) throw error;
+
+      // 2. Refresh messages
+      await fetchMessages(selectedContact.id);
+      setNewMessage('');
+    } catch (err) {
+      console.error("Error sending message:", err);
+      toast({ title: "Erro ao enviar", variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const openChat = (contact: any) => {
+    setSelectedContact(contact);
+    fetchMessages(contact.id);
+  };
+
   const handleVCardImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
