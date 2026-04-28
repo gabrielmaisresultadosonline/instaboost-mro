@@ -426,21 +426,41 @@ const CRM = () => {
                   <CardTitle>Gestão de Leads</CardTitle>
                   <CardDescription>Gerencie seus contatos e o progresso no funil</CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-muted-foreground" />
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filtrar por status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="new">Novos</SelectItem>
-                      <SelectItem value="responded">Respondidos</SelectItem>
-                      <SelectItem value="qualified">Qualificados</SelectItem>
-                      <SelectItem value="closed">Vendas</SelectItem>
-                      <SelectItem value="lost">Perdidos</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="vcard-upload"
+                      accept=".vcf"
+                      className="hidden"
+                      onChange={handleVCardImport}
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="gap-2"
+                      onClick={() => document.getElementById('vcard-upload')?.click()}
+                    >
+                      <FileUp className="w-4 h-4" /> Importar VCard
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-muted-foreground" />
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="new">Novos</SelectItem>
+                        <SelectItem value="responded">Respondidos</SelectItem>
+                        <SelectItem value="qualified">Qualificados</SelectItem>
+                        <SelectItem value="closed">Vendas</SelectItem>
+                        <SelectItem value="lost">Perdidos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
