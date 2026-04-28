@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Send, Layout, Type, Image as ImageIcon, Video, FileText, MousePointer2, ExternalLink, Phone } from "lucide-react";
+import { Plus, Trash2, Send, Layout, Type, Image as ImageIcon, Video, FileText, MousePointer2, ExternalLink, Phone, Play, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface TemplateBuilderProps {
