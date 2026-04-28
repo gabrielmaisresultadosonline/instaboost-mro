@@ -1365,59 +1365,6 @@ const CRM = () => {
         </Tabs>
       </main>
 
-      {/* Flow Editor Dialog remains the same */}
-      <Dialog open={isFlowEditorOpen} onOpenChange={setIsFlowEditorOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editor de Fluxo: {editingFlow?.name}</DialogTitle>
-            <DialogDescription>Construa sua sequência de mensagens inteligente.</DialogDescription>
-          </DialogHeader>
-          {/* ... existing flow editor content ... */}
-
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'image')} accept="image/*" id="img-upload" />
-                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => document.getElementById('img-upload')?.click()}>
-                  <ImageIcon className="w-4 h-4" />
-                </Button>
-                <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} accept="video/*" id="vid-upload" />
-                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => document.getElementById('vid-upload')?.click()}>
-                  <Video className="w-4 h-4" />
-                </Button>
-                <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'document')} accept=".pdf,.doc,.docx" id="doc-upload" />
-                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => document.getElementById('doc-upload')?.click()}>
-                  <FileText className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <Input 
-                placeholder="Digite sua mensagem..." 
-                value={newMessage} 
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                className="flex-1"
-              />
-              
-              {isRecording ? (
-                <Button variant="destructive" size="icon" onClick={stopRecording} className="animate-pulse h-10 w-10 rounded-full">
-                  <StopCircle className="w-5 h-5" />
-                </Button>
-              ) : (
-                <Button variant="ghost" size="icon" onClick={startRecording} className="h-10 w-10 hover:bg-red-500/10 hover:text-red-500 transition-colors">
-                  <Mic className="w-5 h-5" />
-                </Button>
-              )}
-              
-              <Button onClick={handleSendMessage} disabled={sendingMessage || (!newMessage.trim() && !isRecording)} className="h-10 w-10 rounded-full p-0">
-                {sendingMessage ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Send className="w-5 h-5" />}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Flow Editor Dialog */}
       <Dialog open={isFlowEditorOpen} onOpenChange={setIsFlowEditorOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col p-0 glass-card">
