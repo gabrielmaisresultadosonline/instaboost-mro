@@ -110,7 +110,7 @@ serve(async (req) => {
                     status: 'received'
                   })
 
-                  await supabase.rpc('increment_crm_metric', { metric_column: 'responded_count' }).catch(() => {})
+                  await supabase.rpc('increment_crm_metric', { metric_column: 'responded_count' })
 
                   // --- FLOW LOGIC ---
                   
