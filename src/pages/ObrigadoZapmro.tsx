@@ -6,10 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Sparkles, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { trackPageView, trackPurchase, trackLead } from "@/lib/facebookTracking";
+import { useWhatsAppConfig } from "@/hooks/useWhatsAppConfig";
 
 const ObrigadoZapmro = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const { whatsappNumber } = useWhatsAppConfig();
   const { toast } = useToast();
 
   useEffect(() => {
