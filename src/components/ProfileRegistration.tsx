@@ -300,6 +300,35 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
 
 
 
+  const handleSyncAll = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    setLoadingMessage('Sincronizando todas as suas contas...');
+    
+    try {
+      const squareResult = await verifyRegisteredIGs(user.username);
+      if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
+        onSyncComplete(squareResult.instagrams);
+        toast({
+          title: 'Sincronização completa',
+          description: `${squareResult.instagrams.length} contas encontradas e vinculadas.`
+        });
+      } else {
+        toast({
+          title: 'Nenhuma conta encontrada',
+          description: 'Não foram encontradas contas vinculadas ao seu usuário no servidor.'
+        });
+      }
+    } catch (error) {
+      console.error('[ProfileRegistration] Sync all error:', error);
+      toast({ title: 'Erro na sincronização', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
   const generateSimplePrint = async (username: string): Promise<Blob | null> => {
     try {
       const printDiv = document.createElement('div');
