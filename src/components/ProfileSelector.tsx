@@ -1,5 +1,5 @@
 import { ProfileSession } from '@/types/instagram';
-import { Plus, User, X, Check, Info } from 'lucide-react';
+import { Plus, User, X, Check, Info, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
