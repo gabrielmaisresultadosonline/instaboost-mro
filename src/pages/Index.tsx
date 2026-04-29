@@ -96,6 +96,14 @@ const Index = () => {
             setShowDashboard(true);
             // Show announcements when user is already logged in and has profiles
             setShowAnnouncements(true);
+            
+            // FORCED UPDATE: Every time the user enters, sync with SquareCloud
+            console.log("🔄 Entrou logado, forçando sincronização com SquareCloud...");
+            const user = getCurrentUser();
+            const squareResult = await verifyRegisteredIGs(user?.username || '');
+            if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
+              handleSyncComplete(squareResult.instagrams);
+            }
           }
         }
       } catch (error) {
