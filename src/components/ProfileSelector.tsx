@@ -114,6 +114,25 @@ export const ProfileSelector = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {onSync && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className={`h-9 w-9 flex-shrink-0 ${isLoading ? 'animate-spin' : ''}`}
+              onClick={onSync}
+              disabled={isLoading}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Sincronizar contas do Instagram</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
       <Tooltip>
         <TooltipTrigger asChild>
           <button className="p-1 sm:p-1.5 rounded-full hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-foreground flex-shrink-0">
