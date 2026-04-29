@@ -310,6 +310,7 @@ export const Dashboard = ({
                     onSelectProfile={onSelectProfile}
                     onAddProfile={onNavigateToRegister}
                     onRemoveProfile={onRemoveProfile}
+                    onSync={onSync}
                     isLoading={isLoading}
                   />
                 </div>
