@@ -30,6 +30,7 @@ import {
   Wrench,
   Lock,
   Camera,
+  RefreshCw,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -40,6 +41,7 @@ interface DashboardProps {
   onSelectProfile: (profileId: string) => void;
   onRemoveProfile: (profileId: string) => void;
   onNavigateToRegister: () => void;
+  onSync?: () => void;
   isLoading?: boolean;
   onLogout?: () => void;
 }
