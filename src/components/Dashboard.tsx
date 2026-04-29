@@ -56,6 +56,7 @@ export const Dashboard = ({
   onSelectProfile,
   onRemoveProfile,
   onNavigateToRegister,
+  onSync,
   isLoading,
   onLogout
 }: DashboardProps) => {
