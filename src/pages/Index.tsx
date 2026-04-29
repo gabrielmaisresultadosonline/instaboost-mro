@@ -516,6 +516,7 @@ const Index = () => {
           onSelectProfile={handleSelectProfile}
           onRemoveProfile={handleRemoveProfile}
           onNavigateToRegister={handleNavigateToRegister}
+          onSync={handleManualSync}
           isLoading={isLoading}
           onLogout={handleLogout}
         />
