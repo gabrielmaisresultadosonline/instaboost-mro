@@ -287,6 +287,37 @@ const Index = () => {
     });
   };
 
+  const handleManualSync = async () => {
+    setIsLoading(true);
+    setLoadingMessage('Buscando contas no servidor...');
+    try {
+      const user = getCurrentUser();
+      const squareResult = await verifyRegisteredIGs(user?.username || '');
+      
+      if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
+        await handleSyncComplete(squareResult.instagrams);
+        toast({
+          title: "Sincronização concluída",
+          description: `${squareResult.instagrams.length} contas encontradas.`,
+        });
+      } else {
+        setIsLoading(false);
+        toast({
+          title: "Nenhuma conta nova",
+          description: "Não foram encontradas novas contas vinculadas ao seu usuário.",
+        });
+      }
+    } catch (error) {
+      console.error('[Index] Error in handleManualSync:', error);
+      setIsLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Erro na sincronização",
+        description: "Não foi possível conectar ao servidor SquareCloud.",
+      });
+    }
+  };
+
   const handleAddNewProfile = async (username: string) => {
     // Just navigate to registration - profiles are analyzed via screenshot now
     toast({
