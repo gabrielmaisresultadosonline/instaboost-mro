@@ -406,6 +406,16 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 {registeredIGs.length > 0 && (
                   <span className="text-sm text-muted-foreground">{registeredIGs.length} perfil(is)</span>
                 )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSyncAll}
+                  disabled={isLoading}
+                  className="text-primary border-primary/20 hover:bg-primary/10"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+                  Sincronizar Tudo
+                </Button>
                 {onLogout && (
                   <Button variant="ghost" size="sm" onClick={onLogout} className="text-muted-foreground hover:text-destructive">
                     <LogOut className="w-4 h-4 mr-1" />
