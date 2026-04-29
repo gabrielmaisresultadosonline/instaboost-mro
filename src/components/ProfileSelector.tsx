@@ -20,6 +20,7 @@ interface ProfileSelectorProps {
   onSelectProfile: (profileId: string) => void;
   onAddProfile: () => void;
   onRemoveProfile: (profileId: string) => void;
+  onSync?: () => void;
   isLoading?: boolean;
 }
 
@@ -29,6 +30,7 @@ export const ProfileSelector = ({
   onSelectProfile,
   onAddProfile,
   onRemoveProfile,
+  onSync,
   isLoading,
 }: ProfileSelectorProps) => {
   const activeProfile = profiles.find(p => p.id === activeProfileId);
