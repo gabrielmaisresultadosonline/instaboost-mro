@@ -1,5 +1,5 @@
 import { ProfileSession } from '@/types/instagram';
-import { Plus, User, X, Check, Info } from 'lucide-react';
+import { Plus, User, X, Check, Info, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -20,6 +20,7 @@ interface ProfileSelectorProps {
   onSelectProfile: (profileId: string) => void;
   onAddProfile: () => void;
   onRemoveProfile: (profileId: string) => void;
+  onSync?: () => void;
   isLoading?: boolean;
 }
 
@@ -29,6 +30,7 @@ export const ProfileSelector = ({
   onSelectProfile,
   onAddProfile,
   onRemoveProfile,
+  onSync,
   isLoading,
 }: ProfileSelectorProps) => {
   const activeProfile = profiles.find(p => p.id === activeProfileId);
@@ -111,6 +113,25 @@ export const ProfileSelector = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {onSync && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className={`h-9 w-9 flex-shrink-0 ${isLoading ? 'animate-spin' : ''}`}
+              onClick={onSync}
+              disabled={isLoading}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Sincronizar contas do Instagram</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
 
       <Tooltip>
         <TooltipTrigger asChild>

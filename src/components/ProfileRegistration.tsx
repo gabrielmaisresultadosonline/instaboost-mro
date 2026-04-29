@@ -300,6 +300,35 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
 
 
 
+  const handleSyncAll = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    setLoadingMessage('Sincronizando todas as suas contas...');
+    
+    try {
+      const squareResult = await verifyRegisteredIGs(user.username);
+      if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
+        onSyncComplete(squareResult.instagrams);
+        toast({
+          title: 'Sincronização completa',
+          description: `${squareResult.instagrams.length} contas encontradas e vinculadas.`
+        });
+      } else {
+        toast({
+          title: 'Nenhuma conta encontrada',
+          description: 'Não foram encontradas contas vinculadas ao seu usuário no servidor.'
+        });
+      }
+    } catch (error) {
+      console.error('[ProfileRegistration] Sync all error:', error);
+      toast({ title: 'Erro na sincronização', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
   const generateSimplePrint = async (username: string): Promise<Blob | null> => {
     try {
       const printDiv = document.createElement('div');
@@ -377,6 +406,16 @@ export const ProfileRegistration = ({ onProfileRegistered, onSyncComplete, onEnt
                 {registeredIGs.length > 0 && (
                   <span className="text-sm text-muted-foreground">{registeredIGs.length} perfil(is)</span>
                 )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSyncAll}
+                  disabled={isLoading}
+                  className="text-primary border-primary/20 hover:bg-primary/10"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+                  Sincronizar Tudo
+                </Button>
                 {onLogout && (
                   <Button variant="ghost" size="sm" onClick={onLogout} className="text-muted-foreground hover:text-destructive">
                     <LogOut className="w-4 h-4 mr-1" />

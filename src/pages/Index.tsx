@@ -96,6 +96,14 @@ const Index = () => {
             setShowDashboard(true);
             // Show announcements when user is already logged in and has profiles
             setShowAnnouncements(true);
+            
+            // FORCED UPDATE: Every time the user enters, sync with SquareCloud
+            console.log("🔄 Entrou logado, forçando sincronização com SquareCloud...");
+            const user = getCurrentUser();
+            const squareResult = await verifyRegisteredIGs(user?.username || '');
+            if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
+              handleSyncComplete(squareResult.instagrams);
+            }
           }
         }
       } catch (error) {
@@ -277,6 +285,37 @@ const Index = () => {
       title: 'Perfis vinculados!',
       description: `${processedCount} perfil(is) vinculado(s). Envie prints para análise.`
     });
+  };
+
+  const handleManualSync = async () => {
+    setIsLoading(true);
+    setLoadingMessage('Buscando contas no servidor...');
+    try {
+      const user = getCurrentUser();
+      const squareResult = await verifyRegisteredIGs(user?.username || '');
+      
+      if (squareResult.success && squareResult.instagrams && squareResult.instagrams.length > 0) {
+        await handleSyncComplete(squareResult.instagrams);
+        toast({
+          title: "Sincronização concluída",
+          description: `${squareResult.instagrams.length} contas encontradas.`,
+        });
+      } else {
+        setIsLoading(false);
+        toast({
+          title: "Nenhuma conta nova",
+          description: "Não foram encontradas novas contas vinculadas ao seu usuário.",
+        });
+      }
+    } catch (error) {
+      console.error('[Index] Error in handleManualSync:', error);
+      setIsLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Erro na sincronização",
+        description: "Não foi possível conectar ao servidor SquareCloud.",
+      });
+    }
   };
 
   const handleAddNewProfile = async (username: string) => {
@@ -477,6 +516,7 @@ const Index = () => {
           onSelectProfile={handleSelectProfile}
           onRemoveProfile={handleRemoveProfile}
           onNavigateToRegister={handleNavigateToRegister}
+          onSync={handleManualSync}
           isLoading={isLoading}
           onLogout={handleLogout}
         />
