@@ -741,7 +741,14 @@ const CRM = () => {
                       </Button>
                     </div>
                     <CardTitle className="text-base truncate">{template.name}</CardTitle>
-                    <CardDescription>{template.category} • {template.language}</CardDescription>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-[10px]">
+                        {template.category === 'MARKETING' ? '📢 Marketing' : 
+                         template.category === 'UTILITY' ? '🛠️ Utilidade' : 
+                         '🔐 Autenticação'}
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px]">{template.language}</Badge>
+                    </div>
                   </CardHeader>
                   <CardContent className="p-4 bg-[#e5ddd5]/30 dark:bg-zinc-900/50">
                     <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg shadow-sm border border-zinc-100 dark:border-zinc-700">
