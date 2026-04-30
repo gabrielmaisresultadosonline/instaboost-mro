@@ -271,3 +271,8 @@ verify_jwt = false
 
 [functions.renda-extra-ligacao-storage]
 verify_jwt = false
+[functions.meta-whatsapp-crm]
+verify_jwt = false
+
+[functions.meta-webhook]
+verify_jwt = false
