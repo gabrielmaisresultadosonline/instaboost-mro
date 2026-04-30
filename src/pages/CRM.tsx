@@ -98,7 +98,9 @@ const CRM = () => {
     ai_agent_trigger: 'first_message',
     initial_auto_response_enabled: true,
     initial_response_text: '',
-    initial_response_buttons: []
+    initial_response_buttons: [],
+    shortcut_size: 100,
+    tag_size: 100
   });
   const [metrics, setMetrics] = useState<any>({
     sent_count: 0,
