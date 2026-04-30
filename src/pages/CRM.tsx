@@ -717,13 +717,14 @@ const CRM = () => {
 
   return (
     <SidebarProvider>
-      <div className="h-screen w-full flex overflow-hidden">
-        <Sidebar className="border-r">
-          <SidebarHeader className="p-4 border-b">
+      <div className="h-screen w-full flex overflow-hidden bg-background">
+        <Sidebar className="border-r shadow-sm">
+          <SidebarHeader className="p-4 border-b flex items-center justify-center">
             <Logo size="sm" />
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
+              <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Navegação</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {[
@@ -737,10 +738,13 @@ const CRM = () => {
                       <SidebarMenuButton 
                         isActive={activeTab === item.id} 
                         onClick={() => setActiveTab(item.id)}
-                        className="flex items-center gap-3 px-4 py-3"
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
+                          activeTab === item.id ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted"
+                        )}
                       >
-                        <item.icon className="w-5 h-5" />
-                        <span className="font-medium">{item.label}</span>
+                        <item.icon className={cn("w-5 h-5", activeTab === item.id ? "text-primary" : "text-muted-foreground")} />
+                        <span className="font-semibold">{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -749,59 +753,62 @@ const CRM = () => {
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter className="border-t p-4">
-            <Button variant="ghost" className="w-full justify-start" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
+            <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
               <LogOut className="mr-2 h-4 w-4" /> Sair
             </Button>
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden bg-background">
-          <header className="h-14 border-b flex items-center px-4 bg-background z-10 shrink-0">
-            <SidebarTrigger />
-            <h1 className="ml-4 text-lg font-semibold capitalize">{activeTab}</h1>
+        <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden">
+          <header className="h-16 border-b flex items-center px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <div className="h-4 w-px bg-border mx-2 hidden md:block" />
+              <h1 className="text-xl font-bold tracking-tight capitalize">{activeTab}</h1>
+            </div>
+            {activeTab === 'contacts' && (
+              <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)}>
+                {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                {kanbanView ? 'Lista' : 'Kanban'}
+              </Button>
+            )}
           </header>
           
-          <main className="flex-1 overflow-auto bg-muted/10 p-6">
+          <main className="flex-1 overflow-hidden relative flex flex-col">
             {activeTab === 'dashboard' && (
-              <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardDescription>Enviadas</CardDescription>
-                      <CardTitle className="text-3xl">{metrics.sent_count}</CardTitle>
-                    </CardHeader>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardDescription>Respondidas</CardDescription>
-                      <CardTitle className="text-3xl">{metrics.responded_count}</CardTitle>
-                    </CardHeader>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardDescription>Qualificadas</CardDescription>
-                      <CardTitle className="text-3xl">{metrics.qualified_count}</CardTitle>
-                    </CardHeader>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardDescription>Vendas</CardDescription>
-                      <CardTitle className="text-3xl">{metrics.sales_count}</CardTitle>
-                    </CardHeader>
-                  </Card>
+              <ScrollArea className="flex-1 p-8">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Métricas Gerais</h2>
+                    <p className="text-muted-foreground">Visão geral do desempenho da sua operação.</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[
+                      { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue' },
+                      { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow' },
+                      { label: 'Contatos Qualificados', value: metrics.qualified_count, icon: CheckCircle2, color: 'purple' },
+                      { label: 'Vendas Fechadas', value: metrics.sales_count, icon: DollarSign, color: 'green' },
+                    ].map((stat, i) => (
+                      <Card key={i} className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                          <CardDescription className="font-bold text-xs uppercase tracking-wider">{stat.label}</CardDescription>
+                          <stat.icon className={`w-5 h-5 text-${stat.color}-500`} />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-black">{stat.value}</div>
+                          <div className={`mt-2 h-1 w-full bg-${stat.color}-500/10 rounded-full overflow-hidden`}>
+                            <div className={`h-full bg-${stat.color}-500 transition-all duration-1000`} style={{ width: '70%' }} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </ScrollArea>
             )}
-            {/* Additional content for other tabs would go here, continuing from current state */}
-            {/* (I will implement the rest in subsequent edits to ensure stability) */}
-          </main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
-  );
 
+            {activeTab === 'contacts' && (
 
-          <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0 m-0 border-0 rounded-none bg-background">
             <div className="flex-1 flex overflow-hidden">
               {kanbanView ? (
                 <div className="flex-1 overflow-x-auto p-4 flex gap-4">
