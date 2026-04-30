@@ -654,33 +654,80 @@ const CRM = () => {
   const handleImportContacts = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const fileName = file.name.toLowerCase();
     const reader = new FileReader();
+
     reader.onload = async (event) => {
       const content = event.target?.result as string;
-      const lines = content.split('\n').filter(l => l.trim());
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      const imported = lines.slice(1).map(line => {
-        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-        const obj: any = {};
-        headers.forEach((h, i) => obj[h] = values[i]);
-        return obj;
-      });
 
-      for (const contact of imported) {
-        if (!contact.Telefone) continue;
-        await supabase.from('crm_contacts').upsert({
-          wa_id: contact.Telefone,
-          name: contact.Nome,
-          status: contact.Status || 'new',
-          metadata: {
-            bio: contact.Bio,
-            instagram: contact.Instagram,
-            facebook: contact.Facebook,
-            links: contact.Links
+      if (fileName.endsWith('.vcf') || fileName.endsWith('.vcard')) {
+        // vCard Import
+        const contacts_to_import: any[] = [];
+        const lines = content.split('\n');
+        let currentContact: any = { metadata: {} };
+
+        for (const line of lines) {
+          if (line.startsWith('BEGIN:VCARD')) {
+            currentContact = { metadata: {} };
+          } else if (line.startsWith('FN:')) {
+            currentContact.name = line.substring(3).trim();
+          } else if (line.startsWith('TEL;')) {
+            // Extract number from TEL;TYPE=CELL:5511999999999 or TEL:5511999999999
+            const match = line.match(/:(.*)$/);
+            if (match) {
+              currentContact.wa_id = match[1].trim().replace(/\D/g, '');
+            }
+          } else if (line.startsWith('NOTE:')) {
+            currentContact.metadata.bio = line.substring(5).trim();
+          } else if (line.startsWith('URL:')) {
+            currentContact.metadata.links = line.substring(4).trim();
+          } else if (line.startsWith('END:VCARD')) {
+            if (currentContact.wa_id) {
+              contacts_to_import.push(currentContact);
+            }
           }
-        }, { onConflict: 'wa_id' });
+        }
+
+        for (const contact of contacts_to_import) {
+          await supabase.from('crm_contacts').upsert({
+            wa_id: contact.wa_id,
+            name: contact.name,
+            status: 'new',
+            metadata: contact.metadata
+          }, { onConflict: 'wa_id' });
+        }
+        toast({ title: `${contacts_to_import.length} contatos importados do vCard!` });
+      } else {
+        // CSV Import (Keep existing logic)
+        const lines = content.split('\n').filter(l => l.trim());
+        if (lines.length < 2) return;
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const imported = lines.slice(1).map(line => {
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const obj: any = {};
+          headers.forEach((h, i) => obj[h] = values[i]);
+          return obj;
+        });
+
+        for (const contact of imported) {
+          const phone = contact.Telefone || contact.wa_id || contact.phone;
+          if (!phone) continue;
+          await supabase.from('crm_contacts').upsert({
+            wa_id: phone.replace(/\D/g, ''),
+            name: contact.Nome || contact.name,
+            status: contact.Status || 'new',
+            metadata: {
+              bio: contact.Bio || contact.bio,
+              instagram: contact.Instagram || contact.instagram,
+              facebook: contact.Facebook || contact.facebook,
+              links: contact.Links || contact.links
+            }
+          }, { onConflict: 'wa_id' });
+        }
+        toast({ title: "Importação CSV concluída!" });
       }
-      toast({ title: "Importação concluída!" });
       fetchContacts();
     };
     reader.readAsText(file);
