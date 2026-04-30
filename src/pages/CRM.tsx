@@ -1279,9 +1279,12 @@ const CRM = () => {
                                             <div className="aspect-video bg-muted/20 flex items-center justify-center relative overflow-hidden border-b border-border/10">
                                               {(() => {
                                                 const header = template.components.find((c: any) => c.type === 'HEADER');
-                                                const mediaUrl = m.media_url || header?.example?.header_handle?.[0];
+                                                let mediaUrl = m.media_url || header?.example?.header_handle?.[0];
                                                 
-                                                if (header?.format === 'IMAGE' && mediaUrl) {
+                                                // Se a URL for apenas um ID numérico (Meta Media ID), não conseguimos exibir diretamente
+                                                const isNumericId = mediaUrl && /^\d+$/.test(mediaUrl.toString());
+                                                
+                                                if (header?.format === 'IMAGE' && mediaUrl && !isNumericId) {
                                                   return <img src={mediaUrl} alt="Header" className="w-full h-full object-cover cursor-pointer" onClick={() => setPreviewMedia({ url: mediaUrl, type: 'image' })} />;
                                                 } else if (header?.format === 'VIDEO' && mediaUrl) {
                                                   return (
