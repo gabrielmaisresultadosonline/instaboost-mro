@@ -63,6 +63,8 @@ const CRM = () => {
     meta_access_token: '',
     meta_phone_number_id: '',
     meta_waba_id: '',
+    meta_app_id: '',
+    meta_app_secret: '',
     openai_api_key: '',
     ai_agent_enabled: false,
     ai_agent_trigger: 'first_message',
