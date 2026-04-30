@@ -75,13 +75,21 @@ serve(async (req) => {
           
           if (mediaUrl && (mediaUrl.startsWith('http') || mediaUrl.startsWith('https'))) {
             console.log(`Processing media header example for ${name}...`);
-            const appId = await getAppId(meta_access_token);
+            let appId = settings.meta_app_id;
+            
+            if (!appId) {
+              console.log('App ID not found in settings, attempting to debug token...');
+              appId = await getAppId(meta_access_token);
+            }
+
             if (appId) {
               const handle = await getMetaHeaderHandle(meta_access_token, appId, mediaUrl);
               if (handle) {
                 console.log(`Generated Meta handle for ${name}: ${handle}`);
                 component.example.header_handle = [handle];
               }
+            } else {
+              console.warn('Could not determine Meta App ID. Media upload might fail.');
             }
           }
         }
