@@ -65,6 +65,36 @@ serve(async (req) => {
       const { meta_waba_id } = settings
       const { name, category, language, components } = params
       
+      console.log(`Creating template ${name}...`);
+
+      // 1. Process components to get Meta handles for media examples
+      const processedComponents = [...components];
+      for (const component of processedComponents) {
+        if (component.type === 'HEADER' && (component.format === 'IMAGE' || component.format === 'VIDEO' || component.format === 'DOCUMENT')) {
+          const mediaUrl = component.example?.header_handle?.[0];
+          
+          if (mediaUrl && (mediaUrl.startsWith('http') || mediaUrl.startsWith('https'))) {
+            console.log(`Processing media header example for ${name}...`);
+            let appId = settings.meta_app_id;
+            
+            if (!appId) {
+              console.log('App ID not found in settings, attempting to debug token...');
+              appId = await getAppId(meta_access_token);
+            }
+
+            if (appId) {
+              const handle = await getMetaHeaderHandle(meta_access_token, appId, mediaUrl);
+              if (handle) {
+                console.log(`Generated Meta handle for ${name}: ${handle}`);
+                component.example.header_handle = [handle];
+              }
+            } else {
+              console.warn('Could not determine Meta App ID. Media upload might fail.');
+            }
+          }
+        }
+      }
+      
       const response = await fetch(
         `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates`,
         {
@@ -73,14 +103,14 @@ serve(async (req) => {
             'Authorization': `Bearer ${meta_access_token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ name, category, language, components }),
+          body: JSON.stringify({ name, category, language, components: processedComponents }),
         }
       )
       
       const result = await response.json()
       
       if (!response.ok) {
-        console.error('Meta API Error:', result)
+        console.error('Meta API Error:', JSON.stringify(result, null, 2));
         return new Response(JSON.stringify({ 
           success: false, 
           error: result.error?.message || 'Meta API returned an error',
@@ -98,7 +128,7 @@ serve(async (req) => {
           category,
           language,
           status: 'PENDING',
-          components,
+          components: processedComponents,
           updated_at: new Date().toISOString()
         })
       }
@@ -902,4 +932,58 @@ async function processStep(supabase: any, step: any, contactId: string, waId: st
   return new Response(JSON.stringify({ success: true, message: 'Step processed' }), {
     headers: { 'Content-Type': 'application/json' },
   })
+}
+
+async function getAppId(accessToken: string) {
+  try {
+    const response = await fetch(`https://graph.facebook.com/debug_token?input_token=${accessToken}&access_token=${accessToken}`);
+    const data = await response.json();
+    return data.data?.app_id;
+  } catch (error) {
+    console.error('Error getting App ID:', error);
+    return null;
+  }
+}
+
+async function getMetaHeaderHandle(accessToken: string, appId: string, mediaUrl: string) {
+  try {
+    console.log(`Getting Meta header handle for: ${mediaUrl}`);
+    
+    // 1. Fetch the file content
+    const fileResponse = await fetch(mediaUrl);
+    if (!fileResponse.ok) throw new Error(`Failed to fetch media from URL: ${mediaUrl}`);
+    const blob = await fileResponse.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    const fileSize = arrayBuffer.byteLength;
+    const fileType = blob.type || 'image/png';
+
+    // 2. Start Resumable Upload
+    const uploadStartResponse = await fetch(
+      `https://graph.facebook.com/v17.0/${appId}/uploads?file_length=${fileSize}&file_type=${fileType}&access_token=${accessToken}`,
+      { method: 'POST' }
+    );
+    const uploadStartData = await uploadStartResponse.json();
+    if (!uploadStartResponse.ok) throw new Error(`Failed to start upload: ${JSON.stringify(uploadStartData)}`);
+    const uploadSessionId = uploadStartData.id;
+
+    // 3. Upload the file content
+    const uploadResponse = await fetch(
+      `https://graph.facebook.com/v17.0/${uploadSessionId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `OAuth ${accessToken}`,
+          'file_offset': '0'
+        },
+        body: arrayBuffer
+      }
+    );
+    const uploadData = await uploadResponse.json();
+    if (!uploadResponse.ok) throw new Error(`Failed to upload content: ${JSON.stringify(uploadData)}`);
+    
+    return uploadData.h; // The handle
+  } catch (error) {
+    console.error('Error getting Meta header handle:', error);
+    return null;
+  }
 }

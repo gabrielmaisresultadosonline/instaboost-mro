@@ -63,6 +63,8 @@ const CRM = () => {
     meta_access_token: '',
     meta_phone_number_id: '',
     meta_waba_id: '',
+    meta_app_id: '',
+    meta_app_secret: '',
     openai_api_key: '',
     ai_agent_enabled: false,
     ai_agent_trigger: 'first_message',
@@ -1111,6 +1113,14 @@ const CRM = () => {
                   <div className="space-y-2">
                     <Label>WhatsApp Business Account ID</Label>
                     <Input value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Meta App ID (Opcional)</Label>
+                    <Input value={metaSettings.meta_app_id} onChange={e => setMetaSettings({...metaSettings, meta_app_id: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Meta App Secret (Opcional)</Label>
+                    <Input type="password" value={metaSettings.meta_app_secret} onChange={e => setMetaSettings({...metaSettings, meta_app_secret: e.target.value})} />
                   </div>
                 </div>
                 <Button onClick={handleSaveSettings} disabled={saving}>
