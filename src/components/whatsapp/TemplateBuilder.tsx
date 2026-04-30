@@ -143,8 +143,17 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
             <CardDescription>Crie um template oficial para aprovação da Meta</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Categoria</Label>
+            <div className="space-y-2">
+              <Label>Nome do Template (letras minúsculas e sublinhados)</Label>
+              <Input 
+                placeholder="ex: promocao_verao_2024" 
+                value={name} 
+                onChange={e => setName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} 
+                maxLength={512}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue />
