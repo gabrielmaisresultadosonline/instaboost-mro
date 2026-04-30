@@ -304,7 +304,7 @@ serve(async (req) => {
     }
 
     if (action === 'continueFlow') {
-      const { contactId, waId, buttonId, nextNodeId } = params
+      const { contactId, waId, buttonId, nextNodeId, text } = params
       
       const { data: contact } = await supabase
         .from('crm_contacts')
@@ -340,7 +340,19 @@ serve(async (req) => {
             nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === buttonId)
           }
           
-          // Priority 2: Match "responded" handle if no button matched or no buttonId provided
+          // Priority 1.5: Match text against button labels if no buttonId matched
+          if (!nextEdge && text && currentNode.data?.buttons) {
+            const matchedButtonIdx = currentNode.data.buttons.findIndex((b: any) => 
+              b.text?.toLowerCase().trim() === text.toLowerCase().trim() ||
+              (text.toLowerCase().includes('[button reply]') && text.toLowerCase().includes(b.text?.toLowerCase().trim()))
+            );
+            
+            if (matchedButtonIdx !== -1) {
+              const handleId = currentNode.data.buttons[matchedButtonIdx].id || `btn-${matchedButtonIdx}`;
+              nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === handleId);
+              console.log(`Matched text "${text}" to button index ${matchedButtonIdx} (handle: ${handleId})`);
+            }
+          }
           if (!nextEdge) {
             nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === 'responded')
           }
@@ -1044,11 +1056,27 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       // Stop current flow by deleting scheduled messages
       await supabase.from('crm_scheduled_messages').delete().eq('contact_id', contactId);
       
-      const { data: targetFlow } = await supabase
+      let { data: targetFlow } = await supabase
         .from('crm_flows')
         .select('*')
         .eq('id', node.data.targetFlowId)
         .single()
+      
+      // Fallback: search by name if ID not found
+      if (!targetFlow && node.data.targetFlowName) {
+        console.log(`Flow ID ${node.data.targetFlowId} not found, searching by name: ${node.data.targetFlowName}`);
+        const { data: flowsByName } = await supabase
+          .from('crm_flows')
+          .select('*')
+          .eq('name', node.data.targetFlowName)
+          .eq('is_active', true)
+          .limit(1);
+        
+        if (flowsByName && flowsByName.length > 0) {
+          targetFlow = flowsByName[0];
+          console.log(`Found matching flow by name with ID: ${targetFlow.id}`);
+        }
+      }
       
       if (targetFlow && targetFlow.nodes && targetFlow.nodes.length > 0) {
         const nodeIdsWithTarget = new Set(targetFlow.edges.map((e: any) => e.target))
@@ -1066,8 +1094,32 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
           .eq('id', contactId)
         
         return executeVisualNode(supabase, targetFlow, startNode, contactId, waId)
+      } else if (targetFlow) {
+        // Fallback to old steps system
+        await supabase
+          .from('crm_contacts')
+          .update({
+            current_flow_id: targetFlow.id,
+            current_step_index: 0,
+            flow_state: 'running',
+            last_flow_interaction: new Date().toISOString()
+          })
+          .eq('id', contactId)
+        
+        const { data: step } = await supabase
+          .from('crm_flow_steps')
+          .select('*')
+          .eq('flow_id', targetFlow.id)
+          .eq('step_order', 0)
+          .single()
+        
+        if (step) return processStep(supabase, step, contactId, waId)
+        
+        return new Response(JSON.stringify({ success: true, message: 'Jumped to step-based flow' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
       } else {
-        console.error('Target flow not found or has no nodes');
+        console.error('Target flow not found');
         sendResult = { success: false, error: 'Target flow not found' };
       }
     } else {
