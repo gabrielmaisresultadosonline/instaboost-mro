@@ -45,7 +45,8 @@ import {
   Timer,
   Settings,
   FileText,
-  RefreshCcw
+  RefreshCcw,
+  GitBranch
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -241,6 +242,23 @@ const TemplateNode = ({ data }: any) => (
   </Card>
 );
 
+const JumpNode = ({ data }: any) => (
+  <Card className="min-w-[200px] border-amber-600 shadow-md">
+    <Handle type="target" position={Position.Top} />
+    <CardHeader className="p-3 bg-amber-600 text-white rounded-t-lg flex flex-row items-center justify-between">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <GitBranch className="w-3 h-3" /> Pular para Fluxo
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3">
+      <p className="text-[10px] font-bold text-amber-700 truncate">
+        {data.targetFlowName || 'Selecione o fluxo...'}
+      </p>
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} />
+  </Card>
+);
+
 const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
@@ -252,6 +270,7 @@ const nodeTypes = {
   waitResponse: WaitResponseNode,
   crmAction: CRMActionNode,
   template: TemplateNode,
+  jump: JumpNode,
 };
 
 interface FlowEditorProps {
@@ -272,14 +291,20 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
   const [isActive, setIsActive] = useState(flow?.is_active !== false);
   const [uploading, setUploading] = useState(false);
   const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
+  const [availableFlows, setAvailableFlows] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchTemplates = async () => {
-      const { data } = await supabase.from('crm_templates').select('*');
-      if (data) setAvailableTemplates(data);
+    const fetchData = async () => {
+      const [templatesRes, flowsRes] = await Promise.all([
+        supabase.from('crm_templates').select('*'),
+        supabase.from('zapi_flows').select('id, name').neq('id', flow?.id || '')
+      ]);
+      
+      if (templatesRes.data) setAvailableTemplates(templatesRes.data);
+      if (flowsRes.data) setAvailableFlows(flowsRes.data);
     };
-    fetchTemplates();
-  }, []);
+    fetchData();
+  }, [flow?.id]);
 
   const handleFileUpload = async (file: File, nodeId: string, type: 'audio' | 'video' | 'image') => {
     setUploading(true);
@@ -354,7 +379,9 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
         language: '',
         bodyText: '',
         status: '',
-        category: ''
+        category: '',
+        targetFlowId: '',
+        targetFlowName: ''
       },
     };
     setNodes((nds) => nds.concat(newNode));
@@ -472,6 +499,9 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               <Button variant="outline" className="justify-start gap-2 border-slate-700/20 hover:bg-slate-700/10" onClick={() => addNode('crmAction')}>
                 <Zap className="w-4 h-4 text-slate-700" /> Ação CRM
               </Button>
+              <Button variant="outline" className="justify-start gap-2 border-amber-600/20 hover:bg-amber-600/10" onClick={() => addNode('jump')}>
+                <GitBranch className="w-4 h-4 text-amber-600" /> Pular p/ Fluxo
+              </Button>
             </div>
           </div>
 
@@ -501,27 +531,53 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                   <div className="space-y-3">
                     <Label className="text-xs">Botões (Máx 3)</Label>
                     {(selectedNode.data.buttons as any[]).map((btn, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Input 
-                          value={btn.text} 
-                          onChange={(e) => {
-                            const newButtons = [...(selectedNode.data.buttons as any[])];
-                            newButtons[idx].text = e.target.value;
-                            updateNodeData(selectedNode.id, { buttons: newButtons });
-                          }}
-                          className="text-xs h-8"
-                        />
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-red-400"
-                          onClick={() => {
-                            const newButtons = (selectedNode.data.buttons as any[]).filter((_, i) => i !== idx);
-                            updateNodeData(selectedNode.id, { buttons: newButtons });
-                          }}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
+                      <div key={idx} className="space-y-1 p-2 border rounded-md bg-slate-50/50">
+                        <div className="flex gap-2">
+                          <Input 
+                            value={btn.text} 
+                            onChange={(e) => {
+                              const newButtons = [...(selectedNode.data.buttons as any[])];
+                              newButtons[idx].text = e.target.value;
+                              updateNodeData(selectedNode.id, { buttons: newButtons });
+                            }}
+                            placeholder="Texto do botão"
+                            className="text-xs h-8"
+                          />
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-red-400 shrink-0"
+                            onClick={() => {
+                              const newButtons = (selectedNode.data.buttons as any[]).filter((_, i) => i !== idx);
+                              updateNodeData(selectedNode.id, { buttons: newButtons });
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-[10px] text-muted-foreground">Ação ao clicar (Opcional)</Label>
+                          <Select 
+                            value={btn.targetFlowId || "none"} 
+                            onValueChange={(val) => {
+                              const newButtons = [...(selectedNode.data.buttons as any[])];
+                              const targetFlow = availableFlows.find(f => f.id === val);
+                              newButtons[idx].targetFlowId = val === "none" ? null : val;
+                              newButtons[idx].targetFlowName = val === "none" ? null : targetFlow?.name;
+                              updateNodeData(selectedNode.id, { buttons: newButtons });
+                            }}
+                          >
+                            <SelectTrigger className="text-[10px] h-7">
+                              <SelectValue placeholder="Nenhuma (segue o fluxo)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Nenhuma (segue o fluxo)</SelectItem>
+                              {availableFlows.map(f => (
+                                <SelectItem key={f.id} value={f.id}>Pular para: {f.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     ))}
                     {(selectedNode.data.buttons as any[]).length < 3 && (
@@ -693,6 +749,42 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                         <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+                {selectedNode.type === 'jump' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Escolher Fluxo de Destino</Label>
+                      <Select 
+                        value={selectedNode.data.targetFlowId as string} 
+                        onValueChange={(val) => {
+                          const targetFlow = availableFlows.find(f => f.id === val);
+                          if (targetFlow) {
+                            updateNodeData(selectedNode.id, { 
+                              targetFlowId: val, 
+                              targetFlowName: targetFlow.name
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="text-xs h-8">
+                          <SelectValue placeholder="Selecione um fluxo..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableFlows.map(f => (
+                            <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                      <p className="text-[10px] text-amber-700 font-medium flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> Atenção
+                      </p>
+                      <p className="text-[9px] text-amber-600/80 mt-1">
+                        Ao chegar neste nó, o cliente será transferido instantaneamente para o início do fluxo selecionado.
+                      </p>
+                    </div>
                   </div>
                 )}
                 {selectedNode.type === 'template' && (
