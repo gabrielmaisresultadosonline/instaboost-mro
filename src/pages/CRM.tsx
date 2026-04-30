@@ -1261,13 +1261,18 @@ const CRM = () => {
             </Dialog>
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configurações da API Meta</CardTitle>
-                <CardDescription>Configure suas credenciais do Facebook Business</CardDescription>
+          <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6 overflow-y-auto">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold tracking-tight">Configurações do Sistema</h2>
+              <p className="text-muted-foreground text-sm">Gerencie suas conexões e parâmetros de automação</p>
+            </div>
+
+            <Card className="border-zinc-200 dark:border-zinc-800">
+              <CardHeader className="bg-muted/30">
+                <CardTitle className="text-lg">Configurações da API Meta</CardTitle>
+                <CardDescription>Configure suas credenciais do Facebook Business para o WhatsApp</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Access Token (Permanente)</Label>
