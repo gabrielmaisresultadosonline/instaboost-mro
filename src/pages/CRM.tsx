@@ -785,10 +785,10 @@ const CRM = () => {
                             <Badge 
                               key={s} 
                               variant={statusFilter === s ? 'default' : 'outline'} 
-                              className="cursor-pointer capitalize whitespace-nowrap"
+                              className="cursor-pointer capitalize whitespace-nowrap text-[9px] px-1.5 h-4.5 font-bold"
                               onClick={() => setStatusFilter(s)}
                             >
-                              {s}
+                              {s === 'all' ? 'Todos' : s}
                             </Badge>
                           ))}
                         </div>
@@ -811,9 +811,9 @@ const CRM = () => {
                                 </span>
                               </div>
                               <div className="flex justify-between items-center">
-                                <Badge variant="outline" className={cn("text-[10px] px-1.5 h-4 capitalize", getStatusColor(contact.status))}>{contact.status}</Badge>
+                                <Badge variant="outline" className={cn("text-[8px] px-1 h-3.5 capitalize font-medium", getStatusColor(contact.status))}>{contact.status}</Badge>
                                 {contact.flow_state && contact.flow_state !== 'idle' && (
-                                  <Badge variant="secondary" className="text-[9px] h-4 bg-primary/10 text-primary animate-pulse border-none">Fluxo Ativo</Badge>
+                                  <Badge variant="secondary" className="text-[8px] h-3.5 bg-primary/10 text-primary animate-pulse border-none">Fluxo Ativo</Badge>
                                 )}
                               </div>
                             </button>
@@ -842,7 +842,7 @@ const CRM = () => {
                                   <p className="font-bold text-base">{selectedContact.name || selectedContact.wa_id}</p>
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                     <Badge variant="outline" className={cn(
-                                      "text-[10px] px-1.5 h-4 flex items-center gap-1",
+                                      "text-[9px] px-1 h-3.5 flex items-center gap-1 font-medium",
                                       selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
                                     )}>
                                       <div className={cn("w-1.5 h-1.5 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
@@ -879,18 +879,18 @@ const CRM = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-muted/10 border-b px-3 py-2 flex flex-col sm:flex-row gap-2 sm:gap-4 sticky top-14 z-[5] backdrop-blur-sm overflow-hidden">
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <span className="text-[10px] font-black uppercase text-muted-foreground/80 shrink-0 flex items-center gap-1 bg-muted/20 px-1.5 py-0.5 rounded">
-                                <FileText className="w-3 h-3 text-emerald-500" /> Modelos
+                          <div className="bg-muted/5 border-b px-2 py-1.5 flex flex-col gap-1.5 sticky top-14 z-[5] backdrop-blur-md overflow-hidden">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.3 rounded-sm border border-border/20">
+                                <FileText className="w-2.5 h-2.5 text-emerald-500" /> Modelos
                               </span>
-                              <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 flex-1">
-                                {templates.slice(0, 8).map(t => (
+                              <div className="flex flex-wrap gap-1 flex-1">
+                                {templates.slice(0, 10).map(t => (
                                   <Button 
                                     key={t.id} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="h-7 text-[10px] px-3 rounded-full border-emerald-500/30 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-sm" 
+                                    className="h-6 text-[9px] px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                     onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
                                     disabled={sendingMessage}
                                   >
@@ -900,17 +900,17 @@ const CRM = () => {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2 min-w-0 flex-1 sm:border-l sm:pl-4 border-muted">
-                              <span className="text-[10px] font-black uppercase text-muted-foreground/80 shrink-0 flex items-center gap-1 bg-muted/20 px-1.5 py-0.5 rounded">
-                                <Zap className="w-3 h-3 text-blue-500" /> Fluxos
+                            <div className="flex items-center gap-1.5 min-w-0 pt-1 border-t border-border/5">
+                              <span className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.3 rounded-sm border border-border/20">
+                                <Zap className="w-2.5 h-2.5 text-blue-500" /> Fluxos
                               </span>
-                              <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 flex-1">
-                                {flows.filter(f => f.is_active).slice(0, 8).map(f => (
+                              <div className="flex flex-wrap gap-1 flex-1">
+                                {flows.filter(f => f.is_active).slice(0, 10).map(f => (
                                   <Button 
                                     key={f.id} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="h-7 text-[10px] px-3 rounded-full border-blue-500/30 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-sm" 
+                                    className="h-6 text-[9px] px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                     onClick={() => handleTriggerFlow(f.id)} 
                                     disabled={sendingMessage}
                                   >
