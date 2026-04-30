@@ -658,9 +658,8 @@ async function internalSendTemplate(
           });
         } else {
           // Meta CDN links often fail when sent as 'link'.
-          // For template headers that are images, we MUST provide a valid parameter.
-          // We use a high-quality, stable public JPG image that is known to be accepted by Meta.
-          const fallbackImage = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg";
+          // We use a high-quality, stable public JPG image from our own storage that is known to be accepted by Meta.
+          const fallbackImage = "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/crm-media/template-headers/fallback-header.jpg";
           console.log(`Using fallback image for template header: ${fallbackImage}`);
           finalComponents.push({
             type: "header",
