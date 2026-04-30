@@ -1957,7 +1957,8 @@ const CRM = () => {
                     name: contactToView.name,
                     wa_id: contactToView.wa_id,
                     metadata: contactToView.metadata,
-                    status: 'new'
+                    status: 'new',
+                    source_type: 'system'
                   }]);
                   if (error) {
                     toast({ title: "Erro ao criar contato", variant: "destructive" });
