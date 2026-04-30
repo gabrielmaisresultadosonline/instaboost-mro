@@ -308,6 +308,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
               <Button variant="outline" className="justify-start gap-2 border-red-500/20 hover:bg-red-500/10" onClick={() => addNode('followup')}>
                 <AlertCircle className="w-4 h-4 text-red-500" /> Lembrete
               </Button>
+              <Button variant="outline" className="justify-start gap-2 border-slate-700/20 hover:bg-slate-700/10" onClick={() => addNode('crmAction')}>
+                <Zap className="w-4 h-4 text-slate-700" /> Ação CRM
+              </Button>
             </div>
           </div>
 
