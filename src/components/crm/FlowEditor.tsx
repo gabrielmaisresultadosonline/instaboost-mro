@@ -858,4 +858,10 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
   );
 };
 
+const FlowEditor: React.FC<FlowEditorProps> = (props) => (
+  <ReactFlowProvider>
+    <FlowEditorInner {...props} />
+  </ReactFlowProvider>
+);
+
 export default FlowEditor;
