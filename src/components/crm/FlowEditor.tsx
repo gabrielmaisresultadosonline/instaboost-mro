@@ -379,7 +379,9 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
         language: '',
         bodyText: '',
         status: '',
-        category: ''
+        category: '',
+        targetFlowId: '',
+        targetFlowName: ''
       },
     };
     setNodes((nds) => nds.concat(newNode));
