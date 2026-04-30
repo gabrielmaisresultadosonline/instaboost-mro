@@ -783,7 +783,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
   }
 
   // AUTO-CONTINUE for non-waiting nodes
-  const autoContinueTypes = ['message', 'audio', 'video', 'image', 'crmAction', 'followup']
+  const autoContinueTypes = ['message', 'audio', 'video', 'image', 'crmAction', 'followup', 'template']
   if (autoContinueTypes.includes(node.type)) {
     // Only continue if the action was successful
     if (sendResult?.success) {
