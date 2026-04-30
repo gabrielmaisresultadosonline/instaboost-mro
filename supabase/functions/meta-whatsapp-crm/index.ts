@@ -304,7 +304,7 @@ serve(async (req) => {
     }
 
     if (action === 'continueFlow') {
-      const { contactId, waId, buttonId, nextNodeId } = params
+      const { contactId, waId, buttonId, nextNodeId, text } = params
       
       const { data: contact } = await supabase
         .from('crm_contacts')
