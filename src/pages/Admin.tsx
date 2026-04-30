@@ -1114,9 +1114,12 @@ const Admin = () => {
         {activeTab === 'userlist' && (
           <UsersListPanel />
         )}
-      </main>
-    </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
 
 export default Admin;
+
