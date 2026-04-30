@@ -45,15 +45,35 @@ import {
   FileCheck2,
   ListFilter,
   Zap,
-  Eye
+  Eye,
+  LayoutDashboard,
+  Menu,
+  ChevronLeft
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
+import { 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarContent, 
+  SidebarHeader, 
+  SidebarFooter, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarTrigger
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+
 
 const CRM = () => {
   const navigate = useNavigate();
