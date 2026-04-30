@@ -1089,17 +1089,28 @@ const CRM = () => {
                                     </Badge>
                                   </p>
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                    <Badge 
-                                      variant="outline" 
-                                      style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                      className={cn(
-                                        "px-1 flex items-center gap-1 font-medium",
-                                        selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
-                                      )}
-                                    >
-                                      <div className={cn("w-1.5 h-1.5 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
-                                      {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
-                                    </Badge>
+                                    <div className="flex items-center gap-1">
+                                      <Badge 
+                                        variant="outline" 
+                                        style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                        className={cn(
+                                          "px-1 flex items-center gap-1 font-medium",
+                                          selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
+                                        )}
+                                      >
+                                        <div className={cn("w-1.5 h-1.5 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
+                                        {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
+                                      </Badge>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-5 w-5 text-red-500 hover:text-red-700 hover:bg-red-50/50" 
+                                        onClick={() => handleCancelFlow(selectedContact.id)}
+                                        title="Parar Fluxo"
+                                      >
+                                        <StopCircle className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </div>
                                   )}
                                 </div>
                                 {selectedContact.last_interaction && (
