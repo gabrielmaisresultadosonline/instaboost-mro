@@ -173,6 +173,7 @@ const nodeTypes = {
   delay: DelayNode,
   question: QuestionNode,
   followup: FollowUpNode,
+  waitResponse: WaitResponseNode,
 };
 
 interface FlowEditorProps {
