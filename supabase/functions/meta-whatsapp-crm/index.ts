@@ -424,19 +424,7 @@ serve(async (req) => {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-function sanitizeMetaLink(url: string | null | undefined): string {
-  if (!url) return "";
-  const isMetaCdn = url.includes('whatsapp.net') || 
-                    url.includes('fbcdn.net') || 
-                    url.includes('facebook.com');
-  
-  if (isMetaCdn) {
-    console.log('Sanitizing Meta CDN link:', url);
-    // Use a generic but professional placeholder image for CRM
-    return "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg";
-  }
-  return url;
-}
+// sanitizeMetaLink removed as we now use uploadMediaToMeta for all media types to ensure delivery
 
 async function handleInternalSendMessage(supabase: any, meta_phone_number_id: string, meta_access_token: string, params: any, contact: any) {
   const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons, headerText, footerText, isVoice } = params
@@ -460,15 +448,30 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
     body.type = "image"
-    body.image = { link: sanitizeMetaLink(imageUrl), caption: text }
+    const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, imageUrl, 'image');
+    if (metaMediaId) {
+      body.image = { id: metaMediaId, caption: text };
+    } else {
+      body.image = { link: imageUrl, caption: text };
+    }
     mediaUrlToStore = imageUrl;
   } else if (videoUrl) {
     body.type = "video"
-    body.video = { link: videoUrl, caption: text }
+    const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, videoUrl, 'video');
+    if (metaMediaId) {
+      body.video = { id: metaMediaId, caption: text };
+    } else {
+      body.video = { link: videoUrl, caption: text };
+    }
     mediaUrlToStore = videoUrl;
   } else if (documentUrl) {
     body.type = "document"
-    body.document = { link: documentUrl, caption: text, filename: fileName || "document.pdf" }
+    const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, documentUrl, 'document');
+    if (metaMediaId) {
+      body.document = { id: metaMediaId, caption: text, filename: fileName || "document.pdf" };
+    } else {
+      body.document = { link: documentUrl, caption: text, filename: fileName || "document.pdf" };
+    }
     mediaUrlToStore = documentUrl;
   } else if (buttons && buttons.length > 0) {
     body.type = "interactive"
@@ -486,7 +489,12 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
       }
     }
     if (imageUrl) {
-      interactive.header = { type: "image", image: { link: sanitizeMetaLink(imageUrl) } }
+      const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, imageUrl, 'image');
+      if (metaMediaId) {
+        interactive.header = { type: "image", image: { id: metaMediaId } };
+      } else {
+        interactive.header = { type: "image", image: { link: imageUrl } };
+      }
       mediaUrlToStore = imageUrl;
     }
     else if (headerText) interactive.header = { type: "text", text: headerText }
@@ -643,41 +651,29 @@ async function internalSendTemplate(
           }
         }
 
-        // Check if the image is from Meta's CDN (scontent.whatsapp.net)
-        const isMetaCdn = imageUrl && (
-          imageUrl.includes('whatsapp.net') || 
-          imageUrl.includes('fbcdn.net') || 
-          imageUrl.includes('facebook.com')
-        );
-
-        if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
-          finalComponents.push({
-            type: "header",
-            parameters: [{
-              type: "image",
-              image: { link: imageUrl }
-            }]
-          });
-        } else {
-          // If no URL is provided, try to use the header_handle from the template itself
-          const headerHandle = headerComponent.example?.header_handle?.[0];
-          if (headerHandle) {
-             finalComponents.push({
-              type: "header",
-              parameters: [{
-                type: "image",
-                image: { link: headerHandle }
-              }]
-            });
-          } else {
-            // Last resort fallback
-            const fallbackImage = "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/crm-media/template-headers/fallback-header.jpg";
-            console.log(`Using fallback image for template header: ${fallbackImage}`);
+        if (imageUrl) {
+          console.log(`Processing header image: ${imageUrl}`);
+          // Always try to upload to Meta to get an ID, especially for Meta's own CDN links
+          // which are often rejected when sent as a "link"
+          const metaMediaId = await uploadMediaToMeta(metaAccessToken, metaPhoneNumberId, imageUrl, 'image');
+          
+          if (metaMediaId) {
+            console.log(`Using Meta Media ID for header: ${metaMediaId}`);
             finalComponents.push({
               type: "header",
               parameters: [{
                 type: "image",
-                image: { link: fallbackImage }
+                image: { id: metaMediaId }
+              }]
+            });
+          } else if (imageUrl.startsWith('http')) {
+            // Fallback to link if upload fails but we have a valid-looking URL
+            console.log(`Fallback to image link: ${imageUrl}`);
+            finalComponents.push({
+              type: "header",
+              parameters: [{
+                type: "image",
+                image: { link: imageUrl }
               }]
             });
           }
@@ -686,15 +682,28 @@ async function internalSendTemplate(
          let mediaUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.[headerComponent.format.toLowerCase()]?.link;
          if (!mediaUrl) mediaUrl = headerComponent.example?.header_handle?.[0];
 
-         if (mediaUrl && !mediaUrl.includes('whatsapp.net')) {
+         if (mediaUrl) {
             const type = headerComponent.format.toLowerCase();
-            const mediaObj: any = { link: mediaUrl };
-            if (type === 'document') mediaObj.filename = "document.pdf";
-            
-            finalComponents.push({
-              type: "header",
-              parameters: [{ type, [type]: mediaObj }]
-            });
+            console.log(`Processing header ${type}: ${mediaUrl}`);
+            const metaMediaId = await uploadMediaToMeta(metaAccessToken, metaPhoneNumberId, mediaUrl, type);
+
+            if (metaMediaId) {
+              finalComponents.push({
+                type: "header",
+                parameters: [{
+                  type,
+                  [type]: { id: metaMediaId }
+                }]
+              });
+            } else if (mediaUrl.startsWith('http')) {
+              const mediaObj: any = { link: mediaUrl };
+              if (type === 'document') mediaObj.filename = "document.pdf";
+              
+              finalComponents.push({
+                type: "header",
+                parameters: [{ type, [type]: mediaObj }]
+              });
+            }
          }
       } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
         const headerText = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.text || contact?.name || 'Cliente';
