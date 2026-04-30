@@ -821,6 +821,7 @@ const CRM = () => {
                               </div>
                             )}
                           </div>
+                        </div>
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })} className="hidden sm:flex">Qualificar</Button>
                             <Button size="sm" className="bg-green-600 hidden sm:flex text-white hover:bg-green-700" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
