@@ -430,7 +430,17 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               onChange={(e) => setFlowName(e.target.value)}
               className="font-bold border-none h-auto p-0 focus-visible:ring-0 text-lg"
             />
-            <p className="text-xs text-muted-foreground">Editor de Fluxo Visual</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-2">
+              Editor de Fluxo Visual
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-6 px-2 text-[10px] gap-1 border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 ml-2" 
+                onClick={() => setSelectedNode(null)}
+              >
+                <Zap className="w-3 h-3" /> Configurar Gatilho
+              </Button>
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -461,6 +471,13 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               </Button>
             </div>
             <div className="grid grid-cols-1 gap-2">
+              <Button 
+                variant="outline" 
+                className="justify-start gap-2 border-amber-500/30 bg-amber-50/50 hover:bg-amber-100/50 text-amber-700" 
+                onClick={() => setSelectedNode(null)}
+              >
+                <Zap className="w-4 h-4 text-amber-500" /> Configurar Gatilho
+              </Button>
               <Button variant="outline" className="justify-start gap-2 border-blue-500/20 hover:bg-blue-500/10" onClick={() => addNode('message')}>
                 <MessageSquare className="w-4 h-4 text-blue-500" /> Texto
               </Button>
@@ -849,8 +866,8 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
             </div>
           ) : (
             <div className="pt-6 border-t animate-in fade-in slide-in-from-left-4">
-              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                <Settings className="w-4 h-4" /> Configurações do Fluxo
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-amber-700">
+                <Zap className="w-4 h-4" /> Gatilho do Fluxo
               </h3>
               
               <div className="space-y-4">
