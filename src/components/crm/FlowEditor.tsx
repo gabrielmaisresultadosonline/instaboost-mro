@@ -15,6 +15,10 @@ import {
   Position,
   ReactFlowProvider,
   useReactFlow,
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+  reconnectEdge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { supabase } from "@/integrations/supabase/client";
@@ -267,6 +271,59 @@ const JumpNode = ({ data }: any) => (
   </Card>
 );
 
+// Custom Edge with a button to break the connection
+const ButtonEdge = ({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  style = {},
+  markerEnd,
+}: any) => {
+  const { setEdges } = useReactFlow();
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  const onEdgeClick = (evt: React.MouseEvent) => {
+    evt.stopPropagation();
+    setEdges((edges) => edges.filter((edge) => edge.id !== id));
+  };
+
+  return (
+    <>
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
+      <EdgeLabelRenderer>
+        <div
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+            fontSize: 12,
+            pointerEvents: 'all',
+          }}
+          className="nodrag nopan"
+        >
+          <button
+            className="w-5 h-5 bg-white border border-slate-200 rounded-full shadow-md flex items-center justify-center hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all cursor-pointer group scale-90 hover:scale-110 active:scale-95"
+            onClick={onEdgeClick}
+            title="Quebrar conexão"
+          >
+            <X className="w-3 h-3 text-slate-400 group-hover:text-red-500" />
+          </button>
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  );
+};
+
 const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
@@ -281,6 +338,10 @@ const nodeTypes = {
   jump: JumpNode,
 };
 
+const edgeTypes = {
+  button: ButtonEdge,
+};
+
 interface FlowEditorProps {
   flow: any;
   onSave: (flow: any) => void;
@@ -291,7 +352,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
   const { screenToFlowPosition } = useReactFlow();
   const { toast } = useToast();
   const [nodes, setNodes, onNodesChange] = useNodesState(flow?.nodes || []);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(flow?.edges || []);
+  const [edges, setEdges, onEdgesChange] = useEdgesState((flow?.edges || []).map((e: any) => ({ ...e, type: 'button' })));
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [flowName, setFlowName] = useState(flow?.name || 'Novo Fluxo');
   const [triggerType, setTriggerType] = useState(flow?.trigger_type || 'manual');
@@ -350,7 +411,21 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
   };
 
   const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Edge | Connection) => {
+      const edge = {
+        ...params,
+        type: 'button',
+        animated: true,
+        style: { strokeWidth: 2 }
+      };
+      setEdges((eds) => addEdge(edge, eds));
+    },
+    [setEdges],
+  );
+
+  const onReconnect = useCallback(
+    (oldEdge: Edge, newConnection: Connection) =>
+      setEdges((els) => reconnectEdge(oldEdge, newConnection, els)),
     [setEdges],
   );
 
@@ -934,7 +1009,9 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onReconnect={onReconnect}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             onNodeClick={(_, node) => setSelectedNode(node)}
             fitView
           >
