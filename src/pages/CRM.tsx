@@ -1046,14 +1046,18 @@ const CRM = () => {
                                 // Fallback para templates antigos que não têm o prefixo [Template: name]
                                 if (isTemplate && !template && m.content) {
                                   template = templates.find(t => {
-                                    const bodyText = t.components?.find((c: any) => c.type === 'BODY')?.text;
+                                    const bodyComponent = t.components?.find((c: any) => c.type === 'BODY');
+                                    const bodyText = bodyComponent?.text;
                                     if (!bodyText) return false;
-                                    // Remove as variáveis {{1}}, {{2}} etc para comparar
+                                    
+                                    const cleanContent = m.content.replace(/\[Template: .*?\]\s*/, '').trim();
                                     const normalizedBody = bodyText.replace(/\{\{\d+\}\}/g, '').trim();
-                                    const normalizedContent = m.content.replace(/\[Template: .*?\]\s*/, '').replace(/[\s\S]*/, (match) => match.trim());
-                                    return m.content.includes(normalizedBody.substring(0, 20)); // Busca aproximada simples
+                                    
+                                    return cleanContent.includes(normalizedBody.substring(0, 30)) || 
+                                           bodyText.includes(cleanContent.substring(0, 30));
                                   });
                                 }
+
 
                                 
                                 return (
