@@ -694,7 +694,7 @@ const CRM = () => {
   if (loading && !contacts.length) return <div className="min-h-screen flex items-center justify-center"><RefreshCcw className="animate-spin" /></div>;
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       <header className="border-b bg-card/50 backdrop-blur-md sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Logo size="sm" />
@@ -702,26 +702,51 @@ const CRM = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 mt-4 h-[calc(100vh-120px)] flex flex-col">
+      <main className="container mx-auto px-4 py-6 flex-1 flex flex-col min-h-0 overflow-hidden">
         <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="mb-4">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="contacts">Contatos/CRM</TabsTrigger>
-            <TabsTrigger value="flows">Fluxos de Automação</TabsTrigger>
-            <TabsTrigger value="templates">Templates Meta</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
+          <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto gap-2 bg-transparent p-0 mb-6">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Dashboard</TabsTrigger>
+            <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Contatos/CRM</TabsTrigger>
+            <TabsTrigger value="flows" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Fluxos</TabsTrigger>
+            <TabsTrigger value="templates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Templates</TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Ajustes</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card><CardHeader><CardDescription>Enviadas</CardDescription><CardTitle>{metrics.sent_count}</CardTitle></CardHeader></Card>
-              <Card><CardHeader><CardDescription>Respondidas</CardDescription><CardTitle>{metrics.responded_count}</CardTitle></CardHeader></Card>
-              <Card><CardHeader><CardDescription>Qualificadas</CardDescription><CardTitle>{metrics.qualified_count}</CardTitle></CardHeader></Card>
-              <Card><CardHeader><CardDescription>Vendas</CardDescription><CardTitle>{metrics.sales_count}</CardTitle></CardHeader></Card>
+          <TabsContent value="dashboard" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold tracking-tight text-primary">Dashboard de Métricas</h2>
+              <p className="text-muted-foreground text-sm">Acompanhe o desempenho das suas comunicações hoje</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="bg-blue-500/5 border-blue-500/20 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-blue-600 font-medium">Enviadas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.sent_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-yellow-500/5 border-yellow-500/20 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-yellow-600 font-medium">Respondidas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.responded_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-purple-500/5 border-purple-500/20 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-purple-600 font-medium">Qualificadas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.qualified_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-green-500/5 border-green-500/20 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-green-600 font-medium">Vendas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.sales_count}</CardTitle>
+                </CardHeader>
+              </Card>
             </div>
           </TabsContent>
 
-          <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card mt-2">
+          <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm">
             <div className="flex items-center justify-between p-2 border-b bg-muted/30">
               <div className="flex gap-2">
                 <Button variant={!kanbanView ? "default" : "ghost"} size="sm" onClick={() => setKanbanView(false)}><MessageSquare className="h-4 w-4 mr-1" /> Lista</Button>
@@ -1044,13 +1069,13 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 space-y-4">
-            <div className="flex justify-between items-center">
+          <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-bold">Fluxos de Automação</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
                 <p className="text-muted-foreground">Crie gatilhos e sequências automáticas de mensagens</p>
               </div>
-              <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }}>
+              <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-md">
                 <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
               </Button>
             </div>
@@ -1084,10 +1109,10 @@ const CRM = () => {
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 space-y-4">
-            <div className="flex justify-between items-center">
+          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-bold">Templates do WhatsApp</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
                 <p className="text-muted-foreground">Gerencie seus modelos de mensagem oficiais da Meta</p>
               </div>
               <div className="flex gap-2">
@@ -1236,13 +1261,18 @@ const CRM = () => {
             </Dialog>
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configurações da API Meta</CardTitle>
-                <CardDescription>Configure suas credenciais do Facebook Business</CardDescription>
+          <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6 overflow-y-auto">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold tracking-tight">Configurações do Sistema</h2>
+              <p className="text-muted-foreground text-sm">Gerencie suas conexões e parâmetros de automação</p>
+            </div>
+
+            <Card className="border-zinc-200 dark:border-zinc-800">
+              <CardHeader className="bg-muted/30">
+                <CardTitle className="text-lg">Configurações da API Meta</CardTitle>
+                <CardDescription>Configure suas credenciais do Facebook Business para o WhatsApp</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Access Token (Permanente)</Label>
