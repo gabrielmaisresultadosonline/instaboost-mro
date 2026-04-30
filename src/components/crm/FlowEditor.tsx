@@ -411,7 +411,21 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
   };
 
   const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Edge | Connection) => {
+      const edge = {
+        ...params,
+        type: 'button',
+        animated: true,
+        style: { strokeWidth: 2 }
+      };
+      setEdges((eds) => addEdge(edge, eds));
+    },
+    [setEdges],
+  );
+
+  const onReconnect = useCallback(
+    (oldEdge: Edge, newConnection: Connection) =>
+      setEdges((els) => reconnectEdge(oldEdge, newConnection, els)),
     [setEdges],
   );
 
