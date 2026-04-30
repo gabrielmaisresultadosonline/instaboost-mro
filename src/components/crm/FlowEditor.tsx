@@ -471,6 +471,13 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               </Button>
             </div>
             <div className="grid grid-cols-1 gap-2">
+              <Button 
+                variant="outline" 
+                className="justify-start gap-2 border-amber-500/30 bg-amber-50/50 hover:bg-amber-100/50 text-amber-700" 
+                onClick={() => setSelectedNode(null)}
+              >
+                <Zap className="w-4 h-4 text-amber-500" /> Configurar Gatilho
+              </Button>
               <Button variant="outline" className="justify-start gap-2 border-blue-500/20 hover:bg-blue-500/10" onClick={() => addNode('message')}>
                 <MessageSquare className="w-4 h-4 text-blue-500" /> Texto
               </Button>
