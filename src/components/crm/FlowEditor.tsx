@@ -204,7 +204,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
         buttons: type === 'question' ? [{ text: 'Sim' }, { text: 'Não' }] : [],
         delay: 5,
         unit: 'segundos',
-        timeout: 20
+        timeout: 20,
+        isPTT: type === 'audio',
+        fileName: ''
       },
     };
     setNodes((nds) => nds.concat(newNode));
