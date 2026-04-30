@@ -323,10 +323,23 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
 
   const addNode = (type: string) => {
     const id = `${type}_${Date.now()}`;
+    
+    // Get center of the flow container
+    const flowContainer = document.querySelector('.react-flow');
+    let centerPosition = { x: 100, y: 100 };
+    
+    if (flowContainer) {
+      const rect = flowContainer.getBoundingClientRect();
+      centerPosition = screenToFlowPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+    }
+
     const newNode: Node = {
       id,
       type,
-      position: { x: Math.random() * 400, y: Math.random() * 400 },
+      position: centerPosition,
       data: { 
         text: type === 'message' ? 'Olá, como posso ajudar?' : '',
         buttons: type === 'question' ? [{ text: 'Sim' }, { text: 'Não' }] : [],
