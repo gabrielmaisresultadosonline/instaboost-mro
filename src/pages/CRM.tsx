@@ -324,13 +324,17 @@ const CRM = () => {
         if (e.data.size > 0) chunks.push(e.data);
       };
       
-      recorder.onstop = async () => {
-        // Meta Cloud API preferred format for voice notes is OGG/OPUS
+      recorder.onstop = () => {
         const mimeType = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus') 
           ? 'audio/ogg; codecs=opus' 
           : 'audio/webm; codecs=opus';
         const audioBlob = new Blob(chunks, { type: mimeType });
-        await handleSendMedia(audioBlob, 'audio', true);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        setRecordedAudioBlob(audioBlob);
+        setRecordedAudioUrl(audioUrl);
+        setIsPreviewingAudio(true);
+        
         stream.getTracks().forEach(track => track.stop());
       };
       
@@ -352,6 +356,22 @@ const CRM = () => {
       mediaRecorder.stop();
       setIsRecording(false);
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  const cancelAudioPreview = () => {
+    if (recordedAudioUrl) {
+      URL.revokeObjectURL(recordedAudioUrl);
+    }
+    setRecordedAudioBlob(null);
+    setRecordedAudioUrl(null);
+    setIsPreviewingAudio(false);
+  };
+
+  const sendRecordedAudio = async () => {
+    if (recordedAudioBlob) {
+      await handleSendMedia(recordedAudioBlob, 'audio', true);
+      cancelAudioPreview();
     }
   };
 
