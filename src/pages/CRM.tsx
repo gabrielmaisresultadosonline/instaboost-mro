@@ -1524,6 +1524,65 @@ const CRM = () => {
                         </div>
                       </CardContent>
                     </Card>
+
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><Zap className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-lg">Customização da Interface</CardTitle>
+                            <CardDescription className="text-[11px]">Ajuste o tamanho dos botões e etiquetas.</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-8">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tamanho dos Atalhos (Modelos/Fluxos)</Label>
+                            <Badge variant="secondary" className="text-[10px]">{metaSettings.shortcut_size}%</Badge>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-[10px] text-muted-foreground">Menor</span>
+                            <input 
+                              type="range" 
+                              min="70" 
+                              max="150" 
+                              step="5"
+                              value={metaSettings.shortcut_size || 100} 
+                              onChange={e => setMetaSettings({...metaSettings, shortcut_size: parseInt(e.target.value)})}
+                              className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                            />
+                            <span className="text-[10px] text-muted-foreground">Maior</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }} className="px-2 rounded-md border-primary/20 bg-primary/5 text-primary pointer-events-none">Exemplo Atalho</Button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tamanho das Etiquetas (Status/Filtros)</Label>
+                            <Badge variant="secondary" className="text-[10px]">{metaSettings.tag_size}%</Badge>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-[10px] text-muted-foreground">Menor</span>
+                            <input 
+                              type="range" 
+                              min="70" 
+                              max="150" 
+                              step="5"
+                              value={metaSettings.tag_size || 100} 
+                              onChange={e => setMetaSettings({...metaSettings, tag_size: parseInt(e.target.value)})}
+                              className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                            />
+                            <span className="text-[10px] text-muted-foreground">Maior</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge variant="outline" style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }} className="px-1.2 font-bold pointer-events-none">Exemplo Etiqueta</Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
 
                   <div className="flex justify-end pt-4">
