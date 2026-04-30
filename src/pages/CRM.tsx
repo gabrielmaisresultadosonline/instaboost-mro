@@ -14,6 +14,7 @@ import {
   MessageSquare, 
   Settings, 
   Users, 
+  Search,
   Send, 
   GitBranch, 
   LogOut, 
