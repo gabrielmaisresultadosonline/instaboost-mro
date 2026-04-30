@@ -120,20 +120,30 @@ const ImageNode = ({ data }: any) => (
 
 const WaitResponseNode = ({ data }: any) => (
   <Card className="min-w-[220px] border-indigo-500 shadow-md">
-    <Handle type="target" position={Position.Top} />
-    <CardHeader className="p-3 bg-indigo-500 text-white rounded-t-lg flex flex-row items-center justify-between">
+    <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white" />
+    <CardHeader className="p-3 bg-indigo-500 text-white rounded-t-lg">
       <CardTitle className="text-xs font-bold flex items-center gap-2">
         <UserCheck className="w-3 h-3" /> Aguardar Resposta
       </CardTitle>
     </CardHeader>
-    <CardContent className="p-3 space-y-3">
-      <div className="flex items-center justify-between text-[10px]">
-        <span className="text-muted-foreground">Se responder:</span>
-        <Handle type="source" position={Position.Bottom} id="responded" style={{ left: '30%', bottom: '-8px' }} />
+    <CardContent className="p-3 space-y-2">
+      <div className="relative flex items-center justify-between bg-indigo-50 text-indigo-700 px-3 py-2 rounded border border-indigo-100 text-[10px] font-medium group">
+        <span>Se responder</span>
+        <Handle 
+          type="source" 
+          position={Position.Right} 
+          id="responded" 
+          className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !-right-4"
+        />
       </div>
-      <div className="flex items-center justify-between text-[10px]">
-        <span className="text-muted-foreground">Se não responder ({data.timeout || 20}m):</span>
-        <Handle type="source" position={Position.Bottom} id="timeout" style={{ left: '70%', bottom: '-8px' }} />
+      <div className="relative flex items-center justify-between bg-slate-50 text-slate-600 px-3 py-2 rounded border border-slate-200 text-[10px] font-medium group">
+        <span>Sem resposta ({data.timeout || 20}m)</span>
+        <Handle 
+          type="source" 
+          position={Position.Right} 
+          id="timeout" 
+          className="!w-3 !h-3 !bg-slate-400 !border-2 !border-white !-right-4"
+        />
       </div>
     </CardContent>
   </Card>
