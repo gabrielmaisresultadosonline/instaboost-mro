@@ -39,7 +39,6 @@ import {
   Play,
   ArrowRight,
   Check,
-  Clock as ClockIcon,
   AlertCircle,
   FileCheck2,
   ListFilter,
@@ -48,7 +47,14 @@ import {
   EyeOff,
   LayoutDashboard,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  Instagram,
+  Facebook,
+  Link as LinkIcon,
+  UserPlus,
+  Download,
+  Upload,
+  User
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
