@@ -1039,8 +1039,26 @@ const CRM = () => {
                           <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
                               {chatMessages.map((m, idx) => {
-                                const isTemplate = m.message_type === 'template';
-                                const template = isTemplate ? templates.find(t => t.name === (m.content?.match(/\[Template: (.*?)\]/)?.[1] || '')) : null;
+                                const isTemplate = m.message_type === 'template' || m.content?.includes('[Template:');
+                                const templateName = m.content?.match(/\[Template: (.*?)\]/)?.[1];
+                                let template = isTemplate ? templates.find(t => t.name === templateName) : null;
+
+                                // Fallback para templates antigos que não têm o prefixo [Template: name]
+                                if (isTemplate && !template && m.content) {
+                                  template = templates.find(t => {
+                                    const bodyComponent = t.components?.find((c: any) => c.type === 'BODY');
+                                    const bodyText = bodyComponent?.text;
+                                    if (!bodyText) return false;
+                                    
+                                    const cleanContent = m.content.replace(/\[Template: .*?\]\s*/, '').trim();
+                                    const normalizedBody = bodyText.replace(/\{\{\d+\}\}/g, '').trim();
+                                    
+                                    return cleanContent.includes(normalizedBody.substring(0, 30)) || 
+                                           bodyText.includes(cleanContent.substring(0, 30));
+                                  });
+                                }
+
+
                                 
                                 return (
                                   <div key={m.id || idx} className={cn(
@@ -1081,8 +1099,11 @@ const CRM = () => {
                                           )}
                                           <div className="p-3 space-y-2">
                                             <div className="text-[13px] md:text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">
-                                              {m.content?.includes('[Template:') ? template.components?.find((c: any) => c.type === 'BODY')?.text : m.content}
+                                              {m.content?.includes('[Template:') 
+                                                ? m.content.replace(/\[Template: .*?\]\s*/, '') 
+                                                : (template?.components?.find((c: any) => c.type === 'BODY')?.text || m.content)}
                                             </div>
+
                                             {template.components?.find((c: any) => c.type === 'FOOTER') && (
                                               <div className="text-[10px] opacity-60 uppercase font-medium">
                                                 {template.components.find((c: any) => c.type === 'FOOTER').text}

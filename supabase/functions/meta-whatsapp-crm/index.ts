@@ -811,33 +811,28 @@ async function internalSendTemplate(
 
   // Save to message history
   if (result.messages && result.messages[0]) {
-    const headerImageUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'image')?.image?.link;
-    const headerVideoUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'video')?.video?.link;
-    const headerDocUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'document')?.document?.link;
-    
-    let messageType = 'template';
+    const headerComponent = finalComponents.find((c: any) => c.type === 'header')?.parameters?.[0];
     let mediaUrl = null;
     
-    if (headerImageUrl) {
-      messageType = 'image';
-      mediaUrl = headerImageUrl;
-    } else if (headerVideoUrl) {
-      messageType = 'video';
-      mediaUrl = headerVideoUrl;
-    } else if (headerDocUrl) {
-      messageType = 'document';
-      mediaUrl = headerDocUrl;
+    if (headerComponent) {
+      if (headerComponent.type === 'image') mediaUrl = headerComponent.image?.link || headerComponent.image?.id;
+      else if (headerComponent.type === 'video') mediaUrl = headerComponent.video?.link || headerComponent.video?.id;
+      else if (headerComponent.type === 'document') mediaUrl = headerComponent.document?.link || headerComponent.document?.id;
     }
+
+    // Ensure content has the [Template: name] prefix for the frontend to recognize it
+    const finalContent = `[Template: ${templateName}] ${messageContent}`;
 
     await supabase.from('crm_messages').insert({
       contact_id: contact.id,
       direction: 'outbound',
-      content: messageContent,
-      message_type: messageType,
+      content: finalContent,
+      message_type: 'template',
       media_url: mediaUrl,
       meta_message_id: result.messages[0].id,
       status: 'sent'
     });
+
 
     await supabase.from('crm_contacts').update({ 
       total_messages_sent: (contact.total_messages_sent || 0) + 1,
