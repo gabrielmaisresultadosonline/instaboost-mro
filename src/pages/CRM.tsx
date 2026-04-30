@@ -846,7 +846,7 @@ const CRM = () => {
                         <ScrollArea className="flex-1 p-2">
                           {contacts.filter(c => c.status === status).map(contact => (
                             <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors" onClick={() => { openChat(contact); setKanbanView(false); }}>
-                              <p className="text-sm font-semibold truncate">{contact.name || contact.wa_id}</p>
+                              <p className="text-sm font-semibold truncate hover:text-primary cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>{contact.name || contact.wa_id}</p>
                               {contact.last_interaction && (
                                 <p className="text-[10px] text-muted-foreground mt-1">
                                   {new Date(contact.last_interaction).toLocaleDateString()}
@@ -898,7 +898,7 @@ const CRM = () => {
                               )}
                             >
                               <div className="flex justify-between items-start w-full">
-                                <p className="font-bold truncate text-sm flex-1">{contact.name || contact.wa_id}</p>
+                                <p className="font-bold truncate text-sm flex-1 hover:text-primary cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>{contact.name || contact.wa_id}</p>
                                 <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
@@ -932,7 +932,10 @@ const CRM = () => {
                               </Button>
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-2">
-                                  <p className="font-bold text-base">{selectedContact.name || selectedContact.wa_id}</p>
+                                  <p className="font-bold text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={() => openContactInfo(selectedContact)}>
+                                    {selectedContact.name || selectedContact.wa_id}
+                                    <Badge variant="outline" className="text-[10px] font-normal opacity-60">Info</Badge>
+                                  </p>
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                     <Badge variant="outline" className={cn(
                                       "text-[9px] px-1 h-3.5 flex items-center gap-1 font-medium",
