@@ -242,6 +242,23 @@ const TemplateNode = ({ data }: any) => (
   </Card>
 );
 
+const JumpNode = ({ data }: any) => (
+  <Card className="min-w-[200px] border-amber-600 shadow-md">
+    <Handle type="target" position={Position.Top} />
+    <CardHeader className="p-3 bg-amber-600 text-white rounded-t-lg flex flex-row items-center justify-between">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <GitBranch className="w-3 h-3" /> Pular para Fluxo
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3">
+      <p className="text-[10px] font-bold text-amber-700 truncate">
+        {data.targetFlowName || 'Selecione o fluxo...'}
+      </p>
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} />
+  </Card>
+);
+
 const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
@@ -253,6 +270,7 @@ const nodeTypes = {
   waitResponse: WaitResponseNode,
   crmAction: CRMActionNode,
   template: TemplateNode,
+  jump: JumpNode,
 };
 
 interface FlowEditorProps {
