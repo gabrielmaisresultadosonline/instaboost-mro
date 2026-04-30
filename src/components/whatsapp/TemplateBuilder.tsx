@@ -48,6 +48,40 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
     setButtons(buttons.map((b, i) => i === index ? { ...b, ...updates } : b));
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('crm-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('crm-media')
+        .getPublicUrl(filePath);
+
+      setHeaderUrl(publicUrl);
+      toast({ title: "Arquivo enviado com sucesso!" });
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      toast({ 
+        title: "Erro no upload", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSubmit = () => {
     const components: any[] = [];
     
@@ -62,7 +96,9 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
           header.example = { header_text: [headerText.replace(/\{\{\d+\}\}/g, "Exemplo")] };
         }
       } else {
-        header.example = { header_handle: [headerUrl || "https://example.com/image.png"] };
+        // For media, Meta expects header_handle or link depending on API version
+        // Using header_handle with a URL is a common trick, but link is also supported in some contexts
+        header.example = { header_handle: [headerUrl || "https://example.com/example.png"] };
       }
       components.push(header);
     }
