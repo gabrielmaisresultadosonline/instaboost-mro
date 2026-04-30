@@ -482,30 +482,38 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                 {selectedNode.type === 'video' && (
                   <div className="space-y-2">
                     <Label className="text-xs">Upload de Vídeo (.mp4)</Label>
-                    <Input 
-                      type="file" 
-                      accept=".mp4"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) updateNodeData(selectedNode.id, { fileName: file.name, videoUrl: URL.createObjectURL(file) });
-                      }}
-                      className="text-xs h-8"
-                    />
+                    <div className="flex gap-2">
+                      <Input 
+                        type="file" 
+                        accept=".mp4"
+                        disabled={uploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, selectedNode.id, 'video');
+                        }}
+                        className="text-xs h-8"
+                      />
+                      {uploading && <Loader2 className="w-4 h-4 animate-spin mt-2" />}
+                    </div>
                   </div>
                 )}
 
                 {selectedNode.type === 'image' && (
                   <div className="space-y-2">
                     <Label className="text-xs">Upload de Imagem (.jpg, .png)</Label>
-                    <Input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) updateNodeData(selectedNode.id, { fileName: file.name, imageUrl: URL.createObjectURL(file) });
-                      }}
-                      className="text-xs h-8"
-                    />
+                    <div className="flex gap-2">
+                      <Input 
+                        type="file" 
+                        accept="image/*"
+                        disabled={uploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, selectedNode.id, 'image');
+                        }}
+                        className="text-xs h-8"
+                      />
+                      {uploading && <Loader2 className="w-4 h-4 animate-spin mt-2" />}
+                    </div>
                   </div>
                 )}
 
