@@ -712,12 +712,37 @@ const CRM = () => {
             <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Ajustes</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card><CardHeader><CardDescription>Enviadas</CardDescription><CardTitle>{metrics.sent_count}</CardTitle></CardHeader></Card>
-              <Card><CardHeader><CardDescription>Respondidas</CardDescription><CardTitle>{metrics.responded_count}</CardTitle></CardHeader></Card>
-              <Card><CardHeader><CardDescription>Qualificadas</CardDescription><CardTitle>{metrics.qualified_count}</CardTitle></CardHeader></Card>
-              <Card><CardHeader><CardDescription>Vendas</CardDescription><CardTitle>{metrics.sales_count}</CardTitle></CardHeader></Card>
+          <TabsContent value="dashboard" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold tracking-tight text-primary">Dashboard de Métricas</h2>
+              <p className="text-muted-foreground text-sm">Acompanhe o desempenho das suas comunicações hoje</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="bg-blue-500/5 border-blue-500/20 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-blue-600 font-medium">Enviadas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.sent_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-yellow-500/5 border-yellow-500/20 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-yellow-600 font-medium">Respondidas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.responded_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-purple-500/5 border-purple-500/20 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-purple-600 font-medium">Qualificadas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.qualified_count}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card className="bg-green-500/5 border-green-500/20 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardDescription className="text-green-600 font-medium">Vendas</CardDescription>
+                  <CardTitle className="text-3xl font-bold">{metrics.sales_count}</CardTitle>
+                </CardHeader>
+              </Card>
             </div>
           </TabsContent>
 
