@@ -702,8 +702,8 @@ const CRM = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 mt-4">
-        <Tabs defaultValue="contacts">
+      <main className="container mx-auto px-4 mt-4 h-[calc(100vh-120px)] flex flex-col">
+        <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
           <TabsList className="mb-4">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="contacts">Contatos/CRM</TabsTrigger>
@@ -721,7 +721,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="contacts" className="h-[calc(100vh-250px)] border rounded-xl overflow-hidden glass-card flex flex-col">
+          <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card mt-2">
             <div className="flex items-center justify-between p-2 border-b bg-muted/30">
               <div className="flex gap-2">
                 <Button variant={!kanbanView ? "default" : "ghost"} size="sm" onClick={() => setKanbanView(false)}><MessageSquare className="h-4 w-4 mr-1" /> Lista</Button>
@@ -1044,7 +1044,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="flows" className="space-y-4">
+          <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 space-y-4">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Fluxos de Automação</h2>
@@ -1055,7 +1055,8 @@ const CRM = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ScrollArea className="flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
               {flows.map((flow) => (
                 <Card key={flow.id} className="overflow-hidden border border-zinc-200 dark:border-zinc-800">
                   <CardHeader className="bg-muted/30 pb-3">
@@ -1079,10 +1080,11 @@ const CRM = () => {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="templates" className="space-y-4">
+          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 space-y-4">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Templates do WhatsApp</h2>
@@ -1127,7 +1129,8 @@ const CRM = () => {
               </DialogContent>
             </Dialog>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ScrollArea className="flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
               {templates.map((template) => {
                 const header = template.components?.find((c: any) => c.type === 'HEADER');
                 const body = template.components?.find((c: any) => c.type === 'BODY');
@@ -1213,7 +1216,8 @@ const CRM = () => {
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            </ScrollArea>
 
             <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
               <DialogContent className="max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none">
