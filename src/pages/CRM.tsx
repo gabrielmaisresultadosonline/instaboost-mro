@@ -695,24 +695,30 @@ const CRM = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
-      <header className="border-b bg-card/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-20">
+        <div className="w-full px-4 h-14 flex items-center justify-between">
           <Logo size="sm" />
-          <Button variant="ghost" size="sm" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}><LogOut className="mr-2 h-4 w-4" /> Sair</Button>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
+              <LogOut className="mr-2 h-4 w-4" /> Sair
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden bg-muted/20">
         <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto gap-2 bg-transparent p-0 mb-6">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Dashboard</TabsTrigger>
-            <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Contatos/CRM</TabsTrigger>
-            <TabsTrigger value="flows" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Fluxos</TabsTrigger>
-            <TabsTrigger value="templates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Templates</TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Ajustes</TabsTrigger>
-          </TabsList>
+          <div className="px-4 py-2 border-b bg-card">
+            <TabsList className="flex h-9 items-center justify-start gap-1 bg-transparent p-0">
+              <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Dashboard</TabsTrigger>
+              <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Conversas</TabsTrigger>
+              <TabsTrigger value="flows" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Fluxos</TabsTrigger>
+              <TabsTrigger value="templates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Templates</TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Ajustes</TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="dashboard" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
+          <TabsContent value="dashboard" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
             <div className="mb-6">
               <h2 className="text-2xl font-bold tracking-tight text-primary">Dashboard de Métricas</h2>
               <p className="text-muted-foreground text-sm">Acompanhe o desempenho das suas comunicações hoje</p>
@@ -746,14 +752,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm">
-            <div className="flex items-center justify-between p-2 border-b bg-muted/30">
-              <div className="flex gap-2">
-                <Button variant={!kanbanView ? "default" : "ghost"} size="sm" onClick={() => setKanbanView(false)}><MessageSquare className="h-4 w-4 mr-1" /> Lista</Button>
-                <Button variant={kanbanView ? "default" : "ghost"} size="sm" onClick={() => setKanbanView(true)}><BarChart3 className="h-4 w-4 mr-1" /> Kanban</Button>
-              </div>
-            </div>
-
+          <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0 m-0 border-0 rounded-none bg-background">
             <div className="flex-1 flex overflow-hidden">
               {kanbanView ? (
                 <div className="flex-1 overflow-x-auto p-4 flex gap-4">
@@ -778,7 +777,7 @@ const CRM = () => {
                     <div className="p-4 border-b flex gap-2">
                       <Input placeholder="Buscar..." onChange={e => setStatusFilter(e.target.value || 'all')} />
                     </div>
-                    <ScrollArea className="flex-1">
+                    <ScrollArea className="flex-1 min-h-0">
                       {filteredContacts.map(contact => (
                         <button key={contact.id} onClick={() => openChat(contact)} className={`w-full p-4 text-left border-b hover:bg-secondary/30 ${selectedContact?.id === contact.id ? 'bg-secondary/50' : ''}`}>
                           <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
@@ -787,13 +786,17 @@ const CRM = () => {
                       ))}
                     </ScrollArea>
                   </div>
-                  <div className={`flex-1 flex flex-col ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
+                  <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
                     {selectedContact ? (
                       <>
-                        <div className="p-4 border-b flex justify-between items-center bg-card">
-                          <div className="flex flex-col">
-                            <p className="font-bold flex items-center gap-2">
-                              {selectedContact.name || selectedContact.wa_id}
+                        <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card">
+                          <div className="flex items-center gap-3">
+                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
+                              <ArrowRight className="h-4 w-4 rotate-180" />
+                            </Button>
+                            <div className="flex flex-col">
+                              <p className="font-bold flex items-center gap-2 text-sm md:text-base">
+                                {selectedContact.name || selectedContact.wa_id}
                               {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                 <div className="flex flex-col items-start gap-1">
                                   <Badge variant="outline" className={`text-[10px] animate-pulse flex items-center gap-1 ${selectedContact.flow_state === 'error' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-primary/10'}`}>
@@ -818,6 +821,7 @@ const CRM = () => {
                               </div>
                             )}
                           </div>
+                        </div>
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })} className="hidden sm:flex">Qualificar</Button>
                             <Button size="sm" className="bg-green-600 hidden sm:flex text-white hover:bg-green-700" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
@@ -886,37 +890,38 @@ const CRM = () => {
                             ) : null}
                           </div>
                         </div>
-                        <div className="bg-muted/10 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center">
-                          <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1"><Zap className="w-3 h-3" /> Atalhos:</span>
-                          {templates.slice(0, 5).map(t => (
+                        <div className="bg-muted/30 border-b px-4 py-1.5 flex gap-2 overflow-x-auto no-scrollbar items-center scrollbar-hide">
+                          <span className="text-[10px] font-semibold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
+                            <Zap className="w-3 h-3" /> Atalhos:
+                          </span>
+                          {templates.slice(0, 8).map(t => (
                             <Button 
                               key={t.id} 
                               variant="secondary" 
                               size="sm" 
-                              className="h-7 text-[10px] px-2 whitespace-nowrap"
+                              className="h-6 text-[10px] px-2 rounded-full border bg-background hover:bg-primary hover:text-white transition-colors"
                               onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')}
                               disabled={sendingMessage}
                             >
                               {t.name}
-                              {t.status !== 'APPROVED' && <ClockIcon className="w-2 h-2 ml-1 opacity-50" />}
                             </Button>
                           ))}
-                          <div className="w-px h-4 bg-border mx-1" />
+                          <div className="w-px h-3 bg-border mx-1 shrink-0" />
                           {flows.slice(0, 5).map(f => (
                             <Button 
                               key={f.id} 
                               variant="outline" 
                               size="sm" 
-                              className="h-7 text-[10px] px-2 whitespace-nowrap border-primary/20 text-primary"
+                              className="h-6 text-[10px] px-2 rounded-full border-primary/30 text-primary hover:bg-primary hover:text-white transition-colors"
                               onClick={() => handleTriggerFlow(f.id)}
                               disabled={sendingMessage}
                             >
-                              <GitBranch className="w-2 h-2 mr-1" /> {f.name}
+                              <GitBranch className="w-2.5 h-2.5 mr-1" /> {f.name}
                             </Button>
                           ))}
                         </div>
-                        <ScrollArea className="flex-1 p-4">
-                          <div className="space-y-4">
+                        <ScrollArea className="flex-1 min-h-0">
+                          <div className="p-4 space-y-4">
                             {chatMessages.map(m => (
                               <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
                                 <div className={`p-3 rounded-2xl max-w-[80%] shadow-sm ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
@@ -1069,7 +1074,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
+          <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
@@ -1109,7 +1114,7 @@ const CRM = () => {
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
+          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
@@ -1261,7 +1266,7 @@ const CRM = () => {
             </Dialog>
           </TabsContent>
 
-          <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6 overflow-y-auto">
+          <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
             <div className="mb-6">
               <h2 className="text-2xl font-bold tracking-tight">Configurações do Sistema</h2>
               <p className="text-muted-foreground text-sm">Gerencie suas conexões e parâmetros de automação</p>
