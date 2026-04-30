@@ -417,7 +417,7 @@ serve(async (req) => {
     }
 
     if (action === 'continueFlow') {
-      const { contactId, waId, buttonId } = params
+      const { contactId, waId, buttonId, nextNodeId } = params
       
       const { data: contact } = await supabase
         .from('crm_contacts')
@@ -438,58 +438,54 @@ serve(async (req) => {
         .single()
 
       if (flow && flow.nodes && flow.nodes.length > 0) {
-        const currentNode = flow.nodes.find((n: any) => n.id === contact.current_node_id)
-        if (!currentNode) return new Response(JSON.stringify({ error: 'Current node not found' }), { status: 404 })
+        let nextNode = null;
 
-        // Find next node based on buttonId or standard connection
-        let nextEdge = null;
-        if (buttonId) {
-          // If it was a question, find edge matching the button handle
-          nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === buttonId)
+        if (nextNodeId) {
+          nextNode = flow.nodes.find((n: any) => n.id === nextNodeId)
         } else {
-          // Standard transition
-          nextEdge = flow.edges.find((e: any) => e.source === currentNode.id)
-        }
+          const currentNode = flow.nodes.find((n: any) => n.id === contact.current_node_id)
+          if (!currentNode) return new Response(JSON.stringify({ error: 'Current node not found' }), { status: 404 })
 
-        if (nextEdge) {
-          const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
-          if (nextNode) {
-            await supabase
-              .from('crm_contacts')
-              .update({ current_node_id: nextNode.id, last_flow_interaction: new Date().toISOString() })
-              .eq('id', contactId)
-            
-            return await executeVisualNode(supabase, flow, nextNode, contactId, waId)
+          // Find next node based on buttonId or standard connection
+          let nextEdge = null;
+          if (buttonId) {
+            // If it was a question or waitResponse, find edge matching the handle/button
+            nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && (e.sourceHandle === buttonId || e.sourceHandle === 'responded'))
+          } else {
+            // Standard transition (first edge without specific handle)
+            nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && !e.sourceHandle)
+          }
+
+          if (nextEdge) {
+            nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
           }
         }
 
-        // Check if there's a followup node for "no response"
-        // This is handled by a separate cron job checking scheduled messages
-        
-        return new Response(JSON.stringify({ success: true, message: 'No more nodes' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
+        if (nextNode) {
+          await supabase
+            .from('crm_contacts')
+            .update({ 
+              current_node_id: nextNode.id, 
+              last_flow_interaction: new Date().toISOString(),
+              flow_state: 'running'
+            })
+            .eq('id', contactId)
+          
+          return await executeVisualNode(supabase, flow, nextNode, contactId, waId)
+        }
 
-      // Legacy fallback
-      const nextIndex = (contact.current_step_index || 0) + 1
-      const { data: step } = await supabase
-        .from('crm_flow_steps')
-        .select('*')
-        .eq('flow_id', contact.current_flow_id)
-        .eq('step_order', nextIndex)
-        .single()
-      
-      if (step) {
-        await supabase.from('crm_contacts').update({ current_step_index: nextIndex }).eq('id', contactId)
-        return await processStep(supabase, step, contactId, waId)
-      } else {
-        await supabase.from('crm_contacts').update({ flow_state: 'idle', current_flow_id: null, current_step_index: null }).eq('id', contactId)
+        // No more nodes, finish flow
+        await supabase.from('crm_contacts').update({ 
+          flow_state: 'idle', 
+          current_flow_id: null, 
+          current_node_id: null 
+        }).eq('id', contactId)
+
         return new Response(JSON.stringify({ success: true, message: 'Flow completed' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
-    }
+
 
     if (action === 'processScheduled') {
       const now = new Date().toISOString()
