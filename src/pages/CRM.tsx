@@ -999,51 +999,286 @@ const CRM = () => {
 
 
             {activeTab === 'flows' && (
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Fluxos</h2>
-                  <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }}>Novo Fluxo</Button>
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
+                      <p className="text-muted-foreground text-sm">Crie gatilhos e sequências automáticas de mensagens inteligentes.</p>
+                    </div>
+                    <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
+                      <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                    {flows.length > 0 ? (
+                      flows.map((flow) => (
+                        <Card key={flow.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-md transition-all">
+                          <CardHeader className="bg-muted/30 pb-4 border-b">
+                            <div className="flex justify-between items-start mb-2">
+                              <Badge variant={flow.is_active ? "default" : "secondary"} className={cn("text-[10px]", flow.is_active ? "bg-green-500/10 text-green-600 border-green-200" : "")}>
+                                {flow.is_active ? 'Ativo' : 'Inativo'}
+                              </Badge>
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={async () => {
+                                  if (confirm('Deseja excluir este fluxo?')) {
+                                    await supabase.from('crm_flows').delete().eq('id', flow.id);
+                                    fetchData();
+                                  }
+                                }}>
+                                  <Trash2 className="h-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                            <CardTitle className="text-lg truncate">{flow.name}</CardTitle>
+                            <CardDescription className="text-[11px] flex items-center gap-1.5 mt-1 font-medium">
+                              <Zap className="w-3 h-3 text-amber-500" /> Gatilho: <span className="text-foreground">{flow.trigger_type || 'Manual'}</span>
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="p-4 bg-card">
+                            <Button variant="outline" size="sm" className="w-full hover:bg-primary hover:text-white transition-colors h-9" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>
+                              <GitBranch className="w-4 h-4 mr-2" /> Abrir Editor Visual
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-20 text-center bg-card rounded-2xl border-2 border-dashed border-muted flex flex-col items-center justify-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                          <GitBranch className="w-8 h-8 text-muted-foreground/50" />
+                        </div>
+                        <div className="max-w-xs mx-auto">
+                          <h3 className="font-bold text-lg">Nenhum fluxo criado</h3>
+                          <p className="text-sm text-muted-foreground">Comece criando um novo fluxo visual para automatizar suas mensagens do WhatsApp.</p>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setIsFlowEditorOpen(true)}>Criar meu primeiro fluxo</Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {flows.map(flow => (
-                    <Card key={flow.id} className="p-4">
-                      <h3 className="font-bold">{flow.name}</h3>
-                      <Button variant="outline" className="mt-4 w-full" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>Editar</Button>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+              </ScrollArea>
             )}
 
             {activeTab === 'templates' && (
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Templates</h2>
-                  <Button onClick={syncTemplates}>Sincronizar</Button>
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col md:flex-row justify-between md:items-center bg-card p-6 rounded-2xl border shadow-sm gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
+                      <p className="text-muted-foreground text-sm">Gerencie seus modelos oficiais aprovados pela Meta.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates} className="h-10">
+                        <RefreshCcw className={cn("w-4 h-4 mr-2", syncingTemplates && "animate-spin")} />
+                        Sincronizar Meta
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button className="h-10 bg-primary shadow-lg shadow-primary/20"><Plus className="w-4 h-4 mr-2" /> Novo Template</Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-6xl h-[90vh] p-0 border-none rounded-3xl overflow-hidden shadow-2xl">
+                          <ScrollArea className="h-full">
+                            <TemplateBuilder onSave={handleSaveTemplate} isSaving={saving} />
+                          </ScrollArea>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
+
+                  <Dialog open={!!confirmSend} onOpenChange={(open) => !open && setConfirmSend(null)}>
+                    <DialogContent className="rounded-2xl border-none shadow-2xl">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                          <Send className="w-5 h-5 text-primary" /> Confirmar Envio
+                        </DialogTitle>
+                        <DialogDescription className="py-4 text-base leading-relaxed text-foreground/80">
+                          Deseja enviar o {confirmSend?.type === 'template' ? 'template' : 'fluxo'} <span className="font-black text-primary underline underline-offset-4">"{confirmSend?.name}"</span> para <span className="font-bold">{selectedContact?.name || selectedContact?.wa_id}</span>?
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter className="gap-2 sm:gap-0">
+                        <Button variant="ghost" onClick={() => setConfirmSend(null)} className="rounded-xl h-11 px-6">Cancelar</Button>
+                        <Button onClick={() => {
+                          if (confirmSend?.type === 'template') {
+                            handleSendTemplate(confirmSend.id, confirmSend.language || 'pt_BR');
+                          } else if (confirmSend?.type === 'flow') {
+                            handleTriggerFlow(confirmSend.id);
+                          }
+                        }} className="rounded-xl h-11 px-8 bg-primary shadow-lg shadow-primary/20">Sim, enviar agora</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                    {templates.length > 0 ? (
+                      templates.map((template) => {
+                        const header = template.components?.find((c: any) => c.type === 'HEADER');
+                        const body = template.components?.find((c: any) => c.type === 'BODY');
+                        const footer = template.components?.find((c: any) => c.type === 'FOOTER');
+                        const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
+
+                        return (
+                          <Card key={template.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-lg transition-all flex flex-col bg-card rounded-2xl">
+                            <CardHeader className="bg-muted/30 pb-4 border-b">
+                              <div className="flex justify-between items-start mb-2">
+                                <Badge variant={
+                                  template.status === 'APPROVED' ? 'default' : 
+                                  template.status === 'REJECTED' ? 'destructive' : 'secondary'
+                                } className={cn(
+                                  "text-[9px] uppercase tracking-wider",
+                                  template.status === 'APPROVED' ? "bg-green-500/10 text-green-600 border-green-200" : ""
+                                )}>
+                                  {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
+                                  template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
+                                  <Clock className="w-3 h-3 mr-1" />}
+                                  {template.status}
+                                </Badge>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10" onClick={() => setPreviewTemplate(template)}>
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => {
+                                    if (confirm(`Deseja realmente excluir o template "${template.name}"?`)) {
+                                      handleDeleteTemplate(template.name);
+                                    }
+                                  }}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <CardTitle className="text-base truncate font-bold">{template.name}</CardTitle>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.category}</Badge>
+                                <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.language}</Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-4 flex-1 flex flex-col justify-between gap-4">
+                              <div className="bg-muted/20 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800/50 relative">
+                                <div className="absolute top-2 right-2 w-4 h-4 text-muted-foreground/30"><MessageSquare className="w-full h-full" /></div>
+                                {header && header.format === 'IMAGE' && header.example?.header_handle?.[0] && (
+                                  <div className="mb-3 aspect-video overflow-hidden rounded-lg bg-muted shadow-inner">
+                                    <img src={header.example.header_handle[0]} alt="Header" className="w-full h-full object-cover" />
+                                  </div>
+                                )}
+                                <div className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300 italic line-clamp-4">
+                                  "{body?.text}"
+                                </div>
+                              </div>
+                              {buttonsComp?.buttons && buttonsComp.buttons.length > 0 && (
+                                <div className="space-y-1.5">
+                                  {buttonsComp.buttons.map((btn: any, idx: number) => (
+                                    <div key={idx} className="bg-primary/5 p-2 rounded-lg text-[10px] text-center text-primary font-bold border border-primary/10">
+                                      {btn.text}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    ) : (
+                      <div className="col-span-full py-20 text-center bg-card rounded-2xl border-2 border-dashed border-muted flex flex-col items-center justify-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-muted-foreground/50" />
+                        </div>
+                        <h3 className="font-bold text-lg">Sem templates sincronizados</h3>
+                        <p className="text-sm text-muted-foreground">Clique em "Sincronizar Meta" para carregar seus templates oficiais.</p>
+                        <Button variant="outline" size="sm" onClick={syncTemplates} disabled={syncingTemplates}>Sincronizar agora</Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {templates.map(t => (
-                    <Card key={t.id} className="p-4">
-                      <h3 className="font-bold">{t.name}</h3>
-                      <Badge>{t.status}</Badge>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+
+                <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+                  <DialogContent className="max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none">
+                    {previewTemplate && (
+                      <TemplatePreview 
+                        name={previewTemplate.name}
+                        headerType={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.format || 'NONE'}
+                        headerText={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.text}
+                        headerUrl={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.example?.header_handle?.[0]}
+                        bodyText={previewTemplate.components?.find((c: any) => c.type === 'BODY')?.text || ''}
+                        footerText={previewTemplate.components?.find((c: any) => c.type === 'FOOTER')?.text}
+                        buttons={previewTemplate.components?.find((c: any) => c.type === 'BUTTONS')?.buttons || []}
+                      />
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </ScrollArea>
             )}
 
             {activeTab === 'settings' && (
-              <div className="p-6 max-w-2xl">
-                <h2 className="text-2xl font-bold mb-6">Configurações</h2>
-                <Card className="p-6 space-y-4">
-                  <div className="space-y-2">
-                    <Label>Token Meta</Label>
-                    <Input value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div>
+                    <h2 className="text-3xl font-bold tracking-tight text-primary">Configurações</h2>
+                    <p className="text-muted-foreground text-sm font-medium">Gerencie as integrações e chaves de API do seu CRM.</p>
                   </div>
-                  <Button onClick={handleSaveSettings}>Salvar</Button>
-                </Card>
-              </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><MessageSquare className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-lg">WhatsApp API</CardTitle>
+                            <CardDescription className="text-[11px]">Conecte com a plataforma Business da Meta.</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Access Token Permanente</Label>
+                          <Input type="password" placeholder="EAA..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone Number ID</Label>
+                          <Input placeholder="Ex: 109..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Account ID (WABA)</Label>
+                          <Input placeholder="Ex: 105..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><Bot className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
+                            <CardDescription className="text-[11px]">Respostas automáticas com GPT-4.</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-6">
+                        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                          <div>
+                            <p className="font-bold text-sm">Habilitar Agente AI</p>
+                            <p className="text-[10px] text-muted-foreground">O robô responderá conversas ociosas.</p>
+                          </div>
+                          <Switch checked={metaSettings.ai_agent_enabled} onCheckedChange={checked => setMetaSettings({...metaSettings, ai_agent_enabled: checked})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">OpenAI API Key</Label>
+                          <Input type="password" placeholder="sk-..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <Button onClick={handleSaveSettings} disabled={saving} size="lg" className="px-10 h-14 rounded-2xl bg-primary text-white font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
+                      {saving ? <RefreshCcw className="mr-3 h-5 w-5 animate-spin" /> : <Save className="mr-3 h-5 w-5" />}
+                      Salvar Configurações
+                    </Button>
+                  </div>
+                </div>
+              </ScrollArea>
             )}
+
           </main>
         </SidebarInset>
       </div>
