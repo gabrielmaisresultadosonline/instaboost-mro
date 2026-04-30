@@ -278,13 +278,29 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
                   ) : (
                     <div className="aspect-video bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center relative">
                       {headerUrl ? (
-                        <img src={headerUrl} alt="Preview" className="w-full h-full object-cover" />
+                        headerType === 'IMAGE' ? (
+                          <img src={headerUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : headerType === 'VIDEO' ? (
+                          <div className="w-full h-full relative">
+                            <video src={headerUrl} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <Play className="w-10 h-10 text-white" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 p-4">
+                            <FileText className="w-10 h-10 text-zinc-400" />
+                            <span className="text-[10px] text-zinc-500 truncate max-w-[200px]">{headerUrl.split('/').pop()}</span>
+                          </div>
+                        )
                       ) : (
-                        <ImageIcon className="w-8 h-8 text-zinc-400" />
+                        <div className="flex flex-col items-center gap-2">
+                          {headerType === 'IMAGE' && <ImageIcon className="w-8 h-8 text-zinc-400" />}
+                          {headerType === 'VIDEO' && <Video className="w-8 h-8 text-zinc-400" />}
+                          {headerType === 'DOCUMENT' && <FileText className="w-8 h-8 text-zinc-400" />}
+                          <span className="text-[10px] text-zinc-400">Selecione um arquivo</span>
+                        </div>
                       )}
-                      <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
-                         <Play className="w-10 h-10 text-white/50" />
-                      </div>
                     </div>
                   )}
                 </div>
