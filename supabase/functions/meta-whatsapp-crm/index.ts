@@ -987,8 +987,8 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    if (delayMs <= 10000) { // Reduced sleep to 10s for more safety in Edge Functions
-      await sleep(delayMs)
+    if (delayMs <= 2000) { // Only sleep for very short delays to ensure function snappy response
+      if (delayMs > 0) await sleep(delayMs)
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
@@ -1142,7 +1142,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          await sleep(1500)
+          await sleep(500) // Reduced from 1500ms for faster flow execution
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id,
             last_flow_interaction: new Date().toISOString()
