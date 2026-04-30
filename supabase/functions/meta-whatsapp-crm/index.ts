@@ -501,7 +501,12 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
       }
     }
     if (imageUrl) {
-      interactive.header = { type: "image", image: { link: sanitizeMetaLink(imageUrl) } }
+      const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, imageUrl, 'image');
+      if (metaMediaId) {
+        interactive.header = { type: "image", image: { id: metaMediaId } };
+      } else {
+        interactive.header = { type: "image", image: { link: imageUrl } };
+      }
       mediaUrlToStore = imageUrl;
     }
     else if (headerText) interactive.header = { type: "text", text: headerText }
