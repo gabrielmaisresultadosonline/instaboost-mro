@@ -300,10 +300,16 @@ serve(async (req) => {
         switch (step.step_type) {
           case "text":
             if (step.content) {
-              await callZapi("/send-text", {
+              const textResponse = await callZapi("/send-text", {
                 method: "POST",
                 body: JSON.stringify({ phone: execPhone, message: step.content }),
               });
+
+              if (!textResponse.response.ok) {
+                console.error(`[Flow] Error sending text: ${textResponse.response.status}`, textResponse.payload);
+                throw new Error(`Falha ao enviar texto (${textResponse.response.status})`);
+              }
+
               await supabase.from("zapi_messages").insert({
                 phone: execPhone,
                 direction: "outgoing",
@@ -335,10 +341,16 @@ serve(async (req) => {
 
           case "audio":
             if (step.media_url) {
-              await callZapi("/send-audio", {
+              const audioResponse = await callZapi("/send-audio", {
                 method: "POST",
                 body: JSON.stringify({ phone: execPhone, audio: step.media_url, waveform: true }),
               });
+              
+              if (!audioResponse.response.ok) {
+                console.error(`[Flow] Error sending audio: ${audioResponse.response.status}`, audioResponse.payload);
+                throw new Error(`Falha ao enviar áudio (${audioResponse.response.status})`);
+              }
+
               await supabase.from("zapi_messages").insert({
                 phone: execPhone,
                 direction: "outgoing",
