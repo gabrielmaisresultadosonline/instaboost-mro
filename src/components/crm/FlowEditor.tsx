@@ -605,8 +605,59 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                         <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
                       </SelectContent>
                     </Select>
+            </div>
+          ) : (
+            <div className="pt-6 border-t animate-in fade-in slide-in-from-left-4">
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                <Settings className="w-4 h-4" /> Configurações do Fluxo
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-zinc-200 shadow-sm">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-bold">Fluxo Ativo</Label>
+                    <p className="text-[10px] text-muted-foreground">O gatilho funcionará automaticamente</p>
+                  </div>
+                  <Switch checked={isActive} onCheckedChange={setIsActive} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs">Gatilho (Trigger)</Label>
+                  <Select value={triggerType} onValueChange={setTriggerType}>
+                    <SelectTrigger className="text-xs h-9">
+                      <SelectValue placeholder="Selecione um gatilho" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">🔘 Apenas Manual</SelectItem>
+                      <SelectItem value="new_contact">🆕 Novo Contato</SelectItem>
+                      <SelectItem value="24h_inactivity">⏰ Primeira mensagem após 24h</SelectItem>
+                      <SelectItem value="keyword">⌨️ Palavras-chave específicas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {triggerType === 'keyword' && (
+                  <div className="space-y-2 animate-in slide-in-from-top-2">
+                    <Label className="text-xs">Palavras-chave</Label>
+                    <Input 
+                      placeholder="Ex: olá, preço, ajuda (separado por vírgula)" 
+                      value={triggerKeywords}
+                      onChange={(e) => setTriggerKeywords(e.target.value)}
+                      className="text-xs"
+                    />
+                    <p className="text-[9px] text-muted-foreground">Se o cliente enviar uma dessas palavras, o fluxo inicia.</p>
                   </div>
                 )}
+
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-[10px] text-blue-700 font-medium">💡 Dica</p>
+                  <p className="text-[9px] text-blue-600/80 mt-1">
+                    Defina o gatilho para automatizar o atendimento. O gatilho de "Novo Contato" substituirá a resposta padrão automática se configurada.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
               </div>
             </div>
           )}
