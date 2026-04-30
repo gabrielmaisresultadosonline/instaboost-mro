@@ -294,3 +294,48 @@ serve(async (req) => {
 
   return new Response('Method Not Allowed', { status: 405 })
 })
+
+async function downloadAndUploadMedia(supabase: any, token: string, mediaId: string, type: string, fileName?: string) {
+  try {
+    console.log(`Fetching media info for ${mediaId}...`);
+    const infoRes = await fetch(`https://graph.facebook.com/v17.0/${mediaId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!infoRes.ok) throw new Error('Failed to get media info');
+    const info = await infoRes.json();
+    
+    if (!info.url) throw new Error('No media URL found');
+    
+    console.log(`Downloading media from ${info.url}...`);
+    const mediaRes = await fetch(info.url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!mediaRes.ok) throw new Error('Failed to download media');
+    const blob = await mediaRes.blob();
+    
+    const ext = info.mime_type?.split('/')?.[1] || 'bin';
+    const name = fileName || `${mediaId}.${ext}`;
+    const filePath = `inbound/${type}/${Date.now()}_${name}`;
+    
+    console.log(`Uploading to Supabase Storage: ${filePath}...`);
+    const { error: uploadError } = await supabase.storage
+      .from('crm-media')
+      .upload(filePath, blob, {
+        contentType: info.mime_type,
+        upsert: true
+      });
+      
+    if (uploadError) throw uploadError;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('crm-media')
+      .getPublicUrl(filePath);
+      
+    return publicUrl;
+  } catch (err) {
+    console.error('Error downloading/uploading media:', err);
+    return null;
+  }
+}
