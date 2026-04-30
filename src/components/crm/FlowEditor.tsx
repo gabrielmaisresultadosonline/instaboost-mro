@@ -222,7 +222,8 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
         unit: 'segundos',
         timeout: 20,
         isPTT: type === 'audio',
-        fileName: ''
+        fileName: '',
+        action: type === 'crmAction' ? 'Notificar Agente' : ''
       },
     };
     setNodes((nds) => nds.concat(newNode));
