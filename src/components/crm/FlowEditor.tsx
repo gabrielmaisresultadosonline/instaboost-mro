@@ -642,6 +642,43 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                     </Select>
                   </div>
                 )}
+                {selectedNode.type === 'template' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Escolher Template</Label>
+                      <Select 
+                        value={selectedNode.data.templateId as string} 
+                        onValueChange={(val) => {
+                          const template = availableTemplates.find(t => t.id === val);
+                          if (template) {
+                            updateNodeData(selectedNode.id, { 
+                              templateId: val, 
+                              templateName: template.name,
+                              language: template.language 
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="text-xs h-8">
+                          <SelectValue placeholder="Selecione um template..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableTemplates.map(t => (
+                            <SelectItem key={t.id} value={t.id}>{t.name} ({t.language})</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {selectedNode.data.templateId && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <p className="text-[10px] text-blue-700 font-medium">⚠️ Atenção</p>
+                        <p className="text-[9px] text-blue-600/80 mt-1">
+                          Templates Meta são cobrados como mensagens de Marketing pela Meta. Certifique-se de que o template está aprovado.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
