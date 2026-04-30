@@ -842,7 +842,7 @@ const CRM = () => {
                                   <p className="font-bold text-base">{selectedContact.name || selectedContact.wa_id}</p>
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                     <Badge variant="outline" className={cn(
-                                      "text-[10px] px-1.5 h-4 flex items-center gap-1",
+                                      "text-[9px] px-1 h-3.5 flex items-center gap-1 font-medium",
                                       selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
                                     )}>
                                       <div className={cn("w-1.5 h-1.5 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
