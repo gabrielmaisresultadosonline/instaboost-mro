@@ -704,12 +704,12 @@ const CRM = () => {
 
       <main className="container mx-auto px-4 py-6 flex-1 flex flex-col min-h-0 overflow-hidden">
         <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto gap-2 bg-transparent p-0 mb-6">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Dashboard</TabsTrigger>
-            <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Contatos/CRM</TabsTrigger>
-            <TabsTrigger value="flows" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Fluxos</TabsTrigger>
-            <TabsTrigger value="templates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Templates</TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Ajustes</TabsTrigger>
+          <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto gap-2 bg-transparent p-0 mb-6">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Dashboard</TabsTrigger>
+            <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Contatos/CRM</TabsTrigger>
+            <TabsTrigger value="flows" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Fluxos</TabsTrigger>
+            <TabsTrigger value="templates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Templates</TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2 px-4 rounded-lg transition-all">Ajustes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
