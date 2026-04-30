@@ -531,7 +531,11 @@ serve(async (req) => {
   }
 })
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function handleInternalSendMessage(supabase: any, meta_phone_number_id: string, meta_access_token: string, params: any, contact: any) {
+  // ... (keeping existing content, just making sure I don't break it)
+  // Wait, I should probably use write-file for this whole section to be safe, but let's try line_replace first.
   const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons, headerText, footerText } = params
   
   let body: any = {
@@ -554,8 +558,6 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     body.document = { link: documentUrl, caption: text, filename: fileName || "document.pdf" }
   } else if (buttons && buttons.length > 0) {
     body.type = "interactive"
-    
-    // Interactive messages can have a header (text or image)
     const interactive: any = {
       type: "button",
       body: { text: text || "Selecione uma opção:" },
@@ -569,25 +571,9 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
         }))
       }
     }
-
-    if (imageUrl) {
-      interactive.header = {
-        type: "image",
-        image: { link: imageUrl }
-      }
-    } else if (headerText) {
-      interactive.header = {
-        type: "text",
-        text: headerText
-      }
-    }
-
-    if (footerText) {
-      interactive.footer = {
-        text: footerText
-      }
-    }
-
+    if (imageUrl) interactive.header = { type: "image", image: { link: imageUrl } }
+    else if (headerText) interactive.header = { type: "text", text: headerText }
+    if (footerText) interactive.footer = { text: footerText }
     body.interactive = interactive
   } else {
     body.type = "text"
@@ -607,16 +593,10 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
   )
 
   const result = await response.json()
-  
   if (!response.ok) {
     console.error('Meta API Error:', result)
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: result.error?.message || 'Meta API returned an error',
-      details: result 
-    }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ success: false, error: result.error?.message, details: result }), {
+      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
   
@@ -630,15 +610,10 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
         meta_message_id: result.messages[0].id,
         status: 'sent'
       })
-
-      await supabase
-        .from('crm_contacts')
-        .update({ 
-          total_messages_sent: (contact.total_messages_sent || 0) + 1,
-          last_interaction: new Date().toISOString()
-        })
-        .eq('id', contact.id)
-      
+      await supabase.from('crm_contacts').update({ 
+        total_messages_sent: (contact.total_messages_sent || 0) + 1,
+        last_interaction: new Date().toISOString()
+      }).eq('id', contact.id)
       await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
     }
   }
@@ -659,67 +634,30 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
 
   console.log(`Executing node ${node.id} (${node.type}) for contact ${contactId}`);
 
+  // Handle Action/Content Nodes
   if (node.type === 'message') {
     await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       text: node.data.text
     }, contact)
-    
-    // Auto-continue to next node if exists and only one output
-    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
-    if (nextEdge) {
-      // Small delay before next node for natural feel
-      setTimeout(() => {
-        supabase.functions.invoke('meta-whatsapp-crm', {
-          body: { action: 'continueFlow', contactId, waId }
-        })
-      }, 1000)
-    }
   } 
   else if (node.type === 'audio') {
     await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       audioUrl: node.data.audioUrl
     }, contact)
-    
-    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
-    if (nextEdge) {
-      setTimeout(() => {
-        supabase.functions.invoke('meta-whatsapp-crm', {
-          body: { action: 'continueFlow', contactId, waId }
-        })
-      }, 2000)
-    }
   }
   else if (node.type === 'video') {
     await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       videoUrl: node.data.videoUrl
     }, contact)
-    
-    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
-    if (nextEdge) {
-      setTimeout(() => {
-        supabase.functions.invoke('meta-whatsapp-crm', {
-          body: { action: 'continueFlow', contactId, waId }
-        })
-      }, 2000)
-    }
   }
   else if (node.type === 'image') {
     await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       imageUrl: node.data.imageUrl
     }, contact)
-    
-    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
-    if (nextEdge) {
-      setTimeout(() => {
-        supabase.functions.invoke('meta-whatsapp-crm', {
-          body: { action: 'continueFlow', contactId, waId }
-        })
-      }, 1500)
-    }
   }
   else if (node.type === 'question') {
     await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
@@ -733,48 +671,115 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     
     await supabase.from('crm_contacts').update({ flow_state: 'waiting_response' }).eq('id', contactId)
     
-    // Setup followup timer if exists
-    const followupEdge = flow.edges.find((e: any) => e.source === node.id && e.sourceHandle === 'followup')
-    if (followupEdge) {
+    // Setup followup timer if timeout path exists
+    const timeoutEdge = flow.edges.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout')
+    if (timeoutEdge) {
       const timeoutMin = node.data.timeout || 20
       const scheduledFor = new Date(Date.now() + timeoutMin * 60000).toISOString()
       
       await supabase.from('crm_scheduled_messages').insert({
         contact_id: contactId,
         flow_id: flow.id,
-        node_id: followupEdge.target,
+        node_id: timeoutEdge.target,
         scheduled_for: scheduledFor,
         message_data: { action: 'continueFlow' }
       })
     }
+    return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+  else if (node.type === 'waitResponse') {
+    await supabase.from('crm_contacts').update({ flow_state: 'waiting_response' }).eq('id', contactId)
+    
+    // Setup timeout followup
+    const timeoutEdge = flow.edges.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout')
+    if (timeoutEdge) {
+      const timeoutMin = node.data.timeout || 20
+      const scheduledFor = new Date(Date.now() + timeoutMin * 60000).toISOString()
+      
+      await supabase.from('crm_scheduled_messages').insert({
+        contact_id: contactId,
+        flow_id: flow.id,
+        node_id: timeoutEdge.target,
+        scheduled_for: scheduledFor,
+        message_data: { action: 'continueFlow' }
+      })
+    }
+    return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
   else if (node.type === 'delay') {
-    const delay = node.data.delay || 5
+    const delay = parseInt(node.data.delay) || 5
     const unit = node.data.unit || 'segundos'
     let delayMs = delay * 1000
     if (unit === 'minutos') delayMs *= 60
     if (unit === 'horas') delayMs *= 3600
 
-    const scheduledFor = new Date(Date.now() + delayMs).toISOString()
-    
-    await supabase.from('crm_scheduled_messages').insert({
-      contact_id: contactId,
-      flow_id: flow.id,
-      node_id: node.id,
-      scheduled_for: scheduledFor,
-      message_data: { action: 'continueFlow' }
-    })
-    
-    await supabase.from('crm_contacts').update({ flow_state: 'waiting_delay' }).eq('id', contactId)
-  }
-  else if (node.type === 'followup') {
-    // This node is usually a transition node. We just continue to the next one.
-    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
-    if (nextEdge) {
-       const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
-       if (nextNode) return executeVisualNode(supabase, flow, nextNode, contactId, waId)
+    // For very short delays (< 10s), we can just wait. Otherwise schedule.
+    if (delayMs <= 10000) {
+      await sleep(delayMs)
+      // Transition to next node
+      const nextEdge = flow.edges.find((e: any) => e.source === node.id)
+      if (nextEdge) {
+        const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
+        if (nextNode) {
+          await supabase.from('crm_contacts').update({ current_node_id: nextNode.id }).eq('id', contactId)
+          return executeVisualNode(supabase, flow, nextNode, contactId, waId)
+        }
+      }
+    } else {
+      const scheduledFor = new Date(Date.now() + delayMs).toISOString()
+      const nextEdge = flow.edges.find((e: any) => e.source === node.id)
+      
+      if (nextEdge) {
+        await supabase.from('crm_scheduled_messages').insert({
+          contact_id: contactId,
+          flow_id: flow.id,
+          node_id: nextEdge.target, // Jump directly to next node after delay
+          scheduled_for: scheduledFor,
+          message_data: { action: 'continueFlow' }
+        })
+        await supabase.from('crm_contacts').update({ flow_state: 'waiting_delay' }).eq('id', contactId)
+      }
     }
   }
+  else if (node.type === 'crmAction') {
+    const action = node.data.action || 'Notificar Agente'
+    // Implement CRM actions here (e.g. update status, notify, etc)
+    console.log(`CRM Action: ${action} for contact ${contactId}`)
+    
+    if (action === 'Finalizar Atendimento') {
+      await supabase.from('crm_contacts').update({ status: 'closed' }).eq('id', contactId)
+    }
+  }
+
+  // AUTO-CONTINUE for non-waiting nodes
+  const autoContinueTypes = ['message', 'audio', 'video', 'image', 'crmAction', 'followup']
+  if (autoContinueTypes.includes(node.type)) {
+    const nextEdge = flow.edges.find((e: any) => e.source === node.id && !e.sourceHandle)
+    if (nextEdge) {
+      const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
+      if (nextNode) {
+        // Natural pause between messages
+        await sleep(1500)
+        
+        await supabase.from('crm_contacts').update({ 
+          current_node_id: nextNode.id,
+          last_flow_interaction: new Date().toISOString()
+        }).eq('id', contactId)
+        
+        return executeVisualNode(supabase, flow, nextNode, contactId, waId)
+      }
+    }
+  }
+
+  return new Response(JSON.stringify({ success: true, node: node.id }), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
 
   return new Response(JSON.stringify({ success: true, node: node.id }), {
     headers: { 'Content-Type': 'application/json' },
