@@ -406,11 +406,14 @@ serve(async (req) => {
       // Save to message history
       if (result.messages && result.messages[0]) {
         if (contact) {
+          const headerImageUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'image')?.image?.link;
+
           await supabase.from('crm_messages').insert({
             contact_id: contact.id,
             direction: 'outbound',
             content: messageContent,
             message_type: 'template',
+            media_url: headerImageUrl || null,
             meta_message_id: result.messages[0].id,
             status: 'sent'
           })
