@@ -442,8 +442,16 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
               <Button variant="outline" className="justify-start gap-2 border-red-500/20 hover:bg-red-500/10" onClick={() => addNode('followup')}>
                 <AlertCircle className="w-4 h-4 text-red-500" /> Lembrete
               </Button>
-              <Button variant="outline" className="justify-start gap-2 border-blue-600/20 hover:bg-blue-600/10" onClick={() => addNode('template')}>
-                <FileText className="w-4 h-4 text-blue-600" /> Template Meta
+              <Button 
+                variant="outline" 
+                className="justify-start gap-2 border-blue-600/20 bg-blue-50/30 hover:bg-blue-600/10 group transition-all" 
+                onClick={() => addNode('template')}
+              >
+                <FileText className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" /> 
+                <div className="flex flex-col items-start">
+                  <span className="text-blue-700 font-semibold">Template Meta</span>
+                  <span className="text-[8px] text-blue-600/60 uppercase">Marketing/Utilitário</span>
+                </div>
               </Button>
               <Button variant="outline" className="justify-start gap-2 border-slate-700/20 hover:bg-slate-700/10" onClick={() => addNode('crmAction')}>
                 <Zap className="w-4 h-4 text-slate-700" /> Ação CRM
