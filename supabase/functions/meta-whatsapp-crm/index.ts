@@ -460,15 +460,30 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
     body.type = "image"
-    body.image = { link: sanitizeMetaLink(imageUrl), caption: text }
+    const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, imageUrl, 'image');
+    if (metaMediaId) {
+      body.image = { id: metaMediaId, caption: text };
+    } else {
+      body.image = { link: imageUrl, caption: text };
+    }
     mediaUrlToStore = imageUrl;
   } else if (videoUrl) {
     body.type = "video"
-    body.video = { link: videoUrl, caption: text }
+    const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, videoUrl, 'video');
+    if (metaMediaId) {
+      body.video = { id: metaMediaId, caption: text };
+    } else {
+      body.video = { link: videoUrl, caption: text };
+    }
     mediaUrlToStore = videoUrl;
   } else if (documentUrl) {
     body.type = "document"
-    body.document = { link: documentUrl, caption: text, filename: fileName || "document.pdf" }
+    const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, documentUrl, 'document');
+    if (metaMediaId) {
+      body.document = { id: metaMediaId, caption: text, filename: fileName || "document.pdf" };
+    } else {
+      body.document = { link: documentUrl, caption: text, filename: fileName || "document.pdf" };
+    }
     mediaUrlToStore = documentUrl;
   } else if (buttons && buttons.length > 0) {
     body.type = "interactive"
