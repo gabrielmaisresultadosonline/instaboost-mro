@@ -78,7 +78,17 @@ serve(async (req) => {
                 if (contact) {
                   let content = ''
                   let message_type = message.type
+                  let media_url = null
                   
+                  // Get Meta settings for media download
+                  const { data: settings } = await supabase
+                    .from('crm_settings')
+                    .select('meta_access_token')
+                    .eq('id', '00000000-0000-0000-0000-000000000001')
+                    .single()
+                  
+                  const meta_access_token = settings?.meta_access_token
+
                   if (message.type === 'text') {
                     content = message.text.body
                   } else if (message.type === 'button') {
@@ -91,12 +101,24 @@ serve(async (req) => {
                     }
                   } else if (message.type === 'audio') {
                     content = `[Audio Message]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.audio.id, 'audio')
+                    }
                   } else if (message.type === 'image') {
-                    content = `[Image Message] ${message.image.caption || ''}`
+                    content = message.image.caption || `[Image Message]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.image.id, 'image')
+                    }
                   } else if (message.type === 'video') {
-                    content = `[Video Message] ${message.video.caption || ''}`
+                    content = message.video.caption || `[Video Message]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.video.id, 'video')
+                    }
                   } else if (message.type === 'document') {
-                    content = `[Document] ${message.document.filename || ''}`
+                    content = message.document.filename || `[Document]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.document.id, 'document', message.document.filename)
+                    }
                   } else {
                     content = `[${message.type}]`
                   }
@@ -106,6 +128,7 @@ serve(async (req) => {
                     direction: 'inbound',
                     message_type: message_type,
                     content: content,
+                    media_url: media_url,
                     meta_message_id: message.id,
                     status: 'received'
                   })
@@ -271,3 +294,48 @@ serve(async (req) => {
 
   return new Response('Method Not Allowed', { status: 405 })
 })
+
+async function downloadAndUploadMedia(supabase: any, token: string, mediaId: string, type: string, fileName?: string) {
+  try {
+    console.log(`Fetching media info for ${mediaId}...`);
+    const infoRes = await fetch(`https://graph.facebook.com/v17.0/${mediaId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!infoRes.ok) throw new Error('Failed to get media info');
+    const info = await infoRes.json();
+    
+    if (!info.url) throw new Error('No media URL found');
+    
+    console.log(`Downloading media from ${info.url}...`);
+    const mediaRes = await fetch(info.url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!mediaRes.ok) throw new Error('Failed to download media');
+    const blob = await mediaRes.blob();
+    
+    const ext = info.mime_type?.split('/')?.[1] || 'bin';
+    const name = fileName || `${mediaId}.${ext}`;
+    const filePath = `inbound/${type}/${Date.now()}_${name}`;
+    
+    console.log(`Uploading to Supabase Storage: ${filePath}...`);
+    const { error: uploadError } = await supabase.storage
+      .from('crm-media')
+      .upload(filePath, blob, {
+        contentType: info.mime_type,
+        upsert: true
+      });
+      
+    if (uploadError) throw uploadError;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('crm-media')
+      .getPublicUrl(filePath);
+      
+    return publicUrl;
+  } catch (err) {
+    console.error('Error downloading/uploading media:', err);
+    return null;
+  }
+}

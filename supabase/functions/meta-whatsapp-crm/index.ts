@@ -406,11 +406,14 @@ serve(async (req) => {
       // Save to message history
       if (result.messages && result.messages[0]) {
         if (contact) {
+          const headerImageUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'image')?.image?.link;
+
           await supabase.from('crm_messages').insert({
             contact_id: contact.id,
             direction: 'outbound',
             content: messageContent,
             message_type: 'template',
+            media_url: headerImageUrl || null,
             meta_message_id: result.messages[0].id,
             status: 'sent'
           })
@@ -631,21 +634,27 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     to: to,
   }
 
+  let mediaUrlToStore = null;
+
   if (audioUrl) {
     body.type = "audio"
     body.audio = { 
       link: audioUrl,
       voice: isVoice === true || isVoice === 'true' // This flag makes it appear as a voice note
     }
+    mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
     body.type = "image"
     body.image = { link: imageUrl, caption: text }
+    mediaUrlToStore = imageUrl;
   } else if (videoUrl) {
     body.type = "video"
     body.video = { link: videoUrl, caption: text }
+    mediaUrlToStore = videoUrl;
   } else if (documentUrl) {
     body.type = "document"
     body.document = { link: documentUrl, caption: text, filename: fileName || "document.pdf" }
+    mediaUrlToStore = documentUrl;
   } else if (buttons && buttons.length > 0) {
     body.type = "interactive"
     const interactive: any = {
@@ -661,7 +670,10 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
         }))
       }
     }
-    if (imageUrl) interactive.header = { type: "image", image: { link: imageUrl } }
+    if (imageUrl) {
+      interactive.header = { type: "image", image: { link: imageUrl } }
+      mediaUrlToStore = imageUrl;
+    }
     else if (headerText) interactive.header = { type: "text", text: headerText }
     if (footerText) interactive.footer = { text: footerText }
     body.interactive = interactive
@@ -697,6 +709,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
         direction: 'outbound',
         content: text || `[${body.type}]`,
         message_type: body.type,
+        media_url: mediaUrlToStore,
         meta_message_id: result.messages[0].id,
         status: 'sent'
       })
@@ -957,6 +970,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
           direction: 'outbound',
           content: messageContent,
           message_type: 'template',
+          media_url: node.data.imageUrl || null,
           meta_message_id: sendResult.messages[0].id,
           status: 'sent'
         })

@@ -923,6 +923,7 @@ export type Database = {
           created_at: string | null
           direction: string | null
           id: string
+          media_url: string | null
           message_type: string | null
           meta_message_id: string | null
           status: string | null
@@ -933,6 +934,7 @@ export type Database = {
           created_at?: string | null
           direction?: string | null
           id?: string
+          media_url?: string | null
           message_type?: string | null
           meta_message_id?: string | null
           status?: string | null
@@ -943,6 +945,7 @@ export type Database = {
           created_at?: string | null
           direction?: string | null
           id?: string
+          media_url?: string | null
           message_type?: string | null
           meta_message_id?: string | null
           status?: string | null
