@@ -13,6 +13,8 @@ import {
   Panel,
   Handle,
   Position,
+  ReactFlowProvider,
+  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { supabase } from "@/integrations/supabase/client";
@@ -258,7 +260,8 @@ interface FlowEditorProps {
   onClose: () => void;
 }
 
-const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
+const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
+  const { screenToFlowPosition } = useReactFlow();
   const { toast } = useToast();
   const [nodes, setNodes, onNodesChange] = useNodesState(flow?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flow?.edges || []);
@@ -320,10 +323,23 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
 
   const addNode = (type: string) => {
     const id = `${type}_${Date.now()}`;
+    
+    // Get center of the flow container
+    const flowContainer = document.querySelector('.react-flow');
+    let centerPosition = { x: 100, y: 100 };
+    
+    if (flowContainer) {
+      const rect = flowContainer.getBoundingClientRect();
+      centerPosition = screenToFlowPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+    }
+
     const newNode: Node = {
       id,
       type,
-      position: { x: Math.random() * 400, y: Math.random() * 400 },
+      position: centerPosition,
       data: { 
         text: type === 'message' ? 'Olá, como posso ajudar?' : '',
         buttons: type === 'question' ? [{ text: 'Sim' }, { text: 'Não' }] : [],
@@ -841,5 +857,11 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
     </div>
   );
 };
+
+const FlowEditor: React.FC<FlowEditorProps> = (props) => (
+  <ReactFlowProvider>
+    <FlowEditorInner {...props} />
+  </ReactFlowProvider>
+);
 
 export default FlowEditor;
