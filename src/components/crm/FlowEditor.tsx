@@ -107,7 +107,7 @@ const ImageNode = ({ data }: any) => (
   </Card>
 );
 
-
+const WaitResponseNode = ({ data }: any) => (
   <Card className="min-w-[220px] border-indigo-500 shadow-md">
     <Handle type="target" position={Position.Top} />
     <CardHeader className="p-3 bg-indigo-500 text-white rounded-t-lg flex flex-row items-center justify-between">
