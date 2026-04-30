@@ -65,6 +65,28 @@ serve(async (req) => {
       const { meta_waba_id } = settings
       const { name, category, language, components } = params
       
+      console.log(`Creating template ${name}...`);
+
+      // 1. Process components to get Meta handles for media examples
+      const processedComponents = [...components];
+      for (const component of processedComponents) {
+        if (component.type === 'HEADER' && (component.format === 'IMAGE' || component.format === 'VIDEO' || component.format === 'DOCUMENT')) {
+          const mediaUrl = component.example?.header_handle?.[0];
+          
+          if (mediaUrl && (mediaUrl.startsWith('http') || mediaUrl.startsWith('https'))) {
+            console.log(`Processing media header example for ${name}...`);
+            const appId = await getAppId(meta_access_token);
+            if (appId) {
+              const handle = await getMetaHeaderHandle(meta_access_token, appId, mediaUrl);
+              if (handle) {
+                console.log(`Generated Meta handle for ${name}: ${handle}`);
+                component.example.header_handle = [handle];
+              }
+            }
+          }
+        }
+      }
+      
       const response = await fetch(
         `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates`,
         {
@@ -73,14 +95,14 @@ serve(async (req) => {
             'Authorization': `Bearer ${meta_access_token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ name, category, language, components }),
+          body: JSON.stringify({ name, category, language, components: processedComponents }),
         }
       )
       
       const result = await response.json()
       
       if (!response.ok) {
-        console.error('Meta API Error:', result)
+        console.error('Meta API Error:', JSON.stringify(result, null, 2));
         return new Response(JSON.stringify({ 
           success: false, 
           error: result.error?.message || 'Meta API returned an error',
@@ -98,7 +120,7 @@ serve(async (req) => {
           category,
           language,
           status: 'PENDING',
-          components,
+          components: processedComponents,
           updated_at: new Date().toISOString()
         })
       }
