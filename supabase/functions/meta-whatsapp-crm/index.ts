@@ -706,6 +706,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
         direction: 'outbound',
         content: text || `[${body.type}]`,
         message_type: body.type,
+        media_url: mediaUrlToStore,
         meta_message_id: result.messages[0].id,
         status: 'sent'
       })
