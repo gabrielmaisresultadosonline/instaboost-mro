@@ -694,7 +694,7 @@ const CRM = () => {
   if (loading && !contacts.length) return <div className="min-h-screen flex items-center justify-center"><RefreshCcw className="animate-spin" /></div>;
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       <header className="border-b bg-card/50 backdrop-blur-md sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Logo size="sm" />
