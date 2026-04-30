@@ -703,11 +703,25 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                       </Select>
                     </div>
                     {selectedNode.data.templateId && (
-                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <p className="text-[10px] text-blue-700 font-medium">⚠️ Atenção</p>
-                        <p className="text-[9px] text-blue-600/80 mt-1">
-                          Templates Meta são cobrados como mensagens de Marketing pela Meta. Certifique-se de que o template está aprovado.
-                        </p>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                          <Label className="text-[10px] uppercase text-muted-foreground font-bold mb-2 block">Prévia do Conteúdo</Label>
+                          <p className="text-xs text-slate-700 whitespace-pre-wrap italic">
+                            {selectedNode.data.bodyText || "Template sem texto no corpo."}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                          <p className="text-[10px] text-blue-700 font-medium">⚠️ Regras da Meta</p>
+                          <p className="text-[9px] text-blue-600/80 mt-1">
+                            Templates de {selectedNode.data.category || 'Marketing'} são cobrados por conversa iniciada. 
+                            {selectedNode.data.status !== 'APPROVED' && (
+                              <span className="block mt-1 font-bold text-red-500">
+                                Este template ainda não está aprovado e pode falhar ao enviar.
+                              </span>
+                            )}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
