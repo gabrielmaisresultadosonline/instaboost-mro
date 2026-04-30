@@ -755,11 +755,11 @@ const CRM = () => {
                             
                             {selectedContact.flow_state && selectedContact.flow_state !== 'idle' ? (
                               <div className="flex gap-1">
-                                {selectedContact.flow_state === 'paused' ? (
+                                {selectedContact.flow_state === 'paused' || selectedContact.flow_state === 'error' ? (
                                   <Button 
                                     size="sm" 
                                     variant="secondary" 
-                                    className="bg-emerald-500 text-white hover:bg-emerald-600 h-8"
+                                    className={`${selectedContact.flow_state === 'error' ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white h-8`}
                                     onClick={async () => {
                                       const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
                                         body: { action: 'continueFlow', contactId: selectedContact.id, waId: selectedContact.wa_id }
@@ -767,11 +767,12 @@ const CRM = () => {
                                       if (error) toast({ title: "Erro ao continuar", variant: "destructive" });
                                       else {
                                         fetchMessages(selectedContact.id);
-                                        toast({ title: "Fluxo retomado!" });
+                                        toast({ title: selectedContact.flow_state === 'error' ? "Tentando novamente..." : "Fluxo retomado!" });
                                       }
                                     }}
                                   >
-                                    <Play className="w-3 h-3 mr-1" /> Retomar
+                                    {selectedContact.flow_state === 'error' ? <RefreshCcw className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />} 
+                                    {selectedContact.flow_state === 'error' ? 'Tentar Denovo' : 'Retomar'}
                                   </Button>
                                 ) : (
                                   <Button 
