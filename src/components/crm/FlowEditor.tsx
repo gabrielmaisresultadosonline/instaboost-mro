@@ -430,7 +430,17 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
               onChange={(e) => setFlowName(e.target.value)}
               className="font-bold border-none h-auto p-0 focus-visible:ring-0 text-lg"
             />
-            <p className="text-xs text-muted-foreground">Editor de Fluxo Visual</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-2">
+              Editor de Fluxo Visual
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-6 px-2 text-[10px] gap-1 border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 ml-2" 
+                onClick={() => setSelectedNode(null)}
+              >
+                <Zap className="w-3 h-3" /> Configurar Gatilho
+              </Button>
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
