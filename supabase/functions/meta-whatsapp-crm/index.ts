@@ -789,11 +789,6 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
 }
 
 
-  return new Response(JSON.stringify({ success: true, node: node.id }), {
-    headers: { 'Content-Type': 'application/json' },
-  })
-}
-
 async function getSettings(supabase: any) {
   const { data: settings } = await supabase
     .from('crm_settings')
