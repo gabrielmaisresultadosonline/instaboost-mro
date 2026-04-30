@@ -270,45 +270,76 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 glass-card border-b border-border">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
+    <SidebarProvider>
+      <div className="h-screen w-full flex overflow-hidden bg-background">
+        <Sidebar className="border-r shadow-sm">
+          <SidebarHeader className="p-4 border-b flex items-center justify-center">
+            <div className="flex items-center gap-2">
               <Logo size="sm" />
-              <span className="text-sm font-medium text-primary">Admin Panel</span>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-primary uppercase tracking-tighter leading-none">Painel</span>
+                <span className="text-xs font-black uppercase tracking-tight">Administrativo</span>
+              </div>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={handleLogout} className="cursor-pointer">
-              <LogOut className="w-4 h-4" />
-              <span className="hidden md:inline ml-2">Sair</span>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Gestão</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {tabs.map((tab) => (
+                    <SidebarMenuItem key={tab.id}>
+                      <SidebarMenuButton 
+                        isActive={activeTab === tab.id} 
+                        onClick={() => setActiveTab(tab.id as Tab)}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all",
+                          activeTab === tab.id ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted"
+                        )}
+                      >
+                        <div className={cn("shrink-0", activeTab === tab.id ? "text-primary" : "text-muted-foreground")}>
+                          {tab.icon}
+                        </div>
+                        <span className="font-semibold text-sm">{tab.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          <SidebarFooter className="border-t p-4">
+            <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive h-10 px-4" onClick={handleLogout}>
+              <LogOut className="mr-3 h-4 w-4" /> <span className="font-bold">Sair</span>
             </Button>
-          </div>
+          </SidebarFooter>
+        </Sidebar>
 
-          <div className="overflow-x-auto -mx-4 px-4 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <nav className="flex items-center gap-1 w-max min-w-full">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as Tab)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap text-sm shrink-0 ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  {tab.icon}
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
-      </header>
+        <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden">
+          <header className="h-16 border-b flex items-center px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <div className="h-4 w-px bg-border mx-2 hidden md:block" />
+              <h1 className="text-xl font-bold tracking-tight capitalize flex items-center gap-2">
+                {tabs.find(t => t.id === activeTab)?.icon}
+                {tabs.find(t => t.id === activeTab)?.label}
+              </h1>
+            </div>
+            <div className="flex items-center gap-3">
+              {syncData.currentlySyncing && (
+                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 animate-pulse h-8 hidden sm:flex">
+                  Sincronizando: @{syncData.currentlySyncing}
+                </Badge>
+              )}
+              <Button size="sm" variant="outline" onClick={refreshUserList} className="h-9 gap-2 font-bold border-zinc-200">
+                <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
+                <span className="hidden sm:inline">Atualizar</span>
+              </Button>
+            </div>
+          </header>
+          
+          <main className="flex-1 overflow-auto bg-muted/5 relative">
 
-      {/* Content */}
-      <main className="container mx-auto px-4 py-8">
         {/* Users Tab */}
         {activeTab === 'users' && (
           <div className="space-y-6">
