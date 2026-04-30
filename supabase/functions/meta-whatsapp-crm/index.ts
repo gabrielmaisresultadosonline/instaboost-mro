@@ -787,61 +787,6 @@ async function getSettings(supabase: any) {
     .single()
   return settings
 }
-
-  const response = await fetch(
-    `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${meta_access_token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  )
-
-  const result = await response.json()
-  
-  if (!response.ok) {
-    console.error('Meta API Error:', result)
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: result.error?.message || 'Meta API returned an error',
-      details: result 
-    }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  }
-  
-  if (result.messages && result.messages[0]) {
-    if (contact) {
-      await supabase.from('crm_messages').insert({
-        contact_id: contact.id,
-        direction: 'outbound',
-        content: text || `[${body.type}]`,
-        message_type: body.type,
-        meta_message_id: result.messages[0].id,
-        status: 'sent'
-      })
-
-      await supabase
-        .from('crm_contacts')
-        .update({ 
-          total_messages_sent: (contact.total_messages_sent || 0) + 1,
-          last_interaction: new Date().toISOString()
-        })
-        .eq('id', contact.id)
-      
-      await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
-    }
-  }
-
-  return new Response(JSON.stringify({ success: true, result }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
-
 async function processStep(supabase: any, step: any, contactId: string, waId: string) {
   if (step.step_type === 'delay') {
     await supabase
