@@ -451,10 +451,14 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
 
   if (audioUrl) {
     body.type = "audio"
-    body.audio = { 
-      link: audioUrl,
-      voice: isVoice === true || isVoice === 'true' // This flag makes it appear as a voice note
+    const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, audioUrl, 'audio');
+    if (metaMediaId) {
+      body.audio = { id: metaMediaId };
+    } else {
+      body.audio = { link: audioUrl };
     }
+    mediaUrlToStore = audioUrl;
+  }
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
     body.type = "image"
