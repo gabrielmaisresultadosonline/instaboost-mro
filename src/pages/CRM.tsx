@@ -785,10 +785,10 @@ const CRM = () => {
                             <Badge 
                               key={s} 
                               variant={statusFilter === s ? 'default' : 'outline'} 
-                              className="cursor-pointer capitalize whitespace-nowrap"
+                              className="cursor-pointer capitalize whitespace-nowrap text-[9px] px-1.5 h-4.5 font-bold"
                               onClick={() => setStatusFilter(s)}
                             >
-                              {s}
+                              {s === 'all' ? 'Todos' : s}
                             </Badge>
                           ))}
                         </div>
