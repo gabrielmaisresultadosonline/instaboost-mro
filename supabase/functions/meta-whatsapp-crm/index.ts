@@ -631,21 +631,27 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     to: to,
   }
 
+  let mediaUrlToStore = null;
+
   if (audioUrl) {
     body.type = "audio"
     body.audio = { 
       link: audioUrl,
       voice: isVoice === true || isVoice === 'true' // This flag makes it appear as a voice note
     }
+    mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
     body.type = "image"
     body.image = { link: imageUrl, caption: text }
+    mediaUrlToStore = imageUrl;
   } else if (videoUrl) {
     body.type = "video"
     body.video = { link: videoUrl, caption: text }
+    mediaUrlToStore = videoUrl;
   } else if (documentUrl) {
     body.type = "document"
     body.document = { link: documentUrl, caption: text, filename: fileName || "document.pdf" }
+    mediaUrlToStore = documentUrl;
   } else if (buttons && buttons.length > 0) {
     body.type = "interactive"
     const interactive: any = {
@@ -661,7 +667,10 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
         }))
       }
     }
-    if (imageUrl) interactive.header = { type: "image", image: { link: imageUrl } }
+    if (imageUrl) {
+      interactive.header = { type: "image", image: { link: imageUrl } }
+      mediaUrlToStore = imageUrl;
+    }
     else if (headerText) interactive.header = { type: "text", text: headerText }
     if (footerText) interactive.footer = { text: footerText }
     body.interactive = interactive
