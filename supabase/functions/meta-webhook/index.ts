@@ -210,14 +210,19 @@ serve(async (req) => {
                          f.trigger_keyword?.toLowerCase() === text)
                       );
 
-                      // Priority 2: 24h Inactivity
+                      // Priority 2: First message of the day
+                      if (!triggeredFlow && isFirstMessageOfDay) {
+                        triggeredFlow = flows.find(f => f.trigger_type === 'first_message_day');
+                      }
+
+                      // Priority 3: 24h Inactivity
                       if (!triggeredFlow && isAfter24h) {
                         triggeredFlow = flows.find(f => f.trigger_type === '24h_inactivity');
                       }
 
-                      // Priority 3: New Contact (only if it's the very first message)
+                      // Priority 4: New Contact (only if it's the very first message)
                       if (!triggeredFlow && isNewContact) {
-                        triggeredFlow = flows.find(f => f.trigger_type === 'new_contact');
+                        triggeredFlow = flows.find(f => f.trigger_type === 'new_contact' || f.trigger_type === 'first_message');
                       }
                     }
 
