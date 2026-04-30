@@ -36,6 +36,24 @@ serve(async (req) => {
         for (const entry of body.entry) {
           for (const change of entry.changes) {
             const value = change.value
+            if (value.statuses) {
+              for (const statusUpdate of value.statuses) {
+                const { id: meta_message_id, status, errors } = statusUpdate
+                console.log(`Status update for ${meta_message_id}: ${status}`)
+                
+                let updateData: any = { status }
+                if (errors && errors.length > 0) {
+                  console.error(`Message ${meta_message_id} failed with errors:`, JSON.stringify(errors))
+                  // You could store the error in a column if needed
+                }
+
+                await supabase
+                  .from('crm_messages')
+                  .update(updateData)
+                  .eq('meta_message_id', meta_message_id)
+              }
+            }
+
             if (value.messages) {
               for (const message of value.messages) {
                 const wa_id = message.from
