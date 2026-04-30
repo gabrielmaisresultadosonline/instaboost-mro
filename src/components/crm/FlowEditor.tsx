@@ -531,27 +531,53 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                   <div className="space-y-3">
                     <Label className="text-xs">Botões (Máx 3)</Label>
                     {(selectedNode.data.buttons as any[]).map((btn, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Input 
-                          value={btn.text} 
-                          onChange={(e) => {
-                            const newButtons = [...(selectedNode.data.buttons as any[])];
-                            newButtons[idx].text = e.target.value;
-                            updateNodeData(selectedNode.id, { buttons: newButtons });
-                          }}
-                          className="text-xs h-8"
-                        />
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-red-400"
-                          onClick={() => {
-                            const newButtons = (selectedNode.data.buttons as any[]).filter((_, i) => i !== idx);
-                            updateNodeData(selectedNode.id, { buttons: newButtons });
-                          }}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
+                      <div key={idx} className="space-y-1 p-2 border rounded-md bg-slate-50/50">
+                        <div className="flex gap-2">
+                          <Input 
+                            value={btn.text} 
+                            onChange={(e) => {
+                              const newButtons = [...(selectedNode.data.buttons as any[])];
+                              newButtons[idx].text = e.target.value;
+                              updateNodeData(selectedNode.id, { buttons: newButtons });
+                            }}
+                            placeholder="Texto do botão"
+                            className="text-xs h-8"
+                          />
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-red-400 shrink-0"
+                            onClick={() => {
+                              const newButtons = (selectedNode.data.buttons as any[]).filter((_, i) => i !== idx);
+                              updateNodeData(selectedNode.id, { buttons: newButtons });
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-[10px] text-muted-foreground">Ação ao clicar (Opcional)</Label>
+                          <Select 
+                            value={btn.targetFlowId || "none"} 
+                            onValueChange={(val) => {
+                              const newButtons = [...(selectedNode.data.buttons as any[])];
+                              const targetFlow = availableFlows.find(f => f.id === val);
+                              newButtons[idx].targetFlowId = val === "none" ? null : val;
+                              newButtons[idx].targetFlowName = val === "none" ? null : targetFlow?.name;
+                              updateNodeData(selectedNode.id, { buttons: newButtons });
+                            }}
+                          >
+                            <SelectTrigger className="text-[10px] h-7">
+                              <SelectValue placeholder="Nenhuma (segue o fluxo)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Nenhuma (segue o fluxo)</SelectItem>
+                              {availableFlows.map(f => (
+                                <SelectItem key={f.id} value={f.id}>Pular para: {f.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     ))}
                     {(selectedNode.data.buttons as any[]).length < 3 && (
