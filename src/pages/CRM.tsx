@@ -469,10 +469,10 @@ const CRM = () => {
       // Handle Header variables or images
       if (headerComponent) {
         if (headerComponent.format === 'IMAGE') {
-          // Use example image as fallback if available
+          // Use example image only if it's not a Meta CDN link
           const handleOrUrl = headerComponent.example?.header_handle?.[0];
           
-          if (handleOrUrl && (handleOrUrl.startsWith('http') || handleOrUrl.startsWith('https'))) {
+          if (handleOrUrl && handleOrUrl.startsWith('http') && !handleOrUrl.includes('whatsapp.net')) {
             components.push({
               type: "header",
               parameters: [
@@ -483,6 +483,8 @@ const CRM = () => {
               ]
             });
           }
+          // If it's a Meta link, we don't send the parameter here
+          // and let the Edge Function handle the fallback or use its own logic
         } else if (headerComponent.format === 'TEXT' && headerComponent.text) {
           const headerVariables = headerComponent.text.match(/\{\{\d+\}\}/g);
           if (headerVariables) {
