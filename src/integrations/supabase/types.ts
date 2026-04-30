@@ -1039,6 +1039,7 @@ export type Database = {
           created_at: string | null
           id: string
           initial_auto_response_enabled: boolean | null
+          initial_flow_id: string | null
           initial_response_buttons: Json | null
           initial_response_text: string | null
           meta_access_token: string | null
@@ -1056,6 +1057,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
+          initial_flow_id?: string | null
           initial_response_buttons?: Json | null
           initial_response_text?: string | null
           meta_access_token?: string | null
@@ -1073,6 +1075,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
+          initial_flow_id?: string | null
           initial_response_buttons?: Json | null
           initial_response_text?: string | null
           meta_access_token?: string | null
@@ -1084,7 +1087,15 @@ export type Database = {
           updated_at?: string | null
           webhook_verify_token?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crm_settings_initial_flow_id_fkey"
+            columns: ["initial_flow_id"]
+            isOneToOne: false
+            referencedRelation: "crm_flows"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_templates: {
         Row: {
