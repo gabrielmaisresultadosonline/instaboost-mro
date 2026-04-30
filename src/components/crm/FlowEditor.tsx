@@ -452,6 +452,21 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                   </div>
                 )}
 
+                {selectedNode.type === 'image' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Upload de Imagem (.jpg, .png)</Label>
+                    <Input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) updateNodeData(selectedNode.id, { fileName: file.name, imageUrl: URL.createObjectURL(file) });
+                      }}
+                      className="text-xs h-8"
+                    />
+                  </div>
+                )}
+
                 {selectedNode.type === 'waitResponse' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
