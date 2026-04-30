@@ -645,24 +645,23 @@ async function internalSendTemplate(
     // Handle Header if not provided
     const existingHeader = finalComponents.find((c: any) => c.type === 'header');
     if (headerComponent && !existingHeader) {
-      if (headerComponent.format === 'IMAGE') {
-        let imageUrl = headerComponent.example?.header_handle?.[0];
+      if (headerComponent.format === 'IMAGE' || headerComponent.format === 'VIDEO' || headerComponent.format === 'DOCUMENT') {
+        let mediaUrl = headerComponent.example?.header_handle?.[0];
         
-        // CRITICAL: Do NOT use scontent.whatsapp.net URLs as fallbacks for sending.
-        // These are temporary Meta CDN URLs that will cause error 131053 (Media upload error).
-        if (imageUrl && !imageUrl.includes('scontent.whatsapp.net')) {
+        // Use the example URL as a fallback if available
+        if (mediaUrl) {
+          const type = headerComponent.format.toLowerCase();
+          const mediaObj: any = { link: mediaUrl };
+          if (type === 'document') mediaObj.filename = "document.pdf";
+
           finalComponents.push({
             type: "header",
             parameters: [{
-              type: "image",
-              image: { link: imageUrl }
+              type: type,
+              [type]: mediaObj
             }]
           });
-        } else if (imageUrl) {
-          console.warn(`Template ${templateName} has a Meta CDN header image which cannot be used for sending. Skipping header parameter...`);
-          // We don't push the component if we don't have a valid stable URL.
-          // Note: If the template REQUIRES a header image, Meta might still reject it,
-          // but sending a broken URL definitely fails.
+          console.log(`Template ${templateName} header (${headerComponent.format}) filled with fallback URL.`);
         }
       } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
         finalComponents.push({
