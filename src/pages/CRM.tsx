@@ -748,41 +748,56 @@ const CRM = () => {
   };
 
   const handleSaveFlow = async (flow: any) => {
+    setSaving(true);
     try {
       const { id, ...flowData } = flow;
-      if (id) {
-        const { error } = await supabase
-          .from('crm_flows')
-          .update({
-            name: flowData.name,
-            trigger_type: flowData.trigger_type,
-            trigger_keywords: flowData.trigger_keywords,
-            is_active: flowData.is_active,
-            nodes: flowData.nodes,
-            edges: flowData.edges,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('crm_flows')
-          .insert([{
-            name: flowData.name,
-            trigger_type: flowData.trigger_type,
-            trigger_keywords: flowData.trigger_keywords,
-            is_active: flowData.is_active,
-            nodes: flowData.nodes,
-            edges: flowData.edges
-          }]);
-        if (error) throw error;
+      
+      // Validação básica para garantir que o fluxo tem nome
+      if (!flowData.name || flowData.name.trim() === '') {
+        throw new Error("O fluxo precisa de um nome.");
       }
+
+      const payload = {
+        name: flowData.name,
+        trigger_type: flowData.trigger_type || 'manual',
+        trigger_keywords: flowData.trigger_keywords || [],
+        is_active: flowData.is_active !== false,
+        nodes: flowData.nodes || [],
+        edges: flowData.edges || [],
+        updated_at: new Date().toISOString()
+      };
+
+      let result;
+      if (id) {
+        result = await supabase
+          .from('crm_flows')
+          .update(payload)
+          .eq('id', id);
+      } else {
+        result = await supabase
+          .from('crm_flows')
+          .insert([payload])
+          .select();
+      }
+
+      if (result.error) {
+        console.error("Supabase error saving flow:", result.error);
+        throw result.error;
+      }
+      
       toast({ title: "Fluxo salvo com sucesso!" });
       setIsFlowEditorOpen(false);
       setEditingFlow(null);
       fetchData();
     } catch (err: any) {
-      toast({ title: "Erro ao salvar fluxo", description: err.message, variant: "destructive" });
+      console.error("Error in handleSaveFlow:", err);
+      toast({ 
+        title: "Erro ao salvar fluxo", 
+        description: err.message || "Ocorreu um erro inesperado.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
