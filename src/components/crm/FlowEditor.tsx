@@ -32,7 +32,10 @@ import {
   Trash2,
   X,
   Zap,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  UserCheck,
+  Timer
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -58,11 +61,11 @@ const AudioNode = ({ data }: any) => (
     <Handle type="target" position={Position.Top} />
     <CardHeader className="p-3 bg-purple-500 text-white rounded-t-lg flex flex-row items-center justify-between">
       <CardTitle className="text-xs font-bold flex items-center gap-2">
-        <Mic className="w-3 h-3" /> Áudio
+        <Mic className="w-3 h-3" /> Áudio {data.isPTT && <Badge variant="secondary" className="bg-white/20 text-white border-none text-[8px] h-4">Gravado</Badge>}
       </CardTitle>
     </CardHeader>
     <CardContent className="p-3">
-      <p className="text-[10px] text-muted-foreground truncate">{data.audioUrl || 'Nenhum áudio selecionado'}</p>
+      <p className="text-[10px] text-muted-foreground truncate">{data.fileName || data.audioUrl || 'Nenhum áudio selecionado'}</p>
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
   </Card>
@@ -77,9 +80,30 @@ const VideoNode = ({ data }: any) => (
       </CardTitle>
     </CardHeader>
     <CardContent className="p-3">
-      <p className="text-[10px] text-muted-foreground truncate">{data.videoUrl || 'Nenhum vídeo selecionado'}</p>
+      <p className="text-[10px] text-muted-foreground truncate">{data.fileName || data.videoUrl || 'Nenhum vídeo selecionado'}</p>
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
+  </Card>
+);
+
+const WaitResponseNode = ({ data }: any) => (
+  <Card className="min-w-[220px] border-indigo-500 shadow-md">
+    <Handle type="target" position={Position.Top} />
+    <CardHeader className="p-3 bg-indigo-500 text-white rounded-t-lg flex flex-row items-center justify-between">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <UserCheck className="w-3 h-3" /> Aguardar Resposta
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3 space-y-3">
+      <div className="flex items-center justify-between text-[10px]">
+        <span className="text-muted-foreground">Se responder:</span>
+        <Handle type="source" position={Position.Bottom} id="responded" style={{ left: '30%', bottom: '-8px' }} />
+      </div>
+      <div className="flex items-center justify-between text-[10px]">
+        <span className="text-muted-foreground">Se não responder ({data.timeout || 20}m):</span>
+        <Handle type="source" position={Position.Bottom} id="timeout" style={{ left: '70%', bottom: '-8px' }} />
+      </div>
+    </CardContent>
   </Card>
 );
 
@@ -142,6 +166,21 @@ const FollowUpNode = ({ data }: any) => (
   </Card>
 );
 
+const CRMActionNode = ({ data }: any) => (
+  <Card className="min-w-[180px] border-slate-700 shadow-md">
+    <Handle type="target" position={Position.Top} />
+    <CardHeader className="p-3 bg-slate-700 text-white rounded-t-lg flex flex-row items-center justify-between">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <Zap className="w-3 h-3" /> Ação CRM
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3">
+      <p className="text-[10px] font-bold text-slate-600">{data.action || 'Notificar Agente'}</p>
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} />
+  </Card>
+);
+
 const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
@@ -149,6 +188,8 @@ const nodeTypes = {
   delay: DelayNode,
   question: QuestionNode,
   followup: FollowUpNode,
+  waitResponse: WaitResponseNode,
+  crmAction: CRMActionNode,
 };
 
 interface FlowEditorProps {
@@ -179,7 +220,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
         buttons: type === 'question' ? [{ text: 'Sim' }, { text: 'Não' }] : [],
         delay: 5,
         unit: 'segundos',
-        timeout: 20
+        timeout: 20,
+        isPTT: type === 'audio',
+        fileName: '',
+        action: type === 'crmAction' ? 'Notificar Agente' : ''
       },
     };
     setNodes((nds) => nds.concat(newNode));
@@ -259,14 +303,20 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
               <Button variant="outline" className="justify-start gap-2 border-amber-500/20 hover:bg-amber-500/10" onClick={() => addNode('delay')}>
                 <Clock className="w-4 h-4 text-amber-500" /> Delay
               </Button>
+              <Button variant="outline" className="justify-start gap-2 border-indigo-500/20 hover:bg-indigo-500/10" onClick={() => addNode('waitResponse')}>
+                <UserCheck className="w-4 h-4 text-indigo-500" /> Aguardar Resposta
+              </Button>
               <Button variant="outline" className="justify-start gap-2 border-red-500/20 hover:bg-red-500/10" onClick={() => addNode('followup')}>
                 <AlertCircle className="w-4 h-4 text-red-500" /> Lembrete
+              </Button>
+              <Button variant="outline" className="justify-start gap-2 border-slate-700/20 hover:bg-slate-700/10" onClick={() => addNode('crmAction')}>
+                <Zap className="w-4 h-4 text-slate-700" /> Ação CRM
               </Button>
             </div>
           </div>
 
           {selectedNode && (
-            <div className="pt-6 border-t animate-in fade-in slide-in-from-right-4">
+            <div className="pt-6 border-t animate-in fade-in slide-in-from-right-4 pb-20">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold">Configurar Bloco</h3>
                 <Button variant="ghost" size="icon" className="text-red-500" onClick={() => deleteNode(selectedNode.id)}>
@@ -331,27 +381,70 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                 )}
 
                 {selectedNode.type === 'audio' && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">URL do Áudio</Label>
-                    <Input 
-                      value={selectedNode.data.audioUrl as string} 
-                      onChange={(e) => updateNodeData(selectedNode.id, { audioUrl: e.target.value })}
-                      placeholder="https://..."
-                      className="text-xs"
-                    />
-                    <p className="text-[10px] text-muted-foreground">Envie um arquivo na conversa para obter a URL se necessário.</p>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Upload de Áudio (.mp3, .ogg)</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          type="file" 
+                          accept=".mp3,.ogg"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) updateNodeData(selectedNode.id, { fileName: file.name, audioUrl: URL.createObjectURL(file) });
+                          }}
+                          className="text-xs h-8"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg border border-purple-100">
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] font-bold text-purple-700">Gravado na hora</Label>
+                        <p className="text-[9px] text-purple-600/70">Aparecerá como "gravando..."</p>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedNode.data.isPTT as boolean}
+                        onChange={(e) => updateNodeData(selectedNode.id, { isPTT: e.target.checked })}
+                        className="w-4 h-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+                      />
+                    </div>
                   </div>
                 )}
 
                 {selectedNode.type === 'video' && (
                   <div className="space-y-2">
-                    <Label className="text-xs">URL do Vídeo</Label>
+                    <Label className="text-xs">Upload de Vídeo (.mp4)</Label>
                     <Input 
-                      value={selectedNode.data.videoUrl as string} 
-                      onChange={(e) => updateNodeData(selectedNode.id, { videoUrl: e.target.value })}
-                      placeholder="https://..."
-                      className="text-xs"
+                      type="file" 
+                      accept=".mp4"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) updateNodeData(selectedNode.id, { fileName: file.name, videoUrl: URL.createObjectURL(file) });
+                      }}
+                      className="text-xs h-8"
                     />
+                  </div>
+                )}
+
+                {selectedNode.type === 'waitResponse' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Tempo máximo de espera (minutos)</Label>
+                      <Input 
+                        type="number" 
+                        value={selectedNode.data.timeout as number} 
+                        onChange={(e) => updateNodeData(selectedNode.id, { timeout: parseInt(e.target.value) })}
+                        className="text-xs h-8"
+                      />
+                    </div>
+                    <div className="p-2 bg-indigo-50 rounded border border-indigo-100 space-y-2">
+                      <p className="text-[10px] text-indigo-700 font-medium flex items-center gap-1">
+                        <HelpCircle className="w-3 h-3" /> Como funciona?
+                      </p>
+                      <p className="text-[9px] text-indigo-600/80">
+                        O fluxo para aqui. Se o cliente enviar qualquer mensagem, ele segue pela saída da esquerda. Se passar o tempo configurado, segue pela saída da direita (Follow-up).
+                      </p>
+                    </div>
                   </div>
                 )}
 
@@ -395,6 +488,26 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                       className="text-xs h-8"
                     />
                     <p className="text-[10px] text-muted-foreground">O fluxo continuará deste nó se o cliente não responder.</p>
+                  </div>
+                )}
+                {selectedNode.type === 'crmAction' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Tipo de Ação</Label>
+                    <Select 
+                      value={selectedNode.data.action as string} 
+                      onValueChange={(val) => updateNodeData(selectedNode.id, { action: val })}
+                    >
+                      <SelectTrigger className="text-xs h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Notificar Agente">Notificar Agente</SelectItem>
+                        <SelectItem value="Mudar Status: Ganho">Mudar Status: Ganho</SelectItem>
+                        <SelectItem value="Mudar Status: Perdido">Mudar Status: Perdido</SelectItem>
+                        <SelectItem value="Adicionar Etiqueta">Adicionar Etiqueta</SelectItem>
+                        <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>
