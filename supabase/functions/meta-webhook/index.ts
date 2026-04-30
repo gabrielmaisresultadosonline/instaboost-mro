@@ -256,23 +256,23 @@ serve(async (req) => {
                   }
 
                   if (contact.total_messages_received === 1) {
-                    if (settings?.initial_flow_id) {
+                    if (agentSettings?.initial_flow_id) {
                       await supabase.functions.invoke('meta-whatsapp-crm', {
                         body: {
                           action: 'startFlow',
-                          flowId: settings.initial_flow_id,
+                          flowId: agentSettings.initial_flow_id,
                           contactId: contact.id,
                           waId: wa_id
                         }
                       })
-                    } else if (settings?.initial_auto_response_enabled) {
+                    } else if (agentSettings?.initial_auto_response_enabled) {
                       if (message.type === 'text') {
                          await supabase.functions.invoke('meta-whatsapp-crm', {
                            body: {
                              action: 'sendMessage',
                              to: wa_id,
-                             text: settings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
-                             buttons: settings.initial_response_buttons
+                             text: agentSettings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
+                             buttons: agentSettings.initial_response_buttons
                            }
                          })
                       }
