@@ -625,7 +625,6 @@ async function internalSendTemplate(
   let finalComponents: any[] = [];
   let messageContent = `[Template: ${templateName}]`;
 
-  // We need to carefully reconstruct components based on the APPROVED template structure
   if (templateData.components) {
     const bodyComponent = templateData.components.find((c: any) => c.type === 'BODY');
     const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
@@ -634,13 +633,11 @@ async function internalSendTemplate(
     // Handle Header
     if (headerComponent) {
       if (headerComponent.format === 'IMAGE') {
-        // Try to get URL from manual params first, then from template example
         let imageUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.image?.link;
         if (!imageUrl) {
           imageUrl = headerComponent.example?.header_handle?.[0];
         }
 
-        // WhatsApp internal links usually fail with 403 Forbidden when sent via API.
         const isMetaCdn = imageUrl && (
           imageUrl.includes('whatsapp.net') || 
           imageUrl.includes('fbcdn.net') || 
@@ -655,8 +652,7 @@ async function internalSendTemplate(
               image: { link: imageUrl }
             }]
           });
-        } else {
-          // Fallback to a valid public image if Meta link or missing
+        } else if (imageUrl) {
           finalComponents.push({
             type: "header",
             parameters: [{
@@ -692,43 +688,44 @@ async function internalSendTemplate(
     if (bodyComponent && bodyComponent.text) {
       let text = bodyComponent.text;
       const varCount = (text.match(/\{\{\d+\}\}/g) || []).length;
-      const manualBodyParams = manualComponents?.find((c: any) => c.type === 'body')?.parameters || [];
       
-      const bodyParams = [];
-      for (let i = 1; i <= varCount; i++) {
-        const manualParam = manualBodyParams[i-1]?.text;
-        const val = manualParam || (i === 1 ? (contact?.name || 'Cliente') : "-");
-        bodyParams.push({ type: "text", text: val });
-        text = text.replace(`{{${i}}}`, val);
-      }
-      
-      if (bodyParams.length > 0) {
+      if (varCount > 0) {
+        const manualBodyParams = manualComponents?.find((c: any) => c.type === 'body')?.parameters || [];
+        const bodyParams = [];
+        for (let i = 1; i <= varCount; i++) {
+          const manualParam = manualBodyParams[i-1]?.text;
+          const val = manualParam || (i === 1 ? (contact?.name || 'Cliente') : "-");
+          bodyParams.push({ type: "text", text: val });
+          text = text.replace(`{{${i}}}`, val);
+        }
         finalComponents.push({ type: "body", parameters: bodyParams });
+        messageContent = text;
+      } else {
+        messageContent = text;
       }
-      messageContent = text;
     }
 
     // Handle Buttons
     if (buttonsComponent && buttonsComponent.buttons) {
       buttonsComponent.buttons.forEach((b: any, index: number) => {
         if (b.type === 'URL' && b.url?.includes('{{1}}')) {
-          const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && c.index === index);
+          const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && (c.index === index || index === 0));
           const btnParam = manualBtn?.parameters?.[0]?.text || contact?.id || '1';
           
           finalComponents.push({
             type: "button",
             sub_type: "url",
-            index: index,
+            index: index.toString(),
             parameters: [{ type: "text", text: btnParam }]
           });
         } else if (b.type === 'COPY_CODE' && b.example?.[0]) {
-          const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && c.index === index);
+          const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && (c.index === index || index === 0));
           const btnParam = manualBtn?.parameters?.[0]?.text || b.example[0];
           
           finalComponents.push({
             type: "button",
             sub_type: "copy_code",
-            index: index,
+            index: index.toString(),
             parameters: [{ type: "text", text: btnParam }]
           });
         }
