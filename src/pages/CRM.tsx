@@ -949,7 +949,13 @@ const CRM = () => {
                                 <div className="flex items-center gap-2">
                                   <p className="font-bold text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={() => openContactInfo(selectedContact)}>
                                     {selectedContact.name || selectedContact.wa_id}
-                                    <Badge variant="outline" className="text-[10px] font-normal opacity-60">Info</Badge>
+                                    <Badge 
+                                      variant="outline" 
+                                      style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${10 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                      className="font-normal opacity-60"
+                                    >
+                                      Info
+                                    </Badge>
                                   </p>
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                     <Badge variant="outline" className={cn(
