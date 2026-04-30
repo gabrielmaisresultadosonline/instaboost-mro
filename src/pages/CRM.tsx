@@ -726,10 +726,18 @@ const CRM = () => {
                             <p className="font-bold flex items-center gap-2">
                               {selectedContact.name || selectedContact.wa_id}
                               {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                <Badge variant="outline" className="text-[10px] animate-pulse bg-primary/10 flex items-center gap-1">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-                                  Ativo: {selectedContact.flow_state}
-                                </Badge>
+                                <div className="flex flex-col items-start gap-1">
+                                  <Badge variant="outline" className={`text-[10px] animate-pulse flex items-center gap-1 ${selectedContact.flow_state === 'error' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-primary/10'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full animate-ping ${selectedContact.flow_state === 'error' ? 'bg-red-500' : 'bg-primary'}`} />
+                                    {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
+                                  </Badge>
+                                  {countdown !== null && countdown > 0 && (
+                                    <div className="flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                                      <Clock className="w-3 h-3" />
+                                      Próxima msg em: {countdown}s
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </p>
                             {selectedContact.last_interaction && (
