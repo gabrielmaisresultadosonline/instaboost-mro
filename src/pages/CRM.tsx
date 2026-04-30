@@ -282,6 +282,98 @@ const CRM = () => {
       setSendingMessage(false);
     }
   };
+  
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+        await handleSendMedia(audioBlob, 'audio', true);
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setAudioChunks(chunks);
+      setMediaRecorder(recorder);
+      recorder.start();
+      setIsRecording(true);
+      setRecordingDuration(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      toast({ title: "Erro ao acessar microfone", variant: "destructive" });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false) => {
+    if (!selectedContact) return;
+    setSendingMessage(true);
+    try {
+      // Upload to Supabase Storage
+      const fileExt = file instanceof File ? file.name.split('.').pop() : (isVoice ? 'ogg' : 'bin');
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `chat-media/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('crm-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('crm-media')
+        .getPublicUrl(filePath);
+
+      const params: any = { action: 'sendMessage', to: selectedContact.wa_id };
+      if (type === 'audio') {
+        params.audioUrl = publicUrl;
+        params.isVoice = isVoice;
+      } else if (type === 'image') {
+        params.imageUrl = publicUrl;
+      } else if (type === 'video') {
+        params.videoUrl = publicUrl;
+      } else if (type === 'document') {
+        params.documentUrl = publicUrl;
+        params.fileName = file instanceof File ? file.name : 'document';
+      }
+
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { body: params });
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      await fetchMessages(selectedContact.id);
+      toast({ title: "Mídia enviada!" });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar mídia", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadType) return;
+    
+    // For audio files, we can ask or assume if they want it as PTT
+    const isVoice = uploadType === 'audio'; // Default to true if user selects audio file in chat? Or maybe we can keep it as standard audio
+    handleSendMedia(file, uploadType, isVoice);
+    e.target.value = '';
+  };
 
   const handleTriggerFlow = async (flowId: string) => {
     if (!selectedContact) return;
