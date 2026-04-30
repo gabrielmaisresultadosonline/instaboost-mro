@@ -463,10 +463,7 @@ const CRM = () => {
       // Handle Header variables or images
       if (headerComponent) {
         if (headerComponent.format === 'IMAGE') {
-          // If there's an example image handle, use it as default
-          // CRITICAL: Meta CDN URLs from examples (scontent.whatsapp.net) usually fail with 403 
-          // when used in the 'link' parameter because they are temporary/signed.
-          // We only use the link if it's NOT a Meta CDN link or if we have no choice.
+          // Use example image as fallback if available
           const imageUrl = headerComponent.example?.header_handle?.[0];
           
           if (imageUrl) {
