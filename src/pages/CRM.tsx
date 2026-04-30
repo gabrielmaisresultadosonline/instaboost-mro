@@ -39,7 +39,6 @@ import {
   Play,
   ArrowRight,
   Check,
-  Clock as ClockIcon,
   AlertCircle,
   FileCheck2,
   ListFilter,
@@ -48,7 +47,14 @@ import {
   EyeOff,
   LayoutDashboard,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  Instagram,
+  Facebook,
+  Link as LinkIcon,
+  UserPlus,
+  Download,
+  Upload,
+  User
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
@@ -137,6 +143,9 @@ const CRM = () => {
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [showTemplates, setShowTemplates] = useState(true);
   const [showFlows, setShowFlows] = useState(true);
+  const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
+  const [contactToView, setContactToView] = useState<any>(null);
 
   useEffect(() => {
     selectedContactRef.current = selectedContact;
@@ -583,6 +592,82 @@ const CRM = () => {
     }
   };
 
+  const handleSaveContactMetadata = async (contactId: string, metadata: any) => {
+    try {
+      const { error } = await supabase.from('crm_contacts').update({ metadata }).eq('id', contactId);
+      if (error) throw error;
+      toast({ title: "Informações salvas!" });
+      fetchContacts();
+      if (selectedContact?.id === contactId) {
+        setSelectedContact({ ...selectedContact, metadata });
+      }
+    } catch (err) {
+      toast({ title: "Erro ao salvar informações", variant: "destructive" });
+    }
+  };
+
+  const handleExportContacts = () => {
+    const data = contacts.map(c => ({
+      Nome: c.name || '',
+      Telefone: c.wa_id || '',
+      Status: c.status || '',
+      Bio: c.metadata?.bio || '',
+      Instagram: c.metadata?.instagram || '',
+      Facebook: c.metadata?.facebook || '',
+      Links: c.metadata?.links || ''
+    }));
+    const csv = [
+      Object.keys(data[0]).join(','),
+      ...data.map(row => Object.values(row).map(v => `"${v}"`).join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contatos_crm_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
+  const handleImportContacts = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      const lines = content.split('\n').filter(l => l.trim());
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const imported = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const obj: any = {};
+        headers.forEach((h, i) => obj[h] = values[i]);
+        return obj;
+      });
+
+      for (const contact of imported) {
+        if (!contact.Telefone) continue;
+        await supabase.from('crm_contacts').upsert({
+          wa_id: contact.Telefone,
+          name: contact.Nome,
+          status: contact.Status || 'new',
+          metadata: {
+            bio: contact.Bio,
+            instagram: contact.Instagram,
+            facebook: contact.Facebook,
+            links: contact.Links
+          }
+        }, { onConflict: 'wa_id' });
+      }
+      toast({ title: "Importação concluída!" });
+      fetchContacts();
+    };
+    reader.readAsText(file);
+  };
+
+  const openContactInfo = (contact: any) => {
+    setContactToView(contact);
+    setIsContactInfoOpen(true);
+  };
+
   const openChat = (contact: any) => {
     setSelectedContact(contact);
     fetchMessages(contact.id);
@@ -704,10 +789,15 @@ const CRM = () => {
               <h1 className="text-xl font-bold tracking-tight capitalize">{activeTab}</h1>
             </div>
             {activeTab === 'contacts' && (
-              <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)}>
-                {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-                {kanbanView ? 'Lista' : 'Kanban'}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsImportExportOpen(true)}>
+                  <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)}>
+                  {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                  {kanbanView ? 'Lista' : 'Kanban'}
+                </Button>
+              </div>
             )}
           </header>
           
@@ -756,7 +846,7 @@ const CRM = () => {
                         <ScrollArea className="flex-1 p-2">
                           {contacts.filter(c => c.status === status).map(contact => (
                             <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors" onClick={() => { openChat(contact); setKanbanView(false); }}>
-                              <p className="text-sm font-semibold truncate">{contact.name || contact.wa_id}</p>
+                              <p className="text-sm font-semibold truncate hover:text-primary cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>{contact.name || contact.wa_id}</p>
                               {contact.last_interaction && (
                                 <p className="text-[10px] text-muted-foreground mt-1">
                                   {new Date(contact.last_interaction).toLocaleDateString()}
@@ -808,7 +898,7 @@ const CRM = () => {
                               )}
                             >
                               <div className="flex justify-between items-start w-full">
-                                <p className="font-bold truncate text-sm flex-1">{contact.name || contact.wa_id}</p>
+                                <p className="font-bold truncate text-sm flex-1 hover:text-primary cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>{contact.name || contact.wa_id}</p>
                                 <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
@@ -842,7 +932,10 @@ const CRM = () => {
                               </Button>
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-2">
-                                  <p className="font-bold text-base">{selectedContact.name || selectedContact.wa_id}</p>
+                                  <p className="font-bold text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={() => openContactInfo(selectedContact)}>
+                                    {selectedContact.name || selectedContact.wa_id}
+                                    <Badge variant="outline" className="text-[10px] font-normal opacity-60">Info</Badge>
+                                  </p>
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                     <Badge variant="outline" className={cn(
                                       "text-[9px] px-1 h-3.5 flex items-center gap-1 font-medium",
@@ -1437,6 +1530,152 @@ const CRM = () => {
           onClose={() => setPreviewMedia(null)} 
         />
       )}
+
+      <Dialog open={isContactInfoOpen} onOpenChange={setIsContactInfoOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-6 border-none shadow-2xl">
+          <DialogHeader className="items-center pb-4 border-b">
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <User className="w-10 h-10 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-bold">Informações do Contato</DialogTitle>
+            <DialogDescription>Visualize e edite os detalhes de {contactToView?.name || contactToView?.wa_id}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-6">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase text-muted-foreground ml-1">Nome</Label>
+              <Input 
+                value={contactToView?.name || ''} 
+                onChange={e => setContactToView({...contactToView, name: e.target.value})}
+                placeholder="Nome do contato"
+                className="bg-muted/30 border-none h-11 rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase text-muted-foreground ml-1">Biografia / Observações</Label>
+              <Textarea 
+                value={contactToView?.metadata?.bio || ''} 
+                onChange={e => setContactToView({...contactToView, metadata: { ...contactToView?.metadata, bio: e.target.value }})}
+                placeholder="Descreva informações importantes..."
+                className="bg-muted/30 border-none rounded-xl min-h-[100px]"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
+                  <Instagram className="w-3.5 h-3.5" /> Instagram
+                </Label>
+                <Input 
+                  value={contactToView?.metadata?.instagram || ''} 
+                  onChange={e => setContactToView({...contactToView, metadata: { ...contactToView?.metadata, instagram: e.target.value }})}
+                  placeholder="@usuario ou link"
+                  className="bg-muted/30 border-none h-11 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
+                  <Facebook className="w-3.5 h-3.5" /> Facebook
+                </Label>
+                <Input 
+                  value={contactToView?.metadata?.facebook || ''} 
+                  onChange={e => setContactToView({...contactToView, metadata: { ...contactToView?.metadata, facebook: e.target.value }})}
+                  placeholder="link da página"
+                  className="bg-muted/30 border-none h-11 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
+                  <LinkIcon className="w-3.5 h-3.5" /> Outros Links
+                </Label>
+                <Input 
+                  value={contactToView?.metadata?.links || ''} 
+                  onChange={e => setContactToView({...contactToView, metadata: { ...contactToView?.metadata, links: e.target.value }})}
+                  placeholder="https://site.com"
+                  className="bg-muted/30 border-none h-11 rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setIsContactInfoOpen(false)} className="rounded-xl h-12 px-6">Fechar</Button>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white rounded-xl h-12 px-8 font-bold shadow-lg shadow-primary/20"
+              onClick={async () => {
+                await supabase.from('crm_contacts').update({ 
+                  name: contactToView.name,
+                  metadata: contactToView.metadata 
+                }).eq('id', contactToView.id);
+                toast({ title: "Contato atualizado!" });
+                fetchContacts();
+                if (selectedContact?.id === contactToView.id) {
+                  setSelectedContact({ ...selectedContact, name: contactToView.name, metadata: contactToView.metadata });
+                }
+                setIsContactInfoOpen(false);
+              }}
+            >
+              <Save className="w-4 h-4 mr-2" /> Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isImportExportOpen} onOpenChange={setIsImportExportOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-6 border-none shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <FileUp className="w-5 h-5 text-primary" /> Gerenciar Contatos
+            </DialogTitle>
+            <DialogDescription>Exporte sua lista atual ou importe novos contatos via CSV.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 gap-4 py-6">
+            <div className="p-6 rounded-2xl border-2 border-dashed border-muted bg-muted/5 flex flex-col items-center gap-4 text-center">
+              <div className="p-3 rounded-full bg-primary/10 text-primary">
+                <Download className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="font-bold">Exportar Lista</p>
+                <p className="text-xs text-muted-foreground">Baixe todos os contatos e suas informações em CSV.</p>
+              </div>
+              <Button variant="outline" className="w-full rounded-xl" onClick={handleExportContacts}>
+                Baixar CSV
+              </Button>
+            </div>
+
+            <div className="p-6 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 flex flex-col items-center gap-4 text-center">
+              <div className="p-3 rounded-full bg-primary/20 text-primary">
+                <Upload className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="font-bold">Importar Lista</p>
+                <p className="text-xs text-muted-foreground">Adicione contatos em massa enviando um arquivo CSV.</p>
+              </div>
+              <Label htmlFor="import-csv" className="w-full">
+                <Button variant="default" className="w-full rounded-xl pointer-events-none">
+                  Selecionar Arquivo
+                </Button>
+              </Label>
+              <input 
+                id="import-csv" 
+                type="file" 
+                accept=".csv" 
+                className="hidden" 
+                onChange={(e) => {
+                  handleImportContacts(e);
+                  setIsImportExportOpen(false);
+                }} 
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsImportExportOpen(false)} className="w-full rounded-xl h-11">Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };
