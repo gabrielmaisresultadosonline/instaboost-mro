@@ -471,6 +471,49 @@ const CRM = () => {
     }
   };
 
+  const handleCancelFlow = async (contactId: string) => {
+    setSendingMessage(true);
+    try {
+      const { error } = await supabase
+        .from('crm_contacts')
+        .update({
+          flow_state: 'idle',
+          current_flow_id: null,
+          current_step_index: null,
+          current_node_id: null,
+          next_execution_time: null
+        })
+        .eq('id', contactId);
+        
+      if (error) throw error;
+      
+      // Delete any pending scheduled messages for this contact
+      await supabase
+        .from('crm_scheduled_messages')
+        .delete()
+        .eq('contact_id', contactId)
+        .eq('status', 'pending');
+
+      toast({ title: "Fluxo interrompido com sucesso!" });
+      
+      if (selectedContact?.id === contactId) {
+        setSelectedContact((prev: any) => ({
+          ...prev,
+          flow_state: 'idle',
+          current_flow_id: null,
+          current_step_index: null,
+          current_node_id: null,
+          next_execution_time: null
+        }));
+      }
+      fetchContacts();
+    } catch (err: any) {
+      toast({ title: "Erro ao interromper fluxo", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   const syncTemplates = async () => {
     setSyncingTemplates(true);
     try {
