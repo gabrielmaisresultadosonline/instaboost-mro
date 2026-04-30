@@ -708,13 +708,13 @@ const CRM = () => {
 
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden bg-muted/20">
         <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
-          <div className="px-4 py-2 border-b bg-card">
-            <TabsList className="flex h-9 items-center justify-start gap-1 bg-transparent p-0">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Dashboard</TabsTrigger>
-              <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Conversas</TabsTrigger>
-              <TabsTrigger value="flows" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Fluxos</TabsTrigger>
-              <TabsTrigger value="templates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Templates</TabsTrigger>
-              <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Ajustes</TabsTrigger>
+          <div className="px-6 py-4 border-b bg-card">
+            <TabsList className="flex h-10 items-center justify-start gap-2 bg-muted p-1 rounded-lg w-fit">
+              <TabsTrigger value="dashboard" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Dashboard</TabsTrigger>
+              <TabsTrigger value="contacts" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Conversas</TabsTrigger>
+              <TabsTrigger value="flows" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Fluxos</TabsTrigger>
+              <TabsTrigger value="templates" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Templates</TabsTrigger>
+              <TabsTrigger value="settings" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Ajustes</TabsTrigger>
             </TabsList>
           </div>
 
@@ -789,10 +789,10 @@ const CRM = () => {
                   <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
                     {selectedContact ? (
                       <>
-                        <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card">
-                          <div className="flex items-center gap-3">
+                        <div className="p-4 border-b flex justify-between items-center bg-card shadow-sm z-10">
+                          <div className="flex items-center gap-4">
                             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
-                              <ArrowRight className="h-4 w-4 rotate-180" />
+                              <ArrowRight className="h-5 w-5 rotate-180" />
                             </Button>
                             <div className="flex flex-col">
                               <p className="font-bold flex items-center gap-2 text-sm md:text-base">
@@ -890,9 +890,9 @@ const CRM = () => {
                             ) : null}
                           </div>
                         </div>
-                        <div className="bg-muted/30 border-b px-4 py-1.5 flex gap-2 overflow-x-auto no-scrollbar items-center scrollbar-hide">
-                          <span className="text-[10px] font-semibold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
-                            <Zap className="w-3 h-3" /> Atalhos:
+                        <div className="bg-muted/50 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center scrollbar-hide">
+                          <span className="text-[11px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5" /> Atalhos:
                           </span>
                           {templates.slice(0, 8).map(t => (
                             <Button 
@@ -924,7 +924,7 @@ const CRM = () => {
                           <div className="p-4 space-y-4">
                             {chatMessages.map(m => (
                               <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
-                                <div className={`p-3 rounded-2xl max-w-[80%] shadow-sm ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
+                                <div className={`p-4 rounded-2xl max-w-[85%] shadow-md ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
                                   {m.media_url && (
                                     <div className="mb-2 overflow-hidden rounded-lg">
                                       {m.message_type === 'image' || (m.message_type === 'template' && m.media_url.match(/\.(jpg|jpeg|png|gif|webp)/i)) ? (
@@ -950,7 +950,7 @@ const CRM = () => {
                             <div ref={scrollRef} />
                           </div>
                         </ScrollArea>
-                        <div className="p-4 border-t bg-muted/20">
+                        <div className="p-4 border-t bg-card shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
                           {isRecording ? (
                             <div className="flex items-center justify-between bg-primary/10 p-2 rounded-lg border border-primary/20 animate-pulse">
                               <div className="flex items-center gap-2">
@@ -1267,44 +1267,59 @@ const CRM = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight">Configurações do Sistema</h2>
-              <p className="text-muted-foreground text-sm">Gerencie suas conexões e parâmetros de automação</p>
-            </div>
+            <div className="max-w-4xl mx-auto w-full space-y-6 pb-12">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight text-primary">Configurações</h2>
+                <p className="text-muted-foreground text-sm">Gerencie suas conexões e chaves de API</p>
+              </div>
 
-            <Card className="border-zinc-200 dark:border-zinc-800">
-              <CardHeader className="bg-muted/30">
-                <CardTitle className="text-lg">Configurações da API Meta</CardTitle>
-                <CardDescription>Configure suas credenciais do Facebook Business para o WhatsApp</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Access Token (Permanente)</Label>
-                    <Input type="password" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone Number ID</Label>
-                    <Input value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>WhatsApp Business Account ID</Label>
-                    <Input value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Meta App ID (Opcional)</Label>
-                    <Input value={metaSettings.meta_app_id} onChange={e => setMetaSettings({...metaSettings, meta_app_id: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Meta App Secret (Opcional)</Label>
-                    <Input type="password" value={metaSettings.meta_app_secret} onChange={e => setMetaSettings({...metaSettings, meta_app_secret: e.target.value})} />
-                  </div>
-                </div>
-                <Button onClick={handleSaveSettings} disabled={saving}>
-                  {saving ? "Salvando..." : "Salvar Configurações"}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
+                  <CardHeader>
+                    <CardTitle className="text-lg">WhatsApp Business API</CardTitle>
+                    <CardDescription>Configure sua conta da Meta</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Access Token (Permanente)</Label>
+                      <Input type="password" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone Number ID</Label>
+                      <Input value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>WhatsApp Business Account ID</Label>
+                      <Input value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
+                    <CardDescription>Configurações do Agente AI</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Habilitar Agente AI</Label>
+                      <Switch checked={metaSettings.ai_agent_enabled} onCheckedChange={checked => setMetaSettings({...metaSettings, ai_agent_enabled: checked})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>OpenAI API Key</Label>
+                      <Input type="password" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleSaveSettings} disabled={saving} size="lg" className="px-8">
+                  {saving ? <RefreshCcw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Salvar Todas as Configurações
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
