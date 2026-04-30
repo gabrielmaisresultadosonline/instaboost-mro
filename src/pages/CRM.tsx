@@ -660,15 +660,15 @@ const CRM = () => {
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
       <header className="border-b bg-card/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Logo size="sm" />
           <Button variant="ghost" size="sm" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}><LogOut className="mr-2 h-4 w-4" /> Sair</Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 mt-8">
+      <main className="container mx-auto px-4 mt-4">
         <Tabs defaultValue="contacts">
-          <TabsList className="mb-6">
+          <TabsList className="mb-4">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="contacts">Contatos/CRM</TabsTrigger>
             <TabsTrigger value="flows">Fluxos de Automação</TabsTrigger>
@@ -971,7 +971,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="flows" className="space-y-6">
+          <TabsContent value="flows" className="space-y-4">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Fluxos de Automação</h2>
@@ -1009,7 +1009,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="templates" className="space-y-6">
+          <TabsContent value="templates" className="space-y-4">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Templates do WhatsApp</h2>
@@ -1103,7 +1103,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6">
+          <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Configurações da API Meta</CardTitle>
