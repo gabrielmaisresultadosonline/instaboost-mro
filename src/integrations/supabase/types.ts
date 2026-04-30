@@ -922,6 +922,8 @@ export type Database = {
           content: string | null
           created_at: string | null
           direction: string | null
+          error_code: string | null
+          error_message: string | null
           id: string
           media_url: string | null
           message_type: string | null
@@ -933,6 +935,8 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           direction?: string | null
+          error_code?: string | null
+          error_message?: string | null
           id?: string
           media_url?: string | null
           message_type?: string | null
@@ -944,6 +948,8 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           direction?: string | null
+          error_code?: string | null
+          error_message?: string | null
           id?: string
           media_url?: string | null
           message_type?: string | null

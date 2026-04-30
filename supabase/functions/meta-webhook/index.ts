@@ -44,7 +44,8 @@ serve(async (req) => {
                 let updateData: any = { status }
                 if (errors && errors.length > 0) {
                   console.error(`Message ${meta_message_id} failed with errors:`, JSON.stringify(errors))
-                  // You could store the error in a column if needed
+                  updateData.error_code = errors[0].code?.toString();
+                  updateData.error_message = errors[0].message || errors[0].details;
                 }
 
                 await supabase

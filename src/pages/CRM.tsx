@@ -355,7 +355,9 @@ const CRM = () => {
 
       const { error: uploadError } = await supabase.storage
         .from('crm-media')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          contentType: file.type || (type === 'audio' ? 'audio/ogg; codecs=opus' : undefined)
+        });
 
       if (uploadError) throw uploadError;
 
@@ -464,15 +466,15 @@ const CRM = () => {
       if (headerComponent) {
         if (headerComponent.format === 'IMAGE') {
           // Use example image as fallback if available
-          const imageUrl = headerComponent.example?.header_handle?.[0];
+          const handleOrUrl = headerComponent.example?.header_handle?.[0];
           
-          if (imageUrl) {
+          if (handleOrUrl && (handleOrUrl.startsWith('http') || handleOrUrl.startsWith('https'))) {
             components.push({
               type: "header",
               parameters: [
                 {
                   type: "image",
-                  image: { link: imageUrl }
+                  image: { link: handleOrUrl }
                 }
               ]
             });

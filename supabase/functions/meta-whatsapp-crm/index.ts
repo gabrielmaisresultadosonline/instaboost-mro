@@ -433,7 +433,7 @@ function sanitizeMetaLink(url: string | null | undefined): string {
   if (isMetaCdn) {
     console.log('Sanitizing Meta CDN link:', url);
     // Use a generic but professional placeholder image for CRM
-    return "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop";
+    return "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg";
   }
   return url;
 }
@@ -635,7 +635,10 @@ async function internalSendTemplate(
       if (headerComponent.format === 'IMAGE') {
         let imageUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.image?.link;
         if (!imageUrl) {
-          imageUrl = headerComponent.example?.header_handle?.[0];
+          const potentialUrl = headerComponent.example?.header_handle?.[0];
+          if (potentialUrl && (potentialUrl.startsWith('http') || potentialUrl.startsWith('https'))) {
+            imageUrl = potentialUrl;
+          }
         }
 
         const isMetaCdn = imageUrl && (
@@ -652,12 +655,13 @@ async function internalSendTemplate(
               image: { link: imageUrl }
             }]
           });
-        } else if (imageUrl) {
+        } else {
+          // Fallback to a valid JPG image since Unsplash webp is rejected by Meta
           finalComponents.push({
             type: "header",
             parameters: [{
               type: "image",
-              image: { link: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop" }
+              image: { link: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg" }
             }]
           });
         }
