@@ -706,6 +706,7 @@ export type Database = {
         Row: {
           created_at: string | null
           current_flow_id: string | null
+          current_node_id: string | null
           current_step_index: number | null
           custom_labels: string[] | null
           flow_state: string | null
@@ -724,6 +725,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           current_flow_id?: string | null
+          current_node_id?: string | null
           current_step_index?: number | null
           custom_labels?: string[] | null
           flow_state?: string | null
@@ -742,6 +744,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           current_flow_id?: string | null
+          current_node_id?: string | null
           current_step_index?: number | null
           custom_labels?: string[] | null
           flow_state?: string | null
@@ -761,6 +764,60 @@ export type Database = {
           {
             foreignKeyName: "crm_contacts_current_flow_id_fkey"
             columns: ["current_flow_id"]
+            isOneToOne: false
+            referencedRelation: "crm_flows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_flow_executions: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          current_node_id: string | null
+          flow_id: string | null
+          id: string
+          last_interaction: string | null
+          state: Json | null
+          updated_at: string | null
+          waiting_for_type: string | null
+          waiting_since: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string | null
+          current_node_id?: string | null
+          flow_id?: string | null
+          id?: string
+          last_interaction?: string | null
+          state?: Json | null
+          updated_at?: string | null
+          waiting_for_type?: string | null
+          waiting_since?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string | null
+          current_node_id?: string | null
+          flow_id?: string | null
+          id?: string
+          last_interaction?: string | null
+          state?: Json | null
+          updated_at?: string | null
+          waiting_for_type?: string | null
+          waiting_since?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_flow_executions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_flow_executions_flow_id_fkey"
+            columns: ["flow_id"]
             isOneToOne: false
             referencedRelation: "crm_flows"
             referencedColumns: ["id"]
@@ -818,9 +875,11 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
+          edges: Json | null
           id: string
           is_active: boolean | null
           name: string
+          nodes: Json | null
           trigger_keyword: string | null
           trigger_keywords: string[] | null
           trigger_type: string | null
@@ -829,9 +888,11 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
+          edges?: Json | null
           id?: string
           is_active?: boolean | null
           name: string
+          nodes?: Json | null
           trigger_keyword?: string | null
           trigger_keywords?: string[] | null
           trigger_type?: string | null
@@ -840,9 +901,11 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
+          edges?: Json | null
           id?: string
           is_active?: boolean | null
           name?: string
+          nodes?: Json | null
           trigger_keyword?: string | null
           trigger_keywords?: string[] | null
           trigger_type?: string | null
@@ -920,6 +983,54 @@ export type Database = {
           sent_count?: number | null
         }
         Relationships: []
+      }
+      crm_scheduled_messages: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          flow_id: string | null
+          id: string
+          message_data: Json
+          node_id: string | null
+          scheduled_for: string
+          status: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string | null
+          flow_id?: string | null
+          id?: string
+          message_data: Json
+          node_id?: string | null
+          scheduled_for: string
+          status?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string | null
+          flow_id?: string | null
+          id?: string
+          message_data?: Json
+          node_id?: string | null
+          scheduled_for?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_scheduled_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_scheduled_messages_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "crm_flows"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_settings: {
         Row: {
