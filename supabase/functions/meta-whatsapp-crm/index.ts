@@ -50,12 +50,12 @@ serve(async (req) => {
       }
       
       const data = await response.json()
-      const metaTemplateIds: string[] = [];
       
       if (data.data) {
         console.log(`Found ${data.data.length} templates on Meta.`);
+        const metaTemplateIds = data.data.map((t: any) => t.id);
+        
         for (const template of data.data) {
-          metaTemplateIds.push(template.id);
           await supabase.from('crm_templates').upsert({
             id: template.id,
             name: template.name,
@@ -72,7 +72,7 @@ serve(async (req) => {
           const { error: deleteError } = await supabase
             .from('crm_templates')
             .delete()
-            .not('id', 'in', `(${metaTemplateIds.join(',')})`)
+            .not('id', 'in', metaTemplateIds)
           
           if (deleteError) {
             console.error('Error cleaning up local templates:', deleteError);
