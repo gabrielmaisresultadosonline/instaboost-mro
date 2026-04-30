@@ -1083,52 +1083,108 @@ const CRM = () => {
             </Dialog>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {templates.map((template) => (
-                <Card key={template.id} className="overflow-hidden border-zinc-200 dark:border-zinc-800">
-                  <CardHeader className="bg-muted/30 pb-3">
-                    <div className="flex justify-between items-start">
-                      <Badge variant={
-                        template.status === 'APPROVED' ? 'default' : 
-                        template.status === 'REJECTED' ? 'destructive' : 'secondary'
-                      } className="mb-2">
-                        {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
-                         template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
-                         <ClockIcon className="w-3 h-3 mr-1" />}
-                        {template.status}
-                      </Badge>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-destructive" 
-                        onClick={() => {
-                          if (confirm(`Deseja realmente excluir o template "${template.name}" da Meta? Esta ação é irreversível.`)) {
-                            handleDeleteTemplate(template.name);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <CardTitle className="text-base truncate">{template.name}</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px]">
-                        {template.category === 'MARKETING' ? '📢 Marketing' : 
-                         template.category === 'UTILITY' ? '🛠️ Utilidade' : 
-                         '🔐 Autenticação'}
-                      </Badge>
-                      <Badge variant="outline" className="text-[10px]">{template.language}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4 bg-[#e5ddd5]/30 dark:bg-zinc-900/50">
-                    <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg shadow-sm border border-zinc-100 dark:border-zinc-700">
-                      <div className="text-[13px] text-zinc-800 dark:text-zinc-200 line-clamp-4">
-                        {template.components?.find((c: any) => c.type === 'BODY')?.text}
+              {templates.map((template) => {
+                const header = template.components?.find((c: any) => c.type === 'HEADER');
+                const body = template.components?.find((c: any) => c.type === 'BODY');
+                const footer = template.components?.find((c: any) => c.type === 'FOOTER');
+                const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
+
+                return (
+                  <Card key={template.id} className="overflow-hidden border-zinc-200 dark:border-zinc-800 flex flex-col">
+                    <CardHeader className="bg-muted/30 pb-3">
+                      <div className="flex justify-between items-start">
+                        <Badge variant={
+                          template.status === 'APPROVED' ? 'default' : 
+                          template.status === 'REJECTED' ? 'destructive' : 'secondary'
+                        } className="mb-2">
+                          {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
+                           template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
+                           <ClockIcon className="w-3 h-3 mr-1" />}
+                          {template.status}
+                        </Badge>
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-primary" 
+                            onClick={() => setPreviewTemplate(template)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-destructive" 
+                            onClick={() => {
+                              if (confirm(`Deseja realmente excluir o template "${template.name}" da Meta? Esta ação é irreversível.`)) {
+                                handleDeleteTemplate(template.name);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <CardTitle className="text-base truncate">{template.name}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px]">
+                          {template.category === 'MARKETING' ? '📢 Marketing' : 
+                           template.category === 'UTILITY' ? '🛠️ Utilidade' : 
+                           '🔐 Autenticação'}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px]">{template.language}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 bg-[#e5ddd5]/30 dark:bg-zinc-900/50 flex-1 flex flex-col justify-between">
+                      <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg shadow-sm border border-zinc-100 dark:border-zinc-700">
+                        {header && header.format === 'IMAGE' && header.example?.header_handle?.[0] && (
+                          <div className="mb-2 aspect-video overflow-hidden rounded bg-muted">
+                            <img 
+                              src={header.example.header_handle[0]} 
+                              alt="Header" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="text-[13px] text-zinc-800 dark:text-zinc-200 line-clamp-3">
+                          {body?.text}
+                        </div>
+                        {footer?.text && (
+                          <div className="text-[10px] text-muted-foreground mt-1 uppercase">
+                            {footer.text}
+                          </div>
+                        )}
+                      </div>
+                      {buttonsComp?.buttons && buttonsComp.buttons.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {buttonsComp.buttons.map((btn: any, idx: number) => (
+                            <div key={idx} className="bg-white/80 dark:bg-zinc-800/80 p-1.5 rounded text-[11px] text-center text-blue-500 font-medium border border-zinc-100 dark:border-zinc-700">
+                              {btn.text}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
+
+            <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+              <DialogContent className="max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none">
+                {previewTemplate && (
+                  <TemplatePreview 
+                    name={previewTemplate.name}
+                    headerType={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.format || 'NONE'}
+                    headerText={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.text}
+                    headerUrl={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.example?.header_handle?.[0]}
+                    bodyText={previewTemplate.components?.find((c: any) => c.type === 'BODY')?.text || ''}
+                    footerText={previewTemplate.components?.find((c: any) => c.type === 'FOOTER')?.text}
+                    buttons={previewTemplate.components?.find((c: any) => c.type === 'BUTTONS')?.buttons || []}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-4">
