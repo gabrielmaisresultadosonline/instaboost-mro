@@ -1041,11 +1041,9 @@ const CRM = () => {
                   </div>
                 </>
               )}
-            ) : (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                  Selecione um contato para abrir o chat
-                </div>
               )}
+            </div>
+          </TabsContent>
             </div>
           </TabsContent>
 
