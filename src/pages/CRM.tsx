@@ -906,12 +906,24 @@ const CRM = () => {
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
                               </div>
-                              <div className="flex justify-between items-center">
-                                <Badge variant="outline" className={cn("text-[8px] px-1 h-3.5 capitalize font-medium", getStatusColor(contact.status))}>{contact.status}</Badge>
-                                {contact.flow_state && contact.flow_state !== 'idle' && (
-                                  <Badge variant="secondary" className="text-[8px] h-3.5 bg-primary/10 text-primary animate-pulse border-none">Fluxo Ativo</Badge>
-                                )}
-                              </div>
+                                <div className="flex justify-between items-center">
+                                  <Badge 
+                                    variant="outline" 
+                                    style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                    className={cn("px-1 capitalize font-medium", getStatusColor(contact.status))}
+                                  >
+                                    {contact.status}
+                                  </Badge>
+                                  {contact.flow_state && contact.flow_state !== 'idle' && (
+                                    <Badge 
+                                      variant="secondary" 
+                                      style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                      className="bg-primary/10 text-primary animate-pulse border-none"
+                                    >
+                                      Fluxo Ativo
+                                    </Badge>
+                                  )}
+                                </div>
                             </button>
                           ))
                         ) : (
