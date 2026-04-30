@@ -622,122 +622,115 @@ async function internalSendTemplate(
   }
 
   // 3. Official Template Sending
-  let finalComponents = manualComponents || [];
+  let finalComponents: any[] = [];
   let messageContent = `[Template: ${templateName}]`;
 
+  // We need to carefully reconstruct components based on the APPROVED template structure
   if (templateData.components) {
     const bodyComponent = templateData.components.find((c: any) => c.type === 'BODY');
     const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
     const buttonsComponent = templateData.components.find((c: any) => c.type === 'BUTTONS');
 
-    // Handle Body Variables if not provided
-    if (bodyComponent && bodyComponent.text) {
-      let text = bodyComponent.text;
-      const varCount = (text.match(/\{\{\d+\}\}/g) || []).length;
-      
-      const existingBody = finalComponents.find((c: any) => c.type === 'body');
-      if (!existingBody && varCount > 0) {
-        const bodyParams = [];
-        for (let i = 1; i <= varCount; i++) {
-          const val = i === 1 ? (contact?.name || 'Cliente') : "-";
-          bodyParams.push({ type: "text", text: val });
-          text = text.replace(`{{${i}}}`, val);
-        }
-        finalComponents.push({ type: "body", parameters: bodyParams });
-        messageContent = text;
-      } else if (existingBody) {
-        // Reconstruct content for history
-        existingBody.parameters.forEach((param: any, index: number) => {
-          text = text.replace(`{{${index + 1}}}`, param.text || '-');
-        });
-        messageContent = text;
-      } else {
-        messageContent = text;
-      }
-    }
-
     // Handle Header
-    const existingHeader = finalComponents.find((c: any) => c.type === 'header');
-    if (headerComponent && !existingHeader) {
-      if (headerComponent.format === 'IMAGE' || headerComponent.format === 'VIDEO' || headerComponent.format === 'DOCUMENT') {
-        let mediaUrl = headerComponent.example?.header_handle?.[0];
-        
+    if (headerComponent) {
+      if (headerComponent.format === 'IMAGE') {
+        // Try to get URL from manual params first, then from template example
+        let imageUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.image?.link;
+        if (!imageUrl) {
+          imageUrl = headerComponent.example?.header_handle?.[0];
+        }
+
         // WhatsApp internal links usually fail with 403 Forbidden when sent via API.
-        const isMetaCdn = mediaUrl && (
-          mediaUrl.includes('whatsapp.net') || 
-          mediaUrl.includes('fbcdn.net') || 
-          mediaUrl.includes('facebook.com')
+        const isMetaCdn = imageUrl && (
+          imageUrl.includes('whatsapp.net') || 
+          imageUrl.includes('fbcdn.net') || 
+          imageUrl.includes('facebook.com')
         );
 
-        if (mediaUrl && !isMetaCdn && (mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://'))) {
-          const type = headerComponent.format.toLowerCase();
-          const mediaObj: any = { link: mediaUrl };
-          if (type === 'document') mediaObj.filename = "document.pdf";
-
-          finalComponents.push({
-            type: "header",
-            parameters: [{
-              type: type,
-              [type]: mediaObj
-            }]
-          });
-        } else if (headerComponent.format === 'IMAGE') {
-          // If no valid URL, use a generic placeholder to ensure delivery
-          const placeholderImg = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop";
+        if (imageUrl && !isMetaCdn && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
           finalComponents.push({
             type: "header",
             parameters: [{
               type: "image",
-              image: { link: placeholderImg }
+              image: { link: imageUrl }
+            }]
+          });
+        } else {
+          // Fallback to a valid public image if Meta link or missing
+          finalComponents.push({
+            type: "header",
+            parameters: [{
+              type: "image",
+              image: { link: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop" }
             }]
           });
         }
+      } else if (headerComponent.format === 'VIDEO' || headerComponent.format === 'DOCUMENT') {
+         let mediaUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.[headerComponent.format.toLowerCase()]?.link;
+         if (!mediaUrl) mediaUrl = headerComponent.example?.header_handle?.[0];
+
+         if (mediaUrl && !mediaUrl.includes('whatsapp.net')) {
+            const type = headerComponent.format.toLowerCase();
+            const mediaObj: any = { link: mediaUrl };
+            if (type === 'document') mediaObj.filename = "document.pdf";
+            
+            finalComponents.push({
+              type: "header",
+              parameters: [{ type, [type]: mediaObj }]
+            });
+         }
       } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
+        const headerText = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.text || contact?.name || 'Cliente';
         finalComponents.push({
           type: "header",
-          parameters: [{ type: "text", text: contact?.name || 'Cliente' }]
+          parameters: [{ type: "text", text: headerText }]
         });
       }
     }
 
-    // Sanitize all media links in components (even if they came from manualComponents)
-    finalComponents.forEach((component: any) => {
-      if (component.type === 'header' && component.parameters) {
-        component.parameters.forEach((param: any) => {
-          if (param.type === 'image' && param.image?.link) {
-            const link = param.image.link;
-            if (link.includes('whatsapp.net') || link.includes('fbcdn.net') || link.includes('facebook.com')) {
-              console.log('Sanitizing Meta CDN link in existing header image parameter...');
-              param.image.link = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop";
-            }
-          }
-        });
+    // Handle Body Variables
+    if (bodyComponent && bodyComponent.text) {
+      let text = bodyComponent.text;
+      const varCount = (text.match(/\{\{\d+\}\}/g) || []).length;
+      const manualBodyParams = manualComponents?.find((c: any) => c.type === 'body')?.parameters || [];
+      
+      const bodyParams = [];
+      for (let i = 1; i <= varCount; i++) {
+        const manualParam = manualBodyParams[i-1]?.text;
+        const val = manualParam || (i === 1 ? (contact?.name || 'Cliente') : "-");
+        bodyParams.push({ type: "text", text: val });
+        text = text.replace(`{{${i}}}`, val);
       }
-    });
+      
+      if (bodyParams.length > 0) {
+        finalComponents.push({ type: "body", parameters: bodyParams });
+      }
+      messageContent = text;
+    }
 
-    // Handle Buttons (ensure URL variables are filled)
+    // Handle Buttons
     if (buttonsComponent && buttonsComponent.buttons) {
       buttonsComponent.buttons.forEach((b: any, index: number) => {
-        const existingButton = finalComponents.find((c: any) => c.type === 'button' && c.index === index);
-        
         if (b.type === 'URL' && b.url?.includes('{{1}}')) {
-          if (!existingButton) {
-            finalComponents.push({
-              type: "button",
-              sub_type: "url",
-              index: index,
-              parameters: [{ type: "text", text: contact?.id || '1' }]
-            });
-          }
+          const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && c.index === index);
+          const btnParam = manualBtn?.parameters?.[0]?.text || contact?.id || '1';
+          
+          finalComponents.push({
+            type: "button",
+            sub_type: "url",
+            index: index,
+            parameters: [{ type: "text", text: btnParam }]
+          });
         } else if (b.type === 'COPY_CODE' && b.example?.[0]) {
-           if (!existingButton) {
-            finalComponents.push({
-              type: "button",
-              sub_type: "copy_code",
-              index: index,
-              parameters: [{ type: "text", text: b.example[0] }]
-            });
-          }
+          const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && c.index === index);
+          const btnParam = manualBtn?.parameters?.[0]?.text || b.example[0];
+          
+          finalComponents.push({
+            type: "button",
+            sub_type: "copy_code",
+            index: index,
+            parameters: [{ type: "text", text: btnParam }]
+          });
         }
       });
     }
