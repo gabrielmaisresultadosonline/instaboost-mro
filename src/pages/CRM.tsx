@@ -859,6 +859,21 @@ const CRM = () => {
                             {chatMessages.map(m => (
                               <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
                                 <div className={`p-3 rounded-2xl max-w-[80%] shadow-sm ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
+                                  {m.media_url && (
+                                    <div className="mb-2 overflow-hidden rounded-lg">
+                                      {m.message_type === 'image' || (m.message_type === 'template' && m.media_url.match(/\.(jpg|jpeg|png|gif|webp)/i)) ? (
+                                        <img src={m.media_url} alt="Mídia" className="max-w-full h-auto cursor-pointer hover:opacity-90" onClick={() => window.open(m.media_url, '_blank')} />
+                                      ) : m.message_type === 'video' ? (
+                                        <video src={m.media_url} controls className="max-w-full rounded-lg" />
+                                      ) : m.message_type === 'audio' ? (
+                                        <audio src={m.media_url} controls className="max-w-full h-8" />
+                                      ) : (
+                                        <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 bg-black/5 dark:bg-white/5 rounded text-xs hover:bg-black/10 transition-colors">
+                                          <Paperclip className="w-4 h-4" /> Ver anexo
+                                        </a>
+                                      )}
+                                    </div>
+                                  )}
                                   <div className="text-sm whitespace-pre-wrap">{m.content}</div>
                                   <div className="text-[9px] mt-1 opacity-50 flex justify-end">
                                     {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
