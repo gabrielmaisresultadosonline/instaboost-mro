@@ -319,6 +319,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
     onSave({
       ...flow,
       name: flowName,
+      trigger_type: triggerType,
+      trigger_keywords: triggerKeywords.split(',').map(k => k.trim()).filter(k => k !== ''),
+      is_active: isActive,
       nodes,
       edges,
     });
