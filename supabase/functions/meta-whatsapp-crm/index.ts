@@ -542,9 +542,7 @@ serve(async (req) => {
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function handleInternalSendMessage(supabase: any, meta_phone_number_id: string, meta_access_token: string, params: any, contact: any) {
-  // ... (keeping existing content, just making sure I don't break it)
-  // Wait, I should probably use write-file for this whole section to be safe, but let's try line_replace first.
-  const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons, headerText, footerText } = params
+  const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons, headerText, footerText, isVoice } = params
   
   let body: any = {
     messaging_product: "whatsapp",
@@ -554,7 +552,10 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
 
   if (audioUrl) {
     body.type = "audio"
-    body.audio = { link: audioUrl }
+    body.audio = { 
+      link: audioUrl,
+      voice: isVoice === true || isVoice === 'true' // This flag makes it appear as a voice note
+    }
   } else if (imageUrl && !buttons) {
     body.type = "image"
     body.image = { link: imageUrl, caption: text }
@@ -652,7 +653,8 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
   else if (node.type === 'audio') {
     await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
-      audioUrl: node.data.audioUrl
+      audioUrl: node.data.audioUrl,
+      isVoice: node.data.isPTT ?? true // Default to true for audio nodes in flow
     }, contact)
   }
   else if (node.type === 'video') {

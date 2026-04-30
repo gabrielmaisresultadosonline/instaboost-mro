@@ -104,11 +104,15 @@ const CRM = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [syncingTemplates, setSyncingTemplates] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const recordingTimerRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isFlowEditorOpen, setIsFlowEditorOpen] = useState(false);
   const [editingFlow, setEditingFlow] = useState<any>(null);
+  const [uploadType, setUploadType] = useState<'image' | 'video' | 'audio' | 'document' | null>(null);
 
   const [newStep, setNewStep] = useState<any>({
     step_type: 'text',
@@ -277,6 +281,98 @@ const CRM = () => {
     } finally {
       setSendingMessage(false);
     }
+  };
+  
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+        await handleSendMedia(audioBlob, 'audio', true);
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setAudioChunks(chunks);
+      setMediaRecorder(recorder);
+      recorder.start();
+      setIsRecording(true);
+      setRecordingDuration(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      toast({ title: "Erro ao acessar microfone", variant: "destructive" });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  const handleSendMedia = async (file: File | Blob, type: 'audio' | 'video' | 'image' | 'document', isVoice = false) => {
+    if (!selectedContact) return;
+    setSendingMessage(true);
+    try {
+      // Upload to Supabase Storage
+      const fileExt = file instanceof File ? file.name.split('.').pop() : (isVoice ? 'ogg' : 'bin');
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `chat-media/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('crm-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('crm-media')
+        .getPublicUrl(filePath);
+
+      const params: any = { action: 'sendMessage', to: selectedContact.wa_id };
+      if (type === 'audio') {
+        params.audioUrl = publicUrl;
+        params.isVoice = isVoice;
+      } else if (type === 'image') {
+        params.imageUrl = publicUrl;
+      } else if (type === 'video') {
+        params.videoUrl = publicUrl;
+      } else if (type === 'document') {
+        params.documentUrl = publicUrl;
+        params.fileName = file instanceof File ? file.name : 'document';
+      }
+
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', { body: params });
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      await fetchMessages(selectedContact.id);
+      toast({ title: "Mídia enviada!" });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar mídia", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadType) return;
+    
+    // For audio files, we can ask or assume if they want it as PTT
+    const isVoice = uploadType === 'audio'; // Default to true if user selects audio file in chat? Or maybe we can keep it as standard audio
+    handleSendMedia(file, uploadType, isVoice);
+    e.target.value = '';
   };
 
   const handleTriggerFlow = async (flowId: string) => {
@@ -735,18 +831,93 @@ const CRM = () => {
                           </div>
                         </ScrollArea>
                         <div className="p-4 border-t bg-muted/20">
-                          <div className="flex gap-2">
-                            <Input 
-                              value={newMessage} 
-                              onChange={e => setNewMessage(e.target.value)} 
-                              onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
-                              placeholder="Digite uma mensagem..." 
-                              className="bg-background"
-                            />
-                            <Button onClick={handleSendMessage} disabled={sendingMessage} size="icon">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          {isRecording ? (
+                            <div className="flex items-center justify-between bg-primary/10 p-2 rounded-lg border border-primary/20 animate-pulse">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                                <span className="text-xs font-mono">Gravando: {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="ghost" onClick={() => { stopRecording(); setIsRecording(false); }} className="text-destructive h-8 w-8 p-0">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                                <Button size="sm" onClick={stopRecording} className="bg-red-500 hover:bg-red-600 text-white h-8 px-3 text-xs">
+                                  <StopCircle className="h-4 w-4 mr-1" /> Parar e Enviar
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2 items-center">
+                              <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                className="hidden" 
+                                onChange={handleFileSelect}
+                                accept={uploadType === 'image' ? 'image/*' : uploadType === 'video' ? 'video/*' : uploadType === 'audio' ? 'audio/*' : '*'}
+                              />
+                              <div className="flex gap-1">
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                                  onClick={() => { setUploadType('image'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                                >
+                                  <ImageIcon className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                                  onClick={() => { setUploadType('video'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                                >
+                                  <Video className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                                  onClick={() => { setUploadType('audio'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                                >
+                                  <Mic className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                                  onClick={() => { setUploadType('document'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                                >
+                                  <Paperclip className="h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              <Input 
+                                value={newMessage} 
+                                onChange={e => setNewMessage(e.target.value)} 
+                                onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
+                                placeholder="Digite uma mensagem..." 
+                                className="bg-background flex-1"
+                              />
+                              
+                              <Button 
+                                onClick={handleSendMessage} 
+                                disabled={sendingMessage || (!newMessage.trim())} 
+                                size="icon"
+                                className={newMessage.trim() ? "bg-primary" : "bg-muted text-muted-foreground"}
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                              
+                              <Button 
+                                onClick={startRecording} 
+                                disabled={sendingMessage} 
+                                size="icon"
+                                variant="outline"
+                                className="h-10 w-10 rounded-full border-primary/20 text-primary hover:bg-primary/10"
+                              >
+                                <Mic className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </>
                     ) : (
