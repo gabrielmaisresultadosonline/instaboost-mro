@@ -1323,7 +1323,7 @@ const CRM = () => {
                                         </div>
                                       ) : (
                                         <>
-                                          {m.message_type === 'image' && m.media_url && (
+                                          {m.message_type === 'image' && m.media_url && !/^\d+$/.test(m.media_url.toString()) && (
                                             <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
                                               <img 
                                                 src={m.media_url} 
@@ -1331,6 +1331,12 @@ const CRM = () => {
                                                 className="max-w-full h-auto cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" 
                                                 onClick={() => setPreviewMedia({ url: m.media_url, type: 'image' })} 
                                               />
+                                            </div>
+                                          )}
+                                          {m.message_type === 'image' && m.media_url && /^\d+$/.test(m.media_url.toString()) && (
+                                            <div className="mb-2 p-4 rounded-lg border border-dashed border-border flex flex-col items-center justify-center bg-muted/5">
+                                              <ImageIcon className="w-8 h-8 text-muted-foreground opacity-20 mb-2" />
+                                              <span className="text-[10px] text-muted-foreground">ID de Mídia: {m.media_url}</span>
                                             </div>
                                           )}
                                           {m.message_type === 'video' && m.media_url && (
