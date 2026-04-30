@@ -828,7 +828,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    if (delayMs <= 10000) {
+    if (delayMs <= 60000) {
       await sleep(delayMs)
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {
