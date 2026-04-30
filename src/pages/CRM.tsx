@@ -44,8 +44,10 @@ import {
   AlertCircle,
   FileCheck2,
   ListFilter,
-  Zap
+  Zap,
+  Eye
 } from "lucide-react";
+import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
