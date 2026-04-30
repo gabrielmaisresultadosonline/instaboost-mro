@@ -56,6 +56,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
+import { MediaPopup } from "@/components/MediaPopup";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -904,12 +905,23 @@ const CRM = () => {
                                   )}>
                                     {m.message_type === 'image' && m.media_url && (
                                       <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
-                                        <img src={m.media_url} alt="Mídia" className="max-w-full h-auto cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" onClick={() => window.open(m.media_url, '_blank')} />
+                                        <img 
+                                          src={m.media_url} 
+                                          alt="Mídia" 
+                                          className="max-w-full h-auto cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" 
+                                          onClick={() => setPreviewMedia({ url: m.media_url, type: 'image' })} 
+                                        />
                                       </div>
                                     )}
                                     {m.message_type === 'video' && m.media_url && (
-                                      <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
-                                        <video src={m.media_url} controls className="max-w-full h-auto rounded-lg shadow-inner" />
+                                      <div 
+                                        className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 relative group cursor-pointer"
+                                        onClick={() => setPreviewMedia({ url: m.media_url, type: 'video' })}
+                                      >
+                                        <video src={m.media_url} className="max-w-full h-auto rounded-lg shadow-inner" />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                                          <Play className="w-12 h-12 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
+                                        </div>
                                       </div>
                                     )}
                                     {m.message_type === 'audio' && m.media_url && (
@@ -1022,7 +1034,6 @@ const CRM = () => {
                 )}
               </div>
             )}
-
 
             {activeTab === 'flows' && (
               <ScrollArea className="flex-1 p-8 bg-muted/5">
@@ -1313,6 +1324,13 @@ const CRM = () => {
           flow={editingFlow} 
           onSave={handleSaveFlow} 
           onClose={() => { setIsFlowEditorOpen(false); setEditingFlow(null); }} 
+        />
+      )}
+      {previewMedia && (
+        <MediaPopup 
+          url={previewMedia.url} 
+          type={previewMedia.type} 
+          onClose={() => setPreviewMedia(null)} 
         />
       )}
     </SidebarProvider>
