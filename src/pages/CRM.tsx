@@ -104,11 +104,15 @@ const CRM = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [syncingTemplates, setSyncingTemplates] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const recordingTimerRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isFlowEditorOpen, setIsFlowEditorOpen] = useState(false);
   const [editingFlow, setEditingFlow] = useState<any>(null);
+  const [uploadType, setUploadType] = useState<'image' | 'video' | 'audio' | 'document' | null>(null);
 
   const [newStep, setNewStep] = useState<any>({
     step_type: 'text',
