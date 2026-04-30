@@ -925,3 +925,57 @@ async function processStep(supabase: any, step: any, contactId: string, waId: st
     headers: { 'Content-Type': 'application/json' },
   })
 }
+
+async function getAppId(accessToken: string) {
+  try {
+    const response = await fetch(`https://graph.facebook.com/debug_token?input_token=${accessToken}&access_token=${accessToken}`);
+    const data = await response.json();
+    return data.data?.app_id;
+  } catch (error) {
+    console.error('Error getting App ID:', error);
+    return null;
+  }
+}
+
+async function getMetaHeaderHandle(accessToken: string, appId: string, mediaUrl: string) {
+  try {
+    console.log(`Getting Meta header handle for: ${mediaUrl}`);
+    
+    // 1. Fetch the file content
+    const fileResponse = await fetch(mediaUrl);
+    if (!fileResponse.ok) throw new Error(`Failed to fetch media from URL: ${mediaUrl}`);
+    const blob = await fileResponse.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    const fileSize = arrayBuffer.byteLength;
+    const fileType = blob.type || 'image/png';
+
+    // 2. Start Resumable Upload
+    const uploadStartResponse = await fetch(
+      `https://graph.facebook.com/v17.0/${appId}/uploads?file_length=${fileSize}&file_type=${fileType}&access_token=${accessToken}`,
+      { method: 'POST' }
+    );
+    const uploadStartData = await uploadStartResponse.json();
+    if (!uploadStartResponse.ok) throw new Error(`Failed to start upload: ${JSON.stringify(uploadStartData)}`);
+    const uploadSessionId = uploadStartData.id;
+
+    // 3. Upload the file content
+    const uploadResponse = await fetch(
+      `https://graph.facebook.com/v17.0/${uploadSessionId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `OAuth ${accessToken}`,
+          'file_offset': '0'
+        },
+        body: arrayBuffer
+      }
+    );
+    const uploadData = await uploadResponse.json();
+    if (!uploadResponse.ok) throw new Error(`Failed to upload content: ${JSON.stringify(uploadData)}`);
+    
+    return uploadData.h; // The handle
+  } catch (error) {
+    console.error('Error getting Meta header handle:', error);
+    return null;
+  }
+}
