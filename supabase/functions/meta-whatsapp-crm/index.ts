@@ -500,9 +500,14 @@ serve(async (req) => {
           // Update status to prevent double execution
           await supabase.from('crm_scheduled_messages').update({ status: 'sent' }).eq('id', msg.id)
           
-          // Continue flow
+          // Continue flow at the specified node
           await supabase.functions.invoke('meta-whatsapp-crm', {
-            body: { action: 'continueFlow', contactId: msg.contact_id, waId: msg.crm_contacts.wa_id }
+            body: { 
+              action: 'continueFlow', 
+              contactId: msg.contact_id, 
+              waId: msg.crm_contacts.wa_id,
+              nextNodeId: msg.node_id 
+            }
           })
         }
       }
@@ -511,6 +516,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+
 
     return new Response(JSON.stringify({ error: 'Invalid action' }), {
       status: 400,
