@@ -555,29 +555,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                             <X className="w-3 h-3" />
                           </Button>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <Label className="text-[10px] text-muted-foreground">Ação ao clicar (Opcional)</Label>
-                          <Select 
-                            value={btn.targetFlowId || "none"} 
-                            onValueChange={(val) => {
-                              const newButtons = [...(selectedNode.data.buttons as any[])];
-                              const targetFlow = availableFlows.find(f => f.id === val);
-                              newButtons[idx].targetFlowId = val === "none" ? null : val;
-                              newButtons[idx].targetFlowName = val === "none" ? null : targetFlow?.name;
-                              updateNodeData(selectedNode.id, { buttons: newButtons });
-                            }}
-                          >
-                            <SelectTrigger className="text-[10px] h-7">
-                              <SelectValue placeholder="Nenhuma (segue o fluxo)" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Nenhuma (segue o fluxo)</SelectItem>
-                              {availableFlows.map(f => (
-                                <SelectItem key={f.id} value={f.id}>Pular para: {f.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <p className="text-[10px] text-muted-foreground italic px-1">Conecte a saída deste botão no mapa para definir a próxima ação.</p>
                       </div>
                     ))}
                     {(selectedNode.data.buttons as any[]).length < 3 && (
