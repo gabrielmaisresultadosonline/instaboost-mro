@@ -116,9 +116,21 @@ serve(async (req) => {
                   
                   // 1. Check if waiting for response in current flow
                   if (contact.flow_state === 'waiting_response' && contact.current_flow_id) {
+                    let buttonId = null;
+                    if (message.type === 'interactive' && message.interactive.type === 'button_reply') {
+                      buttonId = message.interactive.button_reply.id;
+                    }
+
                     await supabase.functions.invoke('meta-whatsapp-crm', {
-                      body: { action: 'continueFlow', contactId: contact.id, waId: wa_id }
+                      body: { action: 'continueFlow', contactId: contact.id, waId: wa_id, buttonId }
                     })
+                    
+                    // Cancel any scheduled followups for this flow/contact
+                    await supabase.from('crm_scheduled_messages')
+                      .update({ status: 'cancelled' })
+                      .eq('contact_id', contact.id)
+                      .eq('status', 'pending');
+
                     return new Response('OK - Flow Continued', { status: 200 })
                   }
 
@@ -194,16 +206,27 @@ serve(async (req) => {
                     }
                   }
 
-                  if (settings?.initial_auto_response_enabled && contact.total_messages_received === 1) {
-                    if (message.type === 'text') {
-                       await supabase.functions.invoke('meta-whatsapp-crm', {
-                         body: {
-                           action: 'sendMessage',
-                           to: wa_id,
-                           text: settings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
-                           buttons: settings.initial_response_buttons
-                         }
-                       })
+                  if (contact.total_messages_received === 1) {
+                    if (settings?.initial_flow_id) {
+                      await supabase.functions.invoke('meta-whatsapp-crm', {
+                        body: {
+                          action: 'startFlow',
+                          flowId: settings.initial_flow_id,
+                          contactId: contact.id,
+                          waId: wa_id
+                        }
+                      })
+                    } else if (settings?.initial_auto_response_enabled) {
+                      if (message.type === 'text') {
+                         await supabase.functions.invoke('meta-whatsapp-crm', {
+                           body: {
+                             action: 'sendMessage',
+                             to: wa_id,
+                             text: settings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
+                             buttons: settings.initial_response_buttons
+                           }
+                         })
+                      }
                     }
                   }
                 }
