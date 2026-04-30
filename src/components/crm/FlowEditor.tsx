@@ -1013,7 +1013,6 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             onNodeClick={(_, node) => setSelectedNode(node)}
-            reconnectable={true}
             fitView
           >
             <Background />
