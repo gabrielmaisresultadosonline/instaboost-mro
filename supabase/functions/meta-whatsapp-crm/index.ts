@@ -828,7 +828,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    if (delayMs <= 10000) {
+    if (delayMs <= 60000) {
       await sleep(delayMs)
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {
@@ -861,11 +861,65 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
   }
   else if (node.type === 'template') {
     if (node.data.templateName) {
-      // We can reuse the action logic by calling it internally or just doing the fetch here
-      // For simplicity and to avoid recursive calls that might be tricky with headers, we'll do the fetch
       const templateName = node.data.templateName
       const languageCode = node.data.language || 'pt_BR'
       
+      console.log(`Sending template node ${templateName} to ${waId}...`);
+
+      // Fetch template details to auto-fill components if needed
+      const { data: templateData } = await supabase
+        .from('crm_templates')
+        .select('*')
+        .eq('name', templateName)
+        .single();
+
+      let finalComponents = [];
+      let messageContent = `[Template: ${templateName}]`;
+
+      if (templateData?.components) {
+        const bodyComponent = templateData.components.find((c: any) => c.type === 'BODY');
+        
+        if (bodyComponent && bodyComponent.text) {
+          const varCount = (bodyComponent.text.match(/\{\{\d+\}\}/g) || []).length;
+          if (varCount > 0) {
+            const name = contact?.name || 'Cliente';
+            const bodyParams = [];
+            
+            for (let i = 1; i <= varCount; i++) {
+              bodyParams.push({
+                type: "text",
+                text: i === 1 ? name : "-"
+              });
+            }
+            
+            finalComponents.push({
+              type: "body",
+              parameters: bodyParams
+            });
+          }
+
+          // Reconstruct content for history
+          let text = bodyComponent.text;
+          const bodyParams = finalComponents.find((c: any) => c.type === 'body')?.parameters || [];
+          bodyParams.forEach((param: any, index: number) => {
+            text = text.replace(`{{${index + 1}}}`, param.text || '-');
+          });
+          messageContent = text;
+        }
+
+        const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
+        if (headerComponent && headerComponent.format === 'IMAGE') {
+          const imageUrl = headerComponent.example?.header_handle?.[0] || 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=800&auto=format&fit=crop&q=60';
+          finalComponents.push({
+            type: "header",
+            parameters: [{
+              type: "image",
+              image: { link: imageUrl }
+            }]
+          });
+        }
+      }
+
       const metaRequestBody = {
         messaging_product: "whatsapp",
         to: waId,
@@ -873,7 +927,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
         template: {
           name: templateName,
           language: { code: languageCode },
-          components: [] // Default to empty components for now
+          components: finalComponents
         }
       };
 
@@ -892,16 +946,17 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       sendResult = await response.json()
       
       if (response.ok && sendResult.messages?.[0]) {
-        // Log to history
         await supabase.from('crm_messages').insert({
           contact_id: contactId,
           direction: 'outbound',
-          content: `[Template: ${templateName}]`,
+          content: messageContent,
           message_type: 'template',
           meta_message_id: sendResult.messages[0].id,
           status: 'sent'
         })
-        sendResult.success = true // Ensure success flag for auto-continue
+        sendResult.success = true 
+      } else {
+        console.error('Template node send failed:', sendResult);
       }
     } else {
       sendResult = { success: false, error: 'Missing template name' };

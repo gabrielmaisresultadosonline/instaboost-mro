@@ -121,16 +121,17 @@ serve(async (req) => {
                       buttonId = message.interactive.button_reply.id;
                     }
 
-                    await supabase.functions.invoke('meta-whatsapp-crm', {
-                      body: { action: 'continueFlow', contactId: contact.id, waId: wa_id, buttonId }
-                    })
-                    
-                    // Cancel any scheduled followups for this flow/contact
+                    // Cancel any scheduled followups for this flow/contact BEFORE continuing
+                    // This avoids cancelling messages scheduled DURING the flow continuation (like delays)
                     await supabase.from('crm_scheduled_messages')
                       .update({ status: 'cancelled' })
                       .eq('contact_id', contact.id)
                       .eq('status', 'pending');
 
+                    await supabase.functions.invoke('meta-whatsapp-crm', {
+                      body: { action: 'continueFlow', contactId: contact.id, waId: wa_id, buttonId }
+                    })
+                    
                     return new Response('OK - Flow Continued', { status: 200 })
                   }
 
