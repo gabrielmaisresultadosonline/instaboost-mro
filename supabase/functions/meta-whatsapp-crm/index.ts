@@ -334,14 +334,17 @@ serve(async (req) => {
 
           const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
           if (headerComponent && headerComponent.format === 'IMAGE') {
-            const imageUrl = headerComponent.example?.header_handle?.[0] || 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=800&auto=format&fit=crop&q=60';
-            finalComponents.push({
-              type: "header",
-              parameters: [{
-                type: "image",
-                image: { link: imageUrl }
-              }]
-            });
+            const customImageUrl = components?.find((c: any) => c.type === 'header')?.parameters?.[0]?.image?.link;
+            
+            if (customImageUrl) {
+              finalComponents.push({
+                type: "header",
+                parameters: [{
+                  type: "image",
+                  image: { link: customImageUrl }
+                }]
+              });
+            }
           }
         }
 
@@ -909,14 +912,17 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
 
         const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
         if (headerComponent && headerComponent.format === 'IMAGE') {
-          const imageUrl = headerComponent.example?.header_handle?.[0] || 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=800&auto=format&fit=crop&q=60';
-          finalComponents.push({
-            type: "header",
-            parameters: [{
-              type: "image",
-              image: { link: imageUrl }
-            }]
-          });
+          const customImageUrl = node.data.imageUrl;
+          
+          if (customImageUrl) {
+            finalComponents.push({
+              type: "header",
+              parameters: [{
+                type: "image",
+                image: { link: customImageUrl }
+              }]
+            });
+          }
         }
       }
 
