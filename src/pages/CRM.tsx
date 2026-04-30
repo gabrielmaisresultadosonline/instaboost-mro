@@ -98,7 +98,9 @@ const CRM = () => {
     ai_agent_trigger: 'first_message',
     initial_auto_response_enabled: true,
     initial_response_text: '',
-    initial_response_buttons: []
+    initial_response_buttons: [],
+    shortcut_size: 100,
+    tag_size: 100
   });
   const [metrics, setMetrics] = useState<any>({
     sent_count: 0,
@@ -878,7 +880,8 @@ const CRM = () => {
                             <Badge 
                               key={s} 
                               variant={statusFilter === s ? 'default' : 'outline'} 
-                              className="cursor-pointer capitalize whitespace-nowrap text-[8px] px-1.2 h-3.5 font-bold"
+                              style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                              className="cursor-pointer capitalize whitespace-nowrap px-1.2 font-bold"
                               onClick={() => setStatusFilter(s)}
                             >
                               {s === 'all' ? 'Todos' : s}
@@ -903,12 +906,24 @@ const CRM = () => {
                                   {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
                               </div>
-                              <div className="flex justify-between items-center">
-                                <Badge variant="outline" className={cn("text-[8px] px-1 h-3.5 capitalize font-medium", getStatusColor(contact.status))}>{contact.status}</Badge>
-                                {contact.flow_state && contact.flow_state !== 'idle' && (
-                                  <Badge variant="secondary" className="text-[8px] h-3.5 bg-primary/10 text-primary animate-pulse border-none">Fluxo Ativo</Badge>
-                                )}
-                              </div>
+                                <div className="flex justify-between items-center">
+                                  <Badge 
+                                    variant="outline" 
+                                    style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                    className={cn("px-1 capitalize font-medium", getStatusColor(contact.status))}
+                                  >
+                                    {contact.status}
+                                  </Badge>
+                                  {contact.flow_state && contact.flow_state !== 'idle' && (
+                                    <Badge 
+                                      variant="secondary" 
+                                      style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                      className="bg-primary/10 text-primary animate-pulse border-none"
+                                    >
+                                      Fluxo Ativo
+                                    </Badge>
+                                  )}
+                                </div>
                             </button>
                           ))
                         ) : (
@@ -934,13 +949,23 @@ const CRM = () => {
                                 <div className="flex items-center gap-2">
                                   <p className="font-bold text-base hover:text-primary cursor-pointer transition-colors flex items-center gap-2" onClick={() => openContactInfo(selectedContact)}>
                                     {selectedContact.name || selectedContact.wa_id}
-                                    <Badge variant="outline" className="text-[10px] font-normal opacity-60">Info</Badge>
+                                    <Badge 
+                                      variant="outline" 
+                                      style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${10 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                      className="font-normal opacity-60"
+                                    >
+                                      Info
+                                    </Badge>
                                   </p>
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                    <Badge variant="outline" className={cn(
-                                      "text-[9px] px-1 h-3.5 flex items-center gap-1 font-medium",
-                                      selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
-                                    )}>
+                                    <Badge 
+                                      variant="outline" 
+                                      style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                      className={cn(
+                                        "px-1 flex items-center gap-1 font-medium",
+                                        selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
+                                      )}
+                                    >
                                       <div className={cn("w-1.5 h-1.5 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
                                       {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
                                     </Badge>
@@ -993,7 +1018,8 @@ const CRM = () => {
                                       key={t.id} 
                                       variant="outline" 
                                       size="sm" 
-                                      className="h-5 text-[9px] px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
+                                      style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
+                                      className="px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                       onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
                                       disabled={sendingMessage}
                                     >
@@ -1024,7 +1050,8 @@ const CRM = () => {
                                       key={f.id} 
                                       variant="outline" 
                                       size="sm" 
-                                      className="h-5 text-[9px] px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
+                                      style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }}
+                                      className="px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                       onClick={() => handleTriggerFlow(f.id)} 
                                       disabled={sendingMessage}
                                     >
@@ -1519,6 +1546,65 @@ const CRM = () => {
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">OpenAI API Key</Label>
                           <Input type="password" placeholder="sk-..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><Zap className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-lg">Customização da Interface</CardTitle>
+                            <CardDescription className="text-[11px]">Ajuste o tamanho dos botões e etiquetas.</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-8">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tamanho dos Atalhos (Modelos/Fluxos)</Label>
+                            <Badge variant="secondary" className="text-[10px]">{metaSettings.shortcut_size}%</Badge>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-[10px] text-muted-foreground">Menor</span>
+                            <input 
+                              type="range" 
+                              min="70" 
+                              max="150" 
+                              step="5"
+                              value={metaSettings.shortcut_size || 100} 
+                              onChange={e => setMetaSettings({...metaSettings, shortcut_size: parseInt(e.target.value)})}
+                              className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                            />
+                            <span className="text-[10px] text-muted-foreground">Maior</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" style={{ height: `${20 * ((metaSettings.shortcut_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.shortcut_size || 100) / 100)}px` }} className="px-2 rounded-md border-primary/20 bg-primary/5 text-primary pointer-events-none">Exemplo Atalho</Button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tamanho das Etiquetas (Status/Filtros)</Label>
+                            <Badge variant="secondary" className="text-[10px]">{metaSettings.tag_size}%</Badge>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-[10px] text-muted-foreground">Menor</span>
+                            <input 
+                              type="range" 
+                              min="70" 
+                              max="150" 
+                              step="5"
+                              value={metaSettings.tag_size || 100} 
+                              onChange={e => setMetaSettings({...metaSettings, tag_size: parseInt(e.target.value)})}
+                              className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                            />
+                            <span className="text-[10px] text-muted-foreground">Maior</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge variant="outline" style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }} className="px-1.2 font-bold pointer-events-none">Exemplo Etiqueta</Badge>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
