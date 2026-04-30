@@ -254,6 +254,15 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
   const [triggerKeywords, setTriggerKeywords] = useState(flow?.trigger_keywords?.join(', ') || flow?.trigger_keyword || '');
   const [isActive, setIsActive] = useState(flow?.is_active !== false);
   const [uploading, setUploading] = useState(false);
+  const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const { data } = await supabase.from('crm_templates').select('*');
+      if (data) setAvailableTemplates(data);
+    };
+    fetchTemplates();
+  }, []);
 
   const handleFileUpload = async (file: File, nodeId: string, type: 'audio' | 'video' | 'image') => {
     setUploading(true);
