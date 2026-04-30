@@ -387,7 +387,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
             </div>
           </div>
 
-          {selectedNode && (
+          {selectedNode ? (
             <div className="pt-6 border-t animate-in fade-in slide-in-from-right-4 pb-20">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold">Configurar Bloco</h3>
@@ -605,6 +605,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                         <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="pt-6 border-t animate-in fade-in slide-in-from-left-4">
@@ -655,9 +658,6 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                     Defina o gatilho para automatizar o atendimento. O gatilho de "Novo Contato" substituirá a resposta padrão automática se configurada.
                   </p>
                 </div>
-              </div>
-            </div>
-          )}
               </div>
             </div>
           )}
