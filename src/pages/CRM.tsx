@@ -777,7 +777,7 @@ const CRM = () => {
                     <div className="p-4 border-b flex gap-2">
                       <Input placeholder="Buscar..." onChange={e => setStatusFilter(e.target.value || 'all')} />
                     </div>
-                    <ScrollArea className="flex-1">
+                    <ScrollArea className="flex-1 min-h-0">
                       {filteredContacts.map(contact => (
                         <button key={contact.id} onClick={() => openChat(contact)} className={`w-full p-4 text-left border-b hover:bg-secondary/30 ${selectedContact?.id === contact.id ? 'bg-secondary/50' : ''}`}>
                           <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
