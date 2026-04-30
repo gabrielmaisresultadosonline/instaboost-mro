@@ -335,10 +335,16 @@ serve(async (req) => {
 
           case "audio":
             if (step.media_url) {
-              await callZapi("/send-audio", {
+              const audioResponse = await callZapi("/send-audio", {
                 method: "POST",
                 body: JSON.stringify({ phone: execPhone, audio: step.media_url, waveform: true }),
               });
+              
+              if (!audioResponse.response.ok) {
+                console.error(`[Flow] Error sending audio: ${audioResponse.response.status}`, audioResponse.payload);
+                throw new Error(`Falha ao enviar áudio (${audioResponse.response.status})`);
+              }
+
               await supabase.from("zapi_messages").insert({
                 phone: execPhone,
                 direction: "outgoing",
