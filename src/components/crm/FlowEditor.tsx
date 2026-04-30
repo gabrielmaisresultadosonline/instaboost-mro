@@ -225,10 +225,47 @@ interface FlowEditorProps {
 }
 
 const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
+  const { toast } = useToast();
   const [nodes, setNodes, onNodesChange] = useNodesState(flow?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flow?.edges || []);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [flowName, setFlowName] = useState(flow?.name || 'Novo Fluxo');
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (file: File, nodeId: string, type: 'audio' | 'video' | 'image') => {
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `flow-media/${fileName}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('crm-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('crm-media')
+        .getPublicUrl(filePath);
+
+      const updateData: any = { fileName: file.name };
+      if (type === 'audio') updateData.audioUrl = publicUrl;
+      if (type === 'video') updateData.videoUrl = publicUrl;
+      if (type === 'image') updateData.imageUrl = publicUrl;
+
+      updateNodeData(nodeId, updateData);
+      toast({ title: "Arquivo enviado com sucesso!" });
+    } catch (error: any) {
+      toast({ 
+        title: "Erro no upload", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
