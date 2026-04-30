@@ -902,14 +902,39 @@ const CRM = () => {
                                       : 'bg-primary text-primary-foreground rounded-tr-none'
                                   )}>
                                     {m.message_type === 'image' && m.media_url && (
-                                      <img src={m.media_url} alt="Mídia" className="rounded-lg mb-2 max-w-full h-auto cursor-zoom-in" onClick={() => window.open(m.media_url, '_blank')} />
+                                      <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
+                                        <img src={m.media_url} alt="Mídia" className="max-w-full h-auto cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" onClick={() => window.open(m.media_url, '_blank')} />
+                                      </div>
+                                    )}
+                                    {m.message_type === 'video' && m.media_url && (
+                                      <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
+                                        <video src={m.media_url} controls className="max-w-full h-auto rounded-lg shadow-inner" />
+                                      </div>
                                     )}
                                     {m.message_type === 'audio' && m.media_url && (
-                                      <audio src={m.media_url} controls className="max-w-full h-8 mb-2" />
+                                      <div className="mb-2 p-1.5 rounded-xl bg-muted/10 border border-border/10">
+                                        <audio src={m.media_url} controls className="max-w-full h-9" />
+                                      </div>
                                     )}
-                                    <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap">
-                                      {m.message_text || m.content}
-                                    </div>
+                                    {m.message_type === 'document' && m.media_url && (
+                                      <div 
+                                        onClick={() => window.open(m.media_url, '_blank')}
+                                        className="mb-2 p-3 rounded-xl bg-muted/20 border border-border/20 flex items-center gap-3 cursor-pointer hover:bg-muted/30 transition-colors"
+                                      >
+                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                          <FileText className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div className="flex-1 overflow-hidden">
+                                          <div className="text-[13px] font-medium truncate">Documento</div>
+                                          <div className="text-[10px] opacity-60">Clique para abrir</div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {(m.message_text || m.content) && (
+                                      <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap px-0.5">
+                                        {m.message_text || m.content}
+                                      </div>
+                                    )}
                                     <div className={cn(
                                       "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
                                       m.direction === 'inbound' ? 'text-muted-foreground' : 'text-primary-foreground'
