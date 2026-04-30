@@ -1008,36 +1008,36 @@ const CRM = () => {
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-2 max-w-5xl mx-auto">
-                                <div className="flex gap-1">
-                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary"><ImageIcon className="w-5 h-5" /></Button>
-                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary"><Paperclip className="w-5 h-5" /></Button>
+                              <div className="flex items-center gap-1.5 sm:gap-2 max-w-5xl mx-auto w-full">
+                                <div className="flex gap-0.5 sm:gap-1">
+                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><ImageIcon className="w-5 h-5" /></Button>
+                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><Paperclip className="w-5 h-5" /></Button>
                                 </div>
                                 <div className="flex-1 relative">
                                   <Input 
-                                    placeholder="Digite uma mensagem..." 
+                                    placeholder="Mensagem..." 
                                     value={newMessage} 
                                     onChange={e => setNewMessage(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                                    className="bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 px-4 pr-12 rounded-xl"
+                                    className="bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary h-10 sm:h-11 px-3 sm:px-4 pr-10 sm:pr-12 rounded-xl text-sm"
                                   />
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
                                     className={cn(
-                                      "absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg transition-colors",
+                                      "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-colors",
                                       newMessage.trim() ? "text-primary" : "text-muted-foreground opacity-50"
                                     )}
                                     onClick={handleSendMessage}
                                     disabled={!newMessage.trim() || sendingMessage}
                                   >
-                                    <Send className="w-5 h-5" />
+                                    <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                                   </Button>
                                 </div>
                                 <Button 
                                   size="icon" 
                                   variant={isRecording ? 'destructive' : 'ghost'} 
-                                  className={cn("h-11 w-11 rounded-xl shrink-0", isRecording && "animate-pulse")}
+                                  className={cn("h-10 w-10 sm:h-11 sm:w-11 rounded-xl shrink-0 transition-all", isRecording && "animate-pulse ring-2 ring-destructive ring-offset-2")}
                                   onClick={isRecording ? stopRecording : startRecording}
                                 >
                                   {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5 text-muted-foreground" />}
