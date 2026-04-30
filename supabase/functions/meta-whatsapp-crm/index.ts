@@ -451,9 +451,11 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
 
   if (audioUrl) {
     body.type = "audio"
-    body.audio = { 
-      link: audioUrl,
-      voice: isVoice === true || isVoice === 'true' // This flag makes it appear as a voice note
+    const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, audioUrl, 'audio');
+    if (metaMediaId) {
+      body.audio = { id: metaMediaId };
+    } else {
+      body.audio = { link: audioUrl };
     }
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
@@ -641,6 +643,7 @@ async function internalSendTemplate(
           }
         }
 
+        // Check if the image is from Meta's CDN (scontent.whatsapp.net)
         const isMetaCdn = imageUrl && (
           imageUrl.includes('whatsapp.net') || 
           imageUrl.includes('fbcdn.net') || 
@@ -656,12 +659,15 @@ async function internalSendTemplate(
             }]
           });
         } else {
-          // Fallback to a valid JPG image since Unsplash webp is rejected by Meta
+          // Meta CDN links often fail when sent as 'link'.
+          // We use a high-quality, stable public JPG image from our own storage that is known to be accepted by Meta.
+          const fallbackImage = "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/crm-media/template-headers/fallback-header.jpg";
+          console.log(`Using fallback image for template header: ${fallbackImage}`);
           finalComponents.push({
             type: "header",
             parameters: [{
               type: "image",
-              image: { link: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg" }
+              image: { link: fallbackImage }
             }]
           });
         }
@@ -711,12 +717,13 @@ async function internalSendTemplate(
 
     // Handle Buttons
     if (buttonsComponent && buttonsComponent.buttons) {
+      const buttonParams: any[] = [];
       buttonsComponent.buttons.forEach((b: any, index: number) => {
         if (b.type === 'URL' && b.url?.includes('{{1}}')) {
           const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && (c.index === index || index === 0));
           const btnParam = manualBtn?.parameters?.[0]?.text || contact?.id || '1';
           
-          finalComponents.push({
+          buttonParams.push({
             type: "button",
             sub_type: "url",
             index: index.toString(),
@@ -726,7 +733,7 @@ async function internalSendTemplate(
           const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && (c.index === index || index === 0));
           const btnParam = manualBtn?.parameters?.[0]?.text || b.example[0];
           
-          finalComponents.push({
+          buttonParams.push({
             type: "button",
             sub_type: "copy_code",
             index: index.toString(),
@@ -734,6 +741,10 @@ async function internalSendTemplate(
           });
         }
       });
+      
+      if (buttonParams.length > 0) {
+        finalComponents.push(...buttonParams);
+      }
     }
   }
 
@@ -1113,6 +1124,37 @@ async function getMetaHeaderHandle(accessToken: string, appId: string, mediaUrl:
     return uploadData.h; // The handle
   } catch (error) {
     console.error('Error getting Meta header handle:', error);
+    return null;
+  }
+}
+
+async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, mediaUrl: string, type: string) {
+  try {
+    console.log(`Uploading media to Meta from URL: ${mediaUrl}`);
+    const fileResponse = await fetch(mediaUrl);
+    if (!fileResponse.ok) throw new Error(`Failed to fetch media: ${mediaUrl}`);
+    const blob = await fileResponse.blob();
+    
+    const formData = new FormData();
+    formData.append('file', blob);
+    formData.append('type', type);
+    formData.append('messaging_product', 'whatsapp');
+
+    const response = await fetch(
+      `https://graph.facebook.com/v17.0/${phoneNumberId}/media`,
+      {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+        body: formData
+      }
+    );
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(`Meta media upload failed: ${JSON.stringify(data)}`);
+    
+    return data.id;
+  } catch (error) {
+    console.error('Error uploading media to Meta:', error);
     return null;
   }
 }
