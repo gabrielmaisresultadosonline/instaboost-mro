@@ -1041,9 +1041,6 @@ const CRM = () => {
                   </div>
                 </>
               )}
-              )}
-            </div>
-          </TabsContent>
             </div>
           </TabsContent>
 
