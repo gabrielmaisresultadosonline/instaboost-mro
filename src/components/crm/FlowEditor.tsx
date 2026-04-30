@@ -291,14 +291,20 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
   const [isActive, setIsActive] = useState(flow?.is_active !== false);
   const [uploading, setUploading] = useState(false);
   const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
+  const [availableFlows, setAvailableFlows] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchTemplates = async () => {
-      const { data } = await supabase.from('crm_templates').select('*');
-      if (data) setAvailableTemplates(data);
+    const fetchData = async () => {
+      const [templatesRes, flowsRes] = await Promise.all([
+        supabase.from('crm_templates').select('*'),
+        supabase.from('zapi_flows').select('id, name').neq('id', flow?.id || '')
+      ]);
+      
+      if (templatesRes.data) setAvailableTemplates(templatesRes.data);
+      if (flowsRes.data) setAvailableFlows(flowsRes.data);
     };
-    fetchTemplates();
-  }, []);
+    fetchData();
+  }, [flow?.id]);
 
   const handleFileUpload = async (file: File, nodeId: string, type: 'audio' | 'video' | 'image') => {
     setUploading(true);
