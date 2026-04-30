@@ -458,7 +458,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
     body.type = "image"
-    body.image = { link: imageUrl, caption: text }
+    body.image = { link: sanitizeMetaLink(imageUrl), caption: text }
     mediaUrlToStore = imageUrl;
   } else if (videoUrl) {
     body.type = "video"
