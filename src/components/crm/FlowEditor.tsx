@@ -26,6 +26,7 @@ import {
   MessageSquare, 
   Mic, 
   Video, 
+  ImageIcon,
   Clock, 
   HelpCircle, 
   ArrowRight,
