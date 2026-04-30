@@ -1081,9 +1081,8 @@ const CRM = () => {
                                           <Clock className="w-2 h-2" />
                                           {(() => {
                                             const next = new Date(contact.next_execution_time).getTime();
-                                            const now = new Date().getTime();
                                             const diff = Math.max(0, Math.floor((next - now) / 1000));
-                                            return diff > 0 ? `${Math.floor(diff / 60)}m ${diff % 60}s` : 'Executando...';
+                                            return diff > 0 ? `${Math.floor(diff / 60)}m ${diff % 60}s` : 'Próximo...';
                                           })()}
                                         </div>
                                       )}
