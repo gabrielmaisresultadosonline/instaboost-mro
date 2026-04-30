@@ -113,6 +113,7 @@ const CRM = () => {
   const [isFlowEditorOpen, setIsFlowEditorOpen] = useState(false);
   const [editingFlow, setEditingFlow] = useState<any>(null);
   const [uploadType, setUploadType] = useState<'image' | 'video' | 'audio' | 'document' | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const [newStep, setNewStep] = useState<any>({
     step_type: 'text',
@@ -128,6 +129,27 @@ const CRM = () => {
     name: string;
     language?: string;
   } | null>(null);
+
+  useEffect(() => {
+    let interval: any;
+    if (selectedContact?.next_execution_time) {
+      const updateCountdown = () => {
+        const next = new Date(selectedContact.next_execution_time).getTime();
+        const now = new Date().getTime();
+        const diff = Math.max(0, Math.floor((next - now) / 1000));
+        setCountdown(diff);
+        if (diff <= 0) {
+          clearInterval(interval);
+          setCountdown(null);
+        }
+      };
+      updateCountdown();
+      interval = setInterval(updateCountdown, 1000);
+    } else {
+      setCountdown(null);
+    }
+    return () => clearInterval(interval);
+  }, [selectedContact?.next_execution_time, selectedContact?.id]);
 
   useEffect(() => {
     if (scrollRef.current) {
