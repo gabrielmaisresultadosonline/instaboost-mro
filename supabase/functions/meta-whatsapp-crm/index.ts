@@ -642,15 +642,13 @@ async function internalSendTemplate(
       }
     }
 
-    // Handle Header if not provided
+    // Handle Header
     const existingHeader = finalComponents.find((c: any) => c.type === 'header');
     if (headerComponent && !existingHeader) {
       if (headerComponent.format === 'IMAGE' || headerComponent.format === 'VIDEO' || headerComponent.format === 'DOCUMENT') {
         let mediaUrl = headerComponent.example?.header_handle?.[0];
         
         // WhatsApp internal links usually fail with 403 Forbidden when sent via API.
-        // If we don't have a valid external link, we MUST NOT include the header component
-        // because Meta requires a valid, accessible link for media parameters.
         const isMetaCdn = mediaUrl && (
           mediaUrl.includes('whatsapp.net') || 
           mediaUrl.includes('fbcdn.net') || 
@@ -669,28 +667,16 @@ async function internalSendTemplate(
               [type]: mediaObj
             }]
           });
-          console.log(`Template ${templateName} header (${headerComponent.format}) filled with external URL.`);
-        } else {
-          // If we reach here, we either have a Meta CDN link (which fails) or no link.
-          // IMPORTANT: If the template WAS CREATED with a header, Meta REQUIRES a header parameter.
-          // Skipping it entirely will cause a "Format mismatch" error (400).
-          // However, using the Meta CDN link causes a "403 Forbidden" (delivery failure).
-          // The ONLY solution for existing templates with headers is to provide a valid accessible link.
-          // Since we don't have one, we'll try to use a placeholder image to at least get the message delivered.
-          
-          if (headerComponent.format === 'IMAGE') {
-            const placeholderImg = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop";
-            finalComponents.push({
-              type: "header",
-              parameters: [{
-                type: "image",
-                image: { link: placeholderImg }
-              }]
-            });
-            console.log(`Template ${templateName} used placeholder header to avoid delivery failure.`);
-          } else {
-            console.log(`Template ${templateName} has a required ${headerComponent.format} header but no valid external URL. Skipping component (this might cause 400 error if header is required).`);
-          }
+        } else if (headerComponent.format === 'IMAGE') {
+          // If no valid URL, use a generic placeholder to ensure delivery
+          const placeholderImg = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop";
+          finalComponents.push({
+            type: "header",
+            parameters: [{
+              type: "image",
+              image: { link: placeholderImg }
+            }]
+          });
         }
       } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
         finalComponents.push({
@@ -699,6 +685,21 @@ async function internalSendTemplate(
         });
       }
     }
+
+    // Sanitize all media links in components (even if they came from manualComponents)
+    finalComponents.forEach((component: any) => {
+      if (component.type === 'header' && component.parameters) {
+        component.parameters.forEach((param: any) => {
+          if (param.type === 'image' && param.image?.link) {
+            const link = param.image.link;
+            if (link.includes('whatsapp.net') || link.includes('fbcdn.net') || link.includes('facebook.com')) {
+              console.log('Sanitizing Meta CDN link in existing header image parameter...');
+              param.image.link = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop";
+            }
+          }
+        });
+      }
+    });
 
     // Handle Buttons (ensure URL variables are filled)
     if (buttonsComponent && buttonsComponent.buttons) {
@@ -710,7 +711,7 @@ async function internalSendTemplate(
             finalComponents.push({
               type: "button",
               sub_type: "url",
-              index: index, // Meta expects index as number (0-indexed)
+              index: index,
               parameters: [{ type: "text", text: contact?.id || '1' }]
             });
           }
