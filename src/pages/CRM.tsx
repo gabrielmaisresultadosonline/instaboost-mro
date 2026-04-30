@@ -882,45 +882,64 @@ const CRM = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-muted/5 border-b px-2 py-1.5 flex flex-col gap-1.5 sticky top-14 z-[5] backdrop-blur-md overflow-hidden">
+                          <div className="bg-muted/5 border-b px-2 py-1 flex flex-col gap-1 sticky top-14 z-[5] backdrop-blur-md overflow-hidden transition-all duration-300">
                             <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.3 rounded-sm border border-border/20">
-                                <FileText className="w-2.5 h-2.5 text-emerald-500" /> Modelos
-                              </span>
-                              <div className="flex flex-wrap gap-1 flex-1">
-                                {templates.slice(0, 10).map(t => (
-                                  <Button 
-                                    key={t.id} 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="h-6 text-[9px] px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
-                                    onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
-                                    disabled={sendingMessage}
-                                  >
-                                    {t.name}
-                                  </Button>
-                                ))}
-                              </div>
+                              <button 
+                                onClick={() => setShowTemplates(!showTemplates)}
+                                className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.5 rounded-sm border border-border/20 hover:bg-muted/50 transition-colors group"
+                              >
+                                <FileText className="w-2.5 h-2.5 text-emerald-500" /> 
+                                <span>Modelos</span>
+                                {showTemplates ? <Eye className="w-2 h-2 ml-0.5 opacity-40 group-hover:opacity-100" /> : <EyeOff className="w-2 h-2 ml-0.5 opacity-100 text-emerald-500" />}
+                              </button>
+                              
+                              {showTemplates && (
+                                <div className="flex flex-wrap gap-1 flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                                  {templates.slice(0, 10).map(t => (
+                                    <Button 
+                                      key={t.id} 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="h-5 text-[9px] px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
+                                      onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
+                                      disabled={sendingMessage}
+                                    >
+                                      {t.name}
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
 
-                            <div className="flex items-center gap-1.5 min-w-0 pt-1 border-t border-border/5">
-                              <span className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.3 rounded-sm border border-border/20">
-                                <Zap className="w-2.5 h-2.5 text-blue-500" /> Fluxos
-                              </span>
-                              <div className="flex flex-wrap gap-1 flex-1">
-                                {flows.filter(f => f.is_active).slice(0, 10).map(f => (
-                                  <Button 
-                                    key={f.id} 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="h-6 text-[9px] px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
-                                    onClick={() => handleTriggerFlow(f.id)} 
-                                    disabled={sendingMessage}
-                                  >
-                                    {f.name}
-                                  </Button>
-                                ))}
-                              </div>
+                            <div className={cn(
+                              "flex items-center gap-1.5 min-w-0 pt-1 border-t border-border/5",
+                              !showFlows && !showTemplates && "pt-0 border-t-0"
+                            )}>
+                              <button 
+                                onClick={() => setShowFlows(!showFlows)}
+                                className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.5 rounded-sm border border-border/20 hover:bg-muted/50 transition-colors group"
+                              >
+                                <Zap className="w-2.5 h-2.5 text-blue-500" /> 
+                                <span>Fluxos</span>
+                                {showFlows ? <Eye className="w-2 h-2 ml-0.5 opacity-40 group-hover:opacity-100" /> : <EyeOff className="w-2 h-2 ml-0.5 opacity-100 text-blue-500" />}
+                              </button>
+                              
+                              {showFlows && (
+                                <div className="flex flex-wrap gap-1 flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                                  {flows.filter(f => f.is_active).slice(0, 10).map(f => (
+                                    <Button 
+                                      key={f.id} 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="h-5 text-[9px] px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
+                                      onClick={() => handleTriggerFlow(f.id)} 
+                                      disabled={sendingMessage}
+                                    >
+                                      {f.name}
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
 
