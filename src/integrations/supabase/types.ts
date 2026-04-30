@@ -718,6 +718,7 @@ export type Database = {
           name: string | null
           next_execution_time: string | null
           sale_closed: boolean | null
+          source_type: string | null
           status: string | null
           total_messages_received: number | null
           total_messages_sent: number | null
@@ -738,6 +739,7 @@ export type Database = {
           name?: string | null
           next_execution_time?: string | null
           sale_closed?: boolean | null
+          source_type?: string | null
           status?: string | null
           total_messages_received?: number | null
           total_messages_sent?: number | null
@@ -758,6 +760,7 @@ export type Database = {
           name?: string | null
           next_execution_time?: string | null
           sale_closed?: boolean | null
+          source_type?: string | null
           status?: string | null
           total_messages_received?: number | null
           total_messages_sent?: number | null
