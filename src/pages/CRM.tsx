@@ -1267,44 +1267,59 @@ const CRM = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight">Configurações do Sistema</h2>
-              <p className="text-muted-foreground text-sm">Gerencie suas conexões e parâmetros de automação</p>
-            </div>
+            <div className="max-w-4xl mx-auto w-full space-y-6 pb-12">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight text-primary">Configurações</h2>
+                <p className="text-muted-foreground text-sm">Gerencie suas conexões e chaves de API</p>
+              </div>
 
-            <Card className="border-zinc-200 dark:border-zinc-800">
-              <CardHeader className="bg-muted/30">
-                <CardTitle className="text-lg">Configurações da API Meta</CardTitle>
-                <CardDescription>Configure suas credenciais do Facebook Business para o WhatsApp</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Access Token (Permanente)</Label>
-                    <Input type="password" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone Number ID</Label>
-                    <Input value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>WhatsApp Business Account ID</Label>
-                    <Input value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Meta App ID (Opcional)</Label>
-                    <Input value={metaSettings.meta_app_id} onChange={e => setMetaSettings({...metaSettings, meta_app_id: e.target.value})} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Meta App Secret (Opcional)</Label>
-                    <Input type="password" value={metaSettings.meta_app_secret} onChange={e => setMetaSettings({...metaSettings, meta_app_secret: e.target.value})} />
-                  </div>
-                </div>
-                <Button onClick={handleSaveSettings} disabled={saving}>
-                  {saving ? "Salvando..." : "Salvar Configurações"}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
+                  <CardHeader>
+                    <CardTitle className="text-lg">WhatsApp Business API</CardTitle>
+                    <CardDescription>Configure sua conta da Meta</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Access Token (Permanente)</Label>
+                      <Input type="password" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone Number ID</Label>
+                      <Input value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>WhatsApp Business Account ID</Label>
+                      <Input value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
+                    <CardDescription>Configurações do Agente AI</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Habilitar Agente AI</Label>
+                      <Switch checked={metaSettings.ai_agent_enabled} onCheckedChange={checked => setMetaSettings({...metaSettings, ai_agent_enabled: checked})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>OpenAI API Key</Label>
+                      <Input type="password" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleSaveSettings} disabled={saving} size="lg" className="px-8">
+                  {saving ? <RefreshCcw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Salvar Todas as Configurações
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
