@@ -394,22 +394,63 @@ serve(async (req) => {
 
             // 2) Check first_message flows ONLY if no keyword matched
             if (!matchedFlowId) {
-              const { data: firstMsgFlows } = await supabase
+              const { data: triggerFlows } = await supabase
                 .from('zapi_flows')
-                .select('id')
+                .select('id, trigger_type')
                 .eq('is_active', true)
-                .eq('trigger_type', 'first_message');
+                .in('trigger_type', ['first_message', 'first_message_day', '24h_inactivity']);
 
-              if (firstMsgFlows && firstMsgFlows.length > 0) {
-                const { count: previousMsgCount } = await supabase
+              if (triggerFlows && triggerFlows.length > 0) {
+                // Get most recent incoming message BEFORE the one we just saved
+                const { data: lastMessages } = await supabase
                   .from('zapi_messages')
-                  .select('id', { count: 'exact', head: true })
+                  .select('created_at')
                   .eq('phone', phone)
-                  .eq('direction', 'incoming');
+                  .eq('direction', 'incoming')
+                  .order('created_at', { ascending: false })
+                  .limit(2); // Get current and previous
 
-                if (previousMsgCount !== null && previousMsgCount <= 1) {
-                  matchedFlowId = firstMsgFlows[0].id;
-                  console.log(`[Webhook] First message detected! Triggering flow ${matchedFlowId} for ${phone}`);
+                const previousMsg = lastMessages && lastMessages.length > 1 ? lastMessages[1] : null;
+                const totalIncomingCount = lastMessages ? lastMessages.length : 0;
+                
+                // First Message (Total)
+                if (!previousMsg) {
+                  const flow = triggerFlows.find(f => f.trigger_type === 'first_message');
+                  if (flow) {
+                    matchedFlowId = flow.id;
+                    console.log(`[Webhook] First message (ever) detected! Flow: ${matchedFlowId}`);
+                  }
+                }
+                
+                // First Message of the Day
+                if (!matchedFlowId) {
+                  const flowOfDay = triggerFlows.find(f => f.trigger_type === 'first_message_day');
+                  if (flowOfDay) {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    // Count messages from today (excluding the one just saved if we want "first")
+                    // Actually easier to check if previousMsg was before today
+                    if (!previousMsg || new Date(previousMsg.created_at) < today) {
+                      matchedFlowId = flowOfDay.id;
+                      console.log(`[Webhook] First message of the day detected! Flow: ${matchedFlowId}`);
+                    }
+                  }
+                }
+
+                // 24h Inactivity
+                if (!matchedFlowId) {
+                  const flow24h = triggerFlows.find(f => f.trigger_type === '24h_inactivity');
+                  if (flow24h && previousMsg) {
+                    const lastMsgDate = new Date(previousMsg.created_at);
+                    const now = new Date();
+                    const diffHours = (now.getTime() - lastMsgDate.getTime()) / (1000 * 60 * 60);
+                    
+                    if (diffHours >= 24) {
+                      matchedFlowId = flow24h.id;
+                      console.log(`[Webhook] 24h inactivity detected! Flow: ${matchedFlowId}`);
+                    }
+                  }
                 }
               }
             }
