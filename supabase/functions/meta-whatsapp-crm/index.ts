@@ -484,7 +484,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
       }
     }
     if (imageUrl) {
-      interactive.header = { type: "image", image: { link: imageUrl } }
+      interactive.header = { type: "image", image: { link: sanitizeMetaLink(imageUrl) } }
       mediaUrlToStore = imageUrl;
     }
     else if (headerText) interactive.header = { type: "text", text: headerText }
