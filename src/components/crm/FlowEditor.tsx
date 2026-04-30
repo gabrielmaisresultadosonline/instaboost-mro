@@ -712,6 +712,31 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                     </div>
                     {selectedNode.data.templateId && (
                       <div className="space-y-3">
+                        {/* Custom Image Upload for Header if template has header */}
+                        {availableTemplates.find(t => t.id === selectedNode.data.templateId)?.components?.some((c: any) => c.type === 'HEADER' && c.format === 'IMAGE') && (
+                          <div className="space-y-2">
+                            <Label className="text-xs">Imagem do Cabeçalho (Opcional)</Label>
+                            <div className="flex gap-2">
+                              <Input 
+                                type="file" 
+                                accept="image/*"
+                                disabled={uploading}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleFileUpload(file, selectedNode.id, 'image');
+                                }}
+                                className="text-xs h-8"
+                              />
+                              {uploading && <Loader2 className="w-4 h-4 animate-spin mt-2" />}
+                            </div>
+                            {selectedNode.data.imageUrl && (
+                              <div className="aspect-video w-full rounded overflow-hidden border">
+                                <img src={selectedNode.data.imageUrl as string} className="w-full h-full object-cover" alt="Preview" />
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                           <Label className="text-[10px] uppercase text-muted-foreground font-bold mb-2 block">Prévia do Conteúdo</Label>
                           <p className="text-xs text-slate-700 whitespace-pre-wrap italic">
