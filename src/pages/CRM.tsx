@@ -608,8 +608,9 @@ const CRM = () => {
                             <p className="font-bold flex items-center gap-2">
                               {selectedContact.name || selectedContact.wa_id}
                               {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                <Badge variant="outline" className="text-[10px] animate-pulse bg-primary/10">
-                                  Fluxo: {selectedContact.flow_state}
+                                <Badge variant="outline" className="text-[10px] animate-pulse bg-primary/10 flex items-center gap-1">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                                  Ativo: {selectedContact.flow_state}
                                 </Badge>
                               )}
                             </p>
@@ -624,23 +625,69 @@ const CRM = () => {
                           </div>
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })} className="hidden sm:flex">Qualificar</Button>
-                            <Button size="sm" className="bg-green-600 hidden sm:flex" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
-                            {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                              <Button 
-                                size="sm" 
-                                variant="secondary" 
-                                className="bg-orange-500 text-white hover:bg-orange-600"
-                                onClick={async () => {
-                                  await supabase.functions.invoke('meta-whatsapp-crm', {
-                                    body: { action: 'continueFlow', contactId: selectedContact.id, waId: selectedContact.wa_id }
-                                  });
-                                  fetchMessages(selectedContact.id);
-                                  toast({ title: "Comando enviado para continuar o fluxo" });
-                                }}
-                              >
-                                <Play className="w-3 h-3 mr-1" /> Continuar Fluxo
-                              </Button>
-                            )}
+                            <Button size="sm" className="bg-green-600 hidden sm:flex text-white hover:bg-green-700" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                            
+                            {selectedContact.flow_state && selectedContact.flow_state !== 'idle' ? (
+                              <div className="flex gap-1">
+                                {selectedContact.flow_state === 'paused' ? (
+                                  <Button 
+                                    size="sm" 
+                                    variant="secondary" 
+                                    className="bg-emerald-500 text-white hover:bg-emerald-600 h-8"
+                                    onClick={async () => {
+                                      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+                                        body: { action: 'continueFlow', contactId: selectedContact.id, waId: selectedContact.wa_id }
+                                      });
+                                      if (error) toast({ title: "Erro ao continuar", variant: "destructive" });
+                                      else {
+                                        fetchMessages(selectedContact.id);
+                                        toast({ title: "Fluxo retomado!" });
+                                      }
+                                    }}
+                                  >
+                                    <Play className="w-3 h-3 mr-1" /> Retomar
+                                  </Button>
+                                ) : (
+                                  <Button 
+                                    size="sm" 
+                                    variant="secondary" 
+                                    className="bg-amber-500 text-white hover:bg-amber-600 h-8"
+                                    onClick={async () => {
+                                      const { error } = await supabase.from('crm_contacts').update({ flow_state: 'paused' }).eq('id', selectedContact.id);
+                                      if (error) toast({ title: "Erro ao pausar", variant: "destructive" });
+                                      else {
+                                        setSelectedContact(prev => ({ ...prev, flow_state: 'paused' }));
+                                        toast({ title: "Fluxo pausado!" });
+                                      }
+                                    }}
+                                  >
+                                    <StopCircle className="w-3 h-3 mr-1" /> Pausar
+                                  </Button>
+                                )}
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  className="h-8"
+                                  onClick={async () => {
+                                    if (confirm('Deseja realmente CANCELAR este fluxo?')) {
+                                      const { error } = await supabase.from('crm_contacts').update({ 
+                                        flow_state: 'idle', 
+                                        current_flow_id: null,
+                                        current_node_id: null
+                                      }).eq('id', selectedContact.id);
+                                      
+                                      if (error) toast({ title: "Erro ao cancelar", variant: "destructive" });
+                                      else {
+                                        setSelectedContact(prev => ({ ...prev, flow_state: 'idle', current_flow_id: null, current_node_id: null }));
+                                        toast({ title: "Fluxo cancelado!" });
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <XCircle className="w-3 h-3 mr-1" /> Cancelar
+                                </Button>
+                              </div>
+                            ) : null}
                           </div>
                         </div>
                         <div className="bg-muted/10 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center">
