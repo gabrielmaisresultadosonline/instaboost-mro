@@ -207,6 +207,7 @@ const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
   video: VideoNode,
+  image: ImageNode,
   delay: DelayNode,
   question: QuestionNode,
   followup: FollowUpNode,
