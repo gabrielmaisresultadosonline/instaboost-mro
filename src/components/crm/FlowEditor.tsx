@@ -297,7 +297,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
     const fetchData = async () => {
       const [templatesRes, flowsRes] = await Promise.all([
         supabase.from('crm_templates').select('*'),
-        supabase.from('zapi_flows').select('id, name').neq('id', flow?.id || '')
+        supabase.from('zapi_flows').select('id, name')
       ]);
       
       if (templatesRes.data) setAvailableTemplates(templatesRes.data);
