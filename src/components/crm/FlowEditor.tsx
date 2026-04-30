@@ -323,6 +323,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
               <Button variant="outline" className="justify-start gap-2 border-orange-500/20 hover:bg-orange-500/10" onClick={() => addNode('video')}>
                 <Video className="w-4 h-4 text-orange-500" /> Vídeo
               </Button>
+              <Button variant="outline" className="justify-start gap-2 border-emerald-400/20 hover:bg-emerald-400/10" onClick={() => addNode('image')}>
+                <ImageIcon className="w-4 h-4 text-emerald-400" /> Imagem
+              </Button>
               <Button variant="outline" className="justify-start gap-2 border-amber-500/20 hover:bg-amber-500/10" onClick={() => addNode('delay')}>
                 <Clock className="w-4 h-4 text-amber-500" /> Delay
               </Button>
