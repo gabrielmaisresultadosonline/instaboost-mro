@@ -177,9 +177,46 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
                 <Button variant={headerType === 'NONE' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('NONE')}>Nenhum</Button>
                 <Button variant={headerType === 'TEXT' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('TEXT')}><Type className="w-4 h-4 mr-1" /> Texto</Button>
                 <Button variant={headerType === 'IMAGE' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('IMAGE')}><ImageIcon className="w-4 h-4 mr-1" /> Imagem</Button>
+                <Button variant={headerType === 'VIDEO' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('VIDEO')}><Video className="w-4 h-4 mr-1" /> Vídeo</Button>
+                <Button variant={headerType === 'DOCUMENT' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('DOCUMENT')}><FileText className="w-4 h-4 mr-1" /> Documento</Button>
               </div>
+              
               {headerType === 'TEXT' && <Input placeholder="Texto do cabeçalho" value={headerText} onChange={e => setHeaderText(e.target.value)} maxLength={60} />}
-              {headerType === 'IMAGE' && <Input placeholder="URL da imagem de exemplo" value={headerUrl} onChange={e => setHeaderUrl(e.target.value)} />}
+              
+              {(headerType === 'IMAGE' || headerType === 'VIDEO' || headerType === 'DOCUMENT') && (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder={`URL do(a) ${headerType === 'IMAGE' ? 'imagem' : headerType === 'VIDEO' ? 'vídeo' : 'documento'} de exemplo`} 
+                      value={headerUrl} 
+                      onChange={e => setHeaderUrl(e.target.value)} 
+                      className="flex-1"
+                    />
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      accept={headerType === 'IMAGE' ? 'image/*' : headerType === 'VIDEO' ? 'video/*' : '*'}
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="shrink-0"
+                    >
+                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                      Subir Arquivo
+                    </Button>
+                  </div>
+                  {headerUrl && (
+                    <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md text-[10px] text-muted-foreground truncate">
+                      <ExternalLink className="w-3 h-3" />
+                      {headerUrl}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="flex justify-between items-center">
