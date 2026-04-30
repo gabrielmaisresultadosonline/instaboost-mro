@@ -517,7 +517,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
       },
       body: JSON.stringify(body),
     }
-  )
+  );
 
   const result = await response.json()
   if (!response.ok) {
