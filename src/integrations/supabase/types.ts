@@ -1060,6 +1060,8 @@ export type Database = {
           meta_phone_number_id: string | null
           meta_waba_id: string | null
           openai_api_key: string | null
+          shortcut_size: number | null
+          tag_size: number | null
           updated_at: string | null
           webhook_verify_token: string | null
         }
@@ -1078,6 +1080,8 @@ export type Database = {
           meta_phone_number_id?: string | null
           meta_waba_id?: string | null
           openai_api_key?: string | null
+          shortcut_size?: number | null
+          tag_size?: number | null
           updated_at?: string | null
           webhook_verify_token?: string | null
         }
@@ -1096,6 +1100,8 @@ export type Database = {
           meta_phone_number_id?: string | null
           meta_waba_id?: string | null
           openai_api_key?: string | null
+          shortcut_size?: number | null
+          tag_size?: number | null
           updated_at?: string | null
           webhook_verify_token?: string | null
         }
