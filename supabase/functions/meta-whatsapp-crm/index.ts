@@ -649,6 +649,21 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       }, 2000)
     }
   }
+  else if (node.type === 'image') {
+    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+      to: waId,
+      imageUrl: node.data.imageUrl
+    }, contact)
+    
+    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
+    if (nextEdge) {
+      setTimeout(() => {
+        supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { action: 'continueFlow', contactId, waId }
+        })
+      }, 1500)
+    }
+  }
   else if (node.type === 'question') {
     await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,

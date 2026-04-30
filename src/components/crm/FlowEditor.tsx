@@ -15,6 +15,9 @@ import {
   Position,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +29,7 @@ import {
   MessageSquare, 
   Mic, 
   Video, 
+  ImageIcon,
   Clock, 
   HelpCircle, 
   ArrowRight,
@@ -81,6 +85,27 @@ const VideoNode = ({ data }: any) => (
     </CardHeader>
     <CardContent className="p-3">
       <p className="text-[10px] text-muted-foreground truncate">{data.fileName || data.videoUrl || 'Nenhum vídeo selecionado'}</p>
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} />
+  </Card>
+);
+
+const ImageNode = ({ data }: any) => (
+  <Card className="min-w-[200px] border-emerald-400 shadow-md">
+    <Handle type="target" position={Position.Top} />
+    <CardHeader className="p-3 bg-emerald-400 text-white rounded-t-lg flex flex-row items-center justify-between">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <ImageIcon className="w-3 h-3" /> Imagem
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3">
+      {data.imageUrl ? (
+        <div className="aspect-video w-full rounded bg-slate-100 flex items-center justify-center overflow-hidden">
+          <img src={data.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+        </div>
+      ) : (
+        <p className="text-[10px] text-muted-foreground truncate">{data.fileName || 'Nenhuma imagem selecionada'}</p>
+      )}
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
   </Card>
@@ -185,6 +210,7 @@ const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
   video: VideoNode,
+  image: ImageNode,
   delay: DelayNode,
   question: QuestionNode,
   followup: FollowUpNode,
@@ -199,10 +225,47 @@ interface FlowEditorProps {
 }
 
 const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
+  const { toast } = useToast();
   const [nodes, setNodes, onNodesChange] = useNodesState(flow?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flow?.edges || []);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [flowName, setFlowName] = useState(flow?.name || 'Novo Fluxo');
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (file: File, nodeId: string, type: 'audio' | 'video' | 'image') => {
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const filePath = `flow-media/${fileName}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('crm-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('crm-media')
+        .getPublicUrl(filePath);
+
+      const updateData: any = { fileName: file.name };
+      if (type === 'audio') updateData.audioUrl = publicUrl;
+      if (type === 'video') updateData.videoUrl = publicUrl;
+      if (type === 'image') updateData.imageUrl = publicUrl;
+
+      updateNodeData(nodeId, updateData);
+      toast({ title: "Arquivo enviado com sucesso!" });
+    } catch (error: any) {
+      toast({ 
+        title: "Erro no upload", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -300,6 +363,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
               <Button variant="outline" className="justify-start gap-2 border-orange-500/20 hover:bg-orange-500/10" onClick={() => addNode('video')}>
                 <Video className="w-4 h-4 text-orange-500" /> Vídeo
               </Button>
+              <Button variant="outline" className="justify-start gap-2 border-emerald-400/20 hover:bg-emerald-400/10" onClick={() => addNode('image')}>
+                <ImageIcon className="w-4 h-4 text-emerald-400" /> Imagem
+              </Button>
               <Button variant="outline" className="justify-start gap-2 border-amber-500/20 hover:bg-amber-500/10" onClick={() => addNode('delay')}>
                 <Clock className="w-4 h-4 text-amber-500" /> Delay
               </Button>
@@ -384,17 +450,19 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-xs">Upload de Áudio (.mp3, .ogg)</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          type="file" 
-                          accept=".mp3,.ogg"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) updateNodeData(selectedNode.id, { fileName: file.name, audioUrl: URL.createObjectURL(file) });
-                          }}
-                          className="text-xs h-8"
-                        />
-                      </div>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="file" 
+                        accept=".mp3,.ogg"
+                        disabled={uploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, selectedNode.id, 'audio');
+                        }}
+                        className="text-xs h-8"
+                      />
+                      {uploading && <Loader2 className="w-4 h-4 animate-spin mt-2" />}
+                    </div>
                     </div>
                     <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg border border-purple-100">
                       <div className="space-y-0.5">
@@ -414,15 +482,38 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                 {selectedNode.type === 'video' && (
                   <div className="space-y-2">
                     <Label className="text-xs">Upload de Vídeo (.mp4)</Label>
-                    <Input 
-                      type="file" 
-                      accept=".mp4"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) updateNodeData(selectedNode.id, { fileName: file.name, videoUrl: URL.createObjectURL(file) });
-                      }}
-                      className="text-xs h-8"
-                    />
+                    <div className="flex gap-2">
+                      <Input 
+                        type="file" 
+                        accept=".mp4"
+                        disabled={uploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, selectedNode.id, 'video');
+                        }}
+                        className="text-xs h-8"
+                      />
+                      {uploading && <Loader2 className="w-4 h-4 animate-spin mt-2" />}
+                    </div>
+                  </div>
+                )}
+
+                {selectedNode.type === 'image' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Upload de Imagem (.jpg, .png)</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="file" 
+                        accept="image/*"
+                        disabled={uploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, selectedNode.id, 'image');
+                        }}
+                        className="text-xs h-8"
+                      />
+                      {uploading && <Loader2 className="w-4 h-4 animate-spin mt-2" />}
+                    </div>
                   </div>
                 )}
 
