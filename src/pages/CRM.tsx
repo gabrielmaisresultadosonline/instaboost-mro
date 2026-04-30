@@ -813,7 +813,7 @@ const CRM = () => {
                               <div className="flex justify-between items-center">
                                 <Badge variant="outline" className={cn("text-[8px] px-1 h-3.5 capitalize font-medium", getStatusColor(contact.status))}>{contact.status}</Badge>
                                 {contact.flow_state && contact.flow_state !== 'idle' && (
-                                  <Badge variant="secondary" className="text-[9px] h-4 bg-primary/10 text-primary animate-pulse border-none">Fluxo Ativo</Badge>
+                                  <Badge variant="secondary" className="text-[8px] h-3.5 bg-primary/10 text-primary animate-pulse border-none">Fluxo Ativo</Badge>
                                 )}
                               </div>
                             </button>
