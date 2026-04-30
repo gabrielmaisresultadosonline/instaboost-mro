@@ -831,15 +831,31 @@ async function internalSendTemplate(
     let mediaUrl = null;
     
     if (headerParams) {
-      if (headerParams.type === 'image') mediaUrl = headerParams.image?.link || headerParams.image?.id;
-      else if (headerParams.type === 'video') mediaUrl = headerParams.video?.link || headerParams.video?.id;
-      else if (headerParams.type === 'document') mediaUrl = headerParams.document?.link || headerParams.document?.id;
-    }
+      const type = headerParams.type;
+      // First check for a link in headerParams itself
+      mediaUrl = headerParams[type]?.link;
+      
+      // If no link, check manualComponents for original URL
+      if (!mediaUrl || /^\d+$/.test(mediaUrl.toString())) {
+        const manualUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.[type]?.link;
+        if (manualUrl) {
+          mediaUrl = manualUrl;
+        }
+      }
+      
+      // If still no link, check template data examples
+      if (!mediaUrl || /^\d+$/.test(mediaUrl.toString())) {
+        const headerComponent = templateData.components?.find((c: any) => c.type === 'HEADER');
+        const exampleUrl = headerComponent?.example?.header_handle?.[0];
+        if (exampleUrl && (exampleUrl.startsWith('http') || exampleUrl.startsWith('https'))) {
+          mediaUrl = exampleUrl;
+        }
+      }
 
-    // Try to find the original URL from manualComponents if we have an ID instead of a link
-    if (mediaUrl && /^\d+$/.test(mediaUrl.toString())) {
-      const originalUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.[headerParams.type]?.link;
-      if (originalUrl) mediaUrl = originalUrl;
+      // If all fails, fall back to ID (though it will be broken in chat)
+      if (!mediaUrl) {
+        mediaUrl = headerParams[type]?.id || headerParams[type]?.link;
+      }
     }
 
     // Ensure content has the [Template: name] prefix for the frontend to recognize it
