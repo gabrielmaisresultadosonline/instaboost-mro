@@ -1125,3 +1125,34 @@ async function getMetaHeaderHandle(accessToken: string, appId: string, mediaUrl:
     return null;
   }
 }
+
+async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, mediaUrl: string, type: string) {
+  try {
+    console.log(`Uploading media to Meta from URL: ${mediaUrl}`);
+    const fileResponse = await fetch(mediaUrl);
+    if (!fileResponse.ok) throw new Error(`Failed to fetch media: ${mediaUrl}`);
+    const blob = await fileResponse.blob();
+    
+    const formData = new FormData();
+    formData.append('file', blob);
+    formData.append('type', type);
+    formData.append('messaging_product', 'whatsapp');
+
+    const response = await fetch(
+      `https://graph.facebook.com/v17.0/${phoneNumberId}/media`,
+      {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+        body: formData
+      }
+    );
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(`Meta media upload failed: ${JSON.stringify(data)}`);
+    
+    return data.id;
+  } catch (error) {
+    console.error('Error uploading media to Meta:', error);
+    return null;
+  }
+}
