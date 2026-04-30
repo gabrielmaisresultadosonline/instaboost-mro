@@ -361,27 +361,70 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                 )}
 
                 {selectedNode.type === 'audio' && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">URL do Áudio</Label>
-                    <Input 
-                      value={selectedNode.data.audioUrl as string} 
-                      onChange={(e) => updateNodeData(selectedNode.id, { audioUrl: e.target.value })}
-                      placeholder="https://..."
-                      className="text-xs"
-                    />
-                    <p className="text-[10px] text-muted-foreground">Envie um arquivo na conversa para obter a URL se necessário.</p>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Upload de Áudio (.mp3, .ogg)</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          type="file" 
+                          accept=".mp3,.ogg"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) updateNodeData(selectedNode.id, { fileName: file.name, audioUrl: URL.createObjectURL(file) });
+                          }}
+                          className="text-xs h-8"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg border border-purple-100">
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] font-bold text-purple-700">Gravado na hora</Label>
+                        <p className="text-[9px] text-purple-600/70">Aparecerá como "gravando..."</p>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedNode.data.isPTT as boolean}
+                        onChange={(e) => updateNodeData(selectedNode.id, { isPTT: e.target.checked })}
+                        className="w-4 h-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+                      />
+                    </div>
                   </div>
                 )}
 
                 {selectedNode.type === 'video' && (
                   <div className="space-y-2">
-                    <Label className="text-xs">URL do Vídeo</Label>
+                    <Label className="text-xs">Upload de Vídeo (.mp4)</Label>
                     <Input 
-                      value={selectedNode.data.videoUrl as string} 
-                      onChange={(e) => updateNodeData(selectedNode.id, { videoUrl: e.target.value })}
-                      placeholder="https://..."
-                      className="text-xs"
+                      type="file" 
+                      accept=".mp4"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) updateNodeData(selectedNode.id, { fileName: file.name, videoUrl: URL.createObjectURL(file) });
+                      }}
+                      className="text-xs h-8"
                     />
+                  </div>
+                )}
+
+                {selectedNode.type === 'waitResponse' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Tempo máximo de espera (minutos)</Label>
+                      <Input 
+                        type="number" 
+                        value={selectedNode.data.timeout as number} 
+                        onChange={(e) => updateNodeData(selectedNode.id, { timeout: parseInt(e.target.value) })}
+                        className="text-xs h-8"
+                      />
+                    </div>
+                    <div className="p-2 bg-indigo-50 rounded border border-indigo-100 space-y-2">
+                      <p className="text-[10px] text-indigo-700 font-medium flex items-center gap-1">
+                        <HelpCircle className="w-3 h-3" /> Como funciona?
+                      </p>
+                      <p className="text-[9px] text-indigo-600/80">
+                        O fluxo para aqui. Se o cliente enviar qualquer mensagem, ele segue pela saída da esquerda. Se passar o tempo configurado, segue pela saída da direita (Follow-up).
+                      </p>
+                    </div>
                   </div>
                 )}
 
