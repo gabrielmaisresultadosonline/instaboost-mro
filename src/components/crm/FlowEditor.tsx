@@ -32,7 +32,10 @@ import {
   Trash2,
   X,
   Zap,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  UserCheck,
+  Timer
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
