@@ -967,6 +967,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
           direction: 'outbound',
           content: messageContent,
           message_type: 'template',
+          media_url: node.data.imageUrl || null,
           meta_message_id: sendResult.messages[0].id,
           status: 'sent'
         })
