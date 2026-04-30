@@ -78,7 +78,17 @@ serve(async (req) => {
                 if (contact) {
                   let content = ''
                   let message_type = message.type
+                  let media_url = null
                   
+                  // Get Meta settings for media download
+                  const { data: settings } = await supabase
+                    .from('crm_settings')
+                    .select('meta_access_token')
+                    .eq('id', '00000000-0000-0000-0000-000000000001')
+                    .single()
+                  
+                  const meta_access_token = settings?.meta_access_token
+
                   if (message.type === 'text') {
                     content = message.text.body
                   } else if (message.type === 'button') {
@@ -91,12 +101,24 @@ serve(async (req) => {
                     }
                   } else if (message.type === 'audio') {
                     content = `[Audio Message]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.audio.id, 'audio')
+                    }
                   } else if (message.type === 'image') {
-                    content = `[Image Message] ${message.image.caption || ''}`
+                    content = message.image.caption || `[Image Message]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.image.id, 'image')
+                    }
                   } else if (message.type === 'video') {
-                    content = `[Video Message] ${message.video.caption || ''}`
+                    content = message.video.caption || `[Video Message]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.video.id, 'video')
+                    }
                   } else if (message.type === 'document') {
-                    content = `[Document] ${message.document.filename || ''}`
+                    content = message.document.filename || `[Document]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.document.id, 'document', message.document.filename)
+                    }
                   } else {
                     content = `[${message.type}]`
                   }
@@ -106,6 +128,7 @@ serve(async (req) => {
                     direction: 'inbound',
                     message_type: message_type,
                     content: content,
+                    media_url: media_url,
                     meta_message_id: message.id,
                     status: 'received'
                   })
