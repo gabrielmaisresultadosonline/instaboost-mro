@@ -1046,13 +1046,25 @@ const CRM = () => {
                                     {contact.status}
                                   </Badge>
                                   {contact.flow_state && contact.flow_state !== 'idle' && (
-                                    <Badge 
-                                      variant="secondary" 
-                                      style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                      className="bg-primary/10 text-primary animate-pulse border-none"
-                                    >
-                                      Fluxo Ativo
-                                    </Badge>
+                                    <div className="flex items-center gap-1">
+                                      <Badge 
+                                        variant="secondary" 
+                                        style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                        className="bg-primary/10 text-primary animate-pulse border-none"
+                                      >
+                                        Fluxo Ativo
+                                      </Badge>
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleCancelFlow(contact.id);
+                                        }}
+                                        className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
+                                        title="Parar Fluxo"
+                                      >
+                                        <StopCircle className="h-3 w-3" />
+                                      </button>
+                                    </div>
                                   )}
                                 </div>
                             </button>
