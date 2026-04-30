@@ -387,7 +387,19 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
       <div className="flex-1 flex overflow-hidden">
         <aside className="w-64 border-r bg-card/50 p-4 space-y-6 overflow-y-auto">
           <div>
-            <h3 className="text-sm font-semibold mb-4 text-muted-foreground uppercase tracking-wider">Adicionar Blocos</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Adicionar Blocos</h3>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={async () => {
+                const { error } = await supabase.functions.invoke('meta-whatsapp-crm', { body: { action: 'getTemplates' } });
+                if (!error) {
+                  const { data } = await supabase.from('crm_templates').select('*');
+                  if (data) setAvailableTemplates(data);
+                  toast({ title: "Templates sincronizados!" });
+                }
+              }}>
+                <RefreshCcw className="w-3 h-3" />
+              </Button>
+            </div>
             <div className="grid grid-cols-1 gap-2">
               <Button variant="outline" className="justify-start gap-2 border-blue-500/20 hover:bg-blue-500/10" onClick={() => addNode('message')}>
                 <MessageSquare className="w-4 h-4 text-blue-500" /> Texto
