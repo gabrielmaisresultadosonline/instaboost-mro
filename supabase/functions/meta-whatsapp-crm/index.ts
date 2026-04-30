@@ -507,6 +507,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
   
   console.log('Sending message to Meta:', JSON.stringify(body, null, 2));
   
+  const response = await fetch(
     `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
     {
       method: 'POST',
@@ -516,7 +517,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
       },
       body: JSON.stringify(body),
     }
-  )
+  );
 
   const result = await response.json()
   if (!response.ok) {
@@ -811,13 +812,29 @@ async function internalSendTemplate(
   // Save to message history
   if (result.messages && result.messages[0]) {
     const headerImageUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'image')?.image?.link;
+    const headerVideoUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'video')?.video?.link;
+    const headerDocUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'document')?.document?.link;
+    
+    let messageType = 'template';
+    let mediaUrl = null;
+    
+    if (headerImageUrl) {
+      messageType = 'image';
+      mediaUrl = headerImageUrl;
+    } else if (headerVideoUrl) {
+      messageType = 'video';
+      mediaUrl = headerVideoUrl;
+    } else if (headerDocUrl) {
+      messageType = 'document';
+      mediaUrl = headerDocUrl;
+    }
 
     await supabase.from('crm_messages').insert({
       contact_id: contact.id,
       direction: 'outbound',
       content: messageContent,
-      message_type: 'template',
-      media_url: headerImageUrl || null,
+      message_type: messageType,
+      media_url: mediaUrl,
       meta_message_id: result.messages[0].id,
       status: 'sent'
     });
