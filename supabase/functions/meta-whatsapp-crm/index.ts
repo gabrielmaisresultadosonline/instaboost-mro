@@ -457,9 +457,9 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     body.type = "audio"
     const metaMediaId = await uploadMediaToMeta(meta_access_token, meta_phone_number_id, audioUrl, 'audio');
     if (metaMediaId) {
-      body.audio = { id: metaMediaId, ptt: !!isVoice };
+      body.audio = { id: metaMediaId, voice: !!isVoice };
     } else {
-      body.audio = { link: audioUrl, ptt: !!isVoice };
+      body.audio = { link: audioUrl, voice: !!isVoice };
     }
     mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {

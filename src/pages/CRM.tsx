@@ -150,31 +150,27 @@ const CRM = () => {
   const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [contactToView, setContactToView] = useState<any>(null);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
 
   useEffect(() => {
     selectedContactRef.current = selectedContact;
   }, [selectedContact]);
 
   useEffect(() => {
-    let interval: any;
     if (selectedContact?.next_execution_time) {
-      const updateCountdown = () => {
-        const next = new Date(selectedContact.next_execution_time).getTime();
-        const now = new Date().getTime();
-        const diff = Math.max(0, Math.floor((next - now) / 1000));
-        setCountdown(diff);
-        if (diff <= 0) {
-          clearInterval(interval);
-          setCountdown(null);
-        }
-      };
-      updateCountdown();
-      interval = setInterval(updateCountdown, 1000);
+      const next = new Date(selectedContact.next_execution_time).getTime();
+      const diff = Math.max(0, Math.floor((next - now) / 1000));
+      setCountdown(diff > 0 ? diff : null);
     } else {
       setCountdown(null);
     }
-    return () => clearInterval(interval);
-  }, [selectedContact?.next_execution_time, selectedContact?.id]);
+  }, [selectedContact?.next_execution_time, selectedContact?.id, now]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -1046,24 +1042,39 @@ const CRM = () => {
                                     {contact.status}
                                   </Badge>
                                   {contact.flow_state && contact.flow_state !== 'idle' && (
-                                    <div className="flex items-center gap-1">
-                                      <Badge 
-                                        variant="secondary" 
-                                        style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                        className="bg-primary/10 text-primary animate-pulse border-none"
-                                      >
-                                        Fluxo Ativo
-                                      </Badge>
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleCancelFlow(contact.id);
-                                        }}
-                                        className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
-                                        title="Parar Fluxo"
-                                      >
-                                        <StopCircle className="h-3 w-3" />
-                                      </button>
+                                    <div className="flex flex-col items-end gap-1">
+                                      <div className="flex items-center gap-1">
+                                        <Badge 
+                                          variant="secondary" 
+                                          style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                          className={cn(
+                                            "px-1 capitalize font-medium",
+                                            contact.flow_state === 'error' ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary animate-pulse"
+                                          )}
+                                        >
+                                          {contact.flow_state === 'error' ? 'Erro' : 'Ativo'}
+                                        </Badge>
+                                        <button 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCancelFlow(contact.id);
+                                          }}
+                                          className="text-red-500 hover:text-red-700 p-0.5 rounded-full hover:bg-red-50"
+                                          title="Parar Fluxo"
+                                        >
+                                          <StopCircle className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                      {contact.next_execution_time && (
+                                        <div className="flex items-center gap-1 text-[9px] font-bold text-primary tabular-nums">
+                                          <Clock className="w-2 h-2" />
+                                          {(() => {
+                                            const next = new Date(contact.next_execution_time).getTime();
+                                            const diff = Math.max(0, Math.floor((next - now) / 1000));
+                                            return diff > 0 ? `${Math.floor(diff / 60)}m ${diff % 60}s` : 'Próximo...';
+                                          })()}
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
