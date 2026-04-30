@@ -1095,8 +1095,11 @@ const CRM = () => {
                                           )}
                                           <div className="p-3 space-y-2">
                                             <div className="text-[13px] md:text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">
-                                              {m.content?.includes('[Template:') ? template.components?.find((c: any) => c.type === 'BODY')?.text : m.content}
+                                              {m.content?.includes('[Template:') 
+                                                ? m.content.replace(/\[Template: .*?\]\s*/, '') 
+                                                : (template?.components?.find((c: any) => c.type === 'BODY')?.text || m.content)}
                                             </div>
+
                                             {template.components?.find((c: any) => c.type === 'FOOTER') && (
                                               <div className="text-[10px] opacity-60 uppercase font-medium">
                                                 {template.components.find((c: any) => c.type === 'FOOTER').text}
