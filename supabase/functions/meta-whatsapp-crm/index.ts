@@ -34,16 +34,28 @@ serve(async (req) => {
 
     if (action === 'getTemplates') {
       const { meta_waba_id } = settings
+      console.log(`Fetching templates for WABA ${meta_waba_id}...`);
+      
       const response = await fetch(
-        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates`,
+        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates?limit=1000`,
         {
           headers: { 'Authorization': `Bearer ${meta_access_token}` },
         }
       )
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Meta API Error fetching templates:', errorData);
+        throw new Error(`Meta API error: ${errorData.error?.message || response.statusText}`);
+      }
+      
       const data = await response.json()
+      const metaTemplateIds: string[] = [];
       
       if (data.data) {
+        console.log(`Found ${data.data.length} templates on Meta.`);
         for (const template of data.data) {
+          metaTemplateIds.push(template.id);
           await supabase.from('crm_templates').upsert({
             id: template.id,
             name: template.name,
@@ -53,6 +65,23 @@ serve(async (req) => {
             components: template.components,
             updated_at: new Date().toISOString()
           })
+        }
+        
+        // Remove local templates that are no longer on Meta
+        if (metaTemplateIds.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('crm_templates')
+            .delete()
+            .not('id', 'in', `(${metaTemplateIds.join(',')})`)
+          
+          if (deleteError) {
+            console.error('Error cleaning up local templates:', deleteError);
+          } else {
+            console.log('Local templates cleaned up successfully.');
+          }
+        } else {
+          // If Meta has no templates, clear local table
+          await supabase.from('crm_templates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
       }
       
