@@ -163,25 +163,14 @@ const CRM = () => {
   }, [selectedContact]);
 
   useEffect(() => {
-    let interval: any;
     if (selectedContact?.next_execution_time) {
-      const updateCountdown = () => {
-        const next = new Date(selectedContact.next_execution_time).getTime();
-        const now = new Date().getTime();
-        const diff = Math.max(0, Math.floor((next - now) / 1000));
-        setCountdown(diff);
-        if (diff <= 0) {
-          clearInterval(interval);
-          setCountdown(null);
-        }
-      };
-      updateCountdown();
-      interval = setInterval(updateCountdown, 1000);
+      const next = new Date(selectedContact.next_execution_time).getTime();
+      const diff = Math.max(0, Math.floor((next - now) / 1000));
+      setCountdown(diff > 0 ? diff : null);
     } else {
       setCountdown(null);
     }
-    return () => clearInterval(interval);
-  }, [selectedContact?.next_execution_time, selectedContact?.id]);
+  }, [selectedContact?.next_execution_time, selectedContact?.id, now]);
 
   useEffect(() => {
     if (scrollRef.current) {
