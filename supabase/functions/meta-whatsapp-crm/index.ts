@@ -648,20 +648,16 @@ async function internalSendTemplate(
       if (headerComponent.format === 'IMAGE' || headerComponent.format === 'VIDEO' || headerComponent.format === 'DOCUMENT') {
         let mediaUrl = headerComponent.example?.header_handle?.[0];
         
-        // If the URL is from Meta/Facebook CDN, we can't send it as a 'link' 
-        // because it will cause a 403 Forbidden error on Meta's side.
-        // In that case, we MUST NOT include the header component at all
-        // OR we must use a 'handle' (which requires prior upload).
-        // Since we don't have a direct handle here, and Meta CDN links fail,
-        // we skip adding the header if it's a Meta CDN link.
-        
+        // WhatsApp internal links usually fail with 403 Forbidden when sent via API.
+        // If we don't have a valid external link, we MUST NOT include the header component
+        // because Meta requires a valid, accessible link for media parameters.
         const isMetaCdn = mediaUrl && (
           mediaUrl.includes('whatsapp.net') || 
           mediaUrl.includes('fbcdn.net') || 
           mediaUrl.includes('facebook.com')
         );
 
-        if (mediaUrl && !isMetaCdn) {
+        if (mediaUrl && !isMetaCdn && (mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://'))) {
           const type = headerComponent.format.toLowerCase();
           const mediaObj: any = { link: mediaUrl };
           if (type === 'document') mediaObj.filename = "document.pdf";
@@ -674,8 +670,27 @@ async function internalSendTemplate(
             }]
           });
           console.log(`Template ${templateName} header (${headerComponent.format}) filled with external URL.`);
-        } else if (isMetaCdn) {
-          console.log(`Template ${templateName} has a Meta CDN header URL. Skipping header to avoid 403 error.`);
+        } else {
+          // If we reach here, we either have a Meta CDN link (which fails) or no link.
+          // IMPORTANT: If the template WAS CREATED with a header, Meta REQUIRES a header parameter.
+          // Skipping it entirely will cause a "Format mismatch" error (400).
+          // However, using the Meta CDN link causes a "403 Forbidden" (delivery failure).
+          // The ONLY solution for existing templates with headers is to provide a valid accessible link.
+          // Since we don't have one, we'll try to use a placeholder image to at least get the message delivered.
+          
+          if (headerComponent.format === 'IMAGE') {
+            const placeholderImg = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop";
+            finalComponents.push({
+              type: "header",
+              parameters: [{
+                type: "image",
+                image: { link: placeholderImg }
+              }]
+            });
+            console.log(`Template ${templateName} used placeholder header to avoid delivery failure.`);
+          } else {
+            console.log(`Template ${templateName} has a required ${headerComponent.format} header but no valid external URL. Skipping component (this might cause 400 error if header is required).`);
+          }
         }
       } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
         finalComponents.push({
