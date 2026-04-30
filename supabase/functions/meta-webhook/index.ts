@@ -81,13 +81,13 @@ serve(async (req) => {
                   let media_url = null
                   
                   // Get Meta settings for media download
-                  const { data: settings } = await supabase
+                  const { data: mediaSettings } = await supabase
                     .from('crm_settings')
                     .select('meta_access_token')
                     .eq('id', '00000000-0000-0000-0000-000000000001')
                     .single()
                   
-                  const meta_access_token = settings?.meta_access_token
+                  const meta_access_token = mediaSettings?.meta_access_token
 
                   if (message.type === 'text') {
                     content = message.text.body
@@ -203,16 +203,16 @@ serve(async (req) => {
                   }
 
                   // 3. Fallback to AI Agent or Auto-Responder
-                  const { data: settings } = await supabase
+                  const { data: agentSettings } = await supabase
                     .from('crm_settings')
                     .select('*')
                     .eq('id', '00000000-0000-0000-0000-000000000001')
                     .single()
 
-                  if (settings?.ai_agent_enabled && settings?.openai_api_key && message.type === 'text') {
+                  if (agentSettings?.ai_agent_enabled && agentSettings?.openai_api_key && message.type === 'text') {
                     let shouldTrigger = false
-                    if (settings.ai_agent_trigger === 'all') shouldTrigger = true
-                    else if (settings.ai_agent_trigger === 'first_message' && contact.total_messages_received === 1) shouldTrigger = true
+                    if (agentSettings.ai_agent_trigger === 'all') shouldTrigger = true
+                    else if (agentSettings.ai_agent_trigger === 'first_message' && contact.total_messages_received === 1) shouldTrigger = true
                     
                     if (shouldTrigger) {
                       const { data: history } = await supabase
@@ -234,7 +234,7 @@ serve(async (req) => {
                         const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
                           method: 'POST',
                           headers: {
-                            'Authorization': `Bearer ${settings.openai_api_key}`,
+                            'Authorization': `Bearer ${agentSettings.openai_api_key}`,
                             'Content-Type': 'application/json'
                           },
                           body: JSON.stringify({
@@ -256,23 +256,23 @@ serve(async (req) => {
                   }
 
                   if (contact.total_messages_received === 1) {
-                    if (settings?.initial_flow_id) {
+                    if (agentSettings?.initial_flow_id) {
                       await supabase.functions.invoke('meta-whatsapp-crm', {
                         body: {
                           action: 'startFlow',
-                          flowId: settings.initial_flow_id,
+                          flowId: agentSettings.initial_flow_id,
                           contactId: contact.id,
                           waId: wa_id
                         }
                       })
-                    } else if (settings?.initial_auto_response_enabled) {
+                    } else if (agentSettings?.initial_auto_response_enabled) {
                       if (message.type === 'text') {
                          await supabase.functions.invoke('meta-whatsapp-crm', {
                            body: {
                              action: 'sendMessage',
                              to: wa_id,
-                             text: settings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
-                             buttons: settings.initial_response_buttons
+                             text: agentSettings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
+                             buttons: agentSettings.initial_response_buttons
                            }
                          })
                       }

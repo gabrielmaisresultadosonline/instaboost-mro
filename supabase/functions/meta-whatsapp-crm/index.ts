@@ -648,9 +648,18 @@ async function internalSendTemplate(
       if (headerComponent.format === 'IMAGE') {
         let imageUrl = headerComponent.example?.header_handle?.[0];
         
-        // CRITICAL: If the URL is from Meta CDN, it might be expired. 
-        // We should try to see if there's a better URL in the components if provided
-        if (imageUrl) {
+        // If the URL is from Meta CDN, it might be expired. 
+        // We only use it if it doesn't look like a temporary Meta URL or if it's the only option
+        if (imageUrl && !imageUrl.includes('scontent.whatsapp.net')) {
+          finalComponents.push({
+            type: "header",
+            parameters: [{
+              type: "image",
+              image: { link: imageUrl }
+            }]
+          });
+        } else if (imageUrl) {
+          console.warn(`Template ${templateName} has a potentially expired Meta CDN header image. Attempting to send anyway...`);
           finalComponents.push({
             type: "header",
             parameters: [{
@@ -670,14 +679,24 @@ async function internalSendTemplate(
     // Handle Buttons (ensure URL variables are filled)
     if (buttonsComponent && buttonsComponent.buttons) {
       buttonsComponent.buttons.forEach((b: any, index: number) => {
+        const existingButton = finalComponents.find((c: any) => c.type === 'button' && c.index === index);
+        
         if (b.type === 'URL' && b.url?.includes('{{1}}')) {
-          const existingButton = finalComponents.find((c: any) => c.type === 'button' && c.index === index);
           if (!existingButton) {
             finalComponents.push({
               type: "button",
               sub_type: "url",
-              index: index,
+              index: index.toString(), // Meta expects index as string in some versions, but number is usually fine. Let's use what's safe.
               parameters: [{ type: "text", text: contact?.id || '1' }]
+            });
+          }
+        } else if (b.type === 'COPY_CODE' && b.example?.[0]) {
+           if (!existingButton) {
+            finalComponents.push({
+              type: "button",
+              sub_type: "copy_code",
+              index: index.toString(),
+              parameters: [{ type: "text", text: b.example[0] }]
             });
           }
         }
