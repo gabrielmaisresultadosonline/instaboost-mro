@@ -652,6 +652,7 @@ const CRM = () => {
                               size="sm" 
                               className="h-7 text-[10px] px-2 whitespace-nowrap"
                               onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')}
+                              disabled={sendingMessage}
                             >
                               {t.name}
                               {t.status !== 'APPROVED' && <ClockIcon className="w-2 h-2 ml-1 opacity-50" />}
@@ -665,6 +666,7 @@ const CRM = () => {
                               size="sm" 
                               className="h-7 text-[10px] px-2 whitespace-nowrap border-primary/20 text-primary"
                               onClick={() => handleTriggerFlow(f.id)}
+                              disabled={sendingMessage}
                             >
                               <GitBranch className="w-2 h-2 mr-1" /> {f.name}
                             </Button>
