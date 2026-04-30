@@ -789,10 +789,14 @@ const CRM = () => {
                   <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
                     {selectedContact ? (
                       <>
-                        <div className="p-4 border-b flex justify-between items-center bg-card">
-                          <div className="flex flex-col">
-                            <p className="font-bold flex items-center gap-2">
-                              {selectedContact.name || selectedContact.wa_id}
+                        <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card">
+                          <div className="flex items-center gap-3">
+                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
+                              <ArrowRight className="h-4 w-4 rotate-180" />
+                            </Button>
+                            <div className="flex flex-col">
+                              <p className="font-bold flex items-center gap-2 text-sm md:text-base">
+                                {selectedContact.name || selectedContact.wa_id}
                               {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                 <div className="flex flex-col items-start gap-1">
                                   <Badge variant="outline" className={`text-[10px] animate-pulse flex items-center gap-1 ${selectedContact.flow_state === 'error' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-primary/10'}`}>
