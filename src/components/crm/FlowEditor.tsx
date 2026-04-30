@@ -335,7 +335,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
         action: type === 'crmAction' ? 'Notificar Agente' : '',
         templateName: '',
         templateId: '',
-        language: ''
+        language: '',
+        bodyText: '',
+        status: '',
+        category: ''
       },
     };
     setNodes((nds) => nds.concat(newNode));
