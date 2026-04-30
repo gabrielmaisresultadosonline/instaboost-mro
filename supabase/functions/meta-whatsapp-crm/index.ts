@@ -591,6 +591,132 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
     body.type = "text"
     body.text = { body: text }
   }
+async function executeVisualNode(supabase: any, flow: any, node: any, contactId: string, waId: string) {
+  const { meta_access_token, meta_phone_number_id } = await getSettings(supabase)
+  
+  const { data: contact } = await supabase
+    .from('crm_contacts')
+    .select('*')
+    .eq('id', contactId)
+    .single()
+
+  console.log(`Executing node ${node.id} (${node.type}) for contact ${contactId}`);
+
+  if (node.type === 'message') {
+    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+      to: waId,
+      text: node.data.text
+    }, contact)
+    
+    // Auto-continue to next node if exists and only one output
+    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
+    if (nextEdge) {
+      // Small delay before next node for natural feel
+      setTimeout(() => {
+        supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { action: 'continueFlow', contactId, waId }
+        })
+      }, 1000)
+    }
+  } 
+  else if (node.type === 'audio') {
+    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+      to: waId,
+      audioUrl: node.data.audioUrl
+    }, contact)
+    
+    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
+    if (nextEdge) {
+      setTimeout(() => {
+        supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { action: 'continueFlow', contactId, waId }
+        })
+      }, 2000)
+    }
+  }
+  else if (node.type === 'video') {
+    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+      to: waId,
+      videoUrl: node.data.videoUrl
+    }, contact)
+    
+    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
+    if (nextEdge) {
+      setTimeout(() => {
+        supabase.functions.invoke('meta-whatsapp-crm', {
+          body: { action: 'continueFlow', contactId, waId }
+        })
+      }, 2000)
+    }
+  }
+  else if (node.type === 'question') {
+    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+      to: waId,
+      text: node.data.text,
+      buttons: node.data.buttons.map((b: any, idx: number) => ({
+        id: `btn-${idx}`,
+        text: b.text
+      }))
+    }, contact)
+    
+    await supabase.from('crm_contacts').update({ flow_state: 'waiting_response' }).eq('id', contactId)
+    
+    // Setup followup timer if exists
+    const followupEdge = flow.edges.find((e: any) => e.source === node.id && e.sourceHandle === 'followup')
+    if (followupEdge) {
+      const timeoutMin = node.data.timeout || 20
+      const scheduledFor = new Date(Date.now() + timeoutMin * 60000).toISOString()
+      
+      await supabase.from('crm_scheduled_messages').insert({
+        contact_id: contactId,
+        flow_id: flow.id,
+        node_id: followupEdge.target,
+        scheduled_for: scheduledFor,
+        message_data: { action: 'continueFlow' }
+      })
+    }
+  }
+  else if (node.type === 'delay') {
+    const delay = node.data.delay || 5
+    const unit = node.data.unit || 'segundos'
+    let delayMs = delay * 1000
+    if (unit === 'minutos') delayMs *= 60
+    if (unit === 'horas') delayMs *= 3600
+
+    const scheduledFor = new Date(Date.now() + delayMs).toISOString()
+    
+    await supabase.from('crm_scheduled_messages').insert({
+      contact_id: contactId,
+      flow_id: flow.id,
+      node_id: node.id,
+      scheduled_for: scheduledFor,
+      message_data: { action: 'continueFlow' }
+    })
+    
+    await supabase.from('crm_contacts').update({ flow_state: 'waiting_delay' }).eq('id', contactId)
+  }
+  else if (node.type === 'followup') {
+    // This node is usually a transition node. We just continue to the next one.
+    const nextEdge = flow.edges.find((e: any) => e.source === node.id)
+    if (nextEdge) {
+       const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
+       if (nextNode) return executeVisualNode(supabase, flow, nextNode, contactId, waId)
+    }
+  }
+
+  return new Response(JSON.stringify({ success: true, node: node.id }), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+async function getSettings(supabase: any) {
+  const { data: settings } = await supabase
+    .from('crm_settings')
+    .select('*')
+    .eq('id', '00000000-0000-0000-0000-000000000001')
+    .single()
+  return settings
+}
 
   const response = await fetch(
     `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
