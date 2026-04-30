@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isAdminLoggedIn, logoutAdmin } from '@/lib/adminConfig';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,22 +44,41 @@ import {
   FileCheck2,
   ListFilter,
   Zap,
-  Eye
+  Eye,
+  LayoutDashboard,
+  Menu,
+  ChevronLeft
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
+import { 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarContent, 
+  SidebarHeader, 
+  SidebarFooter, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarTrigger
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 const CRM = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [metaSettings, setMetaSettings] = useState<any>({
     meta_access_token: '',
     meta_phone_number_id: '',
@@ -74,34 +92,20 @@ const CRM = () => {
     initial_response_text: '',
     initial_response_buttons: []
   });
-
   const [metrics, setMetrics] = useState<any>({
     sent_count: 0,
     responded_count: 0,
     qualified_count: 0,
     sales_count: 0
   });
-
   const [flows, setFlows] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [kanbanView, setKanbanView] = useState(false);
   const [draggedContact, setDraggedContact] = useState<any>(null);
-  
-  const [broadcast, setBroadcast] = useState({
-    name: '',
-    message_text: '',
-    status: 'pending'
-  });
-
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const selectedContactRef = useRef<any>(null);
-
-  useEffect(() => {
-    selectedContactRef.current = selectedContact;
-  }, [selectedContact]);
-
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -121,23 +125,17 @@ const CRM = () => {
   const [editingFlow, setEditingFlow] = useState<any>(null);
   const [uploadType, setUploadType] = useState<'image' | 'video' | 'audio' | 'document' | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
-
-  const [newStep, setNewStep] = useState<any>({
-    step_type: 'text',
-    message_text: '',
-    delay_seconds: 5,
-    media_url: '',
-    media_type: ''
-  });
-
   const [confirmSend, setConfirmSend] = useState<{
     type: 'template' | 'flow';
     id: string;
     name: string;
     language?: string;
   } | null>(null);
-
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
+
+  useEffect(() => {
+    selectedContactRef.current = selectedContact;
+  }, [selectedContact]);
 
   useEffect(() => {
     let interval: any;
@@ -379,7 +377,6 @@ const CRM = () => {
     if (!selectedContact) return;
     setSendingMessage(true);
     try {
-      // Upload to Supabase Storage
       const fileExt = file instanceof File ? file.name.split('.').pop() : (isVoice ? 'ogg' : 'bin');
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
@@ -426,8 +423,7 @@ const CRM = () => {
     const file = e.target.files?.[0];
     if (!file || !uploadType) return;
     
-    // For audio files, we can ask or assume if they want it as PTT
-    const isVoice = uploadType === 'audio'; // Default to true if user selects audio file in chat? Or maybe we can keep it as standard audio
+    const isVoice = uploadType === 'audio';
     handleSendMedia(file, uploadType, isVoice);
     e.target.value = '';
   };
@@ -482,36 +478,21 @@ const CRM = () => {
     }
 
     setConfirmSend(null);
-    // A lógica de fallback para mensagens normais dentro de 24h agora é processada 
-    // diretamente na Edge Function para maior confiabilidade.
-
-
     setSendingMessage(true);
     try {
-      // Logic to handle template variables
       const components: any[] = [];
       const bodyComponent = template?.components?.find((c: any) => c.type === 'BODY');
       const headerComponent = template?.components?.find((c: any) => c.type === 'HEADER');
       
-      // Handle Header variables or images
       if (headerComponent) {
         if (headerComponent.format === 'IMAGE') {
-          // Use example image only if it's not a Meta CDN link
           const handleOrUrl = headerComponent.example?.header_handle?.[0];
-          
           if (handleOrUrl && handleOrUrl.startsWith('http') && !handleOrUrl.includes('whatsapp.net')) {
             components.push({
               type: "header",
-              parameters: [
-                {
-                  type: "image",
-                  image: { link: handleOrUrl }
-                }
-              ]
+              parameters: [{ type: "image", image: { link: handleOrUrl } }]
             });
           }
-          // If it's a Meta link, we don't send the parameter here
-          // and let the Edge Function handle the fallback or use its own logic
         } else if (headerComponent.format === 'TEXT' && headerComponent.text) {
           const headerVariables = headerComponent.text.match(/\{\{\d+\}\}/g);
           if (headerVariables) {
@@ -527,19 +508,11 @@ const CRM = () => {
         const bodyVariables = bodyComponent.text.match(/\{\{\d+\}\}/g);
         if (bodyVariables) {
           const parameters = bodyVariables.map((_: any, index: number) => {
-            // Use contact name for {{1}} if available
-            if (index === 0 && selectedContact.name) {
-              return { type: "text", text: selectedContact.name };
-            }
-            
-            // Try to get from example
+            if (index === 0 && selectedContact.name) return { type: "text", text: selectedContact.name };
             const exampleData = bodyComponent.example?.body_text?.[0] || [];
-            
-            // If exampleData is a string or array, try to extract values
             let val = "---";
             if (Array.isArray(exampleData)) {
               if (exampleData.length === 1 && typeof exampleData[0] === 'string' && bodyVariables.length > 1) {
-                // Handle case where all examples are in one space-separated string
                 const splitExamples = exampleData[0].split(' ');
                 val = splitExamples[index] || "---";
               } else {
@@ -549,18 +522,11 @@ const CRM = () => {
               const splitExamples = exampleData.split(' ');
               val = splitExamples[index] || "---";
             }
-            
             return { type: "text", text: val };
           });
-          
-          components.push({
-            type: "body",
-            parameters: parameters
-          });
+          components.push({ type: "body", parameters: parameters });
         }
       }
-
-      console.log('Sending template with components:', components);
 
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { 
@@ -572,9 +538,7 @@ const CRM = () => {
         }
       });
       if (error) throw error;
-      if (!data.success) {
-        throw new Error(data.error || "Erro ao enviar template pela Meta");
-      }
+      if (!data.success) throw new Error(data.error || "Erro ao enviar template pela Meta");
       toast({ title: "Template enviado!" });
       await fetchMessages(selectedContact.id);
     } catch (err: any) {
@@ -590,22 +554,12 @@ const CRM = () => {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'createTemplate', ...template }
       });
-      
       if (error) throw error;
-      
-      if (!data.success) {
-        throw new Error(data.error || "Erro ao criar template na Meta");
-      }
-      
+      if (!data.success) throw new Error(data.error || "Erro ao criar template na Meta");
       toast({ title: "Template enviado para aprovação!" });
       fetchData();
     } catch (err: any) {
-      console.error('Error creating template:', err);
-      toast({ 
-        title: "Erro ao criar template", 
-        description: err.message || "Verifique as configurações da API Meta",
-        variant: "destructive" 
-      });
+      toast({ title: "Erro ao criar template", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -694,651 +648,649 @@ const CRM = () => {
   if (loading && !contacts.length) return <div className="min-h-screen flex items-center justify-center"><RefreshCcw className="animate-spin" /></div>;
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
-      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-20">
-        <div className="w-full px-4 h-14 flex items-center justify-between">
-          <Logo size="sm" />
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
+    <SidebarProvider>
+      <div className="h-screen w-full flex overflow-hidden bg-background">
+        <Sidebar className="border-r shadow-sm">
+          <SidebarHeader className="p-4 border-b flex items-center justify-center">
+            <Logo size="sm" />
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Navegação</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {[
+                    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+                    { id: 'contacts', label: 'Conversas', icon: MessageSquare },
+                    { id: 'flows', label: 'Fluxos', icon: GitBranch },
+                    { id: 'templates', label: 'Templates', icon: FileText },
+                    { id: 'settings', label: 'Ajustes', icon: Settings },
+                  ].map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton 
+                        isActive={activeTab === item.id} 
+                        onClick={() => setActiveTab(item.id)}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
+                          activeTab === item.id ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted"
+                        )}
+                      >
+                        <item.icon className={cn("w-5 h-5", activeTab === item.id ? "text-primary" : "text-muted-foreground")} />
+                        <span className="font-semibold">{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          <SidebarFooter className="border-t p-4">
+            <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
               <LogOut className="mr-2 h-4 w-4" /> Sair
             </Button>
-          </div>
-        </div>
-      </header>
+          </SidebarFooter>
+        </Sidebar>
 
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden bg-muted/20">
-        <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
-          <div className="px-6 py-4 border-b bg-card">
-            <TabsList className="flex h-10 items-center justify-start gap-2 bg-muted p-1 rounded-lg w-fit">
-              <TabsTrigger value="dashboard" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Dashboard</TabsTrigger>
-              <TabsTrigger value="contacts" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Conversas</TabsTrigger>
-              <TabsTrigger value="flows" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Fluxos</TabsTrigger>
-              <TabsTrigger value="templates" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Templates</TabsTrigger>
-              <TabsTrigger value="settings" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Ajustes</TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="dashboard" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Dashboard de Métricas</h2>
-              <p className="text-muted-foreground text-sm">Acompanhe o desempenho das suas comunicações hoje</p>
+        <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden">
+          <header className="h-16 border-b flex items-center px-6 bg-card/50 backdrop-blur-sm z-10 shrink-0 justify-between">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <div className="h-4 w-px bg-border mx-2 hidden md:block" />
+              <h1 className="text-xl font-bold tracking-tight capitalize">{activeTab}</h1>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="bg-blue-500/5 border-blue-500/20 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-blue-600 font-medium">Enviadas</CardDescription>
-                  <CardTitle className="text-3xl font-bold">{metrics.sent_count}</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-yellow-500/5 border-yellow-500/20 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-yellow-600 font-medium">Respondidas</CardDescription>
-                  <CardTitle className="text-3xl font-bold">{metrics.responded_count}</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-purple-500/5 border-purple-500/20 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-purple-600 font-medium">Qualificadas</CardDescription>
-                  <CardTitle className="text-3xl font-bold">{metrics.qualified_count}</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-green-500/5 border-green-500/20 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-green-600 font-medium">Vendas</CardDescription>
-                  <CardTitle className="text-3xl font-bold">{metrics.sales_count}</CardTitle>
-                </CardHeader>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0 m-0 border-0 rounded-none bg-background">
-            <div className="flex-1 flex overflow-hidden">
-              {kanbanView ? (
-                <div className="flex-1 overflow-x-auto p-4 flex gap-4">
-                  {['new', 'responded', 'qualified', 'closed', 'lost'].map(status => (
-                    <div key={status} className="w-72 shrink-0 flex flex-col bg-muted/20 rounded-lg border" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(status)}>
-                      <div className="p-3 border-b font-bold uppercase text-xs flex justify-between">
-                        {status} <Badge variant="secondary">{contacts.filter(c => c.status === status).length}</Badge>
-                      </div>
-                      <ScrollArea className="flex-1 p-2">
-                        {contacts.filter(c => c.status === status).map(contact => (
-                          <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing" onClick={() => { openChat(contact); setKanbanView(false); }}>
-                            <p className="text-sm font-semibold truncate">{contact.name || contact.wa_id}</p>
-                          </Card>
-                        ))}
-                      </ScrollArea>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  <div className={`w-full md:w-[350px] border-r flex flex-col ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
-                    <div className="p-4 border-b flex gap-2">
-                      <Input placeholder="Buscar..." onChange={e => setStatusFilter(e.target.value || 'all')} />
-                    </div>
-                    <ScrollArea className="flex-1 min-h-0">
-                      {filteredContacts.map(contact => (
-                        <button key={contact.id} onClick={() => openChat(contact)} className={`w-full p-4 text-left border-b hover:bg-secondary/30 ${selectedContact?.id === contact.id ? 'bg-secondary/50' : ''}`}>
-                          <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
-                          <Badge variant="outline" className={getStatusColor(contact.status)}>{contact.status}</Badge>
-                        </button>
-                      ))}
-                    </ScrollArea>
+            {activeTab === 'contacts' && (
+              <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)}>
+                {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                {kanbanView ? 'Lista' : 'Kanban'}
+              </Button>
+            )}
+          </header>
+          
+          <main className="flex-1 overflow-hidden relative flex flex-col">
+            {activeTab === 'dashboard' && (
+              <ScrollArea className="flex-1 p-8">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Métricas Gerais</h2>
+                    <p className="text-muted-foreground">Visão geral do desempenho da sua operação.</p>
                   </div>
-                  <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
-                    {selectedContact ? (
-                      <>
-                        <div className="p-4 border-b flex justify-between items-center bg-card shadow-sm z-10">
-                          <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
-                              <ArrowRight className="h-5 w-5 rotate-180" />
-                            </Button>
-                            <div className="flex flex-col">
-                              <p className="font-bold flex items-center gap-2 text-sm md:text-base">
-                                {selectedContact.name || selectedContact.wa_id}
-                              {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                <div className="flex flex-col items-start gap-1">
-                                  <Badge variant="outline" className={`text-[10px] animate-pulse flex items-center gap-1 ${selectedContact.flow_state === 'error' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-primary/10'}`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full animate-ping ${selectedContact.flow_state === 'error' ? 'bg-red-500' : 'bg-primary'}`} />
-                                    {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
-                                  </Badge>
-                                  {countdown !== null && countdown > 0 && (
-                                    <div className="flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
-                                      <Clock className="w-3 h-3" />
-                                      Próxima msg em: {countdown}s
-                                    </div>
-                                  )}
-                                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[
+                      { label: 'Mensagens Enviadas', value: metrics.sent_count, icon: Send, color: 'blue' },
+                      { label: 'Respondidas', value: metrics.responded_count, icon: MessageSquare, color: 'yellow' },
+                      { label: 'Contatos Qualificados', value: metrics.qualified_count, icon: CheckCircle2, color: 'purple' },
+                      { label: 'Vendas Fechadas', value: metrics.sales_count, icon: DollarSign, color: 'green' },
+                    ].map((stat, i) => (
+                      <Card key={i} className="relative overflow-hidden group hover:shadow-lg transition-all border-zinc-100 dark:border-zinc-800">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                          <CardDescription className="font-bold text-xs uppercase tracking-wider">{stat.label}</CardDescription>
+                          <stat.icon className={`w-5 h-5 text-${stat.color}-500`} />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-3xl font-black">{stat.value}</div>
+                          <div className={`mt-2 h-1 w-full bg-${stat.color}-500/10 rounded-full overflow-hidden`}>
+                            <div className={`h-full bg-${stat.color}-500 transition-all duration-1000`} style={{ width: '70%' }} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
+
+            {activeTab === 'contacts' && (
+              <div className="flex-1 flex overflow-hidden">
+                {kanbanView ? (
+                  <div className="flex-1 overflow-x-auto p-4 flex gap-4">
+                    {['new', 'responded', 'qualified', 'closed', 'lost'].map(status => (
+                      <div key={status} className="w-72 shrink-0 flex flex-col bg-muted/20 rounded-lg border" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(status)}>
+                        <div className="p-3 border-b font-bold uppercase text-xs flex justify-between bg-muted/30">
+                          {status} <Badge variant="secondary">{contacts.filter(c => c.status === status).length}</Badge>
+                        </div>
+                        <ScrollArea className="flex-1 p-2">
+                          {contacts.filter(c => c.status === status).map(contact => (
+                            <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors" onClick={() => { openChat(contact); setKanbanView(false); }}>
+                              <p className="text-sm font-semibold truncate">{contact.name || contact.wa_id}</p>
+                              {contact.last_interaction && (
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                  {new Date(contact.last_interaction).toLocaleDateString()}
+                                </p>
                               )}
-                            </p>
-                            {selectedContact.last_interaction && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <ClockIcon className={`w-3 h-3 ${getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500'}`} />
-                                <span className={`text-[10px] font-medium ${getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500'}`}>
-                                  {getWindowInfo(selectedContact.last_interaction)?.label}
+                            </Card>
+                          ))}
+                        </ScrollArea>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <div className={cn(
+                      "w-full md:w-[350px] border-r flex flex-col bg-card/30 backdrop-blur-sm",
+                      selectedContact ? 'hidden md:flex' : 'flex'
+                    )}>
+                      <div className="p-4 border-b flex flex-col gap-3">
+                        <div className="relative">
+                          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input 
+                            placeholder="Buscar contatos..." 
+                            className="pl-9 bg-muted/50 border-none h-10"
+                            onChange={e => setStatusFilter(e.target.value || 'all')} 
+                          />
+                        </div>
+                        <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
+                          {['all', 'new', 'responded', 'qualified', 'closed'].map(s => (
+                            <Badge 
+                              key={s} 
+                              variant={statusFilter === s ? 'default' : 'outline'} 
+                              className="cursor-pointer capitalize whitespace-nowrap"
+                              onClick={() => setStatusFilter(s)}
+                            >
+                              {s}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <ScrollArea className="flex-1 min-h-0">
+                        {filteredContacts.length > 0 ? (
+                          filteredContacts.map(contact => (
+                            <button 
+                              key={contact.id} 
+                              onClick={() => openChat(contact)} 
+                              className={cn(
+                                "w-full p-4 text-left border-b transition-all flex flex-col gap-1 relative",
+                                selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/50 border-l-4 border-l-transparent"
+                              )}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <p className="font-bold truncate text-sm flex-1">{contact.name || contact.wa_id}</p>
+                                <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                                  {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                 </span>
                               </div>
-                            )}
-                          </div>
-                        </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })} className="hidden sm:flex">Qualificar</Button>
-                            <Button size="sm" className="bg-green-600 hidden sm:flex text-white hover:bg-green-700" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
-                            
-                            {selectedContact.flow_state && selectedContact.flow_state !== 'idle' ? (
-                              <div className="flex gap-1">
-                                {selectedContact.flow_state === 'paused' || selectedContact.flow_state === 'error' ? (
-                                  <Button 
-                                    size="sm" 
-                                    variant="secondary" 
-                                    className={`${selectedContact.flow_state === 'error' ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white h-8`}
-                                    onClick={async () => {
-                                      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-                                        body: { action: 'continueFlow', contactId: selectedContact.id, waId: selectedContact.wa_id }
-                                      });
-                                      if (error) toast({ title: "Erro ao continuar", variant: "destructive" });
-                                      else {
-                                        fetchMessages(selectedContact.id);
-                                        toast({ title: selectedContact.flow_state === 'error' ? "Tentando novamente..." : "Fluxo retomado!" });
-                                      }
-                                    }}
-                                  >
-                                    {selectedContact.flow_state === 'error' ? <RefreshCcw className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />} 
-                                    {selectedContact.flow_state === 'error' ? 'Tentar Denovo' : 'Retomar'}
-                                  </Button>
-                                ) : (
-                                  <Button 
-                                    size="sm" 
-                                    variant="secondary" 
-                                    className="bg-amber-500 text-white hover:bg-amber-600 h-8"
-                                    onClick={async () => {
-                                      const { error } = await supabase.from('crm_contacts').update({ flow_state: 'paused' }).eq('id', selectedContact.id);
-                                      if (error) toast({ title: "Erro ao pausar", variant: "destructive" });
-                                      else {
-                                        setSelectedContact(prev => ({ ...prev, flow_state: 'paused' }));
-                                        toast({ title: "Fluxo pausado!" });
-                                      }
-                                    }}
-                                  >
-                                    <StopCircle className="w-3 h-3 mr-1" /> Pausar
-                                  </Button>
+                              <div className="flex justify-between items-center">
+                                <Badge variant="outline" className={cn("text-[10px] px-1.5 h-4 capitalize", getStatusColor(contact.status))}>{contact.status}</Badge>
+                                {contact.flow_state && contact.flow_state !== 'idle' && (
+                                  <Badge variant="secondary" className="text-[9px] h-4 bg-primary/10 text-primary animate-pulse border-none">Fluxo Ativo</Badge>
                                 )}
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive" 
-                                  className="h-8"
-                                  onClick={async () => {
-                                    if (confirm('Deseja realmente CANCELAR este fluxo?')) {
-                                      const { error } = await supabase.from('crm_contacts').update({ 
-                                        flow_state: 'idle', 
-                                        current_flow_id: null,
-                                        current_node_id: null
-                                      }).eq('id', selectedContact.id);
-                                      
-                                      if (error) toast({ title: "Erro ao cancelar", variant: "destructive" });
-                                      else {
-                                        setSelectedContact(prev => ({ ...prev, flow_state: 'idle', current_flow_id: null, current_node_id: null }));
-                                        toast({ title: "Fluxo cancelado!" });
-                                      }
-                                    }
-                                  }}
-                                >
-                                  <XCircle className="w-3 h-3 mr-1" /> Cancelar
-                                </Button>
                               </div>
-                            ) : null}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="p-8 text-center text-muted-foreground text-sm italic">
+                            Nenhum contato encontrado
                           </div>
-                        </div>
-                        <div className="bg-muted/50 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center scrollbar-hide">
-                          <span className="text-[11px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1.5">
-                            <Zap className="w-3.5 h-3.5" /> Atalhos:
-                          </span>
-                          {templates.slice(0, 8).map(t => (
-                            <Button 
-                              key={t.id} 
-                              variant="secondary" 
-                              size="sm" 
-                              className="h-6 text-[10px] px-2 rounded-full border bg-background hover:bg-primary hover:text-white transition-colors"
-                              onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')}
-                              disabled={sendingMessage}
-                            >
-                              {t.name}
-                            </Button>
-                          ))}
-                          <div className="w-px h-3 bg-border mx-1 shrink-0" />
-                          {flows.slice(0, 5).map(f => (
-                            <Button 
-                              key={f.id} 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-6 text-[10px] px-2 rounded-full border-primary/30 text-primary hover:bg-primary hover:text-white transition-colors"
-                              onClick={() => handleTriggerFlow(f.id)}
-                              disabled={sendingMessage}
-                            >
-                              <GitBranch className="w-2.5 h-2.5 mr-1" /> {f.name}
-                            </Button>
-                          ))}
-                        </div>
-                        <ScrollArea className="flex-1 min-h-0">
-                          <div className="p-4 space-y-4">
-                            {chatMessages.map(m => (
-                              <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
-                                <div className={`p-4 rounded-2xl max-w-[85%] shadow-md ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
-                                  {m.media_url && (
-                                    <div className="mb-2 overflow-hidden rounded-lg">
-                                      {m.message_type === 'image' || (m.message_type === 'template' && m.media_url.match(/\.(jpg|jpeg|png|gif|webp)/i)) ? (
-                                        <img src={m.media_url} alt="Mídia" className="max-w-full h-auto cursor-pointer hover:opacity-90" onClick={() => window.open(m.media_url, '_blank')} />
-                                      ) : m.message_type === 'video' ? (
-                                        <video src={m.media_url} controls className="max-w-full rounded-lg" />
-                                      ) : m.message_type === 'audio' ? (
-                                        <audio src={m.media_url} controls className="max-w-full h-8" />
-                                      ) : (
-                                        <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 bg-black/5 dark:bg-white/5 rounded text-xs hover:bg-black/10 transition-colors">
-                                          <Paperclip className="w-4 h-4" /> Ver anexo
-                                        </a>
-                                      )}
-                                    </div>
+                        )}
+                      </ScrollArea>
+                    </div>
+                    
+                    <div className={cn(
+                      "flex-1 flex flex-col min-h-0 relative",
+                      !selectedContact ? 'hidden md:flex items-center justify-center bg-muted/5' : 'flex'
+                    )}>
+                      {selectedContact ? (
+                        <>
+                          <div className="p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-10 sticky top-0">
+                            <div className="flex items-center gap-4">
+                              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
+                                <ChevronLeft className="h-5 w-5" />
+                              </Button>
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-bold text-base">{selectedContact.name || selectedContact.wa_id}</p>
+                                  {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
+                                    <Badge variant="outline" className={cn(
+                                      "text-[10px] px-1.5 h-4 flex items-center gap-1",
+                                      selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
+                                    )}>
+                                      <div className={cn("w-1.5 h-1.5 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
+                                      {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
+                                    </Badge>
                                   )}
-                                  <div className="text-sm whitespace-pre-wrap">{m.content}</div>
-                                  <div className="text-[9px] mt-1 opacity-50 flex justify-end">
-                                    {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                                {selectedContact.last_interaction && (
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500')} />
+                                    <span className={cn("text-[10px] font-medium uppercase tracking-tight", getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500')}>
+                                      {getWindowInfo(selectedContact.last_interaction)?.label}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" className="hidden lg:flex h-8 text-[11px]" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })}>Qualificar</Button>
+                              <Button size="sm" className="bg-green-600 hidden lg:flex text-white hover:bg-green-700 h-8 text-[11px]" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                              
+                              <Select onValueChange={(val) => updateContactStatus(selectedContact.id, { status: val })}>
+                                <SelectTrigger className="w-fit h-8 text-[11px] lg:hidden">
+                                  <SelectValue placeholder="Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="new">Novo</SelectItem>
+                                  <SelectItem value="responded">Respondido</SelectItem>
+                                  <SelectItem value="qualified">Qualificado</SelectItem>
+                                  <SelectItem value="closed">Venda</SelectItem>
+                                  <SelectItem value="lost">Perdido</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-muted/30 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center sticky top-14 z-[5]">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
+                              <Zap className="w-3 h-3 text-amber-500" /> Atalhos:
+                            </span>
+                            {templates.slice(0, 5).map(t => (
+                              <Button key={t.id} variant="secondary" size="sm" className="h-6 text-[10px] px-2 rounded-full border bg-card hover:bg-primary hover:text-white transition-colors" onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} disabled={sendingMessage}>
+                                {t.name}
+                              </Button>
+                            ))}
+                          </div>
+
+                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
+                            <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
+                              {chatMessages.map((m, idx) => (
+                                <div key={m.id || idx} className={cn(
+                                  "flex w-full mb-1",
+                                  m.direction === 'inbound' ? 'justify-start' : 'justify-end'
+                                )}>
+                                  <div className={cn(
+                                    "p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
+                                    m.direction === 'inbound' 
+                                      ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
+                                      : 'bg-primary text-primary-foreground rounded-tr-none'
+                                  )}>
+                                    {m.message_type === 'image' && m.media_url && (
+                                      <img src={m.media_url} alt="Mídia" className="rounded-lg mb-2 max-w-full h-auto cursor-zoom-in" onClick={() => window.open(m.media_url, '_blank')} />
+                                    )}
+                                    {m.message_type === 'audio' && m.media_url && (
+                                      <audio src={m.media_url} controls className="max-w-full h-8 mb-2" />
+                                    )}
+                                    <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap">
+                                      {m.message_text || m.content}
+                                    </div>
+                                    <div className={cn(
+                                      "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
+                                      m.direction === 'inbound' ? 'text-muted-foreground' : 'text-primary-foreground'
+                                    )}>
+                                      {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                      {m.direction === 'outbound' && <Check className="w-3 h-3" />}
+                                    </div>
                                   </div>
                                 </div>
+                              ))}
+                              <div ref={scrollRef} className="h-4" />
+                            </div>
+                          </ScrollArea>
+                          
+                          <div className="p-4 bg-card border-t shadow-lg z-10">
+                            {isPreviewingAudio && recordedAudioUrl ? (
+                              <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20 animate-in slide-in-from-bottom-2 duration-300">
+                                <div className="flex-1 flex items-center gap-3">
+                                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 h-8">
+                                    <Mic className="w-3 h-3 mr-1.5 animate-pulse" /> Audio Gravado
+                                  </Badge>
+                                  <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive hover:bg-destructive/10"><XCircle className="w-5 h-5" /></Button>
+                                  <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 hover:bg-green-700 text-white"><Send className="w-5 h-5" /></Button>
+                                </div>
                               </div>
-                            ))}
-                            <div ref={scrollRef} />
+                            ) : (
+                              <div className="flex items-center gap-2 max-w-5xl mx-auto">
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary"><ImageIcon className="w-5 h-5" /></Button>
+                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary"><Paperclip className="w-5 h-5" /></Button>
+                                </div>
+                                <div className="flex-1 relative">
+                                  <Input 
+                                    placeholder="Digite uma mensagem..." 
+                                    value={newMessage} 
+                                    onChange={e => setNewMessage(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                                    className="bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 px-4 pr-12 rounded-xl"
+                                  />
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className={cn(
+                                      "absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg transition-colors",
+                                      newMessage.trim() ? "text-primary" : "text-muted-foreground opacity-50"
+                                    )}
+                                    onClick={handleSendMessage}
+                                    disabled={!newMessage.trim() || sendingMessage}
+                                  >
+                                    <Send className="w-5 h-5" />
+                                  </Button>
+                                </div>
+                                <Button 
+                                  size="icon" 
+                                  variant={isRecording ? 'destructive' : 'ghost'} 
+                                  className={cn("h-11 w-11 rounded-xl shrink-0", isRecording && "animate-pulse")}
+                                  onClick={isRecording ? stopRecording : startRecording}
+                                >
+                                  {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5 text-muted-foreground" />}
+                                </Button>
+                              </div>
+                            )}
+                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
                           </div>
-                        </ScrollArea>
-                        <div className="p-4 border-t bg-card shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
-                          {isRecording ? (
-                            <div className="flex items-center justify-between bg-primary/10 p-2 rounded-lg border border-primary/20 animate-pulse">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                <span className="text-xs font-mono">Gravando: {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}</span>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => { stopRecording(); setIsRecording(false); cancelAudioPreview(); }} className="text-destructive h-8 w-8 p-0">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" onClick={stopRecording} className="bg-red-500 hover:bg-red-600 text-white h-8 px-3 text-xs">
-                                  <StopCircle className="h-4 w-4 mr-1" /> Parar Gravação
-                                </Button>
-                              </div>
-                            </div>
-                          ) : isPreviewingAudio ? (
-                            <div className="flex items-center gap-4 bg-primary/5 p-2 rounded-lg border border-primary/10">
-                              <audio src={recordedAudioUrl || ""} controls className="h-8 flex-1" />
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  onClick={cancelAudioPreview}
-                                  className="h-9 w-9 text-destructive hover:bg-destructive/10"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  onClick={sendRecordedAudio}
-                                  disabled={sendingMessage}
-                                  className="h-9 w-9 bg-primary text-white hover:bg-primary/90"
-                                >
-                                  <Send className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex gap-2 items-center">
-                              <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                className="hidden" 
-                                onChange={handleFileSelect}
-                                accept={uploadType === 'image' ? 'image/*' : uploadType === 'video' ? 'video/*' : uploadType === 'audio' ? 'audio/*' : '*'}
-                              />
-                              <div className="flex gap-1">
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
-                                  onClick={() => { setUploadType('image'); setTimeout(() => fileInputRef.current?.click(), 100); }}
-                                >
-                                  <ImageIcon className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
-                                  onClick={() => { setUploadType('video'); setTimeout(() => fileInputRef.current?.click(), 100); }}
-                                >
-                                  <Video className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
-                                  onClick={() => { setUploadType('audio'); setTimeout(() => fileInputRef.current?.click(), 100); }}
-                                >
-                                  <Mic className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
-                                  onClick={() => { setUploadType('document'); setTimeout(() => fileInputRef.current?.click(), 100); }}
-                                >
-                                  <Paperclip className="h-4 w-4" />
-                                </Button>
-                              </div>
-
-                              <Input 
-                                value={newMessage} 
-                                onChange={e => setNewMessage(e.target.value)} 
-                                onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
-                                placeholder="Digite uma mensagem..." 
-                                className="bg-background flex-1"
-                              />
-                              
-                              <Button 
-                                onClick={handleSendMessage} 
-                                disabled={sendingMessage || (!newMessage.trim())} 
-                                size="icon"
-                                className={newMessage.trim() ? "bg-primary" : "bg-muted text-muted-foreground"}
-                              >
-                                <Send className="h-4 w-4" />
-                              </Button>
-                              
-                              <Button 
-                                onClick={startRecording} 
-                                disabled={sendingMessage} 
-                                size="icon"
-                                variant="outline"
-                                className="h-10 w-10 rounded-full border-primary/20 text-primary hover:bg-primary/10"
-                              >
-                                <Mic className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center gap-4 text-center p-8 animate-in fade-in duration-700">
+                          <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center">
+                            <MessageSquare className="w-10 h-10 text-primary/30" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
+                            <p className="text-muted-foreground text-sm max-w-[280px] mx-auto">
+                              Selecione um contato na lista lateral para visualizar o histórico de mensagens e responder.
+                            </p>
+                          </div>
                         </div>
-                      </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+
+            {activeTab === 'flows' && (
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
+                      <p className="text-muted-foreground text-sm">Crie gatilhos e sequências automáticas de mensagens inteligentes.</p>
+                    </div>
+                    <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
+                      <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                    {flows.length > 0 ? (
+                      flows.map((flow) => (
+                        <Card key={flow.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-md transition-all">
+                          <CardHeader className="bg-muted/30 pb-4 border-b">
+                            <div className="flex justify-between items-start mb-2">
+                              <Badge variant={flow.is_active ? "default" : "secondary"} className={cn("text-[10px]", flow.is_active ? "bg-green-500/10 text-green-600 border-green-200" : "")}>
+                                {flow.is_active ? 'Ativo' : 'Inativo'}
+                              </Badge>
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={async () => {
+                                  if (confirm('Deseja excluir este fluxo?')) {
+                                    await supabase.from('crm_flows').delete().eq('id', flow.id);
+                                    fetchData();
+                                  }
+                                }}>
+                                  <Trash2 className="h-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                            <CardTitle className="text-lg truncate">{flow.name}</CardTitle>
+                            <CardDescription className="text-[11px] flex items-center gap-1.5 mt-1 font-medium">
+                              <Zap className="w-3 h-3 text-amber-500" /> Gatilho: <span className="text-foreground">{flow.trigger_type || 'Manual'}</span>
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="p-4 bg-card">
+                            <Button variant="outline" size="sm" className="w-full hover:bg-primary hover:text-white transition-colors h-9" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>
+                              <GitBranch className="w-4 h-4 mr-2" /> Abrir Editor Visual
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))
                     ) : (
-                      <div className="text-center space-y-4">
-                        <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground opacity-20" />
-                        <p className="text-muted-foreground">Selecione uma conversa para começar</p>
+                      <div className="col-span-full py-20 text-center bg-card rounded-2xl border-2 border-dashed border-muted flex flex-col items-center justify-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                          <GitBranch className="w-8 h-8 text-muted-foreground/50" />
+                        </div>
+                        <div className="max-w-xs mx-auto">
+                          <h3 className="font-bold text-lg">Nenhum fluxo criado</h3>
+                          <p className="text-sm text-muted-foreground">Comece criando um novo fluxo visual para automatizar suas mensagens do WhatsApp.</p>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setIsFlowEditorOpen(true)}>Criar meu primeiro fluxo</Button>
                       </div>
                     )}
                   </div>
-                </>
-              )}
-            </div>
-          </TabsContent>
+                </div>
+              </ScrollArea>
+            )}
 
-          <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
-                <p className="text-muted-foreground">Crie gatilhos e sequências automáticas de mensagens</p>
-              </div>
-              <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-md">
-                <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
-              </Button>
-            </div>
-
-            <ScrollArea className="flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-              {flows.map((flow) => (
-                <Card key={flow.id} className="overflow-hidden border border-zinc-200 dark:border-zinc-800">
-                  <CardHeader className="bg-muted/30 pb-3">
-                    <CardTitle className="text-base truncate">{flow.name}</CardTitle>
-                    <CardDescription className="text-xs">{flow.trigger_type || 'Gatilho Manual'}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>
-                        Editar Visual
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => {
-                        if (confirm('Deseja excluir este fluxo?')) {
-                          await supabase.from('crm_flows').delete().eq('id', flow.id);
-                          fetchData();
-                        }
-                      }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+            {activeTab === 'templates' && (
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col md:flex-row justify-between md:items-center bg-card p-6 rounded-2xl border shadow-sm gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
+                      <p className="text-muted-foreground text-sm">Gerencie seus modelos oficiais aprovados pela Meta.</p>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates} className="h-10">
+                        <RefreshCcw className={cn("w-4 h-4 mr-2", syncingTemplates && "animate-spin")} />
+                        Sincronizar Meta
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button className="h-10 bg-primary shadow-lg shadow-primary/20"><Plus className="w-4 h-4 mr-2" /> Novo Template</Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-6xl h-[90vh] p-0 border-none rounded-3xl overflow-hidden shadow-2xl">
+                          <ScrollArea className="h-full">
+                            <TemplateBuilder onSave={handleSaveTemplate} isSaving={saving} />
+                          </ScrollArea>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
 
-          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
-                <p className="text-muted-foreground">Gerencie seus modelos de mensagem oficiais da Meta</p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates}>
-                  <RefreshCcw className={`w-4 h-4 mr-2 ${syncingTemplates ? 'animate-spin' : ''}`} />
-                  Sincronizar com Meta
-                </Button>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button><Plus className="w-4 h-4 mr-2" /> Novo Template</Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-6xl h-[90vh] p-0">
-                    <ScrollArea className="h-full">
-                      <TemplateBuilder onSave={handleSaveTemplate} isSaving={saving} />
-                    </ScrollArea>
+                  <Dialog open={!!confirmSend} onOpenChange={(open) => !open && setConfirmSend(null)}>
+                    <DialogContent className="rounded-2xl border-none shadow-2xl">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                          <Send className="w-5 h-5 text-primary" /> Confirmar Envio
+                        </DialogTitle>
+                        <DialogDescription className="py-4 text-base leading-relaxed text-foreground/80">
+                          Deseja enviar o {confirmSend?.type === 'template' ? 'template' : 'fluxo'} <span className="font-black text-primary underline underline-offset-4">"{confirmSend?.name}"</span> para <span className="font-bold">{selectedContact?.name || selectedContact?.wa_id}</span>?
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter className="gap-2 sm:gap-0">
+                        <Button variant="ghost" onClick={() => setConfirmSend(null)} className="rounded-xl h-11 px-6">Cancelar</Button>
+                        <Button onClick={() => {
+                          if (confirmSend?.type === 'template') {
+                            handleSendTemplate(confirmSend.id, confirmSend.language || 'pt_BR');
+                          } else if (confirmSend?.type === 'flow') {
+                            handleTriggerFlow(confirmSend.id);
+                          }
+                        }} className="rounded-xl h-11 px-8 bg-primary shadow-lg shadow-primary/20">Sim, enviar agora</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                    {templates.length > 0 ? (
+                      templates.map((template) => {
+                        const header = template.components?.find((c: any) => c.type === 'HEADER');
+                        const body = template.components?.find((c: any) => c.type === 'BODY');
+                        const footer = template.components?.find((c: any) => c.type === 'FOOTER');
+                        const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
+
+                        return (
+                          <Card key={template.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-lg transition-all flex flex-col bg-card rounded-2xl">
+                            <CardHeader className="bg-muted/30 pb-4 border-b">
+                              <div className="flex justify-between items-start mb-2">
+                                <Badge variant={
+                                  template.status === 'APPROVED' ? 'default' : 
+                                  template.status === 'REJECTED' ? 'destructive' : 'secondary'
+                                } className={cn(
+                                  "text-[9px] uppercase tracking-wider",
+                                  template.status === 'APPROVED' ? "bg-green-500/10 text-green-600 border-green-200" : ""
+                                )}>
+                                  {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
+                                  template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
+                                  <Clock className="w-3 h-3 mr-1" />}
+                                  {template.status}
+                                </Badge>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10" onClick={() => setPreviewTemplate(template)}>
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={() => {
+                                    if (confirm(`Deseja realmente excluir o template "${template.name}"?`)) {
+                                      handleDeleteTemplate(template.name);
+                                    }
+                                  }}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <CardTitle className="text-base truncate font-bold">{template.name}</CardTitle>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.category}</Badge>
+                                <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.language}</Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-4 flex-1 flex flex-col justify-between gap-4">
+                              <div className="bg-muted/20 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800/50 relative">
+                                <div className="absolute top-2 right-2 w-4 h-4 text-muted-foreground/30"><MessageSquare className="w-full h-full" /></div>
+                                {header && header.format === 'IMAGE' && header.example?.header_handle?.[0] && (
+                                  <div className="mb-3 aspect-video overflow-hidden rounded-lg bg-muted shadow-inner">
+                                    <img src={header.example.header_handle[0]} alt="Header" className="w-full h-full object-cover" />
+                                  </div>
+                                )}
+                                <div className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300 italic line-clamp-4">
+                                  "{body?.text}"
+                                </div>
+                              </div>
+                              {buttonsComp?.buttons && buttonsComp.buttons.length > 0 && (
+                                <div className="space-y-1.5">
+                                  {buttonsComp.buttons.map((btn: any, idx: number) => (
+                                    <div key={idx} className="bg-primary/5 p-2 rounded-lg text-[10px] text-center text-primary font-bold border border-primary/10">
+                                      {btn.text}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    ) : (
+                      <div className="col-span-full py-20 text-center bg-card rounded-2xl border-2 border-dashed border-muted flex flex-col items-center justify-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-muted-foreground/50" />
+                        </div>
+                        <h3 className="font-bold text-lg">Sem templates sincronizados</h3>
+                        <p className="text-sm text-muted-foreground">Clique em "Sincronizar Meta" para carregar seus templates oficiais.</p>
+                        <Button variant="outline" size="sm" onClick={syncTemplates} disabled={syncingTemplates}>Sincronizar agora</Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+                  <DialogContent className="max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none">
+                    {previewTemplate && (
+                      <TemplatePreview 
+                        name={previewTemplate.name}
+                        headerType={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.format || 'NONE'}
+                        headerText={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.text}
+                        headerUrl={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.example?.header_handle?.[0]}
+                        bodyText={previewTemplate.components?.find((c: any) => c.type === 'BODY')?.text || ''}
+                        footerText={previewTemplate.components?.find((c: any) => c.type === 'FOOTER')?.text}
+                        buttons={previewTemplate.components?.find((c: any) => c.type === 'BUTTONS')?.buttons || []}
+                      />
+                    )}
                   </DialogContent>
                 </Dialog>
-              </div>
-            </div>
+              </ScrollArea>
+            )}
 
-            <Dialog open={!!confirmSend} onOpenChange={(open) => !open && setConfirmSend(null)}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirmar Envio</DialogTitle>
-                  <DialogDescription>
-                    Você tem certeza que deseja enviar o {confirmSend?.type === 'template' ? 'template' : 'fluxo'} <strong>"{confirmSend?.name}"</strong> para {selectedContact?.name || selectedContact?.wa_id}?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setConfirmSend(null)}>Cancelar</Button>
-                  <Button onClick={() => {
-                    if (confirmSend?.type === 'template') {
-                      handleSendTemplate(confirmSend.id, confirmSend.language || 'pt_BR');
-                    } else if (confirmSend?.type === 'flow') {
-                      handleTriggerFlow(confirmSend.id);
-                    }
-                  }}>Confirmar e Enviar</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            {activeTab === 'settings' && (
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                  <div>
+                    <h2 className="text-3xl font-bold tracking-tight text-primary">Configurações</h2>
+                    <p className="text-muted-foreground text-sm font-medium">Gerencie as integrações e chaves de API do seu CRM.</p>
+                  </div>
 
-            <ScrollArea className="flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-              {templates.map((template) => {
-                const header = template.components?.find((c: any) => c.type === 'HEADER');
-                const body = template.components?.find((c: any) => c.type === 'BODY');
-                const footer = template.components?.find((c: any) => c.type === 'FOOTER');
-                const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
-
-                return (
-                  <Card key={template.id} className="overflow-hidden border-zinc-200 dark:border-zinc-800 flex flex-col">
-                    <CardHeader className="bg-muted/30 pb-3">
-                      <div className="flex justify-between items-start">
-                        <Badge variant={
-                          template.status === 'APPROVED' ? 'default' : 
-                          template.status === 'REJECTED' ? 'destructive' : 'secondary'
-                        } className="mb-2">
-                          {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
-                           template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
-                           <ClockIcon className="w-3 h-3 mr-1" />}
-                          {template.status}
-                        </Badge>
-                        <div className="flex gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-primary" 
-                            onClick={() => setPreviewTemplate(template)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-destructive" 
-                            onClick={() => {
-                              if (confirm(`Deseja realmente excluir o template "${template.name}" da Meta? Esta ação é irreversível.`)) {
-                                handleDeleteTemplate(template.name);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <CardTitle className="text-base truncate">{template.name}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px]">
-                          {template.category === 'MARKETING' ? '📢 Marketing' : 
-                           template.category === 'UTILITY' ? '🛠️ Utilidade' : 
-                           '🔐 Autenticação'}
-                        </Badge>
-                        <Badge variant="outline" className="text-[10px]">{template.language}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4 bg-[#e5ddd5]/30 dark:bg-zinc-900/50 flex-1 flex flex-col justify-between">
-                      <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg shadow-sm border border-zinc-100 dark:border-zinc-700">
-                        {header && header.format === 'IMAGE' && header.example?.header_handle?.[0] && (
-                          <div className="mb-2 aspect-video overflow-hidden rounded bg-muted">
-                            <img 
-                              src={header.example.header_handle[0]} 
-                              alt="Header" 
-                              className="w-full h-full object-cover"
-                            />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><MessageSquare className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-lg">WhatsApp API</CardTitle>
+                            <CardDescription className="text-[11px]">Conecte com a plataforma Business da Meta.</CardDescription>
                           </div>
-                        )}
-                        <div className="text-[13px] text-zinc-800 dark:text-zinc-200 line-clamp-3">
-                          {body?.text}
                         </div>
-                        {footer?.text && (
-                          <div className="text-[10px] text-muted-foreground mt-1 uppercase">
-                            {footer.text}
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Access Token Permanente</Label>
+                          <Input type="password" placeholder="EAA..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone Number ID</Label>
+                          <Input placeholder="Ex: 109..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Account ID (WABA)</Label>
+                          <Input placeholder="Ex: 105..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden hover:shadow-md transition-shadow bg-card h-fit">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary"><Bot className="w-5 h-5" /></div>
+                          <div>
+                            <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
+                            <CardDescription className="text-[11px]">Respostas automáticas com GPT-4.</CardDescription>
                           </div>
-                        )}
-                      </div>
-                      {buttonsComp?.buttons && buttonsComp.buttons.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {buttonsComp.buttons.map((btn: any, idx: number) => (
-                            <div key={idx} className="bg-white/80 dark:bg-zinc-800/80 p-1.5 rounded text-[11px] text-center text-blue-500 font-medium border border-zinc-100 dark:border-zinc-700">
-                              {btn.text}
-                            </div>
-                          ))}
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-              </div>
-            </ScrollArea>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-6">
+                        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                          <div>
+                            <p className="font-bold text-sm">Habilitar Agente AI</p>
+                            <p className="text-[10px] text-muted-foreground">O robô responderá conversas ociosas.</p>
+                          </div>
+                          <Switch checked={metaSettings.ai_agent_enabled} onCheckedChange={checked => setMetaSettings({...metaSettings, ai_agent_enabled: checked})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">OpenAI API Key</Label>
+                          <Input type="password" placeholder="sk-..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
 
-            <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
-              <DialogContent className="max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none">
-                {previewTemplate && (
-                  <TemplatePreview 
-                    name={previewTemplate.name}
-                    headerType={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.format || 'NONE'}
-                    headerText={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.text}
-                    headerUrl={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.example?.header_handle?.[0]}
-                    bodyText={previewTemplate.components?.find((c: any) => c.type === 'BODY')?.text || ''}
-                    footerText={previewTemplate.components?.find((c: any) => c.type === 'FOOTER')?.text}
-                    buttons={previewTemplate.components?.find((c: any) => c.type === 'BUTTONS')?.buttons || []}
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
-          </TabsContent>
+                  <div className="flex justify-end pt-4">
+                    <Button onClick={handleSaveSettings} disabled={saving} size="lg" className="px-10 h-14 rounded-2xl bg-primary text-white font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
+                      {saving ? <RefreshCcw className="mr-3 h-5 w-5 animate-spin" /> : <Save className="mr-3 h-5 w-5" />}
+                      Salvar Configurações
+                    </Button>
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
 
-          <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="max-w-4xl mx-auto w-full space-y-6 pb-12">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-primary">Configurações</h2>
-                <p className="text-muted-foreground text-sm">Gerencie suas conexões e chaves de API</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
-                  <CardHeader>
-                    <CardTitle className="text-lg">WhatsApp Business API</CardTitle>
-                    <CardDescription>Configure sua conta da Meta</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Access Token (Permanente)</Label>
-                      <Input type="password" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Phone Number ID</Label>
-                      <Input value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>WhatsApp Business Account ID</Label>
-                      <Input value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
-                    <CardDescription>Configurações do Agente AI</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label>Habilitar Agente AI</Label>
-                      <Switch checked={metaSettings.ai_agent_enabled} onCheckedChange={checked => setMetaSettings({...metaSettings, ai_agent_enabled: checked})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>OpenAI API Key</Label>
-                      <Input type="password" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveSettings} disabled={saving} size="lg" className="px-8">
-                  {saving ? <RefreshCcw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  Salvar Todas as Configurações
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </main>
-
+          </main>
+        </SidebarInset>
+      </div>
       {isFlowEditorOpen && (
         <FlowEditor 
           flow={editingFlow} 
           onSave={handleSaveFlow} 
-          onClose={() => {
-            setIsFlowEditorOpen(false);
-            setEditingFlow(null);
-          }} 
+          onClose={() => { setIsFlowEditorOpen(false); setEditingFlow(null); }} 
         />
       )}
-    </div>
+    </SidebarProvider>
   );
 };
-
-// Subcomponents for the Dialog
-import { DialogTrigger } from "@/components/ui/dialog";
 
 export default CRM;
