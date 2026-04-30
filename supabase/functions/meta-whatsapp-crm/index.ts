@@ -648,8 +648,20 @@ async function internalSendTemplate(
       if (headerComponent.format === 'IMAGE' || headerComponent.format === 'VIDEO' || headerComponent.format === 'DOCUMENT') {
         let mediaUrl = headerComponent.example?.header_handle?.[0];
         
-        // Use the example URL as a fallback if available
-        if (mediaUrl) {
+        // If the URL is from Meta/Facebook CDN, we can't send it as a 'link' 
+        // because it will cause a 403 Forbidden error on Meta's side.
+        // In that case, we MUST NOT include the header component at all
+        // OR we must use a 'handle' (which requires prior upload).
+        // Since we don't have a direct handle here, and Meta CDN links fail,
+        // we skip adding the header if it's a Meta CDN link.
+        
+        const isMetaCdn = mediaUrl && (
+          mediaUrl.includes('whatsapp.net') || 
+          mediaUrl.includes('fbcdn.net') || 
+          mediaUrl.includes('facebook.com')
+        );
+
+        if (mediaUrl && !isMetaCdn) {
           const type = headerComponent.format.toLowerCase();
           const mediaObj: any = { link: mediaUrl };
           if (type === 'document') mediaObj.filename = "document.pdf";
@@ -661,7 +673,9 @@ async function internalSendTemplate(
               [type]: mediaObj
             }]
           });
-          console.log(`Template ${templateName} header (${headerComponent.format}) filled with fallback URL.`);
+          console.log(`Template ${templateName} header (${headerComponent.format}) filled with external URL.`);
+        } else if (isMetaCdn) {
+          console.log(`Template ${templateName} has a Meta CDN header URL. Skipping header to avoid 403 error.`);
         }
       } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
         finalComponents.push({
