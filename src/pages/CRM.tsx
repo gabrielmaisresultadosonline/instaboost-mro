@@ -1216,7 +1216,8 @@ const CRM = () => {
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            </ScrollArea>
 
             <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
               <DialogContent className="max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none">
