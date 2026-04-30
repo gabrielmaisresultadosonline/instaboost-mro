@@ -599,6 +599,9 @@ const CRM = () => {
           .from('crm_flows')
           .update({
             name: flowData.name,
+            trigger_type: flowData.trigger_type,
+            trigger_keywords: flowData.trigger_keywords,
+            is_active: flowData.is_active,
             nodes: flowData.nodes,
             edges: flowData.edges,
             updated_at: new Date().toISOString()
