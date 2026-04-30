@@ -680,10 +680,14 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                         onValueChange={(val) => {
                           const template = availableTemplates.find(t => t.id === val);
                           if (template) {
+                            const bodyComponent = template.components?.find((c: any) => c.type === 'BODY');
                             updateNodeData(selectedNode.id, { 
                               templateId: val, 
                               templateName: template.name,
-                              language: template.language 
+                              language: template.language,
+                              status: template.status,
+                              category: template.category,
+                              bodyText: bodyComponent?.text || ''
                             });
                           }
                         }}
