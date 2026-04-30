@@ -702,8 +702,8 @@ const CRM = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 mt-4">
-        <Tabs defaultValue="contacts">
+      <main className="container mx-auto px-4 mt-4 h-[calc(100vh-120px)] flex flex-col">
+        <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
           <TabsList className="mb-4">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="contacts">Contatos/CRM</TabsTrigger>
