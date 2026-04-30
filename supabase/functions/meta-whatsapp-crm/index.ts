@@ -364,37 +364,60 @@ serve(async (req) => {
     if (action === 'startFlow') {
       const { flowId, contactId, waId } = params
       
-      // Update contact to point to flow
-      await supabase
-        .from('crm_contacts')
-        .update({
-          current_flow_id: flowId,
-          current_step_index: 0,
-          flow_state: 'running',
-          last_flow_interaction: new Date().toISOString()
-        })
-        .eq('id', contactId)
-      
-      // Fetch first step
-      const { data: step } = await supabase
-        .from('crm_flow_steps')
+      const { data: flow } = await supabase
+        .from('crm_flows')
         .select('*')
-        .eq('flow_id', flowId)
-        .eq('step_order', 0)
+        .eq('id', flowId)
         .single()
       
-      if (step) {
-        // Run the step
-        return await processStep(supabase, step, contactId, waId)
+      if (!flow) throw new Error('Flow not found')
+
+      // Use visual flow if it has nodes, otherwise fallback to old step-based system
+      if (flow.nodes && flow.nodes.length > 0) {
+        // Find starting node (no incoming edges)
+        const nodeIdsWithTarget = new Set(flow.edges.map((e: any) => e.target))
+        const startNode = flow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || flow.nodes[0]
+        
+        await supabase
+          .from('crm_contacts')
+          .update({
+            current_flow_id: flowId,
+            current_node_id: startNode.id,
+            flow_state: 'running',
+            last_flow_interaction: new Date().toISOString()
+          })
+          .eq('id', contactId)
+        
+        return await executeVisualNode(supabase, flow, startNode, contactId, waId)
+      } else {
+        // Fallback to old steps system
+        await supabase
+          .from('crm_contacts')
+          .update({
+            current_flow_id: flowId,
+            current_step_index: 0,
+            flow_state: 'running',
+            last_flow_interaction: new Date().toISOString()
+          })
+          .eq('id', contactId)
+        
+        const { data: step } = await supabase
+          .from('crm_flow_steps')
+          .select('*')
+          .eq('flow_id', flowId)
+          .eq('step_order', 0)
+          .single()
+        
+        if (step) return await processStep(supabase, step, contactId, waId)
       }
       
-      return new Response(JSON.stringify({ success: true, message: 'Flow started but no steps found' }), {
+      return new Response(JSON.stringify({ success: true, message: 'Flow started but no logic found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
     if (action === 'continueFlow') {
-      const { contactId, waId } = params
+      const { contactId, waId, buttonId } = params
       
       const { data: contact } = await supabase
         .from('crm_contacts')
@@ -402,14 +425,54 @@ serve(async (req) => {
         .eq('id', contactId)
         .single()
       
-      if (!contact || contact.flow_state === 'idle' || !contact.current_flow_id) {
+      if (!contact || !contact.current_flow_id) {
         return new Response(JSON.stringify({ success: false, message: 'No active flow' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
 
+      const { data: flow } = await supabase
+        .from('crm_flows')
+        .select('*')
+        .eq('id', contact.current_flow_id)
+        .single()
+
+      if (flow && flow.nodes && flow.nodes.length > 0) {
+        const currentNode = flow.nodes.find((n: any) => n.id === contact.current_node_id)
+        if (!currentNode) return new Response(JSON.stringify({ error: 'Current node not found' }), { status: 404 })
+
+        // Find next node based on buttonId or standard connection
+        let nextEdge = null;
+        if (buttonId) {
+          // If it was a question, find edge matching the button handle
+          nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === buttonId)
+        } else {
+          // Standard transition
+          nextEdge = flow.edges.find((e: any) => e.source === currentNode.id)
+        }
+
+        if (nextEdge) {
+          const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
+          if (nextNode) {
+            await supabase
+              .from('crm_contacts')
+              .update({ current_node_id: nextNode.id, last_flow_interaction: new Date().toISOString() })
+              .eq('id', contactId)
+            
+            return await executeVisualNode(supabase, flow, nextNode, contactId, waId)
+          }
+        }
+
+        // Check if there's a followup node for "no response"
+        // This is handled by a separate cron job checking scheduled messages
+        
+        return new Response(JSON.stringify({ success: true, message: 'No more nodes' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Legacy fallback
       const nextIndex = (contact.current_step_index || 0) + 1
-      
       const { data: step } = await supabase
         .from('crm_flow_steps')
         .select('*')
@@ -418,20 +481,10 @@ serve(async (req) => {
         .single()
       
       if (step) {
-        // Update index
-        await supabase
-          .from('crm_contacts')
-          .update({ current_step_index: nextIndex })
-          .eq('id', contactId)
-        
+        await supabase.from('crm_contacts').update({ current_step_index: nextIndex }).eq('id', contactId)
         return await processStep(supabase, step, contactId, waId)
       } else {
-        // Flow completed
-        await supabase
-          .from('crm_contacts')
-          .update({ flow_state: 'idle', current_flow_id: null, current_step_index: null })
-          .eq('id', contactId)
-        
+        await supabase.from('crm_contacts').update({ flow_state: 'idle', current_flow_id: null, current_step_index: null }).eq('id', contactId)
         return new Response(JSON.stringify({ success: true, message: 'Flow completed' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
