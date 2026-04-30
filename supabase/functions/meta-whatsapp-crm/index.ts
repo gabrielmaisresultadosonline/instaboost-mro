@@ -433,7 +433,7 @@ function sanitizeMetaLink(url: string | null | undefined): string {
   if (isMetaCdn) {
     console.log('Sanitizing Meta CDN link:', url);
     // Use a generic but professional placeholder image for CRM
-    return "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop";
+    return "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg";
   }
   return url;
 }
