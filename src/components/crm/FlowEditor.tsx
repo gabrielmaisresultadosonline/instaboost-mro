@@ -35,6 +35,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 // Custom Node Types
 const MessageNode = ({ data }: any) => (
