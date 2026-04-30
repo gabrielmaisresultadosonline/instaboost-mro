@@ -657,7 +657,7 @@ async function internalSendTemplate(
             type: "header",
             parameters: [{
               type: "image",
-              image: { link: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fit=crop" }
+              image: { link: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg" }
             }]
           });
         }
