@@ -653,7 +653,8 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
   else if (node.type === 'audio') {
     await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
-      audioUrl: node.data.audioUrl
+      audioUrl: node.data.audioUrl,
+      isVoice: node.data.isPTT ?? true // Default to true for audio nodes in flow
     }, contact)
   }
   else if (node.type === 'video') {
