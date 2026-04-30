@@ -312,7 +312,7 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
       if (flowsRes.data) setAvailableFlows(flowsRes.data);
     };
     fetchData();
-  }, [flow?.id]);
+  }, []);
 
   const handleFileUpload = async (file: File, nodeId: string, type: 'audio' | 'video' | 'image') => {
     setUploading(true);
