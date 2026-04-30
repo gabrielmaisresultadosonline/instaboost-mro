@@ -971,7 +971,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="flows" className="space-y-6">
+          <TabsContent value="flows" className="space-y-4">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Fluxos de Automação</h2>
