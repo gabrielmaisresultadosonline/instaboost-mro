@@ -712,6 +712,44 @@ const CRM = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="flows" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold">Fluxos de Automação</h2>
+                <p className="text-muted-foreground">Crie gatilhos e sequências automáticas de mensagens</p>
+              </div>
+              <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }}>
+                <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {flows.map((flow) => (
+                <Card key={flow.id} className="overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                  <CardHeader className="bg-muted/30 pb-3">
+                    <CardTitle className="text-base truncate">{flow.name}</CardTitle>
+                    <CardDescription className="text-xs">{flow.trigger_type || 'Gatilho Manual'}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>
+                        Editar Visual
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => {
+                        if (confirm('Deseja excluir este fluxo?')) {
+                          await supabase.from('crm_flows').delete().eq('id', flow.id);
+                          fetchData();
+                        }
+                      }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
           <TabsContent value="templates" className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
