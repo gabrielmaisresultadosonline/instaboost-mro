@@ -473,6 +473,39 @@ const CRM = () => {
     fetchMessages(contact.id);
   };
 
+  const handleSaveFlow = async (flow: any) => {
+    try {
+      const { id, ...flowData } = flow;
+      if (id) {
+        const { error } = await supabase
+          .from('crm_flows')
+          .update({
+            name: flowData.name,
+            nodes: flowData.nodes,
+            edges: flowData.edges,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('crm_flows')
+          .insert([{
+            name: flowData.name,
+            nodes: flowData.nodes,
+            edges: flowData.edges
+          }]);
+        if (error) throw error;
+      }
+      toast({ title: "Fluxo salvo com sucesso!" });
+      setIsFlowEditorOpen(false);
+      setEditingFlow(null);
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "Erro ao salvar fluxo", description: err.message, variant: "destructive" });
+    }
+  };
+
   const getWindowInfo = (lastInteraction: string) => {
     if (!lastInteraction) return null;
     const last = new Date(lastInteraction).getTime();
