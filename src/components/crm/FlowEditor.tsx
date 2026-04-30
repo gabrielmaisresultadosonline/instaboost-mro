@@ -489,6 +489,26 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                     <p className="text-[10px] text-muted-foreground">O fluxo continuará deste nó se o cliente não responder.</p>
                   </div>
                 )}
+                {selectedNode.type === 'crmAction' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Tipo de Ação</Label>
+                    <Select 
+                      value={selectedNode.data.action as string} 
+                      onValueChange={(val) => updateNodeData(selectedNode.id, { action: val })}
+                    >
+                      <SelectTrigger className="text-xs h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Notificar Agente">Notificar Agente</SelectItem>
+                        <SelectItem value="Mudar Status: Ganho">Mudar Status: Ganho</SelectItem>
+                        <SelectItem value="Mudar Status: Perdido">Mudar Status: Perdido</SelectItem>
+                        <SelectItem value="Adicionar Etiqueta">Adicionar Etiqueta</SelectItem>
+                        <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             </div>
           )}
