@@ -731,7 +731,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                             </div>
                             {selectedNode.data.imageUrl && (
                               <div className="aspect-video w-full rounded overflow-hidden border">
-                                <img src={selectedNode.data.imageUrl} className="w-full h-full object-cover" alt="Preview" />
+                                <img src={selectedNode.data.imageUrl as string} className="w-full h-full object-cover" alt="Preview" />
                               </div>
                             )}
                           </div>
