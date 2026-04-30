@@ -255,11 +255,14 @@ serve(async (req) => {
       
       if (!flow) throw new Error('Flow not found')
 
+      // Clear any existing scheduled messages for this contact to prevent flow conflicts
+      await supabase.from('crm_scheduled_messages').delete().eq('contact_id', contactId);
+
       // Use visual flow if it has nodes, otherwise fallback to old step-based system
       if (flow.nodes && flow.nodes.length > 0) {
         // Find starting node (no incoming edges)
         const nodeIdsWithTarget = new Set(flow.edges.map((e: any) => e.target))
-        const startNode = flow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || flow.nodes[0]
+        const startNode = targetFlow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || flow.nodes[0]
         
         await supabase
           .from('crm_contacts')
@@ -267,7 +270,8 @@ serve(async (req) => {
             current_flow_id: flowId,
             current_node_id: startNode.id,
             flow_state: 'running',
-            last_flow_interaction: new Date().toISOString()
+            last_flow_interaction: new Date().toISOString(),
+            next_execution_time: null
           })
           .eq('id', contactId)
         
