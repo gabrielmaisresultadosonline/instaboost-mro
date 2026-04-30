@@ -111,6 +111,9 @@ const CRM = () => {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [isPreviewingAudio, setIsPreviewingAudio] = useState(false);
+  const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
+  const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
   const recordingTimerRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -321,13 +324,17 @@ const CRM = () => {
         if (e.data.size > 0) chunks.push(e.data);
       };
       
-      recorder.onstop = async () => {
-        // Meta Cloud API preferred format for voice notes is OGG/OPUS
+      recorder.onstop = () => {
         const mimeType = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus') 
           ? 'audio/ogg; codecs=opus' 
           : 'audio/webm; codecs=opus';
         const audioBlob = new Blob(chunks, { type: mimeType });
-        await handleSendMedia(audioBlob, 'audio', true);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        setRecordedAudioBlob(audioBlob);
+        setRecordedAudioUrl(audioUrl);
+        setIsPreviewingAudio(true);
+        
         stream.getTracks().forEach(track => track.stop());
       };
       
@@ -349,6 +356,22 @@ const CRM = () => {
       mediaRecorder.stop();
       setIsRecording(false);
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  const cancelAudioPreview = () => {
+    if (recordedAudioUrl) {
+      URL.revokeObjectURL(recordedAudioUrl);
+    }
+    setRecordedAudioBlob(null);
+    setRecordedAudioUrl(null);
+    setIsPreviewingAudio(false);
+  };
+
+  const sendRecordedAudio = async () => {
+    if (recordedAudioBlob) {
+      await handleSendMedia(recordedAudioBlob, 'audio', true);
+      cancelAudioPreview();
     }
   };
 
@@ -905,11 +928,33 @@ const CRM = () => {
                                 <span className="text-xs font-mono">Gravando: {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}</span>
                               </div>
                               <div className="flex gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => { stopRecording(); setIsRecording(false); }} className="text-destructive h-8 w-8 p-0">
+                                <Button size="sm" variant="ghost" onClick={() => { stopRecording(); setIsRecording(false); cancelAudioPreview(); }} className="text-destructive h-8 w-8 p-0">
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                                 <Button size="sm" onClick={stopRecording} className="bg-red-500 hover:bg-red-600 text-white h-8 px-3 text-xs">
-                                  <StopCircle className="h-4 w-4 mr-1" /> Parar e Enviar
+                                  <StopCircle className="h-4 w-4 mr-1" /> Parar Gravação
+                                </Button>
+                              </div>
+                            </div>
+                          ) : isPreviewingAudio ? (
+                            <div className="flex items-center gap-4 bg-primary/5 p-2 rounded-lg border border-primary/10">
+                              <audio src={recordedAudioUrl || ""} controls className="h-8 flex-1" />
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  onClick={cancelAudioPreview}
+                                  className="h-9 w-9 text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  onClick={sendRecordedAudio}
+                                  disabled={sendingMessage}
+                                  className="h-9 w-9 bg-primary text-white hover:bg-primary/90"
+                                >
+                                  <Send className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
