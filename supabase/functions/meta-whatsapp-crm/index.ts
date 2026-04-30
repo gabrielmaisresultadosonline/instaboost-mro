@@ -491,6 +491,31 @@ serve(async (req) => {
       }
     }
 
+    if (action === 'processScheduled') {
+      const now = new Date().toISOString()
+      const { data: messages } = await supabase
+        .from('crm_scheduled_messages')
+        .select('*, crm_contacts(wa_id)')
+        .eq('status', 'pending')
+        .lte('scheduled_for', now)
+      
+      if (messages && messages.length > 0) {
+        for (const msg of messages) {
+          // Update status to prevent double execution
+          await supabase.from('crm_scheduled_messages').update({ status: 'sent' }).eq('id', msg.id)
+          
+          // Continue flow
+          await supabase.functions.invoke('meta-whatsapp-crm', {
+            body: { action: 'continueFlow', contactId: msg.contact_id, waId: msg.crm_contacts.wa_id }
+          })
+        }
+      }
+      
+      return new Response(JSON.stringify({ success: true, processed: messages?.length || 0 }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     return new Response(JSON.stringify({ error: 'Invalid action' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
