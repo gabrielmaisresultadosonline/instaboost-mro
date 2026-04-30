@@ -654,33 +654,80 @@ const CRM = () => {
   const handleImportContacts = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const fileName = file.name.toLowerCase();
     const reader = new FileReader();
+
     reader.onload = async (event) => {
       const content = event.target?.result as string;
-      const lines = content.split('\n').filter(l => l.trim());
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      const imported = lines.slice(1).map(line => {
-        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-        const obj: any = {};
-        headers.forEach((h, i) => obj[h] = values[i]);
-        return obj;
-      });
 
-      for (const contact of imported) {
-        if (!contact.Telefone) continue;
-        await supabase.from('crm_contacts').upsert({
-          wa_id: contact.Telefone,
-          name: contact.Nome,
-          status: contact.Status || 'new',
-          metadata: {
-            bio: contact.Bio,
-            instagram: contact.Instagram,
-            facebook: contact.Facebook,
-            links: contact.Links
+      if (fileName.endsWith('.vcf') || fileName.endsWith('.vcard')) {
+        // vCard Import
+        const contacts_to_import: any[] = [];
+        const lines = content.split('\n');
+        let currentContact: any = { metadata: {} };
+
+        for (const line of lines) {
+          if (line.startsWith('BEGIN:VCARD')) {
+            currentContact = { metadata: {} };
+          } else if (line.startsWith('FN:')) {
+            currentContact.name = line.substring(3).trim();
+          } else if (line.startsWith('TEL;')) {
+            // Extract number from TEL;TYPE=CELL:5511999999999 or TEL:5511999999999
+            const match = line.match(/:(.*)$/);
+            if (match) {
+              currentContact.wa_id = match[1].trim().replace(/\D/g, '');
+            }
+          } else if (line.startsWith('NOTE:')) {
+            currentContact.metadata.bio = line.substring(5).trim();
+          } else if (line.startsWith('URL:')) {
+            currentContact.metadata.links = line.substring(4).trim();
+          } else if (line.startsWith('END:VCARD')) {
+            if (currentContact.wa_id) {
+              contacts_to_import.push(currentContact);
+            }
           }
-        }, { onConflict: 'wa_id' });
+        }
+
+        for (const contact of contacts_to_import) {
+          await supabase.from('crm_contacts').upsert({
+            wa_id: contact.wa_id,
+            name: contact.name,
+            status: 'new',
+            metadata: contact.metadata
+          }, { onConflict: 'wa_id' });
+        }
+        toast({ title: `${contacts_to_import.length} contatos importados do vCard!` });
+      } else {
+        // CSV Import (Keep existing logic)
+        const lines = content.split('\n').filter(l => l.trim());
+        if (lines.length < 2) return;
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const imported = lines.slice(1).map(line => {
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const obj: any = {};
+          headers.forEach((h, i) => obj[h] = values[i]);
+          return obj;
+        });
+
+        for (const contact of imported) {
+          const phone = contact.Telefone || contact.wa_id || contact.phone;
+          if (!phone) continue;
+          await supabase.from('crm_contacts').upsert({
+            wa_id: phone.replace(/\D/g, ''),
+            name: contact.Nome || contact.name,
+            status: contact.Status || 'new',
+            metadata: {
+              bio: contact.Bio || contact.bio,
+              instagram: contact.Instagram || contact.instagram,
+              facebook: contact.Facebook || contact.facebook,
+              links: contact.Links || contact.links
+            }
+          }, { onConflict: 'wa_id' });
+        }
+        toast({ title: "Importação CSV concluída!" });
       }
-      toast({ title: "Importação concluída!" });
       fetchContacts();
     };
     reader.readAsText(file);
@@ -775,6 +822,7 @@ const CRM = () => {
                   {[
                     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                     { id: 'contacts', label: 'Conversas', icon: MessageSquare },
+                    { id: 'contact-list', label: 'Contatos', icon: Users },
                     { id: 'flows', label: 'Fluxos', icon: GitBranch },
                     { id: 'templates', label: 'Templates', icon: FileText },
                     { id: 'settings', label: 'Ajustes', icon: Settings },
@@ -1511,6 +1559,109 @@ const CRM = () => {
               </ScrollArea>
             )}
 
+            {activeTab === 'contact-list' && (
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Lista de Contatos</h2>
+                      <p className="text-muted-foreground text-sm">Gerencie todos os seus contatos salvos e importados.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => setIsImportExportOpen(true)}>
+                        <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
+                      </Button>
+                      <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary">
+                        <UserPlus className="w-4 h-4 mr-2" /> Novo Contato
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="bg-card rounded-2xl border shadow-sm overflow-hidden">
+                    <div className="p-4 border-b bg-muted/30">
+                      <div className="relative max-w-sm">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="Pesquisar por nome ou número..." 
+                          className="pl-9 bg-background"
+                          value={statusFilter === 'all' ? '' : statusFilter}
+                          onChange={e => setStatusFilter(e.target.value || 'all')}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b">
+                            <th className="px-6 py-4">Nome</th>
+                            <th className="px-6 py-4">WhatsApp</th>
+                            <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4">Última Interação</th>
+                            <th className="px-6 py-4 text-right">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {contacts
+                            .filter(c => 
+                              statusFilter === 'all' || 
+                              c.name?.toLowerCase().includes(statusFilter.toLowerCase()) || 
+                              c.wa_id?.includes(statusFilter)
+                            )
+                            .map((contact) => (
+                            <tr key={contact.id} className="hover:bg-muted/30 transition-colors group">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                    {contact.name?.charAt(0) || <User className="w-4 h-4" />}
+                                  </div>
+                                  <span className="font-semibold text-sm">{contact.name || 'Sem nome'}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-muted-foreground font-mono">{contact.wa_id}</td>
+                              <td className="px-6 py-4">
+                                <Badge variant="outline" className={cn("capitalize text-[10px]", getStatusColor(contact.status))}>
+                                  {contact.status}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 text-[11px] text-muted-foreground">
+                                {contact.last_interaction ? new Date(contact.last_interaction).toLocaleString() : 'Nunca'}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
+                                    <MessageSquare className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openContactInfo(contact)}>
+                                    <Settings className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => {
+                                    if (confirm('Excluir este contato?')) {
+                                      await supabase.from('crm_contacts').delete().eq('id', contact.id);
+                                      fetchContacts();
+                                    }
+                                  }}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          {contacts.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground italic text-sm">
+                                Nenhum contato encontrado. Importe uma lista vCard ou CSV para começar.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
+
             {activeTab === 'settings' && (
               <ScrollArea className="flex-1 p-8 bg-muted/5">
                 <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -1665,8 +1816,12 @@ const CRM = () => {
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <User className="w-10 h-10 text-primary" />
             </div>
-            <DialogTitle className="text-2xl font-bold">Informações do Contato</DialogTitle>
-            <DialogDescription>Visualize e edite os detalhes de {contactToView?.name || contactToView?.wa_id}</DialogDescription>
+            <DialogTitle className="text-2xl font-bold">{contactToView?.id ? 'Informações do Contato' : 'Novo Contato'}</DialogTitle>
+            <DialogDescription>
+              {contactToView?.id 
+                ? `Visualize e edite os detalhes de ${contactToView?.name || contactToView?.wa_id}`
+                : 'Adicione um novo contato manualmente à sua lista.'}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -1685,8 +1840,13 @@ const CRM = () => {
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">WhatsApp / ID</Label>
                 <Input 
                   value={contactToView?.wa_id || ''} 
-                  readOnly
-                  className="bg-muted/20 border-none h-10 rounded-xl text-sm opacity-70 cursor-not-allowed"
+                  onChange={e => setContactToView({...contactToView, wa_id: e.target.value})}
+                  readOnly={!!contactToView?.id}
+                  placeholder="Ex: 5511999999999"
+                  className={cn(
+                    "bg-muted/30 border-none h-10 rounded-xl text-sm",
+                    contactToView?.id && "opacity-70 cursor-not-allowed bg-muted/20"
+                  )}
                 />
               </div>
             </div>
@@ -1743,11 +1903,26 @@ const CRM = () => {
             <Button 
               className="bg-primary hover:bg-primary/90 text-white rounded-xl h-12 px-8 font-bold shadow-lg shadow-primary/20"
               onClick={async () => {
-                await supabase.from('crm_contacts').update({ 
-                  name: contactToView.name,
-                  metadata: contactToView.metadata 
-                }).eq('id', contactToView.id);
-                toast({ title: "Contato atualizado!" });
+                const { id, ...rest } = contactToView;
+                if (id) {
+                  await supabase.from('crm_contacts').update({ 
+                    name: contactToView.name,
+                    metadata: contactToView.metadata 
+                  }).eq('id', id);
+                } else {
+                  // New contact
+                  const { error } = await supabase.from('crm_contacts').insert([{
+                    name: contactToView.name,
+                    wa_id: contactToView.wa_id,
+                    metadata: contactToView.metadata,
+                    status: 'new'
+                  }]);
+                  if (error) {
+                    toast({ title: "Erro ao criar contato", variant: "destructive" });
+                    return;
+                  }
+                }
+                toast({ title: id ? "Contato atualizado!" : "Contato criado!" });
                 fetchContacts();
                 if (selectedContact?.id === contactToView.id) {
                   setSelectedContact({ ...selectedContact, name: contactToView.name, metadata: contactToView.metadata });
@@ -1767,7 +1942,7 @@ const CRM = () => {
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <FileUp className="w-5 h-5 text-primary" /> Gerenciar Contatos
             </DialogTitle>
-            <DialogDescription>Exporte sua lista atual ou importe novos contatos via CSV.</DialogDescription>
+            <DialogDescription>Exporte sua lista atual ou importe novos contatos via CSV ou vCard.</DialogDescription>
           </DialogHeader>
           
           <div className="grid grid-cols-1 gap-4 py-6">
@@ -1795,17 +1970,17 @@ const CRM = () => {
               </div>
               <div>
                 <p className="font-bold">Importar Lista</p>
-                <p className="text-xs text-muted-foreground">Adicione contatos em massa enviando um arquivo CSV.</p>
+                <p className="text-xs text-muted-foreground">Adicione contatos em massa enviando um arquivo CSV ou vCard.</p>
               </div>
-              <Label htmlFor="import-csv" className="w-full">
+              <Label htmlFor="import-file" className="w-full">
                 <Button variant="default" className="w-full rounded-xl pointer-events-none">
                   Selecionar Arquivo
                 </Button>
               </Label>
               <input 
-                id="import-csv" 
+                id="import-file" 
                 type="file" 
-                accept=".csv" 
+                accept=".csv,.vcf,.vcard" 
                 className="hidden" 
                 onChange={(e) => {
                   handleImportContacts(e);
