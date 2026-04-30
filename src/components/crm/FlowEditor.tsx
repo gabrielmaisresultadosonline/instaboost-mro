@@ -260,7 +260,8 @@ interface FlowEditorProps {
   onClose: () => void;
 }
 
-const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
+const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
+  const { screenToFlowPosition } = useReactFlow();
   const { toast } = useToast();
   const [nodes, setNodes, onNodesChange] = useNodesState(flow?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flow?.edges || []);
