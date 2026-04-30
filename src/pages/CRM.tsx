@@ -1771,17 +1771,22 @@ const CRM = () => {
           </DialogHeader>
           
           <div className="grid grid-cols-1 gap-4 py-6">
-            <div className="p-6 rounded-2xl border-2 border-dashed border-muted bg-muted/5 flex flex-col items-center gap-4 text-center">
-              <div className="p-3 rounded-full bg-primary/10 text-primary">
-                <Download className="w-6 h-6" />
+            <div className="p-4 rounded-2xl border-2 border-dashed border-muted bg-muted/5 flex flex-col items-center gap-4 text-center">
+              <div className="p-2 rounded-full bg-primary/10 text-primary">
+                <Download className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-bold">Exportar Lista</p>
-                <p className="text-xs text-muted-foreground">Baixe todos os contatos e suas informações em CSV.</p>
+                <p className="font-bold text-sm">Exportar Lista</p>
+                <p className="text-[10px] text-muted-foreground">Baixe todos os contatos para backups ou importação.</p>
               </div>
-              <Button variant="outline" className="w-full rounded-xl" onClick={handleExportContacts}>
-                Baixar CSV
-              </Button>
+              <div className="grid grid-cols-2 gap-2 w-full">
+                <Button variant="outline" size="sm" className="rounded-xl text-[11px]" onClick={() => handleExportContacts('csv')}>
+                  <Download className="w-3 h-3 mr-1.5" /> CSV
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-xl text-[11px]" onClick={() => handleExportContacts('vcard')}>
+                  <UserPlus className="w-3 h-3 mr-1.5" /> vCard
+                </Button>
+              </div>
             </div>
 
             <div className="p-6 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 flex flex-col items-center gap-4 text-center">
