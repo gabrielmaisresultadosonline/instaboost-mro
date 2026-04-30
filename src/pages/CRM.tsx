@@ -1080,7 +1080,8 @@ const CRM = () => {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            </ScrollArea>
           </TabsContent>
 
           <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 space-y-4">
