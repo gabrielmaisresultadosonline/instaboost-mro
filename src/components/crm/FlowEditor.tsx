@@ -450,17 +450,19 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-xs">Upload de Áudio (.mp3, .ogg)</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          type="file" 
-                          accept=".mp3,.ogg"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) updateNodeData(selectedNode.id, { fileName: file.name, audioUrl: URL.createObjectURL(file) });
-                          }}
-                          className="text-xs h-8"
-                        />
-                      </div>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="file" 
+                        accept=".mp3,.ogg"
+                        disabled={uploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, selectedNode.id, 'audio');
+                        }}
+                        className="text-xs h-8"
+                      />
+                      {uploading && <Loader2 className="w-4 h-4 animate-spin mt-2" />}
+                    </div>
                     </div>
                     <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg border border-purple-100">
                       <div className="space-y-0.5">
