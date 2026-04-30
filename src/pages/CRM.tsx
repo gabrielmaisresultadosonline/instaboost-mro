@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isAdminLoggedIn, logoutAdmin } from '@/lib/adminConfig';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,15 +73,12 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-
 const CRM = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('contacts');
-
-  
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [metaSettings, setMetaSettings] = useState<any>({
     meta_access_token: '',
     meta_phone_number_id: '',
@@ -96,34 +92,20 @@ const CRM = () => {
     initial_response_text: '',
     initial_response_buttons: []
   });
-
   const [metrics, setMetrics] = useState<any>({
     sent_count: 0,
     responded_count: 0,
     qualified_count: 0,
     sales_count: 0
   });
-
   const [flows, setFlows] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [kanbanView, setKanbanView] = useState(false);
   const [draggedContact, setDraggedContact] = useState<any>(null);
-  
-  const [broadcast, setBroadcast] = useState({
-    name: '',
-    message_text: '',
-    status: 'pending'
-  });
-
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const selectedContactRef = useRef<any>(null);
-
-  useEffect(() => {
-    selectedContactRef.current = selectedContact;
-  }, [selectedContact]);
-
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -143,23 +125,17 @@ const CRM = () => {
   const [editingFlow, setEditingFlow] = useState<any>(null);
   const [uploadType, setUploadType] = useState<'image' | 'video' | 'audio' | 'document' | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
-
-  const [newStep, setNewStep] = useState<any>({
-    step_type: 'text',
-    message_text: '',
-    delay_seconds: 5,
-    media_url: '',
-    media_type: ''
-  });
-
   const [confirmSend, setConfirmSend] = useState<{
     type: 'template' | 'flow';
     id: string;
     name: string;
     language?: string;
   } | null>(null);
-
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
+
+  useEffect(() => {
+    selectedContactRef.current = selectedContact;
+  }, [selectedContact]);
 
   useEffect(() => {
     let interval: any;
@@ -401,7 +377,6 @@ const CRM = () => {
     if (!selectedContact) return;
     setSendingMessage(true);
     try {
-      // Upload to Supabase Storage
       const fileExt = file instanceof File ? file.name.split('.').pop() : (isVoice ? 'ogg' : 'bin');
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `chat-media/${fileName}`;
@@ -448,8 +423,7 @@ const CRM = () => {
     const file = e.target.files?.[0];
     if (!file || !uploadType) return;
     
-    // For audio files, we can ask or assume if they want it as PTT
-    const isVoice = uploadType === 'audio'; // Default to true if user selects audio file in chat? Or maybe we can keep it as standard audio
+    const isVoice = uploadType === 'audio';
     handleSendMedia(file, uploadType, isVoice);
     e.target.value = '';
   };
@@ -504,36 +478,21 @@ const CRM = () => {
     }
 
     setConfirmSend(null);
-    // A lógica de fallback para mensagens normais dentro de 24h agora é processada 
-    // diretamente na Edge Function para maior confiabilidade.
-
-
     setSendingMessage(true);
     try {
-      // Logic to handle template variables
       const components: any[] = [];
       const bodyComponent = template?.components?.find((c: any) => c.type === 'BODY');
       const headerComponent = template?.components?.find((c: any) => c.type === 'HEADER');
       
-      // Handle Header variables or images
       if (headerComponent) {
         if (headerComponent.format === 'IMAGE') {
-          // Use example image only if it's not a Meta CDN link
           const handleOrUrl = headerComponent.example?.header_handle?.[0];
-          
           if (handleOrUrl && handleOrUrl.startsWith('http') && !handleOrUrl.includes('whatsapp.net')) {
             components.push({
               type: "header",
-              parameters: [
-                {
-                  type: "image",
-                  image: { link: handleOrUrl }
-                }
-              ]
+              parameters: [{ type: "image", image: { link: handleOrUrl } }]
             });
           }
-          // If it's a Meta link, we don't send the parameter here
-          // and let the Edge Function handle the fallback or use its own logic
         } else if (headerComponent.format === 'TEXT' && headerComponent.text) {
           const headerVariables = headerComponent.text.match(/\{\{\d+\}\}/g);
           if (headerVariables) {
@@ -549,19 +508,11 @@ const CRM = () => {
         const bodyVariables = bodyComponent.text.match(/\{\{\d+\}\}/g);
         if (bodyVariables) {
           const parameters = bodyVariables.map((_: any, index: number) => {
-            // Use contact name for {{1}} if available
-            if (index === 0 && selectedContact.name) {
-              return { type: "text", text: selectedContact.name };
-            }
-            
-            // Try to get from example
+            if (index === 0 && selectedContact.name) return { type: "text", text: selectedContact.name };
             const exampleData = bodyComponent.example?.body_text?.[0] || [];
-            
-            // If exampleData is a string or array, try to extract values
             let val = "---";
             if (Array.isArray(exampleData)) {
               if (exampleData.length === 1 && typeof exampleData[0] === 'string' && bodyVariables.length > 1) {
-                // Handle case where all examples are in one space-separated string
                 const splitExamples = exampleData[0].split(' ');
                 val = splitExamples[index] || "---";
               } else {
@@ -571,18 +522,11 @@ const CRM = () => {
               const splitExamples = exampleData.split(' ');
               val = splitExamples[index] || "---";
             }
-            
             return { type: "text", text: val };
           });
-          
-          components.push({
-            type: "body",
-            parameters: parameters
-          });
+          components.push({ type: "body", parameters: parameters });
         }
       }
-
-      console.log('Sending template with components:', components);
 
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { 
@@ -594,9 +538,7 @@ const CRM = () => {
         }
       });
       if (error) throw error;
-      if (!data.success) {
-        throw new Error(data.error || "Erro ao enviar template pela Meta");
-      }
+      if (!data.success) throw new Error(data.error || "Erro ao enviar template pela Meta");
       toast({ title: "Template enviado!" });
       await fetchMessages(selectedContact.id);
     } catch (err: any) {
@@ -612,22 +554,12 @@ const CRM = () => {
       const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
         body: { action: 'createTemplate', ...template }
       });
-      
       if (error) throw error;
-      
-      if (!data.success) {
-        throw new Error(data.error || "Erro ao criar template na Meta");
-      }
-      
+      if (!data.success) throw new Error(data.error || "Erro ao criar template na Meta");
       toast({ title: "Template enviado para aprovação!" });
       fetchData();
     } catch (err: any) {
-      console.error('Error creating template:', err);
-      toast({ 
-        title: "Erro ao criar template", 
-        description: err.message || "Verifique as configurações da API Meta",
-        variant: "destructive" 
-      });
+      toast({ title: "Erro ao criar template", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -808,593 +740,136 @@ const CRM = () => {
             )}
 
             {activeTab === 'contacts' && (
-
-            <div className="flex-1 flex overflow-hidden">
-              {kanbanView ? (
-                <div className="flex-1 overflow-x-auto p-4 flex gap-4">
-                  {['new', 'responded', 'qualified', 'closed', 'lost'].map(status => (
-                    <div key={status} className="w-72 shrink-0 flex flex-col bg-muted/20 rounded-lg border" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(status)}>
-                      <div className="p-3 border-b font-bold uppercase text-xs flex justify-between">
-                        {status} <Badge variant="secondary">{contacts.filter(c => c.status === status).length}</Badge>
+              <div className="flex-1 flex overflow-hidden">
+                {kanbanView ? (
+                  <div className="flex-1 overflow-x-auto p-4 flex gap-4">
+                    {['new', 'responded', 'qualified', 'closed', 'lost'].map(status => (
+                      <div key={status} className="w-72 shrink-0 flex flex-col bg-muted/20 rounded-lg border" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(status)}>
+                        <div className="p-3 border-b font-bold uppercase text-xs flex justify-between">
+                          {status} <Badge variant="secondary">{contacts.filter(c => c.status === status).length}</Badge>
+                        </div>
+                        <ScrollArea className="flex-1 p-2">
+                          {contacts.filter(c => c.status === status).map(contact => (
+                            <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing" onClick={() => { openChat(contact); setKanbanView(false); }}>
+                              <p className="text-sm font-semibold truncate">{contact.name || contact.wa_id}</p>
+                            </Card>
+                          ))}
+                        </ScrollArea>
                       </div>
-                      <ScrollArea className="flex-1 p-2">
-                        {contacts.filter(c => c.status === status).map(contact => (
-                          <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing" onClick={() => { openChat(contact); setKanbanView(false); }}>
-                            <p className="text-sm font-semibold truncate">{contact.name || contact.wa_id}</p>
-                          </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <div className={`w-full md:w-[350px] border-r flex flex-col ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
+                      <div className="p-4 border-b flex gap-2">
+                        <Input placeholder="Buscar..." onChange={e => setStatusFilter(e.target.value || 'all')} />
+                      </div>
+                      <ScrollArea className="flex-1 min-h-0">
+                        {filteredContacts.map(contact => (
+                          <button key={contact.id} onClick={() => openChat(contact)} className={`w-full p-4 text-left border-b hover:bg-secondary/30 ${selectedContact?.id === contact.id ? 'bg-secondary/50' : ''}`}>
+                            <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
+                            <Badge variant="outline" className={getStatusColor(contact.status)}>{contact.status}</Badge>
+                          </button>
                         ))}
                       </ScrollArea>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  <div className={`w-full md:w-[350px] border-r flex flex-col ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
-                    <div className="p-4 border-b flex gap-2">
-                      <Input placeholder="Buscar..." onChange={e => setStatusFilter(e.target.value || 'all')} />
-                    </div>
-                    <ScrollArea className="flex-1 min-h-0">
-                      {filteredContacts.map(contact => (
-                        <button key={contact.id} onClick={() => openChat(contact)} className={`w-full p-4 text-left border-b hover:bg-secondary/30 ${selectedContact?.id === contact.id ? 'bg-secondary/50' : ''}`}>
-                          <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
-                          <Badge variant="outline" className={getStatusColor(contact.status)}>{contact.status}</Badge>
-                        </button>
-                      ))}
-                    </ScrollArea>
-                  </div>
-                  <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
-                    {selectedContact ? (
-                      <>
-                        <div className="p-4 border-b flex justify-between items-center bg-card shadow-sm z-10">
-                          <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
-                              <ArrowRight className="h-5 w-5 rotate-180" />
-                            </Button>
-                            <div className="flex flex-col">
-                              <p className="font-bold flex items-center gap-2 text-sm md:text-base">
-                                {selectedContact.name || selectedContact.wa_id}
-                              {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                <div className="flex flex-col items-start gap-1">
-                                  <Badge variant="outline" className={`text-[10px] animate-pulse flex items-center gap-1 ${selectedContact.flow_state === 'error' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-primary/10'}`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full animate-ping ${selectedContact.flow_state === 'error' ? 'bg-red-500' : 'bg-primary'}`} />
-                                    {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
-                                  </Badge>
-                                  {countdown !== null && countdown > 0 && (
-                                    <div className="flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
-                                      <Clock className="w-3 h-3" />
-                                      Próxima msg em: {countdown}s
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </p>
-                            {selectedContact.last_interaction && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <ClockIcon className={`w-3 h-3 ${getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500'}`} />
-                                <span className={`text-[10px] font-medium ${getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500'}`}>
-                                  {getWindowInfo(selectedContact.last_interaction)?.label}
-                                </span>
+                    <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
+                      {selectedContact ? (
+                        <>
+                          <div className="p-4 border-b flex justify-between items-center bg-card shadow-sm z-10">
+                            <div className="flex items-center gap-4">
+                              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
+                                <ArrowRight className="h-5 w-5 rotate-180" />
+                              </Button>
+                              <div className="flex flex-col">
+                                <p className="font-bold flex items-center gap-2 text-sm md:text-base">
+                                  {selectedContact.name || selectedContact.wa_id}
+                                </p>
                               </div>
-                            )}
+                            </div>
                           </div>
-                        </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })} className="hidden sm:flex">Qualificar</Button>
-                            <Button size="sm" className="bg-green-600 hidden sm:flex text-white hover:bg-green-700" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
-                            
-                            {selectedContact.flow_state && selectedContact.flow_state !== 'idle' ? (
-                              <div className="flex gap-1">
-                                {selectedContact.flow_state === 'paused' || selectedContact.flow_state === 'error' ? (
-                                  <Button 
-                                    size="sm" 
-                                    variant="secondary" 
-                                    className={`${selectedContact.flow_state === 'error' ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white h-8`}
-                                    onClick={async () => {
-                                      const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
-                                        body: { action: 'continueFlow', contactId: selectedContact.id, waId: selectedContact.wa_id }
-                                      });
-                                      if (error) toast({ title: "Erro ao continuar", variant: "destructive" });
-                                      else {
-                                        fetchMessages(selectedContact.id);
-                                        toast({ title: selectedContact.flow_state === 'error' ? "Tentando novamente..." : "Fluxo retomado!" });
-                                      }
-                                    }}
-                                  >
-                                    {selectedContact.flow_state === 'error' ? <RefreshCcw className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />} 
-                                    {selectedContact.flow_state === 'error' ? 'Tentar Denovo' : 'Retomar'}
-                                  </Button>
-                                ) : (
-                                  <Button 
-                                    size="sm" 
-                                    variant="secondary" 
-                                    className="bg-amber-500 text-white hover:bg-amber-600 h-8"
-                                    onClick={async () => {
-                                      const { error } = await supabase.from('crm_contacts').update({ flow_state: 'paused' }).eq('id', selectedContact.id);
-                                      if (error) toast({ title: "Erro ao pausar", variant: "destructive" });
-                                      else {
-                                        setSelectedContact(prev => ({ ...prev, flow_state: 'paused' }));
-                                        toast({ title: "Fluxo pausado!" });
-                                      }
-                                    }}
-                                  >
-                                    <StopCircle className="w-3 h-3 mr-1" /> Pausar
-                                  </Button>
-                                )}
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive" 
-                                  className="h-8"
-                                  onClick={async () => {
-                                    if (confirm('Deseja realmente CANCELAR este fluxo?')) {
-                                      const { error } = await supabase.from('crm_contacts').update({ 
-                                        flow_state: 'idle', 
-                                        current_flow_id: null,
-                                        current_node_id: null
-                                      }).eq('id', selectedContact.id);
-                                      
-                                      if (error) toast({ title: "Erro ao cancelar", variant: "destructive" });
-                                      else {
-                                        setSelectedContact(prev => ({ ...prev, flow_state: 'idle', current_flow_id: null, current_node_id: null }));
-                                        toast({ title: "Fluxo cancelado!" });
-                                      }
-                                    }
-                                  }}
-                                >
-                                  <XCircle className="w-3 h-3 mr-1" /> Cancelar
-                                </Button>
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                        <div className="bg-muted/50 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center scrollbar-hide">
-                          <span className="text-[11px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1.5">
-                            <Zap className="w-3.5 h-3.5" /> Atalhos:
-                          </span>
-                          {templates.slice(0, 8).map(t => (
-                            <Button 
-                              key={t.id} 
-                              variant="secondary" 
-                              size="sm" 
-                              className="h-6 text-[10px] px-2 rounded-full border bg-background hover:bg-primary hover:text-white transition-colors"
-                              onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')}
-                              disabled={sendingMessage}
-                            >
-                              {t.name}
-                            </Button>
-                          ))}
-                          <div className="w-px h-3 bg-border mx-1 shrink-0" />
-                          {flows.slice(0, 5).map(f => (
-                            <Button 
-                              key={f.id} 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-6 text-[10px] px-2 rounded-full border-primary/30 text-primary hover:bg-primary hover:text-white transition-colors"
-                              onClick={() => handleTriggerFlow(f.id)}
-                              disabled={sendingMessage}
-                            >
-                              <GitBranch className="w-2.5 h-2.5 mr-1" /> {f.name}
-                            </Button>
-                          ))}
-                        </div>
-                        <ScrollArea className="flex-1 min-h-0">
-                          <div className="p-4 space-y-4">
+                          <ScrollArea className="flex-1 p-4">
                             {chatMessages.map(m => (
                               <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
-                                <div className={`p-4 rounded-2xl max-w-[85%] shadow-md ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
-                                  {m.media_url && (
-                                    <div className="mb-2 overflow-hidden rounded-lg">
-                                      {m.message_type === 'image' || (m.message_type === 'template' && m.media_url.match(/\.(jpg|jpeg|png|gif|webp)/i)) ? (
-                                        <img src={m.media_url} alt="Mídia" className="max-w-full h-auto cursor-pointer hover:opacity-90" onClick={() => window.open(m.media_url, '_blank')} />
-                                      ) : m.message_type === 'video' ? (
-                                        <video src={m.media_url} controls className="max-w-full rounded-lg" />
-                                      ) : m.message_type === 'audio' ? (
-                                        <audio src={m.media_url} controls className="max-w-full h-8" />
-                                      ) : (
-                                        <a href={m.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 bg-black/5 dark:bg-white/5 rounded text-xs hover:bg-black/10 transition-colors">
-                                          <Paperclip className="w-4 h-4" /> Ver anexo
-                                        </a>
-                                      )}
-                                    </div>
-                                  )}
-                                  <div className="text-sm whitespace-pre-wrap">{m.content}</div>
-                                  <div className="text-[9px] mt-1 opacity-50 flex justify-end">
-                                    {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </div>
+                                <div className={`p-3 rounded-lg max-w-[80%] ${m.direction === 'inbound' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>
+                                  {m.content}
                                 </div>
                               </div>
                             ))}
                             <div ref={scrollRef} />
+                          </ScrollArea>
+                          <div className="p-4 border-t flex gap-2">
+                            <Input value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Mensagem..." />
+                            <Button onClick={handleSendMessage} disabled={sendingMessage}>Enviar</Button>
                           </div>
-                        </ScrollArea>
-                        <div className="p-4 border-t bg-card shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
-                          {isRecording ? (
-                            <div className="flex items-center justify-between bg-primary/10 p-2 rounded-lg border border-primary/20 animate-pulse">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                <span className="text-xs font-mono">Gravando: {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}</span>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => { stopRecording(); setIsRecording(false); cancelAudioPreview(); }} className="text-destructive h-8 w-8 p-0">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" onClick={stopRecording} className="bg-red-500 hover:bg-red-600 text-white h-8 px-3 text-xs">
-                                  <StopCircle className="h-4 w-4 mr-1" /> Parar Gravação
-                                </Button>
-                              </div>
-                            </div>
-                          ) : isPreviewingAudio ? (
-                            <div className="flex items-center gap-4 bg-primary/5 p-2 rounded-lg border border-primary/10">
-                              <audio src={recordedAudioUrl || ""} controls className="h-8 flex-1" />
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  onClick={cancelAudioPreview}
-                                  className="h-9 w-9 text-destructive hover:bg-destructive/10"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  onClick={sendRecordedAudio}
-                                  disabled={sendingMessage}
-                                  className="h-9 w-9 bg-primary text-white hover:bg-primary/90"
-                                >
-                                  <Send className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex gap-2 items-center">
-                              <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                className="hidden" 
-                                onChange={handleFileSelect}
-                                accept={uploadType === 'image' ? 'image/*' : uploadType === 'video' ? 'video/*' : uploadType === 'audio' ? 'audio/*' : '*'}
-                              />
-                              <div className="flex gap-1">
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
-                                  onClick={() => { setUploadType('image'); setTimeout(() => fileInputRef.current?.click(), 100); }}
-                                >
-                                  <ImageIcon className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
-                                  onClick={() => { setUploadType('video'); setTimeout(() => fileInputRef.current?.click(), 100); }}
-                                >
-                                  <Video className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
-                                  onClick={() => { setUploadType('audio'); setTimeout(() => fileInputRef.current?.click(), 100); }}
-                                >
-                                  <Mic className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
-                                  onClick={() => { setUploadType('document'); setTimeout(() => fileInputRef.current?.click(), 100); }}
-                                >
-                                  <Paperclip className="h-4 w-4" />
-                                </Button>
-                              </div>
-
-                              <Input 
-                                value={newMessage} 
-                                onChange={e => setNewMessage(e.target.value)} 
-                                onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
-                                placeholder="Digite uma mensagem..." 
-                                className="bg-background flex-1"
-                              />
-                              
-                              <Button 
-                                onClick={handleSendMessage} 
-                                disabled={sendingMessage || (!newMessage.trim())} 
-                                size="icon"
-                                className={newMessage.trim() ? "bg-primary" : "bg-muted text-muted-foreground"}
-                              >
-                                <Send className="h-4 w-4" />
-                              </Button>
-                              
-                              <Button 
-                                onClick={startRecording} 
-                                disabled={sendingMessage} 
-                                size="icon"
-                                variant="outline"
-                                className="h-10 w-10 rounded-full border-primary/20 text-primary hover:bg-primary/10"
-                              >
-                                <Mic className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center space-y-4">
-                        <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground opacity-20" />
-                        <p className="text-muted-foreground">Selecione uma conversa para começar</p>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="flows" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight">Fluxos de Automação</h2>
-                <p className="text-muted-foreground">Crie gatilhos e sequências automáticas de mensagens</p>
-              </div>
-              <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }} className="shadow-md">
-                <Plus className="w-4 h-4 mr-2" /> Novo Fluxo Visual
-              </Button>
-            </div>
-
-            <ScrollArea className="flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-              {flows.map((flow) => (
-                <Card key={flow.id} className="overflow-hidden border border-zinc-200 dark:border-zinc-800">
-                  <CardHeader className="bg-muted/30 pb-3">
-                    <CardTitle className="text-base truncate">{flow.name}</CardTitle>
-                    <CardDescription className="text-xs">{flow.trigger_type || 'Gatilho Manual'}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>
-                        Editar Visual
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => {
-                        if (confirm('Deseja excluir este fluxo?')) {
-                          await supabase.from('crm_flows').delete().eq('id', flow.id);
-                          fetchData();
-                        }
-                      }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-
-          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
-                <p className="text-muted-foreground">Gerencie seus modelos de mensagem oficiais da Meta</p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={syncTemplates} disabled={syncingTemplates}>
-                  <RefreshCcw className={`w-4 h-4 mr-2 ${syncingTemplates ? 'animate-spin' : ''}`} />
-                  Sincronizar com Meta
-                </Button>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button><Plus className="w-4 h-4 mr-2" /> Novo Template</Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-6xl h-[90vh] p-0">
-                    <ScrollArea className="h-full">
-                      <TemplateBuilder onSave={handleSaveTemplate} isSaving={saving} />
-                    </ScrollArea>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
-
-            <Dialog open={!!confirmSend} onOpenChange={(open) => !open && setConfirmSend(null)}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirmar Envio</DialogTitle>
-                  <DialogDescription>
-                    Você tem certeza que deseja enviar o {confirmSend?.type === 'template' ? 'template' : 'fluxo'} <strong>"{confirmSend?.name}"</strong> para {selectedContact?.name || selectedContact?.wa_id}?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setConfirmSend(null)}>Cancelar</Button>
-                  <Button onClick={() => {
-                    if (confirmSend?.type === 'template') {
-                      handleSendTemplate(confirmSend.id, confirmSend.language || 'pt_BR');
-                    } else if (confirmSend?.type === 'flow') {
-                      handleTriggerFlow(confirmSend.id);
-                    }
-                  }}>Confirmar e Enviar</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <ScrollArea className="flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-              {templates.map((template) => {
-                const header = template.components?.find((c: any) => c.type === 'HEADER');
-                const body = template.components?.find((c: any) => c.type === 'BODY');
-                const footer = template.components?.find((c: any) => c.type === 'FOOTER');
-                const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
-
-                return (
-                  <Card key={template.id} className="overflow-hidden border-zinc-200 dark:border-zinc-800 flex flex-col">
-                    <CardHeader className="bg-muted/30 pb-3">
-                      <div className="flex justify-between items-start">
-                        <Badge variant={
-                          template.status === 'APPROVED' ? 'default' : 
-                          template.status === 'REJECTED' ? 'destructive' : 'secondary'
-                        } className="mb-2">
-                          {template.status === 'APPROVED' ? <Check className="w-3 h-3 mr-1" /> : 
-                           template.status === 'REJECTED' ? <XCircle className="w-3 h-3 mr-1" /> : 
-                           <ClockIcon className="w-3 h-3 mr-1" />}
-                          {template.status}
-                        </Badge>
-                        <div className="flex gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-primary" 
-                            onClick={() => setPreviewTemplate(template)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-destructive" 
-                            onClick={() => {
-                              if (confirm(`Deseja realmente excluir o template "${template.name}" da Meta? Esta ação é irreversível.`)) {
-                                handleDeleteTemplate(template.name);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <CardTitle className="text-base truncate">{template.name}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px]">
-                          {template.category === 'MARKETING' ? '📢 Marketing' : 
-                           template.category === 'UTILITY' ? '🛠️ Utilidade' : 
-                           '🔐 Autenticação'}
-                        </Badge>
-                        <Badge variant="outline" className="text-[10px]">{template.language}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4 bg-[#e5ddd5]/30 dark:bg-zinc-900/50 flex-1 flex flex-col justify-between">
-                      <div className="bg-white dark:bg-zinc-800 p-3 rounded-lg shadow-sm border border-zinc-100 dark:border-zinc-700">
-                        {header && header.format === 'IMAGE' && header.example?.header_handle?.[0] && (
-                          <div className="mb-2 aspect-video overflow-hidden rounded bg-muted">
-                            <img 
-                              src={header.example.header_handle[0]} 
-                              alt="Header" 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                        <div className="text-[13px] text-zinc-800 dark:text-zinc-200 line-clamp-3">
-                          {body?.text}
-                        </div>
-                        {footer?.text && (
-                          <div className="text-[10px] text-muted-foreground mt-1 uppercase">
-                            {footer.text}
-                          </div>
-                        )}
-                      </div>
-                      {buttonsComp?.buttons && buttonsComp.buttons.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {buttonsComp.buttons.map((btn: any, idx: number) => (
-                            <div key={idx} className="bg-white/80 dark:bg-zinc-800/80 p-1.5 rounded text-[11px] text-center text-blue-500 font-medium border border-zinc-100 dark:border-zinc-700">
-                              {btn.text}
-                            </div>
-                          ))}
-                        </div>
+                        </>
+                      ) : (
+                        <div className="text-center">Selecione um contato</div>
                       )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-              </div>
-            </ScrollArea>
-
-            <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
-              <DialogContent className="max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none">
-                {previewTemplate && (
-                  <TemplatePreview 
-                    name={previewTemplate.name}
-                    headerType={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.format || 'NONE'}
-                    headerText={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.text}
-                    headerUrl={previewTemplate.components?.find((c: any) => c.type === 'HEADER')?.example?.header_handle?.[0]}
-                    bodyText={previewTemplate.components?.find((c: any) => c.type === 'BODY')?.text || ''}
-                    footerText={previewTemplate.components?.find((c: any) => c.type === 'FOOTER')?.text}
-                    buttons={previewTemplate.components?.find((c: any) => c.type === 'BUTTONS')?.buttons || []}
-                  />
+                    </div>
+                  </>
                 )}
-              </DialogContent>
-            </Dialog>
-          </TabsContent>
-
-          <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="max-w-4xl mx-auto w-full space-y-6 pb-12">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-primary">Configurações</h2>
-                <p className="text-muted-foreground text-sm">Gerencie suas conexões e chaves de API</p>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
-                  <CardHeader>
-                    <CardTitle className="text-lg">WhatsApp Business API</CardTitle>
-                    <CardDescription>Configure sua conta da Meta</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Access Token (Permanente)</Label>
-                      <Input type="password" value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Phone Number ID</Label>
-                      <Input value={metaSettings.meta_phone_number_id} onChange={e => setMetaSettings({...metaSettings, meta_phone_number_id: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>WhatsApp Business Account ID</Label>
-                      <Input value={metaSettings.meta_waba_id} onChange={e => setMetaSettings({...metaSettings, meta_waba_id: e.target.value})} />
-                    </div>
-                  </CardContent>
-                </Card>
+            {activeTab === 'flows' && (
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold">Fluxos</h2>
+                  <Button onClick={() => { setEditingFlow(null); setIsFlowEditorOpen(true); }}>Novo Fluxo</Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {flows.map(flow => (
+                    <Card key={flow.id} className="p-4">
+                      <h3 className="font-bold">{flow.name}</h3>
+                      <Button variant="outline" className="mt-4 w-full" onClick={() => { setEditingFlow(flow); setIsFlowEditorOpen(true); }}>Editar</Button>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
-                <Card className="shadow-sm border-zinc-200 dark:border-zinc-800">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
-                    <CardDescription>Configurações do Agente AI</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label>Habilitar Agente AI</Label>
-                      <Switch checked={metaSettings.ai_agent_enabled} onCheckedChange={checked => setMetaSettings({...metaSettings, ai_agent_enabled: checked})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>OpenAI API Key</Label>
-                      <Input type="password" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
-                    </div>
-                  </CardContent>
+            {activeTab === 'templates' && (
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold">Templates</h2>
+                  <Button onClick={syncTemplates}>Sincronizar</Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {templates.map(t => (
+                    <Card key={t.id} className="p-4">
+                      <h3 className="font-bold">{t.name}</h3>
+                      <Badge>{t.status}</Badge>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div className="p-6 max-w-2xl">
+                <h2 className="text-2xl font-bold mb-6">Configurações</h2>
+                <Card className="p-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label>Token Meta</Label>
+                    <Input value={metaSettings.meta_access_token} onChange={e => setMetaSettings({...metaSettings, meta_access_token: e.target.value})} />
+                  </div>
+                  <Button onClick={handleSaveSettings}>Salvar</Button>
                 </Card>
               </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveSettings} disabled={saving} size="lg" className="px-8">
-                  {saving ? <RefreshCcw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  Salvar Todas as Configurações
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </main>
-
+            )}
+          </main>
+        </SidebarInset>
+      </div>
       {isFlowEditorOpen && (
         <FlowEditor 
           flow={editingFlow} 
           onSave={handleSaveFlow} 
-          onClose={() => {
-            setIsFlowEditorOpen(false);
-            setEditingFlow(null);
-          }} 
+          onClose={() => { setIsFlowEditorOpen(false); setEditingFlow(null); }} 
         />
       )}
-    </div>
+    </SidebarProvider>
   );
 };
-
-// Subcomponents for the Dialog
-
 
 export default CRM;
