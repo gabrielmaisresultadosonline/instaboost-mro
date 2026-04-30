@@ -449,10 +449,17 @@ serve(async (req) => {
           // Find next node based on buttonId or standard connection
           let nextEdge = null;
           if (buttonId) {
-            // If it was a question or waitResponse, find edge matching the handle/button
-            nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && (e.sourceHandle === buttonId || e.sourceHandle === 'responded'))
-          } else {
-            // Standard transition (first edge without specific handle)
+            // Priority 1: Match specific button ID
+            nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === buttonId)
+          }
+          
+          // Priority 2: Match "responded" handle if no button matched or no buttonId provided
+          if (!nextEdge) {
+            nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === 'responded')
+          }
+
+          // Priority 3: Match standard transition (no handle)
+          if (!nextEdge) {
             nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && !e.sourceHandle)
           }
 
