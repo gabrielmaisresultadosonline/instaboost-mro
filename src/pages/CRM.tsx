@@ -137,6 +137,9 @@ const CRM = () => {
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [showTemplates, setShowTemplates] = useState(true);
   const [showFlows, setShowFlows] = useState(true);
+  const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
+  const [contactToView, setContactToView] = useState<any>(null);
 
   useEffect(() => {
     selectedContactRef.current = selectedContact;
@@ -704,10 +707,15 @@ const CRM = () => {
               <h1 className="text-xl font-bold tracking-tight capitalize">{activeTab}</h1>
             </div>
             {activeTab === 'contacts' && (
-              <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)}>
-                {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-                {kanbanView ? 'Lista' : 'Kanban'}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsImportExportOpen(true)}>
+                  <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setKanbanView(!kanbanView)}>
+                  {kanbanView ? <MessageSquare className="w-4 h-4 mr-2" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                  {kanbanView ? 'Lista' : 'Kanban'}
+                </Button>
+              </div>
             )}
           </header>
           
