@@ -1009,7 +1009,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="templates" className="space-y-6">
+          <TabsContent value="templates" className="space-y-4">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Templates do WhatsApp</h2>
