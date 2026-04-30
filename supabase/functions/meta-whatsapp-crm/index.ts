@@ -1044,11 +1044,27 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       // Stop current flow by deleting scheduled messages
       await supabase.from('crm_scheduled_messages').delete().eq('contact_id', contactId);
       
-      const { data: targetFlow } = await supabase
+      let { data: targetFlow } = await supabase
         .from('crm_flows')
         .select('*')
         .eq('id', node.data.targetFlowId)
         .single()
+      
+      // Fallback: search by name if ID not found
+      if (!targetFlow && node.data.targetFlowName) {
+        console.log(`Flow ID ${node.data.targetFlowId} not found, searching by name: ${node.data.targetFlowName}`);
+        const { data: flowsByName } = await supabase
+          .from('crm_flows')
+          .select('*')
+          .eq('name', node.data.targetFlowName)
+          .eq('is_active', true)
+          .limit(1);
+        
+        if (flowsByName && flowsByName.length > 0) {
+          targetFlow = flowsByName[0];
+          console.log(`Found matching flow by name with ID: ${targetFlow.id}`);
+        }
+      }
       
       if (targetFlow && targetFlow.nodes && targetFlow.nodes.length > 0) {
         const nodeIdsWithTarget = new Set(targetFlow.edges.map((e: any) => e.target))
