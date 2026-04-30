@@ -1103,7 +1103,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6">
+          <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Configurações da API Meta</CardTitle>
