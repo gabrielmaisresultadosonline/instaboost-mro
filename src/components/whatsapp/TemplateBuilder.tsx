@@ -183,8 +183,8 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
             <div className="space-y-2">
               <Label>Cabeçalho (Opcional)</Label>
               <div className="flex gap-2 flex-wrap">
-                <Button variant={headerType === 'NONE' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('NONE')}>Nenhum</Button>
-                <Button variant={headerType === 'TEXT' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('TEXT')}><Type className="w-4 h-4 mr-1" /> Texto</Button>
+                <Button variant={headerType === 'NONE' ? 'default' : 'outline'} size="sm" onClick={() => { setHeaderType('NONE'); setHeaderUrl(''); }}>Nenhum</Button>
+                <Button variant={headerType === 'TEXT' ? 'default' : 'outline'} size="sm" onClick={() => { setHeaderType('TEXT'); setHeaderUrl(''); }}><Type className="w-4 h-4 mr-1" /> Texto</Button>
                 <Button variant={headerType === 'IMAGE' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('IMAGE')}><ImageIcon className="w-4 h-4 mr-1" /> Imagem</Button>
                 <Button variant={headerType === 'VIDEO' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('VIDEO')}><Video className="w-4 h-4 mr-1" /> Vídeo</Button>
                 <Button variant={headerType === 'DOCUMENT' ? 'default' : 'outline'} size="sm" onClick={() => setHeaderType('DOCUMENT')}><FileText className="w-4 h-4 mr-1" /> Documento</Button>
