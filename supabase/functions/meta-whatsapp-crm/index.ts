@@ -827,13 +827,19 @@ async function internalSendTemplate(
 
   // Save to message history
   if (result.messages && result.messages[0]) {
-    const headerComponent = finalComponents.find((c: any) => c.type === 'header')?.parameters?.[0];
+    const headerParams = finalComponents.find((c: any) => c.type === "header")?.parameters?.[0];
     let mediaUrl = null;
     
-    if (headerComponent) {
-      if (headerComponent.type === 'image') mediaUrl = headerComponent.image?.link || headerComponent.image?.id;
-      else if (headerComponent.type === 'video') mediaUrl = headerComponent.video?.link || headerComponent.video?.id;
-      else if (headerComponent.type === 'document') mediaUrl = headerComponent.document?.link || headerComponent.document?.id;
+    if (headerParams) {
+      if (headerParams.type === 'image') mediaUrl = headerParams.image?.link || headerParams.image?.id;
+      else if (headerParams.type === 'video') mediaUrl = headerParams.video?.link || headerParams.video?.id;
+      else if (headerParams.type === 'document') mediaUrl = headerParams.document?.link || headerParams.document?.id;
+    }
+
+    // Try to find the original URL from manualComponents if we have an ID instead of a link
+    if (mediaUrl && /^\d+$/.test(mediaUrl.toString())) {
+      const originalUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.[headerParams.type]?.link;
+      if (originalUrl) mediaUrl = originalUrl;
     }
 
     // Ensure content has the [Template: name] prefix for the frontend to recognize it
@@ -981,8 +987,8 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    if (delayMs <= 10000) { // Reduced sleep to 10s for more safety in Edge Functions
-      await sleep(delayMs)
+    if (delayMs <= 2000) { // Only sleep for very short delays to ensure function snappy response
+      if (delayMs > 0) await sleep(delayMs)
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
@@ -1136,7 +1142,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          await sleep(1500)
+          await sleep(500) // Reduced from 1500ms for faster flow execution
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id,
             last_flow_interaction: new Date().toISOString()

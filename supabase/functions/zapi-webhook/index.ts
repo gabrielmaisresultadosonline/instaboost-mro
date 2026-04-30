@@ -510,3 +510,28 @@ serve(async (req) => {
     });
   }
 });
+
+async function downloadAndUploadZapiMedia(supabase: any, url: string, type: string) {
+  if (!url) return null;
+  try {
+    console.log(`Downloading Z-API media from: ${url}`);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to download: ${res.statusText}`);
+    const blob = await res.blob();
+    const mimeType = blob.type || 'application/octet-stream';
+    const ext = mimeType.split('/')[1] || 'bin';
+    const filePath = `zapi/${type}/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('crm-media')
+      .upload(filePath, blob, { contentType: mimeType, upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage.from('crm-media').getPublicUrl(filePath);
+    return publicUrl;
+  } catch (err) {
+    console.error(`Error processing Z-API media:`, err);
+    return url; // Fallback to original URL if upload fails
+  }
+}

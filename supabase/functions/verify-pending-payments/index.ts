@@ -295,6 +295,14 @@ serve(async (req) => {
 
     log("Verification complete", results);
 
+    // Trigger scheduled CRM messages processing
+    try {
+      await supabase.functions.invoke('meta-whatsapp-crm', { body: { action: 'processScheduled' } });
+      log("Scheduled CRM messages processed");
+    } catch (e) {
+      log("Error triggering scheduled CRM messages", { error: String(e) });
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
