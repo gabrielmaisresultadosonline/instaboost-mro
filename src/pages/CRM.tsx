@@ -1039,7 +1039,7 @@ const CRM = () => {
                           <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
                               {chatMessages.map((m, idx) => {
-                                const isTemplate = m.message_type === 'template';
+                                const isTemplate = m.message_type === 'template' || m.content?.includes('[Template:');
                                 const templateName = m.content?.match(/\[Template: (.*?)\]/)?.[1];
                                 let template = isTemplate ? templates.find(t => t.name === templateName) : null;
 
