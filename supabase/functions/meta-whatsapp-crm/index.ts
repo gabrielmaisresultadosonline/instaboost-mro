@@ -643,41 +643,29 @@ async function internalSendTemplate(
           }
         }
 
-        // Check if the image is from Meta's CDN (scontent.whatsapp.net)
-        const isMetaCdn = imageUrl && (
-          imageUrl.includes('whatsapp.net') || 
-          imageUrl.includes('fbcdn.net') || 
-          imageUrl.includes('facebook.com')
-        );
-
-        if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
-          finalComponents.push({
-            type: "header",
-            parameters: [{
-              type: "image",
-              image: { link: imageUrl }
-            }]
-          });
-        } else {
-          // If no URL is provided, try to use the header_handle from the template itself
-          const headerHandle = headerComponent.example?.header_handle?.[0];
-          if (headerHandle) {
-             finalComponents.push({
-              type: "header",
-              parameters: [{
-                type: "image",
-                image: { link: headerHandle }
-              }]
-            });
-          } else {
-            // Last resort fallback
-            const fallbackImage = "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/crm-media/template-headers/fallback-header.jpg";
-            console.log(`Using fallback image for template header: ${fallbackImage}`);
+        if (imageUrl) {
+          console.log(`Processing header image: ${imageUrl}`);
+          // Always try to upload to Meta to get an ID, especially for Meta's own CDN links
+          // which are often rejected when sent as a "link"
+          const metaMediaId = await uploadMediaToMeta(metaAccessToken, metaPhoneNumberId, imageUrl, 'image');
+          
+          if (metaMediaId) {
+            console.log(`Using Meta Media ID for header: ${metaMediaId}`);
             finalComponents.push({
               type: "header",
               parameters: [{
                 type: "image",
-                image: { link: fallbackImage }
+                image: { id: metaMediaId }
+              }]
+            });
+          } else if (imageUrl.startsWith('http')) {
+            // Fallback to link if upload fails but we have a valid-looking URL
+            console.log(`Fallback to image link: ${imageUrl}`);
+            finalComponents.push({
+              type: "header",
+              parameters: [{
+                type: "image",
+                image: { link: imageUrl }
               }]
             });
           }
@@ -686,15 +674,28 @@ async function internalSendTemplate(
          let mediaUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.[headerComponent.format.toLowerCase()]?.link;
          if (!mediaUrl) mediaUrl = headerComponent.example?.header_handle?.[0];
 
-         if (mediaUrl && !mediaUrl.includes('whatsapp.net')) {
+         if (mediaUrl) {
             const type = headerComponent.format.toLowerCase();
-            const mediaObj: any = { link: mediaUrl };
-            if (type === 'document') mediaObj.filename = "document.pdf";
-            
-            finalComponents.push({
-              type: "header",
-              parameters: [{ type, [type]: mediaObj }]
-            });
+            console.log(`Processing header ${type}: ${mediaUrl}`);
+            const metaMediaId = await uploadMediaToMeta(metaAccessToken, metaPhoneNumberId, mediaUrl, type);
+
+            if (metaMediaId) {
+              finalComponents.push({
+                type: "header",
+                parameters: [{
+                  type,
+                  [type]: { id: metaMediaId }
+                }]
+              });
+            } else if (mediaUrl.startsWith('http')) {
+              const mediaObj: any = { link: mediaUrl };
+              if (type === 'document') mediaObj.filename = "document.pdf";
+              
+              finalComponents.push({
+                type: "header",
+                parameters: [{ type, [type]: mediaObj }]
+              });
+            }
          }
       } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
         const headerText = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.text || contact?.name || 'Cliente';
