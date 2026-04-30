@@ -318,7 +318,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
         timeout: 20,
         isPTT: type === 'audio',
         fileName: '',
-        action: type === 'crmAction' ? 'Notificar Agente' : ''
+        action: type === 'crmAction' ? 'Notificar Agente' : '',
+        templateName: '',
+        templateId: '',
+        language: ''
       },
     };
     setNodes((nds) => nds.concat(newNode));
