@@ -945,72 +945,123 @@ const CRM = () => {
 
                           <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
-                              {chatMessages.map((m, idx) => (
-                                <div key={m.id || idx} className={cn(
-                                  "flex w-full mb-1",
-                                  m.direction === 'inbound' ? 'justify-start' : 'justify-end'
-                                )}>
-                                  <div className={cn(
-                                    "p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
-                                    m.direction === 'inbound' 
-                                      ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
-                                      : 'bg-primary text-primary-foreground rounded-tr-none'
+                              {chatMessages.map((m, idx) => {
+                                const isTemplate = m.message_type === 'template';
+                                const template = isTemplate ? templates.find(t => t.name === (m.content?.match(/\[Template: (.*?)\]/)?.[1] || '')) : null;
+                                
+                                return (
+                                  <div key={m.id || idx} className={cn(
+                                    "flex w-full mb-1",
+                                    m.direction === 'inbound' ? 'justify-start' : 'justify-end'
                                   )}>
-                                    {m.message_type === 'image' && m.media_url && (
-                                      <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
-                                        <img 
-                                          src={m.media_url} 
-                                          alt="Mídia" 
-                                          className="max-w-full h-auto cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" 
-                                          onClick={() => setPreviewMedia({ url: m.media_url, type: 'image' })} 
-                                        />
-                                      </div>
-                                    )}
-                                    {m.message_type === 'video' && m.media_url && (
-                                      <div 
-                                        className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 relative group cursor-pointer"
-                                        onClick={() => setPreviewMedia({ url: m.media_url, type: 'video' })}
-                                      >
-                                        <video src={m.media_url} className="max-w-full h-auto rounded-lg shadow-inner" />
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
-                                          <Play className="w-12 h-12 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
-                                        </div>
-                                      </div>
-                                    )}
-                                    {m.message_type === 'audio' && m.media_url && (
-                                      <div className="mb-2 p-1.5 rounded-xl bg-muted/10 border border-border/10">
-                                        <audio src={m.media_url} controls className="max-w-full h-9" />
-                                      </div>
-                                    )}
-                                    {m.message_type === 'document' && m.media_url && (
-                                      <div 
-                                        onClick={() => window.open(m.media_url, '_blank')}
-                                        className="mb-2 p-3 rounded-xl bg-muted/20 border border-border/20 flex items-center gap-3 cursor-pointer hover:bg-muted/30 transition-colors"
-                                      >
-                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                          <FileText className="w-5 h-5 text-primary" />
-                                        </div>
-                                        <div className="flex-1 overflow-hidden">
-                                          <div className="text-[13px] font-medium truncate">Documento</div>
-                                          <div className="text-[10px] opacity-60">Clique para abrir</div>
-                                        </div>
-                                      </div>
-                                    )}
-                                    {(m.message_text || m.content) && (
-                                      <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap px-0.5">
-                                        {m.message_text || m.content}
-                                      </div>
-                                    )}
                                     <div className={cn(
-                                      "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
-                                      m.direction === 'inbound' ? 'text-muted-foreground' : 'text-primary-foreground'
+                                      "p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
+                                      m.direction === 'inbound' 
+                                        ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
+                                        : 'bg-primary text-primary-foreground rounded-tr-none'
                                     )}>
-                                      {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                      {m.direction === 'outbound' && <Check className="w-3 h-3" />}
+                                      {isTemplate && template ? (
+                                        <div className="overflow-hidden rounded-xl bg-white dark:bg-zinc-900 shadow-lg border border-border/50 max-w-[300px]">
+                                          {template.components?.find((c: any) => c.type === 'HEADER')?.format !== 'NONE' && (
+                                            <div className="aspect-video bg-muted/20 flex items-center justify-center relative overflow-hidden border-b border-border/10">
+                                              {(() => {
+                                                const header = template.components.find((c: any) => c.type === 'HEADER');
+                                                const mediaUrl = m.media_url || header?.example?.header_handle?.[0];
+                                                
+                                                if (header?.format === 'IMAGE' && mediaUrl) {
+                                                  return <img src={mediaUrl} alt="Header" className="w-full h-full object-cover cursor-pointer" onClick={() => setPreviewMedia({ url: mediaUrl, type: 'image' })} />;
+                                                } else if (header?.format === 'VIDEO' && mediaUrl) {
+                                                  return (
+                                                    <div className="w-full h-full relative cursor-pointer" onClick={() => setPreviewMedia({ url: mediaUrl, type: 'video' })}>
+                                                      <video src={mediaUrl} className="w-full h-full object-cover" />
+                                                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                        <Play className="w-10 h-10 text-white" />
+                                                      </div>
+                                                    </div>
+                                                  );
+                                                } else if (header?.format === 'TEXT') {
+                                                  return <div className="p-3 font-bold text-sm text-foreground w-full">{header.text}</div>;
+                                                }
+                                                return <div className="text-[10px] text-muted-foreground flex flex-col items-center gap-1"><ImageIcon className="w-5 h-5 opacity-20" /> Sem mídia</div>;
+                                              })()}
+                                            </div>
+                                          )}
+                                          <div className="p-3 space-y-2">
+                                            <div className="text-[13px] md:text-sm leading-relaxed text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">
+                                              {m.content?.includes('[Template:') ? template.components?.find((c: any) => c.type === 'BODY')?.text : m.content}
+                                            </div>
+                                            {template.components?.find((c: any) => c.type === 'FOOTER') && (
+                                              <div className="text-[10px] opacity-60 uppercase font-medium">
+                                                {template.components.find((c: any) => c.type === 'FOOTER').text}
+                                              </div>
+                                            )}
+                                          </div>
+                                          {template.components?.find((c: any) => c.type === 'BUTTONS')?.buttons?.map((btn: any, bIdx: number) => (
+                                            <div key={bIdx} className="flex items-center justify-center p-2 border-t border-border/30 text-blue-500 text-xs font-bold hover:bg-muted/5 transition-colors cursor-default">
+                                              {btn.text}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <>
+                                          {m.message_type === 'image' && m.media_url && (
+                                            <div className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20">
+                                              <img 
+                                                src={m.media_url} 
+                                                alt="Mídia" 
+                                                className="max-w-full h-auto cursor-zoom-in transition-transform hover:scale-[1.02] duration-300" 
+                                                onClick={() => setPreviewMedia({ url: m.media_url, type: 'image' })} 
+                                              />
+                                            </div>
+                                          )}
+                                          {m.message_type === 'video' && m.media_url && (
+                                            <div 
+                                              className="mb-2 overflow-hidden rounded-lg border border-border/20 shadow-sm bg-muted/20 relative group cursor-pointer"
+                                              onClick={() => setPreviewMedia({ url: m.media_url, type: 'video' })}
+                                            >
+                                              <video src={m.media_url} className="max-w-full h-auto rounded-lg shadow-inner" />
+                                              <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                                                <Play className="w-12 h-12 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
+                                              </div>
+                                            </div>
+                                          )}
+                                          {m.message_type === 'audio' && m.media_url && (
+                                            <div className="mb-2 p-1.5 rounded-xl bg-muted/10 border border-border/10">
+                                              <audio src={m.media_url} controls className="max-w-full h-9" />
+                                            </div>
+                                          )}
+                                          {m.message_type === 'document' && m.media_url && (
+                                            <div 
+                                              onClick={() => window.open(m.media_url, '_blank')}
+                                              className="mb-2 p-3 rounded-xl bg-muted/20 border border-border/20 flex items-center gap-3 cursor-pointer hover:bg-muted/30 transition-colors"
+                                            >
+                                              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                <FileText className="w-5 h-5 text-primary" />
+                                              </div>
+                                              <div className="flex-1 overflow-hidden">
+                                                <div className="text-[13px] font-medium truncate">Documento</div>
+                                                <div className="text-[10px] opacity-60">Clique para abrir</div>
+                                              </div>
+                                            </div>
+                                          )}
+                                          {(m.message_text || m.content) && (
+                                            <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap px-0.5">
+                                              {m.message_text || m.content}
+                                            </div>
+                                          )}
+                                        </>
+                                      )}
+                                      <div className={cn(
+                                        "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
+                                        m.direction === 'inbound' ? 'text-muted-foreground' : 'text-primary-foreground'
+                                      )}>
+                                        {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        {m.direction === 'outbound' && <Check className="w-3 h-3" />}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                               <div ref={scrollRef} className="h-4" />
                             </div>
                           </ScrollArea>
