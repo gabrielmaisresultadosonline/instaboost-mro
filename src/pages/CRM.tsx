@@ -721,7 +721,7 @@ const CRM = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="contacts" className="h-[calc(100vh-250px)] border rounded-xl overflow-hidden glass-card flex flex-col">
+          <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0">
             <div className="flex items-center justify-between p-2 border-b bg-muted/30">
               <div className="flex gap-2">
                 <Button variant={!kanbanView ? "default" : "ghost"} size="sm" onClick={() => setKanbanView(false)}><MessageSquare className="h-4 w-4 mr-1" /> Lista</Button>
