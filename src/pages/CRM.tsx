@@ -80,6 +80,8 @@ const CRM = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('contacts');
+
   
   const [metaSettings, setMetaSettings] = useState<any>({
     meta_access_token: '',
