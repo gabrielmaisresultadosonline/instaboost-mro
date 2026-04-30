@@ -1094,8 +1094,32 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
           .eq('id', contactId)
         
         return executeVisualNode(supabase, targetFlow, startNode, contactId, waId)
+      } else if (targetFlow) {
+        // Fallback to old steps system
+        await supabase
+          .from('crm_contacts')
+          .update({
+            current_flow_id: targetFlow.id,
+            current_step_index: 0,
+            flow_state: 'running',
+            last_flow_interaction: new Date().toISOString()
+          })
+          .eq('id', contactId)
+        
+        const { data: step } = await supabase
+          .from('crm_flow_steps')
+          .select('*')
+          .eq('flow_id', targetFlow.id)
+          .eq('step_order', 0)
+          .single()
+        
+        if (step) return processStep(supabase, step, contactId, waId)
+        
+        return new Response(JSON.stringify({ success: true, message: 'Jumped to step-based flow' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
       } else {
-        console.error('Target flow not found or has no nodes');
+        console.error('Target flow not found');
         sendResult = { success: false, error: 'Target flow not found' };
       }
     } else {
