@@ -1,6 +1,7 @@
 import { X, ZoomIn, ZoomOut, RotateCcw, Download } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 
 interface MediaPopupProps {
   url: string;
@@ -122,5 +123,3 @@ export const MediaPopup = ({ url, type, onClose }: MediaPopupProps) => {
     </div>
   );
 };
-
-import { cn } from "@/lib/utils";
