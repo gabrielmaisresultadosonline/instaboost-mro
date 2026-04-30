@@ -879,18 +879,18 @@ const CRM = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-muted/30 border-b px-4 py-2 flex gap-3 overflow-x-auto no-scrollbar items-center sticky top-14 z-[5]">
-                            <div className="flex items-center gap-2 pr-2 border-r">
-                              <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
-                                <FileText className="w-3 h-3 text-emerald-500" /> Templates:
+                          <div className="bg-muted/10 border-b px-3 py-2 flex flex-col sm:flex-row gap-2 sm:gap-4 sticky top-14 z-[5] backdrop-blur-sm overflow-hidden">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className="text-[10px] font-black uppercase text-muted-foreground/80 shrink-0 flex items-center gap-1 bg-muted/20 px-1.5 py-0.5 rounded">
+                                <FileText className="w-3 h-3 text-emerald-500" /> Modelos
                               </span>
-                              <div className="flex gap-1.5">
-                                {templates.slice(0, 5).map(t => (
+                              <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 flex-1">
+                                {templates.slice(0, 8).map(t => (
                                   <Button 
                                     key={t.id} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="h-6 text-[10px] px-2 rounded-full border-emerald-200 bg-emerald-50/50 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-medium" 
+                                    className="h-7 text-[10px] px-3 rounded-full border-emerald-500/30 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-sm" 
                                     onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
                                     disabled={sendingMessage}
                                   >
@@ -900,17 +900,17 @@ const CRM = () => {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
-                                <Zap className="w-3 h-3 text-blue-500" /> Fluxos:
+                            <div className="flex items-center gap-2 min-w-0 flex-1 sm:border-l sm:pl-4 border-muted">
+                              <span className="text-[10px] font-black uppercase text-muted-foreground/80 shrink-0 flex items-center gap-1 bg-muted/20 px-1.5 py-0.5 rounded">
+                                <Zap className="w-3 h-3 text-blue-500" /> Fluxos
                               </span>
-                              <div className="flex gap-1.5">
-                                {flows.filter(f => f.is_active).slice(0, 5).map(f => (
+                              <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 flex-1">
+                                {flows.filter(f => f.is_active).slice(0, 8).map(f => (
                                   <Button 
                                     key={f.id} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="h-6 text-[10px] px-2 rounded-full border-blue-200 bg-blue-50/50 text-blue-700 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-medium" 
+                                    className="h-7 text-[10px] px-3 rounded-full border-blue-500/30 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-sm" 
                                     onClick={() => handleTriggerFlow(f.id)} 
                                     disabled={sendingMessage}
                                   >
@@ -1008,36 +1008,36 @@ const CRM = () => {
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-2 max-w-5xl mx-auto">
-                                <div className="flex gap-1">
-                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary"><ImageIcon className="w-5 h-5" /></Button>
-                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary"><Paperclip className="w-5 h-5" /></Button>
+                              <div className="flex items-center gap-1.5 sm:gap-2 max-w-5xl mx-auto w-full">
+                                <div className="flex gap-0.5 sm:gap-1">
+                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><ImageIcon className="w-5 h-5" /></Button>
+                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><Paperclip className="w-5 h-5" /></Button>
                                 </div>
                                 <div className="flex-1 relative">
                                   <Input 
-                                    placeholder="Digite uma mensagem..." 
+                                    placeholder="Mensagem..." 
                                     value={newMessage} 
                                     onChange={e => setNewMessage(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                                    className="bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 px-4 pr-12 rounded-xl"
+                                    className="bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary h-10 sm:h-11 px-3 sm:px-4 pr-10 sm:pr-12 rounded-xl text-sm"
                                   />
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
                                     className={cn(
-                                      "absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg transition-colors",
+                                      "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-colors",
                                       newMessage.trim() ? "text-primary" : "text-muted-foreground opacity-50"
                                     )}
                                     onClick={handleSendMessage}
                                     disabled={!newMessage.trim() || sendingMessage}
                                   >
-                                    <Send className="w-5 h-5" />
+                                    <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                                   </Button>
                                 </div>
                                 <Button 
                                   size="icon" 
                                   variant={isRecording ? 'destructive' : 'ghost'} 
-                                  className={cn("h-11 w-11 rounded-xl shrink-0", isRecording && "animate-pulse")}
+                                  className={cn("h-10 w-10 sm:h-11 sm:w-11 rounded-xl shrink-0 transition-all", isRecording && "animate-pulse ring-2 ring-destructive ring-offset-2")}
                                   onClick={isRecording ? stopRecording : startRecording}
                                 >
                                   {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5 text-muted-foreground" />}
