@@ -134,6 +134,8 @@ const CRM = () => {
     language?: string;
   } | null>(null);
 
+  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
+
   useEffect(() => {
     let interval: any;
     if (selectedContact?.next_execution_time) {
