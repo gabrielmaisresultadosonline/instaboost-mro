@@ -286,6 +286,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
               <Button variant="outline" className="justify-start gap-2 border-amber-500/20 hover:bg-amber-500/10" onClick={() => addNode('delay')}>
                 <Clock className="w-4 h-4 text-amber-500" /> Delay
               </Button>
+              <Button variant="outline" className="justify-start gap-2 border-indigo-500/20 hover:bg-indigo-500/10" onClick={() => addNode('waitResponse')}>
+                <UserCheck className="w-4 h-4 text-indigo-500" /> Aguardar Resposta
+              </Button>
               <Button variant="outline" className="justify-start gap-2 border-red-500/20 hover:bg-red-500/10" onClick={() => addNode('followup')}>
                 <AlertCircle className="w-4 h-4 text-red-500" /> Lembrete
               </Button>
@@ -293,7 +296,7 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
           </div>
 
           {selectedNode && (
-            <div className="pt-6 border-t animate-in fade-in slide-in-from-right-4">
+            <div className="pt-6 border-t animate-in fade-in slide-in-from-right-4 pb-20">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold">Configurar Bloco</h3>
                 <Button variant="ghost" size="icon" className="text-red-500" onClick={() => deleteNode(selectedNode.id)}>
