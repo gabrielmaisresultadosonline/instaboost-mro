@@ -112,6 +112,7 @@ const CRM = () => {
   const [contacts, setContacts] = useState<any[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
   const [kanbanView, setKanbanView] = useState(false);
   const [draggedContact, setDraggedContact] = useState<any>(null);
   const [selectedContact, setSelectedContact] = useState<any>(null);
@@ -694,6 +695,7 @@ const CRM = () => {
             wa_id: contact.wa_id,
             name: contact.name,
             status: 'new',
+            source_type: 'imported',
             metadata: contact.metadata
           }, { onConflict: 'wa_id' });
         }
@@ -718,6 +720,7 @@ const CRM = () => {
             wa_id: phone.replace(/\D/g, ''),
             name: contact.Nome || contact.name,
             status: contact.Status || 'new',
+            source_type: 'imported',
             metadata: {
               bio: contact.Bio || contact.bio,
               instagram: contact.Instagram || contact.instagram,
@@ -1578,15 +1581,45 @@ const CRM = () => {
                   </div>
 
                   <div className="bg-card rounded-2xl border shadow-sm overflow-hidden">
-                    <div className="p-4 border-b bg-muted/30">
-                      <div className="relative max-w-sm">
-                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <div className="p-4 border-b bg-muted/30 flex flex-col md:flex-row gap-4 items-center justify-between">
+                      <div className="relative w-full max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input 
                           placeholder="Pesquisar por nome ou número..." 
                           className="pl-9 bg-background"
                           value={statusFilter === 'all' ? '' : statusFilter}
                           onChange={e => setStatusFilter(e.target.value || 'all')}
                         />
+                      </div>
+                      
+                      <div className="flex items-center gap-2 w-full md:w-auto">
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Filtrar Origem:</span>
+                        <div className="flex bg-muted p-1 rounded-lg">
+                          <Button 
+                            variant={sourceFilter === 'all' ? 'secondary' : 'ghost'} 
+                            size="sm" 
+                            className="text-[10px] h-7 px-3"
+                            onClick={() => setSourceFilter('all')}
+                          >
+                            Todos
+                          </Button>
+                          <Button 
+                            variant={sourceFilter === 'system' ? 'secondary' : 'ghost'} 
+                            size="sm" 
+                            className="text-[10px] h-7 px-3"
+                            onClick={() => setSourceFilter('system')}
+                          >
+                            Sistema
+                          </Button>
+                          <Button 
+                            variant={sourceFilter === 'imported' ? 'secondary' : 'ghost'} 
+                            size="sm" 
+                            className="text-[10px] h-7 px-3"
+                            onClick={() => setSourceFilter('imported')}
+                          >
+                            Importados
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     
@@ -1596,6 +1629,7 @@ const CRM = () => {
                           <tr className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b">
                             <th className="px-6 py-4">Nome</th>
                             <th className="px-6 py-4">WhatsApp</th>
+                            <th className="px-6 py-4">Origem</th>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4">Última Interação</th>
                             <th className="px-6 py-4 text-right">Ações</th>
@@ -1603,11 +1637,13 @@ const CRM = () => {
                         </thead>
                         <tbody className="divide-y">
                           {contacts
-                            .filter(c => 
-                              statusFilter === 'all' || 
-                              c.name?.toLowerCase().includes(statusFilter.toLowerCase()) || 
-                              c.wa_id?.includes(statusFilter)
-                            )
+                            .filter(c => {
+                              const matchesSearch = statusFilter === 'all' || 
+                                c.name?.toLowerCase().includes(statusFilter.toLowerCase()) || 
+                                c.wa_id?.includes(statusFilter);
+                              const matchesSource = sourceFilter === 'all' || c.source_type === sourceFilter;
+                              return matchesSearch && matchesSource;
+                            })
                             .map((contact) => (
                             <tr key={contact.id} className="hover:bg-muted/30 transition-colors group">
                               <td className="px-6 py-4">
@@ -1619,6 +1655,11 @@ const CRM = () => {
                                 </div>
                               </td>
                               <td className="px-6 py-4 text-sm text-muted-foreground font-mono">{contact.wa_id}</td>
+                              <td className="px-6 py-4">
+                                <Badge variant="secondary" className="text-[9px] uppercase font-bold">
+                                  {contact.source_type === 'imported' ? 'Importado' : 'Sistema'}
+                                </Badge>
+                              </td>
                               <td className="px-6 py-4">
                                 <Badge variant="outline" className={cn("capitalize text-[10px]", getStatusColor(contact.status))}>
                                   {contact.status}
