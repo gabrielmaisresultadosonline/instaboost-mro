@@ -702,14 +702,14 @@ const CRM = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 mt-4 h-[calc(100vh-120px)] flex flex-col">
+      <main className="container mx-auto px-4 py-6 flex-1 flex flex-col min-h-0 overflow-hidden">
         <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="mb-4">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="contacts">Contatos/CRM</TabsTrigger>
-            <TabsTrigger value="flows">Fluxos de Automação</TabsTrigger>
-            <TabsTrigger value="templates">Templates Meta</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
+          <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto gap-2 bg-transparent p-0 mb-6">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Dashboard</TabsTrigger>
+            <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Contatos/CRM</TabsTrigger>
+            <TabsTrigger value="flows" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Fluxos</TabsTrigger>
+            <TabsTrigger value="templates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Templates</TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border shadow-sm py-2">Ajustes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
