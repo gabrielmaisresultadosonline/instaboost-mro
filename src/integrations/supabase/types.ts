@@ -716,6 +716,7 @@ export type Database = {
           last_interaction: string | null
           metadata: Json | null
           name: string | null
+          next_execution_time: string | null
           sale_closed: boolean | null
           status: string | null
           total_messages_received: number | null
@@ -735,6 +736,7 @@ export type Database = {
           last_interaction?: string | null
           metadata?: Json | null
           name?: string | null
+          next_execution_time?: string | null
           sale_closed?: boolean | null
           status?: string | null
           total_messages_received?: number | null
@@ -754,6 +756,7 @@ export type Database = {
           last_interaction?: string | null
           metadata?: Json | null
           name?: string | null
+          next_execution_time?: string | null
           sale_closed?: boolean | null
           status?: string | null
           total_messages_received?: number | null
