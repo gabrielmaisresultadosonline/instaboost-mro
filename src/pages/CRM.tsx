@@ -775,6 +775,7 @@ const CRM = () => {
                   {[
                     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                     { id: 'contacts', label: 'Conversas', icon: MessageSquare },
+                    { id: 'contact-list', label: 'Contatos', icon: Users },
                     { id: 'flows', label: 'Fluxos', icon: GitBranch },
                     { id: 'templates', label: 'Templates', icon: FileText },
                     { id: 'settings', label: 'Ajustes', icon: Settings },
@@ -1511,6 +1512,109 @@ const CRM = () => {
               </ScrollArea>
             )}
 
+            {activeTab === 'contact-list' && (
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Lista de Contatos</h2>
+                      <p className="text-muted-foreground text-sm">Gerencie todos os seus contatos salvos e importados.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => setIsImportExportOpen(true)}>
+                        <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
+                      </Button>
+                      <Button onClick={() => { setContactToView({ name: '', wa_id: '', metadata: {} }); setIsContactInfoOpen(true); }} className="bg-primary">
+                        <UserPlus className="w-4 h-4 mr-2" /> Novo Contato
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="bg-card rounded-2xl border shadow-sm overflow-hidden">
+                    <div className="p-4 border-b bg-muted/30">
+                      <div className="relative max-w-sm">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="Pesquisar por nome ou número..." 
+                          className="pl-9 bg-background"
+                          value={statusFilter === 'all' ? '' : statusFilter}
+                          onChange={e => setStatusFilter(e.target.value || 'all')}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b">
+                            <th className="px-6 py-4">Nome</th>
+                            <th className="px-6 py-4">WhatsApp</th>
+                            <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4">Última Interação</th>
+                            <th className="px-6 py-4 text-right">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {contacts
+                            .filter(c => 
+                              statusFilter === 'all' || 
+                              c.name?.toLowerCase().includes(statusFilter.toLowerCase()) || 
+                              c.wa_id?.includes(statusFilter)
+                            )
+                            .map((contact) => (
+                            <tr key={contact.id} className="hover:bg-muted/30 transition-colors group">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                    {contact.name?.charAt(0) || <User className="w-4 h-4" />}
+                                  </div>
+                                  <span className="font-semibold text-sm">{contact.name || 'Sem nome'}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-muted-foreground font-mono">{contact.wa_id}</td>
+                              <td className="px-6 py-4">
+                                <Badge variant="outline" className={cn("capitalize text-[10px]", getStatusColor(contact.status))}>
+                                  {contact.status}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 text-[11px] text-muted-foreground">
+                                {contact.last_interaction ? new Date(contact.last_interaction).toLocaleString() : 'Nunca'}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => { openChat(contact); setActiveTab('contacts'); }}>
+                                    <MessageSquare className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openContactInfo(contact)}>
+                                    <Settings className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => {
+                                    if (confirm('Excluir este contato?')) {
+                                      await supabase.from('crm_contacts').delete().eq('id', contact.id);
+                                      fetchContacts();
+                                    }
+                                  }}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          {contacts.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground italic text-sm">
+                                Nenhum contato encontrado. Importe uma lista vCard ou CSV para começar.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
+
             {activeTab === 'settings' && (
               <ScrollArea className="flex-1 p-8 bg-muted/5">
                 <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -1665,8 +1769,12 @@ const CRM = () => {
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <User className="w-10 h-10 text-primary" />
             </div>
-            <DialogTitle className="text-2xl font-bold">Informações do Contato</DialogTitle>
-            <DialogDescription>Visualize e edite os detalhes de {contactToView?.name || contactToView?.wa_id}</DialogDescription>
+            <DialogTitle className="text-2xl font-bold">{contactToView?.id ? 'Informações do Contato' : 'Novo Contato'}</DialogTitle>
+            <DialogDescription>
+              {contactToView?.id 
+                ? `Visualize e edite os detalhes de ${contactToView?.name || contactToView?.wa_id}`
+                : 'Adicione um novo contato manualmente à sua lista.'}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -1685,8 +1793,13 @@ const CRM = () => {
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">WhatsApp / ID</Label>
                 <Input 
                   value={contactToView?.wa_id || ''} 
-                  readOnly
-                  className="bg-muted/20 border-none h-10 rounded-xl text-sm opacity-70 cursor-not-allowed"
+                  onChange={e => setContactToView({...contactToView, wa_id: e.target.value})}
+                  readOnly={!!contactToView?.id}
+                  placeholder="Ex: 5511999999999"
+                  className={cn(
+                    "bg-muted/30 border-none h-10 rounded-xl text-sm",
+                    contactToView?.id && "opacity-70 cursor-not-allowed bg-muted/20"
+                  )}
                 />
               </div>
             </div>
@@ -1743,10 +1856,26 @@ const CRM = () => {
             <Button 
               className="bg-primary hover:bg-primary/90 text-white rounded-xl h-12 px-8 font-bold shadow-lg shadow-primary/20"
               onClick={async () => {
-                await supabase.from('crm_contacts').update({ 
-                  name: contactToView.name,
-                  metadata: contactToView.metadata 
-                }).eq('id', contactToView.id);
+                const { id, ...rest } = contactToView;
+                if (id) {
+                  await supabase.from('crm_contacts').update({ 
+                    name: contactToView.name,
+                    metadata: contactToView.metadata 
+                  }).eq('id', id);
+                } else {
+                  // New contact
+                  const { error } = await supabase.from('crm_contacts').insert([{
+                    name: contactToView.name,
+                    wa_id: contactToView.wa_id,
+                    metadata: contactToView.metadata,
+                    status: 'new'
+                  }]);
+                  if (error) {
+                    toast({ title: "Erro ao criar contato", variant: "destructive" });
+                    return;
+                  }
+                }
+                toast({ title: id ? "Contato atualizado!" : "Contato criado!" });
                 toast({ title: "Contato atualizado!" });
                 fetchContacts();
                 if (selectedContact?.id === contactToView.id) {
