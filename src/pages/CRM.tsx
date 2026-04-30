@@ -783,7 +783,7 @@ const CRM = () => {
                             onChange={e => setStatusFilter(e.target.value || 'all')} 
                           />
                         </div>
-                        <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
+                        <div className="flex flex-wrap gap-1 pb-1">
                           {['all', 'new', 'responded', 'qualified', 'closed'].map(s => (
                             <Badge 
                               key={s} 
