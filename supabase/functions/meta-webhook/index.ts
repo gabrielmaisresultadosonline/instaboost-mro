@@ -134,22 +134,47 @@ serve(async (req) => {
                     return new Response('OK - Flow Continued', { status: 200 })
                   }
 
-                  // 2. Check for trigger keywords
+                  // 2. Check for triggers (Keywords, New Contact, 24h Inactivity)
+                  const isNewContact = contact.total_messages_received === 1;
+                  const lastInteraction = contact.last_interaction ? new Date(contact.last_interaction).getTime() : 0;
+                  const isAfter24h = lastInteraction > 0 && (new Date().getTime() - lastInteraction) > 24 * 60 * 60 * 1000;
+
                   if (message.type === 'text') {
-                    const text = message.text.body.toLowerCase().trim()
+                    const text = message.text.body.toLowerCase().trim();
                     
-                    const { data: triggeredFlow } = await supabase
+                    // Search for flows with matching keywords or type
+                    const { data: flows } = await supabase
                       .from('crm_flows')
                       .select('*')
-                      .eq('is_active', true)
-                      .contains('trigger_keywords', [text])
-                      .maybeSingle()
+                      .eq('is_active', true);
                     
+                    let triggeredFlow = null;
+
+                    if (flows) {
+                      // Priority 1: Keyword match
+                      triggeredFlow = flows.find(f => 
+                        f.trigger_type === 'keyword' && 
+                        (f.trigger_keywords?.some((k: string) => k.toLowerCase() === text) || 
+                         f.trigger_keyword?.toLowerCase() === text)
+                      );
+
+                      // Priority 2: 24h Inactivity
+                      if (!triggeredFlow && isAfter24h) {
+                        triggeredFlow = flows.find(f => f.trigger_type === '24h_inactivity');
+                      }
+
+                      // Priority 3: New Contact (only if it's the very first message)
+                      if (!triggeredFlow && isNewContact) {
+                        triggeredFlow = flows.find(f => f.trigger_type === 'new_contact');
+                      }
+                    }
+
                     if (triggeredFlow) {
+                      console.log(`Triggering flow ${triggeredFlow.name} for contact ${wa_id}`);
                       await supabase.functions.invoke('meta-whatsapp-crm', {
                         body: { action: 'startFlow', flowId: triggeredFlow.id, contactId: contact.id, waId: wa_id }
                       })
-                      return new Response('OK - Flow Started', { status: 200 })
+                      return new Response('OK - Flow Triggered', { status: 200 })
                     }
                   }
 
