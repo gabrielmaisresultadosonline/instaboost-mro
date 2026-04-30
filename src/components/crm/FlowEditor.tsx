@@ -166,6 +166,21 @@ const FollowUpNode = ({ data }: any) => (
   </Card>
 );
 
+const CRMActionNode = ({ data }: any) => (
+  <Card className="min-w-[180px] border-slate-700 shadow-md">
+    <Handle type="target" position={Position.Top} />
+    <CardHeader className="p-3 bg-slate-700 text-white rounded-t-lg flex flex-row items-center justify-between">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <Zap className="w-3 h-3" /> Ação CRM
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3">
+      <p className="text-[10px] font-bold text-slate-600">{data.action || 'Notificar Agente'}</p>
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} />
+  </Card>
+);
+
 const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
@@ -174,6 +189,7 @@ const nodeTypes = {
   question: QuestionNode,
   followup: FollowUpNode,
   waitResponse: WaitResponseNode,
+  crmAction: CRMActionNode,
 };
 
 interface FlowEditorProps {
