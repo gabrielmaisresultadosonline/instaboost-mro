@@ -25,14 +25,32 @@ import CreativesProManager from '@/components/admin/CreativesProManager';
 import TicketsManager from '@/components/admin/TicketsManager';
 import UsersListPanel from '@/components/admin/UsersListPanel';
 import WhatsAppSettingsTab from '@/components/admin/WhatsAppSettingsTab';
+import ManualScraper from '@/components/admin/ManualScraper';
 import {
   Users, Settings, Video, LogOut, Search, 
   Eye, TrendingUp, Calendar, Sparkles, Download, 
   Save, RefreshCw, Check, ExternalLink,
   Image as ImageIcon, BarChart3, User, CloudDownload,
-  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe
+  Instagram, CheckCircle, XCircle, Phone, Bell, MessageCircle, Ticket, Globe,
+  Menu, LayoutDashboard, ChevronLeft, ShieldCheck
 } from 'lucide-react';
-import ManualScraper from '@/components/admin/ManualScraper';
+import { 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarContent, 
+  SidebarHeader, 
+  SidebarFooter, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarTrigger
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+
 
 type Tab = 'users' | 'analytics' | 'calls' | 'sync' | 'tutorials' | 'zapmro' | 'estrutura' | 'tickets' | 'announcements' | 'pixel' | 'settings' | 'scraper' | 'userlist' | 'whatsapp';
 type UserFilter = 'all' | 'instagram' | 'connected';
