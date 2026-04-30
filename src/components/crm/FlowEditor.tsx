@@ -61,11 +61,11 @@ const AudioNode = ({ data }: any) => (
     <Handle type="target" position={Position.Top} />
     <CardHeader className="p-3 bg-purple-500 text-white rounded-t-lg flex flex-row items-center justify-between">
       <CardTitle className="text-xs font-bold flex items-center gap-2">
-        <Mic className="w-3 h-3" /> Áudio
+        <Mic className="w-3 h-3" /> Áudio {data.isPTT && <Badge variant="secondary" className="bg-white/20 text-white border-none text-[8px] h-4">Gravado</Badge>}
       </CardTitle>
     </CardHeader>
     <CardContent className="p-3">
-      <p className="text-[10px] text-muted-foreground truncate">{data.audioUrl || 'Nenhum áudio selecionado'}</p>
+      <p className="text-[10px] text-muted-foreground truncate">{data.fileName || data.audioUrl || 'Nenhum áudio selecionado'}</p>
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
   </Card>
@@ -80,9 +80,30 @@ const VideoNode = ({ data }: any) => (
       </CardTitle>
     </CardHeader>
     <CardContent className="p-3">
-      <p className="text-[10px] text-muted-foreground truncate">{data.videoUrl || 'Nenhum vídeo selecionado'}</p>
+      <p className="text-[10px] text-muted-foreground truncate">{data.fileName || data.videoUrl || 'Nenhum vídeo selecionado'}</p>
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
+  </Card>
+);
+
+const WaitResponseNode = ({ data }: any) => (
+  <Card className="min-w-[220px] border-indigo-500 shadow-md">
+    <Handle type="target" position={Position.Top} />
+    <CardHeader className="p-3 bg-indigo-500 text-white rounded-t-lg flex flex-row items-center justify-between">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <UserCheck className="w-3 h-3" /> Aguardar Resposta
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3 space-y-3">
+      <div className="flex items-center justify-between text-[10px]">
+        <span className="text-muted-foreground">Se responder:</span>
+        <Handle type="source" position={Position.Bottom} id="responded" style={{ left: '30%', bottom: '-8px' }} />
+      </div>
+      <div className="flex items-center justify-between text-[10px]">
+        <span className="text-muted-foreground">Se não responder ({data.timeout || 20}m):</span>
+        <Handle type="source" position={Position.Bottom} id="timeout" style={{ left: '70%', bottom: '-8px' }} />
+      </div>
+    </CardContent>
   </Card>
 );
 
