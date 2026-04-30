@@ -116,9 +116,21 @@ serve(async (req) => {
                   
                   // 1. Check if waiting for response in current flow
                   if (contact.flow_state === 'waiting_response' && contact.current_flow_id) {
+                    let buttonId = null;
+                    if (message.type === 'interactive' && message.interactive.type === 'button_reply') {
+                      buttonId = message.interactive.button_reply.id;
+                    }
+
                     await supabase.functions.invoke('meta-whatsapp-crm', {
-                      body: { action: 'continueFlow', contactId: contact.id, waId: wa_id }
+                      body: { action: 'continueFlow', contactId: contact.id, waId: wa_id, buttonId }
                     })
+                    
+                    // Cancel any scheduled followups for this flow/contact
+                    await supabase.from('crm_scheduled_messages')
+                      .update({ status: 'cancelled' })
+                      .eq('contact_id', contact.id)
+                      .eq('status', 'pending');
+
                     return new Response('OK - Flow Continued', { status: 200 })
                   }
 
