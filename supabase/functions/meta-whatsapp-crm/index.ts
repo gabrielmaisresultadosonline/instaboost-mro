@@ -650,7 +650,7 @@ async function internalSendTemplate(
           imageUrl.includes('facebook.com')
         );
 
-        if (imageUrl && !isMetaCdn && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+        if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
           finalComponents.push({
             type: "header",
             parameters: [{
@@ -659,17 +659,28 @@ async function internalSendTemplate(
             }]
           });
         } else {
-          // Meta CDN links often fail when sent as 'link'.
-          // We use a high-quality, stable public JPG image from our own storage that is known to be accepted by Meta.
-          const fallbackImage = "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/crm-media/template-headers/fallback-header.jpg";
-          console.log(`Using fallback image for template header: ${fallbackImage}`);
-          finalComponents.push({
-            type: "header",
-            parameters: [{
-              type: "image",
-              image: { link: fallbackImage }
-            }]
-          });
+          // If no URL is provided, try to use the header_handle from the template itself
+          const headerHandle = headerComponent.example?.header_handle?.[0];
+          if (headerHandle) {
+             finalComponents.push({
+              type: "header",
+              parameters: [{
+                type: "image",
+                image: { link: headerHandle }
+              }]
+            });
+          } else {
+            // Last resort fallback
+            const fallbackImage = "https://adljdeekwifwcdcgbpit.supabase.co/storage/v1/object/public/crm-media/template-headers/fallback-header.jpg";
+            console.log(`Using fallback image for template header: ${fallbackImage}`);
+            finalComponents.push({
+              type: "header",
+              parameters: [{
+                type: "image",
+                image: { link: fallbackImage }
+              }]
+            });
+          }
         }
       } else if (headerComponent.format === 'VIDEO' || headerComponent.format === 'DOCUMENT') {
          let mediaUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.[headerComponent.format.toLowerCase()]?.link;
