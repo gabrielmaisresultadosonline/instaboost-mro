@@ -45,6 +45,7 @@ import {
   ListFilter,
   Zap,
   Eye,
+  EyeOff,
   LayoutDashboard,
   Menu,
   ChevronLeft
