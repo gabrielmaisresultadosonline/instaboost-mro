@@ -643,69 +643,87 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
 
   console.log(`Executing node ${node.id} (${node.type}) for contact ${contactId}`);
 
+  // Clear any existing next_execution_time when starting a new node
+  await supabase.from('crm_contacts').update({ next_execution_time: null }).eq('id', contactId)
+
   // Handle Action/Content Nodes
+  let sendResult = null;
+  
   if (node.type === 'message') {
-    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+    const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       text: node.data.text
     }, contact)
+    sendResult = await response.json();
   } 
   else if (node.type === 'audio') {
-    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
-      to: waId,
-      audioUrl: node.data.audioUrl,
-      isVoice: node.data.isPTT ?? true // Default to true for audio nodes in flow
-    }, contact)
+    if (node.data.audioUrl) {
+      const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+        to: waId,
+        audioUrl: node.data.audioUrl,
+        isVoice: node.data.isPTT ?? true
+      }, contact)
+      sendResult = await response.json();
+    } else {
+      console.error('Audio node missing URL');
+      sendResult = { success: false, error: 'Missing audio URL' };
+    }
   }
   else if (node.type === 'video') {
-    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+    const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       videoUrl: node.data.videoUrl
     }, contact)
+    sendResult = await response.json();
   }
   else if (node.type === 'image') {
-    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+    const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       imageUrl: node.data.imageUrl
     }, contact)
+    sendResult = await response.json();
   }
   else if (node.type === 'question') {
-    await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+    const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
       to: waId,
       text: node.data.text,
       buttons: node.data.buttons.map((b: any, idx: number) => ({
-        id: `btn-${idx}`,
+        id: b.id || `btn-${idx}`,
         text: b.text
       }))
     }, contact)
+    sendResult = await response.json();
     
-    await supabase.from('crm_contacts').update({ flow_state: 'waiting_response' }).eq('id', contactId)
-    
-    // Setup followup timer if timeout path exists
-    const timeoutEdge = flow.edges.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout')
-    if (timeoutEdge) {
-      const timeoutMin = node.data.timeout || 20
-      const scheduledFor = new Date(Date.now() + timeoutMin * 60000).toISOString()
+    if (sendResult?.success) {
+      await supabase.from('crm_contacts').update({ flow_state: 'waiting_response' }).eq('id', contactId)
       
-      await supabase.from('crm_scheduled_messages').insert({
-        contact_id: contactId,
-        flow_id: flow.id,
-        node_id: timeoutEdge.target,
-        scheduled_for: scheduledFor,
-        message_data: { action: 'continueFlow' }
+      const timeoutEdge = flow.edges.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout')
+      if (timeoutEdge) {
+        const timeoutMin = parseInt(node.data.timeout) || 20
+        const scheduledFor = new Date(Date.now() + timeoutMin * 60000).toISOString()
+        
+        await supabase.from('crm_scheduled_messages').insert({
+          contact_id: contactId,
+          flow_id: flow.id,
+          node_id: timeoutEdge.target,
+          scheduled_for: scheduledFor,
+          message_data: { action: 'continueFlow' }
+        })
+        
+        // Store timeout as next_execution_time
+        await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
+      }
+      return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
+        headers: { 'Content-Type': 'application/json' },
       })
     }
-    return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
   }
   else if (node.type === 'waitResponse') {
     await supabase.from('crm_contacts').update({ flow_state: 'waiting_response' }).eq('id', contactId)
     
-    // Setup timeout followup
     const timeoutEdge = flow.edges.find((e: any) => e.source === node.id && e.sourceHandle === 'timeout')
     if (timeoutEdge) {
-      const timeoutMin = node.data.timeout || 20
+      const timeoutMin = parseInt(node.data.timeout) || 20
       const scheduledFor = new Date(Date.now() + timeoutMin * 60000).toISOString()
       
       await supabase.from('crm_scheduled_messages').insert({
@@ -715,6 +733,8 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
         scheduled_for: scheduledFor,
         message_data: { action: 'continueFlow' }
       })
+      
+      await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
     }
     return new Response(JSON.stringify({ success: true, node: node.id, state: 'waiting_response' }), {
       headers: { 'Content-Type': 'application/json' },
@@ -724,30 +744,29 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const delay = parseInt(node.data.delay) || 5
     const unit = node.data.unit || 'segundos'
     let delayMs = delay * 1000
-    if (unit === 'minutos') delayMs *= 60
-    if (unit === 'horas') delayMs *= 3600
+    if (unit === 'minutos') delayMs *= 60000
+    if (unit === 'horas') delayMs *= 3600000
 
-    // For very short delays (< 10s), we can just wait. Otherwise schedule.
+    const scheduledFor = new Date(Date.now() + delayMs).toISOString()
+    await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
+
     if (delayMs <= 10000) {
       await sleep(delayMs)
-      // Transition to next node
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          await supabase.from('crm_contacts').update({ current_node_id: nextNode.id }).eq('id', contactId)
+          await supabase.from('crm_contacts').update({ current_node_id: nextNode.id, next_execution_time: null }).eq('id', contactId)
           return executeVisualNode(supabase, flow, nextNode, contactId, waId)
         }
       }
     } else {
-      const scheduledFor = new Date(Date.now() + delayMs).toISOString()
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
-      
       if (nextEdge) {
         await supabase.from('crm_scheduled_messages').insert({
           contact_id: contactId,
           flow_id: flow.id,
-          node_id: nextEdge.target, // Jump directly to next node after delay
+          node_id: nextEdge.target,
           scheduled_for: scheduledFor,
           message_data: { action: 'continueFlow' }
         })
@@ -757,31 +776,36 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
   }
   else if (node.type === 'crmAction') {
     const action = node.data.action || 'Notificar Agente'
-    // Implement CRM actions here (e.g. update status, notify, etc)
-    console.log(`CRM Action: ${action} for contact ${contactId}`)
-    
     if (action === 'Finalizar Atendimento') {
       await supabase.from('crm_contacts').update({ status: 'closed' }).eq('id', contactId)
     }
+    sendResult = { success: true };
   }
 
   // AUTO-CONTINUE for non-waiting nodes
   const autoContinueTypes = ['message', 'audio', 'video', 'image', 'crmAction', 'followup']
   if (autoContinueTypes.includes(node.type)) {
-    const nextEdge = flow.edges.find((e: any) => e.source === node.id && !e.sourceHandle)
-    if (nextEdge) {
-      const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
-      if (nextNode) {
-        // Natural pause between messages
-        await sleep(1500)
-        
-        await supabase.from('crm_contacts').update({ 
-          current_node_id: nextNode.id,
-          last_flow_interaction: new Date().toISOString()
-        }).eq('id', contactId)
-        
-        return executeVisualNode(supabase, flow, nextNode, contactId, waId)
+    // Only continue if the action was successful
+    if (sendResult?.success) {
+      const nextEdge = flow.edges.find((e: any) => e.source === node.id && !e.sourceHandle)
+      if (nextEdge) {
+        const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
+        if (nextNode) {
+          await sleep(1500)
+          await supabase.from('crm_contacts').update({ 
+            current_node_id: nextNode.id,
+            last_flow_interaction: new Date().toISOString()
+          }).eq('id', contactId)
+          
+          return executeVisualNode(supabase, flow, nextNode, contactId, waId)
+        }
       }
+    } else {
+      console.error(`Node ${node.id} failed, stopping flow:`, sendResult?.error);
+      await supabase.from('crm_contacts').update({ 
+        flow_state: 'error',
+        metadata: { ...contact?.metadata, last_flow_error: sendResult?.error }
+      }).eq('id', contactId)
     }
   }
 
@@ -789,7 +813,6 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     headers: { 'Content-Type': 'application/json' },
   })
 }
-
 
 async function getSettings(supabase: any) {
   const { data: settings } = await supabase
@@ -799,11 +822,17 @@ async function getSettings(supabase: any) {
     .single()
   return settings
 }
+
 async function processStep(supabase: any, step: any, contactId: string, waId: string) {
   if (step.step_type === 'delay') {
+    const scheduledFor = new Date(Date.now() + (step.delay_seconds || 5) * 1000).toISOString()
     await supabase
       .from('crm_contacts')
-      .update({ flow_state: 'waiting_delay', last_flow_interaction: new Date().toISOString() })
+      .update({ 
+        flow_state: 'waiting_delay', 
+        last_flow_interaction: new Date().toISOString(),
+        next_execution_time: scheduledFor
+      })
       .eq('id', contactId)
     
     return new Response(JSON.stringify({ success: true, action: 'wait', seconds: step.delay_seconds }), {
@@ -822,8 +851,6 @@ async function processStep(supabase: any, step: any, contactId: string, waId: st
     })
   }
 
-  // Handle other step types... (this is where you'd call handleInternalSendMessage for text/buttons steps)
-  // For now I'm leaving it as is as I don't see the full processStep content but I've updated the main logic.
   return new Response(JSON.stringify({ success: true, message: 'Step processed' }), {
     headers: { 'Content-Type': 'application/json' },
   })

@@ -113,6 +113,7 @@ const CRM = () => {
   const [isFlowEditorOpen, setIsFlowEditorOpen] = useState(false);
   const [editingFlow, setEditingFlow] = useState<any>(null);
   const [uploadType, setUploadType] = useState<'image' | 'video' | 'audio' | 'document' | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const [newStep, setNewStep] = useState<any>({
     step_type: 'text',
@@ -128,6 +129,27 @@ const CRM = () => {
     name: string;
     language?: string;
   } | null>(null);
+
+  useEffect(() => {
+    let interval: any;
+    if (selectedContact?.next_execution_time) {
+      const updateCountdown = () => {
+        const next = new Date(selectedContact.next_execution_time).getTime();
+        const now = new Date().getTime();
+        const diff = Math.max(0, Math.floor((next - now) / 1000));
+        setCountdown(diff);
+        if (diff <= 0) {
+          clearInterval(interval);
+          setCountdown(null);
+        }
+      };
+      updateCountdown();
+      interval = setInterval(updateCountdown, 1000);
+    } else {
+      setCountdown(null);
+    }
+    return () => clearInterval(interval);
+  }, [selectedContact?.next_execution_time, selectedContact?.id]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -704,10 +726,18 @@ const CRM = () => {
                             <p className="font-bold flex items-center gap-2">
                               {selectedContact.name || selectedContact.wa_id}
                               {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
-                                <Badge variant="outline" className="text-[10px] animate-pulse bg-primary/10 flex items-center gap-1">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-                                  Ativo: {selectedContact.flow_state}
-                                </Badge>
+                                <div className="flex flex-col items-start gap-1">
+                                  <Badge variant="outline" className={`text-[10px] animate-pulse flex items-center gap-1 ${selectedContact.flow_state === 'error' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-primary/10'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full animate-ping ${selectedContact.flow_state === 'error' ? 'bg-red-500' : 'bg-primary'}`} />
+                                    {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
+                                  </Badge>
+                                  {countdown !== null && countdown > 0 && (
+                                    <div className="flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                                      <Clock className="w-3 h-3" />
+                                      Próxima msg em: {countdown}s
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </p>
                             {selectedContact.last_interaction && (
@@ -725,11 +755,11 @@ const CRM = () => {
                             
                             {selectedContact.flow_state && selectedContact.flow_state !== 'idle' ? (
                               <div className="flex gap-1">
-                                {selectedContact.flow_state === 'paused' ? (
+                                {selectedContact.flow_state === 'paused' || selectedContact.flow_state === 'error' ? (
                                   <Button 
                                     size="sm" 
                                     variant="secondary" 
-                                    className="bg-emerald-500 text-white hover:bg-emerald-600 h-8"
+                                    className={`${selectedContact.flow_state === 'error' ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white h-8`}
                                     onClick={async () => {
                                       const { error } = await supabase.functions.invoke('meta-whatsapp-crm', {
                                         body: { action: 'continueFlow', contactId: selectedContact.id, waId: selectedContact.wa_id }
@@ -737,11 +767,12 @@ const CRM = () => {
                                       if (error) toast({ title: "Erro ao continuar", variant: "destructive" });
                                       else {
                                         fetchMessages(selectedContact.id);
-                                        toast({ title: "Fluxo retomado!" });
+                                        toast({ title: selectedContact.flow_state === 'error' ? "Tentando novamente..." : "Fluxo retomado!" });
                                       }
                                     }}
                                   >
-                                    <Play className="w-3 h-3 mr-1" /> Retomar
+                                    {selectedContact.flow_state === 'error' ? <RefreshCcw className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />} 
+                                    {selectedContact.flow_state === 'error' ? 'Tentar Denovo' : 'Retomar'}
                                   </Button>
                                 ) : (
                                   <Button 
