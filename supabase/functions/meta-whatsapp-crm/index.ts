@@ -458,8 +458,6 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
       body.audio = { link: audioUrl };
     }
     mediaUrlToStore = audioUrl;
-  }
-    mediaUrlToStore = audioUrl;
   } else if (imageUrl && !buttons) {
     body.type = "image"
     body.image = { link: sanitizeMetaLink(imageUrl), caption: text }
