@@ -613,6 +613,9 @@ const CRM = () => {
           .from('crm_flows')
           .insert([{
             name: flowData.name,
+            trigger_type: flowData.trigger_type,
+            trigger_keywords: flowData.trigger_keywords,
+            is_active: flowData.is_active,
             nodes: flowData.nodes,
             edges: flowData.edges
           }]);
