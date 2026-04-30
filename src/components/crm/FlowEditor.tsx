@@ -866,8 +866,8 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
             </div>
           ) : (
             <div className="pt-6 border-t animate-in fade-in slide-in-from-left-4">
-              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                <Settings className="w-4 h-4" /> Configurações do Fluxo
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 text-amber-700">
+                <Zap className="w-4 h-4" /> Gatilho do Fluxo
               </h3>
               
               <div className="space-y-4">
