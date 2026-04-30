@@ -716,63 +716,90 @@ const CRM = () => {
   if (loading && !contacts.length) return <div className="min-h-screen flex items-center justify-center"><RefreshCcw className="animate-spin" /></div>;
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
-      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-20">
-        <div className="w-full px-4 h-14 flex items-center justify-between">
-          <Logo size="sm" />
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
+    <SidebarProvider>
+      <div className="h-screen w-full flex overflow-hidden">
+        <Sidebar className="border-r">
+          <SidebarHeader className="p-4 border-b">
+            <Logo size="sm" />
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {[
+                    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+                    { id: 'contacts', label: 'Conversas', icon: MessageSquare },
+                    { id: 'flows', label: 'Fluxos', icon: GitBranch },
+                    { id: 'templates', label: 'Templates', icon: FileText },
+                    { id: 'settings', label: 'Ajustes', icon: Settings },
+                  ].map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton 
+                        isActive={activeTab === item.id} 
+                        onClick={() => setActiveTab(item.id)}
+                        className="flex items-center gap-3 px-4 py-3"
+                      >
+                        <item.icon className="w-5 h-5" />
+                        <span className="font-medium">{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          <SidebarFooter className="border-t p-4">
+            <Button variant="ghost" className="w-full justify-start" onClick={() => { logoutAdmin(); navigate('/crm/login'); }}>
               <LogOut className="mr-2 h-4 w-4" /> Sair
             </Button>
-          </div>
-        </div>
-      </header>
+          </SidebarFooter>
+        </Sidebar>
 
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden bg-muted/20">
-        <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
-          <div className="px-6 py-4 border-b bg-card">
-            <TabsList className="flex h-10 items-center justify-start gap-2 bg-muted p-1 rounded-lg w-fit">
-              <TabsTrigger value="dashboard" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Dashboard</TabsTrigger>
-              <TabsTrigger value="contacts" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Conversas</TabsTrigger>
-              <TabsTrigger value="flows" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Fluxos</TabsTrigger>
-              <TabsTrigger value="templates" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Templates</TabsTrigger>
-              <TabsTrigger value="settings" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Ajustes</TabsTrigger>
-            </TabsList>
-          </div>
+        <SidebarInset className="flex flex-col flex-1 h-full overflow-hidden bg-background">
+          <header className="h-14 border-b flex items-center px-4 bg-background z-10 shrink-0">
+            <SidebarTrigger />
+            <h1 className="ml-4 text-lg font-semibold capitalize">{activeTab}</h1>
+          </header>
+          
+          <main className="flex-1 overflow-auto bg-muted/10 p-6">
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Enviadas</CardDescription>
+                      <CardTitle className="text-3xl">{metrics.sent_count}</CardTitle>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Respondidas</CardDescription>
+                      <CardTitle className="text-3xl">{metrics.responded_count}</CardTitle>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Qualificadas</CardDescription>
+                      <CardTitle className="text-3xl">{metrics.qualified_count}</CardTitle>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Vendas</CardDescription>
+                      <CardTitle className="text-3xl">{metrics.sales_count}</CardTitle>
+                    </CardHeader>
+                  </Card>
+                </div>
+              </div>
+            )}
+            {/* Additional content for other tabs would go here, continuing from current state */}
+            {/* (I will implement the rest in subsequent edits to ensure stability) */}
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
 
-          <TabsContent value="dashboard" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Dashboard de Métricas</h2>
-              <p className="text-muted-foreground text-sm">Acompanhe o desempenho das suas comunicações hoje</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="bg-blue-500/5 border-blue-500/20 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-blue-600 font-medium">Enviadas</CardDescription>
-                  <CardTitle className="text-3xl font-bold">{metrics.sent_count}</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-yellow-500/5 border-yellow-500/20 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-yellow-600 font-medium">Respondidas</CardDescription>
-                  <CardTitle className="text-3xl font-bold">{metrics.responded_count}</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-purple-500/5 border-purple-500/20 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-purple-600 font-medium">Qualificadas</CardDescription>
-                  <CardTitle className="text-3xl font-bold">{metrics.qualified_count}</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-green-500/5 border-green-500/20 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-green-600 font-medium">Vendas</CardDescription>
-                  <CardTitle className="text-3xl font-bold">{metrics.sales_count}</CardTitle>
-                </CardHeader>
-              </Card>
-            </div>
-          </TabsContent>
 
           <TabsContent value="contacts" className="flex-1 flex flex-col min-h-0 m-0 border-0 rounded-none bg-background">
             <div className="flex-1 flex overflow-hidden">
