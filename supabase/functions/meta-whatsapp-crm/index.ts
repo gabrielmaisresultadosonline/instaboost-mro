@@ -262,7 +262,7 @@ serve(async (req) => {
       if (flow.nodes && flow.nodes.length > 0) {
         // Find starting node (no incoming edges)
         const nodeIdsWithTarget = new Set(flow.edges.map((e: any) => e.target))
-        const startNode = targetFlow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || flow.nodes[0]
+        const startNode = flow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || flow.nodes[0]
         
         await supabase
           .from('crm_contacts')
