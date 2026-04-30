@@ -102,18 +102,34 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
             <CardDescription>Crie um template oficial para aprovação da Meta</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Nome do Template</Label>
-                <Input placeholder="ex: boas_vindas_v1" value={name} onChange={e => setName(e.target.value.toLowerCase().replace(/\s+/g, '_'))} />
-              </div>
               <div className="space-y-2">
                 <Label>Categoria</Label>
-                <Select value={category} onValueChange={setCategory}><SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="MARKETING">Marketing</SelectItem><SelectItem value="UTILITY">Utilidade</SelectItem><SelectItem value="AUTHENTICATION">Autenticação</SelectItem></SelectContent>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AUTHENTICATION">
+                      <div className="flex flex-col">
+                        <span>Autenticação</span>
+                        <span className="text-[10px] text-muted-foreground">Códigos de acesso, OTP</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="UTILITY">
+                      <div className="flex flex-col">
+                        <span>Utilidade</span>
+                        <span className="text-[10px] text-muted-foreground">Pós-venda, Confirmações</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="MARKETING">
+                      <div className="flex flex-col">
+                        <span>Marketing</span>
+                        <span className="text-[10px] text-muted-foreground">Promoções, Ofertas</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
                 </Select>
               </div>
-            </div>
             <div className="space-y-2">
               <Label>Cabeçalho (Opcional)</Label>
               <div className="flex gap-2 flex-wrap">
