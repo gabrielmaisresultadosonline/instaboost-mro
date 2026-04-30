@@ -678,203 +678,33 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     if (node.data.templateName) {
       const templateName = node.data.templateName
       const languageCode = node.data.language || 'pt_BR'
+      const manualComponents = node.data.imageUrl ? [{
+        type: "header",
+        parameters: [{
+          type: "image",
+          image: { link: node.data.imageUrl }
+        }]
+      }] : [];
+
+      console.log(`Executing template node ${templateName} to ${waId}...`);
+
+      const response = await internalSendTemplate(
+        supabase,
+        meta_phone_number_id,
+        meta_access_token,
+        waId,
+        templateName,
+        languageCode,
+        manualComponents,
+        contact,
+        node.id // Pass node ID to save to message history correctly if needed
+      );
+
+      sendResult = await response.json();
       
-      console.log(`Sending template node ${templateName} to ${waId}...`);
-
-      // Reuse the same logic as action === 'sendTemplate'
-      // 1. Fetch template details and contact interaction
-      const { data: templateData } = await supabase
-        .from('crm_templates')
-        .select('*')
-        .eq('name', templateName)
-        .single();
-
-      const lastInteraction = contact?.last_interaction;
-      const isWindowOpen = lastInteraction && (new Date().getTime() - new Date(lastInteraction).getTime()) < 24 * 60 * 60 * 1000;
-
-      // Fallback if window is open and template not approved
-      if (templateData && templateData.status !== 'APPROVED' && isWindowOpen) {
-        console.log(`Template node ${templateName} - window is open and not approved. Sending as interactive message...`);
-        
-        const headerComponent = templateData.components?.find((c: any) => c.type === 'HEADER');
-        const bodyComponent = templateData.components?.find((c: any) => c.type === 'BODY');
-        const footerComponent = templateData.components?.find((c: any) => c.type === 'FOOTER');
-        const buttonsComponent = templateData.components?.find((c: any) => c.type === 'BUTTONS');
-        
-        if (bodyComponent && bodyComponent.text) {
-          let text = bodyComponent.text;
-          const bodyParams = node.data.bodyParameters || [];
-          
-          bodyParams.forEach((param: any, index: number) => {
-            text = text.replace(`{{${index + 1}}}`, param.text || '-');
-          });
-
-          if (bodyParams.length === 0 && text.includes('{{1}}') && contact?.name) {
-            text = text.replace(/\{\{1\}\}/g, contact.name);
-          }
-          text = text.replace(/\{\{\d+\}\}/g, '---');
-
-          let imageUrl = node.data.imageUrl || null;
-          let headerText = null;
-          if (headerComponent) {
-            if (headerComponent.format === 'TEXT') {
-              headerText = headerComponent.text;
-            } else if (headerComponent.format === 'IMAGE' && !imageUrl) {
-              imageUrl = headerComponent.example?.header_handle?.[0];
-            }
-          }
-
-          let buttons = [];
-          if (buttonsComponent && buttonsComponent.buttons) {
-            buttonsComponent.buttons.forEach((b: any, index: number) => {
-              if (b.type === 'QUICK_REPLY') {
-                buttons.push({ id: b.payload || b.text || `btn_${index}`, text: b.text });
-              }
-            });
-          }
-
-          const response = await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
-            to: waId,
-            text,
-            imageUrl,
-            headerText,
-            footerText: footerComponent?.text,
-            buttons: buttons.length > 0 ? buttons : undefined
-          }, contact);
-          sendResult = await response.json();
-        }
-      } else {
-        // Official Template Sending
-        let finalComponents = [];
-        let messageContent = `[Template: ${templateName}]`;
-
-        if (templateData?.components) {
-          const bodyComponent = templateData.components.find((c: any) => c.type === 'BODY');
-          const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
-          const buttonsComponent = templateData.components.find((c: any) => c.type === 'BUTTONS');
-
-          // Handle Body
-          if (bodyComponent && bodyComponent.text) {
-            let text = bodyComponent.text;
-            const varCount = (text.match(/\{\{\d+\}\}/g) || []).length;
-            const bodyParams = [];
-            
-            for (let i = 1; i <= varCount; i++) {
-              bodyParams.push({
-                type: "text",
-                text: i === 1 ? (contact?.name || 'Cliente') : "-"
-              });
-              text = text.replace(`{{${i}}}`, i === 1 ? (contact?.name || 'Cliente') : "-");
-            }
-            
-            if (bodyParams.length > 0) {
-              finalComponents.push({ type: "body", parameters: bodyParams });
-            }
-            messageContent = text;
-          }
-
-          // Handle Header
-          if (headerComponent) {
-            if (headerComponent.format === 'IMAGE') {
-              const imageUrl = node.data.imageUrl || (headerComponent.example?.header_handle?.[0]);
-              if (imageUrl) {
-                finalComponents.push({
-                  type: "header",
-                  parameters: [{
-                    type: "image",
-                    image: { link: imageUrl }
-                  }]
-                });
-              }
-            } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
-              finalComponents.push({
-                type: "header",
-                parameters: [{
-                  type: "text",
-                  text: contact?.name || 'Cliente'
-                }]
-              });
-            } else if (headerComponent.format === 'VIDEO') {
-              const videoUrl = node.data.videoUrl || (headerComponent.example?.header_handle?.[0]);
-              if (videoUrl) {
-                finalComponents.push({
-                  type: "header",
-                  parameters: [{
-                    type: "video",
-                    video: { link: videoUrl }
-                  }]
-                });
-              }
-            } else if (headerComponent.format === 'DOCUMENT') {
-              const docUrl = node.data.documentUrl || (headerComponent.example?.header_handle?.[0]);
-              if (docUrl) {
-                finalComponents.push({
-                  type: "header",
-                  parameters: [{
-                    type: "document",
-                    document: { link: docUrl, filename: "documento.pdf" }
-                  }]
-                });
-              }
-            }
-          }
-
-          // Handle Buttons with dynamic variables if any
-          if (buttonsComponent && buttonsComponent.buttons) {
-            buttonsComponent.buttons.forEach((b: any, index: number) => {
-              if (b.type === 'URL' && b.url?.includes('{{1}}')) {
-                finalComponents.push({
-                  type: "button",
-                  sub_type: "url",
-                  index: index,
-                  parameters: [{ type: "text", text: contact?.id || '' }]
-                });
-              }
-            });
-          }
-        }
-
-        const metaRequestBody = {
-          messaging_product: "whatsapp",
-          to: waId,
-          type: "template",
-          template: {
-            name: templateName,
-            language: { code: languageCode },
-            components: finalComponents
-          }
-        };
-
-        console.log('Sending Template to Meta:', JSON.stringify(metaRequestBody, null, 2));
-
-        const response = await fetch(
-          `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${meta_access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(metaRequestBody),
-          }
-        );
-
-        sendResult = await response.json();
-        
-        if (response.ok && sendResult.messages?.[0]) {
-          await supabase.from('crm_messages').insert({
-            contact_id: contactId,
-            direction: 'outbound',
-            content: messageContent,
-            message_type: 'template',
-            media_url: node.data.imageUrl || null,
-            meta_message_id: sendResult.messages[0].id,
-            status: 'sent'
-          });
-          sendResult.success = true;
-        } else {
-          console.error('Template node send failed:', JSON.stringify(sendResult, null, 2));
-        }
+      // internalSendTemplate returns a Response, we check success from the JSON
+      if (!response.ok || !sendResult.success) {
+        console.error('Template node send failed:', JSON.stringify(sendResult, null, 2));
       }
     } else {
       sendResult = { success: false, error: 'Missing template name' };
