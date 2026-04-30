@@ -586,6 +586,82 @@ const CRM = () => {
     }
   };
 
+  const handleSaveContactMetadata = async (contactId: string, metadata: any) => {
+    try {
+      const { error } = await supabase.from('crm_contacts').update({ metadata }).eq('id', contactId);
+      if (error) throw error;
+      toast({ title: "Informações salvas!" });
+      fetchContacts();
+      if (selectedContact?.id === contactId) {
+        setSelectedContact({ ...selectedContact, metadata });
+      }
+    } catch (err) {
+      toast({ title: "Erro ao salvar informações", variant: "destructive" });
+    }
+  };
+
+  const handleExportContacts = () => {
+    const data = contacts.map(c => ({
+      Nome: c.name || '',
+      Telefone: c.wa_id || '',
+      Status: c.status || '',
+      Bio: c.metadata?.bio || '',
+      Instagram: c.metadata?.instagram || '',
+      Facebook: c.metadata?.facebook || '',
+      Links: c.metadata?.links || ''
+    }));
+    const csv = [
+      Object.keys(data[0]).join(','),
+      ...data.map(row => Object.values(row).map(v => `"${v}"`).join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contatos_crm_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
+  const handleImportContacts = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      const lines = content.split('\n').filter(l => l.trim());
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const imported = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const obj: any = {};
+        headers.forEach((h, i) => obj[h] = values[i]);
+        return obj;
+      });
+
+      for (const contact of imported) {
+        if (!contact.Telefone) continue;
+        await supabase.from('crm_contacts').upsert({
+          wa_id: contact.Telefone,
+          name: contact.Nome,
+          status: contact.Status || 'new',
+          metadata: {
+            bio: contact.Bio,
+            instagram: contact.Instagram,
+            facebook: contact.Facebook,
+            links: contact.Links
+          }
+        }, { onConflict: 'wa_id' });
+      }
+      toast({ title: "Importação concluída!" });
+      fetchContacts();
+    };
+    reader.readAsText(file);
+  };
+
+  const openContactInfo = (contact: any) => {
+    setContactToView(contact);
+    setIsContactInfoOpen(true);
+  };
+
   const openChat = (contact: any) => {
     setSelectedContact(contact);
     fetchMessages(contact.id);
