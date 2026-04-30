@@ -648,8 +648,8 @@ async function internalSendTemplate(
       if (headerComponent.format === 'IMAGE') {
         let imageUrl = headerComponent.example?.header_handle?.[0];
         
-        // If the URL is from Meta CDN, it might be expired. 
-        // We only use it if it doesn't look like a temporary Meta URL or if it's the only option
+        // CRITICAL: Do NOT use scontent.whatsapp.net URLs as fallbacks for sending.
+        // These are temporary Meta CDN URLs that will cause error 131053 (Media upload error).
         if (imageUrl && !imageUrl.includes('scontent.whatsapp.net')) {
           finalComponents.push({
             type: "header",
@@ -659,14 +659,10 @@ async function internalSendTemplate(
             }]
           });
         } else if (imageUrl) {
-          console.warn(`Template ${templateName} has a potentially expired Meta CDN header image. Attempting to send anyway...`);
-          finalComponents.push({
-            type: "header",
-            parameters: [{
-              type: "image",
-              image: { link: imageUrl }
-            }]
-          });
+          console.warn(`Template ${templateName} has a Meta CDN header image which cannot be used for sending. Skipping header parameter...`);
+          // We don't push the component if we don't have a valid stable URL.
+          // Note: If the template REQUIRES a header image, Meta might still reject it,
+          // but sending a broken URL definitely fails.
         }
       } else if (headerComponent.format === 'TEXT' && headerComponent.text?.includes('{{1}}')) {
         finalComponents.push({
@@ -686,7 +682,7 @@ async function internalSendTemplate(
             finalComponents.push({
               type: "button",
               sub_type: "url",
-              index: index.toString(), // Meta expects index as string in some versions, but number is usually fine. Let's use what's safe.
+              index: index, // Meta expects index as number (0-indexed)
               parameters: [{ type: "text", text: contact?.id || '1' }]
             });
           }
@@ -695,7 +691,7 @@ async function internalSendTemplate(
             finalComponents.push({
               type: "button",
               sub_type: "copy_code",
-              index: index.toString(),
+              index: index,
               parameters: [{ type: "text", text: b.example[0] }]
             });
           }
@@ -888,7 +884,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    if (delayMs <= 60000) {
+    if (delayMs <= 20000) { // Reduced threshold for reliable sleep in Edge Functions
       await sleep(delayMs)
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {

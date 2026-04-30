@@ -4348,6 +4348,7 @@ export type Database = {
         Args: { metric_column: string }
         Returns: undefined
       }
+      trigger_process_scheduled_messages: { Args: never; Returns: undefined }
       whatsapp_admin_login: {
         Args: { login_email: string; login_password: string }
         Returns: Json
