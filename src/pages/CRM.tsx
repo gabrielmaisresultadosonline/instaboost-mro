@@ -879,15 +879,46 @@ const CRM = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-muted/30 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center sticky top-14 z-[5]">
-                            <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
-                              <Zap className="w-3 h-3 text-amber-500" /> Atalhos:
-                            </span>
-                            {templates.slice(0, 5).map(t => (
-                              <Button key={t.id} variant="secondary" size="sm" className="h-6 text-[10px] px-2 rounded-full border bg-card hover:bg-primary hover:text-white transition-colors" onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} disabled={sendingMessage}>
-                                {t.name}
-                              </Button>
-                            ))}
+                          <div className="bg-muted/30 border-b px-4 py-2 flex gap-3 overflow-x-auto no-scrollbar items-center sticky top-14 z-[5]">
+                            <div className="flex items-center gap-2 pr-2 border-r">
+                              <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
+                                <FileText className="w-3 h-3 text-emerald-500" /> Templates:
+                              </span>
+                              <div className="flex gap-1.5">
+                                {templates.slice(0, 5).map(t => (
+                                  <Button 
+                                    key={t.id} 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-6 text-[10px] px-2 rounded-full border-emerald-200 bg-emerald-50/50 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-medium" 
+                                    onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
+                                    disabled={sendingMessage}
+                                  >
+                                    {t.name}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
+                                <Zap className="w-3 h-3 text-blue-500" /> Fluxos:
+                              </span>
+                              <div className="flex gap-1.5">
+                                {flows.filter(f => f.is_active).slice(0, 5).map(f => (
+                                  <Button 
+                                    key={f.id} 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-6 text-[10px] px-2 rounded-full border-blue-200 bg-blue-50/50 text-blue-700 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-medium" 
+                                    onClick={() => handleTriggerFlow(f.id)} 
+                                    disabled={sendingMessage}
+                                  >
+                                    {f.name}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
                           </div>
 
                           <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
