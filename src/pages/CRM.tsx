@@ -1055,7 +1055,8 @@ const CRM = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ScrollArea className="flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
               {flows.map((flow) => (
                 <Card key={flow.id} className="overflow-hidden border border-zinc-200 dark:border-zinc-800">
                   <CardHeader className="bg-muted/30 pb-3">
