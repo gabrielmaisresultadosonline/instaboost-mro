@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Send, Layout, Type, Image as ImageIcon, Video, FileText, MousePointer2, ExternalLink, Phone, Play, Zap } from "lucide-react";
+import { Plus, Trash2, Send, Layout, Type, Image as ImageIcon, Video, FileText, MousePointer2, ExternalLink, Phone, Play, Zap, Upload, Loader2, File } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface TemplateBuilderProps {
   onSave: (template: any) => void;
