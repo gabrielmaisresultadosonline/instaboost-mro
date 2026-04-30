@@ -608,26 +608,47 @@ const CRM = () => {
     }
   };
 
-  const handleExportContacts = () => {
-    const data = contacts.map(c => ({
-      Nome: c.name || '',
-      Telefone: c.wa_id || '',
-      Status: c.status || '',
-      Bio: c.metadata?.bio || '',
-      Instagram: c.metadata?.instagram || '',
-      Facebook: c.metadata?.facebook || '',
-      Links: c.metadata?.links || ''
-    }));
-    const csv = [
-      Object.keys(data[0]).join(','),
-      ...data.map(row => Object.values(row).map(v => `"${v}"`).join(','))
-    ].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `contatos_crm_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+  const handleExportContacts = (format: 'csv' | 'vcard' = 'csv') => {
+    if (format === 'csv') {
+      const data = contacts.map(c => ({
+        Nome: c.name || '',
+        Telefone: c.wa_id || '',
+        Status: c.status || '',
+        Bio: c.metadata?.bio || '',
+        Instagram: c.metadata?.instagram || '',
+        Facebook: c.metadata?.facebook || '',
+        Links: c.metadata?.links || ''
+      }));
+      const csv = [
+        Object.keys(data[0]).join(','),
+        ...data.map(row => Object.values(row).map(v => `"${v}"`).join(','))
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contatos_crm_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    } else if (format === 'vcard') {
+      const vcards = contacts.map(c => {
+        return [
+          'BEGIN:VCARD',
+          'VERSION:3.0',
+          `FN:${c.name || c.wa_id}`,
+          `TEL;TYPE=CELL:${c.wa_id}`,
+          `NOTE:${c.metadata?.bio || ''} | IG: ${c.metadata?.instagram || ''} | FB: ${c.metadata?.facebook || ''}`,
+          `URL:${c.metadata?.links || ''}`,
+          'END:VCARD'
+        ].join('\n');
+      }).join('\n');
+      
+      const blob = new Blob([vcards], { type: 'text/vcard' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contatos_crm_${new Date().toISOString().split('T')[0]}.vcf`;
+      a.click();
+    }
   };
 
   const handleImportContacts = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1648,59 +1669,70 @@ const CRM = () => {
             <DialogDescription>Visualize e edite os detalhes de {contactToView?.name || contactToView?.wa_id}</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-6">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-muted-foreground ml-1">Nome</Label>
-              <Input 
-                value={contactToView?.name || ''} 
-                onChange={e => setContactToView({...contactToView, name: e.target.value})}
-                placeholder="Nome do contato"
-                className="bg-muted/30 border-none h-11 rounded-xl"
-              />
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Nome</Label>
+                <Input 
+                  value={contactToView?.name || ''} 
+                  onChange={e => setContactToView({...contactToView, name: e.target.value})}
+                  placeholder="Nome do contato"
+                  className="bg-muted/30 border-none h-10 rounded-xl text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">WhatsApp / ID</Label>
+                <Input 
+                  value={contactToView?.wa_id || ''} 
+                  readOnly
+                  className="bg-muted/20 border-none h-10 rounded-xl text-sm opacity-70 cursor-not-allowed"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-muted-foreground ml-1">Biografia / Observações</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Biografia / Observações</Label>
               <Textarea 
                 value={contactToView?.metadata?.bio || ''} 
                 onChange={e => setContactToView({...contactToView, metadata: { ...contactToView?.metadata, bio: e.target.value }})}
                 placeholder="Descreva informações importantes..."
-                className="bg-muted/30 border-none rounded-xl min-h-[100px]"
+                className="bg-muted/30 border-none rounded-xl min-h-[80px] text-sm"
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
-                  <Instagram className="w-3.5 h-3.5" /> Instagram
+            <div className="grid grid-cols-1 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
+                  <Instagram className="w-3 h-3" /> Instagram
                 </Label>
                 <Input 
                   value={contactToView?.metadata?.instagram || ''} 
                   onChange={e => setContactToView({...contactToView, metadata: { ...contactToView?.metadata, instagram: e.target.value }})}
                   placeholder="@usuario ou link"
-                  className="bg-muted/30 border-none h-11 rounded-xl"
+                  className="bg-muted/30 border-none h-10 rounded-xl text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
-                  <Facebook className="w-3.5 h-3.5" /> Facebook
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
+                  <Facebook className="w-3 h-3" /> Facebook
                 </Label>
                 <Input 
                   value={contactToView?.metadata?.facebook || ''} 
                   onChange={e => setContactToView({...contactToView, metadata: { ...contactToView?.metadata, facebook: e.target.value }})}
                   placeholder="link da página"
-                  className="bg-muted/30 border-none h-11 rounded-xl"
+                  className="bg-muted/30 border-none h-10 rounded-xl text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
-                  <LinkIcon className="w-3.5 h-3.5" /> Outros Links
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
+                  <LinkIcon className="w-3 h-3" /> Outros Links
                 </Label>
                 <Input 
                   value={contactToView?.metadata?.links || ''} 
                   onChange={e => setContactToView({...contactToView, metadata: { ...contactToView?.metadata, links: e.target.value }})}
                   placeholder="https://site.com"
-                  className="bg-muted/30 border-none h-11 rounded-xl"
+                  className="bg-muted/30 border-none h-10 rounded-xl text-sm"
                 />
               </div>
             </div>
