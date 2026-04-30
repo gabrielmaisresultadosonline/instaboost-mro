@@ -180,7 +180,13 @@ serve(async (req) => {
                       .eq('status', 'pending');
 
                     await supabase.functions.invoke('meta-whatsapp-crm', {
-                      body: { action: 'continueFlow', contactId: contact.id, waId: wa_id, buttonId }
+                      body: { 
+                        action: 'continueFlow', 
+                        contactId: contact.id, 
+                        waId: wa_id, 
+                        buttonId,
+                        text: content 
+                      }
                     })
                     
                     return new Response('OK - Flow Continued', { status: 200 })
