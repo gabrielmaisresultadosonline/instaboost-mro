@@ -318,7 +318,11 @@ const CRM = () => {
       };
       
       recorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+        // Meta Cloud API preferred format for voice notes is OGG/OPUS
+        const mimeType = MediaRecorder.isTypeSupported('audio/ogg; codecs=opus') 
+          ? 'audio/ogg; codecs=opus' 
+          : 'audio/webm; codecs=opus';
+        const audioBlob = new Blob(chunks, { type: mimeType });
         await handleSendMedia(audioBlob, 'audio', true);
         stream.getTracks().forEach(track => track.stop());
       };
