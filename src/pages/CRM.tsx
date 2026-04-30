@@ -1040,7 +1040,21 @@ const CRM = () => {
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
                               {chatMessages.map((m, idx) => {
                                 const isTemplate = m.message_type === 'template';
-                                const template = isTemplate ? templates.find(t => t.name === (m.content?.match(/\[Template: (.*?)\]/)?.[1] || '')) : null;
+                                const templateName = m.content?.match(/\[Template: (.*?)\]/)?.[1];
+                                let template = isTemplate ? templates.find(t => t.name === templateName) : null;
+
+                                // Fallback para templates antigos que não têm o prefixo [Template: name]
+                                if (isTemplate && !template && m.content) {
+                                  template = templates.find(t => {
+                                    const bodyText = t.components?.find((c: any) => c.type === 'BODY')?.text;
+                                    if (!bodyText) return false;
+                                    // Remove as variáveis {{1}}, {{2}} etc para comparar
+                                    const normalizedBody = bodyText.replace(/\{\{\d+\}\}/g, '').trim();
+                                    const normalizedContent = m.content.replace(/\[Template: .*?\]\s*/, '').replace(/[\s\S]*/, (match) => match.trim());
+                                    return m.content.includes(normalizedBody.substring(0, 20)); // Busca aproximada simples
+                                  });
+                                }
+
                                 
                                 return (
                                   <div key={m.id || idx} className={cn(
