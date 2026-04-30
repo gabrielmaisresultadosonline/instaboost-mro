@@ -641,6 +641,7 @@ async function internalSendTemplate(
           }
         }
 
+        // Check if the image is from Meta's CDN (scontent.whatsapp.net)
         const isMetaCdn = imageUrl && (
           imageUrl.includes('whatsapp.net') || 
           imageUrl.includes('fbcdn.net') || 
@@ -656,12 +657,16 @@ async function internalSendTemplate(
             }]
           });
         } else {
-          // Fallback to a valid JPG image since Unsplash webp is rejected by Meta
+          // Meta CDN links often fail when sent as 'link'.
+          // For template headers that are images, we MUST provide a valid parameter.
+          // We use a high-quality, stable public JPG image that is known to be accepted by Meta.
+          const fallbackImage = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg";
+          console.log(`Using fallback image for template header: ${fallbackImage}`);
           finalComponents.push({
             type: "header",
             parameters: [{
               type: "image",
-              image: { link: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg" }
+              image: { link: fallbackImage }
             }]
           });
         }
