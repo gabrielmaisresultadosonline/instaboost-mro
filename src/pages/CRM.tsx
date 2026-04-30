@@ -1068,7 +1068,16 @@ const CRM = () => {
                          <ClockIcon className="w-3 h-3 mr-1" />}
                         {template.status}
                       </Badge>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteTemplate(template.name)}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-destructive" 
+                        onClick={() => {
+                          if (confirm(`Deseja realmente excluir o template "${template.name}" da Meta? Esta ação é irreversível.`)) {
+                            handleDeleteTemplate(template.name);
+                          }
+                        }}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

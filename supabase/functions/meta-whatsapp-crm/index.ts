@@ -34,15 +34,27 @@ serve(async (req) => {
 
     if (action === 'getTemplates') {
       const { meta_waba_id } = settings
+      console.log(`Fetching templates for WABA ${meta_waba_id}...`);
+      
       const response = await fetch(
-        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates`,
+        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates?limit=1000`,
         {
           headers: { 'Authorization': `Bearer ${meta_access_token}` },
         }
       )
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Meta API Error fetching templates:', errorData);
+        throw new Error(`Meta API error: ${errorData.error?.message || response.statusText}`);
+      }
+      
       const data = await response.json()
       
       if (data.data) {
+        console.log(`Found ${data.data.length} templates on Meta.`);
+        const metaTemplateIds = data.data.map((t: any) => t.id);
+        
         for (const template of data.data) {
           await supabase.from('crm_templates').upsert({
             id: template.id,
@@ -53,6 +65,23 @@ serve(async (req) => {
             components: template.components,
             updated_at: new Date().toISOString()
           })
+        }
+        
+        // Remove local templates that are no longer on Meta
+        if (metaTemplateIds.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('crm_templates')
+            .delete()
+            .not('id', 'in', metaTemplateIds)
+          
+          if (deleteError) {
+            console.error('Error cleaning up local templates:', deleteError);
+          } else {
+            console.log('Local templates cleaned up successfully.');
+          }
+        } else {
+          // If Meta has no templates, clear local table
+          await supabase.from('crm_templates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         }
       }
       
@@ -142,6 +171,8 @@ serve(async (req) => {
       const { meta_waba_id } = settings
       const { name } = params
       
+      console.log(`Deleting template ${name} from Meta WABA ${meta_waba_id}...`);
+      
       const response = await fetch(
         `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates?name=${name}`,
         {
@@ -151,12 +182,29 @@ serve(async (req) => {
       )
       
       const result = await response.json()
+      console.log('Meta Deletion Result:', JSON.stringify(result));
       
-      if (result.success) {
+      // Even if Meta returns an error (like template not found), we should allow deleting it locally
+      // if it's no longer on Meta or if there's a mismatch.
+      // Meta returns { success: true } on success.
+      
+      if (result.success || (result.error && (result.error.code === 100 || result.error.error_subcode === 2388044))) {
+        console.log(`Template ${name} deleted from Meta or not found. Removing from local database...`);
+        const { error: dbError } = await supabase.from('crm_templates').delete().eq('name', name)
+        if (dbError) {
+          console.error('Local DB Deletion Error:', dbError);
+        }
+      }
+      
+      if (!result.success && !result.error) {
+        // Fallback for unexpected response format
         await supabase.from('crm_templates').delete().eq('name', name)
       }
       
-      return new Response(JSON.stringify({ success: result.success, result }), {
+      return new Response(JSON.stringify({ 
+        success: result.success || (result.error?.code === 100), 
+        result 
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
