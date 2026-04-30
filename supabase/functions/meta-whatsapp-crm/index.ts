@@ -340,7 +340,19 @@ serve(async (req) => {
             nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === buttonId)
           }
           
-          // Priority 2: Match "responded" handle if no button matched or no buttonId provided
+          // Priority 1.5: Match text against button labels if no buttonId matched
+          if (!nextEdge && text && currentNode.data?.buttons) {
+            const matchedButtonIdx = currentNode.data.buttons.findIndex((b: any) => 
+              b.text?.toLowerCase().trim() === text.toLowerCase().trim() ||
+              (text.toLowerCase().includes('[button reply]') && text.toLowerCase().includes(b.text?.toLowerCase().trim()))
+            );
+            
+            if (matchedButtonIdx !== -1) {
+              const handleId = currentNode.data.buttons[matchedButtonIdx].id || `btn-${matchedButtonIdx}`;
+              nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === handleId);
+              console.log(`Matched text "${text}" to button index ${matchedButtonIdx} (handle: ${handleId})`);
+            }
+          }
           if (!nextEdge) {
             nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === 'responded')
           }
