@@ -1084,10 +1084,10 @@ const CRM = () => {
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 space-y-4">
-            <div className="flex justify-between items-center">
+          <TabsContent value="templates" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-bold">Templates do WhatsApp</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Templates do WhatsApp</h2>
                 <p className="text-muted-foreground">Gerencie seus modelos de mensagem oficiais da Meta</p>
               </div>
               <div className="flex gap-2">
