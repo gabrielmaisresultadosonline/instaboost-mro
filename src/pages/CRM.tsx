@@ -831,18 +831,93 @@ const CRM = () => {
                           </div>
                         </ScrollArea>
                         <div className="p-4 border-t bg-muted/20">
-                          <div className="flex gap-2">
-                            <Input 
-                              value={newMessage} 
-                              onChange={e => setNewMessage(e.target.value)} 
-                              onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
-                              placeholder="Digite uma mensagem..." 
-                              className="bg-background"
-                            />
-                            <Button onClick={handleSendMessage} disabled={sendingMessage} size="icon">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          {isRecording ? (
+                            <div className="flex items-center justify-between bg-primary/10 p-2 rounded-lg border border-primary/20 animate-pulse">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                                <span className="text-xs font-mono">Gravando: {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="ghost" onClick={() => { stopRecording(); setIsRecording(false); }} className="text-destructive h-8 w-8 p-0">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                                <Button size="sm" onClick={stopRecording} className="bg-red-500 hover:bg-red-600 text-white h-8 px-3 text-xs">
+                                  <StopCircle className="h-4 w-4 mr-1" /> Parar e Enviar
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2 items-center">
+                              <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                className="hidden" 
+                                onChange={handleFileSelect}
+                                accept={uploadType === 'image' ? 'image/*' : uploadType === 'video' ? 'video/*' : uploadType === 'audio' ? 'audio/*' : '*'}
+                              />
+                              <div className="flex gap-1">
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                                  onClick={() => { setUploadType('image'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                                >
+                                  <ImageIcon className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                                  onClick={() => { setUploadType('video'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                                >
+                                  <Video className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                                  onClick={() => { setUploadType('audio'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                                >
+                                  <Mic className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                                  onClick={() => { setUploadType('document'); setTimeout(() => fileInputRef.current?.click(), 100); }}
+                                >
+                                  <Paperclip className="h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              <Input 
+                                value={newMessage} 
+                                onChange={e => setNewMessage(e.target.value)} 
+                                onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
+                                placeholder="Digite uma mensagem..." 
+                                className="bg-background flex-1"
+                              />
+                              
+                              <Button 
+                                onClick={handleSendMessage} 
+                                disabled={sendingMessage || (!newMessage.trim())} 
+                                size="icon"
+                                className={newMessage.trim() ? "bg-primary" : "bg-muted text-muted-foreground"}
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                              
+                              <Button 
+                                onClick={startRecording} 
+                                disabled={sendingMessage} 
+                                size="icon"
+                                variant="outline"
+                                className="h-10 w-10 rounded-full border-primary/20 text-primary hover:bg-primary/10"
+                              >
+                                <Mic className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </>
                     ) : (
