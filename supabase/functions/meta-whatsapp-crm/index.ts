@@ -781,9 +781,57 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     }
     sendResult = { success: true };
   }
+  else if (node.type === 'template') {
+    if (node.data.templateName) {
+      // We can reuse the action logic by calling it internally or just doing the fetch here
+      // For simplicity and to avoid recursive calls that might be tricky with headers, we'll do the fetch
+      const templateName = node.data.templateName
+      const languageCode = node.data.language || 'pt_BR'
+      
+      const metaRequestBody = {
+        messaging_product: "whatsapp",
+        to: waId,
+        type: "template",
+        template: {
+          name: templateName,
+          language: { code: languageCode },
+          components: [] // Default to empty components for now
+        }
+      };
+
+      const response = await fetch(
+        `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${meta_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(metaRequestBody),
+        }
+      )
+
+      sendResult = await response.json()
+      
+      if (response.ok && sendResult.messages?.[0]) {
+        // Log to history
+        await supabase.from('crm_messages').insert({
+          contact_id: contactId,
+          direction: 'outbound',
+          content: `[Template: ${templateName}]`,
+          message_type: 'template',
+          meta_message_id: sendResult.messages[0].id,
+          status: 'sent'
+        })
+        sendResult.success = true // Ensure success flag for auto-continue
+      }
+    } else {
+      sendResult = { success: false, error: 'Missing template name' };
+    }
+  }
 
   // AUTO-CONTINUE for non-waiting nodes
-  const autoContinueTypes = ['message', 'audio', 'video', 'image', 'crmAction', 'followup']
+  const autoContinueTypes = ['message', 'audio', 'video', 'image', 'crmAction', 'followup', 'template']
   if (autoContinueTypes.includes(node.type)) {
     // Only continue if the action was successful
     if (sendResult?.success) {

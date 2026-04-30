@@ -41,7 +41,9 @@ import {
   Upload,
   UserCheck,
   Timer,
-  Settings
+  Settings,
+  FileText,
+  RefreshCcw
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -208,6 +210,22 @@ const CRMActionNode = ({ data }: any) => (
   </Card>
 );
 
+const TemplateNode = ({ data }: any) => (
+  <Card className="min-w-[200px] border-blue-600 shadow-md">
+    <Handle type="target" position={Position.Top} />
+    <CardHeader className="p-3 bg-blue-600 text-white rounded-t-lg flex flex-row items-center justify-between">
+      <CardTitle className="text-xs font-bold flex items-center gap-2">
+        <FileText className="w-3 h-3" /> Template Meta
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-3">
+      <p className="text-[10px] font-bold text-blue-600 truncate">{data.templateName || 'Selecione um template...'}</p>
+      {data.language && <Badge variant="secondary" className="mt-1 text-[8px] h-3">{data.language}</Badge>}
+    </CardContent>
+    <Handle type="source" position={Position.Bottom} />
+  </Card>
+);
+
 const nodeTypes = {
   message: MessageNode,
   audio: AudioNode,
@@ -218,6 +236,7 @@ const nodeTypes = {
   followup: FollowUpNode,
   waitResponse: WaitResponseNode,
   crmAction: CRMActionNode,
+  template: TemplateNode,
 };
 
 interface FlowEditorProps {
@@ -236,6 +255,15 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
   const [triggerKeywords, setTriggerKeywords] = useState(flow?.trigger_keywords?.join(', ') || flow?.trigger_keyword || '');
   const [isActive, setIsActive] = useState(flow?.is_active !== false);
   const [uploading, setUploading] = useState(false);
+  const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const { data } = await supabase.from('crm_templates').select('*');
+      if (data) setAvailableTemplates(data);
+    };
+    fetchTemplates();
+  }, []);
 
   const handleFileUpload = async (file: File, nodeId: string, type: 'audio' | 'video' | 'image') => {
     setUploading(true);
@@ -291,7 +319,10 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
         timeout: 20,
         isPTT: type === 'audio',
         fileName: '',
-        action: type === 'crmAction' ? 'Notificar Agente' : ''
+        action: type === 'crmAction' ? 'Notificar Agente' : '',
+        templateName: '',
+        templateId: '',
+        language: ''
       },
     };
     setNodes((nds) => nds.concat(newNode));
@@ -357,7 +388,19 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
       <div className="flex-1 flex overflow-hidden">
         <aside className="w-64 border-r bg-card/50 p-4 space-y-6 overflow-y-auto">
           <div>
-            <h3 className="text-sm font-semibold mb-4 text-muted-foreground uppercase tracking-wider">Adicionar Blocos</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Adicionar Blocos</h3>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={async () => {
+                const { error } = await supabase.functions.invoke('meta-whatsapp-crm', { body: { action: 'getTemplates' } });
+                if (!error) {
+                  const { data } = await supabase.from('crm_templates').select('*');
+                  if (data) setAvailableTemplates(data);
+                  toast({ title: "Templates sincronizados!" });
+                }
+              }}>
+                <RefreshCcw className="w-3 h-3" />
+              </Button>
+            </div>
             <div className="grid grid-cols-1 gap-2">
               <Button variant="outline" className="justify-start gap-2 border-blue-500/20 hover:bg-blue-500/10" onClick={() => addNode('message')}>
                 <MessageSquare className="w-4 h-4 text-blue-500" /> Texto
@@ -382,6 +425,9 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
               </Button>
               <Button variant="outline" className="justify-start gap-2 border-red-500/20 hover:bg-red-500/10" onClick={() => addNode('followup')}>
                 <AlertCircle className="w-4 h-4 text-red-500" /> Lembrete
+              </Button>
+              <Button variant="outline" className="justify-start gap-2 border-blue-600/20 hover:bg-blue-600/10" onClick={() => addNode('template')}>
+                <FileText className="w-4 h-4 text-blue-600" /> Template Meta
               </Button>
               <Button variant="outline" className="justify-start gap-2 border-slate-700/20 hover:bg-slate-700/10" onClick={() => addNode('crmAction')}>
                 <Zap className="w-4 h-4 text-slate-700" /> Ação CRM
@@ -607,6 +653,43 @@ const FlowEditor: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) => {
                         <SelectItem value="Solicitar Ligação">Solicitar Ligação</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+                {selectedNode.type === 'template' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Escolher Template</Label>
+                      <Select 
+                        value={selectedNode.data.templateId as string} 
+                        onValueChange={(val) => {
+                          const template = availableTemplates.find(t => t.id === val);
+                          if (template) {
+                            updateNodeData(selectedNode.id, { 
+                              templateId: val, 
+                              templateName: template.name,
+                              language: template.language 
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="text-xs h-8">
+                          <SelectValue placeholder="Selecione um template..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableTemplates.map(t => (
+                            <SelectItem key={t.id} value={t.id}>{t.name} ({t.language})</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {selectedNode.data.templateId && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <p className="text-[10px] text-blue-700 font-medium">⚠️ Atenção</p>
+                        <p className="text-[9px] text-blue-600/80 mt-1">
+                          Templates Meta são cobrados como mensagens de Marketing pela Meta. Certifique-se de que o template está aprovado.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
