@@ -715,12 +715,13 @@ async function internalSendTemplate(
 
     // Handle Buttons
     if (buttonsComponent && buttonsComponent.buttons) {
+      const buttonParams: any[] = [];
       buttonsComponent.buttons.forEach((b: any, index: number) => {
         if (b.type === 'URL' && b.url?.includes('{{1}}')) {
           const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && (c.index === index || index === 0));
           const btnParam = manualBtn?.parameters?.[0]?.text || contact?.id || '1';
           
-          finalComponents.push({
+          buttonParams.push({
             type: "button",
             sub_type: "url",
             index: index.toString(),
@@ -730,7 +731,7 @@ async function internalSendTemplate(
           const manualBtn = manualComponents?.find((c: any) => c.type === 'button' && (c.index === index || index === 0));
           const btnParam = manualBtn?.parameters?.[0]?.text || b.example[0];
           
-          finalComponents.push({
+          buttonParams.push({
             type: "button",
             sub_type: "copy_code",
             index: index.toString(),
@@ -738,6 +739,10 @@ async function internalSendTemplate(
           });
         }
       });
+      
+      if (buttonParams.length > 0) {
+        finalComponents.push(...buttonParams);
+      }
     }
   }
 
