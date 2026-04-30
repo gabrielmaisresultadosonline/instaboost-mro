@@ -751,6 +751,42 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                     </Select>
                   </div>
                 )}
+                {selectedNode.type === 'jump' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Escolher Fluxo de Destino</Label>
+                      <Select 
+                        value={selectedNode.data.targetFlowId as string} 
+                        onValueChange={(val) => {
+                          const targetFlow = availableFlows.find(f => f.id === val);
+                          if (targetFlow) {
+                            updateNodeData(selectedNode.id, { 
+                              targetFlowId: val, 
+                              targetFlowName: targetFlow.name
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="text-xs h-8">
+                          <SelectValue placeholder="Selecione um fluxo..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableFlows.map(f => (
+                            <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                      <p className="text-[10px] text-amber-700 font-medium flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> Atenção
+                      </p>
+                      <p className="text-[9px] text-amber-600/80 mt-1">
+                        Ao chegar neste nó, o cliente será transferido instantaneamente para o início do fluxo selecionado.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {selectedNode.type === 'template' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
