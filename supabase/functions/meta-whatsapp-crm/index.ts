@@ -507,6 +507,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
   
   console.log('Sending message to Meta:', JSON.stringify(body, null, 2));
   
+  const response = await fetch(
     `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
     {
       method: 'POST',
