@@ -1923,7 +1923,6 @@ const CRM = () => {
                   }
                 }
                 toast({ title: id ? "Contato atualizado!" : "Contato criado!" });
-                toast({ title: "Contato atualizado!" });
                 fetchContacts();
                 if (selectedContact?.id === contactToView.id) {
                   setSelectedContact({ ...selectedContact, name: contactToView.name, metadata: contactToView.metadata });
@@ -1943,7 +1942,7 @@ const CRM = () => {
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <FileUp className="w-5 h-5 text-primary" /> Gerenciar Contatos
             </DialogTitle>
-            <DialogDescription>Exporte sua lista atual ou importe novos contatos via CSV.</DialogDescription>
+            <DialogDescription>Exporte sua lista atual ou importe novos contatos via CSV ou vCard.</DialogDescription>
           </DialogHeader>
           
           <div className="grid grid-cols-1 gap-4 py-6">
@@ -1971,17 +1970,17 @@ const CRM = () => {
               </div>
               <div>
                 <p className="font-bold">Importar Lista</p>
-                <p className="text-xs text-muted-foreground">Adicione contatos em massa enviando um arquivo CSV.</p>
+                <p className="text-xs text-muted-foreground">Adicione contatos em massa enviando um arquivo CSV ou vCard.</p>
               </div>
-              <Label htmlFor="import-csv" className="w-full">
+              <Label htmlFor="import-file" className="w-full">
                 <Button variant="default" className="w-full rounded-xl pointer-events-none">
                   Selecionar Arquivo
                 </Button>
               </Label>
               <input 
-                id="import-csv" 
+                id="import-file" 
                 type="file" 
-                accept=".csv" 
+                accept=".csv,.vcf,.vcard" 
                 className="hidden" 
                 onChange={(e) => {
                   handleImportContacts(e);
