@@ -16,6 +16,7 @@ interface TemplateBuilderProps {
 }
 
 const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) => {
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [category, setCategory] = useState('MARKETING');
   const [language, setLanguage] = useState('pt_BR');
@@ -25,6 +26,8 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({ onSave, isSaving }) =
   const [bodyText, setBodyText] = useState('');
   const [footerText, setFooterText] = useState('');
   const [buttons, setButtons] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addButton = (type: 'QUICK_REPLY' | 'URL' | 'PHONE') => {
     if (buttons.length >= 3) return;
