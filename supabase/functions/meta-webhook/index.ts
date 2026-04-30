@@ -324,6 +324,13 @@ serve(async (req) => {
         }
       }
 
+      // Trigger scheduled messages processing
+      try {
+        await supabase.functions.invoke('meta-whatsapp-crm', { body: { action: 'processScheduled' } });
+      } catch (e) {
+        console.error('Error triggering scheduled messages:', e);
+      }
+
       return new Response('OK', { status: 200 })
     } catch (error) {
       console.error('Webhook processing error:', error)
