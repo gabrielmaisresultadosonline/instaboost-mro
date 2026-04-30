@@ -745,13 +745,18 @@ const CRM = () => {
                   <div className="flex-1 overflow-x-auto p-4 flex gap-4">
                     {['new', 'responded', 'qualified', 'closed', 'lost'].map(status => (
                       <div key={status} className="w-72 shrink-0 flex flex-col bg-muted/20 rounded-lg border" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(status)}>
-                        <div className="p-3 border-b font-bold uppercase text-xs flex justify-between">
+                        <div className="p-3 border-b font-bold uppercase text-xs flex justify-between bg-muted/30">
                           {status} <Badge variant="secondary">{contacts.filter(c => c.status === status).length}</Badge>
                         </div>
                         <ScrollArea className="flex-1 p-2">
                           {contacts.filter(c => c.status === status).map(contact => (
-                            <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing" onClick={() => { openChat(contact); setKanbanView(false); }}>
+                            <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors" onClick={() => { openChat(contact); setKanbanView(false); }}>
                               <p className="text-sm font-semibold truncate">{contact.name || contact.wa_id}</p>
+                              {contact.last_interaction && (
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                  {new Date(contact.last_interaction).toLocaleDateString()}
+                                </p>
+                              )}
                             </Card>
                           ))}
                         </ScrollArea>
@@ -760,57 +765,238 @@ const CRM = () => {
                   </div>
                 ) : (
                   <>
-                    <div className={`w-full md:w-[350px] border-r flex flex-col ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
-                      <div className="p-4 border-b flex gap-2">
-                        <Input placeholder="Buscar..." onChange={e => setStatusFilter(e.target.value || 'all')} />
+                    <div className={cn(
+                      "w-full md:w-[350px] border-r flex flex-col bg-card/30 backdrop-blur-sm",
+                      selectedContact ? 'hidden md:flex' : 'flex'
+                    )}>
+                      <div className="p-4 border-b flex flex-col gap-3">
+                        <div className="relative">
+                          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input 
+                            placeholder="Buscar contatos..." 
+                            className="pl-9 bg-muted/50 border-none h-10"
+                            onChange={e => setStatusFilter(e.target.value || 'all')} 
+                          />
+                        </div>
+                        <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
+                          {['all', 'new', 'responded', 'qualified', 'closed'].map(s => (
+                            <Badge 
+                              key={s} 
+                              variant={statusFilter === s ? 'default' : 'outline'} 
+                              className="cursor-pointer capitalize whitespace-nowrap"
+                              onClick={() => setStatusFilter(s)}
+                            >
+                              {s}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                       <ScrollArea className="flex-1 min-h-0">
-                        {filteredContacts.map(contact => (
-                          <button key={contact.id} onClick={() => openChat(contact)} className={`w-full p-4 text-left border-b hover:bg-secondary/30 ${selectedContact?.id === contact.id ? 'bg-secondary/50' : ''}`}>
-                            <p className="font-bold truncate">{contact.name || contact.wa_id}</p>
-                            <Badge variant="outline" className={getStatusColor(contact.status)}>{contact.status}</Badge>
-                          </button>
-                        ))}
+                        {filteredContacts.length > 0 ? (
+                          filteredContacts.map(contact => (
+                            <button 
+                              key={contact.id} 
+                              onClick={() => openChat(contact)} 
+                              className={cn(
+                                "w-full p-4 text-left border-b transition-all flex flex-col gap-1 relative",
+                                selectedContact?.id === contact.id ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/50 border-l-4 border-l-transparent"
+                              )}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <p className="font-bold truncate text-sm flex-1">{contact.name || contact.wa_id}</p>
+                                <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                                  {contact.last_interaction ? new Date(contact.last_interaction).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <Badge variant="outline" className={cn("text-[10px] px-1.5 h-4 capitalize", getStatusColor(contact.status))}>{contact.status}</Badge>
+                                {contact.flow_state && contact.flow_state !== 'idle' && (
+                                  <Badge variant="secondary" className="text-[9px] h-4 bg-primary/10 text-primary animate-pulse border-none">Fluxo Ativo</Badge>
+                                )}
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="p-8 text-center text-muted-foreground text-sm italic">
+                            Nenhum contato encontrado
+                          </div>
+                        )}
                       </ScrollArea>
                     </div>
-                    <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
+                    
+                    <div className={cn(
+                      "flex-1 flex flex-col min-h-0 relative",
+                      !selectedContact ? 'hidden md:flex items-center justify-center bg-muted/5' : 'flex'
+                    )}>
                       {selectedContact ? (
                         <>
-                          <div className="p-4 border-b flex justify-between items-center bg-card shadow-sm z-10">
+                          <div className="p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-md shadow-sm z-10 sticky top-0">
                             <div className="flex items-center gap-4">
                               <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
-                                <ArrowRight className="h-5 w-5 rotate-180" />
+                                <ChevronLeft className="h-5 w-5" />
                               </Button>
                               <div className="flex flex-col">
-                                <p className="font-bold flex items-center gap-2 text-sm md:text-base">
-                                  {selectedContact.name || selectedContact.wa_id}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-bold text-base">{selectedContact.name || selectedContact.wa_id}</p>
+                                  {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
+                                    <Badge variant="outline" className={cn(
+                                      "text-[10px] px-1.5 h-4 flex items-center gap-1",
+                                      selectedContact.flow_state === 'error' ? "bg-red-500/10 text-red-600 border-red-200" : "bg-primary/10 text-primary border-primary/20"
+                                    )}>
+                                      <div className={cn("w-1.5 h-1.5 rounded-full", selectedContact.flow_state === 'error' ? "bg-red-500" : "bg-primary animate-ping")} />
+                                      {selectedContact.flow_state === 'error' ? 'Erro no Fluxo' : `Fluxo: ${selectedContact.flow_state}`}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {selectedContact.last_interaction && (
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <Clock className={cn("w-3 h-3", getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500')} />
+                                    <span className={cn("text-[10px] font-medium uppercase tracking-tight", getWindowInfo(selectedContact.last_interaction)?.isExpired ? 'text-destructive' : 'text-green-500')}>
+                                      {getWindowInfo(selectedContact.last_interaction)?.label}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" className="hidden lg:flex h-8 text-[11px]" onClick={() => updateContactStatus(selectedContact.id, { status: 'qualified' })}>Qualificar</Button>
+                              <Button size="sm" className="bg-green-600 hidden lg:flex text-white hover:bg-green-700 h-8 text-[11px]" onClick={() => updateContactStatus(selectedContact.id, { status: 'closed' })}>Venda</Button>
+                              
+                              <Select onValueChange={(val) => updateContactStatus(selectedContact.id, { status: val })}>
+                                <SelectTrigger className="w-fit h-8 text-[11px] lg:hidden">
+                                  <SelectValue placeholder="Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="new">Novo</SelectItem>
+                                  <SelectItem value="responded">Respondido</SelectItem>
+                                  <SelectItem value="qualified">Qualificado</SelectItem>
+                                  <SelectItem value="closed">Venda</SelectItem>
+                                  <SelectItem value="lost">Perdido</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
-                          <ScrollArea className="flex-1 p-4">
-                            {chatMessages.map(m => (
-                              <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
-                                <div className={`p-3 rounded-lg max-w-[80%] ${m.direction === 'inbound' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>
-                                  {m.content}
+                          
+                          <div className="bg-muted/30 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center sticky top-14 z-[5]">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
+                              <Zap className="w-3 h-3 text-amber-500" /> Atalhos:
+                            </span>
+                            {templates.slice(0, 5).map(t => (
+                              <Button key={t.id} variant="secondary" size="sm" className="h-6 text-[10px] px-2 rounded-full border bg-card hover:bg-primary hover:text-white transition-colors" onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} disabled={sendingMessage}>
+                                {t.name}
+                              </Button>
+                            ))}
+                          </div>
+
+                          <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
+                            <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
+                              {chatMessages.map((m, idx) => (
+                                <div key={m.id || idx} className={cn(
+                                  "flex w-full mb-1",
+                                  m.direction === 'inbound' ? 'justify-start' : 'justify-end'
+                                )}>
+                                  <div className={cn(
+                                    "p-3 rounded-2xl max-w-[85%] md:max-w-[70%] shadow-sm relative",
+                                    m.direction === 'inbound' 
+                                      ? 'bg-card text-card-foreground rounded-tl-none border border-border/50' 
+                                      : 'bg-primary text-primary-foreground rounded-tr-none'
+                                  )}>
+                                    {m.message_type === 'image' && m.media_url && (
+                                      <img src={m.media_url} alt="Mídia" className="rounded-lg mb-2 max-w-full h-auto cursor-zoom-in" onClick={() => window.open(m.media_url, '_blank')} />
+                                    )}
+                                    {m.message_type === 'audio' && m.media_url && (
+                                      <audio src={m.media_url} controls className="max-w-full h-8 mb-2" />
+                                    )}
+                                    <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap">
+                                      {m.message_text || m.content}
+                                    </div>
+                                    <div className={cn(
+                                      "text-[9px] mt-1 text-right opacity-60 flex items-center justify-end gap-1",
+                                      m.direction === 'inbound' ? 'text-muted-foreground' : 'text-primary-foreground'
+                                    )}>
+                                      {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                      {m.direction === 'outbound' && <Check className="w-3 h-3" />}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              <div ref={scrollRef} className="h-4" />
+                            </div>
+                          </ScrollArea>
+                          
+                          <div className="p-4 bg-card border-t shadow-lg z-10">
+                            {isPreviewingAudio && recordedAudioUrl ? (
+                              <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20 animate-in slide-in-from-bottom-2 duration-300">
+                                <div className="flex-1 flex items-center gap-3">
+                                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 h-8">
+                                    <Mic className="w-3 h-3 mr-1.5 animate-pulse" /> Audio Gravado
+                                  </Badge>
+                                  <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive hover:bg-destructive/10"><XCircle className="w-5 h-5" /></Button>
+                                  <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 hover:bg-green-700 text-white"><Send className="w-5 h-5" /></Button>
                                 </div>
                               </div>
-                            ))}
-                            <div ref={scrollRef} />
-                          </ScrollArea>
-                          <div className="p-4 border-t flex gap-2">
-                            <Input value={newMessage} onChange={e => setNewMessage(e.target.value)} placeholder="Mensagem..." />
-                            <Button onClick={handleSendMessage} disabled={sendingMessage}>Enviar</Button>
+                            ) : (
+                              <div className="flex items-center gap-2 max-w-5xl mx-auto">
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary"><ImageIcon className="w-5 h-5" /></Button>
+                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary"><Paperclip className="w-5 h-5" /></Button>
+                                </div>
+                                <div className="flex-1 relative">
+                                  <Input 
+                                    placeholder="Digite uma mensagem..." 
+                                    value={newMessage} 
+                                    onChange={e => setNewMessage(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                                    className="bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 px-4 pr-12 rounded-xl"
+                                  />
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className={cn(
+                                      "absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg transition-colors",
+                                      newMessage.trim() ? "text-primary" : "text-muted-foreground opacity-50"
+                                    )}
+                                    onClick={handleSendMessage}
+                                    disabled={!newMessage.trim() || sendingMessage}
+                                  >
+                                    <Send className="w-5 h-5" />
+                                  </Button>
+                                </div>
+                                <Button 
+                                  size="icon" 
+                                  variant={isRecording ? 'destructive' : 'ghost'} 
+                                  className={cn("h-11 w-11 rounded-xl shrink-0", isRecording && "animate-pulse")}
+                                  onClick={isRecording ? stopRecording : startRecording}
+                                >
+                                  {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5 text-muted-foreground" />}
+                                </Button>
+                              </div>
+                            )}
+                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
                           </div>
                         </>
                       ) : (
-                        <div className="text-center">Selecione um contato</div>
+                        <div className="flex flex-col items-center justify-center gap-4 text-center p-8 animate-in fade-in duration-700">
+                          <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center">
+                            <MessageSquare className="w-10 h-10 text-primary/30" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
+                            <p className="text-muted-foreground text-sm max-w-[280px] mx-auto">
+                              Selecione um contato na lista lateral para visualizar o histórico de mensagens e responder.
+                            </p>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </>
                 )}
               </div>
             )}
+
 
             {activeTab === 'flows' && (
               <div className="p-6">
