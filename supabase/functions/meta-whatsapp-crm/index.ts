@@ -635,7 +635,10 @@ async function internalSendTemplate(
       if (headerComponent.format === 'IMAGE') {
         let imageUrl = manualComponents?.find((c: any) => c.type === 'header')?.parameters?.[0]?.image?.link;
         if (!imageUrl) {
-          imageUrl = headerComponent.example?.header_handle?.[0];
+          const potentialUrl = headerComponent.example?.header_handle?.[0];
+          if (potentialUrl && (potentialUrl.startsWith('http') || potentialUrl.startsWith('https'))) {
+            imageUrl = potentialUrl;
+          }
         }
 
         const isMetaCdn = imageUrl && (
@@ -652,7 +655,8 @@ async function internalSendTemplate(
               image: { link: imageUrl }
             }]
           });
-        } else if (imageUrl) {
+        } else {
+          // Fallback to a valid JPG image since Unsplash webp is rejected by Meta
           finalComponents.push({
             type: "header",
             parameters: [{
