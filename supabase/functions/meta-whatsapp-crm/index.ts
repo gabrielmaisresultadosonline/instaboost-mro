@@ -424,19 +424,7 @@ serve(async (req) => {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-function sanitizeMetaLink(url: string | null | undefined): string {
-  if (!url) return "";
-  const isMetaCdn = url.includes('whatsapp.net') || 
-                    url.includes('fbcdn.net') || 
-                    url.includes('facebook.com');
-  
-  if (isMetaCdn) {
-    console.log('Sanitizing Meta CDN link:', url);
-    // Use a generic but professional placeholder image for CRM
-    return "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000&auto=format&fm=jpg";
-  }
-  return url;
-}
+// sanitizeMetaLink removed as we now use uploadMediaToMeta for all media types to ensure delivery
 
 async function handleInternalSendMessage(supabase: any, meta_phone_number_id: string, meta_access_token: string, params: any, contact: any) {
   const { to, text, audioUrl, imageUrl, videoUrl, documentUrl, fileName, buttons, headerText, footerText, isVoice } = params
