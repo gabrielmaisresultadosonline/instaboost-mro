@@ -210,229 +210,28 @@ serve(async (req) => {
     }
 
     if (action === 'sendTemplate') {
-      const { to, templateName, languageCode, components } = params
+      const { to, templateName, languageCode, components: manualComponents } = params
       
-      console.log(`Sending template ${templateName} to ${to}...`);
-
-      // Fetch template details and contact interaction
-      const { data: templateData } = await supabase
-        .from('crm_templates')
-        .select('*')
-        .eq('name', templateName)
-        .single();
-
       const { data: contact } = await supabase
         .from('crm_contacts')
         .select('*')
         .eq('wa_id', to)
         .single();
 
-      const lastInteraction = contact?.last_interaction;
-      const isWindowOpen = lastInteraction && (new Date().getTime() - new Date(lastInteraction).getTime()) < 24 * 60 * 60 * 1000;
+      if (!contact) throw new Error('Contact not found');
 
-      // If we are in the 24h window, fallback to sendMessage (interactive message) to allow rich formatting
-      // ONLY if the template is not yet approved. If it is approved, use the official Template API which is more reliable.
-      if (templateData && templateData.status !== 'APPROVED' && isWindowOpen) {
-        console.log(`Template ${templateName} - window is open and not approved. Sending as interactive message...`);
-        
-        const headerComponent = templateData.components?.find((c: any) => c.type === 'HEADER');
-        const bodyComponent = templateData.components?.find((c: any) => c.type === 'BODY');
-        const footerComponent = templateData.components?.find((c: any) => c.type === 'FOOTER');
-        const buttonsComponent = templateData.components?.find((c: any) => c.type === 'BUTTONS');
-        
-        if (bodyComponent && bodyComponent.text) {
-          let text = bodyComponent.text;
-          const bodyParams = components?.find((c: any) => c.type === 'body')?.parameters || [];
-          
-          // Auto-fill variables if parameters provided
-          bodyParams.forEach((param: any, index: number) => {
-            const placeholder = `{{${index + 1}}}`;
-            text = text.replace(placeholder, param.text || '-');
-          });
+      const response = await internalSendTemplate(
+        supabase, 
+        meta_phone_number_id, 
+        meta_access_token, 
+        to, 
+        templateName, 
+        languageCode || 'pt_BR', 
+        manualComponents, 
+        contact
+      );
 
-          // Handle case where no params provided but we have contact name
-          if (bodyParams.length === 0 && text.includes('{{1}}') && contact?.name) {
-            text = text.replace(/\{\{1\}\}/g, contact.name);
-          }
-          // Clean up remaining placeholders
-          text = text.replace(/\{\{\d+\}\}/g, '---');
-
-          // Extract header if it exists
-          let imageUrl = null;
-          let headerText = null;
-          if (headerComponent) {
-            if (headerComponent.format === 'IMAGE') {
-              imageUrl = headerComponent.example?.header_handle?.[0] || components?.find((c: any) => c.type === 'header')?.parameters?.[0]?.image?.link;
-            } else if (headerComponent.format === 'TEXT') {
-              headerText = headerComponent.text;
-            }
-          }
-
-          // Extract buttons
-          let buttons = [];
-          if (buttonsComponent && buttonsComponent.buttons) {
-            buttonsComponent.buttons.forEach((b: any, index: number) => {
-              if (b.type === 'QUICK_REPLY') {
-                buttons.push({
-                  id: b.payload || b.text || `btn_${index}`,
-                  text: b.text
-                });
-              } else if (b.type === 'URL') {
-                // For URL buttons, append to text as they aren't supported in interactive buttons
-                let buttonUrl = b.url || '';
-                const buttonParams = components?.find((c: any) => c.type === 'button' && c.index === index)?.parameters || [];
-                
-                if (buttonParams.length > 0 && buttonUrl.includes('{{1}}')) {
-                  buttonUrl = buttonUrl.replace('{{1}}', buttonParams[0].text || '');
-                }
-                
-                text += `\n\n🔗 ${b.text}:\n${buttonUrl}`;
-              } else if (b.type === 'PHONE_NUMBER') {
-                text += `\n\n📞 ${b.text}: ${b.phone_number}`;
-              }
-            });
-          }
-
-          // Send as rich message using handleInternalSendMessage
-          return await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
-            to,
-            text,
-            imageUrl,
-            headerText,
-            footerText: footerComponent?.text,
-            buttons: buttons.length > 0 ? buttons : undefined
-          }, contact);
-        }
-      }
-
-      // Standard Template Sending
-      let finalComponents = components || [];
-      let messageContent = `[Template: ${templateName}]`;
-
-      if (templateData?.components) {
-        const bodyComponent = templateData.components.find((c: any) => c.type === 'BODY');
-        
-        // Auto-fill variables if components are missing or empty
-        if (finalComponents.length === 0 && bodyComponent && bodyComponent.text) {
-          const varCount = (bodyComponent.text.match(/\{\{\d+\}\}/g) || []).length;
-          if (varCount > 0) {
-            const name = contact?.name || 'Cliente';
-            const bodyParams = [];
-            
-            for (let i = 1; i <= varCount; i++) {
-              bodyParams.push({
-                type: "text",
-                text: i === 1 ? name : "-"
-              });
-            }
-            
-            finalComponents.push({
-              type: "body",
-              parameters: bodyParams
-            });
-          }
-
-          const headerComponent = templateData.components.find((c: any) => c.type === 'HEADER');
-          if (headerComponent && headerComponent.format === 'IMAGE') {
-            const customImageUrl = components?.find((c: any) => c.type === 'header')?.parameters?.[0]?.image?.link;
-            
-            if (customImageUrl) {
-              finalComponents.push({
-                type: "header",
-                parameters: [{
-                  type: "image",
-                  image: { link: customImageUrl }
-                }]
-              });
-            }
-          }
-        }
-
-        // Reconstruct message content for history
-        if (bodyComponent && bodyComponent.text) {
-          let text = bodyComponent.text;
-          const bodyParams = finalComponents.find((c: any) => c.type === 'body')?.parameters || [];
-          
-          bodyParams.forEach((param: any, index: number) => {
-            const placeholder = `{{${index + 1}}}`;
-            text = text.replace(placeholder, param.text || '-');
-          });
-          
-          messageContent = text;
-        }
-      }
-
-      const metaRequestBody = {
-        messaging_product: "whatsapp",
-        to,
-        type: "template",
-        template: {
-          name: templateName,
-          language: { code: languageCode || 'pt_BR' },
-          components: finalComponents
-        }
-      };
-
-      console.log('Sending to Meta API:', JSON.stringify(metaRequestBody, null, 2));
-
-      const response = await fetch(
-        `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${meta_access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(metaRequestBody),
-        }
-      )
-
-      const result = await response.json()
-      
-      if (!response.ok) {
-        console.error('Meta API Error (Template):', JSON.stringify(result, null, 2));
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: result.error?.message || 'Meta API returned an error',
-          details: result 
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-      
-      console.log('Template sent successfully:', JSON.stringify(result));
-
-      // Save to message history
-      if (result.messages && result.messages[0]) {
-        if (contact) {
-          const headerImageUrl = finalComponents.find((c: any) => c.type === 'header')?.parameters?.find((p: any) => p.type === 'image')?.image?.link;
-
-          await supabase.from('crm_messages').insert({
-            contact_id: contact.id,
-            direction: 'outbound',
-            content: messageContent,
-            message_type: 'template',
-            media_url: headerImageUrl || null,
-            meta_message_id: result.messages[0].id,
-            status: 'sent'
-          })
-
-          await supabase
-            .from('crm_contacts')
-            .update({ 
-              total_messages_sent: (contact.total_messages_sent || 0) + 1,
-              last_interaction: new Date().toISOString()
-            })
-            .eq('id', contact.id)
-          
-          await supabase.rpc('increment_crm_metric', { metric_column: 'sent_count' })
-        }
-      }
-
-      return new Response(JSON.stringify({ success: true, result }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return response;
     }
 
     if (action === 'sendMessage') {
