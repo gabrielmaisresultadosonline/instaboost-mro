@@ -545,6 +545,7 @@ const CRM = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="contacts">Contatos/CRM</TabsTrigger>
+            <TabsTrigger value="flows">Fluxos de Automação</TabsTrigger>
             <TabsTrigger value="templates">Templates Meta</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
