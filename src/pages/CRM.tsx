@@ -825,6 +825,17 @@ const CRM = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {isFlowEditorOpen && (
+        <FlowEditor 
+          flow={editingFlow} 
+          onSave={handleSaveFlow} 
+          onClose={() => {
+            setIsFlowEditorOpen(false);
+            setEditingFlow(null);
+          }} 
+        />
+      )}
     </div>
   );
 };
