@@ -135,6 +135,8 @@ const CRM = () => {
   } | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+  const [showTemplates, setShowTemplates] = useState(true);
+  const [showFlows, setShowFlows] = useState(true);
 
   useEffect(() => {
     selectedContactRef.current = selectedContact;
