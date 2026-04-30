@@ -708,13 +708,13 @@ const CRM = () => {
 
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden bg-muted/20">
         <Tabs defaultValue="contacts" className="flex-1 flex flex-col min-h-0">
-          <div className="px-4 py-2 border-b bg-card">
-            <TabsList className="flex h-9 items-center justify-start gap-1 bg-transparent p-0">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Dashboard</TabsTrigger>
-              <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Conversas</TabsTrigger>
-              <TabsTrigger value="flows" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Fluxos</TabsTrigger>
-              <TabsTrigger value="templates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Templates</TabsTrigger>
-              <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border-transparent px-3 py-1.5 text-xs font-medium rounded-md transition-all">Ajustes</TabsTrigger>
+          <div className="px-6 py-4 border-b bg-card">
+            <TabsList className="flex h-10 items-center justify-start gap-2 bg-muted p-1 rounded-lg w-fit">
+              <TabsTrigger value="dashboard" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Dashboard</TabsTrigger>
+              <TabsTrigger value="contacts" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Conversas</TabsTrigger>
+              <TabsTrigger value="flows" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Fluxos</TabsTrigger>
+              <TabsTrigger value="templates" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Templates</TabsTrigger>
+              <TabsTrigger value="settings" className="px-4 py-2 text-sm font-medium rounded-md transition-all">Ajustes</TabsTrigger>
             </TabsList>
           </div>
 
@@ -789,10 +789,10 @@ const CRM = () => {
                   <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
                     {selectedContact ? (
                       <>
-                        <div className="p-3 md:p-4 border-b flex justify-between items-center bg-card">
-                          <div className="flex items-center gap-3">
+                        <div className="p-4 border-b flex justify-between items-center bg-card shadow-sm z-10">
+                          <div className="flex items-center gap-4">
                             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedContact(null)}>
-                              <ArrowRight className="h-4 w-4 rotate-180" />
+                              <ArrowRight className="h-5 w-5 rotate-180" />
                             </Button>
                             <div className="flex flex-col">
                               <p className="font-bold flex items-center gap-2 text-sm md:text-base">
@@ -890,9 +890,9 @@ const CRM = () => {
                             ) : null}
                           </div>
                         </div>
-                        <div className="bg-muted/30 border-b px-4 py-1.5 flex gap-2 overflow-x-auto no-scrollbar items-center scrollbar-hide">
-                          <span className="text-[10px] font-semibold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
-                            <Zap className="w-3 h-3" /> Atalhos:
+                        <div className="bg-muted/50 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center scrollbar-hide">
+                          <span className="text-[11px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5" /> Atalhos:
                           </span>
                           {templates.slice(0, 8).map(t => (
                             <Button 
@@ -924,7 +924,7 @@ const CRM = () => {
                           <div className="p-4 space-y-4">
                             {chatMessages.map(m => (
                               <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
-                                <div className={`p-3 rounded-2xl max-w-[80%] shadow-sm ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
+                                <div className={`p-4 rounded-2xl max-w-[85%] shadow-md ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
                                   {m.media_url && (
                                     <div className="mb-2 overflow-hidden rounded-lg">
                                       {m.message_type === 'image' || (m.message_type === 'template' && m.media_url.match(/\.(jpg|jpeg|png|gif|webp)/i)) ? (
@@ -950,7 +950,7 @@ const CRM = () => {
                             <div ref={scrollRef} />
                           </div>
                         </ScrollArea>
-                        <div className="p-4 border-t bg-muted/20">
+                        <div className="p-4 border-t bg-card shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
                           {isRecording ? (
                             <div className="flex items-center justify-between bg-primary/10 p-2 rounded-lg border border-primary/20 animate-pulse">
                               <div className="flex items-center gap-2">
