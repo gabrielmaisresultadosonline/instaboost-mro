@@ -150,6 +150,13 @@ const CRM = () => {
   const [isContactInfoOpen, setIsContactInfoOpen] = useState(false);
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [contactToView, setContactToView] = useState<any>(null);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
 
   useEffect(() => {
     selectedContactRef.current = selectedContact;
