@@ -786,7 +786,7 @@ const CRM = () => {
                       ))}
                     </ScrollArea>
                   </div>
-                  <div className={`flex-1 flex flex-col ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
+                  <div className={`flex-1 flex flex-col min-h-0 ${!selectedContact ? 'hidden md:flex items-center justify-center opacity-50' : 'flex'}`}>
                     {selectedContact ? (
                       <>
                         <div className="p-4 border-b flex justify-between items-center bg-card">
@@ -885,37 +885,38 @@ const CRM = () => {
                             ) : null}
                           </div>
                         </div>
-                        <div className="bg-muted/10 border-b px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar items-center">
-                          <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0 flex items-center gap-1"><Zap className="w-3 h-3" /> Atalhos:</span>
-                          {templates.slice(0, 5).map(t => (
+                        <div className="bg-muted/30 border-b px-4 py-1.5 flex gap-2 overflow-x-auto no-scrollbar items-center scrollbar-hide">
+                          <span className="text-[10px] font-semibold uppercase text-muted-foreground shrink-0 flex items-center gap-1">
+                            <Zap className="w-3 h-3" /> Atalhos:
+                          </span>
+                          {templates.slice(0, 8).map(t => (
                             <Button 
                               key={t.id} 
                               variant="secondary" 
                               size="sm" 
-                              className="h-7 text-[10px] px-2 whitespace-nowrap"
+                              className="h-6 text-[10px] px-2 rounded-full border bg-background hover:bg-primary hover:text-white transition-colors"
                               onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')}
                               disabled={sendingMessage}
                             >
                               {t.name}
-                              {t.status !== 'APPROVED' && <ClockIcon className="w-2 h-2 ml-1 opacity-50" />}
                             </Button>
                           ))}
-                          <div className="w-px h-4 bg-border mx-1" />
+                          <div className="w-px h-3 bg-border mx-1 shrink-0" />
                           {flows.slice(0, 5).map(f => (
                             <Button 
                               key={f.id} 
                               variant="outline" 
                               size="sm" 
-                              className="h-7 text-[10px] px-2 whitespace-nowrap border-primary/20 text-primary"
+                              className="h-6 text-[10px] px-2 rounded-full border-primary/30 text-primary hover:bg-primary hover:text-white transition-colors"
                               onClick={() => handleTriggerFlow(f.id)}
                               disabled={sendingMessage}
                             >
-                              <GitBranch className="w-2 h-2 mr-1" /> {f.name}
+                              <GitBranch className="w-2.5 h-2.5 mr-1" /> {f.name}
                             </Button>
                           ))}
                         </div>
-                        <ScrollArea className="flex-1 p-4">
-                          <div className="space-y-4">
+                        <ScrollArea className="flex-1 min-h-0">
+                          <div className="p-4 space-y-4">
                             {chatMessages.map(m => (
                               <div key={m.id} className={`flex ${m.direction === 'inbound' ? 'justify-start' : 'justify-end'}`}>
                                 <div className={`p-3 rounded-2xl max-w-[80%] shadow-sm ${m.direction === 'inbound' ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-100 dark:border-zinc-700' : 'bg-primary text-primary-foreground rounded-tr-none'}`}>
@@ -1260,7 +1261,7 @@ const CRM = () => {
             </Dialog>
           </TabsContent>
 
-          <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 border rounded-xl overflow-hidden glass-card shadow-lg bg-card/30 backdrop-blur-sm p-6 overflow-y-auto">
+          <TabsContent value="settings" className="flex-1 flex flex-col min-h-0 p-6 overflow-auto">
             <div className="mb-6">
               <h2 className="text-2xl font-bold tracking-tight">Configurações do Sistema</h2>
               <p className="text-muted-foreground text-sm">Gerencie suas conexões e parâmetros de automação</p>
