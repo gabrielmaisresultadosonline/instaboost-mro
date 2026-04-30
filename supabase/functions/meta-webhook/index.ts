@@ -60,11 +60,20 @@ serve(async (req) => {
                 const wa_id = message.from
                 const contact_name = value.contacts?.[0]?.profile?.name || wa_id
                 
-                let { data: contact } = await supabase
+                const { data: contactBeforeUpdate } = await supabase
                   .from('crm_contacts')
                   .select('*')
                   .eq('wa_id', wa_id)
                   .single()
+                
+                const now = new Date();
+                const lastIntDate = contactBeforeUpdate?.last_interaction ? new Date(contactBeforeUpdate.last_interaction) : null;
+                const isFirstMessageOfDay = !lastIntDate || 
+                  lastIntDate.getUTCDate() !== now.getUTCDate() || 
+                  lastIntDate.getUTCMonth() !== now.getUTCMonth() || 
+                  lastIntDate.getUTCFullYear() !== now.getUTCFullYear();
+
+                let contact = contactBeforeUpdate;
                 
                 if (!contact) {
                   const { data: newContact } = await supabase
@@ -72,7 +81,7 @@ serve(async (req) => {
                     .insert({ 
                       wa_id, 
                       name: contact_name, 
-                      last_interaction: new Date().toISOString(),
+                      last_interaction: now.toISOString(),
                       total_messages_received: 1,
                       status: 'new'
                     })
@@ -83,7 +92,7 @@ serve(async (req) => {
                   const { data: updatedContact } = await supabase
                     .from('crm_contacts')
                     .update({ 
-                      last_interaction: new Date().toISOString(), 
+                      last_interaction: now.toISOString(), 
                       name: (!contact.name || contact.name === contact.wa_id) ? contact_name : contact.name,
                       total_messages_received: (contact.total_messages_received || 0) + 1,
                       status: contact.status === 'new' ? 'responded' : contact.status
@@ -201,14 +210,19 @@ serve(async (req) => {
                          f.trigger_keyword?.toLowerCase() === text)
                       );
 
-                      // Priority 2: 24h Inactivity
+                      // Priority 2: First message of the day
+                      if (!triggeredFlow && isFirstMessageOfDay) {
+                        triggeredFlow = flows.find(f => f.trigger_type === 'first_message_day');
+                      }
+
+                      // Priority 3: 24h Inactivity
                       if (!triggeredFlow && isAfter24h) {
                         triggeredFlow = flows.find(f => f.trigger_type === '24h_inactivity');
                       }
 
-                      // Priority 3: New Contact (only if it's the very first message)
+                      // Priority 4: New Contact (only if it's the very first message)
                       if (!triggeredFlow && isNewContact) {
-                        triggeredFlow = flows.find(f => f.trigger_type === 'new_contact');
+                        triggeredFlow = flows.find(f => f.trigger_type === 'new_contact' || f.trigger_type === 'first_message');
                       }
                     }
 

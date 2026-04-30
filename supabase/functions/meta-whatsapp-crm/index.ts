@@ -255,6 +255,9 @@ serve(async (req) => {
       
       if (!flow) throw new Error('Flow not found')
 
+      // Clear any existing scheduled messages for this contact to prevent flow conflicts
+      await supabase.from('crm_scheduled_messages').delete().eq('contact_id', contactId);
+
       // Use visual flow if it has nodes, otherwise fallback to old step-based system
       if (flow.nodes && flow.nodes.length > 0) {
         // Find starting node (no incoming edges)
@@ -267,7 +270,8 @@ serve(async (req) => {
             current_flow_id: flowId,
             current_node_id: startNode.id,
             flow_state: 'running',
-            last_flow_interaction: new Date().toISOString()
+            last_flow_interaction: new Date().toISOString(),
+            next_execution_time: null
           })
           .eq('id', contactId)
         
@@ -1030,6 +1034,44 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       }
     } else {
       sendResult = { success: false, error: 'Missing template name' };
+    }
+  }
+
+  else if (node.type === 'jump') {
+    if (node.data.targetFlowId) {
+      console.log(`Jumping from flow ${flow.id} to flow ${node.data.targetFlowId} for contact ${contactId}`);
+      
+      // Stop current flow by deleting scheduled messages
+      await supabase.from('crm_scheduled_messages').delete().eq('contact_id', contactId);
+      
+      const { data: targetFlow } = await supabase
+        .from('crm_flows')
+        .select('*')
+        .eq('id', node.data.targetFlowId)
+        .single()
+      
+      if (targetFlow && targetFlow.nodes && targetFlow.nodes.length > 0) {
+        const nodeIdsWithTarget = new Set(targetFlow.edges.map((e: any) => e.target))
+        const startNode = targetFlow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || targetFlow.nodes[0]
+        
+        await supabase
+          .from('crm_contacts')
+          .update({
+            current_flow_id: targetFlow.id,
+            current_node_id: startNode.id,
+            flow_state: 'running',
+            last_flow_interaction: new Date().toISOString(),
+            next_execution_time: null
+          })
+          .eq('id', contactId)
+        
+        return executeVisualNode(supabase, targetFlow, startNode, contactId, waId)
+      } else {
+        console.error('Target flow not found or has no nodes');
+        sendResult = { success: false, error: 'Target flow not found' };
+      }
+    } else {
+      sendResult = { success: false, error: 'Missing target flow ID' };
     }
   }
 
