@@ -879,18 +879,18 @@ const CRM = () => {
                             </div>
                           </div>
                           
-                          <div className="bg-muted/10 border-b px-3 py-2 flex flex-col sm:flex-row gap-2 sm:gap-4 sticky top-14 z-[5] backdrop-blur-sm overflow-hidden">
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <span className="text-[10px] font-black uppercase text-muted-foreground/80 shrink-0 flex items-center gap-1 bg-muted/20 px-1.5 py-0.5 rounded">
-                                <FileText className="w-3 h-3 text-emerald-500" /> Modelos
+                          <div className="bg-muted/5 border-b px-2 py-1.5 flex flex-col gap-1.5 sticky top-14 z-[5] backdrop-blur-md overflow-hidden">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.3 rounded-sm border border-border/20">
+                                <FileText className="w-2.5 h-2.5 text-emerald-500" /> Modelos
                               </span>
-                              <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 flex-1">
-                                {templates.slice(0, 8).map(t => (
+                              <div className="flex flex-wrap gap-1 flex-1">
+                                {templates.slice(0, 10).map(t => (
                                   <Button 
                                     key={t.id} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="h-7 text-[10px] px-3 rounded-full border-emerald-500/30 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-sm" 
+                                    className="h-6 text-[9px] px-2 rounded-md border-emerald-500/20 bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                     onClick={() => handleSendTemplate(t.name, t.language || 'pt_BR')} 
                                     disabled={sendingMessage}
                                   >
@@ -900,17 +900,17 @@ const CRM = () => {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2 min-w-0 flex-1 sm:border-l sm:pl-4 border-muted">
-                              <span className="text-[10px] font-black uppercase text-muted-foreground/80 shrink-0 flex items-center gap-1 bg-muted/20 px-1.5 py-0.5 rounded">
-                                <Zap className="w-3 h-3 text-blue-500" /> Fluxos
+                            <div className="flex items-center gap-1.5 min-w-0 pt-1 border-t border-border/5">
+                              <span className="text-[9px] font-black uppercase text-muted-foreground/70 shrink-0 flex items-center gap-1 bg-muted/30 px-1.2 py-0.3 rounded-sm border border-border/20">
+                                <Zap className="w-2.5 h-2.5 text-blue-500" /> Fluxos
                               </span>
-                              <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 flex-1">
-                                {flows.filter(f => f.is_active).slice(0, 8).map(f => (
+                              <div className="flex flex-wrap gap-1 flex-1">
+                                {flows.filter(f => f.is_active).slice(0, 10).map(f => (
                                   <Button 
                                     key={f.id} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="h-7 text-[10px] px-3 rounded-full border-blue-500/30 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-sm" 
+                                    className="h-6 text-[9px] px-2 rounded-md border-blue-500/20 bg-blue-500/5 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all font-bold whitespace-nowrap shadow-none" 
                                     onClick={() => handleTriggerFlow(f.id)} 
                                     disabled={sendingMessage}
                                   >
