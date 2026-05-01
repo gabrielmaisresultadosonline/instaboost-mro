@@ -512,10 +512,10 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm border overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
+          <Card className="rounded-2xl shadow-xl border border-border/50 overflow-hidden bg-gradient-to-br from-[#075E54]/10 to-transparent">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-primary" /> Tutorial Rápido
+              <CardTitle className="text-base flex items-center gap-2 text-[#25D366]">
+                <HelpCircle className="w-4 h-4" /> Tutorial Rápido
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
