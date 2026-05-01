@@ -153,6 +153,12 @@ const CRM = () => {
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [contactToView, setContactToView] = useState<any>(null);
   const [now, setNow] = useState(Date.now());
+  const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduleType, setScheduleType] = useState<'message' | 'template' | 'flow'>('message');
+  const [selectedScheduleId, setSelectedScheduleId] = useState('');
+  const [isScheduling, setIsScheduling] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
