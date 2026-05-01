@@ -380,21 +380,34 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                         }
 
                         // Parse template suggestion
-                        const templateMatch = aiText.match(/\[SEND_TEMPLATE: ([\w_]+)\]/);
+                        const templateMatch = aiText.match(/\[SEND_TEMPLATE:\s*([\w_]+)\]/);
                         if (templateMatch) {
-                          const templateName = templateMatch[1];
+                          const templateName = templateMatch[1].trim();
                           console.log(`AI suggested sending template: ${templateName}`);
-                          await supabase.functions.invoke('meta-whatsapp-crm', {
-                            body: { 
-                              action: 'sendTemplate', 
-                              to: wa_id, 
-                              templateName: templateName,
-                              languageCode: 'pt_BR',
-                              contactId: contact.id
+                          
+                          // Check if template exists in DB first to be sure
+                          const { data: templateExists } = await supabase
+                            .from('crm_templates')
+                            .select('name')
+                            .eq('name', templateName)
+                            .maybeSingle();
 
-                            }
-                          });
-                          return new Response('OK - AI Sent Template', { status: 200 });
+                          if (templateExists) {
+                            await supabase.functions.invoke('meta-whatsapp-crm', {
+                              body: { 
+                                action: 'sendTemplate', 
+                                to: wa_id, 
+                                templateName: templateName,
+                                languageCode: 'pt_BR',
+                                contactId: contact.id
+                              }
+                            });
+                            return new Response('OK - AI Sent Template', { status: 200 });
+                          } else {
+                            console.warn(`AI suggested template ${templateName} but it was not found in database.`);
+                            // Fallback: strip the tag and send as normal text if possible
+                            aiText = aiText.replace(/\[SEND_TEMPLATE:\s*[\w_]+\]/g, '').trim();
+                          }
                         }
 
                         // Parse flow trigger
