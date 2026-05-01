@@ -309,6 +309,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
 4. Sempre responda em mensagens separadas: o texto primeiro e o template logo abaixo.
 5. Se não houver template para o que foi pedido, responda normalmente em texto.
 6. Mantenha as mensagens de confirmação curtas e gentis.
+7. Se o texto for longo ou para parecer mais natural, use a tag [SPLIT] para enviar em mensagens separadas (máximo 3 partes).
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
