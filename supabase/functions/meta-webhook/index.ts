@@ -148,8 +148,21 @@ serve(async (req) => {
                     if (meta_access_token) {
                       media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.document.id, 'document', message.document.filename)
                     }
+                  } else if (message.type === 'sticker') {
+                    content = `[Sticker]`
+                    if (meta_access_token) {
+                      media_url = await downloadAndUploadMedia(supabase, meta_access_token, message.sticker.id, 'image')
+                    }
+                  } else if (message.type === 'location') {
+                    content = `[Localização] Lat: ${message.location.latitude}, Long: ${message.location.longitude}`
+                    if (message.location.name) content += ` (${message.location.name})`
+                  } else if (message.type === 'contacts') {
+                    const contactNames = message.contacts.map((c: any) => c.name.formatted_name).join(', ')
+                    content = `[Contato] ${contactNames}`
+                  } else if (message.type === 'reaction') {
+                    content = `[Reação] ${message.reaction.emoji}`
                   } else {
-                    content = `[${message.type}]`
+                    content = `[Mensagem: ${message.type}]`
                   }
 
                   await supabase.from('crm_messages').insert({
@@ -159,7 +172,8 @@ serve(async (req) => {
                     content: content,
                     media_url: media_url,
                     meta_message_id: message.id,
-                    status: 'received'
+                    status: 'received',
+                    metadata: message // Store raw payload for debugging
                   })
 
                   await supabase.rpc('increment_crm_metric', { metric_column: 'responded_count' })
