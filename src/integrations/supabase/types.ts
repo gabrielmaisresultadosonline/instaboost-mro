@@ -1130,6 +1130,7 @@ export type Database = {
           components: Json | null
           created_at: string | null
           id: string
+          knowledge_description: string | null
           language: string | null
           name: string
           status: string | null
@@ -1140,6 +1141,7 @@ export type Database = {
           components?: Json | null
           created_at?: string | null
           id: string
+          knowledge_description?: string | null
           language?: string | null
           name: string
           status?: string | null
@@ -1150,6 +1152,7 @@ export type Database = {
           components?: Json | null
           created_at?: string | null
           id?: string
+          knowledge_description?: string | null
           language?: string | null
           name?: string
           status?: string | null
