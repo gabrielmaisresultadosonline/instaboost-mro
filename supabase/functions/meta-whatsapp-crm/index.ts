@@ -864,12 +864,22 @@ async function internalSendTemplate(
     // Ensure content has the [Template: name] prefix for the frontend to recognize it
     const finalContent = `[Template: ${templateName}] ${messageContent}`;
 
+    // Improve mediaUrl capture: if it was a numeric ID, try to get the original URL from finalComponents
+    let finalMediaUrl = mediaUrl;
+    if (!finalMediaUrl || /^\d+$/.test(finalMediaUrl.toString())) {
+      const headerParam = finalComponents.find((c: any) => c.type === "header")?.parameters?.[0];
+      const type = headerParam?.type;
+      if (type && headerParam[type]?.link) {
+        finalMediaUrl = headerParam[type].link;
+      }
+    }
+
     await supabase.from('crm_messages').insert({
       contact_id: contact.id,
       direction: 'outbound',
       content: finalContent,
       message_type: 'template',
-      media_url: mediaUrl,
+      media_url: finalMediaUrl,
       meta_message_id: result.messages[0].id,
       status: 'sent'
     });
