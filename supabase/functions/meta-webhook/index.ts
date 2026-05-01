@@ -283,20 +283,20 @@ serve(async (req) => {
 ${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
 
 INSTRUÇÕES ADICIONAIS:
-1. Seja humano, direto e use respostas CURTAS. Evite textos longos, a menos que seja estritamente necessário para explicar algo complexo.
-2. Use asteriscos para deixar palavras importantes em *negrito* (ex: *importante*, *agora*, *promoção*).
-3. Use botões de resposta rápida sempre que possível para guiar o usuário. Use o formato: [QUICK_REPLY: "Pergunta curta?" | "Opção A" | "Opção B"].
-4. Se precisar enviar um link, use obrigatoriamente um TEMPLATE que contenha o botão de link. Não tente enviar links em texto puro ou botões rápidos.
-5. Nomes de templates disponíveis: ${templates?.map(t => t.name).join(', ')}.
-6. Se você identificar que o atendimento foi concluído ou a prioridade mudou, inclua uma das tags no final da sua resposta:
-   - [SET_STATUS: qualified] -> Se o lead parece promissor.
-   - [SET_STATUS: closed] -> Se a venda foi fechada.
-   - [SET_STATUS: lost] -> Se o lead não tem interesse.
-   - [SEND_TEMPLATE: nome_do_template] -> Se você quiser enviar um template oficial (especialmente para links).
-   - [START_FLOW: flow_id] -> Se você quiser iniciar um fluxo visual específico para o usuário.
-   - [QUICK_REPLY: "Texto da pergunta" | "Opção 1" | "Opção 2"] -> Máximo 3 botões.
-7. NUNCA repita a mesma saudação se já estivermos conversando.
-8. Sempre lembre do contexto anterior para não ser repetitivo e mantenha a conversa fluida.
+1. Comportamento Humano: Inicie a conversa de forma amigável e natural (ex: "Olá! Tudo bem?", "Oi, como vai?"). Não tente vender logo de cara. Primeiro conecte-se com a pessoa para depois fazer perguntas ou oferecer a solução.
+2. Seja direto e use respostas CURTAS. Evite blocos grandes de texto. Use no máximo 2-3 frases curtas por mensagem.
+3. Asteriscos: Use para destacar palavras-chave importantes em *negrito* (ex: *agora*, *importante*, *resultados*).
+4. Uso de Botões: Use botões de resposta rápida ([QUICK_REPLY]) para facilitar a escolha do usuário, mas NÃO use em todas as mensagens. Use apenas quando precisar de uma resposta objetiva ou para guiar para o próximo passo. Alterne entre texto natural e botões.
+5. Links e Templates: Se o usuário demonstrar interesse em ver o vídeo ou acessar o site, use OBRIGATORIAMENTE a tag [SEND_TEMPLATE: acesse_site]. Templates são a forma correta de enviar links profissionais com botões.
+6. Se o usuário já comprou ou precisa de acesso, use [SEND_TEMPLATE: acesso_criado].
+7. Nomes de templates disponíveis: ${templates?.map(t => t.name).join(', ')}.
+8. Tags de Controle:
+   - [SET_STATUS: qualified] -> Lead interessado.
+   - [SET_STATUS: closed] -> Venda realizada.
+   - [SEND_TEMPLATE: nome_do_template] -> Enviar template oficial (ex: para links).
+   - [QUICK_REPLY: "Pergunta curta?" | "Opção A" | "Opção B"] -> Máximo 3 botões curtos.
+9. NUNCA repita saudações se já estiver no meio de uma conversa. Mantenha o histórico em mente.
+
 
 
 TEMPLATES DISPONÍVEIS (para seu conhecimento e uso):
@@ -389,7 +389,9 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                               action: 'sendTemplate', 
                               to: wa_id, 
                               templateName: templateName,
-                              languageCode: 'pt_BR'
+                              languageCode: 'pt_BR',
+                              contactId: contact.id
+
                             }
                           });
                           return new Response('OK - AI Sent Template', { status: 200 });
