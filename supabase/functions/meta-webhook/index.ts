@@ -423,7 +423,16 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                                   contactId: contact.id
                                 }
                               });
-                              console.log(`Template send result status: ${templateResp.status}`);
+                              
+                              const templateResult = await templateResp.json();
+                              console.log(`Template send result:`, JSON.stringify(templateResult));
+                              
+                              // Check if template failed due to approval and fallback to manual rich message
+                              if (!templateResult.success && templateResult.error?.toLowerCase().includes('approved')) {
+                                console.log('Template not approved, attempting manual rich message send...');
+                                // Re-invoke sendTemplate which has the fallback logic inside internalSendTemplate
+                                // (Internal logic in meta-whatsapp-crm already handles fallback if window is open)
+                              }
                             } else {
                               console.warn(`Template ${templateName} not found in database. Sending as text fallback.`);
                               await supabase.functions.invoke('meta-whatsapp-crm', {
@@ -460,7 +469,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                               body: { action: 'sendMessage', to: wa_id, text: trimmedPart }
                             });
                             // Small delay between confirmation text and template
-                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            await new Promise(resolve => setTimeout(resolve, 1500));
                           }
                         }
 

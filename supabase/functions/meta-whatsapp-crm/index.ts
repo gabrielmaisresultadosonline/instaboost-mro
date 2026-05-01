@@ -680,9 +680,10 @@ async function internalSendTemplate(
   const lastInteraction = contact?.last_interaction;
   const isWindowOpen = lastInteraction && (new Date().getTime() - new Date(lastInteraction).getTime()) < 24 * 60 * 60 * 1000;
 
-  // 2. Fallback if window is open and template not approved
-  if (templateData.status !== 'APPROVED' && isWindowOpen) {
-    console.log(`Template ${templateName} - window is open and not approved. Fallback to rich message...`);
+  // 2. Fallback if window is open (Always fallback for speed if window is open, or if not approved)
+  const isApproved = templateData.status === 'APPROVED';
+  if (isWindowOpen) {
+    console.log(`Template ${templateName} - window is open. Fallback to rich message for guaranteed delivery...`);
     
     const headerComponent = templateData.components?.find((c: any) => c.type === 'HEADER');
     const bodyComponent = templateData.components?.find((c: any) => c.type === 'BODY');
