@@ -677,13 +677,12 @@ async function internalSendTemplate(
     });
   }
 
-  const lastInteraction = contact?.last_interaction;
-  const isWindowOpen = lastInteraction && (new Date().getTime() - new Date(lastInteraction).getTime()) < 24 * 60 * 60 * 1000;
-
   // 2. Fallback if window is open (Always fallback for speed if window is open, or if not approved)
   // MODIFICAÇÃO: Removido o fallback automático se a janela estiver aberta para forçar o envio do template oficial com botões de link.
   const isApproved = templateData.status === 'APPROVED';
-  const isWindowOpen = contact?.last_interaction && (new Date().getTime() - new Date(contact.last_interaction).getTime()) < 24 * 60 * 60 * 1000;
+  const lastInteraction = contact?.last_interaction;
+  const isWindowOpen = lastInteraction && (new Date().getTime() - new Date(lastInteraction).getTime()) < 24 * 60 * 60 * 1000;
+
   
   if (!isApproved && isWindowOpen) {
     console.log(`Template ${templateName} not approved but window is open. Using rich message fallback...`);

@@ -431,7 +431,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                                 }
                               });
                               
-                              const templateResult = await templateResp.json();
+                              const templateResult = typeof templateResp.json === 'function' ? await templateResp.json() : templateResp.data;
                               console.log(`Template send result:`, JSON.stringify(templateResult));
                               
                               // Check if template failed due to approval and fallback to manual rich message
