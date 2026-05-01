@@ -246,10 +246,10 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                   <div className="flex justify-between items-center">
                     <Label>Lista de Números (Um por linha)</Label>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="xs" className="text-[10px] h-7">
+                      <Button variant="outline" size="sm" className="text-[10px] h-7">
                         <Upload className="w-3 h-3 mr-1" /> VCard
                       </Button>
-                      <Button variant="outline" size="xs" className="text-[10px] h-7">
+                      <Button variant="outline" size="sm" className="text-[10px] h-7">
                         <FileText className="w-3 h-3 mr-1" /> Excel/CSV
                       </Button>
                     </div>
