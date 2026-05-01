@@ -963,6 +963,7 @@ export type Database = {
           media_url: string | null
           message_type: string | null
           meta_message_id: string | null
+          metadata: Json | null
           status: string | null
         }
         Insert: {
@@ -976,6 +977,7 @@ export type Database = {
           media_url?: string | null
           message_type?: string | null
           meta_message_id?: string | null
+          metadata?: Json | null
           status?: string | null
         }
         Update: {
@@ -989,6 +991,7 @@ export type Database = {
           media_url?: string | null
           message_type?: string | null
           meta_message_id?: string | null
+          metadata?: Json | null
           status?: string | null
         }
         Relationships: [
