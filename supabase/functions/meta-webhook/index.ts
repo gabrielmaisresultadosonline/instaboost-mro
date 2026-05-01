@@ -293,10 +293,10 @@ INSTRUÇÕES ADICIONAIS:
 8. Tags de Controle:
    - [SET_STATUS: qualified] -> Lead interessado.
    - [SET_STATUS: closed] -> Venda realizada.
-   - [SEND_TEMPLATE: nome_do_template] -> Enviar template oficial (OBRIGATÓRIO para links).
-   - [QUICK_REPLY: "Pergunta curta?" | "Opção A" | "Opção B"] -> Máximo 3 botões curtos.
+    - [SEND_TEMPLATE: nome_do_template] -> Enviar template oficial (OBRIGATÓRIO para links). Use APENAS a tag, sem texto adicional.
+    - [QUICK_REPLY: "Pergunta curta?" | "Opção A" | "Opção B"] -> Máximo 3 botões curtos.
 9. NUNCA repita saudações se já estiver no meio de uma conversa. Mantenha o histórico em mente.
-10. Se você for enviar um template, envie APENAS a tag [SEND_TEMPLATE: nome]. NÃO envie nenhum texto, saudação ou explicação junto com o template na mesma mensagem.
+10. Se você for enviar um template ou botões, envie APENAS a tag correspondente. NÃO envie nenhum texto, saudação ou explicação junto com o template ou com botões na mesma mensagem. Se precisar enviar um texto antes, envie em uma mensagem separada antes da tag.
 
 TEMPLATES DISPONÍVEIS (SEMPRE use [SEND_TEMPLATE: nome] quando o contexto bater):
 ${templates?.map(t => {
@@ -397,13 +397,13 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
 
                         // Now split the text by special tags (SEND_TEMPLATE and QUICK_REPLY)
                         // This allows sending text followed by a template or buttons
-                        const parts = aiText.split(/(\[SEND_TEMPLATE:\s*[\w_]+\]|\[QUICK_REPLY:.*?\])/i).filter(p => p.trim() !== '');
+                        const parts = aiText.split(/(\[SEND_TEMPLATE:\s*[\w_-]+\]|\[QUICK_REPLY:.*?\])/i).filter(p => p.trim() !== '');
 
                         for (const part of parts) {
                           const trimmedPart = part.trim();
                           
                           // 1. Handle Template tag
-                          const templateMatch = trimmedPart.match(/\[SEND_TEMPLATE:\s*([\w_]+)\]/i);
+                          const templateMatch = trimmedPart.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i);
                           if (templateMatch) {
                             const templateName = templateMatch[1].trim();
                             const { data: templateExists } = await supabase
