@@ -395,6 +395,13 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         const parts = aiText.split(/(\[QUICK_REPLY:.*?\]|\[SEND_TEMPLATE:.*?\])/i).filter(p => p.trim() !== '');
                         console.log('AI Response parts:', JSON.stringify(parts));
 
+                        // NEW: Pre-check if any part contains a template to avoid missing it due to splitting issues
+                        const hasTemplate = aiText.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i);
+                        if (hasTemplate && !parts.some(p => p.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i))) {
+                          console.log('Template found in raw text but not in parts. Manually adding it.');
+                          parts.push(hasTemplate[0]);
+                        }
+
                         for (const part of parts) {
                           const trimmedPart = part.trim();
                           
@@ -406,7 +413,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                             
                             const { data: templateExists } = await supabase
                               .from('crm_templates')
-                              .select('name, language')
+                              .select('name, language, status')
                               .eq('name', templateName)
                               .maybeSingle();
 
