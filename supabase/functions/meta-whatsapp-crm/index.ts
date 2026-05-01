@@ -399,26 +399,91 @@ serve(async (req) => {
 
     if (action === 'processScheduled') {
       const now = new Date().toISOString()
-      const { data: messages } = await supabase
+      console.log(`Checking for scheduled messages at ${now}...`);
+      
+      const { data: messages, error: fetchError } = await supabase
         .from('crm_scheduled_messages')
-        .select('*, crm_contacts(wa_id)')
+        .select('*, crm_contacts(*)')
         .eq('status', 'pending')
         .lte('scheduled_for', now)
       
+      if (fetchError) {
+        console.error('Error fetching scheduled messages:', fetchError);
+        throw fetchError;
+      }
+      
       if (messages && messages.length > 0) {
+        console.log(`Found ${messages.length} messages to process.`);
         for (const msg of messages) {
-          // Update status to prevent double execution
-          await supabase.from('crm_scheduled_messages').update({ status: 'sent' }).eq('id', msg.id)
-          
-          // Continue flow at the specified node
-          await supabase.functions.invoke('meta-whatsapp-crm', {
-            body: { 
-              action: 'continueFlow', 
-              contactId: msg.contact_id, 
-              waId: msg.crm_contacts.wa_id,
-              nextNodeId: msg.node_id 
+          try {
+            // Update status immediately to prevent double execution if the function takes time
+            await supabase.from('crm_scheduled_messages').update({ status: 'sent' }).eq('id', msg.id)
+            
+            const messageData = msg.message_data || {}
+            const msgAction = messageData.action || 'continueFlow'
+            
+            console.log(`Processing scheduled message ${msg.id} with action: ${msgAction}`);
+            
+            if (msgAction === 'sendMessage') {
+              await handleInternalSendMessage(supabase, meta_phone_number_id, meta_access_token, {
+                to: msg.crm_contacts.wa_id,
+                text: messageData.text,
+                imageUrl: messageData.imageUrl,
+                videoUrl: messageData.videoUrl,
+                audioUrl: messageData.audioUrl,
+                documentUrl: messageData.documentUrl,
+                fileName: messageData.fileName,
+                isVoice: messageData.isVoice
+              }, msg.crm_contacts);
+            } else if (msgAction === 'sendTemplate') {
+              await internalSendTemplate(
+                supabase,
+                meta_phone_number_id,
+                meta_access_token,
+                msg.crm_contacts.wa_id,
+                messageData.templateName,
+                messageData.languageCode || 'pt_BR',
+                messageData.components,
+                msg.crm_contacts
+              );
+            } else if (msgAction === 'startFlow') {
+              // We need to fetch the flow again or just call startFlow logic
+              const { data: flow } = await supabase
+                .from('crm_flows')
+                .select('*')
+                .eq('id', messageData.flowId)
+                .single()
+              
+              if (flow) {
+                if (flow.nodes && flow.nodes.length > 0) {
+                  const nodeIdsWithTarget = new Set(flow.edges.map((e: any) => e.target))
+                  const startNode = flow.nodes.find((n: any) => !nodeIdsWithTarget.has(n.id)) || flow.nodes[0]
+                  
+                  await supabase.from('crm_contacts').update({
+                    current_flow_id: flow.id,
+                    current_node_id: startNode.id,
+                    flow_state: 'running',
+                    last_flow_interaction: new Date().toISOString()
+                  }).eq('id', msg.contact_id)
+                  
+                  await executeVisualNode(supabase, flow, startNode, msg.contact_id, msg.crm_contacts.wa_id)
+                }
+              }
+            } else {
+              // Default: continueFlow
+              await supabase.functions.invoke('meta-whatsapp-crm', {
+                body: { 
+                  action: 'continueFlow', 
+                  contactId: msg.contact_id, 
+                  waId: msg.crm_contacts.wa_id,
+                  nextNodeId: msg.node_id 
+                }
+              })
             }
-          })
+          } catch (err) {
+            console.error(`Error processing scheduled message ${msg.id}:`, err);
+            await supabase.from('crm_scheduled_messages').update({ status: 'failed' }).eq('id', msg.id)
+          }
         }
       }
       
