@@ -468,8 +468,9 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                           await supabase.functions.invoke('meta-whatsapp-crm', {
                             body: { action: 'sendMessage', to: wa_id, text: trimmedPart }
                           });
-                          // Small delay between confirmation text and template
-                          await new Promise(resolve => setTimeout(resolve, 800));
+                          // Increased delay between confirmation text and template/next message
+                          // User requested 2-3 seconds for a more realistic flow
+                          await new Promise(resolve => setTimeout(resolve, 2500));
                         }
 
                         // Final safety check: if templates were found but not processed in parts
