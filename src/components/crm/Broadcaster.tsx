@@ -249,8 +249,8 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        <div className="lg:col-span-8 space-y-6">
           <Card className="rounded-2xl shadow-xl border border-border/50 overflow-hidden bg-card/40 backdrop-blur-sm">
             <CardHeader className="bg-[#075E54]/20 border-b border-border/50">
               <CardTitle className="text-lg flex items-center gap-2 text-[#25D366]">
