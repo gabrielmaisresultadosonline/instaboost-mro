@@ -98,6 +98,7 @@ const CRM = () => {
     meta_app_secret: '',
     openai_api_key: '',
     ai_agent_enabled: false,
+    ai_system_prompt: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Responda em Português do Brasil.',
     ai_agent_trigger: 'first_message',
     initial_auto_response_enabled: true,
     initial_response_text: '',
@@ -1216,6 +1217,24 @@ const CRM = () => {
                                       Info
                                     </Badge>
                                   </p>
+
+                                  {/* AI Toggle for individual contact */}
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn(
+                                      "h-8 w-8 rounded-full transition-all duration-300",
+                                      selectedContact.ai_active ? "text-primary bg-primary/10 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" : "text-muted-foreground grayscale"
+                                    )}
+                                    onClick={async () => {
+                                      const newStatus = !selectedContact.ai_active;
+                                      await updateContactStatus(selectedContact.id, { ai_active: newStatus });
+                                    }}
+                                    title={selectedContact.ai_active ? "Desativar IA para este contato" : "Ativar IA para este contato"}
+                                  >
+                                    <Bot className={cn("w-4 h-4", selectedContact.ai_active && "fill-primary/20")} />
+                                  </Button>
+
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                     <div className="flex flex-col gap-1">
                                       <div className="flex items-center gap-1">
