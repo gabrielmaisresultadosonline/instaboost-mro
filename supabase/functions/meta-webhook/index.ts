@@ -268,6 +268,7 @@ INSTRUÇÕES ADICIONAIS:
    - [SET_STATUS: qualified] -> Se o lead parece promissor.
    - [SET_STATUS: closed] -> Se a venda foi fechada.
    - [SET_STATUS: lost] -> Se o lead não tem interesse.
+   - [SEND_TEMPLATE: nome_do_template] -> Se você quiser enviar um template oficial em vez de uma resposta em texto.
 4. Se o usuário enviou um áudio ou imagem, eu fornecerei a transcrição ou descrição se possível.
 5. NUNCA repita a mesma saudação se já estivermos conversando.
 
@@ -332,12 +333,27 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                           aiText = aiText.replace(/\[SET_STATUS: \w+\]/g, '').trim();
                         }
 
-                        // Parse template suggestion (if AI suggests sending a template)
-                        // This is advanced - for now let's just send the text
+                        // Parse template suggestion
+                        const templateMatch = aiText.match(/\[SEND_TEMPLATE: ([\w_]+)\]/);
+                        if (templateMatch) {
+                          const templateName = templateMatch[1];
+                          console.log(`AI suggested sending template: ${templateName}`);
+                          await supabase.functions.invoke('meta-whatsapp-crm', {
+                            body: { 
+                              action: 'sendTemplate', 
+                              to: wa_id, 
+                              templateName: templateName,
+                              languageCode: 'pt_BR'
+                            }
+                          });
+                          return new Response('OK - AI Sent Template', { status: 200 });
+                        }
                         
-                        await supabase.functions.invoke('meta-whatsapp-crm', {
-                          body: { action: 'sendMessage', to: wa_id, text: aiText }
-                        });
+                        if (aiText) {
+                          await supabase.functions.invoke('meta-whatsapp-crm', {
+                            body: { action: 'sendMessage', to: wa_id, text: aiText }
+                          });
+                        }
 
                         return new Response('OK - AI Responded', { status: 200 });
                       } catch (err) {
