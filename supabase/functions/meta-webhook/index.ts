@@ -363,6 +363,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         }
 
                         let aiText = aiData.choices[0].message.content.trim();
+                        console.log('Raw AI Response:', aiText);
                         
                         // Parse status update tags (side-effect, can be anywhere)
                         const statusMatches = aiText.matchAll(/\[SET_STATUS: (\w+)\]/g);
@@ -390,9 +391,9 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         aiText = aiText.replace(/\[START_FLOW: [\w-]+\]/g, '').trim();
 
                         // Now split the text by special tags (QUICK_REPLY or SEND_TEMPLATE)
-                        // This allows sending text followed by templates or buttons
+                        // Using a more robust regex that ensures the tag is handled as a separate part
                         const parts = aiText.split(/(\[QUICK_REPLY:.*?\]|\[SEND_TEMPLATE:.*?\])/i).filter(p => p.trim() !== '');
-
+                        console.log('AI Response parts:', JSON.stringify(parts));
 
                         for (const part of parts) {
                           const trimmedPart = part.trim();
