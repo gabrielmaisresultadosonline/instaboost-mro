@@ -398,10 +398,12 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         for (const part of parts) {
                           const trimmedPart = part.trim();
                           
-                          // 1. Handle Template tag
+                          // 1. Handle Template tag (Case-Insensitive)
                           const templateMatch = trimmedPart.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i);
                           if (templateMatch) {
                             const templateName = templateMatch[1].trim();
+                            console.log(`AI matched template tag: ${templateName}`);
+                            
                             const { data: templateExists } = await supabase
                               .from('crm_templates')
                               .select('name, language')
@@ -420,7 +422,10 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                                 }
                               });
                             } else {
-                              console.warn(`Template ${templateName} not found.`);
+                              console.warn(`Template ${templateName} not found in database. Sending as text fallback.`);
+                              await supabase.functions.invoke('meta-whatsapp-crm', {
+                                body: { action: 'sendMessage', to: wa_id, text: `[Template: ${templateName}]` }
+                              });
                             }
                             continue;
                           }
