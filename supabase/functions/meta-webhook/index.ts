@@ -238,14 +238,21 @@ serve(async (req) => {
                   }
 
                   // 3. AI Agent Logic
+                  console.log('Checking AI Agent conditions:', { 
+                    enabled: settings?.ai_agent_enabled, 
+                    hasKey: !!settings?.openai_api_key, 
+                    contactAiActive: contact.ai_active,
+                    trigger: settings?.ai_agent_trigger,
+                    isNewContact
+                  });
+
                   if (settings?.ai_agent_enabled && settings?.openai_api_key && contact.ai_active) {
                     let shouldTriggerAI = false;
                     if (settings.ai_agent_trigger === 'all') shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'first_message' && isNewContact) shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'manual' && contact.ai_active) shouldTriggerAI = true;
 
-                    // If a flow just ran, we might not want to trigger AI immediately, 
-                    // but the logic above returns early if a flow is continued or triggered.
+                    console.log(`AI Agent should trigger: ${shouldTriggerAI}`);
                     
                     if (shouldTriggerAI) {
                       const { data: history } = await supabase
@@ -269,6 +276,7 @@ INSTRUÇÕES ADICIONAIS:
    - [SET_STATUS: closed] -> Se a venda foi fechada.
    - [SET_STATUS: lost] -> Se o lead não tem interesse.
    - [SEND_TEMPLATE: nome_do_template] -> Se você quiser enviar um template oficial em vez de uma resposta em texto.
+   - [START_FLOW: flow_id] -> Se você quiser iniciar um fluxo visual específico para o usuário.
 4. Se o usuário enviou um áudio ou imagem, eu fornecerei a transcrição ou descrição se possível.
 5. NUNCA repita a mesma saudação se já estivermos conversando.
 
@@ -348,8 +356,25 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                           });
                           return new Response('OK - AI Sent Template', { status: 200 });
                         }
+
+                        // Parse flow trigger
+                        const flowMatch = aiText.match(/\[START_FLOW: ([\w-]+)\]/);
+                        if (flowMatch) {
+                          const flowId = flowMatch[1];
+                          console.log(`AI suggested starting flow: ${flowId}`);
+                          await supabase.functions.invoke('meta-whatsapp-crm', {
+                            body: { 
+                              action: 'startFlow', 
+                              contactId: contact.id, 
+                              waId: wa_id, 
+                              flowId: flowId
+                            }
+                          });
+                          return new Response('OK - AI Started Flow', { status: 200 });
+                        }
                         
                         if (aiText) {
+                          console.log(`AI responding with text: ${aiText.substring(0, 50)}...`);
                           await supabase.functions.invoke('meta-whatsapp-crm', {
                             body: { action: 'sendMessage', to: wa_id, text: aiText }
                           });
