@@ -394,6 +394,27 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                           return new Response('OK - AI Started Flow', { status: 200 });
                         }
                         
+                        // Parse quick reply buttons
+                        const quickReplyMatch = aiText.match(/\[QUICK_REPLY: "([^"]+)" \| "([^"]+)"(?: \| "([^"]+)")?(?: \| "([^"]+)")?\]/);
+                        if (quickReplyMatch) {
+                          const question = quickReplyMatch[1];
+                          const buttons = [quickReplyMatch[2]];
+                          if (quickReplyMatch[3]) buttons.push(quickReplyMatch[3]);
+                          if (quickReplyMatch[4]) buttons.push(quickReplyMatch[4]);
+                          
+                          console.log(`AI suggested quick reply: ${question} with buttons: ${buttons.join(', ')}`);
+                          
+                          await supabase.functions.invoke('meta-whatsapp-crm', {
+                            body: { 
+                              action: 'sendMessage', 
+                              to: wa_id, 
+                              text: question,
+                              buttons: buttons.map((text, idx) => ({ id: `qr_${idx}`, text }))
+                            }
+                          });
+                          return new Response('OK - AI Sent Quick Reply', { status: 200 });
+                        }
+                        
                         if (aiText) {
                           console.log(`AI responding with text: ${aiText.substring(0, 50)}...`);
                           await supabase.functions.invoke('meta-whatsapp-crm', {
