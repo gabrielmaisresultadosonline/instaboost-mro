@@ -488,6 +488,33 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
           <Card className="rounded-2xl shadow-sm border overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
+                <Users className="w-4 h-4 text-primary" /> Sugestões de Remarketing
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3">
+              <div 
+                className="p-3 rounded-lg border bg-white/50 hover:border-primary/50 cursor-pointer transition-all"
+                onClick={() => setTargetType('conversation')}
+              >
+                <p className="text-[11px] font-bold">Recuperar Ociosos</p>
+                <p className="text-[10px] text-muted-foreground">Pessoas que já conversaram mas não fecharam.</p>
+              </div>
+              <div 
+                className="p-3 rounded-lg border bg-white/50 hover:border-primary/50 cursor-pointer transition-all"
+                onClick={() => {
+                  setTargetType('contacts');
+                  // Filter logic could be added here if we had more metadata
+                }}
+              >
+                <p className="text-[11px] font-bold">Base de Leads</p>
+                <p className="text-[10px] text-muted-foreground">Toda a sua lista de contatos do CRM.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-sm border overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-primary" /> Tutorial Rápido
               </CardTitle>
             </CardHeader>
@@ -512,9 +539,6 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                   <p className="text-[11px] leading-relaxed font-bold text-green-700">O status "running" indica que o sistema está disparando em segundo plano.</p>
                 </div>
               </div>
-              <Button variant="link" className="p-0 h-auto text-[11px] text-primary flex items-center gap-1 font-bold">
-                Ver Guia de Remarketing Completo <ArrowRight className="w-3 h-3" />
-              </Button>
             </CardContent>
           </Card>
         </div>
