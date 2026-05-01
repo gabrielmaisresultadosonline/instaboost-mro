@@ -57,7 +57,10 @@ import {
   Upload,
   User,
   CalendarClock,
-  Calendar
+  Calendar,
+  MapPin,
+  Smile,
+  MoreHorizontal
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
