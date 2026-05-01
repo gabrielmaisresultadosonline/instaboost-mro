@@ -1476,6 +1476,20 @@ const CRM = () => {
                                 <div className="flex gap-0.5 sm:gap-1">
                                   <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><ImageIcon className="w-5 h-5" /></Button>
                                   <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><Paperclip className="w-5 h-5" /></Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => {
+                                      setIsSchedulingOpen(true);
+                                      setScheduleType('message');
+                                      setScheduleDate(new Date().toISOString().split('T')[0]);
+                                      setScheduleTime(new Date().toTimeString().slice(0, 5));
+                                    }} 
+                                    className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"
+                                    title="Agendar Mensagem"
+                                  >
+                                    <CalendarClock className="w-5 h-5" />
+                                  </Button>
                                 </div>
                                 <div className="flex-1 relative">
                                   <Input 
