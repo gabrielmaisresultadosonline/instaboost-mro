@@ -1328,3 +1328,35 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     return null;
   }
 }
+
+async function downloadAndStoreMetaMedia(supabase: any, token: string, mediaUrl: string, type: string, baseName: string) {
+  try {
+    const response = await fetch(mediaUrl, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!response.ok) throw new Error(`Failed to fetch media from Meta: ${response.statusText}`);
+    
+    const blob = await response.blob();
+    const ext = blob.type.split('/')[1] || 'bin';
+    const filePath = `templates/${type}/${Date.now()}_${baseName}.${ext}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('crm-media')
+      .upload(filePath, blob, {
+        contentType: blob.type,
+        upsert: true
+      });
+      
+    if (uploadError) throw uploadError;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('crm-media')
+      .getPublicUrl(filePath);
+      
+    return publicUrl;
+  } catch (error) {
+    console.error('Error in downloadAndStoreMetaMedia:', error);
+    return null;
+  }
+}
