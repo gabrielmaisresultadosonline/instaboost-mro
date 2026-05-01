@@ -236,28 +236,28 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20 p-3 md:p-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111b21] p-6 rounded-2xl border border-white/5 shadow-2xl">
+    <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 pb-20 p-2 md:p-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111b21] p-4 md:p-6 rounded-2xl border border-white/5 shadow-2xl">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#e9edef]">Disparador de Mensagens</h2>
-          <p className="text-[#8696a0] mt-1">Automação de disparos em massa profissional e segura.</p>
+          <h2 className="text-xl md:text-3xl font-bold tracking-tight text-[#e9edef]">Disparador de Mensagens</h2>
+          <p className="text-xs md:text-base text-[#8696a0] mt-1">Automação de disparos em massa profissional e segura.</p>
         </div>
         <div className="flex gap-2">
-          <Badge variant="outline" className="px-3 py-1 bg-[#00a884]/10 text-[#00a884] border-[#00a884]/20 flex items-center gap-2">
+          <Badge variant="outline" className="px-2 md:px-3 py-1 bg-[#00a884]/10 text-[#00a884] border-[#00a884]/20 flex items-center gap-1 md:gap-2 text-[10px] md:text-xs">
             <Zap className="w-3 h-3" /> Modo Inteligente Ativo
           </Badge>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-        <div className="lg:col-span-8 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
+        <div className="lg:col-span-8 space-y-4 md:space-y-6">
           <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
-            <CardHeader className="bg-[#202c33] border-b border-white/5">
-              <CardTitle className="text-lg flex items-center gap-2 text-[#00a884]">
+            <CardHeader className="bg-[#202c33] border-b border-white/5 p-4">
+              <CardTitle className="text-base md:text-lg flex items-center gap-2 text-[#00a884]">
                 <Plus className="w-5 h-5" /> Nova Campanha
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 md:p-6 space-y-6">
+            <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>Nome da Campanha</Label>
@@ -316,10 +316,10 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
               <div className="space-y-4 pt-4 border-t">
                 <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Conteúdo do Disparo</Label>
                 <Tabs value={type} onValueChange={(val: any) => setType(val)} className="w-full">
-                  <TabsList className="grid grid-cols-3 h-12 bg-[#202c33] rounded-xl p-1">
-                    <TabsTrigger value="message" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Mensagem</TabsTrigger>
-                    <TabsTrigger value="template" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Template</TabsTrigger>
-                    <TabsTrigger value="flow" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Fluxo</TabsTrigger>
+                  <TabsList className="grid grid-cols-3 h-10 md:h-12 bg-[#202c33] rounded-xl p-1 gap-1">
+                    <TabsTrigger value="message" className="rounded-lg text-[9px] sm:text-xs md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white px-1">Mensagem</TabsTrigger>
+                    <TabsTrigger value="template" className="rounded-lg text-[9px] sm:text-xs md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white px-1">Template</TabsTrigger>
+                    <TabsTrigger value="flow" className="rounded-lg text-[9px] sm:text-xs md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white px-1">Fluxo</TabsTrigger>
                   </TabsList>
                   
                   <div className="mt-6">
