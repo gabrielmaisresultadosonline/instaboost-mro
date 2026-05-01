@@ -316,10 +316,10 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
               <div className="space-y-4 pt-4 border-t">
                 <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Conteúdo do Disparo</Label>
                 <Tabs value={type} onValueChange={(val: any) => setType(val)} className="w-full">
-                  <TabsList className="grid grid-cols-3 h-12 bg-muted/30 rounded-xl p-1">
-                    <TabsTrigger value="message" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Mensagem Única</TabsTrigger>
-                    <TabsTrigger value="template" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Template Meta</TabsTrigger>
-                    <TabsTrigger value="flow" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Fluxo Visual</TabsTrigger>
+                  <TabsList className="grid grid-cols-3 h-12 bg-muted/40 rounded-xl p-1">
+                    <TabsTrigger value="message" className="rounded-lg data-[state=active]:bg-[#075E54] data-[state=active]:text-white">Mensagem</TabsTrigger>
+                    <TabsTrigger value="template" className="rounded-lg data-[state=active]:bg-[#075E54] data-[state=active]:text-white">Template</TabsTrigger>
+                    <TabsTrigger value="flow" className="rounded-lg data-[state=active]:bg-[#075E54] data-[state=active]:text-white">Fluxo</TabsTrigger>
                   </TabsList>
                   
                   <div className="mt-6">
