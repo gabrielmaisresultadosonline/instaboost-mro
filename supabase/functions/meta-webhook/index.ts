@@ -262,7 +262,7 @@ serve(async (req) => {
                         .order('created_at', { ascending: false })
                         .limit(15);
 
-                      const { data: templates } = await supabase.from('crm_templates').select('name, components');
+                      const { data: templates } = await supabase.from('crm_templates').select('name, components, knowledge_description');
                       const { data: flows } = await supabase.from('crm_flows').select('id, name').eq('is_active', true);
 
                       const systemPrompt = `
@@ -281,7 +281,7 @@ INSTRUÇÕES ADICIONAIS:
 5. NUNCA repita a mesma saudação se já estivermos conversando.
 
 TEMPLATES DISPONÍVEIS (para seu conhecimento):
-${templates?.map(t => `- ${t.name}: ${t.components?.find((c: any) => c.type === 'BODY')?.text}`).join('\n')}
+${templates?.map(t => `- ${t.name}: ${t.components?.find((c: any) => c.type === 'BODY')?.text}${t.knowledge_description ? ` | OBSERVAÇÕES: ${t.knowledge_description}` : ''}`).join('\n')}
 
 FLUXOS DISPONÍVEIS:
 ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
