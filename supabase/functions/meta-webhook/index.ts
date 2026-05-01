@@ -238,14 +238,21 @@ serve(async (req) => {
                   }
 
                   // 3. AI Agent Logic
+                  console.log('Checking AI Agent conditions:', { 
+                    enabled: settings?.ai_agent_enabled, 
+                    hasKey: !!settings?.openai_api_key, 
+                    contactAiActive: contact.ai_active,
+                    trigger: settings?.ai_agent_trigger,
+                    isNewContact
+                  });
+
                   if (settings?.ai_agent_enabled && settings?.openai_api_key && contact.ai_active) {
                     let shouldTriggerAI = false;
                     if (settings.ai_agent_trigger === 'all') shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'first_message' && isNewContact) shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'manual' && contact.ai_active) shouldTriggerAI = true;
 
-                    // If a flow just ran, we might not want to trigger AI immediately, 
-                    // but the logic above returns early if a flow is continued or triggered.
+                    console.log(`AI Agent should trigger: ${shouldTriggerAI}`);
                     
                     if (shouldTriggerAI) {
                       const { data: history } = await supabase
