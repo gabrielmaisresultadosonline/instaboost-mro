@@ -356,8 +356,25 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                           });
                           return new Response('OK - AI Sent Template', { status: 200 });
                         }
+
+                        // Parse flow trigger
+                        const flowMatch = aiText.match(/\[START_FLOW: ([\w-]+)\]/);
+                        if (flowMatch) {
+                          const flowId = flowMatch[1];
+                          console.log(`AI suggested starting flow: ${flowId}`);
+                          await supabase.functions.invoke('meta-whatsapp-crm', {
+                            body: { 
+                              action: 'startFlow', 
+                              contactId: contact.id, 
+                              waId: wa_id, 
+                              flowId: flowId
+                            }
+                          });
+                          return new Response('OK - AI Started Flow', { status: 200 });
+                        }
                         
                         if (aiText) {
+                          console.log(`AI responding with text: ${aiText.substring(0, 50)}...`);
                           await supabase.functions.invoke('meta-whatsapp-crm', {
                             body: { action: 'sendMessage', to: wa_id, text: aiText }
                           });
