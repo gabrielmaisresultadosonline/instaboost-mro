@@ -327,7 +327,7 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                       <Label>Texto da Mensagem</Label>
                       <Textarea 
                         placeholder="Escreva sua mensagem aqui..."
-                        className="min-h-[150px] rounded-xl bg-muted/30 border-none resize-none"
+                        className="min-h-[150px] rounded-xl bg-[#202c33] border-none resize-none text-[#e9edef] placeholder:text-[#8696a0]"
                         value={messageText}
                         onChange={e => setMessageText(e.target.value)}
                       />
