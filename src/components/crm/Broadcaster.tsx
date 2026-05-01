@@ -258,20 +258,20 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
-                  <Label>Nome da Campanha</Label>
+                  <Label className="text-xs md:text-sm">Nome da Campanha</Label>
                   <Input 
                     placeholder="Ex: Promoção de Verão" 
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef] placeholder:text-[#8696a0]"
+                    className="h-10 md:h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef] placeholder:text-[#8696a0] text-xs md:text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[#e9edef]">Destinatários</Label>
+                  <Label className="text-xs md:text-sm text-[#e9edef]">Destinatários</Label>
                   <Select value={targetType} onValueChange={(val: any) => setTargetType(val)}>
-                    <SelectTrigger className="h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef]">
+                    <SelectTrigger className="h-10 md:h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef] text-xs md:text-sm">
                       <SelectValue placeholder="Selecione o público" />
                     </SelectTrigger>
                     <SelectContent>
@@ -285,9 +285,9 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
 
               {targetType === 'uploaded' && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                  <div className="flex justify-between items-center">
-                    <Label>Lista de Números (Um por linha)</Label>
-                    <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <Label className="text-xs md:text-sm">Lista de Números (Um por linha)</Label>
+                    <div className="flex gap-2 w-full sm:w-auto">
                       <input 
                         type="file" 
                         ref={fileInputRef} 
@@ -295,26 +295,26 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                         accept={parsingType === 'vcard' ? '.vcf' : '.csv,.txt'} 
                         onChange={onFileChange} 
                       />
-                      <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => handleFileUpload('vcard')}>
+                      <Button variant="outline" size="sm" className="text-[9px] md:text-[10px] h-7 flex-1 sm:flex-none" onClick={() => handleFileUpload('vcard')}>
                         <Upload className="w-3 h-3 mr-1" /> VCard
                       </Button>
-                      <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => handleFileUpload('csv')}>
+                      <Button variant="outline" size="sm" className="text-[9px] md:text-[10px] h-7 flex-1 sm:flex-none" onClick={() => handleFileUpload('csv')}>
                         <FileText className="w-3 h-3 mr-1" /> Excel/CSV
                       </Button>
                     </div>
                   </div>
                   <Textarea 
                     placeholder="5511999999999&#10;5521888888888"
-                    className="min-h-[120px] rounded-xl bg-muted/30 border-none resize-none font-mono text-sm"
+                    className="min-h-[100px] md:min-h-[120px] rounded-xl bg-[#202c33] border-none resize-none font-mono text-xs md:text-sm text-[#e9edef]"
                     value={uploadedNumbers}
                     onChange={e => setUploadedNumbers(e.target.value)}
                   />
-                  <p className="text-[10px] text-muted-foreground italic">Dica: Adicione o código do país (Ex: 55 para Brasil).</p>
+                  <p className="text-[9px] md:text-[10px] text-muted-foreground italic">Dica: Adicione o código do país (Ex: 55 para Brasil).</p>
                 </div>
               )}
 
-              <div className="space-y-4 pt-4 border-t">
-                <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Conteúdo do Disparo</Label>
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <Label className="text-xs md:text-sm font-bold uppercase tracking-wider text-muted-foreground">Conteúdo do Disparo</Label>
                 <Tabs value={type} onValueChange={(val: any) => setType(val)} className="w-full">
                   <TabsList className="grid grid-cols-3 h-10 md:h-12 bg-[#202c33] rounded-xl p-1 gap-1">
                     <TabsTrigger value="message" className="rounded-lg text-[9px] sm:text-xs md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white px-1">Mensagem</TabsTrigger>
@@ -322,34 +322,34 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                     <TabsTrigger value="flow" className="rounded-lg text-[9px] sm:text-xs md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white px-1">Fluxo</TabsTrigger>
                   </TabsList>
                   
-                  <div className="mt-6">
+                  <div className="mt-4 md:mt-6">
                     <TabsContent value="message" className="space-y-2 animate-in fade-in">
-                      <Label>Texto da Mensagem</Label>
+                      <Label className="text-xs md:text-sm">Texto da Mensagem</Label>
                       <Textarea 
                         placeholder="Escreva sua mensagem aqui..."
-                        className="min-h-[150px] rounded-xl bg-[#202c33] border-none resize-none text-[#e9edef] placeholder:text-[#8696a0]"
+                        className="min-h-[120px] md:min-h-[150px] rounded-xl bg-[#202c33] border-none resize-none text-[#e9edef] placeholder:text-[#8696a0] text-xs md:text-sm"
                         value={messageText}
                         onChange={e => setMessageText(e.target.value)}
                       />
                     </TabsContent>
 
                     <TabsContent value="template" className="space-y-4 animate-in fade-in">
-                      <Label>Selecione o Template Aprovado</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Label className="text-xs md:text-sm">Selecione o Template Aprovado</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                         {templates.filter(t => t.status === 'APPROVED').map(t => (
                           <div 
                             key={t.id} 
                             onClick={() => setSelectedTemplate(t.id)}
                             className={cn(
-                              "p-4 rounded-xl border-2 transition-all cursor-pointer",
-                              selectedTemplate === t.id ? "border-primary bg-primary/5 shadow-md" : "border-transparent bg-muted/30 hover:border-muted-foreground/20"
+                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer",
+                              selectedTemplate === t.id ? "border-[#00a884] bg-[#00a884]/5 shadow-md" : "border-transparent bg-[#202c33] hover:border-white/10"
                             )}
                           >
                             <div className="flex justify-between items-center mb-2">
-                              <span className="font-bold text-xs truncate">{t.name}</span>
-                              <Badge variant="secondary" className="text-[9px]">{t.category}</Badge>
+                              <span className="font-bold text-[10px] md:text-xs truncate text-[#e9edef]">{t.name}</span>
+                              <Badge variant="secondary" className="text-[8px] md:text-[9px] bg-[#111b21]">{t.category}</Badge>
                             </div>
-                            <p className="text-[10px] text-muted-foreground line-clamp-2">
+                            <p className="text-[9px] md:text-[10px] text-[#8696a0] line-clamp-2">
                               {t.components?.find((c: any) => c.type === 'BODY')?.text}
                             </p>
                           </div>
@@ -358,22 +358,22 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                     </TabsContent>
 
                     <TabsContent value="flow" className="space-y-4 animate-in fade-in">
-                      <Label>Selecione o Fluxo Visual</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Label className="text-xs md:text-sm">Selecione o Fluxo Visual</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                         {flows.map(f => (
                           <div 
                             key={f.id} 
                             onClick={() => setSelectedFlow(f.id)}
                             className={cn(
-                              "p-4 rounded-xl border-2 transition-all cursor-pointer",
-                              selectedFlow === f.id ? "border-primary bg-primary/5 shadow-md" : "border-transparent bg-muted/30 hover:border-muted-foreground/20"
+                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer",
+                              selectedFlow === f.id ? "border-[#00a884] bg-[#00a884]/5 shadow-md" : "border-transparent bg-[#202c33] hover:border-white/10"
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                              <div className="p-2 rounded-lg bg-[#00a884]/10 text-[#00a884]">
                                 <GitBranch className="w-4 h-4" />
                               </div>
-                              <span className="font-bold text-xs">{f.name}</span>
+                              <span className="font-bold text-[10px] md:text-xs text-[#e9edef]">{f.name}</span>
                             </div>
                           </div>
                         ))}
@@ -383,162 +383,131 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                 </Tabs>
               </div>
 
-              <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-4 pt-4 border-t border-white/5">
                 <div className="flex justify-between items-center">
-                  <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <Clock className="w-4 h-4" /> Configurações de Tempo Randomizado
+                  <Label className="text-xs md:text-sm font-bold uppercase tracking-wider text-[#8696a0] flex items-center gap-2">
+                    <Clock className="w-4 h-4" /> Tempo Randomizado
                   </Label>
-                  <Badge variant="outline" className="text-[10px] text-green-600 border-green-200 bg-green-500/5">Evita Bloqueios</Badge>
+                  <Badge variant="outline" className="text-[8px] md:text-[10px] text-[#00a884] border-[#00a884]/20 bg-[#00a884]/5">Evita Bloqueios</Badge>
                 </div>
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-4 md:gap-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px]">Intervalo Mínimo (segundos)</Label>
+                    <Label className="text-[9px] md:text-[10px]">Mínimo (seg)</Label>
                     <Input 
                       type="number" 
                       value={delayMin}
                       onChange={e => setDelayMin(parseInt(e.target.value))}
-                      className="h-10 rounded-xl bg-muted/30 border-none"
+                      className="h-10 rounded-xl bg-[#202c33] border-none text-[#e9edef] text-xs md:text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px]">Intervalo Máximo (segundos)</Label>
+                    <Label className="text-[9px] md:text-[10px]">Máximo (seg)</Label>
                     <Input 
                       type="number" 
                       value={delayMax}
                       onChange={e => setDelayMax(parseInt(e.target.value))}
-                      className="h-10 rounded-xl bg-muted/30 border-none"
+                      className="h-10 rounded-xl bg-[#202c33] border-none text-[#e9edef] text-xs md:text-sm"
                     />
                   </div>
                 </div>
               </div>
 
               <Button 
-                onClick={handleStartBroadcast}
+                onClick={handleStartBroadcast} 
                 disabled={loading}
-                className="w-full h-14 rounded-2xl bg-[#00a884] hover:bg-[#00a884]/90 text-white font-black text-lg shadow-xl shadow-[#00a884]/10 transition-all hover:scale-[1.01] flex items-center justify-center gap-3"
+                className="w-full h-12 md:h-14 rounded-xl bg-[#00a884] hover:bg-[#00a884]/90 text-white font-bold text-base md:text-lg shadow-lg shadow-[#00a884]/20 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
               >
-                {loading ? <RefreshCcw className="w-6 h-6 animate-spin" /> : <Play className="w-6 h-6" />}
-                INICIAR DISPARO EM MASSA
+                {loading ? <RefreshCcw className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
+                INICIAR DISPAROS AGORA
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        <div className="lg:col-span-4 space-y-6">
-          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
-            <CardHeader className="bg-[#202c33] border-b border-white/5">
-              <CardTitle className="text-lg flex items-center gap-2 text-[#00a884]">
-                <History className="w-5 h-5" /> Histórico
+        <div className="lg:col-span-4 space-y-4 md:space-y-6">
+          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21] flex flex-col">
+            <CardHeader className="bg-[#202c33] border-b border-white/5 p-4">
+              <CardTitle className="text-base md:text-lg flex items-center gap-2 text-[#00a884]">
+                <History className="w-5 h-5" /> Histórico Recente
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-3">
-                  {broadcasts.map(b => (
-                    <div key={b.id} className="p-3 rounded-xl border bg-card hover:shadow-md transition-shadow relative group">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-xs truncate pr-4">{b.name}</span>
-                        <Badge className={cn(
-                          "text-[8px] px-1.5 py-0.5",
-                          b.status === 'completed' ? "bg-green-500" : 
-                          b.status === 'running' ? "bg-blue-500 animate-pulse" : "bg-zinc-500"
-                        )}>
-                          {b.status === 'completed' ? 'Finalizado' : b.status === 'running' ? 'Em curso' : 'Pendente'}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                            <Users className="w-2.5 h-2.5" /> {b.sent_count}/{b.total_contacts} enviados
-                          </span>
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-2.5 h-2.5" /> {new Date(b.created_at).toLocaleDateString()}
-                          </span>
+            <CardContent className="p-0 flex-1">
+              <ScrollArea className="h-[300px] lg:h-[500px]">
+                <div className="p-4 space-y-3">
+                  {broadcasts.length === 0 ? (
+                    <div className="text-center py-10">
+                      <Clock className="w-10 h-10 text-white/10 mx-auto mb-2" />
+                      <p className="text-xs text-[#8696a0]">Nenhuma campanha realizada ainda.</p>
+                    </div>
+                  ) : (
+                    broadcasts.map(b => (
+                      <div key={b.id} className="p-3 rounded-xl bg-[#202c33] border border-white/5 space-y-2 group">
+                        <div className="flex justify-between items-start">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-xs text-[#e9edef] truncate">{b.name}</h4>
+                            <p className="text-[9px] text-[#8696a0]">{new Date(b.created_at).toLocaleDateString('pt-BR')} às {new Date(b.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+                          </div>
+                          <button 
+                            onClick={() => deleteBroadcast(b.id)}
+                            className="text-white/20 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => deleteBroadcast(b.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[9px] text-[#8696a0]">
+                            <span>Progresso</span>
+                            <span>{Math.round((b.sent_count / b.total_contacts) * 100) || 0}%</span>
+                          </div>
+                          <div className="w-full bg-[#111b21] h-1 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-[#00a884] h-full transition-all duration-500" 
+                              style={{ width: `${(b.sent_count / b.total_contacts) * 100}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between items-center pt-1">
+                            <div className="flex gap-2 text-[9px]">
+                              <span className="text-[#00a884]">{b.sent_count} ok</span>
+                              <span className="text-red-400">{b.failed_count || 0} erro</span>
+                              <span className="text-[#8696a0]">/ {b.total_contacts} total</span>
+                            </div>
+                            <Badge className={cn(
+                              "text-[8px] h-4 px-1 capitalize",
+                              b.status === 'completed' ? "bg-blue-500/20 text-blue-400" :
+                              b.status === 'running' ? "bg-green-500/20 text-green-400 animate-pulse" :
+                              "bg-yellow-500/20 text-yellow-400"
+                            )}>
+                              {b.status === 'completed' ? 'Finalizado' : b.status === 'running' ? 'Em curso' : 'Pendente'}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className={cn(
-                            "h-full transition-all duration-500",
-                            b.status === 'completed' ? "bg-green-500" : "bg-primary"
-                          )} 
-                          style={{ width: `${(b.sent_count / b.total_contacts) * 100}%` }} 
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  {broadcasts.length === 0 && (
-                    <div className="py-10 text-center text-muted-foreground text-sm italic">
-                      Nenhuma campanha recente.
-                    </div>
+                    ))
                   )}
                 </div>
               </ScrollArea>
             </CardContent>
           </Card>
-
-          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
-            <CardHeader className="bg-[#202c33] border-b border-white/5">
-              <CardTitle className="text-base flex items-center gap-2 text-[#00a884]">
-                <Users className="w-4 h-4" /> Remarketing
+          
+          {/* Tutorial Card */}
+          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#202c33]">
+            <CardHeader className="p-4 border-b border-white/5">
+              <CardTitle className="text-sm flex items-center gap-2 text-[#00a884]">
+                <HelpCircle className="w-4 h-4" /> Dicas de Ouro
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
-              <div 
-                className="p-3 rounded-lg border bg-white/50 hover:border-primary/50 cursor-pointer transition-all"
-                onClick={() => setTargetType('conversation')}
-              >
-                <p className="text-[11px] font-bold">Recuperar Ociosos</p>
-                <p className="text-[10px] text-muted-foreground">Pessoas que já conversaram mas não fecharam.</p>
-              </div>
-              <div 
-                className="p-3 rounded-lg border bg-white/50 hover:border-primary/50 cursor-pointer transition-all"
-                onClick={() => {
-                  setTargetType('contacts');
-                  // Filter logic could be added here if we had more metadata
-                }}
-              >
-                <p className="text-[11px] font-bold">Base de Leads</p>
-                <p className="text-[10px] text-muted-foreground">Toda a sua lista de contatos do CRM.</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
-            <CardHeader className="bg-[#202c33] border-b border-white/5">
-              <CardTitle className="text-base flex items-center gap-2 text-[#00a884]">
-                <HelpCircle className="w-4 h-4" /> Tutorial Rápido
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">1</div>
-                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Escolha um <strong>Nome</strong> e o <strong>Público-alvo</strong>. Você pode subir uma lista colando números.</p>
+              {[
+                { icon: <Zap className="w-3 h-3 text-yellow-500" />, text: "Use o tempo randomizado para imitar o comportamento humano e evitar bloqueios." },
+                { icon: <CheckCircle2 className="w-3 h-3 text-green-500" />, text: "Templates oficiais são mais seguros para primeiros contatos com listas frias." },
+                { icon: <Users className="w-3 h-3 text-blue-500" />, text: "Sempre valide sua lista de números antes de iniciar disparos grandes." }
+              ].map((tip, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <div className="mt-0.5 shrink-0">{tip.icon}</div>
+                  <p className="text-[10px] text-[#8696a0] leading-relaxed">{tip.text}</p>
                 </div>
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">2</div>
-                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Selecione o <strong>Conteúdo</strong>. Templates oficiais são mais seguros contra bloqueios.</p>
-                </div>
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</div>
-                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Ajuste o <strong>Tempo Randomizado</strong>. Recomendamos pelo menos 15-30 segundos entre mensagens.</p>
-                </div>
-                <div className="flex gap-3 border-t pt-3">
-                  <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                    <CheckCircle2 className="w-3 h-3" />
-                  </div>
-                  <p className="text-[11px] leading-relaxed font-bold text-green-700">O status "running" indica que o sistema está disparando em segundo plano.</p>
-                </div>
-              </div>
+              ))}
             </CardContent>
           </Card>
         </div>
