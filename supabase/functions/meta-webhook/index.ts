@@ -300,7 +300,7 @@ ${templates?.map(t => {
 FLUXOS DISPONÍVEIS:
 ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
 
-IMPORTANTE: Se você for usar [SEND_TEMPLATE: nome], NÃO envie nenhum outro texto na mesma resposta. Se decidir usar o template, sua resposta deve conter APENAS a tag [SEND_TEMPLATE: nome]. Nunca repita o conteúdo do template no texto. NÃO adicione saudações ou explicações antes ou depois da tag se estiver usando um template. Se você quiser falar algo antes, envie primeiro a mensagem de texto e na próxima interação o template, mas preferencialmente envie APENAS o template para evitar repetições.
+IMPORTANTE: Se você for usar [SEND_TEMPLATE: nome], você PODE enviar uma mensagem de texto ANTES do template se quiser confirmar o envio (ex: "Claro, vou enviar agora"), mas a tag [SEND_TEMPLATE: nome] deve vir em uma linha SEPARADA ou como uma mensagem distinta. O sistema irá separar automaticamente. NÃO repita o conteúdo do template no texto.
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
@@ -381,35 +381,10 @@ IMPORTANTE: Se você for usar [SEND_TEMPLATE: nome], NÃO envie nenhum outro tex
                         }
                         aiText = aiText.replace(/\[START_FLOW: [\w-]+\]/g, '').trim();
 
-                        // Priority handling: If [SEND_TEMPLATE] is present, ONLY send the template and ignore everything else to avoid repetitions
-                        const templateMatchGlobal = aiText.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i);
-                        
-                        if (templateMatchGlobal) {
-                          const templateName = templateMatchGlobal[1].trim();
-                          const { data: templateExists } = await supabase
-                            .from('crm_templates')
-                            .select('name, language')
-                            .eq('name', templateName)
-                            .maybeSingle();
+                        // Now split the text by special tags (QUICK_REPLY or SEND_TEMPLATE)
+                        // This allows sending text followed by templates or buttons
+                        const parts = aiText.split(/(\[QUICK_REPLY:.*?\]|\[SEND_TEMPLATE:.*?\])/i).filter(p => p.trim() !== '');
 
-                          if (templateExists) {
-                            console.log(`Priority: Sending template ONLY: ${templateName}`);
-                            await supabase.functions.invoke('meta-whatsapp-crm', {
-                              body: { 
-                                action: 'sendTemplate', 
-                                to: wa_id, 
-                                templateName: templateName,
-                                languageCode: templateExists.language || 'pt_BR',
-                                contactId: contact.id
-                              }
-                            });
-                            return new Response('OK - AI Sent Template Only', { status: 200 });
-                          }
-                        }
-
-                        // Now split the text by special tags (QUICK_REPLY)
-                        // This allows sending text followed by buttons
-                        const parts = aiText.split(/(\[QUICK_REPLY:.*?\])/i).filter(p => p.trim() !== '');
 
                         for (const part of parts) {
                           const trimmedPart = part.trim();
