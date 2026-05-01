@@ -852,6 +852,17 @@ const CRM = () => {
   const openChat = (contact: any) => {
     setSelectedContact(contact);
     fetchMessages(contact.id);
+    fetchScheduledMessages(contact.id);
+  };
+
+  const fetchScheduledMessages = async (contactId: string) => {
+    const { data } = await supabase
+      .from('crm_scheduled_messages')
+      .select('*')
+      .eq('contact_id', contactId)
+      .eq('status', 'pending')
+      .order('scheduled_for', { ascending: true });
+    setScheduledMessages(data || []);
   };
 
   const handleSaveFlow = async (flow: any) => {
