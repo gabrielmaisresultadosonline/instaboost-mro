@@ -460,6 +460,7 @@ const CRM = () => {
       if (error) throw error;
       toast({ title: "Fluxo Iniciado!" });
       fetchMessages(selectedContact.id);
+      fetchContacts(); // Refresh contact to update next_execution_time and flow_state
     } catch (err) {
       toast({ title: "Erro ao iniciar fluxo", variant: "destructive" });
     } finally {
