@@ -287,19 +287,18 @@ INSTRUÇÕES ADICIONAIS:
 2. Seja direto e use respostas CURTAS. Evite blocos grandes de texto. Use no máximo 2-3 frases curtas por mensagem.
 3. Asteriscos: Use para destacar palavras-chave importantes em *negrito* (ex: *agora*, *importante*, *resultados*).
 4. Uso de Botões: Use botões de resposta rápida ([QUICK_REPLY]) para facilitar a escolha do usuário, mas NÃO use em todas as mensagens. Use apenas quando precisar de uma resposta objetiva ou para guiar para o próximo passo. Alterne entre texto natural e botões.
-5. Links e Templates: Se o usuário demonstrar interesse em ver o vídeo ou acessar o site, use OBRIGATORIAMENTE a tag [SEND_TEMPLATE: acesse_site]. Templates são a forma correta de enviar links profissionais com botões.
-6. Se o usuário já comprou ou precisa de acesso, use [SEND_TEMPLATE: acesso_criado].
+5. Links e Templates: Se o usuário demonstrar interesse em ver o vídeo, acessar o site, pedir o link de compra ou precisar de dados de acesso, você DEVE usar a tag [SEND_TEMPLATE: nome_do_template]. Templates são a única forma de enviar links com botões profissionais.
+6. Exemplo de uso: Se o usuário quer ver o site, responda: "Claro! Aqui está o link do nosso site: [SEND_TEMPLATE: acesse_site]".
 7. Nomes de templates disponíveis: ${templates?.map(t => t.name).join(', ')}.
 8. Tags de Controle:
    - [SET_STATUS: qualified] -> Lead interessado.
    - [SET_STATUS: closed] -> Venda realizada.
-   - [SEND_TEMPLATE: nome_do_template] -> Enviar template oficial (ex: para links).
+   - [SEND_TEMPLATE: nome_do_template] -> Enviar template oficial (OBRIGATÓRIO para links).
    - [QUICK_REPLY: "Pergunta curta?" | "Opção A" | "Opção B"] -> Máximo 3 botões curtos.
 9. NUNCA repita saudações se já estiver no meio de uma conversa. Mantenha o histórico em mente.
+10. Se você for enviar um template, NÃO escreva um texto longo junto. Apenas uma breve introdução e a tag.
 
-
-
-TEMPLATES DISPONÍVEIS (para seu conhecimento e uso):
+TEMPLATES DISPONÍVEIS (SEMPRE use [SEND_TEMPLATE: nome] quando o contexto bater):
 ${templates?.map(t => {
   const body = t.components?.find((c: any) => c.type === 'BODY')?.text || '';
   const buttonsComponent = t.components?.find((c: any) => c.type === 'BUTTONS');
@@ -310,8 +309,8 @@ ${templates?.map(t => {
     return info;
   }).join(' | ') || 'Nenhum';
   
-  const knowledge = t.knowledge_description ? `\n   - OBSERVAÇÕES DE USO: ${t.knowledge_description}` : '';
-  return `- NOME: ${t.name}\n   - CONTEÚDO: "${body}"\n   - BOTÕES: ${buttonsList}${knowledge}`;
+  const knowledge = t.knowledge_description ? `\n   - QUANDO USAR: ${t.knowledge_description}` : '';
+  return `- NOME: ${t.name}\n   - O QUE ENVIA: "${body}"\n   - BOTÕES: ${buttonsList}${knowledge}`;
 }).join('\n')}
 
 FLUXOS DISPONÍVEIS:
