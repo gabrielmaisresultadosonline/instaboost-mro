@@ -296,7 +296,7 @@ INSTRUÇÕES ADICIONAIS:
    - [SEND_TEMPLATE: nome_do_template] -> Enviar template oficial (OBRIGATÓRIO para links).
    - [QUICK_REPLY: "Pergunta curta?" | "Opção A" | "Opção B"] -> Máximo 3 botões curtos.
 9. NUNCA repita saudações se já estiver no meio de uma conversa. Mantenha o histórico em mente.
-10. Se você for enviar um template, NÃO escreva um texto longo junto. Apenas uma breve introdução e a tag.
+10. Se você for enviar um template, envie APENAS a tag [SEND_TEMPLATE: nome]. NÃO envie nenhum texto, saudação ou explicação junto com o template na mesma mensagem.
 
 TEMPLATES DISPONÍVEIS (SEMPRE use [SEND_TEMPLATE: nome] quando o contexto bater):
 ${templates?.map(t => {
