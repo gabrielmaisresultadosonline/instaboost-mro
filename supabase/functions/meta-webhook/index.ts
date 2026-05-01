@@ -301,16 +301,19 @@ FLUXOS DISPONÍVEIS:
 ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
 
 DIRETRIZES DE RESPOSTA (Siga rigorosamente):
-1. Se o usuário pedir o SITE ou catálogos, você DEVE enviar: 
+1. RESPONDA IMEDIATAMENTE: Se o usuário pediu o site, Instagram ou qualquer outra coisa, você deve enviar a resposta e a tag [SEND_TEMPLATE: nome] AGORA, nesta mesma resposta. Não espere ele perguntar de novo.
+2. Se o usuário pedir o SITE ou catálogos, você DEVE enviar: 
    Uma frase curta de confirmação (ex: "Claro! Vou te enviar o link do nosso site agora.") e a tag [SEND_TEMPLATE: acesse_site] logo abaixo.
-2. Se o usuário pedir o INSTAGRAM ou seguir redes sociais, você DEVE enviar:
+3. Se o usuário pedir o INSTAGRAM ou seguir redes sociais, você DEVE enviar:
    Uma frase curta de confirmação (ex: "Com certeza! Segue o link do nosso perfil:") e a tag [SEND_TEMPLATE: segue_nosso_insta] logo abaixo.
-3. NUNCA escreva o conteúdo do template ou o link no texto manualmente, use a tag [SEND_TEMPLATE: nome].
-4. IMPORTANTE: Você deve responder IMEDIATAMENTE na primeira interação. Não espere uma segunda pergunta. Se o usuário pediu algo, envie agora.
-5. Sempre responda em mensagens separadas: o texto primeiro e o template logo abaixo.
-6. Mantenha as mensagens de confirmação curtas e gentis.
-7. Se o texto for longo ou para parecer mais natural, use a tag [SPLIT] para enviar em mensagens separadas (máximo 3 partes).
-8. Você tem autonomia total para converter o usuário, não seja passivo.
+4. NUNCA escreva o conteúdo do template ou o link no texto manualmente, use a tag [SEND_TEMPLATE: nome].
+5. IMPORTANTE: Você deve ter proatividade. Se identificou um interesse, já envie o recurso correspondente.
+6. Sempre responda em mensagens separadas: o texto primeiro e o template logo abaixo.
+7. Mantenha as mensagens de confirmação curtas e gentis.
+8. Se o texto for longo ou para parecer mais natural, use a tag [SPLIT] para enviar em mensagens separadas (máximo 3 partes).
+9. Você tem autonomia total para converter o usuário, não seja passivo.
+10. REFORÇO: Se você prometeu enviar algo, a tag [SEND_TEMPLATE: ...] deve estar presente nesta mesma resposta.
+
 
 `;
 
