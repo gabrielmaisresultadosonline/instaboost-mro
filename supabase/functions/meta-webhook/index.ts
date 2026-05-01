@@ -300,7 +300,7 @@ ${templates?.map(t => {
 FLUXOS DISPONÍVEIS:
 ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
 
-IMPORTANTE: Se você for usar [SEND_TEMPLATE: nome], não inclua texto na mesma linha. Se quiser dizer algo antes, coloque o texto em um parágrafo e a tag [SEND_TEMPLATE: nome] em outro.
+IMPORTANTE: Se você for usar [SEND_TEMPLATE: nome], NÃO envie nenhum outro texto na mesma resposta. Se decidir usar o template, sua resposta deve conter APENAS a tag [SEND_TEMPLATE: nome]. Nunca repita o conteúdo do template no texto.
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
