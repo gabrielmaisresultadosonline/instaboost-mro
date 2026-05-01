@@ -282,7 +282,7 @@ serve(async (req) => {
                       const systemPrompt = `
 ${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
 
-TEMPLATES DISPONÍVEIS (SEMPRE use [SEND_TEMPLATE: nome] quando o contexto bater):
+TEMPLATES DISPONÍVEIS (IMPORTANTE: Use [SEND_TEMPLATE: nome] em uma linha isolada para enviar um template oficial):
 ${templates?.map(t => {
   const body = t.components?.find((c: any) => c.type === 'BODY')?.text || '';
   const buttonsComponent = t.components?.find((c: any) => c.type === 'BUTTONS');
@@ -300,7 +300,13 @@ ${templates?.map(t => {
 FLUXOS DISPONÍVEIS:
 ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
 
-IMPORTANTE: Se você for usar [SEND_TEMPLATE: nome], você PODE enviar uma mensagem de texto ANTES do template se quiser confirmar o envio (ex: "Claro, vou enviar agora"), mas a tag [SEND_TEMPLATE: nome] deve vir em uma linha SEPARADA ou como uma mensagem distinta. O sistema irá separar automaticamente. NÃO repita o conteúdo do template no texto.
+DIRETRIZES DE RESPOSTA:
+1. Se o usuário pedir algo que corresponda a um TEMPLATE (ex: site, instagram, catálogo), você DEVE:
+   a) Enviar uma breve mensagem de texto confirmando (ex: "Claro, vou te enviar o link do site agora mesmo!").
+   b) Na linha seguinte, colocar APENAS a tag [SEND_TEMPLATE: nome_do_template].
+2. NUNCA repita o texto ou o conteúdo do template dentro da sua mensagem de texto.
+3. Se NÃO houver template correspondente, responda normalmente em texto.
+4. Mantenha as mensagens de confirmação curtas e gentis.
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
