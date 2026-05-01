@@ -160,6 +160,7 @@ const CRM = () => {
   const [scheduleType, setScheduleType] = useState<'message' | 'template' | 'flow'>('message');
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
+  const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
@@ -339,6 +340,26 @@ const CRM = () => {
       setSendingMessage(false);
     }
   };
+
+  const handleUpdateTemplateKnowledge = async (templateId: string, knowledge: string) => {
+    setUpdatingKnowledge(templateId);
+    try {
+      const { error } = await supabase
+        .from('crm_templates')
+        .update({ knowledge_description: knowledge })
+        .eq('id', templateId);
+      
+      if (error) throw error;
+      
+      setTemplates(prev => prev.map(t => t.id === templateId ? { ...t, knowledge_description: knowledge } : t));
+      toast({ title: "Conhecimento atualizado!" });
+    } catch (err) {
+      toast({ title: "Erro ao atualizar conhecimento", variant: "destructive" });
+    } finally {
+      setUpdatingKnowledge(null);
+    }
+  };
+
   
   const startRecording = async () => {
     try {
