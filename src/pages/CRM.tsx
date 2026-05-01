@@ -161,6 +161,7 @@ const CRM = () => {
   const [isScheduling, setIsScheduling] = useState(false);
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
+  const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
