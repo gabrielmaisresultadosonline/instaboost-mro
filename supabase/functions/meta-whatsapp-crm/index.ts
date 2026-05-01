@@ -1016,16 +1016,18 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    if (delayMs <= 15000) { // Increased to 15s to make most delays feel "immediate" and avoid scheduled table overhead
+    // Process delay in real-time for any delay up to 25 seconds to ensure exact timing
+    // Any delay longer than 25s will be scheduled via database to avoid function timeout
+    if (delayMs <= 25000) {
       if (delayMs > 0) {
-        console.log(`Short delay: sleeping for ${delayMs}ms...`);
+        console.log(`Waiting ${delayMs}ms for flow delay...`);
         await sleep(delayMs);
       }
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          console.log(`Delay finished, moving to next node: ${nextNode.id}`);
+          console.log(`Delay finished, proceeding to node: ${nextNode.id}`);
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id, 
             next_execution_time: null,
@@ -1179,7 +1181,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          await sleep(200) // Reduced from 500ms for even faster flow execution
+          // Removed sleep(200) to ensure immediate transition between nodes after any configured delay
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id,
             last_flow_interaction: new Date().toISOString()
