@@ -397,6 +397,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         
                         console.log('AI Response parts:', JSON.stringify(parts));
 
+                        const templateMatches = aiText.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/gi);
                         const processedTemplates = new Set();
                         
                         for (const part of parts) {
