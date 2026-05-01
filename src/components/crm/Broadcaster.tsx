@@ -319,7 +319,7 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                   <TabsList className="grid grid-cols-3 h-12 bg-[#202c33] rounded-xl p-1">
                     <TabsTrigger value="message" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Mensagem</TabsTrigger>
                     <TabsTrigger value="template" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Template</TabsTrigger>
-                    <TabsTrigger value="flow" className="rounded-lg data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Fluxo</TabsTrigger>
+                    <TabsTrigger value="flow" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Fluxo</TabsTrigger>
                   </TabsList>
                   
                   <div className="mt-6">
