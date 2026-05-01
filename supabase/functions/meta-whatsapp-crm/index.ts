@@ -56,32 +56,35 @@ serve(async (req) => {
         const metaTemplateIds = data.data.map((t: any) => t.id);
         
         for (const template of data.data) {
+          // Process components to find and store media permanently
+          const processedComponents = [...template.components];
+          for (const component of processedComponents) {
+            if (component.type === 'HEADER' && (component.format === 'IMAGE' || component.format === 'VIDEO')) {
+              const mediaUrl = component.example?.header_handle?.[0];
+              if (mediaUrl && mediaUrl.includes('scontent.whatsapp.net')) {
+                console.log(`Storing template media permanently: ${template.name} - ${component.format}`);
+                const permanentUrl = await downloadAndStoreMetaMedia(supabase, meta_access_token, mediaUrl, component.format.toLowerCase(), `${template.name}_header`);
+                if (permanentUrl) {
+                  component.example.header_handle = [permanentUrl];
+                }
+              }
+            }
+          }
+
           await supabase.from('crm_templates').upsert({
             id: template.id,
             name: template.name,
             category: template.category,
             language: template.language,
             status: template.status,
-            components: template.components,
+            components: processedComponents,
             updated_at: new Date().toISOString()
           })
         }
         
         // Remove local templates that are no longer on Meta
         if (metaTemplateIds.length > 0) {
-          const { error: deleteError } = await supabase
-            .from('crm_templates')
-            .delete()
-            .not('id', 'in', metaTemplateIds)
-          
-          if (deleteError) {
-            console.error('Error cleaning up local templates:', deleteError);
-          } else {
-            console.log('Local templates cleaned up successfully.');
-          }
-        } else {
-          // If Meta has no templates, clear local table
-          await supabase.from('crm_templates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+          await supabase.from('crm_templates').delete().not('id', 'in', metaTemplateIds)
         }
       }
       
@@ -861,12 +864,22 @@ async function internalSendTemplate(
     // Ensure content has the [Template: name] prefix for the frontend to recognize it
     const finalContent = `[Template: ${templateName}] ${messageContent}`;
 
+    // Improve mediaUrl capture: if it was a numeric ID, try to get the original URL from finalComponents
+    let finalMediaUrl = mediaUrl;
+    if (!finalMediaUrl || /^\d+$/.test(finalMediaUrl.toString())) {
+      const headerParam = finalComponents.find((c: any) => c.type === "header")?.parameters?.[0];
+      const type = headerParam?.type;
+      if (type && headerParam[type]?.link) {
+        finalMediaUrl = headerParam[type].link;
+      }
+    }
+
     await supabase.from('crm_messages').insert({
       contact_id: contact.id,
       direction: 'outbound',
       content: finalContent,
       message_type: 'template',
-      media_url: mediaUrl,
+      media_url: finalMediaUrl,
       meta_message_id: result.messages[0].id,
       status: 'sent'
     });
@@ -1003,13 +1016,21 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    if (delayMs <= 2000) { // Only sleep for very short delays to ensure function snappy response
-      if (delayMs > 0) await sleep(delayMs)
+    if (delayMs <= 15000) { // Increased to 15s to make most delays feel "immediate" and avoid scheduled table overhead
+      if (delayMs > 0) {
+        console.log(`Short delay: sleeping for ${delayMs}ms...`);
+        await sleep(delayMs);
+      }
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          await supabase.from('crm_contacts').update({ current_node_id: nextNode.id, next_execution_time: null }).eq('id', contactId)
+          console.log(`Delay finished, moving to next node: ${nextNode.id}`);
+          await supabase.from('crm_contacts').update({ 
+            current_node_id: nextNode.id, 
+            next_execution_time: null,
+            last_flow_interaction: new Date().toISOString()
+          }).eq('id', contactId)
           return executeVisualNode(supabase, flow, nextNode, contactId, waId)
         }
       }
@@ -1158,7 +1179,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          await sleep(500) // Reduced from 1500ms for faster flow execution
+          await sleep(200) // Reduced from 500ms for even faster flow execution
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id,
             last_flow_interaction: new Date().toISOString()
@@ -1304,6 +1325,38 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     return data.id;
   } catch (error) {
     console.error('Error uploading media to Meta:', error);
+    return null;
+  }
+}
+
+async function downloadAndStoreMetaMedia(supabase: any, token: string, mediaUrl: string, type: string, baseName: string) {
+  try {
+    const response = await fetch(mediaUrl, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!response.ok) throw new Error(`Failed to fetch media from Meta: ${response.statusText}`);
+    
+    const blob = await response.blob();
+    const ext = blob.type.split('/')[1] || 'bin';
+    const filePath = `templates/${type}/${Date.now()}_${baseName}.${ext}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('crm-media')
+      .upload(filePath, blob, {
+        contentType: blob.type,
+        upsert: true
+      });
+      
+    if (uploadError) throw uploadError;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('crm-media')
+      .getPublicUrl(filePath);
+      
+    return publicUrl;
+  } catch (error) {
+    console.error('Error in downloadAndStoreMetaMedia:', error);
     return null;
   }
 }
