@@ -512,25 +512,25 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-xl border border-border/50 overflow-hidden bg-gradient-to-br from-[#075E54]/10 to-transparent">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2 text-[#25D366]">
+          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
+            <CardHeader className="bg-[#202c33] border-b border-white/5">
+              <CardTitle className="text-base flex items-center gap-2 text-[#00a884]">
                 <HelpCircle className="w-4 h-4" /> Tutorial Rápido
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               <div className="space-y-3">
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#25D366] text-zinc-950 flex items-center justify-center text-[10px] font-bold shrink-0">1</div>
-                  <p className="text-[11px] leading-relaxed">Escolha um <strong>Nome</strong> e o <strong>Público-alvo</strong>. Você pode subir uma lista colando números.</p>
+                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">1</div>
+                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Escolha um <strong>Nome</strong> e o <strong>Público-alvo</strong>. Você pode subir uma lista colando números.</p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#25D366] text-zinc-950 flex items-center justify-center text-[10px] font-bold shrink-0">2</div>
-                  <p className="text-[11px] leading-relaxed">Selecione o <strong>Conteúdo</strong>. Templates oficiais são mais seguros contra bloqueios.</p>
+                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">2</div>
+                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Selecione o <strong>Conteúdo</strong>. Templates oficiais são mais seguros contra bloqueios.</p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#25D366] text-zinc-950 flex items-center justify-center text-[10px] font-bold shrink-0">3</div>
-                  <p className="text-[11px] leading-relaxed">Ajuste o <strong>Tempo Randomizado</strong>. Recomendamos pelo menos 15-30 segundos entre mensagens.</p>
+                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</div>
+                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Ajuste o <strong>Tempo Randomizado</strong>. Recomendamos pelo menos 15-30 segundos entre mensagens.</p>
                 </div>
                 <div className="flex gap-3 border-t pt-3">
                   <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
