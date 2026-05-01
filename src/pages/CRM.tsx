@@ -1972,6 +1972,36 @@ const CRM = () => {
                           </p>
                         </div>
                       </div>
+                      <div className="mt-8 space-y-4">
+                        <h4 className="font-bold text-sm flex items-center gap-2">
+                          <Settings className="w-4 h-4" /> Configurar Conhecimento Específico
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {templates.map((template) => (
+                            <div key={template.id} className="p-4 rounded-xl border bg-card/50 space-y-3">
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-xs truncate max-w-[150px]">{template.name}</span>
+                                <Badge variant="outline" className="text-[9px]">{template.category}</Badge>
+                              </div>
+                              <Textarea 
+                                placeholder="Descreva quando usar e o que os botões deste template fazem..."
+                                className="text-[11px] min-h-[80px] bg-muted/20 border-none resize-none"
+                                defaultValue={template.knowledge_description || ''}
+                                onBlur={(e) => {
+                                  if (e.target.value !== (template.knowledge_description || '')) {
+                                    handleUpdateTemplateKnowledge(template.id, e.target.value);
+                                  }
+                                }}
+                              />
+                              {updatingKnowledge === template.id && (
+                                <div className="text-[9px] text-primary animate-pulse flex items-center gap-1">
+                                  <RefreshCcw className="w-2 h-2 animate-spin" /> Salvando...
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                       <div className="mt-6 flex justify-end">
                         <Button 
                           onClick={handleSaveSettings} 
