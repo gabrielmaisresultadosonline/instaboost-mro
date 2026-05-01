@@ -1621,6 +1621,153 @@ const CRM = () => {
               </div>
             )}
 
+            {activeTab === 'scheduling' && (
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Agendamentos</h2>
+                      <p className="text-muted-foreground text-sm">Visualize e gerencie todas as mensagens agendadas e o histórico de envios.</p>
+                    </div>
+                    <Button variant="outline" onClick={fetchAllScheduledMessages}>
+                      <RefreshCcw className="w-4 h-4 mr-2" /> Atualizar
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6">
+                    <Card className="border-none shadow-md overflow-hidden rounded-2xl">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <CardTitle className="text-lg">Próximos Agendamentos</CardTitle>
+                        <CardDescription>Mensagens aguardando o horário de envio.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-left">
+                            <thead className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground border-b">
+                              <tr>
+                                <th className="px-6 py-3">Contato</th>
+                                <th className="px-6 py-3">Tipo</th>
+                                <th className="px-6 py-3">Conteúdo</th>
+                                <th className="px-6 py-3">Agendado Para</th>
+                                <th className="px-6 py-3 text-right">Ações</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {allScheduledMessages.filter(m => m.status === 'pending').length > 0 ? (
+                                allScheduledMessages.filter(m => m.status === 'pending').map((msg) => (
+                                  <tr key={msg.id} className="hover:bg-muted/20 transition-colors">
+                                    <td className="px-6 py-4 font-bold">
+                                      {msg.crm_contacts?.name || msg.crm_contacts?.wa_id || 'Desconhecido'}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      <Badge variant="outline" className="capitalize">
+                                        {msg.message_data?.action === 'sendMessage' ? 'Texto' : 
+                                         msg.message_data?.action === 'sendTemplate' ? 'Template' : 
+                                         msg.message_data?.action === 'startFlow' ? 'Fluxo' : msg.message_data?.action}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-6 py-4 max-w-xs truncate text-muted-foreground">
+                                      {msg.message_data?.text || msg.message_data?.templateName || msg.message_data?.flowId || '-'}
+                                    </td>
+                                    <td className="px-6 py-4 font-medium">
+                                      {new Date(msg.scheduled_for).toLocaleString('pt-BR')}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="text-destructive hover:bg-destructive/10"
+                                        onClick={async () => {
+                                          if (confirm('Deseja cancelar este agendamento?')) {
+                                            await supabase.from('crm_scheduled_messages').update({ status: 'canceled' }).eq('id', msg.id);
+                                            fetchAllScheduledMessages();
+                                          }
+                                        }}
+                                      >
+                                        <XCircle className="w-4 h-4" />
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground italic">
+                                    Nenhum agendamento pendente encontrado.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-none shadow-md overflow-hidden rounded-2xl">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <CardTitle className="text-lg">Histórico de Envios</CardTitle>
+                        <CardDescription>Registro de mensagens enviadas ou com erro.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-left">
+                            <thead className="bg-muted/50 text-[10px] uppercase font-bold text-muted-foreground border-b">
+                              <tr>
+                                <th className="px-6 py-3">Contato</th>
+                                <th className="px-6 py-3">Tipo</th>
+                                <th className="px-6 py-3">Status</th>
+                                <th className="px-6 py-3">Enviado Em</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {allScheduledMessages.filter(m => m.status !== 'pending').length > 0 ? (
+                                allScheduledMessages.filter(m => m.status !== 'pending')
+                                  .sort((a, b) => new Date(b.scheduled_for).getTime() - new Date(a.scheduled_for).getTime())
+                                  .slice(0, 20)
+                                  .map((msg) => (
+                                  <tr key={msg.id} className="hover:bg-muted/20 transition-colors">
+                                    <td className="px-6 py-4 font-bold">
+                                      {msg.crm_contacts?.name || msg.crm_contacts?.wa_id || 'Desconhecido'}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      <Badge variant="outline" className="capitalize">
+                                        {msg.message_data?.action === 'sendMessage' ? 'Texto' : 
+                                         msg.message_data?.action === 'sendTemplate' ? 'Template' : 
+                                         msg.message_data?.action === 'startFlow' ? 'Fluxo' : msg.message_data?.action}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      <Badge 
+                                        variant={msg.status === 'sent' ? 'default' : 'destructive'}
+                                        className={cn(
+                                          "capitalize",
+                                          msg.status === 'sent' ? "bg-green-500/10 text-green-600 border-green-200" : ""
+                                        )}
+                                      >
+                                        {msg.status === 'sent' ? 'Enviado' : msg.status === 'canceled' ? 'Cancelado' : 'Erro'}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-6 py-4 text-muted-foreground">
+                                      {new Date(msg.scheduled_for).toLocaleString('pt-BR')}
+                                    </td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan={4} className="px-6 py-10 text-center text-muted-foreground italic">
+                                    Nenhum histórico encontrado.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
+
             {activeTab === 'flows' && (
               <ScrollArea className="flex-1 p-8 bg-muted/5">
                 <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
