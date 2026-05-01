@@ -850,15 +850,13 @@ async function internalSendTemplate(
       if (!mediaUrl || /^\d+$/.test(mediaUrl.toString())) {
         const headerComponent = templateData.components?.find((c: any) => c.type === 'HEADER');
         const exampleUrl = headerComponent?.example?.header_handle?.[0];
-        if (exampleUrl && (exampleUrl.startsWith('http') || exampleUrl.startsWith('https'))) {
+        if (exampleUrl) {
           mediaUrl = exampleUrl;
         }
       }
 
-      // If all fails, fall back to ID (though it will be broken in chat)
-      if (!mediaUrl) {
-        mediaUrl = headerParams[type]?.id || headerParams[type]?.link;
-      }
+      // If it's a Meta temporary URL, it might be the reason for "broken images" in chat history
+      // We already try to use the permanent stored URL above if it exists
     }
 
     // Ensure content has the [Template: name] prefix for the frontend to recognize it
@@ -1016,16 +1014,18 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
     const scheduledFor = new Date(Date.now() + delayMs).toISOString()
     await supabase.from('crm_contacts').update({ next_execution_time: scheduledFor }).eq('id', contactId)
 
-    if (delayMs <= 15000) { // Increased to 15s to make most delays feel "immediate" and avoid scheduled table overhead
+    // Process delay in real-time for any delay up to 25 seconds to ensure exact timing
+    // Any delay longer than 25s will be scheduled via database to avoid function timeout
+    if (delayMs <= 25000) {
       if (delayMs > 0) {
-        console.log(`Short delay: sleeping for ${delayMs}ms...`);
+        console.log(`Waiting ${delayMs}ms for flow delay...`);
         await sleep(delayMs);
       }
       const nextEdge = flow.edges.find((e: any) => e.source === node.id)
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          console.log(`Delay finished, moving to next node: ${nextNode.id}`);
+          console.log(`Delay finished, proceeding to node: ${nextNode.id}`);
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id, 
             next_execution_time: null,
@@ -1179,7 +1179,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          await sleep(200) // Reduced from 500ms for even faster flow execution
+          // Removed sleep(200) to ensure immediate transition between nodes after any configured delay
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id,
             last_flow_interaction: new Date().toISOString()
