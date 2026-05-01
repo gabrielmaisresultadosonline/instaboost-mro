@@ -160,6 +160,8 @@ const CRM = () => {
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
 
+  const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
+
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
