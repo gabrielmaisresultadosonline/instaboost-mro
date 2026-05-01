@@ -37,7 +37,7 @@ serve(async (req) => {
       console.log(`Fetching templates for WABA ${meta_waba_id}...`);
       
       const response = await fetch(
-        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates?limit=1000`,
+        `https://graph.facebook.com/v20.0/${meta_waba_id}/message_templates?limit=1000`,
         {
           headers: { 'Authorization': `Bearer ${meta_access_token}` },
         }
@@ -128,7 +128,7 @@ serve(async (req) => {
       }
       
       const response = await fetch(
-        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates`,
+        `https://graph.facebook.com/v20.0/${meta_waba_id}/message_templates`,
         {
           method: 'POST',
           headers: {
@@ -177,7 +177,7 @@ serve(async (req) => {
       console.log(`Deleting template ${name} from Meta WABA ${meta_waba_id}...`);
       
       const response = await fetch(
-        `https://graph.facebook.com/v17.0/${meta_waba_id}/message_templates?name=${name}`,
+        `https://graph.facebook.com/v20.0/${meta_waba_id}/message_templates?name=${name}`,
         {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${meta_access_token}` },
@@ -592,7 +592,7 @@ async function handleInternalSendMessage(supabase: any, meta_phone_number_id: st
   console.log('Sending message to Meta:', JSON.stringify(body, null, 2));
   
   const response = await fetch(
-    `https://graph.facebook.com/v17.0/${meta_phone_number_id}/messages`,
+    `https://graph.facebook.com/v20.0/${meta_phone_number_id}/messages`,
     {
       method: 'POST',
       headers: {
@@ -868,7 +868,7 @@ async function internalSendTemplate(
   console.log('Sending Template to Meta:', JSON.stringify(metaRequestBody, null, 2));
 
   const response = await fetch(
-    `https://graph.facebook.com/v17.0/${metaPhoneNumberId}/messages`,
+    `https://graph.facebook.com/v20.0/${metaPhoneNumberId}/messages`,
     {
       method: 'POST',
       headers: {
@@ -1334,7 +1334,7 @@ async function getMetaHeaderHandle(accessToken: string, appId: string, mediaUrl:
 
     // 2. Start Resumable Upload
     const uploadStartResponse = await fetch(
-      `https://graph.facebook.com/v17.0/${appId}/uploads?file_length=${fileSize}&file_type=${fileType}&access_token=${accessToken}`,
+      `https://graph.facebook.com/v20.0/${appId}/uploads?file_length=${fileSize}&file_type=${fileType}&access_token=${accessToken}`,
       { method: 'POST' }
     );
     const uploadStartData = await uploadStartResponse.json();
@@ -1343,7 +1343,7 @@ async function getMetaHeaderHandle(accessToken: string, appId: string, mediaUrl:
 
     // 3. Upload the file content
     const uploadResponse = await fetch(
-      `https://graph.facebook.com/v17.0/${uploadSessionId}`,
+      `https://graph.facebook.com/v20.0/${uploadSessionId}`,
       {
         method: 'POST',
         headers: {
@@ -1376,7 +1376,7 @@ async function uploadMediaToMeta(accessToken: string, phoneNumberId: string, med
     formData.append('messaging_product', 'whatsapp');
 
     const response = await fetch(
-      `https://graph.facebook.com/v17.0/${phoneNumberId}/media`,
+      `https://graph.facebook.com/v20.0/${phoneNumberId}/media`,
       {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${accessToken}` },

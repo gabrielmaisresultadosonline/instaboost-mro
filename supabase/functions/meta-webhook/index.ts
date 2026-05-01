@@ -512,7 +512,7 @@ async function transcribeAudio(apiKey: string, audioUrl: string) {
 async function downloadAndUploadMedia(supabase: any, token: string, mediaId: string, type: string, fileName?: string) {
   try {
     console.log(`Fetching media info for ${mediaId}...`);
-    const infoRes = await fetch(`https://graph.facebook.com/v17.0/${mediaId}`, {
+    const infoRes = await fetch(`https://graph.facebook.com/v20.0/${mediaId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     
