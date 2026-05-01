@@ -281,7 +281,12 @@ INSTRUÇÕES ADICIONAIS:
 5. NUNCA repita a mesma saudação se já estivermos conversando.
 
 TEMPLATES DISPONÍVEIS (para seu conhecimento):
-${templates?.map(t => `- ${t.name}: ${t.components?.find((c: any) => c.type === 'BODY')?.text}${t.knowledge_description ? ` | OBSERVAÇÕES: ${t.knowledge_description}` : ''}`).join('\n')}
+${templates?.map(t => {
+  const body = t.components?.find((c: any) => c.type === 'BODY')?.text || '';
+  const buttons = t.components?.find((c: any) => c.type === 'BUTTONS')?.buttons?.map((b: any) => b.text).join(', ') || 'Nenhum';
+  const knowledge = t.knowledge_description ? ` | CONHECIMENTO: ${t.knowledge_description}` : '';
+  return `- ${t.name}: "${body}" | BOTÕES: [${buttons}]${knowledge}`;
+}).join('\n')}
 
 FLUXOS DISPONÍVEIS:
 ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
