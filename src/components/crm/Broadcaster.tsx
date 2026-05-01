@@ -195,6 +195,46 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
     fetchBroadcasts();
   };
 
+  const handleFileUpload = (type: 'vcard' | 'csv') => {
+    setParsingType(type);
+    fileInputRef.current?.click();
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (parsingType === 'vcard') {
+        // Extract numbers from VCard
+        // Typical VCard entry: TEL;CELL;PREF:+55 11 99999-9999
+        const telMatches = content.match(/TEL.*:([+\d\s\-()]+)/gi);
+        if (telMatches) {
+          const extracted = telMatches.map(m => {
+            const num = m.split(':')[1].replace(/\D/g, '');
+            return num;
+          }).filter(n => n.length >= 10);
+          setUploadedNumbers(prev => (prev ? prev + '\n' : '') + extracted.join('\n'));
+          toast({ title: `${extracted.length} números extraídos do VCard` });
+        }
+      } else if (parsingType === 'csv') {
+        // Simple CSV/Excel export parser (just look for long numbers)
+        const lines = content.split('\n');
+        const extracted: string[] = [];
+        lines.forEach(line => {
+          const matches = line.match(/\d{10,14}/g);
+          if (matches) extracted.push(...matches);
+        });
+        setUploadedNumbers(prev => (prev ? prev + '\n' : '') + extracted.join('\n'));
+        toast({ title: `${extracted.length} números extraídos do arquivo` });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 p-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
