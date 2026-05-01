@@ -2229,6 +2229,112 @@ const CRM = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
+        <DialogContent className="rounded-2xl border-none shadow-2xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <CalendarClock className="w-5 h-5 text-primary" /> Agendar Mensagem
+            </DialogTitle>
+            <DialogDescription>
+              Escolha quando e o que você deseja agendar para este contato.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Data</Label>
+                <Input 
+                  type="date" 
+                  value={scheduleDate} 
+                  onChange={(e) => setScheduleDate(e.target.value)} 
+                  className="rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Hora</Label>
+                <Input 
+                  type="time" 
+                  value={scheduleTime} 
+                  onChange={(e) => setScheduleTime(e.target.value)} 
+                  className="rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo de Agendamento</Label>
+              <Select value={scheduleType} onValueChange={(val: any) => { setScheduleType(val); setSelectedScheduleId(''); }}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="message">Mensagem de Texto</SelectItem>
+                  <SelectItem value="template">Template</SelectItem>
+                  <SelectItem value="flow">Fluxo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {scheduleType === 'message' && (
+              <div className="space-y-2">
+                <Label>Mensagem</Label>
+                <Textarea 
+                  placeholder="Digite o conteúdo da mensagem..." 
+                  value={newMessage} 
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="rounded-xl min-h-[100px]"
+                />
+              </div>
+            )}
+
+            {scheduleType === 'template' && (
+              <div className="space-y-2">
+                <Label>Selecionar Template</Label>
+                <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Escolha um template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map(t => (
+                      <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {scheduleType === 'flow' && (
+              <div className="space-y-2">
+                <Label>Selecionar Fluxo</Label>
+                <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Escolha um fluxo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {flows.filter(f => f.is_active).map(f => (
+                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsSchedulingOpen(false)} className="rounded-xl h-11">Cancelar</Button>
+            <Button 
+              onClick={handleScheduleMessage} 
+              disabled={isScheduling}
+              className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20"
+            >
+              {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+              Agendar agora
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };
