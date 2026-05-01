@@ -368,53 +368,21 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                           throw new Error(aiData.error.message);
                         }
 
-                        let aiText = aiData.choices[0].message.content;
+                        let aiText = aiData.choices[0].message.content.trim();
                         
-                        // Parse status update tags
-                        const statusMatch = aiText.match(/\[SET_STATUS: (\w+)\]/);
-                        if (statusMatch) {
-                          const newStatus = statusMatch[1];
+                        // Parse status update tags (side-effect, can be anywhere)
+                        const statusMatches = aiText.matchAll(/\[SET_STATUS: (\w+)\]/g);
+                        for (const match of statusMatches) {
+                          const newStatus = match[1];
+                          console.log(`AI setting status to: ${newStatus}`);
                           await supabase.from('crm_contacts').update({ status: newStatus }).eq('id', contact.id);
-                          aiText = aiText.replace(/\[SET_STATUS: \w+\]/g, '').trim();
                         }
+                        aiText = aiText.replace(/\[SET_STATUS: \w+\]/g, '').trim();
 
-                        // Parse template suggestion
-                        const templateMatch = aiText.match(/\[SEND_TEMPLATE:\s*([\w_]+)\]/);
-                        if (templateMatch) {
-                          const templateName = templateMatch[1].trim();
-                          console.log(`AI suggested sending template: ${templateName}`);
-                          
-                          // Check if template exists in DB first to be sure
-                          const { data: templateExists } = await supabase
-                            .from('crm_templates')
-                            .select('name, language')
-                            .eq('name', templateName)
-                            .maybeSingle();
-
-                          if (templateExists) {
-                            console.log(`Template ${templateName} found in DB. Invoking meta-whatsapp-crm...`);
-                            const invokeResult = await supabase.functions.invoke('meta-whatsapp-crm', {
-                              body: { 
-                                action: 'sendTemplate', 
-                                to: wa_id, 
-                                templateName: templateName,
-                                languageCode: templateExists.language || 'pt_BR',
-                                contactId: contact.id
-                              }
-                            });
-                            console.log(`Invoke sendTemplate result:`, invokeResult);
-                            return new Response('OK - AI Sent Template', { status: 200 });
-                          } else {
-                            console.warn(`AI suggested template ${templateName} but it was not found in database.`);
-                            // Fallback: strip the tag and send as normal text if possible
-                            aiText = aiText.replace(/\[SEND_TEMPLATE:\s*[\w_]+\]/g, '').trim();
-                          }
-                        }
-
-                        // Parse flow trigger
-                        const flowMatch = aiText.match(/\[START_FLOW: ([\w-]+)\]/);
-                        if (flowMatch) {
-                          const flowId = flowMatch[1];
+                        // Parse flow trigger (side-effect, can be anywhere)
+                        const flowMatches = aiText.matchAll(/\[START_FLOW: ([\w-]+)\]/g);
+                        for (const match of flowMatches) {
+                          const flowId = match[1];
                           console.log(`AI suggested starting flow: ${flowId}`);
                           await supabase.functions.invoke('meta-whatsapp-crm', {
                             body: { 
@@ -424,36 +392,70 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                               flowId: flowId
                             }
                           });
-                          return new Response('OK - AI Started Flow', { status: 200 });
                         }
-                        
-                        // Parse quick reply buttons (more robust regex for optional quotes and different spacings)
-                        const quickReplyMatch = aiText.match(/\[QUICK_REPLY:\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*(?:\|\s*["']?([^"']+)["']?\s*)?\]/i);
-                        
-                        if (quickReplyMatch) {
-                          const question = quickReplyMatch[1].trim();
-                          const buttons = [quickReplyMatch[2].trim()];
-                          if (quickReplyMatch[3]) buttons.push(quickReplyMatch[3].trim());
-                          if (quickReplyMatch[4]) buttons.push(quickReplyMatch[4].trim());
+                        aiText = aiText.replace(/\[START_FLOW: [\w-]+\]/g, '').trim();
+
+                        // Now split the text by special tags (SEND_TEMPLATE and QUICK_REPLY)
+                        // This allows sending text followed by a template or buttons
+                        const parts = aiText.split(/(\[SEND_TEMPLATE:\s*[\w_]+\]|\[QUICK_REPLY:.*?\])/i).filter(p => p.trim() !== '');
+
+                        for (const part of parts) {
+                          const trimmedPart = part.trim();
                           
-                          console.log(`AI suggested quick reply: ${question} with buttons: ${buttons.join(', ')}`);
-                          
-                          await supabase.functions.invoke('meta-whatsapp-crm', {
-                            body: { 
-                              action: 'sendMessage', 
-                              to: wa_id, 
-                              text: question,
-                              buttons: buttons.map((text, idx) => ({ id: `qr_${idx}`, text: text.substring(0, 20) })) // Meta limit is 20 chars per button text
+                          // 1. Handle Template tag
+                          const templateMatch = trimmedPart.match(/\[SEND_TEMPLATE:\s*([\w_]+)\]/i);
+                          if (templateMatch) {
+                            const templateName = templateMatch[1].trim();
+                            const { data: templateExists } = await supabase
+                              .from('crm_templates')
+                              .select('name, language')
+                              .eq('name', templateName)
+                              .maybeSingle();
+
+                            if (templateExists) {
+                              console.log(`Sending template: ${templateName}`);
+                              await supabase.functions.invoke('meta-whatsapp-crm', {
+                                body: { 
+                                  action: 'sendTemplate', 
+                                  to: wa_id, 
+                                  templateName: templateName,
+                                  languageCode: templateExists.language || 'pt_BR',
+                                  contactId: contact.id
+                                }
+                              });
+                            } else {
+                              console.warn(`Template ${templateName} not found.`);
                             }
-                          });
-                          return new Response('OK - AI Sent Quick Reply', { status: 200 });
-                        }
-                        
-                        if (aiText) {
-                          console.log(`AI responding with text: ${aiText.substring(0, 50)}...`);
-                          await supabase.functions.invoke('meta-whatsapp-crm', {
-                            body: { action: 'sendMessage', to: wa_id, text: aiText }
-                          });
+                            continue;
+                          }
+
+                          // 2. Handle Quick Reply tag
+                          const quickReplyMatch = trimmedPart.match(/\[QUICK_REPLY:\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*(?:\|\s*["']?([^"']+)["']?\s*)?\]/i);
+                          if (quickReplyMatch) {
+                            const question = quickReplyMatch[1].trim();
+                            const buttons = [quickReplyMatch[2].trim()];
+                            if (quickReplyMatch[3]) buttons.push(quickReplyMatch[3].trim());
+                            if (quickReplyMatch[4]) buttons.push(quickReplyMatch[4].trim());
+                            
+                            console.log(`Sending quick reply: ${question}`);
+                            await supabase.functions.invoke('meta-whatsapp-crm', {
+                              body: { 
+                                action: 'sendMessage', 
+                                to: wa_id, 
+                                text: question,
+                                buttons: buttons.map((text, idx) => ({ id: `qr_${idx}`, text: text.substring(0, 20) }))
+                              }
+                            });
+                            continue;
+                          }
+
+                          // 3. Normal text
+                          if (trimmedPart) {
+                            console.log(`Sending text part: ${trimmedPart.substring(0, 50)}...`);
+                            await supabase.functions.invoke('meta-whatsapp-crm', {
+                              body: { action: 'sendMessage', to: wa_id, text: trimmedPart }
+                            });
+                          }
                         }
 
                         return new Response('OK - AI Responded', { status: 200 });
