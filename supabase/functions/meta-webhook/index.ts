@@ -282,22 +282,6 @@ serve(async (req) => {
                       const systemPrompt = `
 ${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
 
-INSTRUÇÕES ADICIONAIS:
-1. Comportamento Humano: Inicie a conversa de forma amigável e natural (ex: "Olá! Tudo bem?", "Oi, como vai?"). Não tente vender logo de cara. Primeiro conecte-se com a pessoa para depois fazer perguntas ou oferecer a solução.
-2. Seja direto e use respostas CURTAS. Evite blocos grandes de texto. Use no máximo 2-3 frases curtas por mensagem.
-3. Asteriscos: Use para destacar palavras-chave importantes em *negrito* (ex: *agora*, *importante*, *resultados*).
-4. Uso de Botões: Use botões de resposta rápida ([QUICK_REPLY]) para facilitar a escolha do usuário, mas NÃO use em todas as mensagens. Use apenas quando precisar de uma resposta objetiva ou para guiar para o próximo passo. Alterne entre texto natural e botões.
-5. Links e Templates: Se o usuário demonstrar interesse em ver o vídeo, acessar o site, pedir o link de compra ou precisar de dados de acesso, você DEVE usar a tag [SEND_TEMPLATE: nome_do_template]. Templates são a única forma de enviar links com botões profissionais.
-6. Exemplo de uso: Se o usuário quer ver o site, responda: "Claro! Aqui está o link do nosso site: [SEND_TEMPLATE: acesse_site]".
-7. Nomes de templates disponíveis: ${templates?.map(t => t.name).join(', ')}.
-8. Tags de Controle:
-   - [SET_STATUS: qualified] -> Lead interessado.
-   - [SET_STATUS: closed] -> Venda realizada.
-    - [SEND_TEMPLATE: nome_do_template] -> Enviar template oficial (OBRIGATÓRIO para links). Use APENAS a tag, sem texto adicional.
-    - [QUICK_REPLY: "Pergunta curta?" | "Opção A" | "Opção B"] -> Máximo 3 botões curtos.
-9. NUNCA repita saudações se já estiver no meio de uma conversa. Mantenha o histórico em mente.
-10. Se você for enviar um template ou botões, envie APENAS a tag correspondente. NÃO envie nenhum texto, saudação ou explicação junto com o template ou com botões na mesma mensagem. Se precisar enviar um texto antes, envie em uma mensagem separada antes da tag.
-
 TEMPLATES DISPONÍVEIS (SEMPRE use [SEND_TEMPLATE: nome] quando o contexto bater):
 ${templates?.map(t => {
   const body = t.components?.find((c: any) => c.type === 'BODY')?.text || '';
@@ -315,6 +299,8 @@ ${templates?.map(t => {
 
 FLUXOS DISPONÍVEIS:
 ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
+
+IMPORTANTE: Se você for usar [SEND_TEMPLATE: nome], não inclua texto na mesma linha. Se quiser dizer algo antes, coloque o texto em um parágrafo e a tag [SEND_TEMPLATE: nome] em outro.
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
