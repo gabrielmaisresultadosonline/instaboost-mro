@@ -2098,8 +2098,29 @@ const CRM = () => {
                                       {btn.text}
                                     </div>
                                   ))}
-                                </div>
+                </div>
                               )}
+                              
+                              <div className="mt-4 pt-4 border-t space-y-2">
+                                <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                                  <Bot className="w-3 h-3" /> Instruções para o Agente IA
+                                </Label>
+                                <Textarea 
+                                  placeholder="Explique quando a IA deve usar este template ou o que os botões fazem..."
+                                  className="text-xs min-h-[60px] resize-none bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/30"
+                                  defaultValue={template.knowledge_description || ''}
+                                  onBlur={(e) => {
+                                    if (e.target.value !== (template.knowledge_description || '')) {
+                                      handleUpdateTemplateKnowledge(template.id, e.target.value);
+                                    }
+                                  }}
+                                />
+                                {updatingKnowledge === template.id && (
+                                  <div className="text-[9px] text-primary animate-pulse flex items-center gap-1">
+                                    <RefreshCcw className="w-2 h-2 animate-spin" /> Salvando...
+                                  </div>
+                                )}
+                              </div>
                             </CardContent>
                           </Card>
                         );
