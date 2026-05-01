@@ -850,15 +850,13 @@ async function internalSendTemplate(
       if (!mediaUrl || /^\d+$/.test(mediaUrl.toString())) {
         const headerComponent = templateData.components?.find((c: any) => c.type === 'HEADER');
         const exampleUrl = headerComponent?.example?.header_handle?.[0];
-        if (exampleUrl && (exampleUrl.startsWith('http') || exampleUrl.startsWith('https'))) {
+        if (exampleUrl) {
           mediaUrl = exampleUrl;
         }
       }
 
-      // If all fails, fall back to ID (though it will be broken in chat)
-      if (!mediaUrl) {
-        mediaUrl = headerParams[type]?.id || headerParams[type]?.link;
-      }
+      // If it's a Meta temporary URL, it might be the reason for "broken images" in chat history
+      // We already try to use the permanent stored URL above if it exists
     }
 
     // Ensure content has the [Template: name] prefix for the frontend to recognize it
