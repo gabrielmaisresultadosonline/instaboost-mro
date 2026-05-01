@@ -1319,6 +1319,46 @@ const CRM = () => {
 
                           <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
+                              {scheduledMessages.length > 0 && (
+                                <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                                  <div className="flex items-center gap-2 px-1">
+                                    <CalendarClock className="w-3 h-3 text-primary" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mensagens Agendadas</span>
+                                  </div>
+                                  {scheduledMessages.map((msg) => (
+                                    <div key={msg.id} className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex justify-between items-center shadow-sm backdrop-blur-sm">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <Badge variant="outline" className="text-[9px] h-4 bg-primary/10 text-primary border-primary/20 font-bold">
+                                            {msg.message_data?.action === 'sendMessage' ? 'Mensagem' : 
+                                             msg.message_data?.action === 'sendTemplate' ? 'Template' : 'Fluxo'}
+                                          </Badge>
+                                          <span className="text-[10px] font-bold text-primary flex items-center gap-1">
+                                            <Clock className="w-2.5 h-2.5" />
+                                            {new Date(msg.scheduled_for).toLocaleString()}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground truncate italic">
+                                          {msg.message_data?.text || msg.message_data?.templateName || msg.message_data?.flowId || 'Agendamento'}
+                                        </p>
+                                      </div>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        onClick={async () => {
+                                          if (confirm('Deseja cancelar este agendamento?')) {
+                                            await supabase.from('crm_scheduled_messages').delete().eq('id', msg.id);
+                                            fetchScheduledMessages(selectedContact.id);
+                                          }
+                                        }}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                               {chatMessages.map((m, idx) => {
                                 const isTemplate = m.message_type === 'template' || m.content?.includes('[Template:');
                                 const templateName = m.content?.match(/\[Template: (.*?)\]/)?.[1];
