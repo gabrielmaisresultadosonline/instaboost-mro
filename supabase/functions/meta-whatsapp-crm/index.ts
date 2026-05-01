@@ -56,32 +56,35 @@ serve(async (req) => {
         const metaTemplateIds = data.data.map((t: any) => t.id);
         
         for (const template of data.data) {
+          // Process components to find and store media permanently
+          const processedComponents = [...template.components];
+          for (const component of processedComponents) {
+            if (component.type === 'HEADER' && (component.format === 'IMAGE' || component.format === 'VIDEO')) {
+              const mediaUrl = component.example?.header_handle?.[0];
+              if (mediaUrl && mediaUrl.includes('scontent.whatsapp.net')) {
+                console.log(`Storing template media permanently: ${template.name} - ${component.format}`);
+                const permanentUrl = await downloadAndStoreMetaMedia(supabase, meta_access_token, mediaUrl, component.format.toLowerCase(), `${template.name}_header`);
+                if (permanentUrl) {
+                  component.example.header_handle = [permanentUrl];
+                }
+              }
+            }
+          }
+
           await supabase.from('crm_templates').upsert({
             id: template.id,
             name: template.name,
             category: template.category,
             language: template.language,
             status: template.status,
-            components: template.components,
+            components: processedComponents,
             updated_at: new Date().toISOString()
           })
         }
         
         // Remove local templates that are no longer on Meta
         if (metaTemplateIds.length > 0) {
-          const { error: deleteError } = await supabase
-            .from('crm_templates')
-            .delete()
-            .not('id', 'in', metaTemplateIds)
-          
-          if (deleteError) {
-            console.error('Error cleaning up local templates:', deleteError);
-          } else {
-            console.log('Local templates cleaned up successfully.');
-          }
-        } else {
-          // If Meta has no templates, clear local table
-          await supabase.from('crm_templates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+          await supabase.from('crm_templates').delete().not('id', 'in', metaTemplateIds)
         }
       }
       
