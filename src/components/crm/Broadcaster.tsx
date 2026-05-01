@@ -251,13 +251,13 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <Card className="rounded-2xl shadow-sm border overflow-hidden">
-            <CardHeader className="bg-muted/30 border-b">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Plus className="w-5 h-5 text-primary" /> Nova Campanha
+          <Card className="rounded-2xl shadow-xl border border-border/50 overflow-hidden bg-card/40 backdrop-blur-sm">
+            <CardHeader className="bg-[#075E54]/20 border-b border-border/50">
+              <CardTitle className="text-lg flex items-center gap-2 text-[#25D366]">
+                <Plus className="w-5 h-5" /> Nova Campanha
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-4 md:p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>Nome da Campanha</Label>
