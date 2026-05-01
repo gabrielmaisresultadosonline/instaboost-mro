@@ -1523,10 +1523,20 @@ const CRM = () => {
                                               />
                                             </div>
                                           )}
+                                          {m.message_type === 'sticker' && m.media_url && (
+                                            <div className="mb-2 max-w-[150px]">
+                                              <img 
+                                                src={m.media_url} 
+                                                alt="Sticker" 
+                                                className="w-full h-auto cursor-zoom-in" 
+                                                onClick={() => setPreviewMedia({ url: m.media_url, type: 'image' })}
+                                              />
+                                            </div>
+                                          )}
                                           {m.message_type === 'image' && m.media_url && /^\d+$/.test(m.media_url.toString()) && (
                                             <div className="mb-2 p-4 rounded-lg border border-dashed border-border flex flex-col items-center justify-center bg-muted/5">
                                               <ImageIcon className="w-8 h-8 text-muted-foreground opacity-20 mb-2" />
-                                              <span className="text-[10px] text-muted-foreground">ID de Mídia: {m.media_url}</span>
+                                              <span className="text-[10px] text-muted-foreground">ID de Mídia Meta: {m.media_url}</span>
                                             </div>
                                           )}
                                           {m.message_type === 'video' && m.media_url && (
@@ -1559,9 +1569,59 @@ const CRM = () => {
                                               </div>
                                             </div>
                                           )}
-                                          {(m.message_text || m.content) && (
+                                          {m.message_type === 'location' && (
+                                            <div className="mb-2 p-3 rounded-xl bg-muted/20 border border-border/20 flex flex-col gap-2">
+                                              <div className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-primary" />
+                                                <span className="text-xs font-bold">Localização Recebida</span>
+                                              </div>
+                                              <div className="text-[10px] opacity-60 truncate">{m.content}</div>
+                                              <Button 
+                                                variant="secondary" 
+                                                size="sm" 
+                                                className="w-full text-[10px] h-7"
+                                                onClick={() => {
+                                                  const lat = m.metadata?.location?.latitude || m.content?.match(/Lat: (.*?),/)?.[1];
+                                                  const lng = m.metadata?.location?.longitude || m.content?.match(/Long: (.*?)(\s|$)/)?.[1];
+                                                  if (lat && lng) window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+                                                }}
+                                              >
+                                                Ver no Google Maps
+                                              </Button>
+                                            </div>
+                                          )}
+                                          {m.message_type === 'reaction' && (
+                                            <div className="absolute -bottom-3 right-0 bg-zinc-800 border border-white/10 rounded-full px-1.5 py-0.5 text-xs shadow-md z-10">
+                                              {m.content?.replace('[Reação] ', '')}
+                                            </div>
+                                          )}
+                                          {m.message_type === 'contacts' && (
+                                            <div className="mb-2 p-3 rounded-xl bg-muted/20 border border-border/20 flex items-center gap-3">
+                                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <UserPlus className="w-5 h-5 text-primary" />
+                                              </div>
+                                              <div className="flex-1 overflow-hidden">
+                                                <div className="text-[13px] font-medium truncate">{m.content?.replace('[Contato] ', '')}</div>
+                                                <div className="text-[10px] opacity-60">Contato compartilhado</div>
+                                              </div>
+                                            </div>
+                                          )}
+                                          {(m.message_text || m.content) && m.message_type !== 'reaction' && (
                                             <div className="text-sm md:text-[15px] leading-relaxed break-words whitespace-pre-wrap px-0.5">
                                               {m.message_text || m.content}
+                                            </div>
+                                          )}
+                                          {m.message_type === 'unsupported' && (
+                                            <div className="mt-2 p-2 rounded bg-red-500/10 border border-red-500/20 text-[10px] text-red-400">
+                                              Mensagem com formato ainda não suportado pela interface. 
+                                              {m.metadata && (
+                                                <details className="mt-1 cursor-pointer">
+                                                  <summary>Ver dados brutos</summary>
+                                                  <pre className="mt-1 text-[8px] whitespace-pre-wrap bg-black/20 p-1 rounded">
+                                                    {JSON.stringify(m.metadata, null, 2)}
+                                                  </pre>
+                                                </details>
+                                              )}
                                             </div>
                                           )}
                                         </>
