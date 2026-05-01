@@ -67,6 +67,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
 import { MediaPopup } from "@/components/MediaPopup";
+import Broadcaster from "@/components/crm/Broadcaster";
 import { 
   SidebarProvider, 
   Sidebar, 
