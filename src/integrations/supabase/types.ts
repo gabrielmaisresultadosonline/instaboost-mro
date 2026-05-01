@@ -671,36 +671,65 @@ export type Database = {
           buttons: Json | null
           created_at: string | null
           failed_count: number | null
+          flow_id: string | null
           id: string
           message_text: string
           name: string
+          random_delay_max: number | null
+          random_delay_min: number | null
           sent_count: number | null
           status: string | null
+          target_type: string | null
+          template_id: string | null
           total_contacts: number | null
+          type: string | null
+          uploaded_numbers: string[] | null
         }
         Insert: {
           buttons?: Json | null
           created_at?: string | null
           failed_count?: number | null
+          flow_id?: string | null
           id?: string
           message_text: string
           name: string
+          random_delay_max?: number | null
+          random_delay_min?: number | null
           sent_count?: number | null
           status?: string | null
+          target_type?: string | null
+          template_id?: string | null
           total_contacts?: number | null
+          type?: string | null
+          uploaded_numbers?: string[] | null
         }
         Update: {
           buttons?: Json | null
           created_at?: string | null
           failed_count?: number | null
+          flow_id?: string | null
           id?: string
           message_text?: string
           name?: string
+          random_delay_max?: number | null
+          random_delay_min?: number | null
           sent_count?: number | null
           status?: string | null
+          target_type?: string | null
+          template_id?: string | null
           total_contacts?: number | null
+          type?: string | null
+          uploaded_numbers?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crm_broadcasts_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "crm_flows"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_contacts: {
         Row: {
@@ -4364,6 +4393,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_broadcast_failed: { Args: { b_id: string }; Returns: undefined }
+      increment_broadcast_sent: { Args: { b_id: string }; Returns: undefined }
       increment_corretor_corrections: {
         Args: { p_user_id: string }
         Returns: undefined

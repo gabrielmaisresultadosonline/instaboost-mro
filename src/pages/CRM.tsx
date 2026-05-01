@@ -67,6 +67,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import TemplateBuilder from "@/components/whatsapp/TemplateBuilder";
 import FlowEditor from "@/components/crm/FlowEditor";
 import { MediaPopup } from "@/components/MediaPopup";
+import Broadcaster from "@/components/crm/Broadcaster";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -1006,6 +1007,7 @@ const CRM = () => {
                     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                     { id: 'contacts', label: 'Conversas', icon: MessageSquare },
                     { id: 'contact-list', label: 'Contatos', icon: Users },
+                    { id: 'broadcast', label: 'Disparador', icon: Zap },
                     { id: 'scheduling', label: 'Agendamentos', icon: Calendar },
                     { id: 'flows', label: 'Fluxos', icon: GitBranch },
                     { id: 'templates', label: 'Templates', icon: FileText },
@@ -2015,6 +2017,14 @@ const CRM = () => {
                   </Card>
                 </div>
               </ScrollArea>
+            )}
+
+            {activeTab === 'broadcast' && (
+              <Broadcaster 
+                templates={templates} 
+                flows={flows} 
+                contacts={contacts} 
+              />
             )}
 
             {activeTab === 'templates' && (
