@@ -519,6 +519,63 @@ const CRM = () => {
     }
   };
 
+  const handleScheduleMessage = async () => {
+    if (!selectedContact || !scheduleDate || !scheduleTime) {
+      toast({ title: "Preencha a data e hora", variant: "destructive" });
+      return;
+    }
+
+    setIsScheduling(true);
+    try {
+      const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+      
+      let messageData: any = { action: '' };
+      
+      if (scheduleType === 'message') {
+        if (!newMessage.trim()) {
+          toast({ title: "Digite a mensagem para agendar", variant: "destructive" });
+          setIsScheduling(false);
+          return;
+        }
+        messageData = { action: 'sendMessage', text: newMessage };
+      } else if (scheduleType === 'template') {
+        if (!selectedScheduleId) {
+          toast({ title: "Selecione um template", variant: "destructive" });
+          setIsScheduling(false);
+          return;
+        }
+        messageData = { action: 'sendTemplate', templateName: selectedScheduleId, languageCode: 'pt_BR' };
+      } else if (scheduleType === 'flow') {
+        if (!selectedScheduleId) {
+          toast({ title: "Selecione um fluxo", variant: "destructive" });
+          setIsScheduling(false);
+          return;
+        }
+        messageData = { action: 'startFlow', flowId: selectedScheduleId };
+      }
+
+      const { error } = await supabase.from('crm_scheduled_messages').insert({
+        contact_id: selectedContact.id,
+        scheduled_for: scheduledFor,
+        message_data: messageData,
+        status: 'pending'
+      });
+
+      if (error) throw error;
+
+      toast({ title: "Mensagem agendada com sucesso!" });
+      setIsSchedulingOpen(false);
+      setNewMessage('');
+      setScheduleDate('');
+      setScheduleTime('');
+      setSelectedScheduleId('');
+    } catch (err: any) {
+      toast({ title: "Erro ao agendar", description: err.message, variant: "destructive" });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
   const syncTemplates = async () => {
     setSyncingTemplates(true);
     try {
