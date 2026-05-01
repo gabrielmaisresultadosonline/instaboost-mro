@@ -236,14 +236,14 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20 p-4 md:p-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-muted/20 p-6 rounded-2xl border border-border/50">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Disparador de Mensagens</h2>
-          <p className="text-muted-foreground">Envie mensagens em massa com segurança e automação.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-primary">Disparador de Mensagens</h2>
+          <p className="text-muted-foreground mt-1">Envie mensagens em massa com segurança e automação.</p>
         </div>
         <div className="flex gap-2">
-          <Badge variant="outline" className="px-3 py-1 bg-primary/5 text-primary border-primary/20 flex items-center gap-2">
+          <Badge variant="outline" className="px-3 py-1 bg-[#25D366]/10 text-[#25D366] border-[#25D366]/20 flex items-center gap-2">
             <Zap className="w-3 h-3" /> Modo Inteligente Ativo
           </Badge>
         </div>
