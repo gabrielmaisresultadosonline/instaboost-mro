@@ -485,9 +485,9 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-xl border border-border/50 overflow-hidden bg-gradient-to-br from-[#075E54]/10 to-transparent">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2 text-[#25D366]">
+          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
+            <CardHeader className="bg-[#202c33] border-b border-white/5">
+              <CardTitle className="text-base flex items-center gap-2 text-[#00a884]">
                 <Users className="w-4 h-4" /> Remarketing
               </CardTitle>
             </CardHeader>
