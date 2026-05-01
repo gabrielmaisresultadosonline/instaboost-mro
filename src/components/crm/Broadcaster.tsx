@@ -265,13 +265,13 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                     placeholder="Ex: Promoção de Verão" 
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="h-11 rounded-xl bg-muted/30 border-none"
+                    className="h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef] placeholder:text-[#8696a0]"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Destinatários</Label>
+                  <Label className="text-[#e9edef]">Destinatários</Label>
                   <Select value={targetType} onValueChange={(val: any) => setTargetType(val)}>
-                    <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none">
+                    <SelectTrigger className="h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef]">
                       <SelectValue placeholder="Selecione o público" />
                     </SelectTrigger>
                     <SelectContent>
