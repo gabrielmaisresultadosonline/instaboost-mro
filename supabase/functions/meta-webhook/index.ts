@@ -280,12 +280,19 @@ INSTRUÇÕES ADICIONAIS:
 4. Se o usuário enviou um áudio ou imagem, eu fornecerei a transcrição ou descrição se possível.
 5. NUNCA repita a mesma saudação se já estivermos conversando.
 
-TEMPLATES DISPONÍVEIS (para seu conhecimento):
+TEMPLATES DISPONÍVEIS (para seu conhecimento e uso):
 ${templates?.map(t => {
   const body = t.components?.find((c: any) => c.type === 'BODY')?.text || '';
-  const buttons = t.components?.find((c: any) => c.type === 'BUTTONS')?.buttons?.map((b: any) => b.text).join(', ') || 'Nenhum';
-  const knowledge = t.knowledge_description ? ` | CONHECIMENTO: ${t.knowledge_description}` : '';
-  return `- ${t.name}: "${body}" | BOTÕES: [${buttons}]${knowledge}`;
+  const buttonsComponent = t.components?.find((c: any) => c.type === 'BUTTONS');
+  const buttonsList = buttonsComponent?.buttons?.map((b: any, idx: number) => {
+    let info = `[${b.type || 'BUTTON'}]: "${b.text}"`;
+    if (b.url) info += ` (Link: ${b.url})`;
+    if (b.phone_number) info += ` (Tel: ${b.phone_number})`;
+    return info;
+  }).join(' | ') || 'Nenhum';
+  
+  const knowledge = t.knowledge_description ? `\n   - OBSERVAÇÕES DE USO: ${t.knowledge_description}` : '';
+  return `- NOME: ${t.name}\n   - CONTEÚDO: "${body}"\n   - BOTÕES: ${buttonsList}${knowledge}`;
 }).join('\n')}
 
 FLUXOS DISPONÍVEIS:
@@ -327,14 +334,21 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                             'Content-Type': 'application/json'
                           },
                           body: JSON.stringify({
-                            model: 'gpt-4o', // Use GPT-4o for vision and better reasoning
+                            model: 'gpt-4o-mini', // Switched to gpt-4o-mini for better cost/quota management while maintaining vision support
                             messages: openaiMessages,
                             max_tokens: 500
                           })
                         });
 
                         const aiData = await aiResponse.json();
-                        if (aiData.error) throw new Error(aiData.error.message);
+                        if (aiData.error) {
+                          console.error('OpenAI API Error:', aiData.error);
+                          // If it's a quota error, we should log it specifically
+                          if (aiData.error.code === 'insufficient_quota') {
+                             console.error('CRITICAL: OpenAI Quota Exceeded. Please check billing.');
+                          }
+                          throw new Error(aiData.error.message);
+                        }
 
                         let aiText = aiData.choices[0].message.content;
                         
