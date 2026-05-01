@@ -55,7 +55,9 @@ import {
   UserPlus,
   Download,
   Upload,
-  User
+  User,
+  CalendarClock,
+  Calendar
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
