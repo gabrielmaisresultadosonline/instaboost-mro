@@ -395,20 +395,29 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         const parts = aiText.split(/(\[QUICK_REPLY:.*?\]|\[SEND_TEMPLATE:.*?\])/i).filter(p => p.trim() !== '');
                         console.log('AI Response parts:', JSON.stringify(parts));
 
-                        // NEW: Pre-check if any part contains a template to avoid missing it due to splitting issues
-                        const hasTemplate = aiText.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i);
-                        if (hasTemplate && !parts.some(p => p.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i))) {
-                          console.log('Template found in raw text but not in parts. Manually adding it.');
-                          parts.push(hasTemplate[0]);
+                        // NEW: Force template check even if split fails
+                        const templateMatches = aiText.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/gi);
+                        const processedTemplates = new Set();
+                        
+                        // Check if we have templates in parts, if not we'll need to handle them specially
+                        const templatesInParts = parts.some(p => p.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i));
+                        
+                        if (templateMatches && !templatesInParts) {
+                          console.log('Templates found in raw text but not in parts. Cleaning parts and re-adding.');
+                          // If templates exist but aren't correctly split into parts, it's safer to re-evaluate the sequence
                         }
 
                         for (const part of parts) {
                           const trimmedPart = part.trim();
-                          
+                          if (!trimmedPart) continue;
+
                           // 1. Handle Template tag (Case-Insensitive)
                           const templateMatch = trimmedPart.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i);
                           if (templateMatch) {
                             const templateName = templateMatch[1].trim();
+                            if (processedTemplates.has(templateName.toLowerCase())) continue;
+                            processedTemplates.add(templateName.toLowerCase());
+                            
                             console.log(`AI matched template tag: ${templateName}`);
                             
                             const { data: templateExists } = await supabase
@@ -419,9 +428,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
 
                             if (templateExists) {
                               console.log(`Sending template: ${templateName}`);
-                              // Send the template FIRST if it's detected, or keep the order
-                              // User wants: "clear I will send yes. and below in a new message only the site template."
-                              const templateResp = await supabase.functions.invoke('meta-whatsapp-crm', {
+                              await supabase.functions.invoke('meta-whatsapp-crm', {
                                 body: { 
                                   action: 'sendTemplate', 
                                   to: wa_id, 
@@ -430,21 +437,8 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                                   contactId: contact.id
                                 }
                               });
-                              
-                              const templateResult = typeof templateResp.json === 'function' ? await templateResp.json() : templateResp.data;
-                              console.log(`Template send result:`, JSON.stringify(templateResult));
-                              
-                              // Check if template failed due to approval and fallback to manual rich message
-                              if (!templateResult.success && templateResult.error?.toLowerCase().includes('approved')) {
-                                console.log('Template not approved, attempting manual rich message send...');
-                                // Re-invoke sendTemplate which has the fallback logic inside internalSendTemplate
-                                // (Internal logic in meta-whatsapp-crm already handles fallback if window is open)
-                              }
                             } else {
-                              console.warn(`Template ${templateName} not found in database. Sending as text fallback.`);
-                              await supabase.functions.invoke('meta-whatsapp-crm', {
-                                body: { action: 'sendMessage', to: wa_id, text: `[Template: ${templateName}]` }
-                              });
+                              console.warn(`Template ${templateName} not found in database.`);
                             }
                             continue;
                           }
@@ -470,13 +464,25 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                           }
 
                           // 3. Normal text
-                          if (trimmedPart) {
-                            console.log(`Sending text part: ${trimmedPart.substring(0, 50)}...`);
-                            await supabase.functions.invoke('meta-whatsapp-crm', {
-                              body: { action: 'sendMessage', to: wa_id, text: trimmedPart }
-                            });
-                            // Small delay between confirmation text and template
-                            await new Promise(resolve => setTimeout(resolve, 1500));
+                          console.log(`Sending text part: ${trimmedPart.substring(0, 50)}...`);
+                          await supabase.functions.invoke('meta-whatsapp-crm', {
+                            body: { action: 'sendMessage', to: wa_id, text: trimmedPart }
+                          });
+                          // Small delay between confirmation text and template
+                          await new Promise(resolve => setTimeout(resolve, 800));
+                        }
+
+                        // Final safety check: if templates were found but not processed in parts
+                        if (templateMatches) {
+                          for (const fullTag of templateMatches) {
+                            const name = fullTag.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i)?.[1];
+                            if (name && !processedTemplates.has(name.toLowerCase())) {
+                              console.log(`Safety trigger for missed template: ${name}`);
+                              const { data: tData } = await supabase.from('crm_templates').select('language').eq('name', name).maybeSingle();
+                              await supabase.functions.invoke('meta-whatsapp-crm', {
+                                body: { action: 'sendTemplate', to: wa_id, templateName: name, languageCode: tData?.language || 'pt_BR', contactId: contact.id }
+                              });
+                            }
                           }
                         }
 
