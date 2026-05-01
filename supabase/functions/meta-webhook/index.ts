@@ -412,7 +412,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
 
                             if (templateExists) {
                               console.log(`Sending template: ${templateName}`);
-                              await supabase.functions.invoke('meta-whatsapp-crm', {
+                              const templateResp = await supabase.functions.invoke('meta-whatsapp-crm', {
                                 body: { 
                                   action: 'sendTemplate', 
                                   to: wa_id, 
@@ -421,6 +421,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                                   contactId: contact.id
                                 }
                               });
+                              console.log(`Template send result status: ${templateResp.status}`);
                             } else {
                               console.warn(`Template ${templateName} not found in database. Sending as text fallback.`);
                               await supabase.functions.invoke('meta-whatsapp-crm', {
