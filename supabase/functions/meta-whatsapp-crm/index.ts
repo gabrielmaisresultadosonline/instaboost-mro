@@ -1166,7 +1166,7 @@ async function executeVisualNode(supabase: any, flow: any, node: any, contactId:
       if (nextEdge) {
         const nextNode = flow.nodes.find((n: any) => n.id === nextEdge.target)
         if (nextNode) {
-          await sleep(500) // Reduced from 1500ms for faster flow execution
+          await sleep(200) // Reduced from 500ms for even faster flow execution
           await supabase.from('crm_contacts').update({ 
             current_node_id: nextNode.id,
             last_flow_interaction: new Date().toISOString()
