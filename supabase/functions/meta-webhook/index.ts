@@ -327,14 +327,21 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                             'Content-Type': 'application/json'
                           },
                           body: JSON.stringify({
-                            model: 'gpt-4o', // Use GPT-4o for vision and better reasoning
+                            model: 'gpt-4o-mini', // Switched to gpt-4o-mini for better cost/quota management while maintaining vision support
                             messages: openaiMessages,
                             max_tokens: 500
                           })
                         });
 
                         const aiData = await aiResponse.json();
-                        if (aiData.error) throw new Error(aiData.error.message);
+                        if (aiData.error) {
+                          console.error('OpenAI API Error:', aiData.error);
+                          // If it's a quota error, we should log it specifically
+                          if (aiData.error.code === 'insufficient_quota') {
+                             console.error('CRITICAL: OpenAI Quota Exceeded. Please check billing.');
+                          }
+                          throw new Error(aiData.error.message);
+                        }
 
                         let aiText = aiData.choices[0].message.content;
                         
