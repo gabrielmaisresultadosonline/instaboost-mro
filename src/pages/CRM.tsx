@@ -869,6 +869,25 @@ const CRM = () => {
     setScheduledMessages(data || []);
   };
 
+  const fetchAllScheduledMessages = async () => {
+    const { data, error } = await supabase
+      .from('crm_scheduled_messages')
+      .select(`
+        *,
+        crm_contacts (
+          name,
+          wa_id
+        )
+      `)
+      .order('scheduled_for', { ascending: true });
+    
+    if (error) {
+      console.error("Error fetching all scheduled messages:", error);
+      return;
+    }
+    setAllScheduledMessages(data || []);
+  };
+
   const handleSaveFlow = async (flow: any) => {
     setSaving(true);
     try {
