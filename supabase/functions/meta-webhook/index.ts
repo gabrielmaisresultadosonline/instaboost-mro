@@ -300,13 +300,15 @@ ${templates?.map(t => {
 FLUXOS DISPONÍVEIS:
 ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
 
-DIRETRIZES DE RESPOSTA:
-1. Se o usuário pedir algo que corresponda a um TEMPLATE (ex: site, instagram, catálogo), você DEVE:
-   a) Enviar uma breve mensagem de texto confirmando (ex: "Claro, vou te enviar o link do site agora mesmo!").
-   b) Na linha seguinte, colocar APENAS a tag [SEND_TEMPLATE: nome_do_template].
-2. NUNCA repita o texto ou o conteúdo do template dentro da sua mensagem de texto.
-3. Se NÃO houver template correspondente, responda normalmente em texto.
-4. Mantenha as mensagens de confirmação curtas e gentis.
+DIRETRIZES DE RESPOSTA (Siga rigorosamente):
+1. Se o usuário pedir o SITE ou catálogos, você DEVE enviar: 
+   Uma frase curta de confirmação e, na linha de baixo, APENAS [SEND_TEMPLATE: acesse_site]
+2. Se o usuário pedir o INSTAGRAM ou seguir redes sociais, você DEVE enviar:
+   Uma frase curta de confirmação e, na linha de baixo, APENAS [SEND_TEMPLATE: segue_nosso_insta]
+3. NUNCA escreva o conteúdo do template ou o link no texto, use a tag [SEND_TEMPLATE: nome].
+4. Sempre responda em mensagens separadas: o texto primeiro e o template logo abaixo.
+5. Se não houver template para o que foi pedido, responda normalmente em texto.
+6. Mantenha as mensagens de confirmação curtas e gentis.
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
