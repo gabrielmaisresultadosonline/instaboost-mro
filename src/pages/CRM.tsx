@@ -55,7 +55,9 @@ import {
   UserPlus,
   Download,
   Upload,
-  User
+  User,
+  CalendarClock,
+  Calendar
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
@@ -151,6 +153,14 @@ const CRM = () => {
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [contactToView, setContactToView] = useState<any>(null);
   const [now, setNow] = useState(Date.now());
+  const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduleType, setScheduleType] = useState<'message' | 'template' | 'flow'>('message');
+  const [selectedScheduleId, setSelectedScheduleId] = useState('');
+  const [isScheduling, setIsScheduling] = useState(false);
+
+  const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -511,6 +521,64 @@ const CRM = () => {
     }
   };
 
+  const handleScheduleMessage = async () => {
+    if (!selectedContact || !scheduleDate || !scheduleTime) {
+      toast({ title: "Preencha a data e hora", variant: "destructive" });
+      return;
+    }
+
+    setIsScheduling(true);
+    try {
+      const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+      
+      let messageData: any = { action: '' };
+      
+      if (scheduleType === 'message') {
+        if (!newMessage.trim()) {
+          toast({ title: "Digite a mensagem para agendar", variant: "destructive" });
+          setIsScheduling(false);
+          return;
+        }
+        messageData = { action: 'sendMessage', text: newMessage };
+      } else if (scheduleType === 'template') {
+        if (!selectedScheduleId) {
+          toast({ title: "Selecione um template", variant: "destructive" });
+          setIsScheduling(false);
+          return;
+        }
+        messageData = { action: 'sendTemplate', templateName: selectedScheduleId, languageCode: 'pt_BR' };
+      } else if (scheduleType === 'flow') {
+        if (!selectedScheduleId) {
+          toast({ title: "Selecione um fluxo", variant: "destructive" });
+          setIsScheduling(false);
+          return;
+        }
+        messageData = { action: 'startFlow', flowId: selectedScheduleId };
+      }
+
+      const { error } = await supabase.from('crm_scheduled_messages').insert({
+        contact_id: selectedContact.id,
+        scheduled_for: scheduledFor,
+        message_data: messageData,
+        status: 'pending'
+      });
+
+      if (error) throw error;
+
+      toast({ title: "Mensagem agendada com sucesso!" });
+      setIsSchedulingOpen(false);
+      setNewMessage('');
+      setScheduleDate('');
+      setScheduleTime('');
+      setSelectedScheduleId('');
+      fetchScheduledMessages(selectedContact.id);
+    } catch (err: any) {
+      toast({ title: "Erro ao agendar", description: err.message, variant: "destructive" });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
   const syncTemplates = async () => {
     setSyncingTemplates(true);
     try {
@@ -785,6 +853,17 @@ const CRM = () => {
   const openChat = (contact: any) => {
     setSelectedContact(contact);
     fetchMessages(contact.id);
+    fetchScheduledMessages(contact.id);
+  };
+
+  const fetchScheduledMessages = async (contactId: string) => {
+    const { data } = await supabase
+      .from('crm_scheduled_messages')
+      .select('*')
+      .eq('contact_id', contactId)
+      .eq('status', 'pending')
+      .order('scheduled_for', { ascending: true });
+    setScheduledMessages(data || []);
   };
 
   const handleSaveFlow = async (flow: any) => {
@@ -1241,6 +1320,46 @@ const CRM = () => {
 
                           <ScrollArea className="flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/632/HD-wallpaper-whatsapp-background-dark-pattern.jpg')] bg-repeat">
                             <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto">
+                              {scheduledMessages.length > 0 && (
+                                <div className="space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                                  <div className="flex items-center gap-2 px-1">
+                                    <CalendarClock className="w-3 h-3 text-primary" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mensagens Agendadas</span>
+                                  </div>
+                                  {scheduledMessages.map((msg) => (
+                                    <div key={msg.id} className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex justify-between items-center shadow-sm backdrop-blur-sm">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <Badge variant="outline" className="text-[9px] h-4 bg-primary/10 text-primary border-primary/20 font-bold">
+                                            {msg.message_data?.action === 'sendMessage' ? 'Mensagem' : 
+                                             msg.message_data?.action === 'sendTemplate' ? 'Template' : 'Fluxo'}
+                                          </Badge>
+                                          <span className="text-[10px] font-bold text-primary flex items-center gap-1">
+                                            <Clock className="w-2.5 h-2.5" />
+                                            {new Date(msg.scheduled_for).toLocaleString()}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground truncate italic">
+                                          {msg.message_data?.text || msg.message_data?.templateName || msg.message_data?.flowId || 'Agendamento'}
+                                        </p>
+                                      </div>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        onClick={async () => {
+                                          if (confirm('Deseja cancelar este agendamento?')) {
+                                            await supabase.from('crm_scheduled_messages').delete().eq('id', msg.id);
+                                            fetchScheduledMessages(selectedContact.id);
+                                          }
+                                        }}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                               {chatMessages.map((m, idx) => {
                                 const isTemplate = m.message_type === 'template' || m.content?.includes('[Template:');
                                 const templateName = m.content?.match(/\[Template: (.*?)\]/)?.[1];
@@ -1411,6 +1530,20 @@ const CRM = () => {
                                 <div className="flex gap-0.5 sm:gap-1">
                                   <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><ImageIcon className="w-5 h-5" /></Button>
                                   <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><Paperclip className="w-5 h-5" /></Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => {
+                                      setIsSchedulingOpen(true);
+                                      setScheduleType('message');
+                                      setScheduleDate(new Date().toISOString().split('T')[0]);
+                                      setScheduleTime(new Date().toTimeString().slice(0, 5));
+                                    }} 
+                                    className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"
+                                    title="Agendar Mensagem"
+                                  >
+                                    <CalendarClock className="w-5 h-5" />
+                                  </Button>
                                 </div>
                                 <div className="flex-1 relative">
                                   <Input 
@@ -2147,6 +2280,112 @@ const CRM = () => {
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsImportExportOpen(false)} className="w-full rounded-xl h-11">Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
+        <DialogContent className="rounded-2xl border-none shadow-2xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <CalendarClock className="w-5 h-5 text-primary" /> Agendar Mensagem
+            </DialogTitle>
+            <DialogDescription>
+              Escolha quando e o que você deseja agendar para este contato.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Data</Label>
+                <Input 
+                  type="date" 
+                  value={scheduleDate} 
+                  onChange={(e) => setScheduleDate(e.target.value)} 
+                  className="rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Hora</Label>
+                <Input 
+                  type="time" 
+                  value={scheduleTime} 
+                  onChange={(e) => setScheduleTime(e.target.value)} 
+                  className="rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo de Agendamento</Label>
+              <Select value={scheduleType} onValueChange={(val: any) => { setScheduleType(val); setSelectedScheduleId(''); }}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="message">Mensagem de Texto</SelectItem>
+                  <SelectItem value="template">Template</SelectItem>
+                  <SelectItem value="flow">Fluxo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {scheduleType === 'message' && (
+              <div className="space-y-2">
+                <Label>Mensagem</Label>
+                <Textarea 
+                  placeholder="Digite o conteúdo da mensagem..." 
+                  value={newMessage} 
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="rounded-xl min-h-[100px]"
+                />
+              </div>
+            )}
+
+            {scheduleType === 'template' && (
+              <div className="space-y-2">
+                <Label>Selecionar Template</Label>
+                <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Escolha um template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map(t => (
+                      <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {scheduleType === 'flow' && (
+              <div className="space-y-2">
+                <Label>Selecionar Fluxo</Label>
+                <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Escolha um fluxo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {flows.filter(f => f.is_active).map(f => (
+                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsSchedulingOpen(false)} className="rounded-xl h-11">Cancelar</Button>
+            <Button 
+              onClick={handleScheduleMessage} 
+              disabled={isScheduling}
+              className="rounded-xl h-11 bg-primary px-8 shadow-lg shadow-primary/20"
+            >
+              {isScheduling ? <RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+              Agendar agora
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
