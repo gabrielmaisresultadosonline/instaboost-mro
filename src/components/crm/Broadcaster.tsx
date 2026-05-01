@@ -236,28 +236,28 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20 p-3 md:p-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111b21] p-6 rounded-2xl border border-white/5 shadow-2xl">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Disparador de Mensagens</h2>
-          <p className="text-muted-foreground">Envie mensagens em massa com segurança e automação.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-[#e9edef]">Disparador de Mensagens</h2>
+          <p className="text-[#8696a0] mt-1">Automação de disparos em massa profissional e segura.</p>
         </div>
         <div className="flex gap-2">
-          <Badge variant="outline" className="px-3 py-1 bg-primary/5 text-primary border-primary/20 flex items-center gap-2">
+          <Badge variant="outline" className="px-3 py-1 bg-[#00a884]/10 text-[#00a884] border-[#00a884]/20 flex items-center gap-2">
             <Zap className="w-3 h-3" /> Modo Inteligente Ativo
           </Badge>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="rounded-2xl shadow-sm border overflow-hidden">
-            <CardHeader className="bg-muted/30 border-b">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Plus className="w-5 h-5 text-primary" /> Nova Campanha
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        <div className="lg:col-span-8 space-y-6">
+          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
+            <CardHeader className="bg-[#202c33] border-b border-white/5">
+              <CardTitle className="text-lg flex items-center gap-2 text-[#00a884]">
+                <Plus className="w-5 h-5" /> Nova Campanha
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-4 md:p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>Nome da Campanha</Label>
@@ -265,13 +265,13 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                     placeholder="Ex: Promoção de Verão" 
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="h-11 rounded-xl bg-muted/30 border-none"
+                    className="h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef] placeholder:text-[#8696a0]"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Destinatários</Label>
+                  <Label className="text-[#e9edef]">Destinatários</Label>
                   <Select value={targetType} onValueChange={(val: any) => setTargetType(val)}>
-                    <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none">
+                    <SelectTrigger className="h-11 rounded-xl bg-[#202c33] border-none text-[#e9edef]">
                       <SelectValue placeholder="Selecione o público" />
                     </SelectTrigger>
                     <SelectContent>
@@ -316,10 +316,10 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
               <div className="space-y-4 pt-4 border-t">
                 <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Conteúdo do Disparo</Label>
                 <Tabs value={type} onValueChange={(val: any) => setType(val)} className="w-full">
-                  <TabsList className="grid grid-cols-3 h-12 bg-muted/30 rounded-xl p-1">
-                    <TabsTrigger value="message" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Mensagem Única</TabsTrigger>
-                    <TabsTrigger value="template" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Template Meta</TabsTrigger>
-                    <TabsTrigger value="flow" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Fluxo Visual</TabsTrigger>
+                  <TabsList className="grid grid-cols-3 h-12 bg-[#202c33] rounded-xl p-1">
+                    <TabsTrigger value="message" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Mensagem</TabsTrigger>
+                    <TabsTrigger value="template" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Template</TabsTrigger>
+                    <TabsTrigger value="flow" className="rounded-lg text-[10px] md:text-sm data-[state=active]:bg-[#00a884] data-[state=active]:text-white">Fluxo</TabsTrigger>
                   </TabsList>
                   
                   <div className="mt-6">
@@ -327,7 +327,7 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                       <Label>Texto da Mensagem</Label>
                       <Textarea 
                         placeholder="Escreva sua mensagem aqui..."
-                        className="min-h-[150px] rounded-xl bg-muted/30 border-none resize-none"
+                        className="min-h-[150px] rounded-xl bg-[#202c33] border-none resize-none text-[#e9edef] placeholder:text-[#8696a0]"
                         value={messageText}
                         onChange={e => setMessageText(e.target.value)}
                       />
@@ -415,20 +415,20 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
               <Button 
                 onClick={handleStartBroadcast}
                 disabled={loading}
-                className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/20 transition-all hover:scale-[1.01]"
+                className="w-full h-14 rounded-2xl bg-[#00a884] hover:bg-[#00a884]/90 text-white font-black text-lg shadow-xl shadow-[#00a884]/10 transition-all hover:scale-[1.01] flex items-center justify-center gap-3"
               >
-                {loading ? <RefreshCcw className="w-6 h-6 animate-spin mr-3" /> : <Play className="w-6 h-6 mr-3" />}
+                {loading ? <RefreshCcw className="w-6 h-6 animate-spin" /> : <Play className="w-6 h-6" />}
                 INICIAR DISPARO EM MASSA
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card className="rounded-2xl shadow-sm border overflow-hidden">
-            <CardHeader className="bg-primary/5 border-b">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <History className="w-5 h-5 text-primary" /> Histórico
+        <div className="lg:col-span-4 space-y-6">
+          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
+            <CardHeader className="bg-[#202c33] border-b border-white/5">
+              <CardTitle className="text-lg flex items-center gap-2 text-[#00a884]">
+                <History className="w-5 h-5" /> Histórico
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
@@ -485,10 +485,10 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm border overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" /> Sugestões de Remarketing
+          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
+            <CardHeader className="bg-[#202c33] border-b border-white/5">
+              <CardTitle className="text-base flex items-center gap-2 text-[#00a884]">
+                <Users className="w-4 h-4" /> Remarketing
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
@@ -512,25 +512,25 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm border overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-primary" /> Tutorial Rápido
+          <Card className="rounded-2xl shadow-xl border border-white/5 overflow-hidden bg-[#111b21]">
+            <CardHeader className="bg-[#202c33] border-b border-white/5">
+              <CardTitle className="text-base flex items-center gap-2 text-[#00a884]">
+                <HelpCircle className="w-4 h-4" /> Tutorial Rápido
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               <div className="space-y-3">
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">1</div>
-                  <p className="text-[11px] leading-relaxed">Escolha um <strong>Nome</strong> e o <strong>Público-alvo</strong>. Você pode subir uma lista colando números.</p>
+                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">1</div>
+                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Escolha um <strong>Nome</strong> e o <strong>Público-alvo</strong>. Você pode subir uma lista colando números.</p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">2</div>
-                  <p className="text-[11px] leading-relaxed">Selecione o <strong>Conteúdo</strong>. Templates oficiais são mais seguros contra bloqueios.</p>
+                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">2</div>
+                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Selecione o <strong>Conteúdo</strong>. Templates oficiais são mais seguros contra bloqueios.</p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</div>
-                  <p className="text-[11px] leading-relaxed">Ajuste o <strong>Tempo Randomizado</strong>. Recomendamos pelo menos 15-30 segundos entre mensagens.</p>
+                  <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</div>
+                  <p className="text-[11px] leading-relaxed text-[#e9edef]">Ajuste o <strong>Tempo Randomizado</strong>. Recomendamos pelo menos 15-30 segundos entre mensagens.</p>
                 </div>
                 <div className="flex gap-3 border-t pt-3">
                   <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
