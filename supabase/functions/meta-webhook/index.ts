@@ -412,6 +412,8 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
 
                             if (templateExists) {
                               console.log(`Sending template: ${templateName}`);
+                              // Send the template FIRST if it's detected, or keep the order
+                              // User wants: "clear I will send yes. and below in a new message only the site template."
                               const templateResp = await supabase.functions.invoke('meta-whatsapp-crm', {
                                 body: { 
                                   action: 'sendTemplate', 
@@ -457,6 +459,8 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                             await supabase.functions.invoke('meta-whatsapp-crm', {
                               body: { action: 'sendMessage', to: wa_id, text: trimmedPart }
                             });
+                            // Small delay between confirmation text and template
+                            await new Promise(resolve => setTimeout(resolve, 1000));
                           }
                         }
 
