@@ -178,7 +178,7 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
       } catch (err) {
         console.error("Error sending to", number, err);
         // Update failed count
-        await supabase.rpc('increment_broadcast_failed', { b_id: broadcastId });
+        await (supabase.rpc as any)('increment_broadcast_failed', { b_id: broadcastId });
       }
     }
     
