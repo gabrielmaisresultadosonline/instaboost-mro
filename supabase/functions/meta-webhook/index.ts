@@ -309,6 +309,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
 4. Sempre responda em mensagens separadas: o texto primeiro e o template logo abaixo.
 5. Se não houver template para o que foi pedido, responda normalmente em texto.
 6. Mantenha as mensagens de confirmação curtas e gentis.
+7. Se o texto for longo ou para parecer mais natural, use a tag [SPLIT] para enviar em mensagens separadas (máximo 3 partes).
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
@@ -390,87 +391,87 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         }
                         aiText = aiText.replace(/\[START_FLOW: [\w-]+\]/g, '').trim();
 
-                        // Now split the text by special tags (QUICK_REPLY or SEND_TEMPLATE)
-                        // Using a more robust regex that ensures the tag is handled as a separate part
-                        const parts = aiText.split(/(\[QUICK_REPLY:.*?\]|\[SEND_TEMPLATE:.*?\])/i).filter(p => p.trim() !== '');
+                        // Now split the text by special tags (QUICK_REPLY, SEND_TEMPLATE, or SPLIT)
+                        const parts = aiText.split(/(\[QUICK_REPLY:.*?\]|\[SEND_TEMPLATE:.*?\]|\[SPLIT\])/i)
+                          .filter(p => p.trim() !== '' && p.toUpperCase() !== '[SPLIT]');
+                        
                         console.log('AI Response parts:', JSON.stringify(parts));
 
-                        // NEW: Force template check even if split fails
                         const templateMatches = aiText.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/gi);
                         const processedTemplates = new Set();
                         
-                        // Check if we have templates in parts, if not we'll need to handle them specially
-                        const templatesInParts = parts.some(p => p.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i));
-                        
-                        if (templateMatches && !templatesInParts) {
-                          console.log('Templates found in raw text but not in parts. Cleaning parts and re-adding.');
-                          // If templates exist but aren't correctly split into parts, it's safer to re-evaluate the sequence
-                        }
-
                         for (const part of parts) {
-                          const trimmedPart = part.trim();
-                          if (!trimmedPart) continue;
+                          try {
+                            const trimmedPart = part.trim();
+                            if (!trimmedPart) continue;
 
-                          // 1. Handle Template tag (Case-Insensitive)
-                          const templateMatch = trimmedPart.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i);
-                          if (templateMatch) {
-                            const templateName = templateMatch[1].trim();
-                            if (processedTemplates.has(templateName.toLowerCase())) continue;
-                            processedTemplates.add(templateName.toLowerCase());
-                            
-                            console.log(`AI matched template tag: ${templateName}`);
-                            
-                            const { data: templateExists } = await supabase
-                              .from('crm_templates')
-                              .select('name, language, status')
-                              .eq('name', templateName)
-                              .maybeSingle();
+                            // 1. Handle Template tag (Case-Insensitive)
+                            const templateMatch = trimmedPart.match(/\[SEND_TEMPLATE:\s*([\w_-]+)\]/i);
+                            if (templateMatch) {
+                              const templateName = templateMatch[1].trim();
+                              if (processedTemplates.has(templateName.toLowerCase())) continue;
+                              processedTemplates.add(templateName.toLowerCase());
+                              
+                              console.log(`AI matched template tag: ${templateName}`);
+                              
+                              const { data: templateExists } = await supabase
+                                .from('crm_templates')
+                                .select('name, language, status')
+                                .eq('name', templateName)
+                                .maybeSingle();
 
-                            if (templateExists) {
-                              console.log(`Sending template: ${templateName}`);
+                              if (templateExists) {
+                                console.log(`Sending template: ${templateName}`);
+                                await supabase.functions.invoke('meta-whatsapp-crm', {
+                                  body: { 
+                                    action: 'sendTemplate', 
+                                    to: wa_id, 
+                                    templateName: templateName,
+                                    languageCode: templateExists.language || 'pt_BR',
+                                    contactId: contact.id
+                                  }
+                                });
+                              } else {
+                                console.warn(`Template ${templateName} not found in database.`);
+                              }
+                              // Wait a bit after sending a template before next message if any
+                              await new Promise(resolve => setTimeout(resolve, 3000));
+                              continue;
+                            }
+
+                            // 2. Handle Quick Reply tag
+                            const quickReplyMatch = trimmedPart.match(/\[QUICK_REPLY:\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*(?:\|\s*["']?([^"']+)["']?\s*)?\]/i);
+                            if (quickReplyMatch) {
+                              const question = quickReplyMatch[1].trim();
+                              const buttons = [quickReplyMatch[2].trim()];
+                              if (quickReplyMatch[3]) buttons.push(quickReplyMatch[3].trim());
+                              if (quickReplyMatch[4]) buttons.push(quickReplyMatch[4].trim());
+                              
+                              console.log(`Sending quick reply: ${question}`);
                               await supabase.functions.invoke('meta-whatsapp-crm', {
                                 body: { 
-                                  action: 'sendTemplate', 
+                                  action: 'sendMessage', 
                                   to: wa_id, 
-                                  templateName: templateName,
-                                  languageCode: templateExists.language || 'pt_BR',
-                                  contactId: contact.id
+                                  text: question,
+                                  buttons: buttons.map((text, idx) => ({ id: `qr_${idx}`, text: text.substring(0, 20) }))
                                 }
                               });
-                            } else {
-                              console.warn(`Template ${templateName} not found in database.`);
+                              await new Promise(resolve => setTimeout(resolve, 3000));
+                              continue;
                             }
-                            continue;
-                          }
 
-                          // 2. Handle Quick Reply tag
-                          const quickReplyMatch = trimmedPart.match(/\[QUICK_REPLY:\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*(?:\|\s*["']?([^"']+)["']?\s*)?\]/i);
-                          if (quickReplyMatch) {
-                            const question = quickReplyMatch[1].trim();
-                            const buttons = [quickReplyMatch[2].trim()];
-                            if (quickReplyMatch[3]) buttons.push(quickReplyMatch[3].trim());
-                            if (quickReplyMatch[4]) buttons.push(quickReplyMatch[4].trim());
-                            
-                            console.log(`Sending quick reply: ${question}`);
+                            // 3. Normal text
+                            console.log(`Sending text part: ${trimmedPart.substring(0, 50)}...`);
                             await supabase.functions.invoke('meta-whatsapp-crm', {
-                              body: { 
-                                action: 'sendMessage', 
-                                to: wa_id, 
-                                text: question,
-                                buttons: buttons.map((text, idx) => ({ id: `qr_${idx}`, text: text.substring(0, 20) }))
-                              }
+                              body: { action: 'sendMessage', to: wa_id, text: trimmedPart }
                             });
-                            continue;
+                            
+                            // Delay between parts (3 seconds as requested for natural flow)
+                            await new Promise(resolve => setTimeout(resolve, 3000));
+                          } catch (partError) {
+                            console.error('Error processing message part:', partError);
+                            // Continue to next part even if one fails
                           }
-
-                          // 3. Normal text
-                          console.log(`Sending text part: ${trimmedPart.substring(0, 50)}...`);
-                          await supabase.functions.invoke('meta-whatsapp-crm', {
-                            body: { action: 'sendMessage', to: wa_id, text: trimmedPart }
-                          });
-                          // Increased delay between confirmation text and template/next message
-                          // User requested 2-3 seconds for a more realistic flow
-                          await new Promise(resolve => setTimeout(resolve, 2500));
                         }
 
                         // Final safety check: if templates were found but not processed in parts
