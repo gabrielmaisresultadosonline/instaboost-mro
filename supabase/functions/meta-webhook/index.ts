@@ -276,6 +276,7 @@ INSTRUÇÕES ADICIONAIS:
    - [SET_STATUS: closed] -> Se a venda foi fechada.
    - [SET_STATUS: lost] -> Se o lead não tem interesse.
    - [SEND_TEMPLATE: nome_do_template] -> Se você quiser enviar um template oficial em vez de uma resposta em texto.
+   - [START_FLOW: flow_id] -> Se você quiser iniciar um fluxo visual específico para o usuário.
 4. Se o usuário enviou um áudio ou imagem, eu fornecerei a transcrição ou descrição se possível.
 5. NUNCA repita a mesma saudação se já estivermos conversando.
 
