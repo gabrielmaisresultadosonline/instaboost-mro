@@ -521,15 +521,15 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
             <CardContent className="p-4 space-y-4">
               <div className="space-y-3">
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">1</div>
+                  <div className="w-6 h-6 rounded-full bg-[#25D366] text-zinc-950 flex items-center justify-center text-[10px] font-bold shrink-0">1</div>
                   <p className="text-[11px] leading-relaxed">Escolha um <strong>Nome</strong> e o <strong>Público-alvo</strong>. Você pode subir uma lista colando números.</p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">2</div>
+                  <div className="w-6 h-6 rounded-full bg-[#25D366] text-zinc-950 flex items-center justify-center text-[10px] font-bold shrink-0">2</div>
                   <p className="text-[11px] leading-relaxed">Selecione o <strong>Conteúdo</strong>. Templates oficiais são mais seguros contra bloqueios.</p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</div>
+                  <div className="w-6 h-6 rounded-full bg-[#25D366] text-zinc-950 flex items-center justify-center text-[10px] font-bold shrink-0">3</div>
                   <p className="text-[11px] leading-relaxed">Ajuste o <strong>Tempo Randomizado</strong>. Recomendamos pelo menos 15-30 segundos entre mensagens.</p>
                 </div>
                 <div className="flex gap-3 border-t pt-3">
