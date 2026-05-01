@@ -425,10 +425,10 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
         </div>
 
         <div className="space-y-6">
-          <Card className="rounded-2xl shadow-sm border overflow-hidden">
-            <CardHeader className="bg-primary/5 border-b">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <History className="w-5 h-5 text-primary" /> Histórico
+          <Card className="rounded-2xl shadow-xl border border-border/50 overflow-hidden bg-card/40 backdrop-blur-sm">
+            <CardHeader className="bg-[#075E54]/20 border-b border-border/50">
+              <CardTitle className="text-lg flex items-center gap-2 text-[#25D366]">
+                <History className="w-5 h-5" /> Histórico
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
