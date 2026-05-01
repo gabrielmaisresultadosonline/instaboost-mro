@@ -283,18 +283,21 @@ serve(async (req) => {
 ${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
 
 INSTRUÇÕES ADICIONAIS:
-1. Analise o histórico e responda de forma natural. Use asteriscos para deixar palavras importantes em *negrito* (ex: *importante*, *agora*, *promoção*).
-2. Você pode sugerir o envio de templates específicos se fizer sentido. Nomes de templates disponíveis: ${templates?.map(t => t.name).join(', ')}.
-3. Se você identificar que o atendimento foi concluído ou a prioridade mudou, inclua uma das tags no final da sua resposta:
+1. Seja humano, direto e use respostas CURTAS. Evite textos longos, a menos que seja estritamente necessário para explicar algo complexo.
+2. Use asteriscos para deixar palavras importantes em *negrito* (ex: *importante*, *agora*, *promoção*).
+3. Use botões de resposta rápida sempre que possível para guiar o usuário. Use o formato: [QUICK_REPLY: "Pergunta curta?" | "Opção A" | "Opção B"].
+4. Se precisar enviar um link, use obrigatoriamente um TEMPLATE que contenha o botão de link. Não tente enviar links em texto puro ou botões rápidos.
+5. Nomes de templates disponíveis: ${templates?.map(t => t.name).join(', ')}.
+6. Se você identificar que o atendimento foi concluído ou a prioridade mudou, inclua uma das tags no final da sua resposta:
    - [SET_STATUS: qualified] -> Se o lead parece promissor.
    - [SET_STATUS: closed] -> Se a venda foi fechada.
    - [SET_STATUS: lost] -> Se o lead não tem interesse.
-   - [SEND_TEMPLATE: nome_do_template] -> Se você quiser enviar um template oficial em vez de uma resposta em texto.
+   - [SEND_TEMPLATE: nome_do_template] -> Se você quiser enviar um template oficial (especialmente para links).
    - [START_FLOW: flow_id] -> Se você quiser iniciar um fluxo visual específico para o usuário.
-   - [QUICK_REPLY: "Texto da pergunta" | "Opção 1" | "Opção 2"] -> Use para enviar botões de resposta rápida (máximo 3 botões). Ex: [QUICK_REPLY: "Você deseja continuar?" | "Sim" | "Não"]
-4. Se o usuário enviou um áudio ou imagem, eu fornecerei a transcrição ou descrição se possível.
-5. NUNCA repita a mesma saudação se já estivermos conversando.
-6. Sempre lembre do contexto anterior para não ser repetitivo.
+   - [QUICK_REPLY: "Texto da pergunta" | "Opção 1" | "Opção 2"] -> Máximo 3 botões.
+7. NUNCA repita a mesma saudação se já estivermos conversando.
+8. Sempre lembre do contexto anterior para não ser repetitivo e mantenha a conversa fluida.
+
 
 TEMPLATES DISPONÍVEIS (para seu conhecimento e uso):
 ${templates?.map(t => {
@@ -408,13 +411,14 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                           return new Response('OK - AI Started Flow', { status: 200 });
                         }
                         
-                        // Parse quick reply buttons
-                        const quickReplyMatch = aiText.match(/\[QUICK_REPLY: "([^"]+)" \| "([^"]+)"(?: \| "([^"]+)")?(?: \| "([^"]+)")?\]/);
+                        // Parse quick reply buttons (more robust regex for optional quotes and different spacings)
+                        const quickReplyMatch = aiText.match(/\[QUICK_REPLY:\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*\|\s*["']?([^"']+)["']?\s*(?:\|\s*["']?([^"']+)["']?\s*)?\]/i);
+                        
                         if (quickReplyMatch) {
-                          const question = quickReplyMatch[1];
-                          const buttons = [quickReplyMatch[2]];
-                          if (quickReplyMatch[3]) buttons.push(quickReplyMatch[3]);
-                          if (quickReplyMatch[4]) buttons.push(quickReplyMatch[4]);
+                          const question = quickReplyMatch[1].trim();
+                          const buttons = [quickReplyMatch[2].trim()];
+                          if (quickReplyMatch[3]) buttons.push(quickReplyMatch[3].trim());
+                          if (quickReplyMatch[4]) buttons.push(quickReplyMatch[4].trim());
                           
                           console.log(`AI suggested quick reply: ${question} with buttons: ${buttons.join(', ')}`);
                           
@@ -423,7 +427,7 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                               action: 'sendMessage', 
                               to: wa_id, 
                               text: question,
-                              buttons: buttons.map((text, idx) => ({ id: `qr_${idx}`, text }))
+                              buttons: buttons.map((text, idx) => ({ id: `qr_${idx}`, text: text.substring(0, 20) })) // Meta limit is 20 chars per button text
                             }
                           });
                           return new Response('OK - AI Sent Quick Reply', { status: 200 });
