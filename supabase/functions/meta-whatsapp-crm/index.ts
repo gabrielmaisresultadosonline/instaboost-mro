@@ -223,6 +223,7 @@ serve(async (req) => {
 
       if (!contact) throw new Error('Contact not found');
 
+      const { contactId: providedContactId } = params;
       const response = await internalSendTemplate(
         supabase, 
         meta_phone_number_id, 
@@ -231,8 +232,11 @@ serve(async (req) => {
         templateName, 
         languageCode || 'pt_BR', 
         manualComponents, 
-        contact
+        contact,
+        null,
+        providedContactId
       );
+
 
       return response;
     }
@@ -644,9 +648,21 @@ async function internalSendTemplate(
   languageCode: string,
   manualComponents: any[] = [],
   contact: any = null,
-  nodeId: string | null = null
+  nodeId: string | null = null,
+  contactId: string | null = null
 ) {
   console.log(`Internal sending template ${templateName} to ${to}...`);
+  
+  // Use provided contactId if contact object is missing
+  if (!contact && contactId) {
+    const { data: fetchedContact } = await supabase
+      .from('crm_contacts')
+      .select('*')
+      .eq('id', contactId)
+      .single();
+    contact = fetchedContact;
+  }
+
 
   // 1. Fetch template details
   const { data: templateData } = await supabase
