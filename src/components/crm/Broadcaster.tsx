@@ -288,10 +288,17 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
                   <div className="flex justify-between items-center">
                     <Label>Lista de Números (Um por linha)</Label>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="text-[10px] h-7">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept={parsingType === 'vcard' ? '.vcf' : '.csv,.txt'} 
+                        onChange={onFileChange} 
+                      />
+                      <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => handleFileUpload('vcard')}>
                         <Upload className="w-3 h-3 mr-1" /> VCard
                       </Button>
-                      <Button variant="outline" size="sm" className="text-[10px] h-7">
+                      <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => handleFileUpload('csv')}>
                         <FileText className="w-3 h-3 mr-1" /> Excel/CSV
                       </Button>
                     </div>
