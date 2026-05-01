@@ -54,6 +54,8 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
   const [uploadedNumbers, setUploadedNumbers] = useState('');
   const [delayMin, setDelayMin] = useState(10);
   const [delayMax, setDelayMax] = useState(60);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [parsingType, setParsingType] = useState<'vcard' | 'csv' | null>(null);
 
   useEffect(() => {
     fetchBroadcasts();
