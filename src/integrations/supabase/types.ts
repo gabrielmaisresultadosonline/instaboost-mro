@@ -704,6 +704,7 @@ export type Database = {
       }
       crm_contacts: {
         Row: {
+          ai_active: boolean | null
           created_at: string | null
           current_flow_id: string | null
           current_node_id: string | null
@@ -725,6 +726,7 @@ export type Database = {
           wa_id: string
         }
         Insert: {
+          ai_active?: boolean | null
           created_at?: string | null
           current_flow_id?: string | null
           current_node_id?: string | null
@@ -746,6 +748,7 @@ export type Database = {
           wa_id: string
         }
         Update: {
+          ai_active?: boolean | null
           created_at?: string | null
           current_flow_id?: string | null
           current_node_id?: string | null
@@ -1051,6 +1054,7 @@ export type Database = {
         Row: {
           ai_agent_enabled: boolean | null
           ai_agent_trigger: string | null
+          ai_system_prompt: string | null
           created_at: string | null
           id: string
           initial_auto_response_enabled: boolean | null
@@ -1071,6 +1075,7 @@ export type Database = {
         Insert: {
           ai_agent_enabled?: boolean | null
           ai_agent_trigger?: string | null
+          ai_system_prompt?: string | null
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
@@ -1091,6 +1096,7 @@ export type Database = {
         Update: {
           ai_agent_enabled?: boolean | null
           ai_agent_trigger?: string | null
+          ai_system_prompt?: string | null
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null

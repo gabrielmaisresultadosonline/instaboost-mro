@@ -98,6 +98,7 @@ const CRM = () => {
     meta_app_secret: '',
     openai_api_key: '',
     ai_agent_enabled: false,
+    ai_system_prompt: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Responda em Português do Brasil.',
     ai_agent_trigger: 'first_message',
     initial_auto_response_enabled: true,
     initial_response_text: '',
@@ -987,6 +988,7 @@ const CRM = () => {
                     { id: 'scheduling', label: 'Agendamentos', icon: Calendar },
                     { id: 'flows', label: 'Fluxos', icon: GitBranch },
                     { id: 'templates', label: 'Templates', icon: FileText },
+                    { id: 'ai-agent', label: 'Agente IA', icon: Bot },
                     { id: 'settings', label: 'Ajustes', icon: Settings },
                   ].map((item) => (
                     <SidebarMenuItem key={item.id}>
@@ -1215,6 +1217,24 @@ const CRM = () => {
                                       Info
                                     </Badge>
                                   </p>
+
+                                  {/* AI Toggle for individual contact */}
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn(
+                                      "h-8 w-8 rounded-full transition-all duration-300",
+                                      selectedContact.ai_active ? "text-primary bg-primary/10 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-pulse" : "text-muted-foreground grayscale"
+                                    )}
+                                    onClick={async () => {
+                                      const newStatus = !selectedContact.ai_active;
+                                      await updateContactStatus(selectedContact.id, { ai_active: newStatus });
+                                    }}
+                                    title={selectedContact.ai_active ? "Desativar IA para este contato" : "Ativar IA para este contato"}
+                                  >
+                                    <Bot className={cn("w-4 h-4", selectedContact.ai_active && "fill-primary/20")} />
+                                  </Button>
+
                                   {selectedContact.flow_state && selectedContact.flow_state !== 'idle' && (
                                     <div className="flex flex-col gap-1">
                                       <div className="flex items-center gap-1">
@@ -1827,6 +1847,121 @@ const CRM = () => {
                       </div>
                     )}
                   </div>
+                </div>
+              </ScrollArea>
+            )}
+
+            {activeTab === 'ai-agent' && (
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                        <Bot className="w-6 h-6 text-primary" /> Agente de Inteligência Artificial
+                      </h2>
+                      <p className="text-muted-foreground text-sm">Configure como a IA deve interagir com seus clientes.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="ai-agent-enabled" className="text-sm font-bold">Ativação Geral</Label>
+                      <Switch 
+                        id="ai-agent-enabled"
+                        checked={metaSettings.ai_agent_enabled}
+                        onCheckedChange={(val) => setMetaSettings({...metaSettings, ai_agent_enabled: val})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <CardTitle className="text-lg">Configurações Base</CardTitle>
+                        <CardDescription>Conecte seu motor de IA</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-bold flex items-center gap-2">
+                            <LinkIcon className="w-4 h-4" /> OpenAI API Key
+                          </Label>
+                          <Input 
+                            type="password"
+                            placeholder="sk-..."
+                            value={metaSettings.openai_api_key}
+                            onChange={(e) => setMetaSettings({...metaSettings, openai_api_key: e.target.value})}
+                          />
+                          <p className="text-[10px] text-muted-foreground italic">Use uma chave da OpenAI (GPT-4o recomendado para análise de mídia).</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-bold">Quando Ativar?</Label>
+                          <Select 
+                            value={metaSettings.ai_agent_trigger} 
+                            onValueChange={(val) => setMetaSettings({...metaSettings, ai_agent_trigger: val})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Todas as mensagens (quando não houver fluxo ativo)</SelectItem>
+                              <SelectItem value="first_message">Somente na primeira mensagem do contato</SelectItem>
+                              <SelectItem value="manual">Somente quando ativado manualmente por contato</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                      <CardHeader className="bg-muted/30 border-b">
+                        <CardTitle className="text-lg">Instruções do Agente</CardTitle>
+                        <CardDescription>O "cérebro" do seu robô</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-bold">Prompt do Sistema</Label>
+                          <Textarea 
+                            rows={8}
+                            className="resize-none"
+                            placeholder="Ex: Você é um consultor de vendas especializado em..."
+                            value={metaSettings.ai_system_prompt}
+                            onChange={(e) => setMetaSettings({...metaSettings, ai_system_prompt: e.target.value})}
+                          />
+                          <p className="text-[10px] text-muted-foreground">Descreva detalhadamente como a IA deve se comportar, o que falar e o que evitar.</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card className="rounded-2xl shadow-sm border overflow-hidden">
+                    <CardHeader className="bg-primary/5 border-b">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <GitBranch className="w-5 h-5 text-primary" /> Conhecimento dos Templates e Fluxos
+                      </CardTitle>
+                      <CardDescription>A IA saberá quais botões e caminhos estão disponíveis para enviar automaticamente.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="bg-blue-500/5 border border-blue-200 rounded-xl p-4 flex gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                          <Eye className="w-6 h-6 text-blue-500" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-blue-700">Visão Contextual Ativa</h4>
+                          <p className="text-sm text-blue-600/80 leading-relaxed">
+                            O agente IA analisa automaticamente todos os seus <strong>Templates</strong> e <strong>Fluxos Visuais</strong> ativos. 
+                            Ele entende o propósito de cada botão e pode escolher enviar um template específico se julgar necessário para o atendimento.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex justify-end">
+                        <Button 
+                          onClick={handleSaveSettings} 
+                          disabled={saving}
+                          className="px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                        >
+                          <Save className="w-4 h-4 mr-2" /> Salvar Configurações da IA
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </ScrollArea>
             )}

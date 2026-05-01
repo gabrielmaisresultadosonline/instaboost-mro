@@ -83,7 +83,8 @@ serve(async (req) => {
                       name: contact_name, 
                       last_interaction: now.toISOString(),
                       total_messages_received: 1,
-                      status: 'new'
+                      status: 'new',
+                      ai_active: true
                     })
                     .select('*')
                     .single()
@@ -109,13 +110,13 @@ serve(async (req) => {
                   let media_url = null
                   
                   // Get Meta settings for media download
-                  const { data: mediaSettings } = await supabase
+                  const { data: settings } = await supabase
                     .from('crm_settings')
-                    .select('meta_access_token')
+                    .select('*')
                     .eq('id', '00000000-0000-0000-0000-000000000001')
                     .single()
                   
-                  const meta_access_token = mediaSettings?.meta_access_token
+                  const meta_access_token = settings?.meta_access_token
 
                   if (message.type === 'text') {
                     content = message.text.body
@@ -173,7 +174,6 @@ serve(async (req) => {
                     }
 
                     // Cancel any scheduled followups for this flow/contact BEFORE continuing
-                    // This avoids cancelling messages scheduled DURING the flow continuation (like delays)
                     await supabase.from('crm_scheduled_messages')
                       .update({ status: 'cancelled' })
                       .eq('contact_id', contact.id)
@@ -209,24 +209,20 @@ serve(async (req) => {
                     let triggeredFlow = null;
 
                     if (flows) {
-                      // Priority 1: Keyword match
                       triggeredFlow = flows.find(f => 
                         f.trigger_type === 'keyword' && 
                         (f.trigger_keywords?.some((k: string) => k.toLowerCase() === text) || 
                          f.trigger_keyword?.toLowerCase() === text)
                       );
 
-                      // Priority 2: First message of the day
                       if (!triggeredFlow && isFirstMessageOfDay) {
                         triggeredFlow = flows.find(f => f.trigger_type === 'first_message_day');
                       }
 
-                      // Priority 3: 24h Inactivity
                       if (!triggeredFlow && isAfter24h) {
                         triggeredFlow = flows.find(f => f.trigger_type === '24h_inactivity');
                       }
 
-                      // Priority 4: New Contact (only if it's the very first message)
                       if (!triggeredFlow && isNewContact) {
                         triggeredFlow = flows.find(f => f.trigger_type === 'new_contact' || f.trigger_type === 'first_message');
                       }
@@ -241,79 +237,147 @@ serve(async (req) => {
                     }
                   }
 
-                  // 3. Fallback to AI Agent or Auto-Responder
-                  const { data: agentSettings } = await supabase
-                    .from('crm_settings')
-                    .select('*')
-                    .eq('id', '00000000-0000-0000-0000-000000000001')
-                    .single()
+                  // 3. AI Agent Logic
+                  if (settings?.ai_agent_enabled && settings?.openai_api_key && contact.ai_active) {
+                    let shouldTriggerAI = false;
+                    if (settings.ai_agent_trigger === 'all') shouldTriggerAI = true;
+                    else if (settings.ai_agent_trigger === 'first_message' && isNewContact) shouldTriggerAI = true;
+                    else if (settings.ai_agent_trigger === 'manual' && contact.ai_active) shouldTriggerAI = true;
 
-                  if (agentSettings?.ai_agent_enabled && agentSettings?.openai_api_key && message.type === 'text') {
-                    let shouldTrigger = false
-                    if (agentSettings.ai_agent_trigger === 'all') shouldTrigger = true
-                    else if (agentSettings.ai_agent_trigger === 'first_message' && contact.total_messages_received === 1) shouldTrigger = true
+                    // If a flow just ran, we might not want to trigger AI immediately, 
+                    // but the logic above returns early if a flow is continued or triggered.
                     
-                    if (shouldTrigger) {
+                    if (shouldTriggerAI) {
                       const { data: history } = await supabase
                         .from('crm_messages')
-                        .select('content, direction')
+                        .select('content, direction, message_type, media_url')
                         .eq('contact_id', contact.id)
                         .order('created_at', { ascending: false })
-                        .limit(10)
+                        .limit(15);
+
+                      const { data: templates } = await supabase.from('crm_templates').select('name, components');
+                      const { data: flows } = await supabase.from('crm_flows').select('id, name').eq('is_active', true);
+
+                      const systemPrompt = `
+${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
+
+INSTRUÇÕES ADICIONAIS:
+1. Analise o histórico e responda de forma natural.
+2. Você pode sugerir o envio de templates específicos se fizer sentido. Nomes de templates disponíveis: ${templates?.map(t => t.name).join(', ')}.
+3. Se você identificar que o atendimento foi concluído ou a prioridade mudou, inclua uma das tags no final da sua resposta:
+   - [SET_STATUS: qualified] -> Se o lead parece promissor.
+   - [SET_STATUS: closed] -> Se a venda foi fechada.
+   - [SET_STATUS: lost] -> Se o lead não tem interesse.
+   - [SEND_TEMPLATE: nome_do_template] -> Se você quiser enviar um template oficial em vez de uma resposta em texto.
+4. Se o usuário enviou um áudio ou imagem, eu fornecerei a transcrição ou descrição se possível.
+5. NUNCA repita a mesma saudação se já estivermos conversando.
+
+TEMPLATES DISPONÍVEIS (para seu conhecimento):
+${templates?.map(t => `- ${t.name}: ${t.components?.find((c: any) => c.type === 'BODY')?.text}`).join('\n')}
+
+FLUXOS DISPONÍVEIS:
+${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
+`;
+
+                      const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
                       
-                      const messages = [
-                        { role: 'system', content: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Responda em Português do Brasil.' },
-                        ...history!.reverse().map(m => ({ 
-                          role: m.direction === 'inbound' ? 'user' : 'assistant', 
-                          content: m.content 
-                        }))
-                      ]
+                      // Process history for OpenAI
+                      for (const msg of (history || []).reverse()) {
+                        const role = msg.direction === 'inbound' ? 'user' : 'assistant';
+                        
+                        if (msg.message_type === 'image' && msg.media_url) {
+                          openaiMessages.push({
+                            role,
+                            content: [
+                              { type: 'text', text: msg.content || 'Imagem enviada pelo usuário.' },
+                              { type: 'image_url', image_url: { url: msg.media_url } }
+                            ]
+                          });
+                        } else if (msg.message_type === 'audio' && msg.media_url && msg.direction === 'inbound') {
+                          // For audio, we'll try to transcribe it using Whisper
+                          try {
+                            const transcription = await transcribeAudio(settings.openai_api_key, msg.media_url);
+                            openaiMessages.push({ role, content: `[Transcrição de Áudio]: ${transcription}` });
+                          } catch (err) {
+                            openaiMessages.push({ role, content: `[Áudio enviado, mas não foi possível transcrever]` });
+                          }
+                        } else {
+                          openaiMessages.push({ role, content: msg.content });
+                        }
+                      }
 
                       try {
                         const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
                           method: 'POST',
                           headers: {
-                            'Authorization': `Bearer ${agentSettings.openai_api_key}`,
+                            'Authorization': `Bearer ${settings.openai_api_key}`,
                             'Content-Type': 'application/json'
                           },
                           body: JSON.stringify({
-                            model: 'gpt-4o-mini',
-                            messages: messages
+                            model: 'gpt-4o', // Use GPT-4o for vision and better reasoning
+                            messages: openaiMessages,
+                            max_tokens: 500
                           })
-                        })
-                        const aiData = await aiResponse.json()
-                        const aiText = aiData.choices[0].message.content
+                        });
 
-                        await supabase.functions.invoke('meta-whatsapp-crm', {
-                          body: { action: 'sendMessage', to: wa_id, text: aiText }
-                        })
-                        return new Response('OK with AI', { status: 200 })
+                        const aiData = await aiResponse.json();
+                        if (aiData.error) throw new Error(aiData.error.message);
+
+                        let aiText = aiData.choices[0].message.content;
+                        
+                        // Parse status update tags
+                        const statusMatch = aiText.match(/\[SET_STATUS: (\w+)\]/);
+                        if (statusMatch) {
+                          const newStatus = statusMatch[1];
+                          await supabase.from('crm_contacts').update({ status: newStatus }).eq('id', contact.id);
+                          aiText = aiText.replace(/\[SET_STATUS: \w+\]/g, '').trim();
+                        }
+
+                        // Parse template suggestion
+                        const templateMatch = aiText.match(/\[SEND_TEMPLATE: ([\w_]+)\]/);
+                        if (templateMatch) {
+                          const templateName = templateMatch[1];
+                          console.log(`AI suggested sending template: ${templateName}`);
+                          await supabase.functions.invoke('meta-whatsapp-crm', {
+                            body: { 
+                              action: 'sendTemplate', 
+                              to: wa_id, 
+                              templateName: templateName,
+                              languageCode: 'pt_BR'
+                            }
+                          });
+                          return new Response('OK - AI Sent Template', { status: 200 });
+                        }
+                        
+                        if (aiText) {
+                          await supabase.functions.invoke('meta-whatsapp-crm', {
+                            body: { action: 'sendMessage', to: wa_id, text: aiText }
+                          });
+                        }
+
+                        return new Response('OK - AI Responded', { status: 200 });
                       } catch (err) {
-                        console.error('AI Error:', err)
+                        console.error('AI Error:', err);
                       }
                     }
                   }
 
-                  if (contact.total_messages_received === 1) {
-                    if (agentSettings?.initial_flow_id) {
+                  // 4. Default Auto-Responder (if AI didn't trigger)
+                  if (isNewContact) {
+                    if (settings?.initial_flow_id) {
                       await supabase.functions.invoke('meta-whatsapp-crm', {
-                        body: {
-                          action: 'startFlow',
-                          flowId: agentSettings.initial_flow_id,
-                          contactId: contact.id,
-                          waId: wa_id
-                        }
-                      })
-                    } else if (agentSettings?.initial_auto_response_enabled) {
+                        body: { action: 'startFlow', flowId: settings.initial_flow_id, contactId: contact.id, waId: wa_id }
+                      });
+                    } else if (settings?.initial_auto_response_enabled) {
                       if (message.type === 'text') {
                          await supabase.functions.invoke('meta-whatsapp-crm', {
                            body: {
                              action: 'sendMessage',
                              to: wa_id,
-                             text: agentSettings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
-                             buttons: agentSettings.initial_response_buttons
+                             text: settings.initial_response_text || `Olá ${contact_name}! Como posso te ajudar hoje?`,
+                             buttons: settings.initial_response_buttons
                            }
-                         })
+                         });
                       }
                     }
                   }
@@ -340,6 +404,29 @@ serve(async (req) => {
 
   return new Response('Method Not Allowed', { status: 405 })
 })
+
+async function transcribeAudio(apiKey: string, audioUrl: string) {
+  try {
+    const audioRes = await fetch(audioUrl);
+    const audioBlob = await audioRes.blob();
+    
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.ogg');
+    formData.append('model', 'whisper-1');
+
+    const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+      body: formData
+    });
+
+    const data = await res.json();
+    return data.text;
+  } catch (err) {
+    console.error('Transcription error:', err);
+    throw err;
+  }
+}
 
 async function downloadAndUploadMedia(supabase: any, token: string, mediaId: string, type: string, fileName?: string) {
   try {
