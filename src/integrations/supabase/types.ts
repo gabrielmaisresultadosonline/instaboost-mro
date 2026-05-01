@@ -4393,6 +4393,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_broadcast_failed: { Args: { b_id: string }; Returns: undefined }
+      increment_broadcast_sent: { Args: { b_id: string }; Returns: undefined }
       increment_corretor_corrections: {
         Args: { p_user_id: string }
         Returns: undefined
