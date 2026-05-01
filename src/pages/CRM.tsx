@@ -575,6 +575,7 @@ const CRM = () => {
       setScheduleTime('');
       setSelectedScheduleId('');
       fetchScheduledMessages(selectedContact.id);
+      fetchAllScheduledMessages();
     } catch (err: any) {
       toast({ title: "Erro ao agendar", description: err.message, variant: "destructive" });
     } finally {
