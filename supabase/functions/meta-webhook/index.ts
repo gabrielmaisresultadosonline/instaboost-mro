@@ -387,20 +387,22 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
                           // Check if template exists in DB first to be sure
                           const { data: templateExists } = await supabase
                             .from('crm_templates')
-                            .select('name')
+                            .select('name, language')
                             .eq('name', templateName)
                             .maybeSingle();
 
                           if (templateExists) {
-                            await supabase.functions.invoke('meta-whatsapp-crm', {
+                            console.log(`Template ${templateName} found in DB. Invoking meta-whatsapp-crm...`);
+                            const invokeResult = await supabase.functions.invoke('meta-whatsapp-crm', {
                               body: { 
                                 action: 'sendTemplate', 
                                 to: wa_id, 
                                 templateName: templateName,
-                                languageCode: 'pt_BR',
+                                languageCode: templateExists.language || 'pt_BR',
                                 contactId: contact.id
                               }
                             });
+                            console.log(`Invoke sendTemplate result:`, invokeResult);
                             return new Response('OK - AI Sent Template', { status: 200 });
                           } else {
                             console.warn(`AI suggested template ${templateName} but it was not found in database.`);
