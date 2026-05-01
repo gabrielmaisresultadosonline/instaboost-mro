@@ -415,9 +415,9 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
               <Button 
                 onClick={handleStartBroadcast}
                 disabled={loading}
-                className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/20 transition-all hover:scale-[1.01]"
+                className="w-full h-14 rounded-2xl bg-[#25D366] hover:bg-[#25D366]/90 text-zinc-950 font-black text-lg shadow-xl shadow-[#25D366]/20 transition-all hover:scale-[1.01] flex items-center justify-center gap-3"
               >
-                {loading ? <RefreshCcw className="w-6 h-6 animate-spin mr-3" /> : <Play className="w-6 h-6 mr-3" />}
+                {loading ? <RefreshCcw className="w-6 h-6 animate-spin" /> : <Play className="w-6 h-6" />}
                 INICIAR DISPARO EM MASSA
               </Button>
             </CardContent>
