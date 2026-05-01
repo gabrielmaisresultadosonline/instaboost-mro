@@ -320,7 +320,9 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                       for (const msg of (history || []).reverse()) {
                         const role = msg.direction === 'inbound' ? 'user' : 'assistant';
                         
-                        if (msg.message_type === 'image' && msg.media_url) {
+                        // CRITICAL: Meta API/OpenAI does not support image_url for 'assistant' role
+                        // We must send assistant messages as plain text, even if they refer to images
+                        if (msg.message_type === 'image' && msg.media_url && role === 'user') {
                           openaiMessages.push({
                             role,
                             content: [
@@ -328,7 +330,7 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                               { type: 'image_url', image_url: { url: msg.media_url } }
                             ]
                           });
-                        } else if (msg.message_type === 'audio' && msg.media_url && msg.direction === 'inbound') {
+                        } else if (msg.message_type === 'audio' && msg.media_url && role === 'user') {
                           // For audio, we'll try to transcribe it using Whisper
                           try {
                             const transcription = await transcribeAudio(settings.openai_api_key, msg.media_url);
@@ -337,7 +339,8 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                             openaiMessages.push({ role, content: `[Áudio enviado, mas não foi possível transcrever]` });
                           }
                         } else {
-                          openaiMessages.push({ role, content: msg.content });
+                          // For assistant role OR text messages OR non-image inbound media, send as simple text
+                          openaiMessages.push({ role, content: msg.content || `[Mensagem: ${msg.message_type}]` });
                         }
                       }
 
