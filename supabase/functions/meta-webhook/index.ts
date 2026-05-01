@@ -302,14 +302,16 @@ ${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
 
 DIRETRIZES DE RESPOSTA (Siga rigorosamente):
 1. Se o usuário pedir o SITE ou catálogos, você DEVE enviar: 
-   Uma frase curta de confirmação e, na linha de baixo, APENAS [SEND_TEMPLATE: acesse_site]
+   Uma frase curta de confirmação (ex: "Claro! Vou te enviar o link do nosso site agora.") e a tag [SEND_TEMPLATE: acesse_site] logo abaixo.
 2. Se o usuário pedir o INSTAGRAM ou seguir redes sociais, você DEVE enviar:
-   Uma frase curta de confirmação e, na linha de baixo, APENAS [SEND_TEMPLATE: segue_nosso_insta]
-3. NUNCA escreva o conteúdo do template ou o link no texto, use a tag [SEND_TEMPLATE: nome].
-4. Sempre responda em mensagens separadas: o texto primeiro e o template logo abaixo.
-5. Se não houver template para o que foi pedido, responda normalmente em texto.
+   Uma frase curta de confirmação (ex: "Com certeza! Segue o link do nosso perfil:") e a tag [SEND_TEMPLATE: segue_nosso_insta] logo abaixo.
+3. NUNCA escreva o conteúdo do template ou o link no texto manualmente, use a tag [SEND_TEMPLATE: nome].
+4. IMPORTANTE: Você deve responder IMEDIATAMENTE na primeira interação. Não espere uma segunda pergunta. Se o usuário pediu algo, envie agora.
+5. Sempre responda em mensagens separadas: o texto primeiro e o template logo abaixo.
 6. Mantenha as mensagens de confirmação curtas e gentis.
 7. Se o texto for longo ou para parecer mais natural, use a tag [SPLIT] para enviar em mensagens separadas (máximo 3 partes).
+8. Você tem autonomia total para converter o usuário, não seja passivo.
+
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
