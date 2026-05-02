@@ -1192,6 +1192,36 @@ export type Database = {
           },
         ]
       }
+      crm_statuses: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          label: string
+          sort_order?: number
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       crm_templates: {
         Row: {
           category: string | null
