@@ -236,15 +236,15 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 pb-20 p-2 md:p-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111b21] p-4 md:p-6 rounded-2xl border border-white/5 shadow-2xl">
-        <div>
-          <h2 className="text-xl md:text-3xl font-bold tracking-tight text-[#e9edef]">Disparador de Mensagens</h2>
-          <p className="text-xs md:text-base text-[#8696a0] mt-1">Automação de disparos em massa profissional e segura.</p>
+    <div className="w-full max-w-7xl mx-auto space-y-4 md:space-y-6 pb-24 md:pb-8 p-3 md:p-8 animate-in fade-in duration-500 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#111b21] p-4 md:p-6 rounded-2xl border border-white/5 shadow-2xl">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl md:text-3xl font-bold tracking-tight text-[#e9edef] truncate">Disparador de Mensagens</h2>
+          <p className="text-xs md:text-base text-[#8696a0] mt-1 line-clamp-2 sm:line-clamp-none">Automação de disparos em massa profissional e segura.</p>
         </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="px-2 md:px-3 py-1 bg-[#00a884]/10 text-[#00a884] border-[#00a884]/20 flex items-center gap-1 md:gap-2 text-[10px] md:text-xs">
-            <Zap className="w-3 h-3" /> Modo Inteligente Ativo
+        <div className="flex shrink-0">
+          <Badge variant="outline" className="px-2 md:px-3 py-1 bg-[#00a884]/10 text-[#00a884] border-[#00a884]/20 flex items-center gap-1 md:gap-2 text-[10px] md:text-xs whitespace-nowrap">
+            <Zap className="w-3 h-3 shrink-0" /> Modo Inteligente Ativo
           </Badge>
         </div>
       </div>
