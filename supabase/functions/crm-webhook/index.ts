@@ -168,7 +168,7 @@ serve(async (req) => {
           wa_id: cleanTo,
           name: cleanTo,
           status: webhook.default_status || 'new',
-          source: `webhook_${webhook.name}`
+          source_type: `webhook_${webhook.name}`
         }])
         .select('id, status')
         .single();
