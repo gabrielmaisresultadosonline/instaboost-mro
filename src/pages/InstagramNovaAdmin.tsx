@@ -309,6 +309,54 @@ export default function InstagramNovaAdmin() {
     };
   }, [showWebhookLogs]);
 
+  const loadCRMWebhookLogs = async (tokenOverride?: string) => {
+    const token = getAdminSessionToken(tokenOverride);
+    if (!token) return;
+
+    setLoadingCRMLogs(true);
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "listCrmWebhookLogs", token }
+      });
+
+      if (error || !response?.success) {
+        if (response?.error?.includes("Sessão expirada")) {
+          clearAdminSession();
+        }
+        throw new Error(response?.error || error?.message || "Erro ao carregar histórico");
+      }
+
+      setCrmWebhookLogs(response.logs || []);
+    } catch (error) {
+      console.error("Error loading CRM logs:", error);
+      toast.error("Erro ao carregar histórico do CRM");
+    } finally {
+      setLoadingCRMLogs(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!showCRMWebhookLogs) {
+      if (crmLogsAutoRefreshIntervalRef.current) {
+        clearInterval(crmLogsAutoRefreshIntervalRef.current);
+        crmLogsAutoRefreshIntervalRef.current = null;
+      }
+      return;
+    }
+
+    loadCRMWebhookLogs();
+    crmLogsAutoRefreshIntervalRef.current = setInterval(() => {
+      loadCRMWebhookLogs();
+    }, 5000);
+
+    return () => {
+      if (crmLogsAutoRefreshIntervalRef.current) {
+        clearInterval(crmLogsAutoRefreshIntervalRef.current);
+        crmLogsAutoRefreshIntervalRef.current = null;
+      }
+    };
+  }, [showCRMWebhookLogs]);
+
   // Carregar afiliados da nuvem via edge function - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async (forceRefresh = false) => {
     if (loadingAffiliates) return;
