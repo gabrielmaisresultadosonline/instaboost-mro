@@ -260,7 +260,8 @@ serve(async (req) => {
                     isNewContact
                   });
 
-                  if (settings?.ai_agent_enabled && settings?.openai_api_key && contact.ai_active) {
+                  const isAiEnabledGlobally = settings?.ai_agent_enabled === true;
+                  if (isAiEnabledGlobally && settings?.openai_api_key && contact.ai_active) {
                     let shouldTriggerAI = false;
                     if (settings.ai_agent_trigger === 'all') shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'first_message' && isNewContact) shouldTriggerAI = true;
