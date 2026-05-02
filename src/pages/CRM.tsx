@@ -106,7 +106,8 @@ const CRM = () => {
     auto_generate_strategy: false,
     strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele.',
     ai_system_prompt: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Responda em Português do Brasil.',
-    ai_agent_trigger: 'first_message',
+    ai_agent_trigger: 'all',
+    ai_agent_trigger_keyword: '',
     initial_auto_response_enabled: true,
     initial_response_text: '',
     initial_response_buttons: [],
@@ -2122,6 +2123,42 @@ const CRM = () => {
                               value={metaSettings.strategy_generation_prompt}
                               onChange={(e) => setMetaSettings({...metaSettings, strategy_generation_prompt: e.target.value})}
                             />
+                          </div>
+                          <div className="space-y-4 pt-4 border-t">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-bold flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-amber-500" /> Gatilho de Ativação
+                              </Label>
+                              <Select 
+                                value={metaSettings.ai_agent_trigger || 'all'} 
+                                onValueChange={(val) => setMetaSettings({...metaSettings, ai_agent_trigger: val})}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">Qualquer Mensagem (Sempre Ativo)</SelectItem>
+                                  <SelectItem value="keyword">Mensagem Específica (Palavra-chave)</SelectItem>
+                                  <SelectItem value="first_message">Primeira Mensagem do Cliente</SelectItem>
+                                  <SelectItem value="manual">Ativação Manual apenas</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <p className="text-[10px] text-muted-foreground italic">
+                                Defina quando a I.A. deve começar a responder automaticamente.
+                              </p>
+                            </div>
+
+                            {metaSettings.ai_agent_trigger === 'keyword' && (
+                              <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                                <Label className="text-sm font-bold">Palavra-chave / Mensagem Gatilho</Label>
+                                <Input 
+                                  placeholder="Ex: #aula, quero saber mais, oi"
+                                  value={metaSettings.ai_agent_trigger_keyword || ''}
+                                  onChange={(e) => setMetaSettings({...metaSettings, ai_agent_trigger_keyword: e.target.value})}
+                                />
+                                <p className="text-[10px] text-muted-foreground">O agente só iniciará se o cliente enviar exatamente essa mensagem ou se ela estiver contida no texto.</p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </CardContent>
