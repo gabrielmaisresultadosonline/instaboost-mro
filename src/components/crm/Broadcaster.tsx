@@ -236,15 +236,15 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 pb-20 p-2 md:p-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111b21] p-4 md:p-6 rounded-2xl border border-white/5 shadow-2xl">
-        <div>
-          <h2 className="text-xl md:text-3xl font-bold tracking-tight text-[#e9edef]">Disparador de Mensagens</h2>
-          <p className="text-xs md:text-base text-[#8696a0] mt-1">Automação de disparos em massa profissional e segura.</p>
+    <div className="w-full max-w-7xl mx-auto space-y-4 md:space-y-6 pb-24 md:pb-8 p-3 md:p-8 animate-in fade-in duration-500 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#111b21] p-4 md:p-6 rounded-2xl border border-white/5 shadow-2xl">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl md:text-3xl font-bold tracking-tight text-[#e9edef] truncate">Disparador de Mensagens</h2>
+          <p className="text-xs md:text-base text-[#8696a0] mt-1 line-clamp-2 sm:line-clamp-none">Automação de disparos em massa profissional e segura.</p>
         </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="px-2 md:px-3 py-1 bg-[#00a884]/10 text-[#00a884] border-[#00a884]/20 flex items-center gap-1 md:gap-2 text-[10px] md:text-xs">
-            <Zap className="w-3 h-3" /> Modo Inteligente Ativo
+        <div className="flex shrink-0">
+          <Badge variant="outline" className="px-2 md:px-3 py-1 bg-[#00a884]/10 text-[#00a884] border-[#00a884]/20 flex items-center gap-1 md:gap-2 text-[10px] md:text-xs whitespace-nowrap">
+            <Zap className="w-3 h-3 shrink-0" /> Modo Inteligente Ativo
           </Badge>
         </div>
       </div>
@@ -335,21 +335,21 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
 
                     <TabsContent value="template" className="space-y-4 animate-in fade-in">
                       <Label className="text-xs md:text-sm">Selecione o Template Aprovado</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                         {templates.filter(t => t.status === 'APPROVED').map(t => (
                           <div 
                             key={t.id} 
                             onClick={() => setSelectedTemplate(t.id)}
                             className={cn(
-                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer",
+                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer min-w-0 w-full",
                               selectedTemplate === t.id ? "border-[#00a884] bg-[#00a884]/5 shadow-md" : "border-transparent bg-[#202c33] hover:border-white/10"
                             )}
                           >
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="font-bold text-[10px] md:text-xs truncate text-[#e9edef]">{t.name}</span>
-                              <Badge variant="secondary" className="text-[8px] md:text-[9px] bg-[#111b21]">{t.category}</Badge>
+                            <div className="flex justify-between items-center mb-2 gap-2">
+                              <span className="font-bold text-[10px] md:text-xs truncate text-[#e9edef] flex-1">{t.name}</span>
+                              <Badge variant="secondary" className="text-[8px] md:text-[9px] bg-[#111b21] shrink-0">{t.category}</Badge>
                             </div>
-                            <p className="text-[9px] md:text-[10px] text-[#8696a0] line-clamp-2">
+                            <p className="text-[9px] md:text-[10px] text-[#8696a0] line-clamp-2 break-words">
                               {t.components?.find((c: any) => c.type === 'BODY')?.text}
                             </p>
                           </div>
@@ -359,21 +359,21 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
 
                     <TabsContent value="flow" className="space-y-4 animate-in fade-in">
                       <Label className="text-xs md:text-sm">Selecione o Fluxo Visual</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                         {flows.map(f => (
                           <div 
                             key={f.id} 
                             onClick={() => setSelectedFlow(f.id)}
                             className={cn(
-                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer",
+                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer min-w-0 w-full",
                               selectedFlow === f.id ? "border-[#00a884] bg-[#00a884]/5 shadow-md" : "border-transparent bg-[#202c33] hover:border-white/10"
                             )}
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-[#00a884]/10 text-[#00a884]">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="p-2 rounded-lg bg-[#00a884]/10 text-[#00a884] shrink-0">
                                 <GitBranch className="w-4 h-4" />
                               </div>
-                              <span className="font-bold text-[10px] md:text-xs text-[#e9edef]">{f.name}</span>
+                              <span className="font-bold text-[10px] md:text-xs text-[#e9edef] truncate">{f.name}</span>
                             </div>
                           </div>
                         ))}
