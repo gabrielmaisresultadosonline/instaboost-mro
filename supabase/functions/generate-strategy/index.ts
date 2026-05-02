@@ -6,7 +6,8 @@ const corsHeaders = {
 };
 
 interface StrategyRequest {
-  profile: {
+  contactId?: string; // New: for CRM strategy
+  profile?: {
     username: string;
     fullName: string;
     bio: string;
@@ -16,7 +17,7 @@ interface StrategyRequest {
     category: string;
     engagement?: number;
   };
-  analysis: {
+  analysis?: {
     niche: string;
     recommendations: string[];
     strengths?: string[];
@@ -27,7 +28,7 @@ interface StrategyRequest {
     profileScore?: number;
     audienceType?: string;
   };
-  type: 'mro' | 'content' | 'engagement' | 'sales' | 'bio';
+  type?: 'mro' | 'content' | 'engagement' | 'sales' | 'bio' | 'crm_strategy';
 }
 
 const MRO_TOOL_CONTEXT = `
