@@ -409,6 +409,44 @@ const CRM = () => {
   };
 
   
+  const handleCreateWebhook = async () => {
+    if (!newWebhook.name) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('crm_webhooks').insert([newWebhook]);
+      if (error) throw error;
+      toast({ title: "Webhook criado!" });
+      fetchWebhooks();
+      setIsNewWebhookDialogOpen(false);
+      setNewWebhook({ name: '', response_type: 'text', template_id: '' });
+    } catch (err: any) {
+      toast({ title: "Erro ao criar", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteWebhook = async (id: string) => {
+    try {
+      const { error } = await supabase.from('crm_webhooks').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: "Webhook excluído!" });
+      fetchWebhooks();
+    } catch (err: any) {
+      toast({ title: "Erro ao excluir", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const toggleWebhookStatus = async (id: string, current: boolean) => {
+    try {
+      const { error } = await supabase.from('crm_webhooks').update({ is_active: !current }).eq('id', id);
+      if (error) throw error;
+      fetchWebhooks();
+    } catch (err: any) {
+      toast({ title: "Erro ao atualizar", description: err.message, variant: "destructive" });
+    }
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
