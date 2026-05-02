@@ -524,6 +524,30 @@ const CRM = () => {
     }
   };
 
+  const handleUpdateStatus = async () => {
+    if (!editingStatus || !editingStatus.label) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('crm_statuses')
+        .update({
+          label: editingStatus.label,
+          color: editingStatus.color
+        })
+        .eq('id', editingStatus.id);
+
+      if (error) throw error;
+      toast({ title: "Etiqueta atualizada com sucesso!" });
+      fetchStatuses();
+      setIsEditStatusDialogOpen(false);
+      setEditingStatus(null);
+    } catch (err: any) {
+      toast({ title: "Erro ao atualizar etiqueta", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDeleteStatus = async (id: string) => {
     try {
       const { error } = await supabase.from('crm_statuses').delete().eq('id', id);
