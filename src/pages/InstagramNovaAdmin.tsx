@@ -212,6 +212,25 @@ export default function InstagramNovaAdmin() {
   const [showWebhookLogs, setShowWebhookLogs] = useState(false);
   const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  
+  // CRM Webhook Delivery Logs
+  interface CRMLog {
+    id: string;
+    created_at: string;
+    webhook_id: string;
+    to_number: string;
+    message: string;
+    status: string;
+    error_message: string | null;
+    order_id: string | null;
+    crm_webhooks?: {
+      name: string;
+    }
+  }
+  const [showCRMWebhookLogs, setShowCRMWebhookLogs] = useState(false);
+  const [crmWebhookLogs, setCrmWebhookLogs] = useState<CRMLog[]>([]);
+  const [loadingCRMLogs, setLoadingCRMLogs] = useState(false);
+  const crmLogsAutoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reenvio de email e edição de email
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
