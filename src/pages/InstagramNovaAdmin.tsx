@@ -120,7 +120,28 @@ export default function InstagramNovaAdmin() {
   const [webhookConfig, setWebhookConfig] = useState({
     enabled: true,
     webhook_id: "0c578c9d-4e33-48be-91dd-63f98d7ff430",
-    token: "qnf3vbusrbs105v96afj2r8"
+    token: "qnf3vbusrbs105v96afj2r8",
+    message_template: `Obrigado por fazer parte do nosso sistema!✅
+
+🚀🔥 *Ferramenta para Instagram Vip acesso!*
+
+Preciso que assista os vídeos da área de membros com o link abaixo:
+
+( {member_link} ) 
+
+1 - Acesse Área Membros
+
+2 - Acesse ferramenta para instagram
+
+Para acessar a ferramenta e área de membros, utilize os acessos:
+
+*usuário:* {username}
+*senha:* {username}
+
+⚠ Assista todos os vídeos, por favor!
+
+Participe também do nosso GRUPO DE AVISOS
+{group_link}`
   });
   const [showWebhookSettings, setShowWebhookSettings] = useState(false);
 
