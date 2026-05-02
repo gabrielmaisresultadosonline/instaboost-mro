@@ -405,6 +405,11 @@ export default function InstagramNovaAdmin() {
     }
   }, []);
 
+  // Salvar configuração do webhook no localStorage quando mudar
+  useEffect(() => {
+    localStorage.setItem("mro_crm_webhook_config", JSON.stringify(webhookConfig));
+  }, [webhookConfig]);
+
   // Carregar comissões pagas da nuvem
   const loadPaidCommissions = async () => {
     try {
