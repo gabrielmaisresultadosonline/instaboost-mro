@@ -1035,7 +1035,8 @@ export default function InstagramNovaAdmin() {
           token: webhookConfig.token,
           to: phone,
           message: `Olá ${cleanName}, seu acesso ao produto Instagram Nova foi liberado! 🚀\n\nUsuário: ${order.username}\nSenha: ${order.username}\n\nAcesse agora: ${MEMBER_LINK}`,
-          variables: [cleanName, order.username, order.username, MEMBER_LINK] // Caso use template
+          variables: [cleanName, order.username, order.username, MEMBER_LINK], // Caso use template
+          order_id: order.id
         })
       });
 
