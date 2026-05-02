@@ -372,15 +372,19 @@ DIRETRIZES DE RESPOSTA (Siga rigorosamente):
                         const aiData = await aiResponse.json();
                         if (aiData.error) {
                           console.error('OpenAI API Error:', aiData.error);
-                          // If it's a quota error, we should log it specifically
-                          if (aiData.error.code === 'insufficient_quota') {
-                             console.error('CRITICAL: OpenAI Quota Exceeded. Please check billing.');
-                          }
                           throw new Error(aiData.error.message);
                         }
 
                         let aiText = aiData.choices[0].message.content.trim();
                         console.log('Raw AI Response:', aiText);
+
+                        // If auto-generate strategy is enabled, trigger the generate-strategy function
+                        if (settings.auto_generate_strategy) {
+                          console.log('Auto-generating strategy for contact:', contact.id);
+                          supabase.functions.invoke('generate-strategy', {
+                            body: { contactId: contact.id }
+                          }).catch(e => console.error('Error auto-generating strategy:', e));
+                        }
                         
                         // Parse status update tags (side-effect, can be anywhere)
                         const statusMatches = aiText.matchAll(/\[SET_STATUS: (\w+)\]/g);
