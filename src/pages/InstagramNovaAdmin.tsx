@@ -4578,7 +4578,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-sm text-zinc-400 mb-2 block">Status Padrão (Webhook)</label>
+                  <label className="text-sm text-amber-400 font-bold mb-2 block">Etiqueta de Entrada do Webhook</label>
                   <select 
                     value={webhookConfig.default_status}
                     onChange={(e) => setWebhookConfig(prev => ({ ...prev, default_status: e.target.value }))}
