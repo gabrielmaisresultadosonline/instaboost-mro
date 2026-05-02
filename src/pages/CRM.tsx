@@ -3082,8 +3082,8 @@ const CRM = () => {
                             </SelectContent>
                           </Select>
                         </div>
-            )}
-          </main>
+                        </div>
+                      )}
                     </div>
                     <DialogFooter className="gap-2">
                       <Button variant="ghost" onClick={() => setIsNewWebhookDialogOpen(false)} className="rounded-2xl h-12 px-6">Cancelar</Button>
@@ -3096,7 +3096,9 @@ const CRM = () => {
                 </Dialog>
               </ScrollArea>
             )}
-        </SidebarInset>
+          </main>
+          <SidebarInset>
+          </SidebarInset>
       </div>
       {isFlowEditorOpen && (
         <FlowEditor 
