@@ -2448,7 +2448,7 @@ const CRM = () => {
                               size="sm" 
                               onClick={handleImprovePrompt}
                               disabled={improvingPrompt}
-                              className="h-7 text-[10px] gap-1.5 bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-700 hover:text-amber-800"
+                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95"
                             >
                               {improvingPrompt ? (
                                 <RefreshCcw className="w-3 h-3 animate-spin" />
