@@ -181,7 +181,7 @@ const CRM = () => {
   const [improvingPrompt, setImprovingPrompt] = useState(false);
   const [webhooks, setWebhooks] = useState<any[]>([]);
   const [isNewWebhookDialogOpen, setIsNewWebhookDialogOpen] = useState(false);
-  const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '', secret_token: '' });
+  const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '', secret_token: '', is_active: true });
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
@@ -433,7 +433,7 @@ const CRM = () => {
       toast({ title: "Webhook criado!" });
       fetchWebhooks();
       setIsNewWebhookDialogOpen(false);
-      setNewWebhook({ name: '', response_type: 'text', template_id: '', secret_token: '' });
+      setNewWebhook({ name: '', response_type: 'text', template_id: '', secret_token: '', is_active: true });
     } catch (err: any) {
       toast({ title: "Erro ao criar", description: err.message, variant: "destructive" });
     } finally {
