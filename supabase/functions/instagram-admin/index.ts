@@ -325,6 +325,7 @@ serve(async (req) => {
           secret_token: config.token,
           default_status: config.default_status || 'pending',
           message_template: config.message_template,
+          metadata: config.kanban_labels || {},
           updated_at: new Date().toISOString()
         })
         .eq("id", webhookId);
