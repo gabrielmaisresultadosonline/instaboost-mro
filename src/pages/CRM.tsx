@@ -1324,6 +1324,59 @@ const CRM = () => {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <Dialog open={isEditStatusDialogOpen} onOpenChange={setIsEditStatusDialogOpen}>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Editar Etiqueta Kanban</DialogTitle>
+                      <DialogDescription>
+                        Altere as informações da etapa do seu funil.
+                      </DialogDescription>
+                    </DialogHeader>
+                    {editingStatus && (
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="edit-status-label">Nome da Etiqueta</Label>
+                          <Input 
+                            id="edit-status-label" 
+                            value={editingStatus.label}
+                            onChange={(e) => setEditingStatus({...editingStatus, label: e.target.value})}
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Cor da Etiqueta</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {['blue', 'yellow', 'purple', 'green', 'red', 'orange', 'indigo', 'pink'].map(color => (
+                              <button
+                                key={color}
+                                type="button"
+                                onClick={() => setEditingStatus({...editingStatus, color})}
+                                className={cn(
+                                  "w-8 h-8 rounded-full border-2 transition-all",
+                                  editingStatus.color === color ? "border-primary scale-110 shadow-md" : "border-transparent opacity-70 hover:opacity-100",
+                                  color === 'blue' && 'bg-blue-500',
+                                  color === 'yellow' && 'bg-yellow-500',
+                                  color === 'purple' && 'bg-purple-500',
+                                  color === 'green' && 'bg-green-500',
+                                  color === 'red' && 'bg-red-500',
+                                  color === 'orange' && 'bg-orange-500',
+                                  color === 'indigo' && 'bg-indigo-500',
+                                  color === 'pink' && 'bg-pink-500'
+                                )}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <DialogFooter>
+                      <Button onClick={handleUpdateStatus} disabled={saving}>
+                        {saving ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        Salvar Alterações
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 <Button variant="outline" size="sm" onClick={() => setIsImportExportOpen(true)}>
                   <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
                 </Button>
