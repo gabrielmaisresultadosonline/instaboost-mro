@@ -182,6 +182,32 @@ serve(async (req) => {
       return respond({ success: true, logs: data ?? [] });
     }
 
+    if (action === "listCrmWebhookLogs") {
+      const { data, error } = await supabase
+        .from("crm_webhook_delivery_logs")
+        .select(`
+          id, 
+          created_at, 
+          to_number, 
+          message, 
+          status, 
+          error_message, 
+          order_id,
+          crm_webhooks (
+            name
+          )
+        `)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        console.error("[instagram-admin] listCrmWebhookLogs error", error);
+        return respond({ success: false, error: "Erro ao carregar histórico do CRM" });
+      }
+
+      return respond({ success: true, logs: data ?? [] });
+    }
+
     if (action === "updateOrderEmail") {
       const orderId = normalizeOrderId(body.orderId);
       const email = normalizeEmail(body.email);
