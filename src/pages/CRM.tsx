@@ -3082,7 +3082,6 @@ const CRM = () => {
                             </SelectContent>
                           </Select>
                         </div>
-                        </div>
                       )}
                     </div>
                     <DialogFooter className="gap-2">
@@ -3097,8 +3096,6 @@ const CRM = () => {
               </ScrollArea>
             )}
           </main>
-          <SidebarInset>
-          </SidebarInset>
       </div>
       {isFlowEditorOpen && (
         <FlowEditor 
