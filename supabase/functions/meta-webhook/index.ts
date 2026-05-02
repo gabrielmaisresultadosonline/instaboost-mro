@@ -328,10 +328,19 @@ ${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
 ${businessHoursInstruction}
 
 TEMPLATES DISPONÍVEIS (IMPORTANTE: Use [SEND_TEMPLATE: nome] em uma linha isolada para enviar um template oficial):
-...
-11. REATIVAÇÃO DE CONTATO: Se um cliente que estava como "lost" (perdido) chamar novamente e demonstrar interesse, você DEVE reavaliar o status e mudá-lo para "warm" ou "hot" usando a tag [SET_STATUS: warm] ou [SET_STATUS: hot]. Não o ignore apenas por estar como "lost".
+${templates?.map(t => `- ${t.name}: ${t.knowledge_description || 'Sem descrição'}`).join('\n')}
+
+STATUS DO CRM (IMPORTANTE: Use [SET_STATUS: status] para qualificar o contato):
+- qualified: Cliente demonstrou interesse real, pediu preços ou links de compra.
+- closed: Cliente confirmou que ACABOU DE COMPRAR ou finalizou o pagamento.
+- lost: Cliente disse explicitamente que não tem interesse no momento.
+- human: Cliente pediu para falar com um atendente humano ou você não sabe responder algo técnico/complexo.
+
+DIRETRIZES DE QUALIFICAÇÃO:
+11. REATIVAÇÃO E COMPRA: Se um cliente que estava como "lost" (perdido) chamar novamente e demonstrar interesse, você DEVE reavaliar o status e mudá-lo para "qualified" usando [SET_STATUS: qualified]. Se ele disser que "acabou de comprar" ou "já paguei", você DEVE mudar para "closed" usando [SET_STATUS: closed] imediatamente.
 12. CONFIRMAÇÃO DE ENVIO: Certifique-se de que cada intenção de envio seja seguida pela tag técnica correspondente. Se você disser "Aqui está o link", a tag [SEND_TEMPLATE: ...] deve vir logo em seguida.
-13. ATENDIMENTO HUMANO: Se você identificar que o cliente precisa de suporte humano urgente ou se você não conseguir resolver a dúvida dele, use a tag [SET_STATUS: human]. Isso moverá o contato para a fila de atendimento prioritário.
+13. ATENDIMENTO HUMANO: Se você identificar que o cliente precisa de suporte humano urgente ou se você não conseguir resolver a dúvida dele, use a tag [SET_STATUS: human]. Isso moverá o contato para a fila de atendimento prioritário (+HUMANO).
+14. ATUALIZAÇÃO EM TEMPO REAL: É mandatório enviar a tag [SET_STATUS: ...] na mesma resposta em que detectar a mudança de intenção do cliente, para garantir que o Kanban atualize em tempo real.
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
@@ -401,6 +410,13 @@ TEMPLATES DISPONÍVEIS (IMPORTANTE: Use [SEND_TEMPLATE: nome] em uma linha isola
                           const newStatus = match[1];
                           console.log(`AI setting status to: ${newStatus}`);
                           await supabase.from('crm_contacts').update({ status: newStatus }).eq('id', contact.id);
+                          
+                          // Increment metrics based on status
+                          if (newStatus === 'qualified') {
+                            await supabase.rpc('increment_crm_metric', { metric_column: 'qualified_count' });
+                          } else if (newStatus === 'closed') {
+                            await supabase.rpc('increment_crm_metric', { metric_column: 'sales_count' });
+                          }
                         }
                         aiText = aiText.replace(/\[SET_STATUS: \w+\]/g, '').trim();
 
