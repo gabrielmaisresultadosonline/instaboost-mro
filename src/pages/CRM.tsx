@@ -2104,18 +2104,20 @@ const CRM = () => {
                                         }}
                                       />
                                     </div>
-                                  <div className="w-px h-4 bg-border" />
-                                  <div className="flex items-center gap-2">
-                                    <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-indigo-500" : "text-muted-foreground")} />
-                                    <span className="text-[11px] font-bold">Estratégias IA</span>
-                                    <Switch 
-                                      checked={selectedContact.ai_strategy_active}
-                                      onCheckedChange={async (val: boolean) => {
-                                        await updateContactStatus(selectedContact.id, { ai_strategy_active: val });
-                                      }}
-                                    />
+                                    <div className="w-px h-4 bg-border" />
+                                    <div className="flex items-center gap-2">
+                                      <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-indigo-500" : "text-muted-foreground")} />
+                                      <span className="text-[11px] font-bold">Estratégias IA</span>
+                                      <Switch 
+                                        checked={selectedContact.ai_strategy_active}
+                                        onCheckedChange={async (val: boolean) => {
+                                          await updateContactStatus(selectedContact.id, { ai_strategy_active: val });
+                                        }}
+                                      />
+                                    </div>
                                   </div>
                                 </div>
+                              </div>
                                 
                                 <Dialog>
                                   <DialogTrigger asChild>
