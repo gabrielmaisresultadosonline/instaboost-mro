@@ -108,7 +108,7 @@ const CRM = () => {
     ai_agent_enabled: false,
     ai_operation_mode: 'chat',
     auto_generate_strategy: false,
-    strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele.',
+    strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho "### Perguntas para Eliminar Dúvidas".',
     ai_system_prompt: 'Você é um assistente de vendas profissional para a empresa Mais Resultados Online. Responda em Português do Brasil.',
     ai_agent_trigger: 'all',
     ai_agent_trigger_keyword: '',
@@ -1755,7 +1755,7 @@ const CRM = () => {
                                   </div>
                                   <div className="w-px h-4 bg-border" />
                                   <div className="flex items-center gap-2">
-                                    <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-purple-500" : "text-muted-foreground")} />
+                                    <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-indigo-500" : "text-muted-foreground")} />
                                     <span className="text-[11px] font-bold">Estratégias IA</span>
                                     <Switch 
                                       checked={selectedContact.ai_strategy_active}
@@ -1768,7 +1768,7 @@ const CRM = () => {
                                 
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
                                       <TrendingUp className="w-3 h-3 mr-1" /> Gerar Estratégia
                                     </Button>
                                   </DialogTrigger>
@@ -1785,42 +1785,70 @@ const CRM = () => {
                                     
                                     <div className="space-y-4 py-4">
                                       {selectedContact.last_ai_strategy ? (
-                                        <div className="bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent border border-purple-200 rounded-2xl p-6 shadow-sm overflow-hidden relative group">
-                                          <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-2">
-                                              <div className="p-2 bg-purple-600 rounded-lg shadow-lg shadow-purple-200">
-                                                <Zap className="w-4 h-4 text-white animate-pulse" />
+                                        <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-800 border border-indigo-400/30 rounded-2xl p-6 shadow-xl overflow-hidden relative group text-white">
+                                          {/* Decorative elements */}
+                                          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+                                          <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-400/10 rounded-full -ml-12 -mb-12 blur-2xl" />
+                                          
+                                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 relative z-10">
+                                            <div className="flex items-center gap-3">
+                                              <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/30">
+                                                <Zap className="w-5 h-5 text-yellow-300 animate-pulse fill-yellow-300" />
                                               </div>
                                               <div>
-                                                <span className="text-[10px] font-black uppercase text-purple-600 tracking-widest block">Inteligência Estratégica</span>
-                                                <span className="text-xs text-purple-900/60">Análise de conversão personalizada</span>
+                                                <span className="text-[10px] font-black uppercase text-indigo-100 tracking-[0.2em] block mb-0.5">Inteligência Estratégica</span>
+                                                <span className="text-sm font-semibold text-white/90">Sugestões de Conversão</span>
                                               </div>
                                             </div>
-                                            <Button 
-                                              variant="outline" 
-                                              size="sm" 
-                                              className="h-8 rounded-lg bg-white border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all shadow-sm"
-                                              onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
-                                            >
-                                              <Copy className="w-3 h-3 mr-2" /> Copiar Tudo
-                                            </Button>
+                                            <div className="flex items-center gap-2">
+                                              <Button 
+                                                variant="secondary" 
+                                                size="sm" 
+                                                className="h-8 rounded-lg bg-white/10 hover:bg-white/20 border-white/20 text-white transition-all shadow-lg backdrop-blur-sm"
+                                                onClick={() => {
+                                                  // Extract questions part
+                                                  const strategy = selectedContact.last_ai_strategy;
+                                                  const questionsMatch = strategy.match(/### Perguntas para Eliminar Dúvidas([\s\S]*?)(?=###|$)/i);
+                                                  if (questionsMatch && questionsMatch[1]) {
+                                                    let questions = questionsMatch[1].trim();
+                                                    // Remove numbering and quotes if they exist
+                                                    questions = questions.replace(/^\d+\.\s*/gm, '').replace(/["']/g, '');
+                                                    copyToClipboard(questions, "Perguntas");
+                                                  } else {
+                                                    copyToClipboard(strategy, "Estratégia");
+                                                  }
+                                                }}
+                                              >
+                                                <Copy className="w-3.5 h-3.5 mr-2" /> Copiar Perguntas
+                                              </Button>
+                                              <Button 
+                                                variant="secondary" 
+                                                size="sm" 
+                                                className="h-8 rounded-lg bg-white text-indigo-700 hover:bg-indigo-50 transition-all shadow-lg font-bold"
+                                                onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
+                                              >
+                                                <Copy className="w-3.5 h-3.5 mr-2" /> Copiar Tudo
+                                              </Button>
+                                            </div>
                                           </div>
                                           
-                                          <div className="relative">
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-600/20 rounded-full" />
-                                            <div className="pl-4 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                              <p className="text-sm text-purple-900 leading-relaxed whitespace-pre-wrap font-medium">
+                                          <div className="relative z-10">
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/20 rounded-full" />
+                                            <div className="pl-5 max-h-[400px] overflow-y-auto custom-scrollbar-white">
+                                              <p className="text-[15px] text-white/95 leading-relaxed whitespace-pre-wrap font-medium selection:bg-white selection:text-indigo-900">
                                                 {selectedContact.last_ai_strategy}
                                               </p>
                                             </div>
                                           </div>
 
-                                          <div className="mt-4 pt-4 border-t border-purple-100 flex items-center justify-between text-[10px] text-purple-600/60 font-bold uppercase tracking-tighter">
-                                            <span>Foco em Conversão</span>
-                                            <div className="flex gap-1">
-                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" />
-                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:0.2s]" />
-                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:0.4s]" />
+                                          <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[10px] text-white/60 font-black uppercase tracking-widest relative z-10">
+                                            <span className="flex items-center gap-1.5">
+                                              <TrendingUp className="w-3 h-3" /> Foco Total em Conversão
+                                            </span>
+                                            <div className="flex gap-1.5">
+                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse [animation-delay:0.2s]" />
+                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse [animation-delay:0.4s]" />
                                             </div>
                                           </div>
                                         </div>
@@ -1839,7 +1867,7 @@ const CRM = () => {
 
                                     <DialogFooter>
                                       <Button 
-                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200"
                                         onClick={async () => {
                                           setSendingMessage(true);
                                           try {
@@ -1889,18 +1917,18 @@ const CRM = () => {
                             ) : (
                               <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full">
                                 {selectedContact?.last_ai_strategy && (
-                                  <div className="flex items-center gap-2 px-3 py-2 bg-purple-500/5 border border-purple-200 rounded-xl animate-in slide-in-from-bottom-2 duration-300">
-                                    <div className="p-1.5 bg-purple-100 rounded-lg shrink-0">
-                                      <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
+                                   <div className="flex items-center gap-2 px-3 py-2 bg-indigo-500/5 border border-indigo-200 rounded-xl animate-in slide-in-from-bottom-2 duration-300">
+                                    <div className="p-1.5 bg-indigo-100 rounded-lg shrink-0">
+                                      <TrendingUp className="w-3.5 h-3.5 text-indigo-600" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-[10px] font-bold text-purple-900 truncate">Sugestão de Estratégia / Pergunta</p>
-                                      <p className="text-[9px] text-purple-600 truncate">{selectedContact.last_ai_strategy}</p>
+                                      <p className="text-[10px] font-bold text-indigo-900 truncate">Sugestão de Estratégia / Pergunta</p>
+                                      <p className="text-[9px] text-indigo-600 truncate">{selectedContact.last_ai_strategy}</p>
                                     </div>
                                     <Button 
                                       variant="ghost" 
                                       size="sm" 
-                                      className="h-6 text-[9px] font-bold text-purple-600 hover:bg-purple-100"
+                                      className="h-6 text-[9px] font-bold text-indigo-600 hover:bg-indigo-100"
                                       onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
                                     >
                                       <Copy className="w-3 h-3 mr-1" /> Copiar
@@ -2296,10 +2324,10 @@ const CRM = () => {
                         </div>
 
                         <div className="space-y-4 pt-4 border-t border-amber-100 dark:border-amber-900/20">
-                          <div className="flex items-center justify-between p-3 bg-purple-500/5 rounded-xl border border-purple-200">
+                          <div className="flex items-center justify-between p-3 bg-indigo-500/5 rounded-xl border border-indigo-200">
                             <div className="space-y-0.5">
                               <Label className="text-xs font-bold flex items-center gap-2">
-                                <TrendingUp className="w-3.5 h-3.5 text-purple-600" /> Auto-Estratégia
+                                <TrendingUp className="w-3.5 h-3.5 text-indigo-600" /> Auto-Estratégia
                               </Label>
                               <p className="text-[10px] text-muted-foreground">Gerar estratégias automáticas.</p>
                             </div>
@@ -2420,7 +2448,7 @@ const CRM = () => {
                               size="sm" 
                               onClick={handleImprovePrompt}
                               disabled={improvingPrompt}
-                              className="h-7 text-[10px] gap-1.5 bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-700 hover:text-amber-800"
+                              className="h-7 text-[10px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 border-indigo-500 text-white shadow-md transition-all active:scale-95"
                             >
                               {improvingPrompt ? (
                                 <RefreshCcw className="w-3 h-3 animate-spin" />
