@@ -2624,6 +2624,16 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               Logs
             </Button>
             <Button
+              onClick={() => setShowCRMWebhookLogs(true)}
+              variant="outline"
+              size="sm"
+              className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
+              title="Ver histórico de envios do CRM"
+            >
+              <FileText className="w-4 h-4 mr-1" />
+              Histórico CRM
+            </Button>
+            <Button
               onClick={() => setShowWebhookSettings(true)}
               variant="outline"
               size="sm"
