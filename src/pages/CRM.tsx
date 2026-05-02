@@ -1785,42 +1785,70 @@ const CRM = () => {
                                     
                                     <div className="space-y-4 py-4">
                                       {selectedContact.last_ai_strategy ? (
-                                        <div className="bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent border border-purple-200 rounded-2xl p-6 shadow-sm overflow-hidden relative group">
-                                          <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-2">
-                                              <div className="p-2 bg-purple-600 rounded-lg shadow-lg shadow-purple-200">
-                                                <Zap className="w-4 h-4 text-white animate-pulse" />
+                                        <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-800 border border-indigo-400/30 rounded-2xl p-6 shadow-xl overflow-hidden relative group text-white">
+                                          {/* Decorative elements */}
+                                          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+                                          <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-400/10 rounded-full -ml-12 -mb-12 blur-2xl" />
+                                          
+                                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 relative z-10">
+                                            <div className="flex items-center gap-3">
+                                              <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/30">
+                                                <Zap className="w-5 h-5 text-yellow-300 animate-pulse fill-yellow-300" />
                                               </div>
                                               <div>
-                                                <span className="text-[10px] font-black uppercase text-purple-600 tracking-widest block">Inteligência Estratégica</span>
-                                                <span className="text-xs text-purple-900/60">Análise de conversão personalizada</span>
+                                                <span className="text-[10px] font-black uppercase text-indigo-100 tracking-[0.2em] block mb-0.5">Inteligência Estratégica</span>
+                                                <span className="text-sm font-semibold text-white/90">Sugestões de Conversão</span>
                                               </div>
                                             </div>
-                                            <Button 
-                                              variant="outline" 
-                                              size="sm" 
-                                              className="h-8 rounded-lg bg-white border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all shadow-sm"
-                                              onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
-                                            >
-                                              <Copy className="w-3 h-3 mr-2" /> Copiar Tudo
-                                            </Button>
+                                            <div className="flex items-center gap-2">
+                                              <Button 
+                                                variant="secondary" 
+                                                size="sm" 
+                                                className="h-8 rounded-lg bg-white/10 hover:bg-white/20 border-white/20 text-white transition-all shadow-lg backdrop-blur-sm"
+                                                onClick={() => {
+                                                  // Extract questions part
+                                                  const strategy = selectedContact.last_ai_strategy;
+                                                  const questionsMatch = strategy.match(/### Perguntas para Eliminar Dúvidas([\s\S]*?)(?=###|$)/i);
+                                                  if (questionsMatch && questionsMatch[1]) {
+                                                    let questions = questionsMatch[1].trim();
+                                                    // Remove numbering and quotes if they exist
+                                                    questions = questions.replace(/^\d+\.\s*/gm, '').replace(/["']/g, '');
+                                                    copyToClipboard(questions, "Perguntas");
+                                                  } else {
+                                                    copyToClipboard(strategy, "Estratégia");
+                                                  }
+                                                }}
+                                              >
+                                                <Copy className="w-3.5 h-3.5 mr-2" /> Copiar Perguntas
+                                              </Button>
+                                              <Button 
+                                                variant="secondary" 
+                                                size="sm" 
+                                                className="h-8 rounded-lg bg-white text-indigo-700 hover:bg-indigo-50 transition-all shadow-lg font-bold"
+                                                onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
+                                              >
+                                                <Copy className="w-3.5 h-3.5 mr-2" /> Copiar Tudo
+                                              </Button>
+                                            </div>
                                           </div>
                                           
-                                          <div className="relative">
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-600/20 rounded-full" />
-                                            <div className="pl-4 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                              <p className="text-sm text-purple-900 leading-relaxed whitespace-pre-wrap font-medium">
+                                          <div className="relative z-10">
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/20 rounded-full" />
+                                            <div className="pl-5 max-h-[400px] overflow-y-auto custom-scrollbar-white">
+                                              <p className="text-[15px] text-white/95 leading-relaxed whitespace-pre-wrap font-medium selection:bg-white selection:text-indigo-900">
                                                 {selectedContact.last_ai_strategy}
                                               </p>
                                             </div>
                                           </div>
 
-                                          <div className="mt-4 pt-4 border-t border-purple-100 flex items-center justify-between text-[10px] text-purple-600/60 font-bold uppercase tracking-tighter">
-                                            <span>Foco em Conversão</span>
-                                            <div className="flex gap-1">
-                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" />
-                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:0.2s]" />
-                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:0.4s]" />
+                                          <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[10px] text-white/60 font-black uppercase tracking-widest relative z-10">
+                                            <span className="flex items-center gap-1.5">
+                                              <TrendingUp className="w-3 h-3" /> Foco Total em Conversão
+                                            </span>
+                                            <div className="flex gap-1.5">
+                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse [animation-delay:0.2s]" />
+                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse [animation-delay:0.4s]" />
                                             </div>
                                           </div>
                                         </div>
