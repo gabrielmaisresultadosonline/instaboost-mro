@@ -2213,17 +2213,14 @@ const CRM = () => {
                                 <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
                               </div>
                             )}
-                            </>
-                          )}
                           </div>
                         </div>
-                      )}
-                    </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
             )}
-
             {activeTab === 'scheduling' && (
               <ScrollArea className="flex-1 p-8 bg-muted/5">
                 <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
