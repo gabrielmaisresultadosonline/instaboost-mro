@@ -365,7 +365,8 @@ serve(async (req) => {
             }
           }
           if (!nextEdge) {
-            nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && e.sourceHandle === 'responded')
+            // Priority 2: Match generic "responded" or the new "any_response" handle
+            nextEdge = flow.edges.find((e: any) => e.source === currentNode.id && (e.sourceHandle === 'responded' || e.sourceHandle === 'any_response'))
           }
 
           // Priority 3: Match standard transition (no handle)

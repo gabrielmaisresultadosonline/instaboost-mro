@@ -173,7 +173,7 @@ const QuestionNode = ({ data }: any) => (
     <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-emerald-500 !border-2 !border-white" />
     <CardHeader className="p-3 bg-emerald-500 text-white rounded-t-lg">
       <CardTitle className="text-xs font-bold flex items-center gap-2">
-        <HelpCircle className="w-3 h-3" /> Pergunta com Botões
+        <HelpCircle className="w-3 !h-3" /> Pergunta com Botões
       </CardTitle>
     </CardHeader>
     <CardContent className="p-3 space-y-3">
@@ -185,11 +185,22 @@ const QuestionNode = ({ data }: any) => (
             <Handle 
               type="source" 
               position={Position.Right} 
-              id={`btn-${idx}`} 
+              id={btn.id || `btn-${idx}`} 
               className="!w-3 !h-3 !bg-emerald-500 !border-2 !border-white !-right-4"
             />
           </div>
         ))}
+        {data.anyResponse && (
+          <div className="relative flex items-center justify-between bg-indigo-50 text-indigo-700 px-3 py-2 rounded border border-indigo-100 text-[10px] font-medium group mt-1">
+            <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Qualquer resposta</span>
+            <Handle 
+              type="source" 
+              position={Position.Right} 
+              id="any_response" 
+              className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !-right-4"
+            />
+          </div>
+        )}
       </div>
     </CardContent>
   </Card>
@@ -248,6 +259,17 @@ const TemplateNode = ({ data }: any) => (
         <p className="text-[9px] text-muted-foreground line-clamp-3 italic bg-slate-50 p-1.5 rounded border border-slate-100">
           "{data.bodyText}"
         </p>
+      )}
+      {data.anyResponse && (
+        <div className="relative flex items-center justify-between bg-indigo-50 text-indigo-700 px-3 py-2 rounded border border-indigo-100 text-[10px] font-medium group mt-1">
+          <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Qualquer resposta</span>
+          <Handle 
+            type="source" 
+            position={Position.Right} 
+            id="any_response" 
+            className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !-right-4"
+          />
+        </div>
       )}
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
@@ -450,7 +472,8 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
       position: centerPosition,
       data: { 
         text: type === 'message' ? 'Olá, como posso ajudar?' : '',
-        buttons: type === 'question' ? [{ text: 'Sim' }, { text: 'Não' }] : [],
+        buttons: type === 'question' ? [{ text: 'Sim', id: 'btn-0' }, { text: 'Não', id: 'btn-1' }] : [],
+        anyResponse: false,
         delay: 5,
         unit: 'segundos',
         timeout: 20,
@@ -628,49 +651,63 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                 )}
 
                 {selectedNode.type === 'question' && (
-                  <div className="space-y-3">
-                    <Label className="text-xs">Botões (Máx 3)</Label>
-                    {(selectedNode.data.buttons as any[]).map((btn, idx) => (
-                      <div key={idx} className="space-y-1 p-2 border rounded-md bg-slate-50/50">
-                        <div className="flex gap-2">
-                          <Input 
-                            value={btn.text} 
-                            onChange={(e) => {
-                              const newButtons = [...(selectedNode.data.buttons as any[])];
-                              newButtons[idx].text = e.target.value;
-                              updateNodeData(selectedNode.id, { buttons: newButtons });
-                            }}
-                            placeholder="Texto do botão"
-                            className="text-xs h-8"
-                          />
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-red-400 shrink-0"
-                            onClick={() => {
-                              const newButtons = (selectedNode.data.buttons as any[]).filter((_, i) => i !== idx);
-                              updateNodeData(selectedNode.id, { buttons: newButtons });
-                            }}
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground italic px-1">Conecte a saída deste botão no mapa para definir a próxima ação.</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-100 shadow-sm">
+                      <div className="space-y-0.5">
+                        <Label className="text-[11px] font-bold text-indigo-700 flex items-center gap-1">
+                          <Zap className="w-3 h-3" /> Qualquer resposta segue?
+                        </Label>
+                        <p className="text-[9px] text-indigo-600/70">Mesmo que não clique no botão, o fluxo continua.</p>
                       </div>
-                    ))}
-                    {(selectedNode.data.buttons as any[]).length < 3 && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full text-xs h-8" 
-                        onClick={() => {
-                          const newButtons = [...(selectedNode.data.buttons as any[]), { text: 'Novo Botão' }];
-                          updateNodeData(selectedNode.id, { buttons: newButtons });
-                        }}
-                      >
-                        <Plus className="w-3 h-3 mr-1" /> Add Botão
-                      </Button>
-                    )}
+                      <Switch 
+                        checked={selectedNode.data.anyResponse as boolean}
+                        onCheckedChange={(checked) => updateNodeData(selectedNode.id, { anyResponse: checked })}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-xs">Botões (Máx 3)</Label>
+                      {(selectedNode.data.buttons as any[]).map((btn, idx) => (
+                        <div key={idx} className="space-y-1 p-2 border rounded-md bg-slate-50/50">
+                          <div className="flex gap-2">
+                            <Input 
+                              value={btn.text} 
+                              onChange={(e) => {
+                                const newButtons = [...(selectedNode.data.buttons as any[])];
+                                newButtons[idx].text = e.target.value;
+                                updateNodeData(selectedNode.id, { buttons: newButtons });
+                              }}
+                              placeholder="Texto do botão"
+                              className="text-xs h-8"
+                            />
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-red-400 shrink-0"
+                              onClick={() => {
+                                const newButtons = (selectedNode.data.buttons as any[]).filter((_, i) => i !== idx);
+                                updateNodeData(selectedNode.id, { buttons: newButtons });
+                              }}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {(selectedNode.data.buttons as any[]).length < 3 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-xs h-8" 
+                          onClick={() => {
+                            const newButtons = [...(selectedNode.data.buttons as any[]), { text: 'Novo Botão', id: `btn-${Date.now()}` }];
+                            updateNodeData(selectedNode.id, { buttons: newButtons });
+                          }}
+                        >
+                          <Plus className="w-3 h-3 mr-1" /> Add Botão
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -867,6 +904,19 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                 )}
                 {selectedNode.type === 'template' && (
                   <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-100 shadow-sm">
+                      <div className="space-y-0.5">
+                        <Label className="text-[11px] font-bold text-indigo-700 flex items-center gap-1">
+                          <Zap className="w-3 h-3" /> Qualquer resposta segue?
+                        </Label>
+                        <p className="text-[9px] text-indigo-600/70">Mesmo que não clique no botão, o fluxo continua.</p>
+                      </div>
+                      <Switch 
+                        checked={selectedNode.data.anyResponse as boolean}
+                        onCheckedChange={(checked) => updateNodeData(selectedNode.id, { anyResponse: checked })}
+                      />
+                    </div>
+
                     <div className="space-y-2">
                       <Label className="text-xs">Escolher Template</Label>
                       <Select 
