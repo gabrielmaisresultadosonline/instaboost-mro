@@ -189,6 +189,8 @@ const CRM = () => {
   // States for custom statuses
   const [kanbanStatuses, setKanbanStatuses] = useState<any[]>([]);
   const [isNewStatusDialogOpen, setIsNewStatusDialogOpen] = useState(false);
+  const [isEditStatusDialogOpen, setIsEditStatusDialogOpen] = useState(false);
+  const [editingStatus, setEditingStatus] = useState<any>(null);
   const [newStatusData, setNewStatusData] = useState({ label: '', color: 'blue', value: '' });
 
   useEffect(() => {
