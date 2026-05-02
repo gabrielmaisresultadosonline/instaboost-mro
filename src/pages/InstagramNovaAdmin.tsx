@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -120,7 +121,28 @@ export default function InstagramNovaAdmin() {
   const [webhookConfig, setWebhookConfig] = useState({
     enabled: true,
     webhook_id: "0c578c9d-4e33-48be-91dd-63f98d7ff430",
-    token: "qnf3vbusrbs105v96afj2r8"
+    token: "qnf3vbusrbs105v96afj2r8",
+    message_template: `Obrigado por fazer parte do nosso sistema!✅
+
+🚀🔥 *Ferramenta para Instagram Vip acesso!*
+
+Preciso que assista os vídeos da área de membros com o link abaixo:
+
+( {member_link} ) 
+
+1 - Acesse Área Membros
+
+2 - Acesse ferramenta para instagram
+
+Para acessar a ferramenta e área de membros, utilize os acessos:
+
+*usuário:* {username}
+*senha:* {username}
+
+⚠ Assista todos os vídeos, por favor!
+
+Participe também do nosso GRUPO DE AVISOS
+{group_link}`
   });
   const [showWebhookSettings, setShowWebhookSettings] = useState(false);
 
@@ -1009,6 +1031,15 @@ export default function InstagramNovaAdmin() {
   };
 
   // Enviar para o CRM Webhook
+  const formatWebhookMessage = (template: string, order: MROOrder) => {
+    return template
+      .replace(/{username}/g, order.username)
+      .replace(/{member_link}/g, MEMBER_LINK)
+      .replace(/{group_link}/g, GROUP_LINK)
+      .replace(/{email}/g, order.email)
+      .replace(/{order_id}/g, order.id);
+  };
+
   const sendToCRMWebhook = async (order: MROOrder, isTest = false) => {
     if (!webhookConfig.enabled && !isTest) return;
     if (!webhookConfig.webhook_id || !webhookConfig.token) {
@@ -1032,27 +1063,7 @@ export default function InstagramNovaAdmin() {
       // Extrair o nome limpo do usuário (remover se for afiliado)
       let cleanName = order.username;
       
-      const messageText = `Obrigado por fazer parte do nosso sistema!✅
-
-🚀🔥 *Ferramenta para Instagram Vip acesso!*
-
-Preciso que assista os vídeos da área de membros com o link abaixo:
-
-( ${MEMBER_LINK} ) 
-
-1 - Acesse Área Membros
-
-2 - Acesse ferramenta para instagram
-
-Para acessar a ferramenta e área de membros, utilize os acessos:
-
-*usuário:* ${order.username}
-*senha:* ${order.username}
-
-⚠ Assista todos os vídeos, por favor!
-
-Participe também do nosso GRUPO DE AVISOS
-${GROUP_LINK}`;
+      const messageText = formatWebhookMessage(webhookConfig.message_template, order);
 
       const response = await fetch("https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/crm-webhook", {
         method: "POST",
@@ -1126,29 +1137,7 @@ ${GROUP_LINK}`;
   };
 
   const generateCopyMessage = (order: MROOrder) => {
-    return `Obrigado por fazer parte do nosso sistema!✅
-
-🚀🔥 *Ferramenta para Instagram Vip acesso!*
-
-Preciso que assista os vídeos da área de membros com o link abaixo:
-
-( ${MEMBER_LINK} ) 
-
-1 - Acesse Área Membros
-
-2 - Acesse ferramenta para instagram
-
-Para acessar a ferramenta e área de membros, utilize os acessos:
-
-*usuário:* ${order.username}
-
-*senha:* ${order.username}
-
-⚠ Assista todos os vídeos, por favor!
-
-Participe também do nosso GRUPO DE AVISOS
-
-${GROUP_LINK}`;
+    return formatWebhookMessage(webhookConfig.message_template, order);
   };
 
   const copyToClipboard = async (order: MROOrder) => {
@@ -4443,7 +4432,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 overflow-y-auto max-h-[60vh] px-1">
             <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-white">Status do Webhook</p>
@@ -4456,30 +4445,53 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="text-sm text-zinc-400 mb-2 block">ID do Webhook</label>
-                <Input 
-                  value={webhookConfig.webhook_id}
-                  onChange={(e) => setWebhookConfig(prev => ({ ...prev, webhook_id: e.target.value }))}
-                  placeholder="ID do seu Webhook"
-                  className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-zinc-400 mb-2 block">ID do Webhook</label>
+                  <Input 
+                    value={webhookConfig.webhook_id}
+                    onChange={(e) => setWebhookConfig(prev => ({ ...prev, webhook_id: e.target.value }))}
+                    placeholder="ID do seu Webhook"
+                    className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-zinc-400 mb-2 block">Token de Acesso</label>
+                  <Input 
+                    value={webhookConfig.token}
+                    onChange={(e) => setWebhookConfig(prev => ({ ...prev, token: e.target.value }))}
+                    placeholder="Token do seu Webhook"
+                    type="password"
+                    className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
+                  />
+                </div>
               </div>
+
               <div>
-                <label className="text-sm text-zinc-400 mb-2 block">Token de Acesso</label>
-                <Input 
-                  value={webhookConfig.token}
-                  onChange={(e) => setWebhookConfig(prev => ({ ...prev, token: e.target.value }))}
-                  placeholder="Token do seu Webhook"
-                  type="password"
-                  className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm text-zinc-400 block">Template da Mensagem (Etiqueta)</label>
+                  <Badge variant="outline" className="text-[10px] bg-zinc-800 border-zinc-700 text-cyan-400">WhatsApp</Badge>
+                </div>
+                <Textarea 
+                  value={webhookConfig.message_template}
+                  onChange={(e) => setWebhookConfig(prev => ({ ...prev, message_template: e.target.value }))}
+                  placeholder="Escreva a mensagem aqui..."
+                  className="bg-zinc-800/50 border-zinc-600 text-sm min-h-[200px] leading-relaxed resize-none"
                 />
+                <div className="mt-2 p-2 bg-zinc-800/30 rounded border border-zinc-700/50">
+                  <p className="text-[10px] text-zinc-500 font-medium mb-1 uppercase tracking-wider">Variáveis Disponíveis:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['{username}', '{email}', '{member_link}', '{group_link}'].map(v => (
+                      <code key={v} className="text-[10px] text-cyan-500/80 bg-cyan-500/5 px-1 rounded">{v}</code>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
               <p className="text-xs text-blue-300 leading-relaxed">
-                <strong>Dica:</strong> Quando ativo, o sistema enviará automaticamente os dados de acesso via WhatsApp para o cliente assim que o pagamento for aprovado (automática ou manualmente).
+                <strong>Dica:</strong> Quando ativo, o sistema enviará automaticamente a mensagem acima via WhatsApp assim que o acesso for aprovado.
               </p>
             </div>
           </div>
