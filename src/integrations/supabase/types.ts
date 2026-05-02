@@ -1240,6 +1240,7 @@ export type Database = {
       crm_webhooks: {
         Row: {
           created_at: string
+          default_status: string
           id: string
           is_active: boolean
           last_used_at: string | null
@@ -1251,6 +1252,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          default_status?: string
           id?: string
           is_active?: boolean
           last_used_at?: string | null
@@ -1262,6 +1264,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          default_status?: string
           id?: string
           is_active?: boolean
           last_used_at?: string | null
