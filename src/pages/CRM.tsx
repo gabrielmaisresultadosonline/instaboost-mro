@@ -3867,8 +3867,8 @@ const CRM = () => {
                   <SelectItem value="template">Template</SelectItem>
                   <SelectItem value="flow">Fluxo</SelectItem>
                 </SelectContent>
-                              </Select>
-                            </div>
+              </Select>
+            </div>
 
 
             {scheduleType === 'message' && (
