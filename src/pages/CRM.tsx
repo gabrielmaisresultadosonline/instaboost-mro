@@ -174,6 +174,7 @@ const CRM = () => {
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
   const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
+  const [improvingPrompt, setImprovingPrompt] = useState(false);
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
