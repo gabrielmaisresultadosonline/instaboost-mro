@@ -2324,10 +2324,10 @@ const CRM = () => {
                         </div>
 
                         <div className="space-y-4 pt-4 border-t border-amber-100 dark:border-amber-900/20">
-                          <div className="flex items-center justify-between p-3 bg-purple-500/5 rounded-xl border border-purple-200">
+                          <div className="flex items-center justify-between p-3 bg-indigo-500/5 rounded-xl border border-indigo-200">
                             <div className="space-y-0.5">
                               <Label className="text-xs font-bold flex items-center gap-2">
-                                <TrendingUp className="w-3.5 h-3.5 text-purple-600" /> Auto-Estratégia
+                                <TrendingUp className="w-3.5 h-3.5 text-indigo-600" /> Auto-Estratégia
                               </Label>
                               <p className="text-[10px] text-muted-foreground">Gerar estratégias automáticas.</p>
                             </div>
