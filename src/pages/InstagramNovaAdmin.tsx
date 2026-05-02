@@ -701,6 +701,7 @@ Participe também do nosso GRUPO DE AVISOS
       setAdminSessionToken(storedToken);
       setIsAuthenticated(true);
       loadOrders(storedToken);
+      loadWebhookConfig();
     } else {
       localStorage.removeItem("mro_admin_auth");
     }
