@@ -2556,6 +2556,20 @@ const CRM = () => {
                                     <img src={header.example.header_handle[0]} alt="Header" className="w-full h-full object-cover" />
                                   </div>
                                 )}
+                                {carouselComp && carouselComp.cards && (
+                                  <div className="mb-3 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                    {carouselComp.cards.map((card: any, cIdx: number) => {
+                                      const cardHeader = card.components?.find((c: any) => c.type === 'HEADER');
+                                      return (
+                                        <div key={cIdx} className="min-w-[120px] aspect-square rounded-lg bg-muted overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                                          {cardHeader?.example?.header_handle?.[0] && (
+                                            <img src={cardHeader.example.header_handle[0]} className="w-full h-full object-cover" />
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                                 <div className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300 italic line-clamp-4">
                                   "{body?.text}"
                                 </div>
