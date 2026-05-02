@@ -174,6 +174,7 @@ const CRM = () => {
   const [selectedScheduleId, setSelectedScheduleId] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
   const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
+  const [improvingPrompt, setImprovingPrompt] = useState(false);
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
@@ -304,6 +305,30 @@ const CRM = () => {
       toast({ title: "Erro ao salvar", variant: "destructive" });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleImprovePrompt = async () => {
+    if (!metaSettings.ai_system_prompt?.trim() || improvingPrompt) {
+      toast({ title: "Aviso", description: "Escreva algo no prompt primeiro para que eu possa melhorar." });
+      return;
+    }
+    
+    setImprovingPrompt(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-whatsapp-crm', {
+        body: { action: 'improvePrompt', prompt: metaSettings.ai_system_prompt }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || "Erro ao melhorar prompt");
+
+      setMetaSettings(prev => ({ ...prev, ai_system_prompt: data.improvedPrompt }));
+      toast({ title: "Prompt melhorado!", description: "A I.A. refinou suas instruções com sucesso." });
+    } catch (err: any) {
+      toast({ title: "Erro ao melhorar prompt", description: err.message, variant: "destructive" });
+    } finally {
+      setImprovingPrompt(false);
     }
   };
 
@@ -2271,7 +2296,23 @@ const CRM = () => {
                       </CardHeader>
                       <CardContent className="p-6 space-y-4">
                         <div className="space-y-2">
-                          <Label className="text-sm font-bold">Prompt do System</Label>
+                          <div className="flex justify-between items-center">
+                            <Label className="text-sm font-bold">Prompt do System</Label>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={handleImprovePrompt}
+                              disabled={improvingPrompt}
+                              className="h-7 text-[10px] gap-1.5 bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-700 hover:text-amber-800"
+                            >
+                              {improvingPrompt ? (
+                                <RefreshCcw className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Zap className="w-3 h-3 fill-amber-500 text-amber-500" />
+                              )}
+                              Melhorar Prompt com I.A
+                            </Button>
+                          </div>
                           <Textarea 
                             rows={10}
                             className="resize-none font-mono text-xs leading-relaxed"

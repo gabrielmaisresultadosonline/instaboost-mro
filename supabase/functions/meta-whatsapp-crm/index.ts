@@ -401,6 +401,49 @@ serve(async (req) => {
     }
 
 
+    if (action === 'improvePrompt') {
+      const { prompt } = params;
+      const openaiApiKey = settings.openai_api_key;
+      
+      if (!openaiApiKey) {
+        throw new Error('Chave da OpenAI não configurada nas definições do CRM');
+      }
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um especialista em engenharia de prompt para agentes de atendimento e vendas via WhatsApp. Sua tarefa é pegar um prompt rascunhado pelo usuário e transformá-lo em um prompt profissional, assertivo e funcional. Corrija erros de português, melhore a clareza, adicione estrutura se necessário e destaque pontos cruciais para o bom atendimento. Mantenha o objetivo original do prompt, mas eleve a qualidade para um nível sênior. Responda APENAS com o novo texto do prompt.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`OpenAI error: ${error.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      const improvedPrompt = data.choices[0].message.content.trim();
+
+      return new Response(JSON.stringify({ success: true, improvedPrompt }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (action === 'processScheduled') {
       const now = new Date().toISOString()
       console.log(`Checking for scheduled messages at ${now}...`);
