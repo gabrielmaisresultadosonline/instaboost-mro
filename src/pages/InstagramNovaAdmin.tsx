@@ -387,6 +387,38 @@ Participe também do nosso GRUPO DE AVISOS
     };
   }, [showCRMWebhookLogs]);
 
+  const loadWebhookConfig = async () => {
+    const token = getAdminSessionToken();
+    if (!token) return;
+
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "getCrmWebhook", token }
+      });
+
+      if (!error && response?.success && response.config) {
+        const config = response.config;
+        setWebhookConfig({
+          enabled: config.is_active,
+          webhook_id: config.id,
+          token: config.secret_token,
+          default_status: config.default_status || "pending",
+          message_template: config.message_template || webhookConfig.message_template
+        });
+        
+        if (config.metadata && typeof config.metadata === 'object') {
+          setKanbanLabels(prev => ({
+            ...prev,
+            ...config.metadata
+          }));
+        }
+        console.log("Loaded webhook config:", config);
+      }
+    } catch (error) {
+      console.error("Error loading webhook config:", error);
+    }
+  };
+
   const saveWebhookConfigToDB = async () => {
     const token = getAdminSessionToken();
     if (!token) return;
@@ -398,7 +430,10 @@ Participe também do nosso GRUPO DE AVISOS
           action: "updateCrmWebhook", 
           token,
           webhookId: webhookConfig.webhook_id,
-          config: webhookConfig
+          config: {
+            ...webhookConfig,
+            kanban_labels: kanbanLabels
+          }
         }
       });
 
@@ -407,6 +442,8 @@ Participe também do nosso GRUPO DE AVISOS
       }
 
       toast.success("Configurações salvas permanentemente!");
+      // Recarregar após salvar para garantir sincronia
+      loadWebhookConfig();
     } catch (error) {
       console.error("Error saving webhook config:", error);
       toast.error("Salvo localmente, mas houve erro ao sincronizar com a nuvem");
@@ -674,6 +711,7 @@ Participe também do nosso GRUPO DE AVISOS
       setAdminSessionToken(storedToken);
       setIsAuthenticated(true);
       loadOrders(storedToken);
+      loadWebhookConfig();
     } else {
       localStorage.removeItem("mro_admin_auth");
     }
@@ -779,6 +817,7 @@ Participe também do nosso GRUPO DE AVISOS
       setAdminSessionToken(response.token);
       setIsAuthenticated(true);
       await loadOrders(response.token);
+      loadWebhookConfig();
       toast.success("Login realizado com sucesso!");
     } catch (error) {
       console.error("Admin login error:", error);
@@ -2700,16 +2739,6 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <FileText className="w-4 h-4 mr-1" />
               Histórico WhatsApp
             </Button>
-            <Button
-              onClick={() => setShowWebhookSettings(true)}
-              variant="outline"
-              size="sm"
-              className={`border-amber-500/50 ${webhookConfig.enabled ? "text-amber-400 bg-amber-500/5" : "text-zinc-500"}`}
-              title="Configurar Webhook do CRM"
-            >
-              <Settings className="w-4 h-4 mr-1" />
-              Editor Etapa Kanban
-            </Button>
           </div>
           <div className="flex gap-2">
             <Button
@@ -4023,6 +4052,25 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           </div>
         </div>
 
+        {/* Botão de Configurações Webhook / Kanban mais visível */}
+        <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500 rounded-lg shadow-lg shadow-amber-500/20">
+              <Settings className="w-6 h-6 text-black" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white leading-tight">Gestão de Etiquetas e Webhook</h2>
+              <p className="text-zinc-400 text-sm">Configure o status inicial e nomes das etapas do Kanban.</p>
+            </div>
+          </div>
+          <Button
+            onClick={() => setShowWebhookSettings(true)}
+            className="bg-amber-500 hover:bg-amber-600 text-black font-black px-6 h-12 rounded-lg shadow-xl shadow-amber-500/20 transition-all hover:scale-105"
+          >
+            ABRIR EDITOR DE ETAPAS KANBAN
+          </Button>
+        </div>
+
         {/* Orders List - Collapsible Sections */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -4540,7 +4588,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-sm text-zinc-400 mb-2 block">Status Padrão (Webhook)</label>
+                  <label className="text-sm text-amber-400 font-bold mb-2 block">Etiqueta de Entrada do Webhook</label>
                   <select 
                     value={webhookConfig.default_status}
                     onChange={(e) => setWebhookConfig(prev => ({ ...prev, default_status: e.target.value }))}

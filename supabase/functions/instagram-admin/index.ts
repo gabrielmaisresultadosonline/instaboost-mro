@@ -325,6 +325,7 @@ serve(async (req) => {
           secret_token: config.token,
           default_status: config.default_status || 'pending',
           message_template: config.message_template,
+          metadata: config.kanban_labels || {},
           updated_at: new Date().toISOString()
         })
         .eq("id", webhookId);
@@ -335,6 +336,21 @@ serve(async (req) => {
       }
 
       return respond({ success: true });
+    }
+
+    if (action === "getCrmWebhook") {
+      const { data, error } = await supabase
+        .from("crm_webhooks")
+        .select("*")
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error("[instagram-admin] getCrmWebhook error", error);
+        return respond({ success: false, error: "Erro ao carregar webhook" });
+      }
+
+      return respond({ success: true, config: data });
     }
 
     return respond({ success: false, error: "Ação inválida" });
