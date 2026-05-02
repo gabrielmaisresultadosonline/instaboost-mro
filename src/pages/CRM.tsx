@@ -2083,270 +2083,143 @@ const CRM = () => {
                           </ScrollArea>
                           
                           <div className="p-4 bg-card border-t shadow-lg z-10 space-y-3">
-                            {selectedContact && (
-                              <div className="flex items-center justify-between px-2 py-1 bg-muted/20 rounded-lg border border-border/50">
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center gap-2">
-                                    <Bot className={cn("w-4 h-4", selectedContact.ai_active ? "text-primary" : "text-muted-foreground")} />
-                                    <span className="text-[11px] font-bold">Assistente IA</span>
-                                    <Switch 
-                                      checked={selectedContact.ai_active}
-                                      onCheckedChange={async (val: boolean) => {
-                                        await updateContactStatus(selectedContact.id, { ai_active: val });
-                                      }}
-                                    />
-                                  </div>
-                                  <div className="w-px h-4 bg-border" />
-                                  <div className="flex items-center gap-2">
-                                    <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-indigo-500" : "text-muted-foreground")} />
-                                    <span className="text-[11px] font-bold">Estratégias IA</span>
-                                    <Switch 
-                                      checked={selectedContact.ai_strategy_active}
-                                      onCheckedChange={async (val: boolean) => {
-                                        await updateContactStatus(selectedContact.id, { ai_strategy_active: val });
-                                      }}
-                                    />
+                            {selectedContact ? (
+                              <>
+                                <div className="flex flex-col gap-2 p-3 bg-muted/20 rounded-xl border border-border/50">
+                                  {!metaSettings.ai_agent_enabled && (
+                                    <div className="flex items-center gap-2 px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-lg mb-1">
+                                      <AlertCircle className="w-3 h-3 text-yellow-500" />
+                                      <span className="text-[9px] font-bold text-yellow-600 uppercase">Atenção: Robô Desativado Geral</span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <div className="flex items-center gap-2">
+                                        <Bot className={cn("w-4 h-4", selectedContact.ai_active && metaSettings.ai_agent_enabled ? "text-primary" : "text-muted-foreground")} />
+                                        <span className="text-[11px] font-bold">Assistente IA</span>
+                                        <Switch 
+                                          checked={selectedContact.ai_active}
+                                          disabled={!metaSettings.ai_agent_enabled}
+                                          onCheckedChange={async (val: boolean) => {
+                                            await updateContactStatus(selectedContact.id, { ai_active: val });
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="w-px h-4 bg-border" />
+                                      <div className="flex items-center gap-2">
+                                        <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-indigo-500" : "text-muted-foreground")} />
+                                        <span className="text-[11px] font-bold">Estratégias IA</span>
+                                        <Switch 
+                                          checked={selectedContact.ai_strategy_active}
+                                          onCheckedChange={async (val: boolean) => {
+                                            await updateContactStatus(selectedContact.id, { ai_strategy_active: val });
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                                          <TrendingUp className="w-3 h-3 mr-1" /> Gerar Estratégia
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent className="sm:max-w-[500px]">
+                                        <DialogHeader>
+                                          <DialogTitle className="flex items-center gap-2">
+                                            <TrendingUp className="w-5 h-5 text-purple-600" />
+                                            Análise Estratégica de Vendas
+                                          </DialogTitle>
+                                          <DialogDescription>
+                                            A IA analisará todo o histórico com <strong>{selectedContact.name || selectedContact.wa_id}</strong> para gerar gatilhos e estratégias de fechamento.
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-4 py-4">
+                                          {selectedContact.last_ai_strategy ? (
+                                            <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-800 border border-indigo-400/30 rounded-2xl p-6 shadow-xl overflow-hidden relative group text-white">
+                                              <div className="relative z-10">
+                                                <p className="text-[15px] text-white/95 leading-relaxed whitespace-pre-wrap font-medium">
+                                                  {selectedContact.last_ai_strategy}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="text-center py-12 bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex flex-col items-center gap-3">
+                                              <TrendingUp className="w-6 h-6" />
+                                              <p className="font-bold text-muted-foreground">Nenhuma estratégia gerada</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <DialogFooter>
+                                          <Button 
+                                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            onClick={async () => {
+                                              setSendingMessage(true);
+                                              try {
+                                                const { data, error } = await supabase.functions.invoke('generate-strategy', {
+                                                  body: { contactId: selectedContact.id }
+                                                });
+                                                if (error) throw error;
+                                                toast({ title: "Estratégia gerada com sucesso!" });
+                                                setSelectedContact((prev: any) => ({ ...prev, last_ai_strategy: data.strategy }));
+                                              } catch (err: any) {
+                                                toast({ title: "Erro ao gerar", description: err.message, variant: "destructive" });
+                                              } finally {
+                                                setSendingMessage(false);
+                                              }
+                                            }}
+                                            disabled={sendingMessage}
+                                          >
+                                            Gerar Estratégia
+                                          </Button>
+                                        </DialogFooter>
+                                      </DialogContent>
+                                    </Dialog>
                                   </div>
                                 </div>
-                                
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                                      <TrendingUp className="w-3 h-3 mr-1" /> Gerar Estratégia
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="sm:max-w-[500px]">
-                                    <DialogHeader>
-                                      <DialogTitle className="flex items-center gap-2">
-                                        <TrendingUp className="w-5 h-5 text-purple-600" />
-                                        Análise Estratégica de Vendas
-                                      </DialogTitle>
-                                      <DialogDescription>
-                                        A IA analisará todo o histórico com <strong>{selectedContact.name || selectedContact.wa_id}</strong> para gerar gatilhos e estratégias de fechamento.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    
-                                    <div className="space-y-4 py-4">
-                                      {selectedContact.last_ai_strategy ? (
-                                        <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-800 border border-indigo-400/30 rounded-2xl p-6 shadow-xl overflow-hidden relative group text-white">
-                                          {/* Decorative elements */}
-                                          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl" />
-                                          <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-400/10 rounded-full -ml-12 -mb-12 blur-2xl" />
-                                          
-                                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 relative z-10">
-                                            <div className="flex items-center gap-3">
-                                              <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/30">
-                                                <Zap className="w-5 h-5 text-yellow-300 animate-pulse fill-yellow-300" />
-                                              </div>
-                                              <div>
-                                                <span className="text-[10px] font-black uppercase text-indigo-100 tracking-[0.2em] block mb-0.5">Inteligência Estratégica</span>
-                                                <span className="text-sm font-semibold text-white/90">Sugestões de Conversão</span>
-                                              </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                              <Button 
-                                                variant="secondary" 
-                                                size="sm" 
-                                                className="h-8 rounded-lg bg-white/10 hover:bg-white/20 border-white/20 text-white transition-all shadow-lg backdrop-blur-sm"
-                                                onClick={() => {
-                                                  // Extract questions part
-                                                  const strategy = selectedContact.last_ai_strategy;
-                                                  const questionsMatch = strategy.match(/### Perguntas para Eliminar Dúvidas([\s\S]*?)(?=###|$)/i);
-                                                  if (questionsMatch && questionsMatch[1]) {
-                                                    let questions = questionsMatch[1].trim();
-                                                    // Remove numbering and quotes if they exist
-                                                    questions = questions.replace(/^\d+\.\s*/gm, '').replace(/["']/g, '');
-                                                    copyToClipboard(questions, "Perguntas");
-                                                  } else {
-                                                    copyToClipboard(strategy, "Estratégia");
-                                                  }
-                                                }}
-                                              >
-                                                <Copy className="w-3.5 h-3.5 mr-2" /> Copiar Perguntas
-                                              </Button>
-                                              <Button 
-                                                variant="secondary" 
-                                                size="sm" 
-                                                className="h-8 rounded-lg bg-white text-indigo-700 hover:bg-indigo-50 transition-all shadow-lg font-bold"
-                                                onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
-                                              >
-                                                <Copy className="w-3.5 h-3.5 mr-2" /> Copiar Tudo
-                                              </Button>
-                                            </div>
-                                          </div>
-                                          
-                                          <div className="relative z-10">
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/20 rounded-full" />
-                                            <div className="pl-5 max-h-[400px] overflow-y-auto custom-scrollbar-white">
-                                              <p className="text-[15px] text-white/95 leading-relaxed whitespace-pre-wrap font-medium selection:bg-white selection:text-indigo-900">
-                                                {selectedContact.last_ai_strategy}
-                                              </p>
-                                            </div>
-                                          </div>
-
-                                          <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[10px] text-white/60 font-black uppercase tracking-widest relative z-10">
-                                            <span className="flex items-center gap-1.5">
-                                              <TrendingUp className="w-3 h-3" /> Foco Total em Conversão
-                                            </span>
-                                            <div className="flex gap-1.5">
-                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse [animation-delay:0.2s]" />
-                                              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse [animation-delay:0.4s]" />
-                                            </div>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div className="text-center py-12 bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex flex-col items-center gap-3">
-                                          <div className="p-3 bg-muted rounded-full text-muted-foreground">
-                                            <TrendingUp className="w-6 h-6" />
-                                          </div>
-                                          <div className="space-y-1">
-                                            <p className="font-bold text-muted-foreground">Nenhuma estratégia gerada</p>
-                                            <p className="text-xs text-muted-foreground/60 max-w-[200px]">Clique no botão abaixo para que a IA analise este contato.</p>
-                                          </div>
-                                        </div>
-                                      )}
+                                {isPreviewingAudio && recordedAudioUrl ? (
+                                  <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                                    <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
+                                    <div className="flex gap-2">
+                                      <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive"><XCircle className="w-5 h-5" /></Button>
+                                      <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 text-white"><Send className="w-5 h-5" /></Button>
                                     </div>
-
-                                    <DialogFooter>
-                                      <Button 
-                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200"
-                                        onClick={async () => {
-                                          setSendingMessage(true);
-                                          try {
-                                            const { data, error } = await supabase.functions.invoke('generate-strategy', {
-                                              body: { contactId: selectedContact.id }
-                                            });
-                                            if (error) throw error;
-                                            toast({ title: "Estratégia gerada com sucesso!" });
-                                            // Atualiza o contato localmente para mostrar a nova estratégia
-                                            setSelectedContact((prev: any) => ({ 
-                                              ...prev, 
-                                              last_ai_strategy: data.strategy 
-                                            }));
-                                          } catch (err: any) {
-                                            toast({ title: "Erro ao gerar estratégia", description: err.message, variant: "destructive" });
-                                          } finally {
-                                            setSendingMessage(false);
-                                          }
-                                        }}
-                                        disabled={sendingMessage}
-                                      >
-                                        {sendingMessage ? (
-                                          <><RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> Analisando Histórico...</>
-                                        ) : (
-                                          <><Zap className="w-4 h-4 mr-2" /> Gerar Nova Estratégia Agora</>
-                                        )}
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full">
+                                    <div className="flex items-center gap-1.5 sm:gap-2 w-full">
+                                      <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground"><ImageIcon className="w-5 h-5" /></Button>
+                                      <Input 
+                                        placeholder="Mensagem..." 
+                                        value={newMessage} 
+                                        onChange={e => setNewMessage(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                                        className="bg-muted/50 border-none flex-1"
+                                      />
+                                      <Button size="icon" onClick={handleSendMessage} disabled={!newMessage.trim() || sendingMessage}>
+                                        <Send className="w-4 h-4" />
                                       </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                              </div>
-                            )}
-
-                            {isPreviewingAudio && recordedAudioUrl ? (
-                              <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20 animate-in slide-in-from-bottom-2 duration-300">
-                                <div className="flex-1 flex items-center gap-3">
-                                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 h-8">
-                                    <Mic className="w-3 h-3 mr-1.5 animate-pulse" /> Audio Gravado
-                                  </Badge>
-                                  <audio src={recordedAudioUrl} controls className="h-8 flex-1" />
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button variant="ghost" size="icon" onClick={cancelAudioPreview} className="text-destructive hover:bg-destructive/10"><XCircle className="w-5 h-5" /></Button>
-                                  <Button size="icon" onClick={sendRecordedAudio} className="bg-green-600 hover:bg-green-700 text-white"><Send className="w-5 h-5" /></Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col gap-2 max-w-5xl mx-auto w-full">
-                                {selectedContact?.last_ai_strategy && (
-                                   <div className="flex items-center gap-2 px-3 py-2 bg-indigo-500/5 border border-indigo-200 rounded-xl animate-in slide-in-from-bottom-2 duration-300">
-                                    <div className="p-1.5 bg-indigo-100 rounded-lg shrink-0">
-                                      <TrendingUp className="w-3.5 h-3.5 text-indigo-600" />
+                                      <Button size="icon" variant={isRecording ? 'destructive' : 'ghost'} onClick={isRecording ? stopRecording : startRecording}>
+                                        {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                                      </Button>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-[10px] font-bold text-indigo-900 truncate">Sugestão de Estratégia / Pergunta</p>
-                                      <p className="text-[9px] text-indigo-600 truncate">{selectedContact.last_ai_strategy}</p>
-                                    </div>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm" 
-                                      className="h-6 text-[9px] font-bold text-indigo-600 hover:bg-indigo-100"
-                                      onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
-                                    >
-                                      <Copy className="w-3 h-3 mr-1" /> Copiar
-                                    </Button>
                                   </div>
                                 )}
-                                <div className="flex items-center gap-1.5 sm:gap-2 w-full">
-                                <div className="flex gap-0.5 sm:gap-1">
-                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('image'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><ImageIcon className="w-5 h-5" /></Button>
-                                  <Button variant="ghost" size="icon" onClick={() => { setUploadType('document'); fileInputRef.current?.click(); }} className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"><Paperclip className="w-5 h-5" /></Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => {
-                                      setIsSchedulingOpen(true);
-                                      setScheduleType('message');
-                                      setScheduleDate(new Date().toISOString().split('T')[0]);
-                                      setScheduleTime(new Date().toTimeString().slice(0, 5));
-                                    }} 
-                                    className="text-muted-foreground hover:text-primary h-9 w-9 sm:h-10 sm:w-10"
-                                    title="Agendar Mensagem"
-                                  >
-                                    <CalendarClock className="w-5 h-5" />
-                                  </Button>
-                                </div>
-                                <div className="flex-1 relative">
-                                  <Input 
-                                    placeholder="Mensagem..." 
-                                    value={newMessage} 
-                                    onChange={e => setNewMessage(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                                    className="bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary h-10 sm:h-11 px-3 sm:px-4 pr-10 sm:pr-12 rounded-xl text-sm"
-                                  />
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className={cn(
-                                      "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-colors",
-                                      newMessage.trim() ? "text-primary" : "text-muted-foreground opacity-50"
-                                    )}
-                                    onClick={handleSendMessage}
-                                    disabled={!newMessage.trim() || sendingMessage}
-                                  >
-                                    <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-                                  </Button>
-                                </div>
-                                <Button 
-                                  size="icon" 
-                                  variant={isRecording ? 'destructive' : 'ghost'} 
-                                  className={cn("h-10 w-10 sm:h-11 sm:w-11 rounded-xl shrink-0 transition-all", isRecording && "animate-pulse ring-2 ring-destructive ring-offset-2")}
-                                  onClick={isRecording ? stopRecording : startRecording}
-                                >
-                                  {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5 text-muted-foreground" />}
-                                </Button>
+                                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
+                              </>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center gap-4 text-center p-8">
+                                <MessageSquare className="w-10 h-10 text-primary/30" />
+                                <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
+                                <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
                               </div>
-                            </div>
+                            )}
+                            </>
                           )}
-                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
-                        </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center gap-4 text-center p-8 animate-in fade-in duration-700">
-                          <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center">
-                            <MessageSquare className="w-10 h-10 text-primary/30" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
-                            <p className="text-muted-foreground text-sm max-w-[280px] mx-auto">
-                              Selecione um contato na lista lateral para visualizar o histórico de mensagens e responder.
-                            </p>
                           </div>
                         </div>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             )}
@@ -3296,22 +3169,16 @@ const CRM = () => {
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-primary/10 text-primary"><Bot className="w-5 h-5" /></div>
                           <div>
-                            <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
-                            <CardDescription className="text-[11px]">Respostas automáticas com GPT-4.</CardDescription>
+                            <CardTitle className="text-lg">Configurações de IA</CardTitle>
+                            <CardDescription className="text-[11px]">Chave de API e configurações globais.</CardDescription>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="p-6 space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                          <div>
-                            <p className="font-bold text-sm">Habilitar Agente AI</p>
-                            <p className="text-[10px] text-muted-foreground">O robô responderá conversas ociosas.</p>
-                          </div>
-                          <Switch checked={metaSettings.ai_agent_enabled} onCheckedChange={checked => setMetaSettings({...metaSettings, ai_agent_enabled: checked})} />
-                        </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">OpenAI API Key</Label>
                           <Input type="password" placeholder="sk-..." className="bg-muted/30 border-none h-11 rounded-xl" value={metaSettings.openai_api_key} onChange={e => setMetaSettings({...metaSettings, openai_api_key: e.target.value})} />
+                          <p className="text-[10px] text-muted-foreground">A ativação geral do robô deve ser feita na aba <strong>Agente IA</strong>.</p>
                         </div>
                       </CardContent>
                     </Card>
