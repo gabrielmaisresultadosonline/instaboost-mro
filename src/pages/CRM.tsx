@@ -3096,6 +3096,7 @@ const CRM = () => {
               </ScrollArea>
             )}
           </main>
+        </SidebarInset>
       </div>
       {isFlowEditorOpen && (
         <FlowEditor 
