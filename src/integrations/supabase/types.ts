@@ -1228,6 +1228,50 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_webhooks: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          name: string
+          response_type: string
+          secret_token: string
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          name: string
+          response_type?: string
+          secret_token?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          name?: string
+          response_type?: string
+          secret_token?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_webhooks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "crm_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       free_trial_registrations: {
         Row: {
           created_at: string
