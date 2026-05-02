@@ -904,6 +904,19 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                 )}
                 {selectedNode.type === 'template' && (
                   <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-100 shadow-sm">
+                      <div className="space-y-0.5">
+                        <Label className="text-[11px] font-bold text-indigo-700 flex items-center gap-1">
+                          <Zap className="w-3 h-3" /> Qualquer resposta segue?
+                        </Label>
+                        <p className="text-[9px] text-indigo-600/70">Mesmo que não clique no botão, o fluxo continua.</p>
+                      </div>
+                      <Switch 
+                        checked={selectedNode.data.anyResponse as boolean}
+                        onCheckedChange={(checked) => updateNodeData(selectedNode.id, { anyResponse: checked })}
+                      />
+                    </div>
+
                     <div className="space-y-2">
                       <Label className="text-xs">Escolher Template</Label>
                       <Select 
