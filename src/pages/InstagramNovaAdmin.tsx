@@ -1137,29 +1137,7 @@ Participe também do nosso GRUPO DE AVISOS
   };
 
   const generateCopyMessage = (order: MROOrder) => {
-    return `Obrigado por fazer parte do nosso sistema!✅
-
-🚀🔥 *Ferramenta para Instagram Vip acesso!*
-
-Preciso que assista os vídeos da área de membros com o link abaixo:
-
-( ${MEMBER_LINK} ) 
-
-1 - Acesse Área Membros
-
-2 - Acesse ferramenta para instagram
-
-Para acessar a ferramenta e área de membros, utilize os acessos:
-
-*usuário:* ${order.username}
-
-*senha:* ${order.username}
-
-⚠ Assista todos os vídeos, por favor!
-
-Participe também do nosso GRUPO DE AVISOS
-
-${GROUP_LINK}`;
+    return formatWebhookMessage(webhookConfig.message_template, order);
   };
 
   const copyToClipboard = async (order: MROOrder) => {
