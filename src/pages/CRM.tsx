@@ -1164,6 +1164,39 @@ const CRM = () => {
     }
   };
 
+  const handleDuplicateFlow = async (flow: any) => {
+    setSaving(true);
+    try {
+      const { id, created_at, updated_at, ...flowData } = flow;
+      const newFlow = {
+        ...flowData,
+        name: `${flowData.name} (Cópia)`,
+        is_active: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('crm_flows')
+        .insert([newFlow])
+        .select();
+
+      if (error) throw error;
+      
+      toast({ title: "Fluxo duplicado com sucesso!" });
+      fetchData();
+    } catch (err: any) {
+      toast({ 
+        title: "Erro ao duplicar fluxo", 
+        description: err.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
   const getWindowInfo = (lastInteraction: string) => {
     if (!lastInteraction) return null;
     const last = new Date(lastInteraction).getTime();
@@ -2488,13 +2521,22 @@ const CRM = () => {
                                 {flow.is_active ? 'Ativo' : 'Inativo'}
                               </Badge>
                               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-7 w-7 text-primary hover:bg-primary/10" 
+                                  onClick={() => handleDuplicateFlow(flow)}
+                                  title="Duplicar Fluxo"
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </Button>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={async () => {
                                   if (confirm('Deseja excluir este fluxo?')) {
                                     await supabase.from('crm_flows').delete().eq('id', flow.id);
                                     fetchData();
                                   }
                                 }}>
-                                  <Trash2 className="h-3.5 h-3.5" />
+                                  <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
                             </div>
@@ -3825,8 +3867,8 @@ const CRM = () => {
                   <SelectItem value="template">Template</SelectItem>
                   <SelectItem value="flow">Fluxo</SelectItem>
                 </SelectContent>
-                              </Select>
-                            </div>
+              </Select>
+            </div>
 
 
             {scheduleType === 'message' && (
