@@ -734,6 +734,8 @@ export type Database = {
       crm_contacts: {
         Row: {
           ai_active: boolean | null
+          ai_strategy_active: boolean | null
+          ai_strategy_history: Json | null
           created_at: string | null
           current_flow_id: string | null
           current_node_id: string | null
@@ -742,6 +744,7 @@ export type Database = {
           flow_state: string | null
           id: string
           is_qualified: boolean | null
+          last_ai_strategy: string | null
           last_flow_interaction: string | null
           last_interaction: string | null
           metadata: Json | null
@@ -756,6 +759,8 @@ export type Database = {
         }
         Insert: {
           ai_active?: boolean | null
+          ai_strategy_active?: boolean | null
+          ai_strategy_history?: Json | null
           created_at?: string | null
           current_flow_id?: string | null
           current_node_id?: string | null
@@ -764,6 +769,7 @@ export type Database = {
           flow_state?: string | null
           id?: string
           is_qualified?: boolean | null
+          last_ai_strategy?: string | null
           last_flow_interaction?: string | null
           last_interaction?: string | null
           metadata?: Json | null
@@ -778,6 +784,8 @@ export type Database = {
         }
         Update: {
           ai_active?: boolean | null
+          ai_strategy_active?: boolean | null
+          ai_strategy_history?: Json | null
           created_at?: string | null
           current_flow_id?: string | null
           current_node_id?: string | null
@@ -786,6 +794,7 @@ export type Database = {
           flow_state?: string | null
           id?: string
           is_qualified?: boolean | null
+          last_ai_strategy?: string | null
           last_flow_interaction?: string | null
           last_interaction?: string | null
           metadata?: Json | null
@@ -1086,7 +1095,9 @@ export type Database = {
         Row: {
           ai_agent_enabled: boolean | null
           ai_agent_trigger: string | null
+          ai_operation_mode: string | null
           ai_system_prompt: string | null
+          auto_generate_strategy: boolean | null
           created_at: string | null
           id: string
           initial_auto_response_enabled: boolean | null
@@ -1100,6 +1111,7 @@ export type Database = {
           meta_waba_id: string | null
           openai_api_key: string | null
           shortcut_size: number | null
+          strategy_generation_prompt: string | null
           tag_size: number | null
           updated_at: string | null
           webhook_verify_token: string | null
@@ -1107,7 +1119,9 @@ export type Database = {
         Insert: {
           ai_agent_enabled?: boolean | null
           ai_agent_trigger?: string | null
+          ai_operation_mode?: string | null
           ai_system_prompt?: string | null
+          auto_generate_strategy?: boolean | null
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
@@ -1121,6 +1135,7 @@ export type Database = {
           meta_waba_id?: string | null
           openai_api_key?: string | null
           shortcut_size?: number | null
+          strategy_generation_prompt?: string | null
           tag_size?: number | null
           updated_at?: string | null
           webhook_verify_token?: string | null
@@ -1128,7 +1143,9 @@ export type Database = {
         Update: {
           ai_agent_enabled?: boolean | null
           ai_agent_trigger?: string | null
+          ai_operation_mode?: string | null
           ai_system_prompt?: string | null
+          auto_generate_strategy?: boolean | null
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
@@ -1142,6 +1159,7 @@ export type Database = {
           meta_waba_id?: string | null
           openai_api_key?: string | null
           shortcut_size?: number | null
+          strategy_generation_prompt?: string | null
           tag_size?: number | null
           updated_at?: string | null
           webhook_verify_token?: string | null
