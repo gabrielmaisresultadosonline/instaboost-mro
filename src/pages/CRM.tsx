@@ -112,7 +112,12 @@ const CRM = () => {
     initial_response_text: '',
     initial_response_buttons: [],
     shortcut_size: 100,
-    tag_size: 100
+    tag_size: 100,
+    business_hours_enabled: false,
+    business_hours_start: '08:00',
+    business_hours_end: '18:00',
+    business_hours_tz: 'America/Sao_Paulo',
+    outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.'
   });
   const [metrics, setMetrics] = useState<any>({
     sent_count: 0,
@@ -992,6 +997,7 @@ const CRM = () => {
       case 'qualified': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
       case 'closed': return 'bg-green-500/10 text-green-500 border-green-500/20';
       case 'lost': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'human': return 'bg-orange-500 text-white border-orange-600 animate-pulse shadow-[0_0_10px_rgba(249,115,22,0.5)]';
       default: return 'bg-gray-500/10 text-gray-500';
     }
   };
@@ -1103,10 +1109,13 @@ const CRM = () => {
               <div className="flex-1 flex overflow-hidden">
                 {kanbanView ? (
                   <div className="flex-1 overflow-x-auto p-4 flex gap-4">
-                    {['new', 'responded', 'qualified', 'closed', 'lost'].map(status => (
+                    {['new', 'responded', 'qualified', 'human', 'closed', 'lost'].map(status => (
                       <div key={status} className="w-72 shrink-0 flex flex-col bg-muted/20 rounded-lg border" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(status)}>
-                        <div className="p-3 border-b font-bold uppercase text-xs flex justify-between bg-muted/30">
-                          {status} <Badge variant="secondary">{contacts.filter(c => c.status === status).length}</Badge>
+                        <div className={cn(
+                          "p-3 border-b font-bold uppercase text-[10px] flex justify-between",
+                          status === 'human' ? "bg-orange-500/20 text-orange-700" : "bg-muted/30"
+                        )}>
+                          {status === 'human' ? '+ HUMANO' : status} <Badge variant="secondary" className={status === 'human' ? "bg-orange-500 text-white" : ""}>{contacts.filter(c => c.status === status).length}</Badge>
                         </div>
                         <ScrollArea className="flex-1 p-2">
                           {contacts.filter(c => c.status === status).map(contact => (
@@ -1139,7 +1148,7 @@ const CRM = () => {
                           />
                         </div>
                         <div className="flex flex-wrap gap-1 pb-1">
-                          {['all', 'new', 'responded', 'qualified', 'closed'].map(s => (
+                          {['all', 'new', 'responded', 'human', 'qualified', 'closed'].map(s => (
                             <Badge 
                               key={s} 
                               variant={statusFilter === s ? 'default' : 'outline'} 
@@ -2148,6 +2157,71 @@ const CRM = () => {
                               </p>
                             </div>
 
+                            <div className="space-y-4 pt-4 border-t">
+                              <div className="flex items-center justify-between p-3 bg-blue-500/5 rounded-xl border border-blue-200">
+                                <div className="space-y-0.5">
+                                  <Label className="text-xs font-bold flex items-center gap-2">
+                                    <Clock className="w-3.5 h-3.5 text-blue-600" /> Horário Comercial
+                                  </Label>
+                                  <p className="text-[10px] text-muted-foreground">Ativar aviso de fora do horário.</p>
+                                </div>
+                                <Switch 
+                                  checked={metaSettings.business_hours_enabled}
+                                  onCheckedChange={(val) => setMetaSettings({...metaSettings, business_hours_enabled: val})}
+                                />
+                              </div>
+
+                              {metaSettings.business_hours_enabled && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Início</Label>
+                                      <Input 
+                                        type="time" 
+                                        className="h-8 text-xs"
+                                        value={metaSettings.business_hours_start}
+                                        onChange={(e) => setMetaSettings({...metaSettings, business_hours_start: e.target.value})}
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fim</Label>
+                                      <Input 
+                                        type="time" 
+                                        className="h-8 text-xs"
+                                        value={metaSettings.business_hours_end}
+                                        onChange={(e) => setMetaSettings({...metaSettings, business_hours_end: e.target.value})}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fuso Horário</Label>
+                                    <Select 
+                                      value={metaSettings.business_hours_tz} 
+                                      onValueChange={(val) => setMetaSettings({...metaSettings, business_hours_tz: val})}
+                                    >
+                                      <SelectTrigger className="h-8 text-xs">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="America/Sao_Paulo">Brasília (GMT-3)</SelectItem>
+                                        <SelectItem value="Europe/Lisbon">Lisboa (GMT+0)</SelectItem>
+                                        <SelectItem value="UTC">UTC</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Mensagem "Fora de Horário"</Label>
+                                    <Textarea 
+                                      rows={3}
+                                      className="resize-none text-[10px] leading-tight"
+                                      value={metaSettings.outside_hours_message}
+                                      onChange={(e) => setMetaSettings({...metaSettings, outside_hours_message: e.target.value})}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
                             {metaSettings.ai_agent_trigger === 'keyword' && (
                               <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                                 <Label className="text-sm font-bold">Palavra-chave / Mensagem Gatilho</Label>
@@ -2947,8 +3021,9 @@ const CRM = () => {
                   <SelectItem value="template">Template</SelectItem>
                   <SelectItem value="flow">Fluxo</SelectItem>
                 </SelectContent>
-              </Select>
-            </div>
+                              </Select>
+                            </div>
+
 
             {scheduleType === 'message' && (
               <div className="space-y-2">

@@ -1099,6 +1099,10 @@ export type Database = {
           ai_operation_mode: string | null
           ai_system_prompt: string | null
           auto_generate_strategy: boolean | null
+          business_hours_enabled: boolean | null
+          business_hours_end: string | null
+          business_hours_start: string | null
+          business_hours_tz: string | null
           created_at: string | null
           id: string
           initial_auto_response_enabled: boolean | null
@@ -1111,6 +1115,7 @@ export type Database = {
           meta_phone_number_id: string | null
           meta_waba_id: string | null
           openai_api_key: string | null
+          outside_hours_message: string | null
           shortcut_size: number | null
           strategy_generation_prompt: string | null
           tag_size: number | null
@@ -1124,6 +1129,10 @@ export type Database = {
           ai_operation_mode?: string | null
           ai_system_prompt?: string | null
           auto_generate_strategy?: boolean | null
+          business_hours_enabled?: boolean | null
+          business_hours_end?: string | null
+          business_hours_start?: string | null
+          business_hours_tz?: string | null
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
@@ -1136,6 +1145,7 @@ export type Database = {
           meta_phone_number_id?: string | null
           meta_waba_id?: string | null
           openai_api_key?: string | null
+          outside_hours_message?: string | null
           shortcut_size?: number | null
           strategy_generation_prompt?: string | null
           tag_size?: number | null
@@ -1149,6 +1159,10 @@ export type Database = {
           ai_operation_mode?: string | null
           ai_system_prompt?: string | null
           auto_generate_strategy?: boolean | null
+          business_hours_enabled?: boolean | null
+          business_hours_end?: string | null
+          business_hours_start?: string | null
+          business_hours_tz?: string | null
           created_at?: string | null
           id?: string
           initial_auto_response_enabled?: boolean | null
@@ -1161,6 +1175,7 @@ export type Database = {
           meta_phone_number_id?: string | null
           meta_waba_id?: string | null
           openai_api_key?: string | null
+          outside_hours_message?: string | null
           shortcut_size?: number | null
           strategy_generation_prompt?: string | null
           tag_size?: number | null
