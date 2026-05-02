@@ -186,6 +186,11 @@ const CRM = () => {
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
 
+  // States for custom statuses
+  const [kanbanStatuses, setKanbanStatuses] = useState<any[]>([]);
+  const [isNewStatusDialogOpen, setIsNewStatusDialogOpen] = useState(false);
+  const [newStatusData, setNewStatusData] = useState({ label: '', color: 'blue', value: '' });
+
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
@@ -251,6 +256,11 @@ const CRM = () => {
     setWebhooks(data || []);
   };
 
+  const fetchStatuses = async () => {
+    const { data } = await supabase.from('crm_statuses').select('*').order('sort_order', { ascending: true });
+    setKanbanStatuses(data || []);
+  };
+
   const fetchContacts = async () => {
     const { data: contactsData } = await supabase
       .from('crm_contacts')
@@ -294,6 +304,7 @@ const CRM = () => {
       setTemplates(templatesData || []);
 
       await fetchWebhooks();
+      await fetchStatuses();
       await fetchAllScheduledMessages();
     } catch (error) {
       console.error(error);
@@ -309,6 +320,7 @@ const CRM = () => {
       const { error } = await supabase.from('crm_settings').upsert({
         ...rest,
         id: '00000000-0000-0000-0000-000000000001',
+        strategy_generation_prompt: 'Analise o histórico acima e gere 3 estratégias personalizadas para converter este cliente. Sugira também 2 perguntas que eliminem as principais dúvidas dele sob o cabeçalho "### Perguntas para Eliminar Dúvidas". As perguntas devem ser diretas para copiar e colar.',
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
       if (error) throw error;
@@ -346,10 +358,12 @@ const CRM = () => {
   };
 
   const copyToClipboard = (text: string, label: string = "Texto") => {
-    navigator.clipboard.writeText(text);
+    // Remove " e ' das perguntas para facilitar o envio
+    const cleanText = text.replace(/["']/g, '');
+    navigator.clipboard.writeText(cleanText);
     toast({
       title: `${label} copiado!`,
-      description: "Conteúdo salvo na área de transferência.",
+      description: "Conteúdo pronto para enviar (sem aspas).",
     });
   };
 
@@ -479,6 +493,43 @@ const CRM = () => {
       fetchWebhooks();
     } catch (err: any) {
       toast({ title: "Erro ao atualizar", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const handleCreateStatus = async () => {
+    if (!newStatusData.label) return;
+    setSaving(true);
+    try {
+      const value = newStatusData.value || newStatusData.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+      const sortOrder = (kanbanStatuses.length + 1) * 10;
+      
+      const { error } = await supabase.from('crm_statuses').insert([{
+        label: newStatusData.label,
+        value: value,
+        color: newStatusData.color,
+        sort_order: sortOrder
+      }]);
+
+      if (error) throw error;
+      toast({ title: "Etiqueta criada com sucesso!" });
+      fetchStatuses();
+      setIsNewStatusDialogOpen(false);
+      setNewStatusData({ label: '', color: 'blue', value: '' });
+    } catch (err: any) {
+      toast({ title: "Erro ao criar etiqueta", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteStatus = async (id: string) => {
+    try {
+      const { error } = await supabase.from('crm_statuses').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: "Etiqueta removida!" });
+      fetchStatuses();
+    } catch (err: any) {
+      toast({ title: "Erro ao remover", description: err.message, variant: "destructive" });
     }
   };
 
@@ -1099,6 +1150,22 @@ const CRM = () => {
   };
 
   const getStatusColor = (status: string) => {
+    const statusObj = kanbanStatuses.find(s => s.value === status);
+    if (statusObj) {
+      switch (statusObj.color) {
+        case 'blue': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+        case 'yellow': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+        case 'purple': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+        case 'green': return 'bg-green-500/10 text-green-500 border-green-500/20';
+        case 'red': return 'bg-red-500/10 text-red-500 border-red-500/20';
+        case 'orange': return 'bg-orange-500 text-white border-orange-600 animate-pulse shadow-[0_0_10px_rgba(249,115,22,0.5)]';
+        case 'indigo': return 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20';
+        case 'pink': return 'bg-pink-500/10 text-pink-500 border-pink-500/20';
+        default: return 'bg-gray-500/10 text-gray-500';
+      }
+    }
+    
+    // Fallback for legacy hardcoded values
     switch (status) {
       case 'new': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
       case 'responded': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
@@ -1108,6 +1175,11 @@ const CRM = () => {
       case 'human': return 'bg-orange-500 text-white border-orange-600 animate-pulse shadow-[0_0_10px_rgba(249,115,22,0.5)]';
       default: return 'bg-gray-500/10 text-gray-500';
     }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusObj = kanbanStatuses.find(s => s.value === status);
+    return statusObj ? statusObj.label : status.toUpperCase();
   };
 
   if (loading && !contacts.length) return <div className="min-h-screen flex items-center justify-center"><RefreshCcw className="animate-spin" /></div>;
@@ -1170,6 +1242,62 @@ const CRM = () => {
             </div>
             {activeTab === 'contacts' && (
               <div className="flex gap-2">
+                <Dialog open={isNewStatusDialogOpen} onOpenChange={setIsNewStatusDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="bg-primary/5 hover:bg-primary/10 border-primary/20">
+                      <Plus className="w-4 h-4 mr-2" /> Nova Etiqueta
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Criar Nova Etiqueta Kanban</DialogTitle>
+                      <DialogDescription>
+                        Adicione uma nova etapa ao seu funil de vendas.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="status-label">Nome da Etiqueta (Ex: Orçamento Enviado)</Label>
+                        <Input 
+                          id="status-label" 
+                          placeholder="Digite o nome..." 
+                          value={newStatusData.label}
+                          onChange={(e) => setNewStatusData({...newStatusData, label: e.target.value})}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Cor da Etiqueta</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {['blue', 'yellow', 'purple', 'green', 'red', 'orange', 'indigo', 'pink'].map(color => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setNewStatusData({...newStatusData, color})}
+                              className={cn(
+                                "w-8 h-8 rounded-full border-2 transition-all",
+                                newStatusData.color === color ? "border-primary scale-110 shadow-md" : "border-transparent opacity-70 hover:opacity-100",
+                                color === 'blue' && 'bg-blue-500',
+                                color === 'yellow' && 'bg-yellow-500',
+                                color === 'purple' && 'bg-purple-500',
+                                color === 'green' && 'bg-green-500',
+                                color === 'red' && 'bg-red-500',
+                                color === 'orange' && 'bg-orange-500',
+                                color === 'indigo' && 'bg-indigo-500',
+                                color === 'pink' && 'bg-pink-500'
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={handleCreateStatus} disabled={saving}>
+                        {saving ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        Salvar Etiqueta
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 <Button variant="outline" size="sm" onClick={() => setIsImportExportOpen(true)}>
                   <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
                 </Button>
@@ -1217,26 +1345,86 @@ const CRM = () => {
             {activeTab === 'contacts' && (
               <div className="flex-1 flex overflow-hidden">
                 {kanbanView ? (
-                  <div className="flex-1 overflow-x-auto p-4 flex gap-4">
-                    {['new', 'responded', 'qualified', 'human', 'closed', 'lost'].map(status => (
-                      <div key={status} className="w-72 shrink-0 flex flex-col bg-muted/20 rounded-lg border" onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(status)}>
+                  <div className="flex-1 overflow-x-auto p-4 flex gap-4 bg-muted/5">
+                    {(kanbanStatuses.length > 0 ? kanbanStatuses : [
+                      { value: 'new', label: 'Novo Lead', color: 'blue' },
+                      { value: 'responded', label: 'Em Atendimento', color: 'yellow' },
+                      { value: 'qualified', label: 'Qualificado', color: 'purple' },
+                      { value: 'human', label: '+ HUMANO', color: 'orange' },
+                      { value: 'closed', label: 'Venda Fechada', color: 'green' },
+                      { value: 'lost', label: 'Perdido', color: 'red' }
+                    ]).map(status => (
+                      <div 
+                        key={status.value} 
+                        className="w-72 shrink-0 flex flex-col bg-card/50 rounded-xl border border-border shadow-sm group/column transition-all hover:shadow-md hover:bg-card" 
+                        onDragOver={e => e.preventDefault()} 
+                        onDrop={() => handleDrop(status.value)}
+                      >
                         <div className={cn(
-                          "p-3 border-b font-bold uppercase text-[10px] flex justify-between",
-                          status === 'human' ? "bg-orange-500/20 text-orange-700" : "bg-muted/30"
+                          "p-4 border-b font-black uppercase text-[11px] flex justify-between items-center rounded-t-xl",
+                          status.value === 'human' || status.color === 'orange' ? "bg-orange-500/10 text-orange-700" : "bg-muted/30"
                         )}>
-                          {status === 'human' ? '+ HUMANO' : status} <Badge variant="secondary" className={status === 'human' ? "bg-orange-500 text-white" : ""}>{contacts.filter(c => c.status === status).length}</Badge>
+                          <div className="flex items-center gap-2">
+                            <div className={cn(
+                              "w-2 h-2 rounded-full",
+                              status.color === 'blue' && 'bg-blue-500',
+                              status.color === 'yellow' && 'bg-yellow-500',
+                              status.color === 'purple' && 'bg-purple-500',
+                              status.color === 'green' && 'bg-green-500',
+                              status.color === 'red' && 'bg-red-500',
+                              status.color === 'orange' && 'bg-orange-500',
+                              status.color === 'indigo' && 'bg-indigo-500',
+                              status.color === 'pink' && 'bg-pink-500'
+                            )} />
+                            {status.label}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value).length}</Badge>
+                            {/* Allow deleting custom statuses */}
+                            {kanbanStatuses.some(s => s.id && s.value === status.value) && (
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                  if (sObj) handleDeleteStatus(sObj.id);
+                                }}
+                                className="opacity-0 group-hover/column:opacity-100 transition-opacity hover:text-red-500"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <ScrollArea className="flex-1 p-2">
-                          {contacts.filter(c => c.status === status).map(contact => (
-                            <Card key={contact.id} draggable onDragStart={() => handleDragStart(contact)} className="p-3 mb-2 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors" onClick={() => { openChat(contact); setKanbanView(false); }}>
-                              <p className="text-sm font-semibold truncate hover:text-primary cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>{contact.name || contact.wa_id}</p>
-                              {contact.last_interaction && (
-                                <p className="text-[10px] text-muted-foreground mt-1">
-                                  {new Date(contact.last_interaction).toLocaleDateString()}
-                                </p>
-                              )}
+                        <ScrollArea className="flex-1 p-3">
+                          {contacts.filter(c => c.status === status.value).map(contact => (
+                            <Card 
+                              key={contact.id} 
+                              draggable 
+                              onDragStart={() => handleDragStart(contact)} 
+                              className="p-4 mb-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all hover:-translate-y-1 hover:shadow-md border-zinc-100 dark:border-zinc-800 animate-in fade-in slide-in-from-top-2" 
+                              onClick={() => { openChat(contact); setKanbanView(false); }}
+                            >
+                              <p className="text-sm font-bold truncate hover:text-primary cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); openContactInfo(contact); }}>{contact.name || contact.wa_id}</p>
+                              <div className="flex justify-between items-center mt-3">
+                                {contact.last_interaction && (
+                                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                                    <Clock className="w-3 h-3 opacity-50" />
+                                    {new Date(contact.last_interaction).toLocaleDateString([], {day: '2-digit', month: '2-digit'})}
+                                  </div>
+                                )}
+                                {contact.total_messages_received > 0 && (
+                                  <Badge variant="outline" className="text-[9px] font-bold opacity-70">
+                                    <MessageSquare className="w-2 h-2 mr-1" /> {contact.total_messages_received}
+                                  </Badge>
+                                )}
+                              </div>
                             </Card>
                           ))}
+                          {contacts.filter(c => c.status === status.value).length === 0 && (
+                            <div className="h-20 flex items-center justify-center border-2 border-dashed border-muted rounded-xl opacity-40">
+                              <p className="text-[10px] font-bold uppercase tracking-widest">Vazio</p>
+                            </div>
+                          )}
                         </ScrollArea>
                       </div>
                     ))}
@@ -1257,15 +1445,18 @@ const CRM = () => {
                           />
                         </div>
                         <div className="flex flex-wrap gap-1 pb-1">
-                          {['all', 'new', 'responded', 'human', 'qualified', 'closed'].map(s => (
+                          {['all', ...(kanbanStatuses.length > 0 ? kanbanStatuses.map(s => s.value) : ['new', 'responded', 'human', 'qualified', 'closed', 'lost'])].map(s => (
                             <Badge 
                               key={s} 
                               variant={statusFilter === s ? 'default' : 'outline'} 
-                              style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                              className="cursor-pointer capitalize whitespace-nowrap px-1.2 font-bold"
+                              style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                              className={cn(
+                                "cursor-pointer capitalize whitespace-nowrap px-2 font-black transition-all",
+                                statusFilter === s ? "shadow-md scale-105" : "hover:bg-muted"
+                              )}
                               onClick={() => setStatusFilter(s)}
                             >
-                              {s === 'all' ? 'Todos' : s}
+                              {s === 'all' ? '🚀 Todos' : getStatusLabel(s)}
                             </Badge>
                           ))}
                         </div>
@@ -1290,10 +1481,10 @@ const CRM = () => {
                                 <div className="flex justify-between items-center">
                                   <Badge 
                                     variant="outline" 
-                                    style={{ height: `${14 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${8 * ((metaSettings.tag_size || 100) / 100)}px` }}
-                                    className={cn("px-1 capitalize font-medium", getStatusColor(contact.status))}
+                                    style={{ height: `${16 * ((metaSettings.tag_size || 100) / 100)}px`, fontSize: `${9 * ((metaSettings.tag_size || 100) / 100)}px` }}
+                                    className={cn("px-2 capitalize font-black shadow-sm", getStatusColor(contact.status))}
                                   >
-                                    {contact.status}
+                                    {getStatusLabel(contact.status)}
                                   </Badge>
                                   {contact.flow_state && contact.flow_state !== 'idle' && (
                                     <div className="flex flex-col items-end gap-1">
@@ -2664,14 +2855,14 @@ const CRM = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-7 w-7 rounded-lg text-zinc-400 hover:text-primary hover:bg-primary/5 transition-colors"
-                                  title="Copiar texto do template"
+                                  className="h-9 w-9 rounded-xl text-primary hover:text-white hover:bg-primary shadow-sm hover:shadow-primary/20 transition-all border border-primary/10 active:scale-95"
+                                  title="Copiar texto fácil (sem aspas)"
                                   onClick={() => {
                                     const bodyText = template.components?.find((c: any) => c.type === 'BODY')?.text || '';
                                     copyToClipboard(bodyText, "Texto do Template");
                                   }}
                                 >
-                                  <Copy className="h-3.5 w-3.5" />
+                                  <Copy className="h-4 w-4" />
                                 </Button>
                               </div>
                               <div className="flex items-center gap-2 mt-1">
