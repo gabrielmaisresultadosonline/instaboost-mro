@@ -1162,6 +1162,8 @@ const CRM = () => {
     } finally {
       setSaving(false);
     }
+  };
+
   const handleDuplicateFlow = async (flow: any) => {
     setSaving(true);
     try {
