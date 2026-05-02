@@ -181,7 +181,7 @@ const CRM = () => {
   const [improvingPrompt, setImprovingPrompt] = useState(false);
   const [webhooks, setWebhooks] = useState<any[]>([]);
   const [isNewWebhookDialogOpen, setIsNewWebhookDialogOpen] = useState(false);
-  const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '', secret_token: '', is_active: true });
+  const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '', secret_token: '', is_active: true, default_status: 'new' });
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
@@ -431,7 +431,8 @@ const CRM = () => {
         response_type: newWebhook.response_type,
         template_id: newWebhook.template_id || null,
         secret_token: token,
-        is_active: true
+        is_active: true,
+        default_status: newWebhook.default_status || 'new'
       };
 
       console.log('Attempting to create webhook:', webhookData);
@@ -447,7 +448,7 @@ const CRM = () => {
       toast({ title: "Webhook criado!" });
       fetchWebhooks();
       setIsNewWebhookDialogOpen(false);
-      setNewWebhook({ name: '', response_type: 'text', template_id: '', secret_token: '', is_active: true });
+      setNewWebhook({ name: '', response_type: 'text', template_id: '', secret_token: '', is_active: true, default_status: 'new' });
     } catch (err: any) {
       console.error('Catch error creating webhook:', err);
       toast({ 
@@ -3111,10 +3112,14 @@ const CRM = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                               <div className="space-y-4">
                                 <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Configurações de Resposta</h4>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-3 gap-4">
                                   <div className="p-3 bg-muted/30 rounded-xl border">
                                     <Label className="text-[10px] font-bold text-muted-foreground uppercase">Tipo</Label>
-                                    <p className="text-sm font-semibold capitalize">{webhook.response_type === 'text' ? 'Texto Livre' : 'Template Meta'}</p>
+                                    <p className="text-sm font-semibold capitalize">{webhook.response_type === 'text' ? 'Texto' : 'Template'}</p>
+                                  </div>
+                                  <div className="p-3 bg-muted/30 rounded-xl border">
+                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase">Etapa Kanban</Label>
+                                    <p className="text-sm font-semibold capitalize text-primary">{webhook.default_status || 'Novo'}</p>
                                   </div>
                                   {webhook.response_type === 'template' && (
                                     <div className="p-3 bg-muted/30 rounded-xl border">
@@ -3218,20 +3223,41 @@ const CRM = () => {
                           className="rounded-2xl h-12"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label className="font-bold">Qual será o tipo da mensagem?</Label>
-                        <Select 
-                          value={newWebhook.response_type} 
-                          onValueChange={(val: any) => setNewWebhook({...newWebhook, response_type: val, template_id: val === 'text' ? '' : newWebhook.template_id})}
-                        >
-                          <SelectTrigger className="rounded-2xl h-12">
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl border-none shadow-xl">
-                            <SelectItem value="text" className="rounded-xl">Texto Livre (Enviado pelo seu site)</SelectItem>
-                            <SelectItem value="template" className="rounded-xl">Template Meta (Pré-aprovado)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="font-bold">Tipo da Mensagem</Label>
+                          <Select 
+                            value={newWebhook.response_type} 
+                            onValueChange={(val: any) => setNewWebhook({...newWebhook, response_type: val, template_id: val === 'text' ? '' : newWebhook.template_id})}
+                          >
+                            <SelectTrigger className="rounded-2xl h-12">
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl border-none shadow-xl">
+                              <SelectItem value="text" className="rounded-xl">Texto Livre</SelectItem>
+                              <SelectItem value="template" className="rounded-xl">Template Meta</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-bold">Etapa Kanban</Label>
+                          <Select 
+                            value={newWebhook.default_status} 
+                            onValueChange={(val: any) => setNewWebhook({...newWebhook, default_status: val})}
+                          >
+                            <SelectTrigger className="rounded-2xl h-12">
+                              <SelectValue placeholder="Selecione a etapa" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl border-none shadow-xl">
+                              <SelectItem value="new" className="rounded-xl">Novo</SelectItem>
+                              <SelectItem value="responded" className="rounded-xl">Respondido</SelectItem>
+                              <SelectItem value="qualified" className="rounded-xl">Qualificado</SelectItem>
+                              <SelectItem value="human" className="rounded-xl">+ Humano</SelectItem>
+                              <SelectItem value="closed" className="rounded-xl">Vendido</SelectItem>
+                              <SelectItem value="lost" className="rounded-xl">Perdido</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       {newWebhook.response_type === 'template' && (
