@@ -260,6 +260,17 @@ const TemplateNode = ({ data }: any) => (
           "{data.bodyText}"
         </p>
       )}
+      {data.anyResponse && (
+        <div className="relative flex items-center justify-between bg-indigo-50 text-indigo-700 px-3 py-2 rounded border border-indigo-100 text-[10px] font-medium group mt-1">
+          <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Qualquer resposta</span>
+          <Handle 
+            type="source" 
+            position={Position.Right} 
+            id="any_response" 
+            className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !-right-4"
+          />
+        </div>
+      )}
     </CardContent>
     <Handle type="source" position={Position.Bottom} />
   </Card>
