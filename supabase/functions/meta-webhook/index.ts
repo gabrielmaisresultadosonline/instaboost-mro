@@ -266,7 +266,12 @@ serve(async (req) => {
                     else if (settings.ai_agent_trigger === 'first_message' && isNewContact) shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'manual' && contact.ai_active) shouldTriggerAI = true;
 
-                    console.log(`AI Agent should trigger: ${shouldTriggerAI}`);
+                    // If mode is monitor, we ALWAYS trigger AI to analyze, but we'll control response later
+                    if (settings.ai_operation_mode === 'monitor' || settings.ai_operation_mode === 'hybrid') {
+                      shouldTriggerAI = true;
+                    }
+
+                    console.log(`AI Agent should trigger: ${shouldTriggerAI} (Mode: ${settings.ai_operation_mode})`);
                     
                     if (shouldTriggerAI) {
                       const { data: history } = await supabase
@@ -280,6 +285,9 @@ serve(async (req) => {
                       const { data: flows } = await supabase.from('crm_flows').select('id, name').eq('is_active', true);
 
                       const systemPrompt = `
+MODO DE OPERAÇÃO ATUAL: ${settings.ai_operation_mode || 'chat'}
+(Se o modo for "monitor", você NÃO deve enviar mensagens ao usuário, apenas tags de status ou gatilhos).
+
 ${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
 
 TEMPLATES DISPONÍVEIS (IMPORTANTE: Use [SEND_TEMPLATE: nome] em uma linha isolada para enviar um template oficial):
