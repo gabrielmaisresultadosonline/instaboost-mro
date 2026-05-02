@@ -2409,6 +2409,21 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                 <Button
                   size="sm"
                   variant="outline"
+                  onClick={() => sendToCRMWebhook(order, true)}
+                  className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 h-7 px-2 text-xs"
+                  disabled={isSendingWebhook === order.id}
+                  title="Enviar mensagem via Webhook CRM agora"
+                >
+                  {isSendingWebhook === order.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  ) : (
+                    <Send className="w-3 h-3 mr-1" />
+                  )}
+                  Webhook
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => resendAccessEmail(order)}
                   className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 h-7 px-2 text-xs"
                   disabled={resendingEmail === order.id}
