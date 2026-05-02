@@ -252,21 +252,27 @@ serve(async (req) => {
                   }
 
                   // 3. AI Agent Logic
+                  const isAiEnabledGlobally = settings?.ai_agent_enabled === true;
+                  
                   console.log('Checking AI Agent conditions:', { 
-                    enabled: settings?.ai_agent_enabled, 
+                    isAiEnabledGlobally,
                     hasKey: !!settings?.openai_api_key, 
                     contactAiActive: contact.ai_active,
                     trigger: settings?.ai_agent_trigger,
-                    isNewContact
+                    isNewContact,
+                    messageType: message.type
                   });
-
-                  const isAiEnabledGlobally = settings?.ai_agent_enabled === true;
+                  
                   if (isAiEnabledGlobally && settings?.openai_api_key && contact.ai_active) {
                     let shouldTriggerAI = false;
-                    if (settings.ai_agent_trigger === 'all') shouldTriggerAI = true;
-                    else if (settings.ai_agent_trigger === 'first_message' && isNewContact) shouldTriggerAI = true;
-                    else if (settings.ai_agent_trigger === 'manual' && contact.ai_active) shouldTriggerAI = true;
-                    else if (settings.ai_agent_trigger === 'keyword' && message.type === 'text') {
+                    
+                    if (settings.ai_agent_trigger === 'all') {
+                      shouldTriggerAI = true;
+                    } else if (settings.ai_agent_trigger === 'first_message' && isNewContact) {
+                      shouldTriggerAI = true;
+                    } else if (settings.ai_agent_trigger === 'manual' && contact.ai_active) {
+                      shouldTriggerAI = true;
+                    } else if (settings.ai_agent_trigger === 'keyword' && message.type === 'text') {
                       const keyword = settings.ai_agent_trigger_keyword?.toLowerCase().trim();
                       const text = message.text.body.toLowerCase().trim();
                       if (keyword && (text === keyword || text.includes(keyword))) {
@@ -283,7 +289,7 @@ serve(async (req) => {
                       shouldTriggerAI = true;
                     }
 
-                    console.log(`AI Agent should trigger: ${shouldTriggerAI} (Mode: ${settings.ai_operation_mode})`);
+                    console.log(`AI Agent decision: shouldTriggerAI=${shouldTriggerAI} (Mode: ${settings.ai_operation_mode})`);
                     
                     if (shouldTriggerAI) {
                       const { data: history } = await supabase
