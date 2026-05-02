@@ -173,7 +173,7 @@ const QuestionNode = ({ data }: any) => (
     <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-emerald-500 !border-2 !border-white" />
     <CardHeader className="p-3 bg-emerald-500 text-white rounded-t-lg">
       <CardTitle className="text-xs font-bold flex items-center gap-2">
-        <HelpCircle className="w-3 h-3" /> Pergunta com Botões
+        <HelpCircle className="w-3 !h-3" /> Pergunta com Botões
       </CardTitle>
     </CardHeader>
     <CardContent className="p-3 space-y-3">
@@ -185,11 +185,22 @@ const QuestionNode = ({ data }: any) => (
             <Handle 
               type="source" 
               position={Position.Right} 
-              id={`btn-${idx}`} 
+              id={btn.id || `btn-${idx}`} 
               className="!w-3 !h-3 !bg-emerald-500 !border-2 !border-white !-right-4"
             />
           </div>
         ))}
+        {data.anyResponse && (
+          <div className="relative flex items-center justify-between bg-indigo-50 text-indigo-700 px-3 py-2 rounded border border-indigo-100 text-[10px] font-medium group mt-1">
+            <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Qualquer resposta</span>
+            <Handle 
+              type="source" 
+              position={Position.Right} 
+              id="any_response" 
+              className="!w-3 !h-3 !bg-indigo-500 !border-2 !border-white !-right-4"
+            />
+          </div>
+        )}
       </div>
     </CardContent>
   </Card>
