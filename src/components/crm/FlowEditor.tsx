@@ -639,49 +639,63 @@ const FlowEditorInner: React.FC<FlowEditorProps> = ({ flow, onSave, onClose }) =
                 )}
 
                 {selectedNode.type === 'question' && (
-                  <div className="space-y-3">
-                    <Label className="text-xs">Botões (Máx 3)</Label>
-                    {(selectedNode.data.buttons as any[]).map((btn, idx) => (
-                      <div key={idx} className="space-y-1 p-2 border rounded-md bg-slate-50/50">
-                        <div className="flex gap-2">
-                          <Input 
-                            value={btn.text} 
-                            onChange={(e) => {
-                              const newButtons = [...(selectedNode.data.buttons as any[])];
-                              newButtons[idx].text = e.target.value;
-                              updateNodeData(selectedNode.id, { buttons: newButtons });
-                            }}
-                            placeholder="Texto do botão"
-                            className="text-xs h-8"
-                          />
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-red-400 shrink-0"
-                            onClick={() => {
-                              const newButtons = (selectedNode.data.buttons as any[]).filter((_, i) => i !== idx);
-                              updateNodeData(selectedNode.id, { buttons: newButtons });
-                            }}
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground italic px-1">Conecte a saída deste botão no mapa para definir a próxima ação.</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-100 shadow-sm">
+                      <div className="space-y-0.5">
+                        <Label className="text-[11px] font-bold text-indigo-700 flex items-center gap-1">
+                          <Zap className="w-3 h-3" /> Qualquer resposta segue?
+                        </Label>
+                        <p className="text-[9px] text-indigo-600/70">Mesmo que não clique no botão, o fluxo continua.</p>
                       </div>
-                    ))}
-                    {(selectedNode.data.buttons as any[]).length < 3 && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full text-xs h-8" 
-                        onClick={() => {
-                          const newButtons = [...(selectedNode.data.buttons as any[]), { text: 'Novo Botão' }];
-                          updateNodeData(selectedNode.id, { buttons: newButtons });
-                        }}
-                      >
-                        <Plus className="w-3 h-3 mr-1" /> Add Botão
-                      </Button>
-                    )}
+                      <Switch 
+                        checked={selectedNode.data.anyResponse as boolean}
+                        onCheckedChange={(checked) => updateNodeData(selectedNode.id, { anyResponse: checked })}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-xs">Botões (Máx 3)</Label>
+                      {(selectedNode.data.buttons as any[]).map((btn, idx) => (
+                        <div key={idx} className="space-y-1 p-2 border rounded-md bg-slate-50/50">
+                          <div className="flex gap-2">
+                            <Input 
+                              value={btn.text} 
+                              onChange={(e) => {
+                                const newButtons = [...(selectedNode.data.buttons as any[])];
+                                newButtons[idx].text = e.target.value;
+                                updateNodeData(selectedNode.id, { buttons: newButtons });
+                              }}
+                              placeholder="Texto do botão"
+                              className="text-xs h-8"
+                            />
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-red-400 shrink-0"
+                              onClick={() => {
+                                const newButtons = (selectedNode.data.buttons as any[]).filter((_, i) => i !== idx);
+                                updateNodeData(selectedNode.id, { buttons: newButtons });
+                              }}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {(selectedNode.data.buttons as any[]).length < 3 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-xs h-8" 
+                          onClick={() => {
+                            const newButtons = [...(selectedNode.data.buttons as any[]), { text: 'Novo Botão', id: `btn-${Date.now()}` }];
+                            updateNodeData(selectedNode.id, { buttons: newButtons });
+                          }}
+                        >
+                          <Plus className="w-3 h-3 mr-1" /> Add Botão
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
 
