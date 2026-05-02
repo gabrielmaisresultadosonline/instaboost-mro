@@ -18,7 +18,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json()
-    const { webhook_id, token, to, message, template_id, variables } = body
+    const { webhook_id, token, to, message, template_id, variables, order_id } = body
 
     if (!webhook_id || !token || !to) {
       return new Response(JSON.stringify({ error: 'Missing required fields: webhook_id, token, to' }), {
@@ -128,8 +128,28 @@ serve(async (req) => {
 
     if (result.error) {
       console.error('Meta API Error:', result.error)
+      
+      // Log failure
+      await supabase.from('crm_webhook_delivery_logs').insert([{
+        webhook_id,
+        to_number: cleanTo,
+        message: finalMessageText,
+        status: 'error',
+        error_message: result.error.message || 'Meta API Error',
+        order_id: order_id || null
+      }])
+
       throw new Error(result.error.message || 'Error sending message')
     }
+
+    // Log success
+    await supabase.from('crm_webhook_delivery_logs').insert([{
+      webhook_id,
+      to_number: cleanTo,
+      message: finalMessageText,
+      status: 'success',
+      order_id: order_id || null
+    }])
 
     // Update last_used_at
     await supabase.from('crm_webhooks').update({ last_used_at: new Date().toISOString() }).eq('id', webhook_id)
@@ -184,6 +204,10 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Webhook Error:', error)
+    
+    // Attempt to log error if it hasn't been logged yet in the success/error branch
+    // Note: this is a bit redundant but ensures we capture unexpected crashes
+    
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
