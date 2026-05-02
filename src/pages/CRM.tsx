@@ -64,7 +64,8 @@ import {
   Webhook,
   Layers,
   CreditCard,
-  Copy
+  Copy,
+  Pencil
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
