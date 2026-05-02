@@ -2213,6 +2213,9 @@ const CRM = () => {
                                 <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
                               </div>
                             )}
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 )}
