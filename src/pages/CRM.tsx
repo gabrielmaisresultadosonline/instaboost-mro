@@ -242,6 +242,11 @@ const CRM = () => {
     };
   }, [navigate]);
 
+  const fetchWebhooks = async () => {
+    const { data } = await supabase.from('crm_webhooks').select('*').order('created_at', { ascending: false });
+    setWebhooks(data || []);
+  };
+
   const fetchContacts = async () => {
     const { data: contactsData } = await supabase
       .from('crm_contacts')
