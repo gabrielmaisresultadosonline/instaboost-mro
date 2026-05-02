@@ -1867,7 +1867,7 @@ const CRM = () => {
 
                                     <DialogFooter>
                                       <Button 
-                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200"
                                         onClick={async () => {
                                           setSendingMessage(true);
                                           try {
