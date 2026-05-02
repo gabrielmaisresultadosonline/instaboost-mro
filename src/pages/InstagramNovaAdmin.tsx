@@ -495,12 +495,27 @@ Participe também do nosso GRUPO DE AVISOS
     const savedWebhook = localStorage.getItem("mro_crm_webhook_config");
     if (savedWebhook) {
       try {
-        setWebhookConfig(JSON.parse(savedWebhook));
+        setWebhookConfig(prev => ({ ...prev, ...JSON.parse(savedWebhook) }));
       } catch (e) {
         console.error("Error parsing webhook config:", e);
       }
     }
+
+    // Carregar etiquetas do Kanban
+    const savedLabels = localStorage.getItem("mro_kanban_labels");
+    if (savedLabels) {
+      try {
+        setKanbanLabels(JSON.parse(savedLabels));
+      } catch (e) {
+        console.error("Error parsing kanban labels:", e);
+      }
+    }
   }, []);
+
+  // Salvar etiquetas do Kanban no localStorage quando mudar
+  useEffect(() => {
+    localStorage.setItem("mro_kanban_labels", JSON.stringify(kanbanLabels));
+  }, [kanbanLabels]);
 
   // Salvar configuração do webhook no localStorage quando mudar
   useEffect(() => {
