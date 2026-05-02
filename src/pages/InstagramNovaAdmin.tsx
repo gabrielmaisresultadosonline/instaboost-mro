@@ -1031,6 +1031,15 @@ Participe também do nosso GRUPO DE AVISOS
   };
 
   // Enviar para o CRM Webhook
+  const formatWebhookMessage = (template: string, order: MROOrder) => {
+    return template
+      .replace(/{username}/g, order.username)
+      .replace(/{member_link}/g, MEMBER_LINK)
+      .replace(/{group_link}/g, GROUP_LINK)
+      .replace(/{email}/g, order.email)
+      .replace(/{order_id}/g, order.id);
+  };
+
   const sendToCRMWebhook = async (order: MROOrder, isTest = false) => {
     if (!webhookConfig.enabled && !isTest) return;
     if (!webhookConfig.webhook_id || !webhookConfig.token) {
@@ -1054,27 +1063,7 @@ Participe também do nosso GRUPO DE AVISOS
       // Extrair o nome limpo do usuário (remover se for afiliado)
       let cleanName = order.username;
       
-      const messageText = `Obrigado por fazer parte do nosso sistema!✅
-
-🚀🔥 *Ferramenta para Instagram Vip acesso!*
-
-Preciso que assista os vídeos da área de membros com o link abaixo:
-
-( ${MEMBER_LINK} ) 
-
-1 - Acesse Área Membros
-
-2 - Acesse ferramenta para instagram
-
-Para acessar a ferramenta e área de membros, utilize os acessos:
-
-*usuário:* ${order.username}
-*senha:* ${order.username}
-
-⚠ Assista todos os vídeos, por favor!
-
-Participe também do nosso GRUPO DE AVISOS
-${GROUP_LINK}`;
+      const messageText = formatWebhookMessage(webhookConfig.message_template, order);
 
       const response = await fetch("https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/crm-webhook", {
         method: "POST",
