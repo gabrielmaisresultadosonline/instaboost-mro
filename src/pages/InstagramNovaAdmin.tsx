@@ -2688,7 +2688,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
             >
               <FileText className="w-4 h-4 mr-1" />
-              Logs
+              Logs InfiniPay
             </Button>
             <Button
               onClick={() => setShowCRMWebhookLogs(true)}
@@ -2698,17 +2698,17 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               title="Ver histórico de envios do CRM"
             >
               <FileText className="w-4 h-4 mr-1" />
-              Histórico CRM
+              Histórico WhatsApp
             </Button>
             <Button
               onClick={() => setShowWebhookSettings(true)}
               variant="outline"
               size="sm"
-              className={`border-cyan-500/50 ${webhookConfig.enabled ? "text-cyan-400 bg-cyan-500/5" : "text-zinc-500"}`}
+              className={`border-amber-500/50 ${webhookConfig.enabled ? "text-amber-400 bg-amber-500/5" : "text-zinc-500"}`}
               title="Configurar Webhook do CRM"
             >
-              <Send className="w-4 h-4 mr-1" />
-              Webhook CRM
+              <Settings className="w-4 h-4 mr-1" />
+              Editor Etapa Kanban
             </Button>
           </div>
           <div className="flex gap-2">
