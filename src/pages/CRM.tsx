@@ -181,7 +181,7 @@ const CRM = () => {
   const [improvingPrompt, setImprovingPrompt] = useState(false);
   const [webhooks, setWebhooks] = useState<any[]>([]);
   const [isNewWebhookDialogOpen, setIsNewWebhookDialogOpen] = useState(false);
-  const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '' });
+  const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '', secret_token: '' });
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
@@ -424,12 +424,16 @@ const CRM = () => {
     if (!newWebhook.name) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from('crm_webhooks').insert([newWebhook]);
+      const token = newWebhook.secret_token || Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const { error } = await supabase.from('crm_webhooks').insert([{
+        ...newWebhook,
+        secret_token: token
+      }]);
       if (error) throw error;
       toast({ title: "Webhook criado!" });
       fetchWebhooks();
       setIsNewWebhookDialogOpen(false);
-      setNewWebhook({ name: '', response_type: 'text', template_id: '' });
+      setNewWebhook({ name: '', response_type: 'text', template_id: '', secret_token: '' });
     } catch (err: any) {
       toast({ title: "Erro ao criar", description: err.message, variant: "destructive" });
     } finally {
