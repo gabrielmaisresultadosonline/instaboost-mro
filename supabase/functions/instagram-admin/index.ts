@@ -307,6 +307,9 @@ serve(async (req) => {
         } catch { /* empty */ }
       }
 
+      return respond({ success: true, history });
+    }
+
     if (action === "updateCrmWebhook") {
       const webhookId = typeof body.webhookId === "string" ? body.webhookId : null;
       const config = body.config;
