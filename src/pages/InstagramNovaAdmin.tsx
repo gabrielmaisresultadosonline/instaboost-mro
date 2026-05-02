@@ -1016,10 +1016,15 @@ export default function InstagramNovaAdmin() {
       return;
     }
 
-    const phone = order.phone?.replace(/\D/g, "");
+    let phone = order.phone?.replace(/\D/g, "");
     if (!phone) {
       if (isTest) toast.error("Cliente não possui telefone cadastrado");
       return;
+    }
+
+    // Garantir formato internacional (DDI 55 para Brasil se não houver)
+    if (phone.length <= 11 && !phone.startsWith("55")) {
+      phone = `55${phone}`;
     }
 
     setIsSendingWebhook(order.id);
@@ -1027,6 +1032,28 @@ export default function InstagramNovaAdmin() {
       // Extrair o nome limpo do usuário (remover se for afiliado)
       let cleanName = order.username;
       
+      const messageText = `Obrigado por fazer parte do nosso sistema!✅
+
+🚀🔥 *Ferramenta para Instagram Vip acesso!*
+
+Preciso que assista os vídeos da área de membros com o link abaixo:
+
+( ${MEMBER_LINK} ) 
+
+1 - Acesse Área Membros
+
+2 - Acesse ferramenta para instagram
+
+Para acessar a ferramenta e área de membros, utilize os acessos:
+
+*usuário:* ${order.username}
+*senha:* ${order.username}
+
+⚠ Assista todos os vídeos, por favor!
+
+Participe também do nosso GRUPO DE AVISOS
+${GROUP_LINK}`;
+
       const response = await fetch("https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/crm-webhook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1034,7 +1061,7 @@ export default function InstagramNovaAdmin() {
           webhook_id: webhookConfig.webhook_id,
           token: webhookConfig.token,
           to: phone,
-          message: `Olá ${cleanName}, seu acesso ao produto Instagram Nova foi liberado! 🚀\n\nUsuário: ${order.username}\nSenha: ${order.username}\n\nAcesse agora: ${MEMBER_LINK}`,
+          message: messageText,
           variables: [cleanName, order.username, order.username, MEMBER_LINK], // Caso use template
           order_id: order.id
         })

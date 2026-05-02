@@ -530,6 +530,67 @@ serve(async (req) => {
       );
     }
 
+    // Enviar para o CRM Webhook se estiver configurado
+    try {
+      if (order.phone) {
+        let cleanPhone = order.phone.replace(/\D/g, "");
+        if (cleanPhone.length <= 11 && !cleanPhone.startsWith("55")) {
+          cleanPhone = `55${cleanPhone}`;
+        }
+        
+        const MEMBER_LINK = "https://maisresultadosonline.com.br/instagram";
+        const GROUP_LINK = "https://chat.whatsapp.com/JdEHa4jeLSUKTQFCNp7YXi";
+
+        const messageText = `Obrigado por fazer parte do nosso sistema!✅
+
+🚀🔥 *Ferramenta para Instagram Vip acesso!*
+
+Preciso que assista os vídeos da área de membros com o link abaixo:
+
+( ${MEMBER_LINK} ) 
+
+1 - Acesse Área Membros
+
+2 - Acesse ferramenta para instagram
+
+Para acessar a ferramenta e área de membros, utilize os acessos:
+
+*usuário:* ${order.username}
+*senha:* ${order.username}
+
+⚠ Assista todos os vídeos, por favor!
+
+Participe também do nosso GRUPO DE AVISOS
+${GROUP_LINK}`;
+
+        // Configuração fixa do webhook para automação
+        const webhook_id = "0c578c9d-4e33-48be-91dd-63f98d7ff430";
+        const token = "qnf3vbusrbs105v96afj2r8";
+
+        log("Sending to CRM Webhook", { phone: cleanPhone });
+        
+        const crmResp = await fetch(`${supabaseUrl}/functions/v1/crm-webhook`, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`
+          },
+          body: JSON.stringify({
+            webhook_id,
+            token,
+            to: cleanPhone,
+            message: messageText,
+            order_id: order.id
+          })
+        });
+        
+        const crmResult = await crmResp.json().catch(() => ({}));
+        log("CRM Webhook response", crmResult);
+      }
+    } catch (crmError) {
+      log("Error calling CRM Webhook", { error: String(crmError) });
+    }
+
     // Verificar se é venda de afiliado e enviar email de comissão
     if (emailParts.length >= 2) {
       const affiliateId = emailParts[0].toLowerCase();
