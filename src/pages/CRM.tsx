@@ -175,6 +175,9 @@ const CRM = () => {
   const [isScheduling, setIsScheduling] = useState(false);
   const [updatingKnowledge, setUpdatingKnowledge] = useState<string | null>(null);
   const [improvingPrompt, setImprovingPrompt] = useState(false);
+  const [webhooks, setWebhooks] = useState<any[]>([]);
+  const [isNewWebhookDialogOpen, setIsNewWebhookDialogOpen] = useState(false);
+  const [newWebhook, setNewWebhook] = useState({ name: '', response_type: 'text' as 'text' | 'template', template_id: '' });
 
   const [scheduledMessages, setScheduledMessages] = useState<any[]>([]);
   const [allScheduledMessages, setAllScheduledMessages] = useState<any[]>([]);
