@@ -2157,6 +2157,70 @@ const CRM = () => {
                               </p>
                             </div>
 
+                            <div className="space-y-4 pt-4 border-t">
+                              <div className="flex items-center justify-between p-3 bg-blue-500/5 rounded-xl border border-blue-200">
+                                <div className="space-y-0.5">
+                                  <Label className="text-xs font-bold flex items-center gap-2">
+                                    <Clock className="w-3.5 h-3.5 text-blue-600" /> Horário Comercial
+                                  </Label>
+                                  <p className="text-[10px] text-muted-foreground">Ativar aviso de fora do horário.</p>
+                                </div>
+                                <Switch 
+                                  checked={metaSettings.business_hours_enabled}
+                                  onCheckedChange={(val) => setMetaSettings({...metaSettings, business_hours_enabled: val})}
+                                />
+                              </div>
+
+                              {metaSettings.business_hours_enabled && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Início</Label>
+                                      <Input 
+                                        type="time" 
+                                        className="h-8 text-xs"
+                                        value={metaSettings.business_hours_start}
+                                        onChange={(e) => setMetaSettings({...metaSettings, business_hours_start: e.target.value})}
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fim</Label>
+                                      <Input 
+                                        type="time" 
+                                        className="h-8 text-xs"
+                                        value={metaSettings.business_hours_end}
+                                        onChange={(e) => setMetaSettings({...metaSettings, business_hours_end: e.target.value})}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fuso Horário</Label>
+                                    <Select 
+                                      value={metaSettings.business_hours_tz} 
+                                      onValueChange={(val) => setMetaSettings({...metaSettings, business_hours_tz: val})}
+                                    >
+                                      <SelectTrigger className="h-8 text-xs">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="America/Sao_Paulo">Brasília (GMT-3)</SelectItem>
+                                        <SelectItem value="Europe/Lisbon">Lisboa (GMT+0)</SelectItem>
+                                        <SelectItem value="UTC">UTC</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Mensagem "Fora de Horário"</Label>
+                                    <Textarea 
+                                      rows={3}
+                                      className="resize-none text-[10px] leading-tight"
+                                      value={metaSettings.outside_hours_message}
+                                      onChange={(e) => setMetaSettings({...metaSettings, outside_hours_message: e.target.value})}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
                             {metaSettings.ai_agent_trigger === 'keyword' && (
                               <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                                 <Label className="text-sm font-bold">Palavra-chave / Mensagem Gatilho</Label>
@@ -2959,70 +3023,6 @@ const CRM = () => {
                               </Select>
                             </div>
 
-                            <div className="space-y-4 pt-4 border-t">
-                              <div className="flex items-center justify-between p-3 bg-blue-500/5 rounded-xl border border-blue-200">
-                                <div className="space-y-0.5">
-                                  <Label className="text-xs font-bold flex items-center gap-2">
-                                    <Clock className="w-3.5 h-3.5 text-blue-600" /> Horário Comercial
-                                  </Label>
-                                  <p className="text-[10px] text-muted-foreground">Ativar aviso de fora do horário.</p>
-                                </div>
-                                <Switch 
-                                  checked={metaSettings.business_hours_enabled}
-                                  onCheckedChange={(val) => setMetaSettings({...metaSettings, business_hours_enabled: val})}
-                                />
-                              </div>
-
-                              {metaSettings.business_hours_enabled && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1">
-                                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Início</Label>
-                                      <Input 
-                                        type="time" 
-                                        className="h-8 text-xs"
-                                        value={metaSettings.business_hours_start}
-                                        onChange={(e) => setMetaSettings({...metaSettings, business_hours_start: e.target.value})}
-                                      />
-                                    </div>
-                                    <div className="space-y-1">
-                                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fim</Label>
-                                      <Input 
-                                        type="time" 
-                                        className="h-8 text-xs"
-                                        value={metaSettings.business_hours_end}
-                                        onChange={(e) => setMetaSettings({...metaSettings, business_hours_end: e.target.value})}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fuso Horário</Label>
-                                    <Select 
-                                      value={metaSettings.business_hours_tz} 
-                                      onValueChange={(val) => setMetaSettings({...metaSettings, business_hours_tz: val})}
-                                    >
-                                      <SelectTrigger className="h-8 text-xs">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="America/Sao_Paulo">Brasília (GMT-3)</SelectItem>
-                                        <SelectItem value="Europe/Lisbon">Lisboa (GMT+0)</SelectItem>
-                                        <SelectItem value="UTC">UTC</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Mensagem "Fora de Horário"</Label>
-                                    <Textarea 
-                                      rows={3}
-                                      className="resize-none text-[10px] leading-tight"
-                                      value={metaSettings.outside_hours_message}
-                                      onChange={(e) => setMetaSettings({...metaSettings, outside_hours_message: e.target.value})}
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                            </div>
 
             {scheduleType === 'message' && (
               <div className="space-y-2">
