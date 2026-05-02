@@ -310,6 +310,33 @@ serve(async (req) => {
       return respond({ success: true, history });
     }
 
+    if (action === "updateCrmWebhook") {
+      const webhookId = typeof body.webhookId === "string" ? body.webhookId : null;
+      const config = body.config;
+
+      if (!webhookId || !config) {
+        return respond({ success: false, error: "Dados inválidos" });
+      }
+
+      const { error } = await supabase
+        .from("crm_webhooks")
+        .update({
+          is_active: config.enabled,
+          secret_token: config.token,
+          default_status: config.default_status || 'pending',
+          message_template: config.message_template,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", webhookId);
+        
+      if (error) {
+        console.error("[instagram-admin] updateCrmWebhook error", error);
+        return respond({ success: false, error: "Erro ao atualizar webhook" });
+      }
+
+      return respond({ success: true });
+    }
+
     return respond({ success: false, error: "Ação inválida" });
   } catch (error) {
     console.error("[instagram-admin] unexpected error", error);
