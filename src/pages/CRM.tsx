@@ -2582,14 +2582,31 @@ const CRM = () => {
                                   </Button>
                                 </div>
                               </div>
-                              <CardTitle className="text-base truncate font-bold flex items-center gap-2">
-                                {template.name}
-                                {template.is_carousel && <Layers className="w-3 h-3 text-primary" />}
-                                {template.is_pix && <CreditCard className="w-3 h-3 text-amber-500" />}
-                              </CardTitle>
+                              <div className="flex justify-between items-center gap-2">
+                                <CardTitle className="text-base truncate font-bold flex items-center gap-2">
+                                  {template.name}
+                                  {template.is_carousel && <Layers className="w-3 h-3 text-primary" />}
+                                  {template.is_pix && <CreditCard className="w-3 h-3 text-amber-500" />}
+                                </CardTitle>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-7 w-7 rounded-lg text-zinc-400 hover:text-primary hover:bg-primary/5 transition-colors"
+                                  title="Copiar texto do template"
+                                  onClick={() => {
+                                    const bodyText = template.components?.find((c: any) => c.type === 'BODY')?.text || '';
+                                    copyToClipboard(bodyText, "Texto do Template");
+                                  }}
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.category}</Badge>
                                 <Badge variant="outline" className="text-[9px] font-bold bg-muted/50 border-none">{template.language}</Badge>
+                                {template.is_pix && (
+                                  <Badge variant="outline" className="text-[9px] font-bold bg-amber-500/10 text-amber-600 border-amber-200">PIX</Badge>
+                                )}
                               </div>
                             </CardHeader>
                             <CardContent className="p-4 flex-1 flex flex-col justify-between gap-4">
