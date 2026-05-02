@@ -2415,6 +2415,7 @@ const CRM = () => {
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
+                            </div>
                             <CardTitle className="text-lg truncate">{flow.name}</CardTitle>
                             <CardDescription className="text-[11px] flex items-center gap-1.5 mt-1 font-medium">
                               <Zap className="w-3 h-3 text-amber-500" /> Gatilho: <span className="text-foreground">{flow.trigger_type || 'Manual'}</span>
