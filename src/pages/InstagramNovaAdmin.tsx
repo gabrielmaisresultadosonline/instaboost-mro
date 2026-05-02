@@ -405,6 +405,13 @@ Participe também do nosso GRUPO DE AVISOS
           default_status: config.default_status || "pending",
           message_template: config.message_template || webhookConfig.message_template
         });
+        
+        if (config.metadata && typeof config.metadata === 'object') {
+          setKanbanLabels(prev => ({
+            ...prev,
+            ...config.metadata
+          }));
+        }
         console.log("Loaded webhook config:", config);
       }
     } catch (error) {
