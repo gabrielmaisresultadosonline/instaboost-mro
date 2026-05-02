@@ -1315,6 +1315,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_used_at: string | null
+          message_template: string | null
           name: string
           response_type: string
           secret_token: string
@@ -1327,6 +1328,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_used_at?: string | null
+          message_template?: string | null
           name: string
           response_type?: string
           secret_token?: string
@@ -1339,6 +1341,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_used_at?: string | null
+          message_template?: string | null
           name?: string
           response_type?: string
           secret_token?: string
