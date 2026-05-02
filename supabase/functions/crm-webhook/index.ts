@@ -137,7 +137,7 @@ serve(async (req) => {
     // Ensure contact exists and log message
     let { data: contact } = await supabase
       .from('crm_contacts')
-      .select('id')
+      .select('id, status')
       .eq('wa_id', cleanTo)
       .maybeSingle();
 
@@ -147,14 +147,20 @@ serve(async (req) => {
         .insert([{
           wa_id: cleanTo,
           name: cleanTo,
-          status: 'new',
+          status: webhook.default_status || 'new',
           source: `webhook_${webhook.name}`
         }])
-        .select('id')
+        .select('id, status')
         .single();
       
       if (createError) console.error('Error creating contact from webhook:', createError);
       contact = newContact;
+    } else if (webhook.default_status && contact.status !== webhook.default_status) {
+      // Update existing contact status if webhook has a default status
+      await supabase
+        .from('crm_contacts')
+        .update({ status: webhook.default_status })
+        .eq('id', contact.id);
     }
 
     if (contact) {
