@@ -405,6 +405,11 @@ export default function InstagramNovaAdmin() {
     }
   }, []);
 
+  // Salvar configuração do webhook no localStorage quando mudar
+  useEffect(() => {
+    localStorage.setItem("mro_crm_webhook_config", JSON.stringify(webhookConfig));
+  }, [webhookConfig]);
+
   // Carregar comissões pagas da nuvem
   const loadPaidCommissions = async () => {
     try {
@@ -2404,6 +2409,21 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                 <Button
                   size="sm"
                   variant="outline"
+                  onClick={() => sendToCRMWebhook(order, true)}
+                  className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 h-7 px-2 text-xs"
+                  disabled={isSendingWebhook === order.id}
+                  title="Enviar mensagem via Webhook CRM agora"
+                >
+                  {isSendingWebhook === order.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  ) : (
+                    <Send className="w-3 h-3 mr-1" />
+                  )}
+                  Webhook
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => resendAccessEmail(order)}
                   className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 h-7 px-2 text-xs"
                   disabled={resendingEmail === order.id}
@@ -2534,6 +2554,16 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
             >
               <FileText className="w-4 h-4 mr-1" />
               Logs
+            </Button>
+            <Button
+              onClick={() => setShowWebhookSettings(true)}
+              variant="outline"
+              size="sm"
+              className={`border-cyan-500/50 ${webhookConfig.enabled ? "text-cyan-400 bg-cyan-500/5" : "text-zinc-500"}`}
+              title="Configurar Webhook do CRM"
+            >
+              <Send className="w-4 h-4 mr-1" />
+              Webhook CRM
             </Button>
           </div>
           <div className="flex gap-2">
@@ -4202,6 +4232,71 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                 <Save className="w-4 h-4 mr-2" />
               )}
               Salvar Email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Configuração do Webhook */}
+      <Dialog open={showWebhookSettings} onOpenChange={setShowWebhookSettings}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-400 flex items-center gap-2">
+              <Send className="w-5 h-5" />
+              Configurações do Webhook CRM
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Configure o envio automático de mensagens via WhatsApp
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-white">Status do Webhook</p>
+                <p className="text-xs text-zinc-400">Ativar ou desativar o envio automático</p>
+              </div>
+              <Switch 
+                checked={webhookConfig.enabled}
+                onCheckedChange={(checked) => setWebhookConfig(prev => ({ ...prev, enabled: checked }))}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-zinc-400 mb-2 block">ID do Webhook</label>
+                <Input 
+                  value={webhookConfig.webhook_id}
+                  onChange={(e) => setWebhookConfig(prev => ({ ...prev, webhook_id: e.target.value }))}
+                  placeholder="ID do seu Webhook"
+                  className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-zinc-400 mb-2 block">Token de Acesso</label>
+                <Input 
+                  value={webhookConfig.token}
+                  onChange={(e) => setWebhookConfig(prev => ({ ...prev, token: e.target.value }))}
+                  placeholder="Token do seu Webhook"
+                  type="password"
+                  className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
+              <p className="text-xs text-blue-300 leading-relaxed">
+                <strong>Dica:</strong> Quando ativo, o sistema enviará automaticamente os dados de acesso via WhatsApp para o cliente assim que o pagamento for aprovado (automática ou manualmente).
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              onClick={() => setShowWebhookSettings(false)}
+              className="bg-cyan-600 hover:bg-cyan-700 text-white w-full"
+            >
+              Concluído
             </Button>
           </DialogFooter>
         </DialogContent>
