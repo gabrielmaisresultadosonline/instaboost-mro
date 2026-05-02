@@ -2507,6 +2507,7 @@ const CRM = () => {
                         const body = template.components?.find((c: any) => c.type === 'BODY');
                         const footer = template.components?.find((c: any) => c.type === 'FOOTER');
                         const buttonsComp = template.components?.find((c: any) => c.type === 'BUTTONS');
+                        const carouselComp = template.components?.find((c: any) => c.type === 'CAROUSEL');
 
                         return (
                           <Card key={template.id} className="group overflow-hidden border-zinc-200 dark:border-zinc-800 hover:shadow-lg transition-all flex flex-col bg-card rounded-2xl">
