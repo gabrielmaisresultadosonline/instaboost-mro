@@ -345,6 +345,14 @@ const CRM = () => {
     }
   };
 
+  const copyToClipboard = (text: string, label: string = "Texto") => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: `${label} copiado!`,
+      description: "Conteúdo salvo na área de transferência.",
+    });
+  };
+
   const updateContactStatus = async (contactId: string, updates: any) => {
     try {
       setContacts(prev => prev.map(c => c.id === contactId ? { ...c, ...updates } : c));
