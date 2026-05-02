@@ -1768,7 +1768,7 @@ const CRM = () => {
                                 
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
                                       <TrendingUp className="w-3 h-3 mr-1" /> Gerar Estratégia
                                     </Button>
                                   </DialogTrigger>
