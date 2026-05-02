@@ -1167,28 +1167,34 @@ const CRM = () => {
   const handleDuplicateFlow = async (flow: any) => {
     setSaving(true);
     try {
+      // Remover campos gerados automaticamente para evitar conflitos no insert
       const { id, created_at, updated_at, ...flowData } = flow;
+      
       const newFlow = {
         ...flowData,
         name: `${flowData.name} (Cópia)`,
-        is_active: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        is_active: false
       };
+
+      console.log("Duplicating flow with data:", newFlow);
 
       const { data, error } = await supabase
         .from('crm_flows')
         .insert([newFlow])
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase insert error:", error);
+        throw error;
+      }
       
       toast({ title: "Fluxo duplicado com sucesso!" });
       fetchData();
     } catch (err: any) {
+      console.error("Error in handleDuplicateFlow:", err);
       toast({ 
         title: "Erro ao duplicar fluxo", 
-        description: err.message, 
+        description: err.message || "Verifique se há campos obrigatórios faltando ou conflitos de chave única.", 
         variant: "destructive" 
       });
     } finally {
@@ -2207,7 +2213,7 @@ const CRM = () => {
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
                               </>
                             ) : (
-                              <div className="flex flex-col items-center justify-center gap-4 text-center p-8">
+                              <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
                                 <MessageSquare className="w-10 h-10 text-primary/30" />
                                 <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
                                 <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
