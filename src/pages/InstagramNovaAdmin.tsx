@@ -4052,6 +4052,25 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
           </div>
         </div>
 
+        {/* Botão de Configurações Webhook / Kanban mais visível */}
+        <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500 rounded-lg shadow-lg shadow-amber-500/20">
+              <Settings className="w-6 h-6 text-black" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white leading-tight">Gestão de Etiquetas e Webhook</h2>
+              <p className="text-zinc-400 text-sm">Configure o status inicial e nomes das etapas do Kanban.</p>
+            </div>
+          </div>
+          <Button
+            onClick={() => setShowWebhookSettings(true)}
+            className="bg-amber-500 hover:bg-amber-600 text-black font-black px-6 h-12 rounded-lg shadow-xl shadow-amber-500/20 transition-all hover:scale-105"
+          >
+            ABRIR EDITOR DE ETAPAS KANBAN
+          </Button>
+        </div>
+
         {/* Orders List - Collapsible Sections */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
