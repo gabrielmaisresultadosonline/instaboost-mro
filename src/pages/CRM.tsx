@@ -289,6 +289,7 @@ const CRM = () => {
       const { data: templatesData } = await supabase.from('crm_templates').select('*');
       setTemplates(templatesData || []);
 
+      await fetchWebhooks();
       await fetchAllScheduledMessages();
     } catch (error) {
       console.error(error);
