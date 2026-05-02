@@ -60,7 +60,7 @@ serve(async (req) => {
     const cleanTo = to.replace(/\D/g, '')
 
     let result;
-    let finalMessageText = message || '';
+    let finalMessageText = message || webhook.message_template || '';
 
     if (webhook.response_type === 'template' || template_id) {
       // Send Template
