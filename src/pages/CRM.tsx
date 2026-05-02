@@ -1644,7 +1644,106 @@ const CRM = () => {
                             </div>
                           </ScrollArea>
                           
-                          <div className="p-4 bg-card border-t shadow-lg z-10">
+                          <div className="p-4 bg-card border-t shadow-lg z-10 space-y-3">
+                            {selectedContact && (
+                              <div className="flex items-center justify-between px-2 py-1 bg-muted/20 rounded-lg border border-border/50">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <Bot className={cn("w-4 h-4", selectedContact.ai_active ? "text-primary" : "text-muted-foreground")} />
+                                    <span className="text-[11px] font-bold">Assistente IA</span>
+                                    <Switch 
+                                      size="sm"
+                                      checked={selectedContact.ai_active}
+                                      onCheckedChange={async (val) => {
+                                        await updateContactStatus(selectedContact.id, { ai_active: val });
+                                      }}
+                                    />
+                                  </div>
+                                  <div className="w-px h-4 bg-border" />
+                                  <div className="flex items-center gap-2">
+                                    <TrendingUp className={cn("w-4 h-4", selectedContact.ai_strategy_active ? "text-purple-500" : "text-muted-foreground")} />
+                                    <span className="text-[11px] font-bold">Estratégias IA</span>
+                                    <Switch 
+                                      size="sm"
+                                      checked={selectedContact.ai_strategy_active}
+                                      onCheckedChange={async (val) => {
+                                        await updateContactStatus(selectedContact.id, { ai_strategy_active: val });
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] font-black uppercase tracking-wider text-purple-600 hover:text-purple-700 hover:bg-purple-50">
+                                      <TrendingUp className="w-3 h-3 mr-1" /> Gerar Estratégia
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="sm:max-w-[500px]">
+                                    <DialogHeader>
+                                      <DialogTitle className="flex items-center gap-2">
+                                        <TrendingUp className="w-5 h-5 text-purple-600" />
+                                        Análise Estratégica de Vendas
+                                      </DialogTitle>
+                                      <DialogDescription>
+                                        A IA analisará todo o histórico com <strong>{selectedContact.name || selectedContact.wa_id}</strong> para gerar gatilhos e estratégias de fechamento.
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    
+                                    <div className="space-y-4 py-4">
+                                      {selectedContact.last_ai_strategy ? (
+                                        <div className="bg-purple-500/5 border border-purple-200 rounded-xl p-4 max-h-[300px] overflow-y-auto">
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <Bot className="w-4 h-4 text-purple-600" />
+                                            <span className="text-[10px] font-bold uppercase text-purple-600 tracking-widest">Última Estratégia Gerada</span>
+                                          </div>
+                                          <p className="text-sm text-purple-900/80 leading-relaxed whitespace-pre-wrap">
+                                            {selectedContact.last_ai_strategy}
+                                          </p>
+                                        </div>
+                                      ) : (
+                                        <div className="text-center py-8 text-muted-foreground italic text-sm">
+                                          Nenhuma estratégia gerada ainda para este contato.
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <DialogFooter>
+                                      <Button 
+                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                                        onClick={async () => {
+                                          setSendingMessage(true);
+                                          try {
+                                            const { data, error } = await supabase.functions.invoke('generate-strategy', {
+                                              body: { contactId: selectedContact.id }
+                                            });
+                                            if (error) throw error;
+                                            toast({ title: "Estratégia gerada com sucesso!" });
+                                            // Atualiza o contato localmente para mostrar a nova estratégia
+                                            setSelectedContact((prev: any) => ({ 
+                                              ...prev, 
+                                              last_ai_strategy: data.strategy 
+                                            }));
+                                          } catch (err: any) {
+                                            toast({ title: "Erro ao gerar estratégia", description: err.message, variant: "destructive" });
+                                          } finally {
+                                            setSendingMessage(false);
+                                          }
+                                        }}
+                                        disabled={sendingMessage}
+                                      >
+                                        {sendingMessage ? (
+                                          <><RefreshCcw className="w-4 h-4 mr-2 animate-spin" /> Analisando Histórico...</>
+                                        ) : (
+                                          <><Zap className="w-4 h-4 mr-2" /> Gerar Nova Estratégia Agora</>
+                                        )}
+                                      </Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
+                            )}
+
                             {isPreviewingAudio && recordedAudioUrl ? (
                               <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20 animate-in slide-in-from-bottom-2 duration-300">
                                 <div className="flex-1 flex items-center gap-3">
