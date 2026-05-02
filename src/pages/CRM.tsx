@@ -63,7 +63,8 @@ import {
   MoreHorizontal,
   Webhook,
   Layers,
-  CreditCard
+  CreditCard,
+  Copy
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
