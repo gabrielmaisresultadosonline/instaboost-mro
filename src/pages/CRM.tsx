@@ -2888,7 +2888,213 @@ const CRM = () => {
               </ScrollArea>
             )}
 
-          </main>
+            {activeTab === 'webhooks' && (
+              <ScrollArea className="flex-1 p-8 bg-muted/5">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col md:flex-row justify-between md:items-center bg-card p-6 rounded-2xl border shadow-sm gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Webhooks (API Externa)</h2>
+                      <p className="text-muted-foreground text-sm">Conecte sites externos para enviar mensagens automáticas.</p>
+                    </div>
+                    <Button onClick={() => setIsNewWebhookDialogOpen(true)} className="h-10 bg-primary shadow-lg shadow-primary/20">
+                      <Plus className="w-4 h-4 mr-2" /> Novo Webhook
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6">
+                    {webhooks.length === 0 ? (
+                      <Card className="p-12 text-center border-dashed border-2 bg-muted/20 rounded-2xl">
+                        <Webhook className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />
+                        <h3 className="text-lg font-medium">Nenhum webhook criado</h3>
+                        <p className="text-sm text-muted-foreground">Crie um webhook para integrar seu site ou sistema externo.</p>
+                      </Card>
+                    ) : (
+                      webhooks.map((webhook) => (
+                        <Card key={webhook.id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow rounded-2xl">
+                          <CardHeader className="flex flex-row items-center justify-between pb-2 bg-muted/10">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-primary/10 rounded-lg">
+                                <Webhook className="w-5 h-5 text-primary" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg font-bold">{webhook.name}</CardTitle>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant={webhook.is_active ? "default" : "secondary"} className="text-[10px]">
+                                    {webhook.is_active ? "Ativo" : "Inativo"}
+                                  </Badge>
+                                  <span className="text-[10px] text-muted-foreground font-mono">ID: {webhook.id}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch 
+                                checked={webhook.is_active} 
+                                onCheckedChange={() => toggleWebhookStatus(webhook.id, webhook.is_active)} 
+                              />
+                              <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => {
+                                if(confirm("Deseja excluir este webhook?")) handleDeleteWebhook(webhook.id);
+                              }}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="p-6 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              <div className="space-y-4">
+                                <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Configurações de Resposta</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="p-3 bg-muted/30 rounded-xl border">
+                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase">Tipo</Label>
+                                    <p className="text-sm font-semibold capitalize">{webhook.response_type === 'text' ? 'Texto Livre' : 'Template Meta'}</p>
+                                  </div>
+                                  {webhook.response_type === 'template' && (
+                                    <div className="p-3 bg-muted/30 rounded-xl border">
+                                      <Label className="text-[10px] font-bold text-muted-foreground uppercase">Template</Label>
+                                      <p className="text-sm font-semibold truncate">{templates.find(t => t.id === webhook.template_id)?.name || 'N/A'}</p>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label className="text-xs font-bold uppercase text-muted-foreground">URL do Webhook (POST)</Label>
+                                  <div className="flex gap-2">
+                                    <Input 
+                                      readOnly 
+                                      value={`https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/crm-webhook`} 
+                                      className="font-mono text-[10px] bg-muted/50 rounded-xl"
+                                    />
+                                    <Button size="sm" variant="outline" className="rounded-xl" onClick={() => {
+                                      navigator.clipboard.writeText(`https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/crm-webhook`);
+                                      toast({ title: "URL copiada!" });
+                                    }}>
+                                      <Paperclip className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground italic">* Esta URL recebe os dados do seu site para disparar o WhatsApp.</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-xs font-bold uppercase text-muted-foreground">Token de Autenticação</Label>
+                                  <div className="flex gap-2">
+                                    <Input 
+                                      readOnly 
+                                      type="password"
+                                      value={webhook.secret_token} 
+                                      className="font-mono text-[10px] bg-muted/50 rounded-xl"
+                                    />
+                                    <Button size="sm" variant="outline" className="rounded-xl" onClick={() => {
+                                      navigator.clipboard.writeText(webhook.secret_token);
+                                      toast({ title: "Token copiado!" });
+                                    }}>
+                                      <Paperclip className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="bg-zinc-950 rounded-2xl p-6 text-zinc-300 overflow-hidden relative border border-white/5 shadow-2xl">
+                                <div className="absolute top-4 right-4 text-zinc-700 font-mono text-[10px] tracking-widest">API DOCS</div>
+                                <h4 className="text-primary font-bold text-sm mb-4 flex items-center gap-2">
+                                  <Play className="w-3 h-3 fill-current" /> Guia de Integração
+                                </h4>
+                                <div className="space-y-4 font-mono text-[11px]">
+                                  <p className="text-zinc-500">// Exemplo de requisição no seu site</p>
+                                  <div className="bg-black/50 p-4 rounded-xl border border-white/5 overflow-x-auto whitespace-pre text-emerald-400">
+{`fetch("https://adljdeekwifwcdcgbpit.supabase.co/functions/v1/crm-webhook", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    webhook_id: "${webhook.id}",
+    token: "${webhook.secret_token}",
+    to: "5511999999999",
+    message: "Olá, seu acesso ao produto foi liberado!"
+  })
+});`}
+                                  </div>
+                                  <div className="space-y-2 pt-2 border-t border-white/5 text-zinc-400 font-sans">
+                                    <p className="italic text-[10px]">
+                                      <strong className="text-zinc-200">Parâmetros:</strong><br/>
+                                      - <code className="text-primary">to</code>: Número do cliente (DDI+DDD+Número)<br/>
+                                      - <code className="text-primary">message</code>: Conteúdo da mensagem (se tipo Texto)<br/>
+                                      - <code className="text-primary">variables</code>: [Array] Valores para as variáveis do template (se tipo Template)
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <Dialog open={isNewWebhookDialogOpen} onOpenChange={setIsNewWebhookDialogOpen}>
+                  <DialogContent className="sm:max-w-[500px] rounded-3xl border-none shadow-2xl">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2 text-2xl font-black">
+                        <Webhook className="w-6 h-6 text-primary" /> Novo Webhook
+                      </DialogTitle>
+                      <DialogDescription className="text-base">
+                        Crie um ponto de entrada para disparar mensagens do seu site.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6 py-4">
+                      <div className="space-y-2">
+                        <Label className="font-bold">Nome de Identificação</Label>
+                        <Input 
+                          placeholder="Ex: Checkout - Produto A" 
+                          value={newWebhook.name}
+                          onChange={e => setNewWebhook({...newWebhook, name: e.target.value})}
+                          className="rounded-2xl h-12"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-bold">Qual será o tipo da mensagem?</Label>
+                        <Select 
+                          value={newWebhook.response_type} 
+                          onValueChange={(val: any) => setNewWebhook({...newWebhook, response_type: val, template_id: val === 'text' ? '' : newWebhook.template_id})}
+                        >
+                          <SelectTrigger className="rounded-2xl h-12">
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl border-none shadow-xl">
+                            <SelectItem value="text" className="rounded-xl">Texto Livre (Enviado pelo seu site)</SelectItem>
+                            <SelectItem value="template" className="rounded-xl">Template Meta (Pré-aprovado)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {newWebhook.response_type === 'template' && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <Label className="font-bold">Template Vinculado</Label>
+                          <Select 
+                            value={newWebhook.template_id} 
+                            onValueChange={val => setNewWebhook({...newWebhook, template_id: val})}
+                          >
+                            <SelectTrigger className="rounded-2xl h-12">
+                              <SelectValue placeholder="Selecione um template aprovado" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl border-none shadow-xl">
+                              {templates.filter(t => t.status === 'APPROVED').map(t => (
+                                <SelectItem key={t.id} value={t.id} className="rounded-xl">{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                    <DialogFooter className="gap-2">
+                      <Button variant="ghost" onClick={() => setIsNewWebhookDialogOpen(false)} className="rounded-2xl h-12 px-6">Cancelar</Button>
+                      <Button onClick={handleCreateWebhook} disabled={saving || !newWebhook.name} className="rounded-2xl h-12 px-8 bg-primary shadow-lg shadow-primary/20 font-bold">
+                        {saving ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+                        Salvar Webhook
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </ScrollArea>
+            )}
         </SidebarInset>
       </div>
       {isFlowEditorOpen && (
