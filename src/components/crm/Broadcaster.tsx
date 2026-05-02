@@ -335,21 +335,21 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
 
                     <TabsContent value="template" className="space-y-4 animate-in fade-in">
                       <Label className="text-xs md:text-sm">Selecione o Template Aprovado</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                         {templates.filter(t => t.status === 'APPROVED').map(t => (
                           <div 
                             key={t.id} 
                             onClick={() => setSelectedTemplate(t.id)}
                             className={cn(
-                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer",
+                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer min-w-0 w-full",
                               selectedTemplate === t.id ? "border-[#00a884] bg-[#00a884]/5 shadow-md" : "border-transparent bg-[#202c33] hover:border-white/10"
                             )}
                           >
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="font-bold text-[10px] md:text-xs truncate text-[#e9edef]">{t.name}</span>
-                              <Badge variant="secondary" className="text-[8px] md:text-[9px] bg-[#111b21]">{t.category}</Badge>
+                            <div className="flex justify-between items-center mb-2 gap-2">
+                              <span className="font-bold text-[10px] md:text-xs truncate text-[#e9edef] flex-1">{t.name}</span>
+                              <Badge variant="secondary" className="text-[8px] md:text-[9px] bg-[#111b21] shrink-0">{t.category}</Badge>
                             </div>
-                            <p className="text-[9px] md:text-[10px] text-[#8696a0] line-clamp-2">
+                            <p className="text-[9px] md:text-[10px] text-[#8696a0] line-clamp-2 break-words">
                               {t.components?.find((c: any) => c.type === 'BODY')?.text}
                             </p>
                           </div>
@@ -359,21 +359,21 @@ const Broadcaster = ({ templates, flows, contacts }: BroadcasterProps) => {
 
                     <TabsContent value="flow" className="space-y-4 animate-in fade-in">
                       <Label className="text-xs md:text-sm">Selecione o Fluxo Visual</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                         {flows.map(f => (
                           <div 
                             key={f.id} 
                             onClick={() => setSelectedFlow(f.id)}
                             className={cn(
-                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer",
+                              "p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer min-w-0 w-full",
                               selectedFlow === f.id ? "border-[#00a884] bg-[#00a884]/5 shadow-md" : "border-transparent bg-[#202c33] hover:border-white/10"
                             )}
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-[#00a884]/10 text-[#00a884]">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="p-2 rounded-lg bg-[#00a884]/10 text-[#00a884] shrink-0">
                                 <GitBranch className="w-4 h-4" />
                               </div>
-                              <span className="font-bold text-[10px] md:text-xs text-[#e9edef]">{f.name}</span>
+                              <span className="font-bold text-[10px] md:text-xs text-[#e9edef] truncate">{f.name}</span>
                             </div>
                           </div>
                         ))}
