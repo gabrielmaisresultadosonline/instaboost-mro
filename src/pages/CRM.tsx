@@ -64,7 +64,8 @@ import {
   Webhook,
   Layers,
   CreditCard,
-  Copy
+  Copy,
+  Pencil
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
@@ -189,6 +190,8 @@ const CRM = () => {
   // States for custom statuses
   const [kanbanStatuses, setKanbanStatuses] = useState<any[]>([]);
   const [isNewStatusDialogOpen, setIsNewStatusDialogOpen] = useState(false);
+  const [isEditStatusDialogOpen, setIsEditStatusDialogOpen] = useState(false);
+  const [editingStatus, setEditingStatus] = useState<any>(null);
   const [newStatusData, setNewStatusData] = useState({ label: '', color: 'blue', value: '' });
 
   useEffect(() => {
@@ -517,6 +520,30 @@ const CRM = () => {
       setNewStatusData({ label: '', color: 'blue', value: '' });
     } catch (err: any) {
       toast({ title: "Erro ao criar etiqueta", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!editingStatus || !editingStatus.label) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('crm_statuses')
+        .update({
+          label: editingStatus.label,
+          color: editingStatus.color
+        })
+        .eq('id', editingStatus.id);
+
+      if (error) throw error;
+      toast({ title: "Etiqueta atualizada com sucesso!" });
+      fetchStatuses();
+      setIsEditStatusDialogOpen(false);
+      setEditingStatus(null);
+    } catch (err: any) {
+      toast({ title: "Erro ao atualizar etiqueta", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -1298,6 +1325,59 @@ const CRM = () => {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <Dialog open={isEditStatusDialogOpen} onOpenChange={setIsEditStatusDialogOpen}>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Editar Etiqueta Kanban</DialogTitle>
+                      <DialogDescription>
+                        Altere as informações da etapa do seu funil.
+                      </DialogDescription>
+                    </DialogHeader>
+                    {editingStatus && (
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="edit-status-label">Nome da Etiqueta</Label>
+                          <Input 
+                            id="edit-status-label" 
+                            value={editingStatus.label}
+                            onChange={(e) => setEditingStatus({...editingStatus, label: e.target.value})}
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Cor da Etiqueta</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {['blue', 'yellow', 'purple', 'green', 'red', 'orange', 'indigo', 'pink'].map(color => (
+                              <button
+                                key={color}
+                                type="button"
+                                onClick={() => setEditingStatus({...editingStatus, color})}
+                                className={cn(
+                                  "w-8 h-8 rounded-full border-2 transition-all",
+                                  editingStatus.color === color ? "border-primary scale-110 shadow-md" : "border-transparent opacity-70 hover:opacity-100",
+                                  color === 'blue' && 'bg-blue-500',
+                                  color === 'yellow' && 'bg-yellow-500',
+                                  color === 'purple' && 'bg-purple-500',
+                                  color === 'green' && 'bg-green-500',
+                                  color === 'red' && 'bg-red-500',
+                                  color === 'orange' && 'bg-orange-500',
+                                  color === 'indigo' && 'bg-indigo-500',
+                                  color === 'pink' && 'bg-pink-500'
+                                )}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <DialogFooter>
+                      <Button onClick={handleUpdateStatus} disabled={saving}>
+                        {saving ? <RefreshCcw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        Salvar Alterações
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 <Button variant="outline" size="sm" onClick={() => setIsImportExportOpen(true)}>
                   <FileUp className="w-4 h-4 mr-2" /> Importar/Exportar
                 </Button>
@@ -1380,18 +1460,33 @@ const CRM = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="bg-background/80 shadow-sm border font-black">{contacts.filter(c => c.status === status.value).length}</Badge>
-                            {/* Allow deleting custom statuses */}
+                            {/* Allow editing and deleting custom statuses */}
                             {kanbanStatuses.some(s => s.id && s.value === status.value) && (
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const sObj = kanbanStatuses.find(s => s.value === status.value);
-                                  if (sObj) handleDeleteStatus(sObj.id);
-                                }}
-                                className="opacity-0 group-hover/column:opacity-100 transition-opacity hover:text-red-500"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
+                              <div className="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                    if (sObj) {
+                                      setEditingStatus(sObj);
+                                      setIsEditStatusDialogOpen(true);
+                                    }
+                                  }}
+                                  className="hover:text-primary p-1"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const sObj = kanbanStatuses.find(s => s.value === status.value);
+                                    if (sObj) handleDeleteStatus(sObj.id);
+                                  }}
+                                  className="hover:text-red-500 p-1"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>
