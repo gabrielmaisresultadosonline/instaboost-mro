@@ -112,7 +112,12 @@ const CRM = () => {
     initial_response_text: '',
     initial_response_buttons: [],
     shortcut_size: 100,
-    tag_size: 100
+    tag_size: 100,
+    business_hours_enabled: false,
+    business_hours_start: '08:00',
+    business_hours_end: '18:00',
+    business_hours_tz: 'America/Sao_Paulo',
+    outside_hours_message: 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.'
   });
   const [metrics, setMetrics] = useState<any>({
     sent_count: 0,

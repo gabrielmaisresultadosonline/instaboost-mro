@@ -295,48 +295,43 @@ serve(async (req) => {
                       const { data: templates } = await supabase.from('crm_templates').select('name, components, knowledge_description');
                       const { data: flows } = await supabase.from('crm_flows').select('id, name').eq('is_active', true);
 
+                      // Check if it's outside business hours
+                      let businessHoursInstruction = "";
+                      if (settings?.business_hours_enabled) {
+                        const now = new Date();
+                        const options: Intl.DateTimeFormatOptions = {
+                          timeZone: settings.business_hours_tz || 'America/Sao_Paulo',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false
+                        };
+                        const currentTime = new Intl.DateTimeFormat('pt-BR', options).format(now);
+                        const start = settings.business_hours_start || '08:00';
+                        const end = settings.business_hours_end || '18:00';
+
+                        const isOutside = currentTime < start || currentTime > end;
+                        if (isOutside) {
+                          businessHoursInstruction = `
+INFORMAÇÃO CRÍTICA: Atualmente estamos FORA do horário comercial (${start} às ${end}).
+- Você DEVE informar ao usuário que nossos administradores não estão ativos no momento e que você seguirá com o atendimento, mas em breve um humano retornará.
+- Mensagem padrão sugerida: "${settings.outside_hours_message || 'Nossos administradores não estão ativos no momento. Seguiremos com o atendimento automatizado e em breve retornaremos com um atendimento humano.'}"
+- Se o usuário insistir em falar com um humano ou se você não souber responder algo complexo, use a tag [SET_STATUS: human] para encaminhar.
+`;
+                        }
+                      }
+
                       const systemPrompt = `
 MODO DE OPERAÇÃO ATUAL: ${settings.ai_operation_mode || 'chat'}
 (Se o modo for "monitor", você NÃO deve enviar mensagens ao usuário, apenas tags de status ou gatilhos).
 
 ${settings.ai_system_prompt || 'Você é um assistente de vendas profissional.'}
+${businessHoursInstruction}
 
 TEMPLATES DISPONÍVEIS (IMPORTANTE: Use [SEND_TEMPLATE: nome] em uma linha isolada para enviar um template oficial):
-${templates?.map(t => {
-  const body = t.components?.find((c: any) => c.type === 'BODY')?.text || '';
-  const buttonsComponent = t.components?.find((c: any) => c.type === 'BUTTONS');
-  const buttonsList = buttonsComponent?.buttons?.map((b: any, idx: number) => {
-    let info = `[${b.type || 'BUTTON'}]: "${b.text}"`;
-    if (b.url) info += ` (Link: ${b.url})`;
-    if (b.phone_number) info += ` (Tel: ${b.phone_number})`;
-    return info;
-  }).join(' | ') || 'Nenhum';
-  
-  const knowledge = t.knowledge_description ? `\n   - QUANDO USAR: ${t.knowledge_description}` : '';
-  return `- NOME: ${t.name}\n   - O QUE ENVIA: "${body}"\n   - BOTÕES: ${buttonsList}${knowledge}`;
-}).join('\n')}
-
-FLUXOS DISPONÍVEIS:
-${flows?.map(f => `- ${f.name} (ID: ${f.id})`).join('\n')}
-
-DIRETRIZES DE RESPOSTA (Siga rigorosamente):
-1. RESPOSTA IMEDIATA E COMPLETA: Se o usuário pedir algo (site, instagram, catálogo), você DEVE enviar a confirmação E a tag [SEND_TEMPLATE: nome] AGORA, na mesma resposta. Nunca diga que "vai enviar" sem incluir a tag correspondente imediatamente abaixo.
-2. Se o usuário pedir o SITE ou catálogos: Envie uma frase curta de confirmação e a tag [SEND_TEMPLATE: acesse_site].
-3. Se o usuário pedir o INSTAGRAM: Envie uma frase curta de confirmação e a tag [SEND_TEMPLATE: segue_nosso_insta].
-4. FLUXO NATURAL: Use a tag [SPLIT] para separar o texto de confirmação da tag do template. Exemplo: "Claro! Segue o link: [SPLIT] [SEND_TEMPLATE: nome_do_template]".
-5. PROATIVIDADE: Não espere o usuário pedir duas vezes. Se ele demonstrou interesse, já entregue o recurso.
-6. NUNCA escreva links manualmente se existir um template para isso. Use SEMPRE as tags de template para links importantes.
-7. DIVISÃO DE MENSAGENS: Para parecer humano, divida informações complexas usando [SPLIT]. O sistema enviará cada parte com um pequeno intervalo. Máximo 3 partes por resposta.
-8. AUTONOMIA: Você tem permissão para decidir qual recurso enviar com base no contexto, visando sempre a conversão.
-9. REFORÇO CRÍTICO: Se você digitou "vou enviar", a tag [SEND_TEMPLATE: ...] PRECISA estar no final da sua resposta. Não deixe para uma interação futura.
-10. Se houver mais de uma resposta necessária (ex: responder uma dúvida e enviar um link), use [SPLIT] para organizar.
+...
 11. REATIVAÇÃO DE CONTATO: Se um cliente que estava como "lost" (perdido) chamar novamente e demonstrar interesse, você DEVE reavaliar o status e mudá-lo para "warm" ou "hot" usando a tag [SET_STATUS: warm] ou [SET_STATUS: hot]. Não o ignore apenas por estar como "lost".
 12. CONFIRMAÇÃO DE ENVIO: Certifique-se de que cada intenção de envio seja seguida pela tag técnica correspondente. Se você disser "Aqui está o link", a tag [SEND_TEMPLATE: ...] deve vir logo em seguida.
-
-
-
-
-
+13. ATENDIMENTO HUMANO: Se você identificar que o cliente precisa de suporte humano urgente ou se você não conseguir resolver a dúvida dele, use a tag [SET_STATUS: human]. Isso moverá o contato para a fila de atendimento prioritário.
 `;
 
                       const openaiMessages: any[] = [{ role: 'system', content: systemPrompt }];
