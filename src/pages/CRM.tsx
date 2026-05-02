@@ -61,7 +61,9 @@ import {
   MapPin,
   Smile,
   MoreHorizontal,
-  Webhook
+  Webhook,
+  Layers,
+  CreditCard
 } from "lucide-react";
 import TemplatePreview from "@/components/whatsapp/TemplatePreview";
 import { Logo } from "@/components/Logo";
