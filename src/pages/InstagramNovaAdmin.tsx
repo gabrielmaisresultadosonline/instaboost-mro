@@ -2585,10 +2585,10 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
 
   // Configuração das seções
   const sections = [
-    { key: "completed", label: "Completos", color: "green", icon: CheckCircle, orders: groupedOrders.completed },
-    { key: "paid", label: "Pagos", color: "blue", icon: CheckCircle, orders: groupedOrders.paid },
-    { key: "pending", label: "Pendentes", color: "yellow", icon: Clock, orders: groupedOrders.pending },
-    { key: "expired", label: "Expirados", color: "red", icon: AlertTriangle, orders: groupedOrders.expired },
+    { key: "completed", label: kanbanLabels.completed, color: "green", icon: CheckCircle, orders: groupedOrders.completed },
+    { key: "paid", label: kanbanLabels.paid, color: "blue", icon: CheckCircle, orders: groupedOrders.paid },
+    { key: "pending", label: kanbanLabels.pending, color: "yellow", icon: Clock, orders: groupedOrders.pending },
+    { key: "expired", label: kanbanLabels.expired, color: "red", icon: AlertTriangle, orders: groupedOrders.expired },
   ];
 
   if (!isAuthenticated) {
