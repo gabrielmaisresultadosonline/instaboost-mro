@@ -2220,6 +2220,7 @@ const CRM = () => {
                                   </div>
                                 </div>
                               )}
+                            </div>
 
                             {metaSettings.ai_agent_trigger === 'keyword' && (
                               <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
