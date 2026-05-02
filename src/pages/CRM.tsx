@@ -1785,18 +1785,54 @@ const CRM = () => {
                                     
                                     <div className="space-y-4 py-4">
                                       {selectedContact.last_ai_strategy ? (
-                                        <div className="bg-purple-500/5 border border-purple-200 rounded-xl p-4 max-h-[300px] overflow-y-auto">
-                                          <div className="flex items-center gap-2 mb-2">
-                                            <Bot className="w-4 h-4 text-purple-600" />
-                                            <span className="text-[10px] font-bold uppercase text-purple-600 tracking-widest">Última Estratégia Gerada</span>
+                                        <div className="bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent border border-purple-200 rounded-2xl p-6 shadow-sm overflow-hidden relative group">
+                                          <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                              <div className="p-2 bg-purple-600 rounded-lg shadow-lg shadow-purple-200">
+                                                <Zap className="w-4 h-4 text-white animate-pulse" />
+                                              </div>
+                                              <div>
+                                                <span className="text-[10px] font-black uppercase text-purple-600 tracking-widest block">Inteligência Estratégica</span>
+                                                <span className="text-xs text-purple-900/60">Análise de conversão personalizada</span>
+                                              </div>
+                                            </div>
+                                            <Button 
+                                              variant="outline" 
+                                              size="sm" 
+                                              className="h-8 rounded-lg bg-white border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all shadow-sm"
+                                              onClick={() => copyToClipboard(selectedContact.last_ai_strategy, "Estratégia")}
+                                            >
+                                              <Copy className="w-3 h-3 mr-2" /> Copiar Tudo
+                                            </Button>
                                           </div>
-                                          <p className="text-sm text-purple-900/80 leading-relaxed whitespace-pre-wrap">
-                                            {selectedContact.last_ai_strategy}
-                                          </p>
+                                          
+                                          <div className="relative">
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-600/20 rounded-full" />
+                                            <div className="pl-4 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                              <p className="text-sm text-purple-900 leading-relaxed whitespace-pre-wrap font-medium">
+                                                {selectedContact.last_ai_strategy}
+                                              </p>
+                                            </div>
+                                          </div>
+
+                                          <div className="mt-4 pt-4 border-t border-purple-100 flex items-center justify-between text-[10px] text-purple-600/60 font-bold uppercase tracking-tighter">
+                                            <span>Foco em Conversão</span>
+                                            <div className="flex gap-1">
+                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" />
+                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:0.2s]" />
+                                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:0.4s]" />
+                                            </div>
+                                          </div>
                                         </div>
                                       ) : (
-                                        <div className="text-center py-8 text-muted-foreground italic text-sm">
-                                          Nenhuma estratégia gerada ainda para este contato.
+                                        <div className="text-center py-12 bg-muted/30 rounded-2xl border-2 border-dashed border-muted flex flex-col items-center gap-3">
+                                          <div className="p-3 bg-muted rounded-full text-muted-foreground">
+                                            <TrendingUp className="w-6 h-6" />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <p className="font-bold text-muted-foreground">Nenhuma estratégia gerada</p>
+                                            <p className="text-xs text-muted-foreground/60 max-w-[200px]">Clique no botão abaixo para que a IA analise este contato.</p>
+                                          </div>
                                         </div>
                                       )}
                                     </div>
