@@ -387,6 +387,31 @@ Participe também do nosso GRUPO DE AVISOS
     };
   }, [showCRMWebhookLogs]);
 
+  const loadWebhookConfig = async () => {
+    const token = getAdminSessionToken();
+    if (!token) return;
+
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { action: "getCrmWebhook", token }
+      });
+
+      if (!error && response?.success && response.config) {
+        const config = response.config;
+        setWebhookConfig({
+          enabled: config.is_active,
+          webhook_id: config.id,
+          token: config.secret_token,
+          default_status: config.default_status || "pending",
+          message_template: config.message_template || webhookConfig.message_template
+        });
+        console.log("Loaded webhook config:", config);
+      }
+    } catch (error) {
+      console.error("Error loading webhook config:", error);
+    }
+  };
+
   const saveWebhookConfigToDB = async () => {
     const token = getAdminSessionToken();
     if (!token) return;
@@ -407,6 +432,8 @@ Participe também do nosso GRUPO DE AVISOS
       }
 
       toast.success("Configurações salvas permanentemente!");
+      // Recarregar após salvar para garantir sincronia
+      loadWebhookConfig();
     } catch (error) {
       console.error("Error saving webhook config:", error);
       toast.error("Salvo localmente, mas houve erro ao sincronizar com a nuvem");
