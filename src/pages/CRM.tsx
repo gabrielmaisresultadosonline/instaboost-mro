@@ -1474,7 +1474,7 @@ const CRM = () => {
                                   }}
                                   className="hover:text-primary p-1"
                                 >
-                                  <Settings className="w-3 h-3" />
+                                  <Pencil className="w-3 h-3" />
                                 </button>
                                 <button 
                                   onClick={(e) => {
