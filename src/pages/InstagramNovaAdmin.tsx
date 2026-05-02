@@ -387,6 +387,34 @@ Participe também do nosso GRUPO DE AVISOS
     };
   }, [showCRMWebhookLogs]);
 
+  const saveWebhookConfigToDB = async () => {
+    const token = getAdminSessionToken();
+    if (!token) return;
+
+    setIsSavingWebhookConfig(true);
+    try {
+      const { data: response, error } = await supabase.functions.invoke("instagram-admin", {
+        body: { 
+          action: "updateCrmWebhook", 
+          token,
+          webhookId: webhookConfig.webhook_id,
+          config: webhookConfig
+        }
+      });
+
+      if (error || !response?.success) {
+        throw new Error(response?.error || error?.message || "Erro ao salvar na nuvem");
+      }
+
+      toast.success("Configurações salvas permanentemente!");
+    } catch (error) {
+      console.error("Error saving webhook config:", error);
+      toast.error("Salvo localmente, mas houve erro ao sincronizar com a nuvem");
+    } finally {
+      setIsSavingWebhookConfig(false);
+    }
+  };
+
   // Carregar afiliados da nuvem via edge function - funciona de qualquer dispositivo
   const loadAffiliatesFromCloud = async (forceRefresh = false) => {
     if (loadingAffiliates) return;
