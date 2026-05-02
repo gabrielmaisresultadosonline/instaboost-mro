@@ -4207,6 +4207,36 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                 className="bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-500"
               />
             </div>
+          </div>
+          
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditEmailModal(false);
+                setEditingOrder(null);
+                setNewEmail("");
+              }}
+              className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={saveNewEmail}
+              className="bg-amber-500 hover:bg-amber-600 text-black"
+              disabled={savingEmail || !newEmail.trim()}
+            >
+              {savingEmail ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Salvar Email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal de Configuração do Webhook */}
       <Dialog open={showWebhookSettings} onOpenChange={setShowWebhookSettings}>
         <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-md">
@@ -4239,7 +4269,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   value={webhookConfig.webhook_id}
                   onChange={(e) => setWebhookConfig(prev => ({ ...prev, webhook_id: e.target.value }))}
                   placeholder="ID do seu Webhook"
-                  className="bg-zinc-800/50 border-zinc-600"
+                  className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
                 />
               </div>
               <div>
@@ -4249,7 +4279,7 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
                   onChange={(e) => setWebhookConfig(prev => ({ ...prev, token: e.target.value }))}
                   placeholder="Token do seu Webhook"
                   type="password"
-                  className="bg-zinc-800/50 border-zinc-600"
+                  className="bg-zinc-800/50 border-zinc-600 font-mono text-xs"
                 />
               </div>
             </div>
@@ -4267,35 +4297,6 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               className="bg-cyan-600 hover:bg-cyan-700 text-white w-full"
             >
               Concluído
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-          
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowEditEmailModal(false);
-                setEditingOrder(null);
-                setNewEmail("");
-              }}
-              className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={saveNewEmail}
-              className="bg-amber-500 hover:bg-amber-600 text-black"
-              disabled={savingEmail || !newEmail.trim()}
-            >
-              {savingEmail ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Salvar Email
             </Button>
           </DialogFooter>
         </DialogContent>
