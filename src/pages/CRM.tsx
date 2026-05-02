@@ -1956,9 +1956,10 @@ const CRM = () => {
                                   {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5 text-muted-foreground" />}
                                 </Button>
                               </div>
-                            )}
-                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
-                          </div>
+                            </div>
+                          )}
+                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
+                        </div>
                         </>
                       ) : (
                         <div className="flex flex-col items-center justify-center gap-4 text-center p-8 animate-in fade-in duration-700">
