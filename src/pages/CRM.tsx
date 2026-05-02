@@ -1167,12 +1167,29 @@ const CRM = () => {
   const handleDuplicateFlow = async (flow: any) => {
     setSaving(true);
     try {
-      // Remover campos gerados automaticamente para evitar conflitos no insert
+      // 1. Clonar o fluxo sem os IDs do sistema
       const { id, created_at, updated_at, ...flowData } = flow;
       
+      // 2. Criar IDs únicos para os novos nós e atualizar as referências nas arestas
+      const nodeMap: Record<string, string> = {};
+      const newNodes = (flowData.nodes || []).map((node: any) => {
+        const newId = `${node.type}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        nodeMap[node.id] = newId;
+        return { ...node, id: newId };
+      });
+
+      const newEdges = (flowData.edges || []).map((edge: any) => ({
+        ...edge,
+        id: `e_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        source: nodeMap[edge.source] || edge.source,
+        target: nodeMap[edge.target] || edge.target
+      }));
+
       const newFlow = {
         ...flowData,
         name: `${flowData.name} (Cópia)`,
+        nodes: newNodes,
+        edges: newEdges,
         is_active: false
       };
 
@@ -1194,7 +1211,7 @@ const CRM = () => {
       console.error("Error in handleDuplicateFlow:", err);
       toast({ 
         title: "Erro ao duplicar fluxo", 
-        description: err.message || "Verifique se há campos obrigatórios faltando ou conflitos de chave única.", 
+        description: err.message || "Verifique se há campos obrigatórios faltando ou conflitos.", 
         variant: "destructive" 
       });
     } finally {
@@ -2207,24 +2224,22 @@ const CRM = () => {
                                       <Button size="icon" variant={isRecording ? 'destructive' : 'ghost'} onClick={isRecording ? stopRecording : startRecording}>
                                         {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                                       </Button>
-                                    </div>
                                   </div>
-                                )}
-                                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
-                                </>
-                              ) : (
-                                <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
-                                  <MessageSquare className="w-10 h-10 text-primary/30" />
-                                  <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
-                                  <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
                                 </div>
                               )}
+                              <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
                             </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
+                              <MessageSquare className="w-10 h-10 text-primary/30" />
+                              <h3 className="text-lg font-bold">Gerenciador de Conversas</h3>
+                              <p className="text-muted-foreground text-sm max-w-[280px]">Selecione um contato para começar.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
