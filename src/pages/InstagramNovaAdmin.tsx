@@ -2535,6 +2535,16 @@ ${notPaidAttempts > 0 ? `🎯 Você tem ${notPaidAttempts} vendas para recuperar
               <FileText className="w-4 h-4 mr-1" />
               Logs
             </Button>
+            <Button
+              onClick={() => setShowWebhookSettings(true)}
+              variant="outline"
+              size="sm"
+              className={`border-cyan-500/50 ${webhookConfig.enabled ? "text-cyan-400 bg-cyan-500/5" : "text-zinc-500"}`}
+              title="Configurar Webhook do CRM"
+            >
+              <Send className="w-4 h-4 mr-1" />
+              Webhook CRM
+            </Button>
           </div>
           <div className="flex gap-2">
             <Button
