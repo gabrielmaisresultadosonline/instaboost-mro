@@ -1095,6 +1095,7 @@ export type Database = {
         Row: {
           ai_agent_enabled: boolean | null
           ai_agent_trigger: string | null
+          ai_agent_trigger_keyword: string | null
           ai_operation_mode: string | null
           ai_system_prompt: string | null
           auto_generate_strategy: boolean | null
@@ -1119,6 +1120,7 @@ export type Database = {
         Insert: {
           ai_agent_enabled?: boolean | null
           ai_agent_trigger?: string | null
+          ai_agent_trigger_keyword?: string | null
           ai_operation_mode?: string | null
           ai_system_prompt?: string | null
           auto_generate_strategy?: boolean | null
@@ -1143,6 +1145,7 @@ export type Database = {
         Update: {
           ai_agent_enabled?: boolean | null
           ai_agent_trigger?: string | null
+          ai_agent_trigger_keyword?: string | null
           ai_operation_mode?: string | null
           ai_system_prompt?: string | null
           auto_generate_strategy?: boolean | null

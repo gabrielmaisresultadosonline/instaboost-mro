@@ -265,6 +265,17 @@ serve(async (req) => {
                     if (settings.ai_agent_trigger === 'all') shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'first_message' && isNewContact) shouldTriggerAI = true;
                     else if (settings.ai_agent_trigger === 'manual' && contact.ai_active) shouldTriggerAI = true;
+                    else if (settings.ai_agent_trigger === 'keyword' && message.type === 'text') {
+                      const keyword = settings.ai_agent_trigger_keyword?.toLowerCase().trim();
+                      const text = message.text.body.toLowerCase().trim();
+                      if (keyword && (text === keyword || text.includes(keyword))) {
+                        shouldTriggerAI = true;
+                        // Forçar ativação do contato se bater o gatilho
+                        if (!contact.ai_active) {
+                          await supabase.from('crm_contacts').update({ ai_active: true }).eq('id', contact.id);
+                        }
+                      }
+                    }
 
                     // If mode is monitor, we ALWAYS trigger AI to analyze, but we'll control response later
                     if (settings.ai_operation_mode === 'monitor' || settings.ai_operation_mode === 'hybrid') {
